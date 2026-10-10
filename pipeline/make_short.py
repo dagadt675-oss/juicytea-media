@@ -25,7 +25,7 @@ from jt.audio import (  # noqa: E402
     write_wav,
 )
 from jt.data import build_earth  # noqa: E402
-from jt.qc import evaluate, write_report  # noqa: E402
+from jt.qc import ebur128, evaluate, write_report  # noqa: E402
 from jt.render import FPS, Studio, render_stills, render_video, save_contact  # noqa: E402
 from jt.review import write_packet  # noqa: E402
 from jt.spec import load_spec  # noqa: E402
@@ -102,7 +102,20 @@ def build(spec_path: Path, out: Path, preset: str, hero: bool) -> int:
     (out / "render_metrics.json").write_text(json.dumps(metrics, indent=2))
 
     final = out / "final.mp4"
-    mux(out / "silent.mp4", norm, final)
+    # AAC often lands about 0.2 dB hotter than the wav. Tighten the wav ceiling
+    # and remux until the file itself is under -1.5 dBTP. The picture is not rebuilt.
+    for attempt in range(3):
+        mux(out / "silent.mp4", norm, final)
+        aac = ebur128(final)
+        print(f"aac attempt {attempt + 1}: {aac}", flush=True)
+        mix_report["aac_lufs"] = aac["lufs"]
+        mix_report["aac_tp"] = aac["tp"]
+        if aac["tp"] <= -1.5 and abs(aac["lufs"] + 14) <= 1.0:
+            break
+        tp_target = min(tp_target, aac["tp"]) - 0.5
+        linear = aac["lufs"] >= -15.0
+        loudnorm_two_pass(out / "mix.wav", norm, tp=tp_target, linear=linear)
+    (out / "mix_report.json").write_text(json.dumps(mix_report, indent=2))
     print("qc…", flush=True)
     report = evaluate(final, timeline, mix_report, metrics, hero_metrics)
     text = write_report(report, out / "qc.txt")
