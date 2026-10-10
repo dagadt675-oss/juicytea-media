@@ -121,6 +121,13 @@ def main() -> int:
     ok &= check("pill lands on the miles", 5.20 <= float(payoff["at"]) <= 5.488, str(payoff["at"]))
     opening_route = next(v for v in route.lines[0].visuals if v.get("type") == "route")
     ok &= check("opening arc is already drawing", float(opening_route.get("from", 0)) >= 0.4)
+    from jt.loop_tail import tail_progress
+    samples = [tail_progress(23.85 + i * 0.03, 23.85, 24.1667) for i in range(12)]
+    ok &= check(
+        "loop tail is one direction",
+        samples[0] == 0.0 and samples[-1] == 1.0 and all(b >= a for a, b in zip(samples, samples[1:])),
+        str([round(s, 3) for s in samples]),
+    )
     turns = direction_changes(route, clock, 1080, 1920)
     ok &= check("no camera sway", turns == 0, str(turns))
     alaska_clock = {"duration": 2.0 * len(spec.lines), "words": [],

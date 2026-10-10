@@ -12,6 +12,8 @@ voice:
   enforce_pauses: false
   draw_claims: false
   lead: 0.03
+  # After "mistake." ends. The picture eases into frame 0. Earlier beats stay put.
+  loop_tail: 23.85
 tags: ["#shorts", "#maps", "#flights"]
 sources:
   - "LAX and Narita published airport positions, used only as the pin locations"

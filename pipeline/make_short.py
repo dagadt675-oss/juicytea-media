@@ -102,6 +102,8 @@ def _silent_picture_qc(path: Path, timeline: dict) -> tuple[bool, str]:
     loop = float(timeline.get("_loop") or 1)
     lines.append(f"loop mean abs diff {loop:.5f}")
     ok = ok and loop < 0.01
+    if lax:
+        lines.append(f"tail step max {float(timeline.get('_tail_step_max') or 0):.5f}")
     band = _caption_band_text(path)
     lines.append(f"caption band y 0.64–0.72 text pixels {band}")
     ok = ok and band == 0
@@ -180,6 +182,7 @@ def build_silent(spec, out: Path, preset: str, hero: bool) -> int:
     timeline["_spec"] = spec
     timeline["_hook"] = float(metrics.get("hook_motion") or 0)
     timeline["_loop"] = float(_loop_diff(gray) / 255.0)
+    timeline["_tail_step_max"] = float(metrics.get("tail_step_max") or 0)
     frame_125 = out / "t12.50.png"
     subprocess.run(
         ["ffmpeg", "-y", "-v", "error", "-i", str(picture), "-ss", "12.50",
