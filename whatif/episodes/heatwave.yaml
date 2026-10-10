@@ -1,0 +1,48 @@
+# STUB. Not a sourced script.
+id: heatwave
+title: "What if a heatwave never ended?"
+status: stub
+fps: 30
+width: 1080
+height: 1920
+population: 8300678396
+scene:
+  pieces: [terrain, city, river, bridge, suburbs]
+  seed: 11
+camera:
+  location: [34, -36, 26]
+  target: [2, 3, 3]
+  lens: 32
+  sensor_fit: VERTICAL
+  sensor_height: 24
+beats:
+  - id: start
+    title: true
+    seconds: 3.0
+    counter: {mode: temperature}
+    time_label: "40°C"
+    narration: "The heat does not break."
+    channels:
+      heat: 0.35
+      day_night: 0.28
+  - id: drought
+    seconds: 4.0
+    time_label: "48°C"
+    ticker: "48°C"
+    narration: "The ground cracks, and the river thins."
+    channels:
+      heat: 0.7
+      scorch: 0.45
+      dust: 0.4
+      water: -0.25
+  - id: fire
+    seconds: 4.0
+    time_label: "52°C"
+    ticker: "52°C"
+    narration: "Fires take the dry edges of the city."
+    channels:
+      heat: 1.0
+      scorch: 0.85
+      fire: 0.7
+      dust: 0.55
+      ash: 0.4

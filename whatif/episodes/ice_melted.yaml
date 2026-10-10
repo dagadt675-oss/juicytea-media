@@ -1,0 +1,43 @@
+# STUB. Not a sourced script.
+id: ice_melted
+title: "What if all ice melted?"
+status: stub
+fps: 30
+width: 1080
+height: 1920
+population: 8300678396
+scene:
+  pieces: [coast, city, suburbs]
+  seed: 9
+camera:
+  location: [34, -36, 26]
+  target: [2, 3, 3]
+  lens: 32
+  sensor_fit: VERTICAL
+  sensor_height: 24
+beats:
+  - id: start
+    title: true
+    seconds: 3.0
+    counter: {mode: sealevel}
+    time_label: "+2%"
+    narration: "The ice melts, and the sea begins to climb."
+    channels:
+      water: 0.15
+      ice: 0.2
+  - id: streets
+    seconds: 4.0
+    time_label: "+20%"
+    ticker: "+20%"
+    narration: "The first streets go under."
+    channels:
+      water: 0.45
+      flood: 0.3
+  - id: city
+    seconds: 4.0
+    time_label: "+70%"
+    ticker: "+70%"
+    narration: "Step by step, the city sinks beneath the water."
+    channels:
+      water: 0.9
+      flood: 0.8

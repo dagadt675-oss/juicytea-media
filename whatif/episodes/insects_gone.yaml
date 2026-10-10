@@ -1,0 +1,41 @@
+# STUB. Not a sourced script.
+id: insects_gone
+title: "What if every insect vanished?"
+status: stub
+fps: 30
+width: 1080
+height: 1920
+population: 8300678396
+scene:
+  pieces: [farm, forest]
+  seed: 5
+camera:
+  location: [28, -34, 22]
+  target: [0, 2, 1]
+  lens: 32
+  sensor_fit: VERTICAL
+  sensor_height: 24
+beats:
+  - id: start
+    title: true
+    seconds: 3.0
+    counter: {mode: population}
+    narration: "Every insect is gone."
+    channels:
+      fauna: 0.2
+  - id: wilt
+    seconds: 4.0
+    time_label: "1 SEASON"
+    ticker: "1 SEASON"
+    narration: "Flowers fail, and the crops do not come back."
+    channels:
+      wilt: 0.65
+      fauna: 0.7
+  - id: rot
+    seconds: 4.0
+    time_label: "1 YEAR"
+    ticker: "1 YEAR"
+    narration: "Birds leave, and the fields go brown."
+    channels:
+      wilt: 1.0
+      fauna: 1.0

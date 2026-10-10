@@ -1,0 +1,42 @@
+# STUB. Not a sourced script.
+id: oceans_gone
+title: "What if the oceans disappeared?"
+status: stub
+fps: 30
+width: 1080
+height: 1920
+population: 8300678396
+scene:
+  pieces: [coast, city]
+  seed: 3
+camera:
+  location: [34, -36, 26]
+  target: [2, 3, 3]
+  lens: 32
+  sensor_fit: VERTICAL
+  sensor_height: 24
+beats:
+  - id: start
+    title: true
+    seconds: 3.0
+    counter: {mode: sealevel, label: "SEA LEVEL"}
+    time_label: "0 M"
+    narration: "The oceans begin to slip away."
+    channels:
+      water: -0.15
+  - id: ships
+    seconds: 4.0
+    time_label: "−40 M"
+    ticker: "−40 M"
+    narration: "Ships settle onto the sand as the waterline falls."
+    channels:
+      water: -0.55
+      dust: 0.25
+  - id: dry
+    seconds: 4.0
+    time_label: "SEABED"
+    ticker: "SEABED"
+    narration: "The seabed is a dry plain, and the dust lifts off it."
+    channels:
+      water: -1.0
+      dust: 0.8

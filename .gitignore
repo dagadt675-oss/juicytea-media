@@ -1,0 +1,5 @@
+whatif/out/
+*.blend
+*.blend1
+__pycache__/
+*.pyc

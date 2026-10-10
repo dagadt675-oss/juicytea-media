@@ -1,0 +1,41 @@
+# STUB. Not a sourced script.
+id: gravity_halved
+title: "What if Earth's gravity halved?"
+status: stub
+fps: 30
+width: 1080
+height: 1920
+population: 8300678396
+scene:
+  pieces: [terrain, city, river, bridge, suburbs, forest]
+  seed: 11
+camera:
+  location: [34, -36, 26]
+  target: [2, 3, 3]
+  lens: 32
+  sensor_fit: VERTICAL
+  sensor_height: 24
+beats:
+  - id: start
+    title: true
+    seconds: 3.0
+    counter: {mode: population}
+    narration: "Gravity lets go of half its hold."
+    channels:
+      gravity: 0.35
+  - id: float
+    seconds: 4.0
+    time_label: "HALF"
+    ticker: "HALF G"
+    narration: "Cars and people rise, and the trees grow tall."
+    channels:
+      gravity: 0.75
+      vegetation: 0.4
+  - id: water
+    seconds: 4.0
+    time_label: "HALF"
+    ticker: "HALF G"
+    narration: "The river chops and lifts instead of lying flat."
+    channels:
+      gravity: 1.0
+      vegetation: 0.7
