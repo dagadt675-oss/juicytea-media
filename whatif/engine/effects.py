@@ -258,6 +258,8 @@ def _life(kit, ch, frame, fps, snow):
             s = 1.0 - smoother(0.1, 0.55, ch["fauna"])
             obj.hide_render = s < 0.03
             obj.scale = item.base_scale * max(s, 0.001)
+        elif role == "mascot":
+            obj.hide_render = ch["vegetation"] > 0.65 or ch["ice"] > 0.2 or ch["geology"] > 0.15
         elif role == "prop":
             loc = item.base_loc.copy()
             loc.z += ch["gravity"] * item.extra.get("float", 0.2)
@@ -283,9 +285,12 @@ def _bridge(kit, ch):
         loc.z -= droop
         rot = _euler(item.base_rot)
         if i in (1, 2):
-            u = smoother(0.68 + (i - 1) * 0.05, 0.86 + (i - 1) * 0.04, ch["collapse"])
-            rot.x += u * (1.35 if i == 1 else -1.45)
-            loc.z -= u * u * 2.6
+            u = smoother(0.62 + (i - 1) * 0.04, 0.82 + (i - 1) * 0.03, ch["collapse"])
+            rot.x += u * (1.15 if i == 1 else -1.2)
+            loc.z -= u * 3.4
+            item.obj.hide_render = u > 0.94
+        else:
+            item.obj.hide_render = False
         if item.extra.get("sink"):
             loc.z -= ch["geology"] * 28.0
         item.obj.location = loc
@@ -300,12 +305,13 @@ def _bridge(kit, ch):
         rot = _euler(item.base_rot)
         rot.z += ch["sag"] * (0.04 if i == 0 else -0.05)
         if i == 1:
-            u = smoother(0.86, 1.0, ch["collapse"])
-            rot.x += u * 0.55
-            loc.z -= u * 0.5
+            u = smoother(0.72, 0.95, ch["collapse"])
+            rot.x += u * 0.85
+            loc.z -= u * 1.2
         else:
-            u = smoother(0.92, 1.0, ch["collapse"])
-            rot.y += u * 0.12
+            u = smoother(0.8, 1.0, ch["collapse"])
+            rot.z += u * 0.35
+            loc.z -= u * 0.4
         if item.extra.get("sink"):
             loc.z -= ch["geology"] * 28.0
         item.obj.location = loc

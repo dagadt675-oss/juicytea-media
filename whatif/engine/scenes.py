@@ -67,7 +67,7 @@ def _materials():
     )
     road = make_surface(
         "Road",
-        lin(0.15, 0.16, 0.18),
+        lin(0.24, 0.25, 0.27),
         {"moss": 0.55, "rust": 0.05, "mud": 0.8, "scorch": 0.45, "snow": 1.0, "wet": 0.85},
     )
     park = make_surface(
@@ -325,9 +325,10 @@ def build_river_city(kit, mats, rng, pieces):
     col_v = kit.collection("Life")
     col_p = kit.collection("Plants")
     # Catch-all ground so the frame never shows a void.
-    _plane("bedrock", col_g, (0, -8, -0.55), (120, 120), mats["road"], 0.2)
+    _plane("bedrock", col_g, (0, -8, -0.55), (140, 140), mats["dirt"], 0.2)
+    _plane("near_fill", col_g, (2, -6, PARK_Z - 0.04), (70, 36), mats["park"])
     _plane("far", col_g, (0, 15.5, FAR_Z), (60, 22), mats["trim"])
-    _plane("park", col_g, (-7.0, -10.2, PARK_Z), (32, 16), mats["park"])
+    _plane("park", col_g, (-4.0, -11.0, PARK_Z), (40, 18), mats["park"])
     _plane("front", col_g, (0, -28, PARK_Z), (90, 36), mats["road"])
     low = _plane("lowroad", col_g, (0, -2.25, LOW_Z), (36, 2.5), mats["road"])
     # Quays.
@@ -434,6 +435,11 @@ def build_river_city(kit, mats, rng, pieces):
 
     if "forest" in pieces:
         # Future forest. Delays stagger the takeover.
+        for ix in range(-15, 18, 3):
+            for iy in (9.5, 12.5, 15.5):
+                if 4.0 < ix < 10.0 and iy < 11:
+                    continue
+                _tree(kit, col_p, mats, ix, iy, FAR_Z, rng.uniform(1.3, 2.1), future=True, delay=0.25 + (ix % 5) * 0.05, rng=rng)
         for i in range(28):
             x = rng.uniform(-16, 18)
             if 5.5 < x < 10.5 and rng.random() < 0.5:

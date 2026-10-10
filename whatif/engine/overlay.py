@@ -136,7 +136,7 @@ def _alpha(color, a: float):
 
 def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Image.Image:
     img = image.convert("RGBA")
-    title_size = max(48, int(width * 0.062))
+    title_size = max(42, int(width * 0.048))
     title_font = _font(SERIF, title_size)
     label_font = _font(SANS, max(16, int(width * 0.020)))
     number_font = _font(SERIF, max(42, int(width * 0.052)))
@@ -148,7 +148,7 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
         a = state["title_alpha"]
         # Two centered lines in the sky, well above the caption band.
         lines = _wrap_title(state["title"])
-        y = int(height * 0.115)
+        y = int(height * 0.07)
         gap = int(title_size * 1.05)
         block_h = gap * (len(lines) - 1)
         y -= block_h // 2
