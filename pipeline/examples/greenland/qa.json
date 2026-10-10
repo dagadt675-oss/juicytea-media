@@ -1,25 +1,20 @@
 {
   "frames": 1273,
   "fps": 30,
-  "motion_mean": 2.177,
-  "motion_min": 0.01,
+  "motion_mean": 2.927,
+  "motion_min": 0.028,
   "seconds_under_1": [
-    0,
     1,
     8,
-    11,
     21,
-    23,
     26,
-    27,
-    28,
-    29
+    27
   ],
   "static_holds_s": [],
-  "visual_events": 24,
-  "event_gap_mean": 1.722,
-  "event_gap_max": 9.9,
-  "loop_mean_abs": 0.1789,
+  "visual_events": 39,
+  "event_gap_mean": 1.042,
+  "event_gap_max": 4.133,
+  "loop_mean_abs": 0.2872,
   "benchmark": {
     "event_gap_s": [
       1.41,

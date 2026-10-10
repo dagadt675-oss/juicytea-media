@@ -1,7 +1,8 @@
-"""Country faces. White eyes, black pupils, a few mouths. No portraits.
+"""Country faces sized to the landmass. Eyes are the thing you see on a phone.
 
-`mouth` is 0..1 and is driven by the gag word times. `bob` is a one-syllable
-rise in pixels, also locked to those words.
+An eye is about 20% of the country width: white, a dark rim, a large pupil.
+Brows and a mouth change with the expression. `mouth` is 0..1 and flaps on
+the gag word times. `squash` is the vertical scale, below 1 on a pop.
 """
 
 from __future__ import annotations
@@ -18,113 +19,125 @@ def gag_pose(t: float, t0: float, t1: float, syllables: int = 2) -> tuple[float,
     x = (t - t0) / (t1 - t0)
     phase = (x * syllables) % 1.0
     hump = math.sin(math.pi * phase)
-    return hump, hump * 9.0
+    return hump, hump * max(6.0, 0.04)
 
 
-def draw_face(canvas, x: float, y: float, size: float, expr: str, mouth: float = 0.0,
-              bob: float = 0.0, blink: float = 0.0, crown: float = 0.0):
-    if size < 16:
+def draw_face(canvas, x: float, y: float, country_w: float, expr: str,
+              mouth: float = 0.0, bob: float = 0.0, blink: float = 0.0,
+              squash: float = 1.0, crown: float = 0.0):
+    country_w = float(country_w)
+    if country_w < 36:
         return
-    y -= bob
-    s = size / 78.0
+    eye_w = country_w * 0.20
+    gap = eye_w * 0.42
     canvas.save()
-    canvas.translate(x, y)
-
-    def eye(cx, cy, open_h):
-        if blink > 0.65:
-            pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=3.2 * s)
-            pen.setColor(skia.ColorSetARGB(255, 255, 255, 255))
-            canvas.drawLine(cx - 11 * s, cy, cx + 11 * s, cy, pen)
-            return
-        white = skia.Paint(AntiAlias=True)
-        white.setColor(skia.ColorSetARGB(255, 255, 255, 255))
-        h = max(3.0, open_h) * s
-        canvas.drawOval(skia.Rect.MakeXYWH(cx - 13 * s, cy - h * 0.5, 26 * s, h), white)
-        pupil = skia.Paint(AntiAlias=True)
-        pupil.setColor(skia.ColorSetARGB(255, 16, 16, 20))
-        canvas.drawCircle(cx + 1.5 * s, cy + 1.0 * s, 5.2 * s, pupil)
-
-    # Brows and eye opening depend on the expression.
-    eye_h = 22.0
-    brow = 0.0
-    if expr == "smug":
-        eye_h = 12.0
-        brow = 4.0
-    elif expr == "shocked":
-        eye_h = 28.0
-        brow = -6.0
-    elif expr == "worried":
-        eye_h = 20.0
-        brow = -3.0
-    elif expr == "sad":
-        eye_h = 16.0
-        brow = 2.0
-    elif expr == "happy":
-        eye_h = 14.0
-        brow = -2.0
-    elif expr == "angry":
-        eye_h = 16.0
-        brow = 6.0
-
-    eye(-18 * s, -6 * s, eye_h)
-    eye(18 * s, -6 * s, eye_h)
-
-    brow_paint = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=3.4 * s)
-    brow_paint.setStrokeCap(skia.Paint.kRound_Cap)
-    brow_paint.setColor(skia.ColorSetARGB(255, 255, 255, 255))
-    canvas.drawLine(-30 * s, (-22 + brow) * s, -8 * s, (-18 - brow * 0.3) * s, brow_paint)
-    canvas.drawLine(8 * s, (-18 - brow * 0.3) * s, 30 * s, (-22 + brow) * s, brow_paint)
-
-    _mouth(canvas, s, expr, mouth)
-
+    canvas.translate(x, y - bob * (eye_w / 40.0))
+    sy = max(0.55, min(1.15, squash))
+    sx = 1.0 + (1.0 - sy) * 0.65
+    canvas.scale(sx, sy)
+    _eyes(canvas, eye_w, gap, expr, blink)
+    _brows(canvas, eye_w, gap, expr)
+    _mouth(canvas, eye_w, expr, mouth)
     if crown > 0.05:
-        _crown(canvas, s, crown)
+        _crown(canvas, eye_w, crown)
     canvas.restore()
 
 
-def _mouth(canvas, s: float, expr: str, mouth: float):
-    ink = skia.Paint(AntiAlias=True)
-    ink.setColor(skia.ColorSetARGB(255, 20, 16, 16))
+def _eyes(canvas, eye_w: float, gap: float, expr: str, blink: float):
+    aspect = {
+        "smug": 0.50,
+        "shocked": 1.05,
+        "sad": 0.78,
+        "worried": 0.88,
+        "happy": 0.58,
+    }.get(expr, 0.82)
+    if blink > 0.65:
+        aspect = 0.10
+    eye_h = max(6.0, eye_w * aspect)
     white = skia.Paint(AntiAlias=True)
     white.setColor(skia.ColorSetARGB(255, 255, 255, 255))
-    pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=3.3 * s)
+    rim = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=max(2.0, eye_w * 0.07))
+    rim.setColor(skia.ColorSetARGB(255, 22, 18, 24))
+    pupil = skia.Paint(AntiAlias=True)
+    pupil.setColor(skia.ColorSetARGB(255, 18, 16, 22))
+    for sign in (-1.0, 1.0):
+        cx = sign * (eye_w * 0.5 + gap * 0.5)
+        rect = skia.Rect.MakeXYWH(cx - eye_w / 2, -eye_h / 2, eye_w, eye_h)
+        canvas.drawOval(rect, white)
+        canvas.drawOval(rect, rim)
+        if blink <= 0.65:
+            pr = eye_w * (0.28 if expr != "shocked" else 0.22)
+            px = cx + eye_w * 0.06
+            py = eye_h * 0.06
+            canvas.drawCircle(px, py, pr, pupil)
+            shine = skia.Paint(AntiAlias=True)
+            shine.setColor(skia.ColorSetARGB(230, 255, 255, 255))
+            canvas.drawCircle(px - pr * 0.35, py - pr * 0.35, pr * 0.28, shine)
+
+
+def _brows(canvas, eye_w: float, gap: float, expr: str):
+    pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=max(3.0, eye_w * 0.10))
     pen.setStrokeCap(skia.Paint.kRound_Cap)
     pen.setColor(skia.ColorSetARGB(255, 255, 255, 255))
+    rise = {"smug": 0.10, "shocked": -0.22, "sad": 0.16, "worried": -0.12, "happy": -0.06}.get(expr, 0.0)
+    y = -eye_w * (0.62 + max(0.0, -rise))
+    half = eye_w * 0.46
+    for sign in (-1.0, 1.0):
+        cx = sign * (eye_w * 0.5 + gap * 0.5)
+        tilt = sign * eye_w * rise
+        canvas.drawLine(cx - half, y + tilt, cx + half, y - tilt * 0.4, pen)
+
+
+def _mouth(canvas, eye_w: float, expr: str, mouth: float):
     open_amt = max(0.0, min(1.0, mouth))
+    pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=max(3.0, eye_w * 0.09))
+    pen.setStrokeCap(skia.Paint.kRound_Cap)
+    pen.setColor(skia.ColorSetARGB(255, 255, 255, 255))
+    ink = skia.Paint(AntiAlias=True)
+    ink.setColor(skia.ColorSetARGB(255, 28, 16, 22))
+    y = eye_w * 0.78
+    mw = eye_w * 1.15
     if expr == "shocked":
-        ry = (8 + 14 * open_amt) * s
-        canvas.drawOval(skia.Rect.MakeXYWH(-12 * s, 10 * s, 24 * s, ry), ink)
-        canvas.drawOval(skia.Rect.MakeXYWH(-7 * s, 13 * s, 14 * s, max(4 * s, ry * 0.45)), white)
+        ry = eye_w * (0.28 + 0.45 * open_amt)
+        canvas.drawOval(skia.Rect.MakeXYWH(-mw * 0.38, y, mw * 0.76, ry), ink)
+        rim = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=max(2.0, eye_w * 0.06))
+        rim.setColor(skia.ColorSetARGB(255, 255, 255, 255))
+        canvas.drawOval(skia.Rect.MakeXYWH(-mw * 0.38, y, mw * 0.76, ry), rim)
         return
     if expr == "sad":
-        canvas.drawArc(skia.Rect.MakeXYWH(-16 * s, 16 * s, 32 * s, 18 * s), 200, 140, False, pen)
+        canvas.drawArc(skia.Rect.MakeXYWH(-mw / 2, y, mw, eye_w * 0.55), 200, 140, False, pen)
         return
     if expr == "worried":
-        canvas.drawArc(skia.Rect.MakeXYWH(-14 * s, 14 * s, 28 * s, 16 * s), 200, 140, False, pen)
+        canvas.drawArc(skia.Rect.MakeXYWH(-mw * 0.42, y, mw * 0.84, eye_w * 0.42), 200, 140, False, pen)
         return
-    if expr in ("happy", "smug"):
-        # Smirk / smile. Mouth opens downward on the gag.
-        canvas.drawArc(skia.Rect.MakeXYWH(-16 * s, 8 * s, 32 * s, 18 * s + 10 * open_amt * s), 20, 140, False, pen)
-        if open_amt > 0.25:
-            canvas.drawOval(skia.Rect.MakeXYWH(-8 * s, 16 * s, 16 * s, 8 * open_amt * s), ink)
-        return
-    canvas.drawLine(-12 * s, 16 * s, 12 * s, 16 * s, pen)
+    # smug / happy: a smile that opens on the gag
+    canvas.drawArc(
+        skia.Rect.MakeXYWH(-mw / 2, y - eye_w * 0.05, mw, eye_w * (0.45 + 0.35 * open_amt)),
+        15, 150, False, pen,
+    )
+    if open_amt > 0.2:
+        canvas.drawOval(
+            skia.Rect.MakeXYWH(-mw * 0.22, y + eye_w * 0.12, mw * 0.44, eye_w * 0.28 * open_amt),
+            ink,
+        )
 
 
-def _crown(canvas, s: float, pop: float):
-    k = 0.65 + 0.35 * min(1.0, pop)
+def _crown(canvas, eye_w: float, pop: float):
+    k = 0.7 + 0.3 * min(1.0, pop)
+    s = eye_w * 0.55 * k
     path = skia.Path()
-    path.moveTo(-18 * s, -30 * s * k)
-    path.lineTo(-18 * s, -42 * s * k)
-    path.lineTo(-8 * s, -34 * s * k)
-    path.lineTo(0, -48 * s * k)
-    path.lineTo(8 * s, -34 * s * k)
-    path.lineTo(18 * s, -42 * s * k)
-    path.lineTo(18 * s, -30 * s * k)
+    y0 = -eye_w * 1.15
+    path.moveTo(-s, y0)
+    path.lineTo(-s, y0 - s * 0.7)
+    path.lineTo(-s * 0.35, y0 - s * 0.28)
+    path.lineTo(0, y0 - s)
+    path.lineTo(s * 0.35, y0 - s * 0.28)
+    path.lineTo(s, y0 - s * 0.7)
+    path.lineTo(s, y0)
     path.close()
     paint = skia.Paint(AntiAlias=True)
-    paint.setColor(skia.ColorSetARGB(255, 244, 196, 46))
+    paint.setColor(skia.ColorSetARGB(255, 255, 204, 48))
     canvas.drawPath(path, paint)
-    pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=1.6 * s)
+    pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=max(2.0, eye_w * 0.04))
     pen.setColor(skia.ColorSetARGB(255, 90, 60, 10))
     canvas.drawPath(path, pen)

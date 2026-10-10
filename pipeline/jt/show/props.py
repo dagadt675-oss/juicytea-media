@@ -47,6 +47,38 @@ def _star(canvas, x, y, r, paint):
     canvas.drawPath(path, paint)
 
 
+def equal_brackets(canvas, left, right, pop: float = 1.0):
+    """Two brackets of one shared length, and an equals sign in the gap.
+
+    `left` and `right` are (x0, y0, x1, y1) boxes. The mark sells 'same size'
+    even when the landmasses are not the same shape.
+    """
+    if pop < 0.08 or left is None or right is None:
+        return
+    if left[0] > right[0]:
+        left, right = right, left
+    length = min(left[3] - left[1], right[3] - right[1]) * 0.62 * pop
+    if length < 24:
+        return
+    paint = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=8)
+    paint.setStrokeCap(skia.Paint.kRound_Cap)
+    paint.setColor(skia.ColorSetARGB(int(240 * min(1.0, pop)), 255, 255, 255))
+
+    def bracket(x, cy, arm):
+        y0, y1 = cy - length / 2, cy + length / 2
+        canvas.drawLine(x, y0, x, y1, paint)
+        canvas.drawLine(x, y0, x + arm, y0, paint)
+        canvas.drawLine(x, y1, x + arm, y1, paint)
+
+    bracket(left[2] + 16, (left[1] + left[3]) / 2, -28)
+    bracket(right[0] - 16, (right[1] + right[3]) / 2, 28)
+    mx = (left[2] + right[0]) / 2
+    my = ((left[1] + left[3]) + (right[1] + right[3])) / 4
+    bar = 46
+    canvas.drawLine(mx - bar, my - 16, mx + bar, my - 16, paint)
+    canvas.drawLine(mx - bar, my + 16, mx + bar, my + 16, paint)
+
+
 def equal_bars(canvas, x0: float, x1: float, y: float, length: float, pop: float):
     if pop <= 0.02:
         return

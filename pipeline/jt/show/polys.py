@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 import skia
+from scipy.ndimage import binary_closing, binary_dilation, gaussian_filter
 
 from jt.draw import _ring_paths
 from jt.show.basemap import view_for
@@ -37,7 +38,7 @@ def fill_ring_list(canvas, rings, cam, rgb, alpha: int, stroke=None, stroke_w: f
     canvas.drawPath(path, paint)
     if stroke is not None and alpha > 8:
         pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=stroke_w)
-        pen.setColor(skia.ColorSetARGB(min(255, int(alpha * 1.1)), stroke[0], stroke[1], stroke[2]))
+        pen.setColor(skia.ColorSetARGB(255, stroke[0], stroke[1], stroke[2]))
         canvas.drawPath(path, pen)
 
 
@@ -72,8 +73,57 @@ def fill_iso(canvas, earth, cam, iso: str, rgb, alpha: int, stroke=None, stroke_
     canvas.drawPath(path, paint)
     if stroke is not None and alpha > 8:
         pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=stroke_w)
-        pen.setColor(skia.ColorSetARGB(min(255, int(alpha * 1.1)), stroke[0], stroke[1], stroke[2]))
+        pen.setColor(skia.ColorSetARGB(255, stroke[0], stroke[1], stroke[2]))
         canvas.drawPath(path, pen)
+
+
+def _path_of(earth, cam, isos, w, h):
+    view = view_for(cam, w, h)
+    path = skia.Path()
+    path.setFillType(skia.PathFillType.kWinding)
+    n = 0
+    for iso in isos:
+        for ring in earth.rings.get(iso) or []:
+            for piece in _ring_paths(ring, view):
+                if len(piece) < 3:
+                    continue
+                path.moveTo(piece[0][0], piece[0][1])
+                for x, y in piece[1:]:
+                    path.lineTo(x, y)
+                path.close()
+                n += 1
+    return path, n
+
+
+def fill_union(canvas, earth, cam, isos, rgb, alpha: int, outline: int = 6, w: int = 1080, h: int = 1920):
+    """One bright fill and a thick white outer coast. Internal borders stay out."""
+    path, n = _path_of(earth, cam, isos, w, h)
+    if n == 0:
+        return
+    info = skia.ImageInfo.MakeN32Premul(w, h)
+    surf = skia.Surface.MakeRaster(info)
+    mc = surf.getCanvas()
+    mc.clear(skia.Color4f(0, 0, 0, 0))
+    solid = skia.Paint(AntiAlias=True)
+    solid.setColor(skia.ColorSetARGB(255, 255, 255, 255))
+    mc.drawPath(path, solid)
+    mask = surf.makeImageSnapshot().toarray()[:, :, 3] > 48
+    closed = binary_closing(mask, iterations=3)
+    edge = binary_dilation(closed, iterations=max(3, int(outline))) & ~closed
+    edge_a = np.clip(gaussian_filter(edge.astype(np.float32), 0.6), 0, 1)
+    fill_a = np.clip(gaussian_filter(closed.astype(np.float32), 0.7), 0, 1)
+    img = np.zeros((h, w, 4), np.uint8)
+    img[..., 0] = 255
+    img[..., 1] = 255
+    img[..., 2] = 255
+    img[..., 3] = (edge_a * 255).astype(np.uint8)
+    canvas.drawImage(skia.Image.fromarray(img), 0, 0)
+    color = np.zeros((h, w, 4), np.uint8)
+    color[..., 0] = rgb[0]
+    color[..., 1] = rgb[1]
+    color[..., 2] = rgb[2]
+    color[..., 3] = (fill_a * alpha).astype(np.uint8)
+    canvas.drawImage(skia.Image.fromarray(color), 0, 0)
 
 
 def fill_many(canvas, earth, cam, isos, rgb, alpha: int, stroke=None, w: int = 1080, h: int = 1920):
@@ -105,7 +155,7 @@ class Shape:
         self.cy = cy / weight if weight else 0.0
 
     def draw(self, canvas, ox: float, oy: float, px_per_m: float, rgb, alpha: int,
-             pop: float = 1.0, shadow: float = 1.0, stroke=(255, 255, 255)):
+             pop: float = 1.0, shadow: float = 1.0, stroke=(255, 255, 255), stroke_w: float = 5.0):
         if pop <= 0.02 or alpha <= 0 or not self.polys:
             return
         s = px_per_m * pop
@@ -129,8 +179,8 @@ class Shape:
         paint.setColor(skia.ColorSetARGB(int(alpha), rgb[0], rgb[1], rgb[2]))
         canvas.drawPath(path, paint)
         if stroke is not None:
-            pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=2.4)
-            pen.setColor(skia.ColorSetARGB(min(255, alpha + 40), stroke[0], stroke[1], stroke[2]))
+            pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=stroke_w)
+            pen.setColor(skia.ColorSetARGB(255, stroke[0], stroke[1], stroke[2]))
             canvas.drawPath(path, pen)
 
 

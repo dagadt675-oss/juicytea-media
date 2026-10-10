@@ -22,9 +22,9 @@ from jt.show.cues import pack as pack_cues
 from jt.show.faces import draw_face, gag_pose
 from jt.show.labels import Hud, area_stack, big_number, pill, strike
 from jt.show.polys import (
-    Shape, fill_iso, fill_many, fill_ring_list, group_shape, km_ring, project_lonlat, shape_from,
+    Shape, fill_iso, fill_ring_list, fill_union, group_shape, km_ring, project_lonlat, shape_from,
 )
-from jt.show.props import dashed_path, dust, graticule, sparkles
+from jt.show.props import dashed_path, dust, equal_brackets, graticule, sparkles
 from jt.show.truesize import (
     GREENLAND_HOME_LAT,
     GREENLAND_HOME_LON,
@@ -159,12 +159,17 @@ CUES = [
     (42.21, "whoosh", "loop-tail"),
 ]
 
-_TILES = np.array([
-    (-0.16, -0.12), (0.04, -0.16), (0.20, -0.08), (-0.06, 0.02),
-    (0.14, 0.06), (-0.20, 0.10), (0.02, 0.16), (0.18, 0.16),
-    (-0.10, -0.22), (0.12, -0.24), (-0.18, 0.00), (0.22, 0.02),
-    (0.00, 0.24), (0.16, 0.24),
-], np.float64)
+def _tile_grid():
+    # Normalized offsets across the Africa box, including the south.
+    return np.array([
+        (-0.34, -0.40), (-0.06, -0.42), (0.22, -0.38), (0.44, -0.24),
+        (-0.40, -0.14), (-0.10, -0.12), (0.20, -0.08), (0.42, 0.02),
+        (-0.28, 0.12), (0.02, 0.14), (0.30, 0.18),
+        (-0.14, 0.36), (0.12, 0.42), (0.00, 0.24),
+    ], np.float64)
+
+
+_TILES = _tile_grid()
 
 
 def _clamp(x: float, a: float = 0.0, b: float = 1.0) -> float:
@@ -238,15 +243,17 @@ def pose(t: float) -> dict:
         "strike": hold(t, 2.46, 2.85, 0.06),
         "algeria": max(hold(t, 3.30, 4.40, 0.15), hold(t, 25.90, 30.25, 0.18)),
         "drc": hold(t, 28.15, 30.30, 0.16),
-        "show16": max(hold(t, 12.70, 22.35, 0.12), hold(t, 39.20, 41.15, 0.12)),
+        "show16": hold(t, 12.70, 22.05, 0.08),
         "label3": hold(t, 8.70, 12.35, 0.16),
         "inset": hold(t, 6.45, 10.35, 0.18),
         "peel": ramp(t, 6.55, 8.15),
         "stretch": hold(t, 7.95, 13.6, 0.2),
         "path": ramp(t, 15.03, 16.55) * (1.0 - ramp(t, 22.2, 22.6)),
         "dust": hold(t, 22.45, 22.95, 0.02),
-        "tiles": ramp(t, 24.363, 25.22) * (1.0 - ramp(t, 25.55, 25.95)),
-        "show14": hold(t, 24.30, 25.75, 0.10),
+        "tiles": ramp(t, 23.86, 24.40) * (1.0 - ramp(t, 25.50, 25.95)),
+        "show14": hold(t, 23.86, 25.55, 0.08),
+        "equals": (1.0 if t < 2.25 else (1.0 - ramp(t, 2.25, 2.55)) if t < 2.6
+                   else ramp(t, 41.30, 41.70) if t >= 41.30 else 0.0),
         "by_area": hold(t, 24.55, 25.90, 0.10),
         "areas": hold(t, 24.36, 25.90, 0.10),
         "compare": hold(t, 25.92, 30.20, 0.16),
@@ -269,20 +276,30 @@ def _arrive(t: float, t0: float) -> float:
 
 
 def _blink(t: float) -> float:
-    for t0 in (16.40, 27.70, 35.55):
-        if 0.0 <= t - t0 <= 0.07:
+    for t0 in (1.40, 8.10, 16.40, 27.80, 35.50):
+        if 0.0 <= t - t0 <= 0.08:
             return 1.0
     return 0.0
 
 
+def _squash(t: float) -> float:
+    for start in (4.442, 15.20, 20.85, 22.50, 29.05, 34.55):
+        age = t - start
+        if 0.0 <= age <= 0.24:
+            u = age / 0.24
+            s = u * u * (3.0 - 2.0 * u)
+            return 0.70 + 0.30 * s
+    return 1.0
+
+
 def _face_expr(t: float) -> str | None:
-    if 4.25 <= t <= 5.22:
+    if t <= 5.30:
         return "smug"
-    if 17.4 <= t < 20.85:
+    if 15.20 <= t < 20.85:
         return "worried"
-    if 20.85 <= t < 22.55:
+    if 20.85 <= t < 22.50:
         return "shocked"
-    if 22.55 <= t < 25.7 or 34.5 <= t < 37.15:
+    if 22.50 <= t < 25.60:
         return "sad"
     return None
 
@@ -297,9 +314,9 @@ def _mouth_bob(t: float) -> tuple[float, float]:
 
 def _keys() -> list[Key]:
     rows = [
-        (0.00, "merc", -8, 24, 100),
-        (2.40, "merc", -6, 26, 92),
-        (2.48, "merc", -6, 26, 92),
+        (0.00, "merc", -12, 54, 152),
+        (2.40, "merc", -10, 51, 142),
+        (2.48, "merc", -10, 51, 142),
         (2.92, "ortho", -22, 40, 128),
         (3.70, "ortho", -18, 36, 108),
         (4.22, "ortho", -16, 33, 86),
@@ -318,9 +335,9 @@ def _keys() -> list[Key]:
         (31.50, "merc", 18, 4, 44),
         (34.40, "merc", 17, 3, 40),
         (36.80, "merc", 12, 8, 48),
-        (39.60, "merc", -4, 20, 84),
-        (41.20, "merc", -6, 23, 96),
-        (TAIL0, "merc", -3, 21, 90),
+        (39.60, "merc", -8, 44, 118),
+        (41.20, "merc", -11, 50, 140),
+        (TAIL0, "merc", -12, 52, 146),
     ]
     return [Key(t, Cam(p, lon, lat, span)) for t, p, lon, lat, span in rows]
 
@@ -413,7 +430,7 @@ class Greenland:
 
     def _land(self, cam: Cam, t: float, w: int, h: int) -> np.ndarray:
         st = pose(t)
-        plate = self.plates["satellite" if cam.proj == "ortho" else "satellite_dark"]
+        plate = self.plates["satellite"]
         img = paint_plate(plate, cam, w, h)
         rgba = np.dstack([img, np.full((h, w), 255, np.uint8)])
         surface = skia.Surface(w, h)
@@ -424,18 +441,19 @@ class Greenland:
             rim = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=10)
             rim.setColor(skia.ColorSetARGB(140, 186, 220, 228))
             canvas.drawCircle(view.cx, view.cy, view.r - 2, rim)
-        graticule(canvas, cam, w, h, st["stretch"])
-        fill_many(canvas, self.earth, cam, AFRICA, GOLD, 168, stroke=(255, 236, 190), w=w, h=h)
+        if st["stretch"] > 0.2:
+            graticule(canvas, cam, w, h, st["stretch"])
+        fill_union(canvas, self.earth, cam, AFRICA, (255, 170, 24), 128, outline=6, w=w, h=h)
         if st["algeria"] > 0.05:
-            fill_iso(canvas, self.earth, cam, "DZA", GREEN, int(200 * st["algeria"]),
-                     stroke=(230, 255, 236), w=w, h=h)
+            fill_iso(canvas, self.earth, cam, "DZA", (24, 168, 86), int(200 * st["algeria"]),
+                     stroke=(255, 255, 255), stroke_w=5.5, w=w, h=h)
         if st["drc"] > 0.05:
-            fill_iso(canvas, self.earth, cam, "COD", BLUE, int(200 * st["drc"]),
-                     stroke=(220, 236, 255), w=w, h=h)
+            fill_iso(canvas, self.earth, cam, "COD", (36, 112, 210), int(200 * st["drc"]),
+                     stroke=(255, 255, 255), stroke_w=5.5, w=w, h=h)
         inplace = 1.0 - st["detached"]
         if inplace > 0.04:
-            fill_iso(canvas, self.earth, cam, "GRL", RED, int(200 * inplace),
-                     stroke=(255, 244, 244), stroke_w=2.6, w=w, h=h)
+            fill_iso(canvas, self.earth, cam, "GRL", (232, 28, 58), int(188 * inplace),
+                     stroke=(255, 255, 255), stroke_w=6.5, w=w, h=h)
         packing = st["usa"] > 0.15 or st["chn"] > 0.15
         if st["detached"] > 0.04 and st["compare"] < 0.45 and st["tiles"] < 0.15 and not packing:
             moved = [
@@ -443,8 +461,8 @@ class Greenland:
                 for ring in (self.earth.rings.get("GRL") or [])
             ]
             fill_ring_list(
-                canvas, moved, cam, RED, int(220 * st["detached"]),
-                stroke=(255, 244, 244), stroke_w=2.8,
+                canvas, moved, cam, (232, 28, 58), int(200 * st["detached"]),
+                stroke=(255, 255, 255), stroke_w=6.0,
                 shadow=0.5 + 1.1 * st["lift"], w=w, h=h,
             )
         self._overlays(canvas, cam, st, w, h)
@@ -491,15 +509,16 @@ class Greenland:
         x0, y0, x1, y1 = box
         cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
         if st["tiles"] > 0.04:
-            appeared = ramp(st["t"], 24.363, 25.22)
-            n = int(round(appeared * 14))
+            appeared = ramp(st["t"], 23.86, 24.40)
+            n = int(round(appeared * len(_TILES)))
             for i in range(n):
                 ox = cx + _TILES[i, 0] * (x1 - x0)
                 oy = cy + _TILES[i, 1] * (y1 - y0)
-                pop = min(1.0, max(0.0, appeared * 14 - i) * 1.6)
+                pop = min(1.0, max(0.0, appeared * len(_TILES) - i) * 1.8)
                 self.greenland.draw(
-                    canvas, ox, oy, px, RED, int(115 * min(1.0, st["tiles"] * 4)),
-                    pop=pop, shadow=0.35,
+                    canvas, ox, oy, px * 1.45, (232, 36, 64),
+                    int(125 * min(1.0, st["tiles"] * 3)),
+                    pop=pop, shadow=0.25, stroke=(255, 255, 255), stroke_w=3.5,
                 )
         if st["compare"] > 0.2 and cam.proj == "merc":
             # Same vertex reprojection as the shrink, parked in the Sahara
@@ -513,10 +532,10 @@ class Greenland:
                 stroke=(255, 244, 244), stroke_w=2.6, shadow=1.0, w=w, h=h,
             )
         packs = (
-            ("usa", self.usa, (48, 108, 176), 0.30, 0.34),
-            ("chn", self.china, (196, 62, 54), 0.70, 0.32),
-            ("ind", self.india, (214, 120, 46), 0.30, 0.70),
-            ("eur", self.europe, (96, 86, 176), 0.68, 0.70),
+            ("usa", self.usa, (28, 118, 230), 0.30, 0.34),
+            ("chn", self.china, (226, 36, 48), 0.70, 0.32),
+            ("ind", self.india, (240, 128, 24), 0.30, 0.70),
+            ("eur", self.europe, (118, 72, 220), 0.68, 0.70),
         )
         for key, shape, rgb, fx, fy in packs:
             vis = st[key]
@@ -525,7 +544,9 @@ class Greenland:
             ox = x0 + fx * (x1 - x0)
             oy = y0 + fy * (y1 - y0)
             ox += (1.0 - min(1.0, vis)) * 180
-            shape.draw(canvas, ox, oy, px * 0.82, rgb, int(225 * min(1.0, vis * 1.3)), pop=min(1.15, 0.7 + vis), shadow=1.0)
+            shape.draw(canvas, ox, oy, px * 0.82, rgb, int(215 * min(1.0, vis * 1.3)),
+                       pop=min(1.08, 0.85 + vis * 0.2), shadow=0.8,
+                       stroke=(255, 255, 255), stroke_w=5.0)
         if 22.45 <= st["t"] <= 23.05:
             p = project_lonlat(cam, st["lon"], st["lat"], w, h)
             if p:
@@ -553,109 +574,152 @@ class Greenland:
         canvas.drawCircle(side / 2, side / 2, side * 0.46, rim)
         canvas.restore()
 
+    def _box_of(self, cam, rings, w, h):
+        from jt.project import project_one
+        view = view_for(cam, w, h)
+        xs, ys = [], []
+        for ring in rings:
+            step = max(1, len(ring) // 70)
+            for lon, lat in np.asarray(ring)[::step]:
+                p = project_one(float(lon), float(lat), view)
+                if p is not None:
+                    xs.append(p[0])
+                    ys.append(p[1])
+        if len(xs) < 4:
+            return None
+        return min(xs), min(ys), max(xs), max(ys)
+
     def _faces(self, canvas, cam, st, t, w, h):
+        blink = _blink(st["t"])
+        squash = _squash(st["t"])
         expr = _face_expr(st["t"])
         mouth, bob = _mouth_bob(st["t"])
-        blink = _blink(st["t"])
-        if expr and st["compare"] < 0.35 and st["tiles"] < 0.2 and st["t"] < 24.2:
-            anchor = project_lonlat(cam, st["lon"], st["lat"], w, h)
-            if anchor and 4.25 <= st["t"] <= 5.22:
-                # The gag is a close-up of Greenland, not of the travelling chip.
-                anchor = project_lonlat(cam, HOME_LON, HOME_LAT, w, h)
-            if anchor:
-                if 4.25 <= st["t"] <= 5.22:
-                    size = 120.0
-                else:
-                    size = max(48.0, min(110.0, 42.0 + 5.0 * st["disp"]))
+        if expr and st["compare"] < 0.4 and st["tiles"] < 0.25:
+            if st["detached"] > 0.45:
+                rings = [
+                    reproject_true(ring, HOME_LON, HOME_LAT, st["lon"], st["lat"])
+                    for ring in (self.earth.rings.get("GRL") or [])
+                ]
+            else:
+                rings = self.earth.rings.get("GRL") or []
+            box = self._box_of(cam, rings, w, h)
+            if box and (box[2] - box[0]) > 48:
                 draw_face(
-                    canvas, anchor[0], anchor[1], size, expr, mouth=mouth, bob=bob,
-                    blink=blink, crown=st["gag_excuse"],
+                    canvas, (box[0] + box[2]) / 2, (box[1] + box[3]) / 2,
+                    box[2] - box[0], expr, mouth=mouth if expr == "smug" or expr == "shocked" else 0.0,
+                    bob=bob, blink=blink, squash=squash,
+                    crown=st["gag_excuse"] if expr == "smug" else 0.0,
                 )
         if st["compare"] > 0.35:
-            chip = project_lonlat(cam, 8.0, 20.0, w, h)
-            if chip:
-                draw_face(canvas, chip[0], chip[1], 52, "sad")
-        if st["gag_hi"] > 0.2 or (st["compare"] > 0.55 and 29.0 <= st["t"] <= 30.1):
-            anchor = project_lonlat(cam, 2.6, 28.0, w, h)
-            if anchor:
+            rings = [
+                reproject_true(ring, HOME_LON, HOME_LAT, 8.0, 20.0)
+                for ring in (self.earth.rings.get("GRL") or [])
+            ]
+            box = self._box_of(cam, rings, w, h)
+            if box:
+                draw_face(
+                    canvas, (box[0] + box[2]) / 2, (box[1] + box[3]) / 2,
+                    box[2] - box[0], "sad", blink=blink, squash=squash,
+                )
+        if st["gag_hi"] > 0.15 or (29.05 <= st["t"] <= 30.05):
+            box = self._box_of(cam, self.earth.rings.get("DZA") or [], w, h)
+            if box:
                 m, b = gag_pose(st["t"], 29.245, 29.800, 2)
-                draw_face(canvas, anchor[0], anchor[1] - 20, 84, "smug", mouth=m, bob=b, crown=0.0)
+                draw_face(
+                    canvas, (box[0] + box[2]) / 2, (box[1] + box[3]) / 2,
+                    box[2] - box[0], "smug", mouth=m, bob=b, blink=blink,
+                    squash=_squash(st["t"]) if st["t"] >= 29.0 else 1.0,
+                )
         if st["still"] > 0.35 or st["room"] > 0.2:
             box = self._bbox(cam, w, h)
             if box:
-                draw_face(canvas, (box[0] + box[2]) / 2, box[1] + 70, 78, "happy", mouth=0.2 if st["room"] > 0.5 else 0.0)
+                bw = (box[2] - box[0]) * 0.50
+                draw_face(
+                    canvas, (box[0] + box[2]) / 2, box[1] + (box[3] - box[1]) * 0.46,
+                    bw, "happy", mouth=0.35 if st["room"] > 0.4 else 0.0,
+                    blink=blink, squash=squash,
+                )
 
     def _draw(self, canvas, cam, t: float, w: int, h: int, blend: float) -> int:
         st = pose(t)
         hud = Hud(canvas, w, h)
-        # Screen pills. Geographic ones wait out the middle of a crossfade.
         geo = blend < 0.15 or blend > 0.85
+        if st["equals"] > 0.08 and cam.proj == "merc" and geo:
+            gbox = self._box_of(cam, self.earth.rings.get("GRL") or [], w, h)
+            abox = self._bbox(cam, w, h)
+            equal_brackets(canvas, gbox, abox, st["equals"])
         if st["lying"] > 0.05:
-            pop = 1.0 if st["t"] < 2.4 or st["t"] > 41.9 else max(st["lying"], 0.7)
-            if 41.53 <= st["t"] <= 41.9:
-                pop = _arrive(st["t"], 41.53)
-            pill(hud, "THIS MAP IS LYING", w * 0.5, h * 0.145, RED, size=40, pop=pop, glow=RED)
+            pop = 1.0 if st["t"] < 2.4 or st["t"] >= 41.7 else max(0.9, st["lying"])
+            pill(hud, "THIS MAP IS LYING", w * 0.5, h * 0.58, RED, size=92, pop=pop, glow=RED, kind="lying")
         if st["names"] > 0.4 and geo:
-            g = project_lonlat(cam, HOME_LON, min(HOME_LAT, 70), w, h)
-            a = project_lonlat(cam, 18.0, 2.0, w, h)
-            if g:
-                pill(hud, "GREENLAND", g[0], g[1] + 70, RED, size=28, pop=1.0)
-            if a:
-                pill(hud, "AFRICA", a[0], a[1], (90, 62, 16), ink=(255, 244, 220), size=28, pop=1.0)
+            gbox = self._box_of(cam, self.earth.rings.get("GRL") or [], w, h)
+            abox = self._bbox(cam, w, h)
+            if gbox:
+                gh = gbox[3] - gbox[1]
+                pill(hud, "GREENLAND", (gbox[0] + gbox[2]) / 2, gbox[1] + gh * 0.16,
+                     RED, size=62, pop=1.0, kind="country")
+            if abox:
+                pill(hud, "AFRICA", (abox[0] + abox[2]) / 2, abox[1] + (abox[3] - abox[1]) * 0.72,
+                     (120, 72, 16), ink=(255, 248, 230), size=62, pop=1.0, kind="country")
         if st["same"] > 0.05:
-            box = pill(hud, "SAME SIZE?", w * 0.5, h * 0.42, PAPER, ink=INK, size=40, pop=max(0.7, st["same"]))
+            box = pill(hud, "SAME SIZE?", w * 0.5, h * 0.34, PAPER, ink=INK, size=62, pop=1.0, kind="same")
             if st["strike"] > 0.05 and box:
                 strike(canvas, box, st["strike"])
         if st["gag_excuse"] > 0.2:
-            pill(hud, "EXCUSE ME?", w * 0.5, h * 0.30, PAPER, ink=INK, size=36, pop=1.0)
+            pill(hud, "EXCUSE ME?", w * 0.5, h * 0.28, PAPER, ink=INK, size=72, pop=1.0, kind="gag")
         if st["label3"] > 0.1 and geo:
-            p = project_lonlat(cam, -18.0, 70.0, w, h)
-            cy = p[1] if p else h * 0.28
-            cx = p[0] if p else w * 0.62
-            pill(hud, "~3× WIDER, ~9× AREA (70°N)", cx, cy - 36, (255, 214, 70), ink=INK, size=28,
-                 pop=max(0.75, st["label3"]))
-        if st["show16"] > 0.08:
-            pop = _arrive(st["t"], 12.705) if st["t"] < 30 else 1.0
-            if st["t"] >= 39.2:
-                pop = 1.0
-            big_number(hud, f"{max(1, int(round(st['disp'])))}×", w * 0.5, h * 0.23, size=92, pop=max(0.2, pop) if st["t"] >= 12.70 else 0.0)
+            pill(hud, "~3× WIDER", w * 0.5, h * 0.24, (255, 214, 48), ink=INK, size=80, pop=1.0, kind="number")
+            pill(hud, "~9× AREA  70°N", w * 0.5, h * 0.34, (255, 214, 48), ink=INK, size=72, pop=1.0, kind="number")
+        if st["show16"] > 0.08 and st["t"] < 22.4:
+            big_number(hud, f"{max(1, int(round(st['disp'])))}×", w * 0.5, h * 0.22, size=100,
+                       pop=_arrive(st["t"], 12.705) if st["t"] < 14 else 1.0)
         if st["gag_wait"] > 0.15:
-            pill(hud, "WAIT... WHAT?!", w * 0.5, h * 0.33, PAPER, ink=INK, size=36, pop=1.0)
+            pill(hud, "WAIT... WHAT?!", w * 0.5, h * 0.30, PAPER, ink=INK, size=72, pop=1.0, kind="gag")
         if st["show14"] > 0.08:
-            n = max(1, int(round(ramp(st["t"], 24.363, 25.15) * 14)))
-            big_number(hud, f"{n}×", w * 0.5, h * 0.16, size=96, pop=_arrive(st["t"], 24.36))
+            n = max(1, min(14, int(round(ramp(st["t"], 23.86, 24.36) * 14))))
+            big_number(hud, f"{n}×", w * 0.5, h * 0.22, size=110, pop=_arrive(st["t"], 23.86))
         if st["by_area"] > 0.15:
-            pill(hud, "BY AREA", w * 0.5, h * 0.245, RED, size=30, pop=1.0)
+            pill(hud, "BY AREA", w * 0.5, h * 0.32, RED, size=62, pop=1.0, kind="kicker")
         if st["areas"] > 0.15:
-            area_stack(hud, "AFRICA", AFRICA_KM2, w * 0.27, h * 0.84, pop=1.0)
-            area_stack(hud, "GREENLAND", GREENLAND_KM2, w * 0.73, h * 0.84, pop=1.0)
+            # Full-width number pills cannot sit side by side at this cap height.
+            pill(hud, "AFRICA", w * 0.50, h * 0.37, (120, 72, 16), ink=(255, 248, 230), size=62, pop=1.0, kind="country")
+            pill(hud, "11.73M SQ MI", w * 0.50, h * 0.45, (255, 214, 48), ink=INK, size=84, pop=1.0, kind="sqmi")
+            pill(hud, "GREENLAND", w * 0.50, h * 0.53, RED, size=62, pop=1.0, kind="country")
+            pill(hud, "0.84M SQ MI", w * 0.50, h * 0.60, (255, 214, 48), ink=INK, size=84, pop=1.0, kind="sqmi")
+            pill(hud, "30.37M KM²", w * 0.28, h * 0.755, (28, 36, 48), ink=(236, 240, 244), size=54, pop=1.0, kind="km2")
+            pill(hud, "2.17M KM²", w * 0.72, h * 0.755, (28, 36, 48), ink=(236, 240, 244), size=54, pop=1.0, kind="km2")
         if st["compare"] > 0.25 and geo:
             alg = project_lonlat(cam, 2.6, 28.0, w, h)
             drc = project_lonlat(cam, 23.5, -2.5, w, h)
             chip = project_lonlat(cam, 8.0, 20.0, w, h)
             if alg:
-                pill(hud, "ALGERIA  0.92M SQ MI", alg[0], max(120, alg[1] - 80), GREEN, size=26, pop=1.0)
+                pill(hud, "ALGERIA", alg[0], alg[1] - 90, (24, 150, 78), size=62, pop=1.0, kind="country")
+                pill(hud, "0.92M SQ MI", alg[0], alg[1] - 10, (255, 214, 48), ink=INK, size=80, pop=1.0, kind="number")
             if chip:
-                pill(hud, "GREENLAND  0.84M SQ MI", chip[0], chip[1] + 120, RED, size=26, pop=1.0)
+                pill(hud, "0.84M SQ MI", chip[0], chip[1] + 110, (255, 214, 48), ink=INK, size=80, pop=1.0, kind="number")
             if drc and st["drc"] > 0.2:
-                pill(hud, "DR CONGO  0.91M SQ MI", drc[0], drc[1] + 80, BLUE, size=26, pop=1.0)
+                pill(hud, "DR CONGO", drc[0], drc[1] - 78, (36, 112, 210), size=62, pop=1.0, kind="country")
+                pill(hud, "0.91M SQ MI", drc[0], drc[1] + 36, (255, 214, 48), ink=INK, size=80, pop=1.0, kind="number")
         if st["gag_hi"] > 0.15 and geo:
             alg = project_lonlat(cam, 2.6, 28.0, w, h)
             if alg:
-                pill(hud, "HI, TINY.", alg[0] + 210, alg[1] - 120, PAPER, ink=INK, size=34, pop=1.0)
+                pill(hud, "HI, TINY.", w * 0.70, h * 0.24, PAPER, ink=INK, size=72, pop=1.0, kind="gag")
         if st["usa"] > 0.3:
-            pill(hud, "USA", w * 0.30, h * 0.50, (48, 108, 176), size=28, pop=1.0)
+            pill(hud, "USA", w * 0.28, h * 0.40, (28, 118, 230), size=62, pop=1.0, kind="country")
         if st["chn"] > 0.3:
-            pill(hud, "CHINA", w * 0.72, h * 0.50, (196, 62, 54), size=28, pop=1.0)
+            pill(hud, "CHINA", w * 0.72, h * 0.40, (226, 36, 48), size=62, pop=1.0, kind="country")
         if st["ind"] > 0.3:
-            pill(hud, "INDIA", w * 0.30, h * 0.78, (214, 120, 46), size=28, pop=1.0)
+            pill(hud, "INDIA", w * 0.28, h * 0.56, (240, 128, 24), size=62, pop=1.0, kind="country")
         if st["eur"] > 0.3:
-            pill(hud, "EUROPE", w * 0.72, h * 0.60, (96, 86, 176), size=28, pop=1.0)
+            pill(hud, "EUROPE", w * 0.72, h * 0.56, (118, 72, 220), size=62, pop=1.0, kind="country")
         if st["still"] > 0.15:
-            pill(hud, "STILL BIGGER", w * 0.5, h * 0.145, (255, 214, 70), ink=INK, size=40, pop=_arrive(st["t"], 34.79))
+            pill(hud, "STILL BIGGER", w * 0.5, h * 0.22, (255, 214, 48), ink=INK, size=78,
+                 pop=_arrive(st["t"], 34.79), kind="kicker")
         if st["room"] > 0.15:
-            pill(hud, "ROOM TO SPARE", w * 0.5, h * 0.80, PAPER, ink=INK, size=40, pop=_arrive(st["t"], 36.07))
-        return hud.band_hits()
+            pill(hud, "ROOM TO SPARE", w * 0.5, h * 0.74, PAPER, ink=INK, size=70,
+                 pop=_arrive(st["t"], 36.07), kind="kicker")
+        self._last_caps = hud.caps
+        return hud.safe_hits() + hud.band_hits()
 
 
 def cue_payload() -> dict:

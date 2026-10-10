@@ -91,15 +91,15 @@ def _encode(show: Greenland, path: Path) -> dict:
         "loop_mean_abs": loop,
         "motion_mean": float(np.mean(diffs)) if diffs else 0.0,
         "motion_min": float(np.min(diffs)) if diffs else 0.0,
-        "band_hits": band_max,
-        "band_at": band_at,
+        "safe_or_band_hits": band_max,
+        "safe_or_band_at": band_at,
     }
 
 
 def _contact(show: Greenland, path: Path):
     cols = 8
     thumb_w, thumb_h = 135, 240
-    times = [i / 2 for i in range(int(DURATION * 2) + 1)]
+    times = [i * 3 for i in range(int(DURATION // 3) + 1)]
     rows = math.ceil(len(times) / cols)
     sheet = Image.new("RGB", (cols * thumb_w, rows * thumb_h), (8, 10, 16))
     for i, t in enumerate(times):

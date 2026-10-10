@@ -1,18 +1,24 @@
-"""Satellite, darkened satellite, parchment, and light vector textures.
+"""Natural Earth II shaded relief, plus the camera sampler.
 
-The Earth cache is sampled once into equirectangular plates. Frames sample
-the plate with the same camera the vector highlights use, then crossfade
-when the projection changes. No stock photos.
+The basemap is the public-domain Natural Earth II raster (natural greens,
+tans, blue ocean, shaded relief). Country fills are drawn on top of it.
+Frames sample the plate with the same camera the vectors use.
 """
 
 from __future__ import annotations
 
+import zipfile
 from functools import lru_cache
+from pathlib import Path
 
 import numpy as np
-from scipy.ndimage import distance_transform_edt, zoom
+from PIL import Image
 
 from jt.project import Resolved, ortho_radius, resolve
+
+ROOT = Path(__file__).resolve().parents[2]
+NE2_ZIP = ROOT / "data" / "NE2_50M_SR_W.zip"
+NE2_CACHE = ROOT / "data" / "cache" / "ne2_50m_u8.npy"
 
 _CACHE: dict[str, np.ndarray] | None = None
 
@@ -33,67 +39,57 @@ def _shade(earth) -> np.ndarray:
     return np.clip(earth.shade.astype(np.float32) / 220.0, 0.25, 1.15)
 
 
+def _load_ne2() -> np.ndarray:
+    """Natural Earth II, 10800×5400, row 0 at the north. Cached after the first read."""
+    if NE2_CACHE.exists():
+        return np.load(NE2_CACHE)
+    tif = None
+    for candidate in (
+        Path("/tmp/ne2/NE2_50M_SR_W/NE2_50M_SR_W.tif"),
+        ROOT / "data" / "NE2_50M_SR_W.tif",
+    ):
+        if candidate.exists():
+            tif = candidate
+            break
+    if tif is None and NE2_ZIP.exists():
+        dest = Path("/tmp/ne2")
+        with zipfile.ZipFile(NE2_ZIP) as zf:
+            zf.extract("NE2_50M_SR_W/NE2_50M_SR_W.tif", dest)
+        tif = dest / "NE2_50M_SR_W" / "NE2_50M_SR_W.tif"
+    if tif is None:
+        raise FileNotFoundError("Natural Earth II raster is missing")
+    arr = np.asarray(Image.open(tif).convert("RGB"))
+    NE2_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    np.save(NE2_CACHE, arr)
+    return arr
+
+
 def build_plates(earth) -> dict[str, np.ndarray]:
-    """Four uint8 equirectangular RGB plates."""
+    """Natural-color relief, plus a parchment grade kept for other episodes."""
     global _CACHE
     if _CACHE is not None:
         return _CACHE
+    sat = _load_ne2()
+    # A hair of darkening so a bright fill still reads. The hues stay natural.
+    dark = np.clip(sat.astype(np.float32) * 0.96, 0, 255).astype(np.uint8)
     ids = earth.ids
     th, tw = ids.shape
     land = ids > 0
     shade = _shade(earth)
-    lat = _lat_rows(th)[:, None]
-    # Bathymetry proxy from a half-res distance field.
-    small = land[::2, ::2]
-    dist = distance_transform_edt(~small).astype(np.float32)
-    if dist.shape != land.shape:
-        dist = zoom(dist, (land.shape[0] / dist.shape[0], land.shape[1] / dist.shape[1]), order=1)
-    shallow = np.exp(-dist / 14.0).astype(np.float32)
-
-    grl = 0
-    for i, row in enumerate(earth.meta):
-        if row and row.get("iso") == "GRL":
-            grl = i
-            break
-    ice = np.clip((lat - 60.0) / 16.0, 0.0, 1.0) * land
-    if grl:
-        ice = np.maximum(ice, (ids == grl).astype(np.float32) * 0.85)
-
-    deep = np.array([8, 42, 58], np.float32)
-    shelf = np.array([36, 104, 122], np.float32)
-    ocean = deep * (1.0 - 0.72 * shallow[..., None]) + shelf * (0.72 * shallow[..., None])
-    # A little latitude falloff so the poles read colder.
-    ocean *= (0.78 + 0.22 * (1.0 - np.abs(lat) / 90.0))[..., None]
-
-    olive = np.array([78, 86, 48], np.float32)
-    tan = np.array([168, 142, 96], np.float32)
-    land_rgb = olive * (0.55 + 0.45 * (1.0 - shade[..., None])) + tan * (shade[..., None] * 0.55)
-    ice_rgb = np.array([232, 236, 238], np.float32)
-    land_rgb = land_rgb * (1.0 - 0.82 * ice[..., None]) + ice_rgb * (0.82 * ice[..., None])
-
-    sat = np.where(land[..., None], land_rgb, ocean)
-    border = _borders(ids)
-    sat[border] *= 0.42
-    sat = np.clip(sat, 0, 255).astype(np.uint8)
-
-    dark = sat.astype(np.float32) * 0.62 + np.array([8, 14, 28], np.float32) * 0.38
-    dark = np.clip(dark, 0, 255).astype(np.uint8)
-
-    # Parchment: tan land, slate water, the same hillshade, paper grain.
-    rng = np.random.default_rng(7)
-    grain = rng.normal(0, 4.5, sat.shape).astype(np.float32)
+    if shade.shape != (th, tw):
+        shade = np.ones((th, tw), np.float32)
     paper_land = np.array([186, 164, 122], np.float32) * (0.72 + 0.28 * shade[..., None])
-    paper_sea = np.array([92, 122, 132], np.float32) * (0.85 + 0.15 * shallow[..., None])
-    parchment = np.where(land[..., None], paper_land, paper_sea) + grain
-    parchment[border] *= 0.55
+    paper_sea = np.array([92, 122, 132], np.float32)
+    # Parchment is built at the admin-raster size. The sampler only needs it
+    # when an episode asks for that grade.
+    parchment = np.where(land[..., None], paper_land, paper_sea)
     parchment = np.clip(parchment, 0, 255).astype(np.uint8)
 
-    light_land = np.array([214, 228, 216], np.float32)
-    light_sea = np.array([214, 230, 236], np.float32)
-    light = np.where(land[..., None], light_land * (0.92 + 0.08 * shade[..., None]), light_sea)
-    light[border] = (150, 164, 158)
-    light = np.clip(light, 0, 255).astype(np.uint8)
-
+    light = np.clip(np.where(
+        land[..., None],
+        np.array([214, 228, 216], np.float32),
+        np.array([214, 230, 236], np.float32),
+    ), 0, 255).astype(np.uint8)
     _CACHE = {"satellite": sat, "satellite_dark": dark, "parchment": parchment, "light": light}
     return _CACHE
 

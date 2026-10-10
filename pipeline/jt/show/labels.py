@@ -39,14 +39,21 @@ def faces():
     return _FACES
 
 
+# Text lives between the top 12% and the bottom 20%, and out of the
+# caption band (captions are burned later).
+SAFE_TOP = 0.12
+SAFE_BOT = 0.80
+
+
 class Hud:
-    """Records every text box so a test can prove the caption band is empty."""
+    """Records every text box so QA can prove the safe zone and the caption band."""
 
     def __init__(self, canvas, w: int, h: int):
         self.canvas = canvas
         self.w = w
         self.h = h
         self.boxes: list[tuple[float, float, float, float]] = []
+        self.caps: list[tuple[str, float]] = []
 
     def band_hits(self) -> int:
         y0, y1 = BAND[0] * self.h, BAND[1] * self.h
@@ -56,15 +63,43 @@ class Hud:
                 n += 1
         return n
 
-    def dodge(self, cy: float, height: float) -> float:
-        y0, y1 = BAND[0] * self.h, BAND[1] * self.h
+    def safe_hits(self) -> int:
+        top = SAFE_TOP * self.h
+        bot = SAFE_BOT * self.h
+        n = 0
+        for l, t, r, b in self.boxes:
+            if t < top - 0.5 or b > bot + 0.5:
+                n += 1
+        return n
+
+    def _blocked(self, cy: float, height: float) -> bool:
         top = cy - height / 2
         bot = cy + height / 2
-        if bot <= y0 or top >= y1:
+        if top < SAFE_TOP * self.h or bot > SAFE_BOT * self.h:
+            return True
+        y0, y1 = BAND[0] * self.h, BAND[1] * self.h
+        return bot > y0 and top < y1
+
+    def dodge(self, cy: float, height: float) -> float:
+        if not self._blocked(cy, height):
             return cy
-        if cy < (y0 + y1) / 2:
-            return y0 - height / 2 - 10
-        return y1 + height / 2 + 10
+        h = self.h
+        slots = [
+            SAFE_TOP * h + height / 2 + 6,
+            BAND[0] * h - height / 2 - 8,
+            BAND[1] * h + height / 2 + 8,
+            SAFE_BOT * h - height / 2 - 6,
+        ]
+        best = None
+        best_d = 1e9
+        for slot in slots:
+            if self._blocked(slot, height):
+                continue
+            d = abs(slot - cy)
+            if d < best_d:
+                best_d = d
+                best = slot
+        return cy if best is None else best
 
 
 def _font(which: str, px: float) -> skia.Font:
@@ -72,10 +107,11 @@ def _font(which: str, px: float) -> skia.Font:
 
 
 def pill(hud: Hud, text: str, cx: float, cy: float, fill, ink=(255, 255, 255),
-         size: float = 42, pop: float = 1.0, glow=None) -> tuple[float, float, float, float] | None:
+         size: float = 58, pop: float = 1.0, glow=None, kind: str = "") -> tuple[float, float, float, float] | None:
     if not text or pop <= 0.04:
         return None
-    pop = max(0.55, min(1.18, pop))
+    # Stay near full size so a spring-in doesn't drop the cap height off the spec.
+    pop = max(0.90, min(1.08, pop))
     font = _font("black", size * pop)
     width = font.measureText(text)
     metrics = font.getMetrics()
@@ -104,6 +140,7 @@ def pill(hud: Hud, text: str, cx: float, cy: float, fill, ink=(255, 255, 255),
     hud.canvas.drawString(text, left + pad_x, baseline, font, paint)
     box = (left, top, left + tw, top + th)
     hud.boxes.append(box)
+    hud.caps.append((kind or text, 0.70 * size * pop))
     return box
 
 
@@ -113,14 +150,14 @@ def big_number(hud: Hud, text: str, cx: float, cy: float, size: float = 96, pop:
 
 
 def area_stack(hud: Hud, title: str, km2: float, cx: float, cy: float, pop: float = 1.0):
-    """Primary square miles, secondary km² at >= 36px."""
+    """Primary square miles, secondary km² at a 36px cap (font size 54)."""
     mi = km2 / KM2_PER_SQMI / 1e6
     km = km2 / 1e6
     primary = f"{mi:.2f}M SQ MI"
     secondary = f"{km:.2f}M KM²"
-    pill(hud, title, cx, cy - 78, (244, 244, 246), ink=(16, 16, 20), size=32, pop=pop)
-    pill(hud, primary, cx, cy, (255, 226, 64), ink=(22, 16, 8), size=44, pop=pop)
-    pill(hud, secondary, cx, cy + 64, (36, 44, 58), ink=(236, 240, 244), size=36, pop=pop)
+    pill(hud, title, cx, cy - 118, (244, 244, 246), ink=(16, 16, 20), size=62, pop=pop, kind="area-title")
+    pill(hud, primary, cx, cy, (255, 214, 48), ink=(22, 16, 8), size=84, pop=pop, kind="sqmi")
+    pill(hud, secondary, cx, cy + 100, (28, 36, 48), ink=(236, 240, 244), size=54, pop=pop, kind="km2")
 
 
 def strike(canvas, rect, pop: float):
