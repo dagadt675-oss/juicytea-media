@@ -1,0 +1,9 @@
+{
+  "words": [
+    {"word": "tablespoon", "start": 6.4, "end": 6.9},
+    {"word": "bowl", "start": 10.6, "end": 11.0},
+    {"word": "person", "start": 15.1, "end": 15.5},
+    {"word": "empire", "start": 27.4, "end": 27.9},
+    {"word": "blanc", "start": 34.9, "end": 35.3}
+  ]
+}

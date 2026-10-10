@@ -1,0 +1,202 @@
+# What if you doubled a grain of rice every day for 64 days?
+# Growth episode: one unbroken zoom OUT. Not the paper-fold reel.
+schema: scale_journey/1
+id: rice_64_days
+title: "What if you doubled a grain of rice every day for 64 days?"
+status: final
+module: scale_journey
+fps: 30
+width: 1080
+height: 1920
+direction: out
+seed: 7
+caption_band: [1229, 1382]
+
+# Day 1 is one grain. Day n is 2^(n-1) grains — the pile in front of you
+# that day, not the sum of every previous day. The chessboard legend's
+# total (2^64 - 1) is about twice day 64; that is noted in sources only.
+timing:
+  hook_hold: 2.6
+  journey_end: 35.4
+  ending_hold: 4.2
+  dissolve: 0.7
+
+camera:
+  lens_mm: 22
+  sensor_height_mm: 24
+  sensor_fit: VERTICAL
+  pitch_deg: 24
+  look_frac: 0.38
+  framing: 0.40
+  # Closest the camera gets. The grain sits in a desk shot; the dolly
+  # only starts once the pile outgrows that framing. Never reverses.
+  hold_distance_m: 0.105
+
+counter:
+  primary:
+    label: DAYS
+    source: day
+  secondary:
+    label: HEIGHT
+    source: length
+
+quantity:
+  preset: rice_doubling
+  days: 64
+  grain_length_m: 0.0066
+  grain_width_m: 0.0021
+  grain_thickness_m: 0.0017
+  grain_mass_kg: 0.000021
+  bulk_density_kg_m3: 800
+  repose_deg: 34
+  world_production_tonnes: 538900000
+
+hook:
+  fade_start: 2.2
+  fade_end: 3.1
+  highlight: "64"
+  say: "What if you doubled a grain of rice every day for sixty-four days?"
+  lines:
+    - "What if you doubled"
+    - "a grain of rice"
+    - "every day for 64 days?"
+
+ending:
+  highlight: "{years}"
+  lines:
+    - "Day 64 alone."
+    - "About {years} years of Earth's rice harvest."
+
+milestones:
+  - id: grain
+    t: 0.9
+    day: 1
+    proxy: grain
+    label: "ONE GRAIN"
+    sub: "6.6 mm long"
+    say: "Start with a single grain."
+    fact: ""
+
+  - id: spoon
+    t: 5.6
+    match_volume_m3: 1.478676478125e-5
+    label: "ONE TABLESPOON"
+    sub: "14.8 ml"
+    word: tablespoon
+    say: "A few days in, it's a tablespoon."
+    fact: "A tablespoon of rice."
+
+  - id: bowl
+    t: 9.8
+    match_volume_m3: 0.0003
+    label: "A BOWL"
+    sub: "300 ml"
+    word: bowl
+    say: "Then a whole bowl."
+    fact: "A 300 millilitre bowl."
+
+  - id: person
+    t: 14.0
+    match_height_m: 1.70
+    proxy_height_m: 1.70
+    proxy: person
+    side: 1
+    label: "A PERSON"
+    sub: "1.70 m"
+    word: person
+    say: "The pile is as tall as a person."
+    fact: "As tall as a person, 1.70 m."
+
+  - id: house
+    t: 18.2
+    match_height_m: 8.0
+    proxy_height_m: 8.0
+    proxy: house
+    label: "TWO STOREYS"
+    sub: "8 m"
+    say: "It swallows a two-storey house."
+    fact: "Past a two-storey house, about 8 m."
+
+  - id: liberty
+    t: 22.4
+    match_height_m: 93.0
+    proxy_height_m: 93.0
+    proxy: monument
+    label: "LIBERTY"
+    sub: "93 m"
+    say: "Taller than the Statue of Liberty, pedestal and torch."
+    fact: "Statue of Liberty, 93 m to the torch."
+
+  - id: empire
+    t: 26.6
+    match_height_m: 443.2
+    proxy_height_m: 443.2
+    proxy: tower
+    label: "EMPIRE STATE"
+    sub: "443 m"
+    word: empire
+    say: "Up past the Empire State Building, antenna included."
+    fact: "Empire State Building, 443 m to the tip."
+
+  - id: burj
+    t: 30.8
+    match_height_m: 828.0
+    proxy_height_m: 828.0
+    proxy: spire
+    label: "BURJ KHALIFA"
+    sub: "828 m"
+    say: "Over the Burj Khalifa."
+    fact: "Burj Khalifa, 828 m."
+
+  - id: blanc
+    t: 35.4
+    day: 64
+    match_height_m: 4808
+    proxy_height_m: 4808
+    proxy: peak
+    label: "MONT BLANC"
+    sub: "4,808 m"
+    word: blanc
+    say: "Day sixty-four. About as tall as Mont Blanc. That one pile is centuries of the world's rice harvest."
+    fact: "Day 64. About as tall as Mont Blanc, 4,808 m."
+
+sources:
+  - id: doubling
+    used_for: "Day 1 = 1 grain, day n = 2^(n-1). Day 64 = 2^63 grains."
+    note: "This is the pile on that day. The chessboard sum of every square is 2^64 - 1, about twice as much, and is not what the picture shows."
+  - id: fao_density
+    used_for: "Bulk density 800 kg/m3, inside FAO's 0.78–0.85 g/ml for milled rice."
+    title: "Juliano, Rice in human nutrition, FAO 1993, Table 14"
+    url: "https://www.fao.org/4/t0567e/T0567E08.htm"
+  - id: fao_production
+    used_for: "World rice production 538.9 million tonnes, milled, 2024/25."
+    title: "FAO Food Outlook, Figure 1.4 (2024/25 production)"
+    url: "https://openknowledge.fao.org/server/api/core/bitstreams/8822b0b4-be6b-4626-a821-43bb2afbdc48/content"
+  - id: kernel
+    used_for: "Scenario kernel: 6.6 mm long, 2.1 mm wide, 1.7 mm thick, 21 mg."
+    note: >
+      USDA milled-rice classes (7 CFR 868.302) use a length/width ratio, not one official mass.
+      6.6 mm is the long-grain class threshold widely cited from Codex Stan 198 (verify before publish).
+      21 mg is a thousand-kernel weight of 21 g, a representative figure inside the commonly published range, not a universal average.
+      Width and thickness keep a long-grain length/width ratio above 3.
+  - id: repose
+    used_for: "Cone angle 34 degrees. Pile height is sensitive to this."
+    note: "Published angles of repose for milled rice are roughly 30–38 degrees. 34 is a scenario choice, not a lab measurement."
+  - id: tablespoon
+    used_for: "US tablespoon = 1/256 US gallon = 14.78676478125 ml."
+  - id: bowl
+    used_for: "300 ml vessel. A scenario bowl, not a regulated measure."
+  - id: person
+    used_for: "1.70 m reference height."
+    note: "A round comparison height, not a claimed average. CDC NCHS adult means differ for men and women."
+  - id: house
+    used_for: "8 m two-storey house, approximate, including a roof."
+  - id: liberty
+    used_for: "93 m from the ground to the torch."
+    note: "NPS figure is 305 feet 1 inch, about 93.0 m, pedestal included."
+  - id: empire
+    used_for: "443.2 m to the tip, antenna included (1,454 ft)."
+  - id: burj
+    used_for: "828 m architectural top, CTBUH."
+  - id: blanc
+    used_for: "Mont Blanc about 4,808 m. The on-screen height is the computed pile, not forced to 4,808."
