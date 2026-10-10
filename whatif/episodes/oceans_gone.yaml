@@ -1,0 +1,47 @@
+# Format A stub. Hawaii / Mauna Kea. Not a sourced script.
+id: oceans_drained
+title: "What if the oceans drained?"
+status: stub
+format: A
+fps: 30
+width: 1080
+height: 1920
+population: 8300678396
+scene:
+  name: mauna_kea
+  pieces: [coast]
+  seed: 4
+camera:
+  location: [28, -34, 18]
+  target: [0, 2, 4]
+  lens: 32
+  sensor_fit: VERTICAL
+  sensor_height: 24
+beats:
+  - id: start
+    title: true
+    seconds: 3.2
+    counter: {mode: sealevel}
+    time_label: "0 FT"
+    narration: "The Pacific starts to pull away from the island."
+    channels:
+      water: -0.2
+  - id: shelf
+    seconds: 4.2
+    time_label: "−500 FT"
+    ticker: "−500 FT"
+    narration: "The shelf appears, and the mountain stands higher."
+    channels:
+      water: -0.55
+      sand: 0.25
+      dust: 0.2
+  - id: dry
+    seconds: 4.2
+    time_label: "−12,080 FT"
+    ticker: "−12,080 FT"
+    narration: "Mauna Kea is a ridge in a dry, dusty plain."
+    channels:
+      water: -1.0
+      sand: 0.7
+      dust: 0.65
+      erosion: 0.3

@@ -1,0 +1,52 @@
+# Format C preset. NYC avenue. Anomaly starts at 2 s. About 48 s.
+# Gravity lets go, loose things rise, then they crash back. The street loops.
+id: gravity_off
+title: "What if gravity switched off?"
+status: stub
+format: C
+fps: 30
+width: 1080
+height: 1920
+population: 8200000000
+scene:
+  name: nyc_avenue
+  pieces: []
+  seed: 3
+camera:
+  location: [0.2, -18, 1.7]
+  target: [0.0, 12, 3.0]
+  lens: 26
+  sensor_fit: VERTICAL
+  sensor_height: 24
+beats:
+  - id: calm
+    title: true
+    seconds: 2.0
+    time_label: "10"
+    counter: {mode: time, label: "TIME LEFT"}
+    narration: "Ten seconds from now, gravity lets go."
+  - id: off
+    preset: gravity_off
+    seconds: 12.0
+    time_label: "0"
+    narration: "Loose things rise. For a moment, weight is nothing."
+  - id: down
+    seconds: 8.0
+    time_label: "0"
+    narration: "Then it comes back, and everything falls."
+    channels:
+      gravity_off: 0.0
+      critical: 0.55
+  - id: settle
+    seconds: 16.0
+    time_label: "0"
+    narration: "The avenue is still the avenue."
+    channels:
+      critical: 0.2
+      wind: 0.05
+  - id: return
+    title: true
+    reset: true
+    seconds: 10.0
+    time_label: "10"
+    narration: "Ten seconds again, and nothing has left the ground."

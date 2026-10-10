@@ -1,0 +1,75 @@
+# Format C. NYC avenue, locked street camera. Anomaly by 2 s. About 48 s.
+# The ground stops and the street keeps its speed. Then the count returns to five.
+id: earth_stopped
+title: "What if the Earth stopped spinning?"
+status: stub
+format: C
+fps: 30
+width: 1080
+height: 1920
+population: 8200000000
+scene:
+  name: nyc_avenue
+  pieces: []
+  seed: 3
+camera:
+  location: [0.2, -18, 1.7]
+  target: [0.0, 12, 3.0]
+  lens: 26
+  sensor_fit: VERTICAL
+  sensor_height: 24
+beats:
+  - id: calm
+    title: true
+    seconds: 2.0
+    time_label: "2"
+    counter: {mode: time, label: "TIME LEFT"}
+    narration: "Two seconds."
+    channels:
+      critical: 0.08
+  - id: stop
+    seconds: 8.0
+    time_label: "0"
+    narration: "The ground stops. The avenue does not."
+    channels:
+      inertia: 0.9
+      scatter: 0.65
+      fracture: 0.25
+      critical: 0.7
+      wind: 0.85
+      dust: 0.4
+  - id: wind
+    seconds: 8.0
+    time_label: "0"
+    narration: "Wind and dust follow everything that was loose."
+    channels:
+      inertia: 1.0
+      scatter: 0.8
+      fracture: 0.55
+      wind: 1.0
+      dust: 0.7
+      critical: 0.9
+  - id: wave
+    seconds: 12.0
+    time_label: "0"
+    narration: "The water still has its speed, and it comes down the street."
+    channels:
+      wave: 1.0
+      critical: 1.0
+      wind: 0.4
+  - id: after
+    seconds: 10.0
+    time_label: "0"
+    narration: "Then the spin is back."
+    channels:
+      inertia: 0.15
+      wave: 0.2
+      fracture: 0.2
+      critical: 0.35
+      wind: 0.1
+  - id: return
+    title: true
+    reset: true
+    seconds: 8.0
+    time_label: "2"
+    narration: "And the avenue is waiting, with two seconds on the clock."

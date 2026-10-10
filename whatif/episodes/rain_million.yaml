@@ -1,0 +1,53 @@
+# Format A stub. Not a sourced script.
+id: rain_million
+title: "What if it rained for a million years?"
+status: stub
+format: A
+fps: 30
+width: 1080
+height: 1920
+population: 8300678396
+scene:
+  name: desert
+  pieces: [forest]
+  seed: 6
+camera:
+  location: [24, -30, 16]
+  target: [0, 4, 2]
+  lens: 32
+  sensor_fit: VERTICAL
+  sensor_height: 24
+beats:
+  - id: start
+    title: true
+    seconds: 3.0
+    counter: {mode: time}
+    time_label: "1 DAY"
+    narration: "The rain starts, and the sky does not clear."
+    channels:
+      rain: 0.6
+      wet: 0.5
+      day_night: 0.42
+  - id: flood
+    seconds: 4.0
+    time_label: "1,000 YEARS"
+    ticker: "1,000 YEARS"
+    narration: "Rivers rise, and the streets become streams."
+    channels:
+      rain: 1.0
+      flood: 0.7
+      wet: 1.0
+      mud: 0.45
+      vegetation: 0.35
+  - id: erase
+    seconds: 4.5
+    time_label: "1 MILLION YEARS"
+    ticker: "1 MILLION YEARS"
+    narration: "A million years of rain leaves a seam where the city was."
+    channels:
+      rain: 0.7
+      flood: 0.5
+      erosion: 0.8
+      vegetation: 1.0
+      geology: 1.0
+      fog: 0.35

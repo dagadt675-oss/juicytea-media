@@ -1,0 +1,46 @@
+# STUB. Not a sourced script.
+id: snow_forever
+title: "What if it never stopped snowing?"
+status: stub
+format: A
+fps: 30
+width: 1080
+height: 1920
+population: 8300678396
+scene:
+  name: culdesac
+  pieces: [suburbs]
+  seed: 11
+camera:
+  location: [22, -26, 16]
+  target: [0, 0, 2]
+  lens: 32
+  sensor_fit: VERTICAL
+  sensor_height: 24
+beats:
+  - id: start
+    title: true
+    seconds: 3.0
+    counter: {mode: time, label: "SNOW DEPTH"}
+    time_label: "DAY 1"
+    narration: "The snow starts, and it does not stop."
+    channels:
+      snow: 0.25
+  - id: roofs
+    seconds: 4.0
+    time_label: "76 IN"
+    ticker: "76 IN"
+    narration: "Roofs sag, and the cars disappear under the drifts."
+    channels:
+      snow: 0.7
+      sag: 0.45
+  - id: bury
+    seconds: 4.0
+    time_label: "95 FT"
+    ticker: "95 FT"
+    narration: "A year on, the streets are gone and the ice settles in."
+    channels:
+      snow: 1.0
+      sag: 0.8
+      collapse: 0.45
+      ice: 0.85

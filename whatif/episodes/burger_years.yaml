@@ -1,0 +1,47 @@
+# Format A stub. A kitchen counter, not a city. Not a sourced script.
+id: burger_years
+title: "What if a burger sat out for 15 years?"
+status: stub
+format: A
+fps: 30
+width: 1080
+height: 1920
+population: 0
+scene:
+  name: kitchen
+  pieces: []
+  seed: 2
+camera:
+  location: [2.4, -3.6, 2.3]
+  target: [0, 0, 1.15]
+  lens: 38
+  sensor_fit: VERTICAL
+  sensor_height: 24
+beats:
+  - id: fresh
+    title: true
+    seconds: 3.0
+    counter: {mode: time, label: "ON THE COUNTER"}
+    time_label: "1 HOUR"
+    narration: "Nobody comes back for the burger."
+    channels:
+      day_night: 0.2
+  - id: dry
+    seconds: 4.0
+    time_label: "1 MONTH"
+    ticker: "1 MONTH"
+    narration: "The bun dries, and the patty shrinks."
+    channels:
+      sag: 0.35
+      wilt: 0.4
+      heat: 0.15
+  - id: mold
+    seconds: 4.0
+    time_label: "15 YEARS"
+    ticker: "15 YEARS"
+    narration: "Fifteen years on, mold is all that is still growing."
+    channels:
+      sag: 0.85
+      wilt: 0.9
+      vegetation: 1.0
+      season: 0.7
