@@ -1,0 +1,136 @@
+"""Picture QA against the measured GeoGlobeTales cadence.
+
+Motion is the mean absolute gray difference on a 135×240 frame, 0–255.
+A static hold is a run longer than 1 second under 0.5. Visual events are
+peaks in that difference. The silent picture has no loudness to score;
+the cue list is the SFX plan (one hit per event, music bed targets live
+in the cue JSON for the mix).
+"""
+
+from __future__ import annotations
+
+import json
+import subprocess
+from pathlib import Path
+
+import numpy as np
+
+# Means from the five-Short teardown (geoglobetales_teardown, 2026-10-10).
+BENCHMARK = {
+    "event_gap_s": (1.41, 1.97),
+    "static_holds_max": 0,
+    "motion_mean_min": 3.5,
+    "hard_cuts_max": 16,
+}
+
+
+def read_gray(path: Path, width: int = 135, height: int = 240, fps: int = 30) -> tuple[np.ndarray, float]:
+    cmd = [
+        "ffmpeg", "-v", "error", "-i", str(path),
+        "-vf", f"scale={width}:{height},fps={fps}",
+        "-f", "rawvideo", "-pix_fmt", "gray", "-",
+    ]
+    raw = subprocess.check_output(cmd)
+    frame = width * height
+    n = len(raw) // frame
+    frames = np.frombuffer(raw[:n * frame], np.uint8).reshape(n, height, width)
+    return frames, fps
+
+
+def motion_series(frames: np.ndarray) -> np.ndarray:
+    if len(frames) < 2:
+        return np.zeros(0, np.float64)
+    a = frames[:-1].astype(np.float32)
+    b = frames[1:].astype(np.float32)
+    return np.mean(np.abs(b - a), axis=(1, 2))
+
+
+def static_holds(diff: np.ndarray, fps: float, level: float = 0.5, min_s: float = 1.0) -> list[tuple[float, float]]:
+    holds = []
+    run = 0
+    start = 0
+    need = int(round(min_s * fps))
+    for i, value in enumerate(diff):
+        if value < level:
+            if run == 0:
+                start = i
+            run += 1
+        else:
+            if run >= need:
+                holds.append((start / fps, (start + run) / fps))
+            run = 0
+    if run >= need:
+        holds.append((start / fps, (start + run) / fps))
+    return holds
+
+
+def visual_events(diff: np.ndarray, fps: float, height: float = 4.0, min_gap: float = 0.25) -> list[float]:
+    """Peaks, the teardown's visual-event detector in miniature."""
+    if len(diff) < 3:
+        return []
+    gap = int(round(min_gap * fps))
+    times = []
+    last = -10_000
+    for i in range(1, len(diff) - 1):
+        if diff[i] < height:
+            continue
+        if diff[i] < diff[i - 1] or diff[i] < diff[i + 1]:
+            continue
+        if i - last < gap:
+            if times and diff[i] > diff[int(round(times[-1] * fps))]:
+                times[-1] = i / fps
+                last = i
+            continue
+        times.append(i / fps)
+        last = i
+    return times
+
+
+def loop_diff(frames: np.ndarray) -> float:
+    if len(frames) < 2:
+        return 1.0
+    return float(np.mean(np.abs(frames[0].astype(np.float32) - frames[-1].astype(np.float32))))
+
+
+def report(path: Path, cues: list[dict] | None = None) -> dict:
+    frames, fps = read_gray(path)
+    diff = motion_series(frames)
+    holds = static_holds(diff, fps)
+    events = visual_events(diff, fps)
+    gaps = [b - a for a, b in zip(events, events[1:])] if len(events) > 1 else []
+    per_second = []
+    if len(diff):
+        for i in range(int(len(diff) / fps) + 1):
+            sl = diff[int(i * fps):int((i + 1) * fps)]
+            if len(sl):
+                per_second.append(round(float(sl.mean()), 2))
+    out = {
+        "frames": int(len(frames)),
+        "fps": fps,
+        "motion_mean": round(float(diff.mean()) if len(diff) else 0.0, 3),
+        "motion_min": round(float(diff.min()) if len(diff) else 0.0, 3),
+        "seconds_under_1": [i for i, v in enumerate(per_second) if v < 1.0],
+        "static_holds_s": [[round(a, 2), round(b, 2)] for a, b in holds],
+        "visual_events": len(events),
+        "event_gap_mean": round(float(np.mean(gaps)) if gaps else 0.0, 3),
+        "event_gap_max": round(float(np.max(gaps)) if gaps else 0.0, 3),
+        "loop_mean_abs": round(loop_diff(frames), 4),
+        "benchmark": BENCHMARK,
+    }
+    if cues:
+        from jt.show.cues import lint_gaps
+        dur = len(frames) / fps
+        worst, bad = lint_gaps(cues, dur, 2.0)
+        out["cue_gap_max"] = round(worst, 3)
+        out["cue_gaps_over_2s"] = [[round(a, 2), round(b, 2), round(g, 2)] for a, b, g in bad]
+    out["pass"] = (
+        not holds
+        and out["loop_mean_abs"] < 1.5
+        and out["motion_mean"] >= 1.0
+        and out.get("cue_gaps_over_2s", []) == []
+    )
+    return out
+
+
+def write_report(path: Path, payload: dict) -> None:
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

@@ -1,0 +1,1010 @@
+{
+  "id": "greenland_africa",
+  "take_duration": 42.411,
+  "picture_duration": 42.433,
+  "fps": 30,
+  "frames": 1273,
+  "loop_tail": {
+    "start": 42.211,
+    "end": 42.4
+  },
+  "beats": [
+    {
+      "id": "hook",
+      "t0": 0.08,
+      "t1": 4.222,
+      "say": "This map says Greenland is as big as Africa. It's not even as big as Algeria."
+    },
+    {
+      "id": "excuse",
+      "t0": 4.442,
+      "t1": 5.022,
+      "speaker": "greenland",
+      "say": "Excuse me?"
+    },
+    {
+      "id": "trick",
+      "t0": 5.322,
+      "t1": 14.087,
+      "say": "Here's the trick. Sixteen times too big."
+    },
+    {
+      "id": "drag",
+      "t0": 14.691,
+      "t1": 17.919,
+      "say": "So let's drag Greenland down to the equator."
+    },
+    {
+      "id": "shrink",
+      "t0": 18.07,
+      "t1": 20.763,
+      "say": "Watch it shrink. And shrink. And SHRINK."
+    },
+    {
+      "id": "wait",
+      "t0": 21.013,
+      "t1": 21.803,
+      "speaker": "greenland",
+      "say": "Wait... what?!"
+    },
+    {
+      "id": "drop",
+      "t0": 22.303,
+      "t1": 23.244,
+      "say": "Now drop it on Africa."
+    },
+    {
+      "id": "fourteen",
+      "t0": 23.864,
+      "t1": 25.397,
+      "say": "Africa is FOURTEEN times bigger."
+    },
+    {
+      "id": "algeria",
+      "t0": 25.919,
+      "t1": 29.065,
+      "say": "Even Algeria is bigger than Greenland. So is D.R. Congo."
+    },
+    {
+      "id": "hitiny",
+      "t0": 29.245,
+      "t1": 29.8,
+      "speaker": "algeria",
+      "say": "Hi, tiny."
+    },
+    {
+      "id": "pack",
+      "t0": 30.16,
+      "t1": 33.933,
+      "say": "USA, China, India, and Europe."
+    },
+    {
+      "id": "still",
+      "t0": 34.27,
+      "t1": 35.361,
+      "say": "Africa is STILL bigger."
+    },
+    {
+      "id": "room",
+      "t0": 35.861,
+      "t1": 36.755,
+      "say": "With room to spare."
+    },
+    {
+      "id": "outro",
+      "t0": 37.278,
+      "t1": 42.211,
+      "say": "The map is lying."
+    }
+  ],
+  "sentences": [
+    {
+      "text": "This map says Greenland is as big as Africa.",
+      "t0": 0.08,
+      "t1": 2.341,
+      "speaker": "narrator"
+    },
+    {
+      "text": "It's not even as big as Algeria.",
+      "t0": 2.457,
+      "t1": 4.222,
+      "speaker": "narrator"
+    },
+    {
+      "text": "Excuse me?",
+      "t0": 4.442,
+      "t1": 5.022,
+      "speaker": "greenland",
+      "gag": "excuse"
+    },
+    {
+      "text": "Here's the trick.",
+      "t0": 5.322,
+      "t1": 6.018,
+      "speaker": "narrator"
+    },
+    {
+      "text": "To flatten a round Earth, this map stretches land more and more toward the poles.",
+      "t0": 6.401,
+      "t1": 10.36,
+      "speaker": "narrator"
+    },
+    {
+      "text": "Up where Greenland sits, that's about SIXTEEN times too big.",
+      "t0": 10.883,
+      "t1": 14.087,
+      "speaker": "narrator"
+    },
+    {
+      "text": "So let's drag Greenland down to the equator, where the map tells the truth...",
+      "t0": 14.691,
+      "t1": 17.919,
+      "speaker": "narrator"
+    },
+    {
+      "text": "Watch it shrink.",
+      "t0": 18.07,
+      "t1": 18.789,
+      "speaker": "narrator"
+    },
+    {
+      "text": "And shrink.",
+      "t0": 19.172,
+      "t1": 19.765,
+      "speaker": "narrator"
+    },
+    {
+      "text": "And SHRINK.",
+      "t0": 19.95,
+      "t1": 20.763,
+      "speaker": "narrator"
+    },
+    {
+      "text": "Wait... what?!",
+      "t0": 21.013,
+      "t1": 21.803,
+      "speaker": "greenland",
+      "gag": "waitwhat"
+    },
+    {
+      "text": "Now drop it on Africa.",
+      "t0": 22.303,
+      "t1": 23.244,
+      "speaker": "narrator"
+    },
+    {
+      "text": "Africa is FOURTEEN times bigger.",
+      "t0": 23.864,
+      "t1": 25.397,
+      "speaker": "narrator"
+    },
+    {
+      "text": "Even Algeria is bigger than Greenland.",
+      "t0": 25.919,
+      "t1": 27.521,
+      "speaker": "narrator"
+    },
+    {
+      "text": "So is D.R.",
+      "t0": 28.101,
+      "t1": 28.601,
+      "speaker": "narrator"
+    },
+    {
+      "text": "Congo.",
+      "t0": 28.624,
+      "t1": 29.065,
+      "speaker": "narrator"
+    },
+    {
+      "text": "Hi, tiny.",
+      "t0": 29.245,
+      "t1": 29.8,
+      "speaker": "algeria",
+      "gag": "hitiny"
+    },
+    {
+      "text": "In fact, put the USA, China, India, and all of Europe outside Russia together...",
+      "t0": 30.16,
+      "t1": 33.933,
+      "speaker": "narrator"
+    },
+    {
+      "text": "and Africa is STILL bigger.",
+      "t0": 34.27,
+      "t1": 35.361,
+      "speaker": "narrator"
+    },
+    {
+      "text": "With room to spare.",
+      "t0": 35.861,
+      "t1": 36.755,
+      "speaker": "narrator"
+    },
+    {
+      "text": "So next time someone shows you this map...",
+      "t0": 37.278,
+      "t1": 38.845,
+      "speaker": "narrator"
+    },
+    {
+      "text": "remember: Greenland isn't huge.",
+      "t0": 39.286,
+      "t1": 41.148,
+      "speaker": "narrator"
+    },
+    {
+      "text": "The map is lying.",
+      "t0": 41.531,
+      "t1": 42.211,
+      "speaker": "narrator"
+    }
+  ],
+  "words": [
+    {
+      "w": "This",
+      "t0": 0.08,
+      "t1": 0.217,
+      "speaker": "narrator"
+    },
+    {
+      "w": "map",
+      "t0": 0.263,
+      "t1": 0.403,
+      "speaker": "narrator"
+    },
+    {
+      "w": "says",
+      "t0": 0.449,
+      "t1": 0.658,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Greenland",
+      "t0": 0.937,
+      "t1": 1.262,
+      "speaker": "narrator"
+    },
+    {
+      "w": "is",
+      "t0": 1.296,
+      "t1": 1.366,
+      "speaker": "narrator"
+    },
+    {
+      "w": "as",
+      "t0": 1.413,
+      "t1": 1.482,
+      "speaker": "narrator"
+    },
+    {
+      "w": "big",
+      "t0": 1.552,
+      "t1": 1.668,
+      "speaker": "narrator"
+    },
+    {
+      "w": "as",
+      "t0": 1.703,
+      "t1": 1.772,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Africa.",
+      "t0": 1.842,
+      "t1": 2.341,
+      "speaker": "narrator"
+    },
+    {
+      "w": "It's",
+      "t0": 2.457,
+      "t1": 2.608,
+      "speaker": "narrator"
+    },
+    {
+      "w": "not",
+      "t0": 2.643,
+      "t1": 2.748,
+      "speaker": "narrator"
+    },
+    {
+      "w": "even",
+      "t0": 2.783,
+      "t1": 2.933,
+      "speaker": "narrator"
+    },
+    {
+      "w": "as",
+      "t0": 2.98,
+      "t1": 3.05,
+      "speaker": "narrator"
+    },
+    {
+      "w": "big",
+      "t0": 3.154,
+      "t1": 3.398,
+      "speaker": "narrator"
+    },
+    {
+      "w": "as",
+      "t0": 3.456,
+      "t1": 3.537,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Algeria.",
+      "t0": 3.607,
+      "t1": 4.222,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Excuse me?",
+      "t0": 4.442,
+      "t1": 5.022,
+      "speaker": "greenland",
+      "gag": "excuse"
+    },
+    {
+      "w": "Here's",
+      "t0": 5.322,
+      "t1": 5.565,
+      "speaker": "narrator"
+    },
+    {
+      "w": "the",
+      "t0": 5.6,
+      "t1": 5.67,
+      "speaker": "narrator"
+    },
+    {
+      "w": "trick.",
+      "t0": 5.705,
+      "t1": 6.018,
+      "speaker": "narrator"
+    },
+    {
+      "w": "To",
+      "t0": 6.401,
+      "t1": 6.494,
+      "speaker": "narrator"
+    },
+    {
+      "w": "flatten",
+      "t0": 6.541,
+      "t1": 6.773,
+      "speaker": "narrator"
+    },
+    {
+      "w": "a",
+      "t0": 6.808,
+      "t1": 6.831,
+      "speaker": "narrator"
+    },
+    {
+      "w": "round",
+      "t0": 6.877,
+      "t1": 7.051,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Earth,",
+      "t0": 7.086,
+      "t1": 7.435,
+      "speaker": "narrator"
+    },
+    {
+      "w": "this",
+      "t0": 7.62,
+      "t1": 7.771,
+      "speaker": "narrator"
+    },
+    {
+      "w": "map",
+      "t0": 7.818,
+      "t1": 7.957,
+      "speaker": "narrator"
+    },
+    {
+      "w": "stretches",
+      "t0": 8.003,
+      "t1": 8.34,
+      "speaker": "narrator"
+    },
+    {
+      "w": "land",
+      "t0": 8.398,
+      "t1": 8.7,
+      "speaker": "narrator"
+    },
+    {
+      "w": "more",
+      "t0": 8.944,
+      "t1": 9.141,
+      "speaker": "narrator"
+    },
+    {
+      "w": "and",
+      "t0": 9.176,
+      "t1": 9.246,
+      "speaker": "narrator"
+    },
+    {
+      "w": "more",
+      "t0": 9.292,
+      "t1": 9.443,
+      "speaker": "narrator"
+    },
+    {
+      "w": "toward",
+      "t0": 9.478,
+      "t1": 9.687,
+      "speaker": "narrator"
+    },
+    {
+      "w": "the",
+      "t0": 9.722,
+      "t1": 9.791,
+      "speaker": "narrator"
+    },
+    {
+      "w": "poles.",
+      "t0": 9.815,
+      "t1": 10.36,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Up",
+      "t0": 10.883,
+      "t1": 10.976,
+      "speaker": "narrator"
+    },
+    {
+      "w": "where",
+      "t0": 11.01,
+      "t1": 11.15,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Greenland",
+      "t0": 11.185,
+      "t1": 11.521,
+      "speaker": "narrator"
+    },
+    {
+      "w": "sits,",
+      "t0": 11.579,
+      "t1": 12.032,
+      "speaker": "narrator"
+    },
+    {
+      "w": "that's",
+      "t0": 12.218,
+      "t1": 12.392,
+      "speaker": "narrator"
+    },
+    {
+      "w": "about",
+      "t0": 12.427,
+      "t1": 12.601,
+      "speaker": "narrator"
+    },
+    {
+      "w": "SIXTEEN",
+      "t0": 12.705,
+      "t1": 13.298,
+      "speaker": "narrator"
+    },
+    {
+      "w": "times",
+      "t0": 13.356,
+      "t1": 13.588,
+      "speaker": "narrator"
+    },
+    {
+      "w": "too",
+      "t0": 13.623,
+      "t1": 13.727,
+      "speaker": "narrator"
+    },
+    {
+      "w": "big.",
+      "t0": 13.774,
+      "t1": 14.087,
+      "speaker": "narrator"
+    },
+    {
+      "w": "So",
+      "t0": 14.691,
+      "t1": 14.796,
+      "speaker": "narrator"
+    },
+    {
+      "w": "let's",
+      "t0": 14.83,
+      "t1": 14.993,
+      "speaker": "narrator"
+    },
+    {
+      "w": "drag",
+      "t0": 15.028,
+      "t1": 15.202,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Greenland",
+      "t0": 15.237,
+      "t1": 15.539,
+      "speaker": "narrator"
+    },
+    {
+      "w": "down",
+      "t0": 15.573,
+      "t1": 15.736,
+      "speaker": "narrator"
+    },
+    {
+      "w": "to",
+      "t0": 15.759,
+      "t1": 15.806,
+      "speaker": "narrator"
+    },
+    {
+      "w": "the",
+      "t0": 15.84,
+      "t1": 15.91,
+      "speaker": "narrator"
+    },
+    {
+      "w": "equator,",
+      "t0": 15.945,
+      "t1": 16.409,
+      "speaker": "narrator"
+    },
+    {
+      "w": "where",
+      "t0": 16.595,
+      "t1": 16.769,
+      "speaker": "narrator"
+    },
+    {
+      "w": "the",
+      "t0": 16.792,
+      "t1": 16.862,
+      "speaker": "narrator"
+    },
+    {
+      "w": "map",
+      "t0": 16.92,
+      "t1": 17.094,
+      "speaker": "narrator"
+    },
+    {
+      "w": "tells",
+      "t0": 17.141,
+      "t1": 17.338,
+      "speaker": "narrator"
+    },
+    {
+      "w": "the",
+      "t0": 17.373,
+      "t1": 17.443,
+      "speaker": "narrator"
+    },
+    {
+      "w": "truth...",
+      "t0": 17.477,
+      "t1": 17.919,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Watch",
+      "t0": 18.07,
+      "t1": 18.267,
+      "speaker": "narrator"
+    },
+    {
+      "w": "it",
+      "t0": 18.302,
+      "t1": 18.36,
+      "speaker": "narrator"
+    },
+    {
+      "w": "shrink.",
+      "t0": 18.395,
+      "t1": 18.789,
+      "speaker": "narrator"
+    },
+    {
+      "w": "And",
+      "t0": 19.172,
+      "t1": 19.3,
+      "speaker": "narrator"
+    },
+    {
+      "w": "shrink.",
+      "t0": 19.358,
+      "t1": 19.765,
+      "speaker": "narrator"
+    },
+    {
+      "w": "And",
+      "t0": 19.95,
+      "t1": 20.148,
+      "speaker": "narrator"
+    },
+    {
+      "w": "SHRINK.",
+      "t0": 20.252,
+      "t1": 20.763,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Wait... what?!",
+      "t0": 21.013,
+      "t1": 21.803,
+      "speaker": "greenland",
+      "gag": "waitwhat"
+    },
+    {
+      "w": "Now",
+      "t0": 22.303,
+      "t1": 22.42,
+      "speaker": "narrator"
+    },
+    {
+      "w": "drop",
+      "t0": 22.454,
+      "t1": 22.594,
+      "speaker": "narrator"
+    },
+    {
+      "w": "it",
+      "t0": 22.629,
+      "t1": 22.687,
+      "speaker": "narrator"
+    },
+    {
+      "w": "on",
+      "t0": 22.71,
+      "t1": 22.768,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Africa.",
+      "t0": 22.803,
+      "t1": 23.244,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Africa",
+      "t0": 23.864,
+      "t1": 24.154,
+      "speaker": "narrator"
+    },
+    {
+      "w": "is",
+      "t0": 24.189,
+      "t1": 24.259,
+      "speaker": "narrator"
+    },
+    {
+      "w": "FOURTEEN",
+      "t0": 24.363,
+      "t1": 24.746,
+      "speaker": "narrator"
+    },
+    {
+      "w": "times",
+      "t0": 24.781,
+      "t1": 24.967,
+      "speaker": "narrator"
+    },
+    {
+      "w": "bigger.",
+      "t0": 25.002,
+      "t1": 25.397,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Even",
+      "t0": 25.919,
+      "t1": 26.128,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Algeria",
+      "t0": 26.163,
+      "t1": 26.604,
+      "speaker": "narrator"
+    },
+    {
+      "w": "is",
+      "t0": 26.639,
+      "t1": 26.697,
+      "speaker": "narrator"
+    },
+    {
+      "w": "bigger",
+      "t0": 26.732,
+      "t1": 26.918,
+      "speaker": "narrator"
+    },
+    {
+      "w": "than",
+      "t0": 26.941,
+      "t1": 27.045,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Greenland.",
+      "t0": 27.08,
+      "t1": 27.521,
+      "speaker": "narrator"
+    },
+    {
+      "w": "So",
+      "t0": 28.101,
+      "t1": 28.252,
+      "speaker": "narrator"
+    },
+    {
+      "w": "is",
+      "t0": 28.31,
+      "t1": 28.368,
+      "speaker": "narrator"
+    },
+    {
+      "w": "D.R.",
+      "t0": 28.403,
+      "t1": 28.601,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Congo.",
+      "t0": 28.624,
+      "t1": 29.065,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Hi, tiny.",
+      "t0": 29.245,
+      "t1": 29.8,
+      "speaker": "algeria",
+      "gag": "hitiny"
+    },
+    {
+      "w": "In",
+      "t0": 30.16,
+      "t1": 30.264,
+      "speaker": "narrator"
+    },
+    {
+      "w": "fact,",
+      "t0": 30.299,
+      "t1": 30.682,
+      "speaker": "narrator"
+    },
+    {
+      "w": "put",
+      "t0": 30.891,
+      "t1": 31.007,
+      "speaker": "narrator"
+    },
+    {
+      "w": "the",
+      "t0": 31.042,
+      "t1": 31.112,
+      "speaker": "narrator"
+    },
+    {
+      "w": "USA,",
+      "t0": 31.158,
+      "t1": 31.611,
+      "speaker": "narrator"
+    },
+    {
+      "w": "China,",
+      "t0": 31.657,
+      "t1": 31.948,
+      "speaker": "narrator"
+    },
+    {
+      "w": "India,",
+      "t0": 31.982,
+      "t1": 32.226,
+      "speaker": "narrator"
+    },
+    {
+      "w": "and",
+      "t0": 32.249,
+      "t1": 32.342,
+      "speaker": "narrator"
+    },
+    {
+      "w": "all",
+      "t0": 32.4,
+      "t1": 32.574,
+      "speaker": "narrator"
+    },
+    {
+      "w": "of",
+      "t0": 32.609,
+      "t1": 32.656,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Europe",
+      "t0": 32.714,
+      "t1": 32.923,
+      "speaker": "narrator"
+    },
+    {
+      "w": "outside",
+      "t0": 32.958,
+      "t1": 33.225,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Russia",
+      "t0": 33.248,
+      "t1": 33.457,
+      "speaker": "narrator"
+    },
+    {
+      "w": "together...",
+      "t0": 33.492,
+      "t1": 33.933,
+      "speaker": "narrator"
+    },
+    {
+      "w": "and",
+      "t0": 34.27,
+      "t1": 34.397,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Africa",
+      "t0": 34.432,
+      "t1": 34.653,
+      "speaker": "narrator"
+    },
+    {
+      "w": "is",
+      "t0": 34.687,
+      "t1": 34.757,
+      "speaker": "narrator"
+    },
+    {
+      "w": "STILL",
+      "t0": 34.792,
+      "t1": 34.978,
+      "speaker": "narrator"
+    },
+    {
+      "w": "bigger.",
+      "t0": 35.024,
+      "t1": 35.361,
+      "speaker": "narrator"
+    },
+    {
+      "w": "With",
+      "t0": 35.861,
+      "t1": 36.001,
+      "speaker": "narrator"
+    },
+    {
+      "w": "room",
+      "t0": 36.07,
+      "t1": 36.221,
+      "speaker": "narrator"
+    },
+    {
+      "w": "to",
+      "t0": 36.268,
+      "t1": 36.314,
+      "speaker": "narrator"
+    },
+    {
+      "w": "spare.",
+      "t0": 36.349,
+      "t1": 36.755,
+      "speaker": "narrator"
+    },
+    {
+      "w": "So",
+      "t0": 37.278,
+      "t1": 37.371,
+      "speaker": "narrator"
+    },
+    {
+      "w": "next",
+      "t0": 37.406,
+      "t1": 37.533,
+      "speaker": "narrator"
+    },
+    {
+      "w": "time",
+      "t0": 37.557,
+      "t1": 37.696,
+      "speaker": "narrator"
+    },
+    {
+      "w": "someone",
+      "t0": 37.731,
+      "t1": 37.986,
+      "speaker": "narrator"
+    },
+    {
+      "w": "shows",
+      "t0": 38.021,
+      "t1": 38.183,
+      "speaker": "narrator"
+    },
+    {
+      "w": "you",
+      "t0": 38.218,
+      "t1": 38.288,
+      "speaker": "narrator"
+    },
+    {
+      "w": "this",
+      "t0": 38.323,
+      "t1": 38.439,
+      "speaker": "narrator"
+    },
+    {
+      "w": "map...",
+      "t0": 38.485,
+      "t1": 38.845,
+      "speaker": "narrator"
+    },
+    {
+      "w": "remember:",
+      "t0": 39.286,
+      "t1": 39.739,
+      "speaker": "narrator"
+    },
+    {
+      "w": "Greenland",
+      "t0": 40.079,
+      "t1": 40.404,
+      "speaker": "narrator"
+    },
+    {
+      "w": "isn't",
+      "t0": 40.451,
+      "t1": 40.637,
+      "speaker": "narrator"
+    },
+    {
+      "w": "huge.",
+      "t0": 40.683,
+      "t1": 41.148,
+      "speaker": "narrator"
+    },
+    {
+      "w": "The",
+      "t0": 41.531,
+      "t1": 41.624,
+      "speaker": "narrator"
+    },
+    {
+      "w": "map",
+      "t0": 41.658,
+      "t1": 41.786,
+      "speaker": "narrator"
+    },
+    {
+      "w": "is",
+      "t0": 41.821,
+      "t1": 41.891,
+      "speaker": "narrator"
+    },
+    {
+      "w": "lying.",
+      "t0": 41.949,
+      "t1": 42.211,
+      "speaker": "narrator"
+    }
+  ]
+}
