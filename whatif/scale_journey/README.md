@@ -1,6 +1,15 @@
-# Scale-journey
+# Scale-journey (format B)
 
-One unbroken zoom for a YouTube Short. The picture is driven by a YAML episode: an everyday object, a single dolly that only moves out (growth) or in (shrinking), a left-side Anton counter, a scale reference every few seconds, and an ending card that dissolves back to frame 0 so the file loops.
+Format B from the approved slate. The full test picture is the penny dropped from the Empire State Building. The second spec is rice on a chessboard. Hole-through-the-Earth, the unbranded brick tower, and the Rhode Island crowd resolve to timelines and the instancer.
+
+Shared with formats A and C, not copied: the counter and type in `whatif/engine/overlay.py` (Noto Serif and Inter), plus `whatif/ui/` for label pills, the reference-outline library (Statue of Liberty, Empire State, Burj Khalifa, a stadium, Titanic, a person), the loop helper, and the `words.json` clock.
+
+```bash
+python3 whatif/scale_journey/render_episode.py whatif/scale_journey/episodes/penny_empire.yaml
+python3 whatif/scale_journey/render_episode.py whatif/scale_journey/episodes/rice_chessboard.yaml --timeline-only
+```
+
+The older zoom path is still here: one dolly that only moves out or in, and an ending card that dissolves back to frame 0.
 
 This package lives beside the headless what-if engine (`whatif/engine`, episode 1 “all humans disappeared”). It does not import or edit that code. When that engine is merged, a spec with `module: scale_journey` can be handed here. See `docs/ADOPTION.md`.
 

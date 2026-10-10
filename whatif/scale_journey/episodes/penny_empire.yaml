@@ -1,0 +1,58 @@
+# What if you dropped a penny off the Empire State Building?
+# Format B. Follow the fall. The payoff is terminal velocity, about 25 mph.
+format: B
+id: penny_empire
+title: "What if you dropped a penny off the Empire State Building?"
+status: final
+preset: penny_fall
+fps: 30
+width: 1080
+height: 1920
+seed: 4
+
+timing:
+  hook_hold: 2.6
+  payoff_hold: 5.0
+  dissolve: 0.8
+
+camera:
+  lens_mm: 28
+  # Constant offset from the penny. The camera only moves down.
+  offset_m: [0.42, -0.10, 0.04]
+  penny_x_m: 0.18
+
+quantity:
+  # US one-cent coin. Face-on drag gives the ~25 mph the slate pays off.
+  mass_kg: 0.0025
+  diameter_m: 0.01905
+  thickness_m: 0.00152
+  cd: 1.14
+  air_kg_m3: 1.204
+
+hook:
+  say: "What if you dropped a penny off the Empire State Building?"
+
+fall:
+  say: "It speeds up, then it stops speeding up."
+
+ending:
+  lines:
+    - "Terminal velocity."
+    - "About 25 miles an hour."
+    - "It stings. It does not kill."
+
+references: [empire, person]
+
+sources:
+  - id: penny
+    used_for: "Mass 2.500 g, diameter 0.750 in (19.05 mm), thickness 1.52 mm."
+    title: "United States Mint, one-cent coin specifications"
+  - id: drag
+    used_for: "Face-on disk, Cd 1.14, air 1.204 kg/m3. v = sqrt(2mg / ρ A Cd) rounds to 25 mph."
+    note: "A tumbling penny can be faster. This is the broadside figure the counter lands on."
+  - id: deck
+    used_for: "Drop from the 86th-floor observatory, 1,050 ft. The tip is 1,454 ft and is not a public ledge."
+    title: "Empire State Building, observatory and tip heights"
+  - id: myth
+    used_for: "The sidewalk payoff. A penny at this speed is not a lethal projectile."
+    note: "MythBusters and the drag result agree on the shape of the answer. Confirm the exact mph before publishing."

@@ -1,0 +1,35 @@
+# Stack generic stud bricks until the bottom one fails. No logos, no brand name on screen.
+format: B
+id: brick_tower
+title: "What if you stacked building bricks until the bottom one broke?"
+status: final
+preset: brick_tower
+fps: 30
+width: 1080
+height: 1920
+
+timing:
+  hook_hold: 2.2
+  duration_sec: 32.0
+
+quantity:
+  # Reported average failure load of a 2x4 stud brick in the Open University press test.
+  failure_n: 4240
+  # Scenario mass. Real 2x4 bricks are often quoted near 2–2.5 g. Fact-check.
+  mass_kg: 0.0025
+  # System course height, stud brick, 9.6 mm. Geometry only. No logo.
+  course_m: 0.0096
+
+say:
+  first: "One brick."
+  half: "Halfway to the load that cracks the bottom brick."
+  failure: "The bottom brick gives up."
+
+sources:
+  - id: load
+    used_for: "4,240 newtons, the average a 2x4 stud brick took in the Open University hydraulic-press test reported by the BBC in 2012."
+    note: "Confirm the paper or the BBC write-up before publishing. Do not put a brand name on screen."
+  - id: course
+    used_for: "9.6 mm system height of a standard stud brick."
+  - id: mass
+    used_for: "2.5 g per brick, a scenario mass inside the usual 2–2.5 g range."

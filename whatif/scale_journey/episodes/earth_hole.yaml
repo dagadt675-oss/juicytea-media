@@ -1,0 +1,62 @@
+# Jump into a hole through the Earth. Out the other side, in the Indian Ocean.
+# The loop plays the trip backward, so the picture ends on the first frame.
+format: B
+id: earth_hole
+title: "What if you jumped into a hole through the Earth?"
+status: final
+preset: earth_hole
+fps: 30
+width: 1080
+height: 1920
+loop: pingpong
+
+timing:
+  hook_hold: 2.2
+  one_way_sec: 38.2
+  duration_sec: 42.0
+
+# Antipode of the Empire State Building (40.748° N, 73.986° W)
+# is 40.748° S, 106.014° E, in the southern Indian Ocean.
+antipode:
+  lat: -40.748
+  lon: 106.014
+exit: "Indian Ocean"
+
+layers:
+  - id: crust
+    t: 0.0
+    depth: "0 mi"
+    name: "CRUST"
+  - id: mantle
+    t: 6.0
+    depth: "20 mi"
+    name: "MANTLE"
+  - id: outer
+    t: 16.0
+    depth: "1,800 mi"
+    name: "OUTER CORE"
+  - id: inner
+    t: 24.0
+    depth: "3,200 mi"
+    name: "INNER CORE"
+  - id: ocean
+    t: 38.0
+    depth: "other side"
+    name: "INDIAN OCEAN"
+
+say:
+  crust: "You step off in New York."
+  mantle: "The crust is gone. This is the mantle."
+  outer: "Molten iron. The outer core."
+  inner: "The solid inner core, then back out."
+  ocean: "You come up in the Indian Ocean. Then you fall back the way you came."
+
+sources:
+  - id: transit
+    used_for: "About 38 minutes to the other side in a realistic Earth, not a uniform ball."
+    note: "Klotz, American Journal of Physics 2015, gives roughly 38 minutes for PREM. Fact-check the exact figure before publishing."
+  - id: antipode
+    used_for: "The point opposite the Empire State Building is in the southern Indian Ocean, near 41° S, 106° E."
+  - id: layers
+    used_for: "Crust, mantle to about 2,900 km, outer core to about 5,150 km, inner core to the centre at 6,371 km."
+    note: "Depth labels in the spec are round miles for the counter, not survey stations."

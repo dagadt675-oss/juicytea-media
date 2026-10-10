@@ -239,6 +239,12 @@ def _keys(ep, final_dir: Path, dest: Path):
 
 def render(args):
     t0 = time.time()
+    import yaml
+    with open(args.spec, "r", encoding="utf-8") as handle:
+        peek = yaml.safe_load(handle)
+    if peek.get("format") == "B":
+        from engine.render_b import render_format_b
+        return render_format_b(args, peek)
     raw = load_raw(args.spec)
     if args.words:
         raw = retime_milestones(raw, args.words)
@@ -338,7 +344,9 @@ def parse_args(argv=None):
     parser.add_argument("--keep-frames", action="store_true")
     args = parser.parse_args(argv)
     if args.out is None:
-        spec = load_raw(args.spec)
+        import yaml
+        with open(args.spec, "r", encoding="utf-8") as handle:
+            spec = yaml.safe_load(handle)
         args.out = ROOT / "out" / spec["id"]
     return args
 
