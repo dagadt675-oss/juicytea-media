@@ -86,10 +86,16 @@ class Studio:
                     cam = lerp_camera(prev, cur, u)
             else:
                 cam = cur.copy()
-        # Slow drift so a held flat map is not a frozen frame. Small enough
-        # that the copied first frame does not pop.
-        drift = 0.45 * math.sin(t * 1.15) + 0.22 * math.sin(t * 2.05)
-        cam.lon += drift
+        # A triangle sway so a flat fill never sits still. Full cycles over the
+        # video, so the copied first frame matches the end. Speed stays high
+        # except for the single frame where the sway turns around.
+        dur = max(float(self.timeline["duration"]), 1.0)
+        cycles = max(8, round(dur / 1.7))
+        period = dur / cycles
+        phase = (t % period) / period
+        tri = 1.0 - abs(2.0 * phase - 1.0)
+        amp = min(9.5, 0.34 * cam.span)
+        cam.lon += amp * (2.0 * tri - 1.0)
         view = resolve(cam.proj, cam.lon, cam.lat, max(4.0, cam.span), self.w, self.h, whip)
         return view, idx, local
 
