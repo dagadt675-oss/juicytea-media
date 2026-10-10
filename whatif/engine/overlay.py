@@ -103,11 +103,17 @@ def ui_state(resolved: dict, frame: int) -> dict:
     if resolved.get("format") == "C":
         failure = float(ch.get("critical", 0.0))
         status = "CRITICAL" if failure >= 0.7 or ch.get("wave", 0) > 0.55 else "NOMINAL" if ch.get("inertia", 0) < 0.08 else "FAULT"
+        g = 9.81 * (1.0 - float(ch.get("gravity_off", 0.0)))
+        speed = max(float(ch.get("inertia", 0.0)), float(ch.get("scatter", 0.0))) * 1040.0
+        elapsed = max(0.0, ((frame - 1) / fps) - beat["start"])
+        time_left = max(0.0, (beat["end"] - beat["start"]) - elapsed)
         hud = {
             "status": status,
             "failure": failure,
-            "inertia": float(ch.get("inertia", 0.0)),
-            "wave": float(ch.get("wave", 0.0)),
+            "gravity": g,
+            "speed": speed,
+            "weight": 180.0 * (g / 9.81),
+            "time_left": time_left,
             "countdown": beat.get("time_label") or "",
             "critical": status == "CRITICAL",
         }
@@ -159,24 +165,23 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
             )
             y += gap
 
-    # Left counter. Sits on the open water/park edge, above y=0.64.
-    a = 1.0
-    x = int(width * 0.055)
-    y = int(height * 0.445)
-    _shadow_text(img, (x, y), state["label"], label_font, fill=_alpha((255, 255, 255), 230), anchor="lt", radius=4, opacity=120)
-    num_y = y + int(height * 0.022)
-    _shadow_text(img, (x, num_y), state["number"], number_font, fill=_alpha((255, 255, 255), 255), anchor="lt", radius=6, opacity=140)
-    if state.get("unit"):
-        # Measure the number and place the unit beside it, baseline-aligned.
-        probe = ImageDraw.Draw(img)
-        bbox = probe.textbbox((x, num_y), state["number"], font=number_font, anchor="lt")
-        unit_x = bbox[2] + int(width * 0.012)
-        unit_y = bbox[3] - int(height * 0.012)
-        _shadow_text(img, (unit_x, unit_y), state["unit"], unit_font, fill=_alpha((255, 255, 255), 235), anchor="ls", radius=4, opacity=120)
-
     if state.get("hud"):
         _draw_hud(img, state["hud"], width, height)
-    if state["ticker_alpha"] > 0.01 and state["ticker"]:
+    else:
+        # Left counter. Sits on the open water/park edge, above y=0.64.
+        x = int(width * 0.055)
+        y = int(height * 0.445)
+        _shadow_text(img, (x, y), state["label"], label_font, fill=_alpha((255, 255, 255), 230), anchor="lt", radius=4, opacity=120)
+        num_y = y + int(height * 0.022)
+        _shadow_text(img, (x, num_y), state["number"], number_font, fill=_alpha((255, 255, 255), 255), anchor="lt", radius=6, opacity=140)
+        if state.get("unit"):
+            probe = ImageDraw.Draw(img)
+            bbox = probe.textbbox((x, num_y), state["number"], font=number_font, anchor="lt")
+            unit_x = bbox[2] + int(width * 0.012)
+            unit_y = bbox[3] - int(height * 0.012)
+            _shadow_text(img, (unit_x, unit_y), state["unit"], unit_font, fill=_alpha((255, 255, 255), 235), anchor="ls", radius=4, opacity=120)
+
+    if not state.get("hud") and state["ticker_alpha"] > 0.01 and state["ticker"]:
         a = state["ticker_alpha"]
         parts = state["ticker"].split()
         number = parts[0] if parts else state["ticker"]
@@ -204,21 +209,23 @@ def _draw_hud(img, hud, width, height):
     value = _font(SANS_SEMI, max(18, int(width * 0.026)))
     big = _font(SERIF, max(120, int(width * 0.22)))
     x = int(width * 0.06)
-    y = int(height * 0.08)
+    y = int(height * 0.20)
     status = hud["status"]
     color = (220, 48, 42, 255) if hud["critical"] else (255, 255, 255, 230)
-    _shadow_text(img, (x, y), "STATUS", label, fill=(255, 255, 255, 180), anchor="lt", radius=3, opacity=90)
-    _shadow_text(img, (x, y + int(height * 0.02)), status, value, fill=color, anchor="lt", radius=4, opacity=100)
+    _shadow_text(img, (x, y), "STATUS  " + status, value, fill=color, anchor="lt", radius=4, opacity=100)
     rows = (
-        ("INERTIA", f"{hud['inertia'] * 100:.0f}%"),
-        ("WAVE", f"{hud['wave'] * 100:.0f}%"),
+        ("GRAVITY", f"{hud['gravity']:.1f} m/s2"),
+        ("SPEED", f"{hud['speed']:.0f} mph"),
+        ("WEIGHT", f"{hud['weight']:.0f} lb"),
+        ("TIME LEFT", f"{hud['time_left']:.1f}s"),
         ("FAILURE", f"{hud['failure'] * 100:.0f}%"),
     )
-    yy = y + int(height * 0.07)
+    yy = y + int(height * 0.045)
+    value_x = int(width * 0.30)
     for name, val in rows:
-        _shadow_text(img, (x, yy), name, label, fill=(255, 255, 255, 170), anchor="lt", radius=3, opacity=80)
-        _shadow_text(img, (x + int(width * 0.22), yy), val, value, fill=color, anchor="lt", radius=3, opacity=80)
-        yy += int(height * 0.032)
+        _shadow_text(img, (x, yy), name, label, fill=(255, 255, 255, 190), anchor="lt", radius=3, opacity=80)
+        _shadow_text(img, (value_x, yy), val, value, fill=color, anchor="lt", radius=3, opacity=80)
+        yy += int(height * 0.038)
     if hud["countdown"]:
         _shadow_text(
             img,

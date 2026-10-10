@@ -21,9 +21,21 @@ Later decay years in episode 1 are labeled in the script doc. The slate marks br
 
 ## Format C
 
-The slate's orbital "Earth stopped spinning" film is last and not this build. The street-level reel (a countdown, loose objects keeping their speed, a wave over the camera) is format C. Our version loops: the count returns to five and the street is intact. The reference ending is a "simulation complete" card and does not loop. We do not copy that card.
+Street-level, real seconds, bright flat low-poly. The reusable place is `nyc_avenue`. `rio_beach` is the next one, for an ocean that pulls back. The anomaly in a 45–60 s short starts by about 2 seconds.
 
-HUD: STATUS, rotation, structural failure, red when critical, a large faint countdown. Word timings are `words.json` with `{w, t0, t1}`, the same shape as the map pipeline. Format B's captions, pills, and scale camera stay on that branch.
+Presets and channels, meant for surreal rules rather than explosions:
+
+- `gravity_off` lifts loose props, holds them, then crashes them back down
+- `scatter` and `inertia` throw them (the stand-in for a rigid-body bake)
+- `fracture` shifts tower tops
+- `wind` and `dust`
+- `wave` brings a wall in; `ocean_pull` draws the water plane away
+
+The HUD shows gravity in m/s², speed, a 180 lb person's weight, time left, and failure. Critical turns red. A faint countdown sits on the right.
+
+A small figure with a red sign is placed off to the side of each scene unless the spec sets `mascot: false`. It is an Easter egg, not a character in the story.
+
+Earth stopped spinning uses the avenue, not the slate's orbital globe. The count returns and the street is intact, so the shot can loop. Gravity switched off is the same avenue and the `gravity_off` preset.
 
 ## What a spec can already draw
 

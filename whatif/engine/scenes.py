@@ -844,6 +844,70 @@ def build_desert(kit, mats, rng):
     kit.kind = "desert"
 
 
+def add_mascot(kit, mats, loc):
+    """Small figure with a red sign. Off to the side, so the shot still reads."""
+    col = kit.collection("Mascot")
+    x, y, z = loc
+    body = box_object("mascot", col, (x, y, z + 0.42), (0.26, 0.16, 0.5), mats["car"])
+    body.color = (0.12, 0.28, 0.62, 1)
+    head = ico_object("mascot_head", col, (x, y - 0.02, z + 0.78), 0.14, mats["car"])
+    head.color = (0.93, 0.78, 0.62, 1)
+    sign = box_object("mascot_sign", col, (x + 0.32, y, z + 0.62), (0.34, 0.04, 0.26), mats["bridge"])
+    kit.add(body, "mascot", sink=False, throw=6.0, index=1)
+    kit.add(head, "mascot", sink=False, throw=6.2, index=2)
+    kit.add(sign, "mascot", sink=False, throw=7.0, index=3)
+
+
+def build_nyc_avenue(kit, mats, rng):
+    """Bright flat avenue. The reusable format-C street."""
+    col = kit.collection("Avenue")
+    _plane("street", col, (0, 8, 0.0), (14, 70), mats["road"])
+    _plane("walk_l", col, (-8.2, 8, 0.08), (3.2, 70), mats["trim"])
+    _plane("walk_r", col, (8.2, 8, 0.08), (3.2, 70), mats["trim"])
+    colors = [(0.86, 0.88, 0.9, 1), (0.95, 0.78, 0.7, 1), (0.7, 0.78, 0.86, 1), (0.92, 0.9, 0.82, 1)]
+    for side in (-1, 1):
+        y = -4
+        i = 0
+        while y < 40:
+            w = rng.uniform(3.2, 5.0)
+            h = rng.uniform(10, 28)
+            obj = link_obj("ave", _tower_mesh("ave", w, w * 0.8, h), col, (mats["wall"], mats["window"]))
+            obj.location = (side * (9.5 + w * 0.3), y, 0.08)
+            obj.color = colors[i % len(colors)]
+            kit.add(obj, "building_base", sink=False)
+            if h > 16:
+                top = link_obj("avetop", _tower_mesh("avetop", w * 0.9, w * 0.7, h * 0.35), col, (mats["wall"], mats["window"]))
+                top.location = (side * (9.5 + w * 0.3), y, 0.08 + h * 0.65)
+                top.color = obj.color
+                kit.add(top, "building_top", sink=False, fall_at=0.4, top_h=h * 0.35, index=i)
+            y += w + 0.8
+            i += 1
+    for i, y in enumerate((-2, 4, 12, 22)):
+        _car(kit, col, mats, (-1.6 if i % 2 == 0 else 1.6, y, 0.05), 0.0, (0.9, 0.9, 0.92, 1), drive=0.0)
+    kit.kind = "nyc"
+    kit.water = None
+
+
+def build_rio_beach(kit, mats, rng):
+    """Beach, a low skyline, and an ocean that can pull back."""
+    col = kit.collection("Beach")
+    _plane("sand", col, (0, -2, 0.05), (40, 18), mats["sand"])
+    _plane("cityground", col, (0, 12, 0.2), (36, 14), mats["trim"])
+    for i, x in enumerate(range(-12, 14, 4)):
+        h = 6 + (i % 4) * 3
+        obj = link_obj("rio", _tower_mesh("rio", 3.2, 3.0, h), col, (mats["wall"], mats["window"]))
+        obj.location = (x, 12, 0.2)
+        obj.color = (0.95, 0.9, 0.8, 1)
+        kit.add(obj, "building_base", sink=False)
+        _tree(kit, col, mats, x + 1.4, 4, 0.05, 1.0, rng=rng)
+    bm = bmesh.new()
+    add_box(bm, (0, 0, -0.1), (50, 24, 0.2), 0)
+    water = link_obj("atlantic", mesh_from_bm("atlantic", bm), col, (mats["water"],))
+    water.location = (0, -12, 0.02)
+    kit.water = kit.add(water, "water", sink=False)
+    kit.kind = "rio"
+
+
 def build_kitchen(kit, mats, rng):
     """A counter and a burger. Mold is vegetation; drying is wilt and heat."""
     col = kit.collection("Kitchen")
@@ -890,6 +954,10 @@ def build_scene(scene, spec, features):
         build_culdesac(kit, mats, rng)
     elif name == "desert":
         build_desert(kit, mats, rng)
+    elif name == "nyc_avenue":
+        build_nyc_avenue(kit, mats, rng)
+    elif name == "rio_beach":
+        build_rio_beach(kit, mats, rng)
     elif "coast" in pieces:
         build_coast(kit, mats, rng, with_city="city" in pieces)
         if "suburbs" in pieces and "city" not in pieces:
@@ -914,6 +982,17 @@ def build_scene(scene, spec, features):
         from engine.format_c import build_wave
 
         build_wave(kit, mats)
+    if spec.get("mascot", True):
+        corners = {
+            "city": (-16.8, -13.2, 0.92),
+            "suburb": (13.0, 8.5, 0.1),
+            "desert": (14.0, -3.0, 0.05),
+            "coast": (12.0, -7.0, 0.3),
+            "kitchen": (2.3, 0.6, 0.96),
+            "nyc": (4.2, -8.0, 0.02),
+            "rio": (-10.0, 1.5, 0.08),
+        }
+        add_mascot(kit, mats, corners.get(kit.kind, (6.0, -6.0, 0.1)))
     _lights(kit)
     return kit
 

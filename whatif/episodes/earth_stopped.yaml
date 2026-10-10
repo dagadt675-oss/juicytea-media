@@ -1,6 +1,5 @@
-# Format C. Real seconds, locked street camera, loopable.
-# Twist: the ground stops and the street does not. The ocean arrives.
-# Then the spin returns and the count is back at five, so the shot can loop.
+# Format C. NYC avenue, locked street camera. Anomaly by 2 s. About 48 s.
+# The ground stops and the street keeps its speed. Then the count returns to five.
 id: earth_stopped
 title: "What if the Earth stopped spinning?"
 status: stub
@@ -8,76 +7,69 @@ format: C
 fps: 30
 width: 1080
 height: 1920
-population: 8300678396
+population: 8200000000
 scene:
-  pieces: [terrain, city, river, bridge, suburbs, forest]
-  seed: 11
+  name: nyc_avenue
+  pieces: []
+  seed: 3
 camera:
-  # Street level, locked. The bridge and towers stay in frame.
-  location: [2.5, -14.5, 1.8]
-  target: [6.5, 4.0, 2.4]
-  lens: 28
+  location: [0.2, -18, 1.7]
+  target: [0.0, 12, 3.0]
+  lens: 26
   sensor_fit: VERTICAL
   sensor_height: 24
 beats:
-  - id: five
+  - id: calm
     title: true
-    seconds: 1.6
-    time_label: "5"
-    ticker: "5"
-    narration: "Five."
-    channels:
-      critical: 0.05
-  - id: four
-    seconds: 1.0
-    time_label: "4"
-    narration: "Four."
-    channels:
-      critical: 0.15
-  - id: three
-    seconds: 1.0
-    time_label: "3"
-    narration: "Three."
-    channels:
-      critical: 0.28
-  - id: two
-    seconds: 1.0
+    seconds: 2.0
     time_label: "2"
-    narration: "Two."
+    counter: {mode: time, label: "TIME LEFT"}
+    narration: "Two seconds."
     channels:
-      critical: 0.45
-      wind: 0.2
-  - id: one
-    seconds: 1.0
-    time_label: "1"
-    narration: "One."
-    channels:
-      critical: 0.62
-      wind: 0.45
+      critical: 0.08
   - id: stop
-    seconds: 2.4
+    seconds: 8.0
     time_label: "0"
-    narration: "The ground stops. The street does not."
+    narration: "The ground stops. The avenue does not."
     channels:
-      inertia: 0.85
-      fracture: 0.35
-      critical: 0.8
-      wind: 0.9
-      dust: 0.55
-  - id: wave
-    seconds: 2.6
+      inertia: 0.9
+      scatter: 0.65
+      fracture: 0.25
+      critical: 0.7
+      wind: 0.85
+      dust: 0.4
+  - id: wind
+    seconds: 8.0
     time_label: "0"
-    narration: "Then the ocean arrives, still carrying its speed."
+    narration: "Wind and dust follow everything that was loose."
     channels:
       inertia: 1.0
-      fracture: 0.7
+      scatter: 0.8
+      fracture: 0.55
+      wind: 1.0
+      dust: 0.7
+      critical: 0.9
+  - id: wave
+    seconds: 12.0
+    time_label: "0"
+    narration: "The water still has its speed, and it comes down the street."
+    channels:
       wave: 1.0
       critical: 1.0
-      dust: 0.3
-      wind: 1.0
+      wind: 0.4
+  - id: after
+    seconds: 10.0
+    time_label: "0"
+    narration: "Then the spin is back."
+    channels:
+      inertia: 0.15
+      wave: 0.2
+      fracture: 0.2
+      critical: 0.35
+      wind: 0.1
   - id: return
     title: true
     reset: true
-    seconds: 2.2
-    time_label: "5"
-    narration: "And the count is five again, as if the street had never left."
+    seconds: 8.0
+    time_label: "2"
+    narration: "And the avenue is waiting, with two seconds on the clock."

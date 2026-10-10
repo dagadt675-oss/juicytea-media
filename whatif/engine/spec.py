@@ -50,8 +50,11 @@ CHANNELS = (
     "sand",
     # Format C, real-time disaster. Unused by time-lapse specs.
     "inertia",
+    "scatter",
     "fracture",
     "wave",
+    "ocean_pull",
+    "gravity_off",
     "critical",
 )
 
@@ -87,9 +90,38 @@ DEFAULTS = {
     "erosion": 0.0,
     "sand": 0.0,
     "inertia": 0.0,
+    "scatter": 0.0,
     "fracture": 0.0,
     "wave": 0.0,
+    "ocean_pull": 0.0,
+    "gravity_off": 0.0,
     "critical": 0.0,
+}
+
+
+# Format C presets. u is 0..1 inside the beat that names the preset.
+# gravity_off: float, hold, then a fast crash back to the ground.
+PRESETS = {
+    "gravity_off": {
+        "gravity_off": [
+            {"u": 0.0, "v": 0.0},
+            {"u": 0.18, "v": 1.0},
+            {"u": 0.72, "v": 1.0},
+            {"u": 0.82, "v": 0.0},
+            {"u": 1.0, "v": 0.0},
+        ],
+        "critical": [
+            {"u": 0.0, "v": 0.2},
+            {"u": 0.18, "v": 0.85},
+            {"u": 0.82, "v": 1.0},
+            {"u": 1.0, "v": 0.4},
+        ],
+        "wind": [
+            {"u": 0.0, "v": 0.1},
+            {"u": 0.3, "v": 0.35},
+            {"u": 1.0, "v": 0.1},
+        ],
+    },
 }
 
 
@@ -136,7 +168,13 @@ def resolve(spec: dict) -> dict:
             for name in CHANNELS:
                 channel_keys[name].append((snap, float(channel_keys[name][0][1])))
                 current[name] = float(channel_keys[name][0][1])
-        channels = beat.get("channels") or {}
+        channels = {}
+        preset = beat.get("preset")
+        if preset:
+            if preset not in PRESETS:
+                raise KeyError(f"Unknown preset {preset}")
+            channels.update(PRESETS[preset])
+        channels.update(beat.get("channels") or {})
         for name, value in channels.items():
             if name not in channel_keys:
                 raise KeyError(f"Unknown channel {name}")
