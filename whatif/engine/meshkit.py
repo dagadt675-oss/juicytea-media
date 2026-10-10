@@ -349,35 +349,32 @@ def make_facade_material():
     moved.operation = "ADD"
     nt.links.new(local.outputs["Vector"], moved.inputs[0])
     nt.links.new(rand.outputs["Vector"], moved.inputs[1])
-    scaled = nt.nodes.new("ShaderNodeVectorMath")
-    scaled.operation = "SCALE"
-    scaled.inputs["Scale"].default_value = 0.42
-    nt.links.new(moved.outputs["Vector"], scaled.inputs[0])
-    brick = nt.nodes.new("ShaderNodeTexBrick")
-    brick.inputs["Color1"].default_value = (0.0, 0.0, 0.0, 1.0)
-    brick.inputs["Color2"].default_value = (0.0, 0.0, 0.0, 1.0)
-    brick.inputs["Mortar"].default_value = (1.0, 1.0, 1.0, 1.0)
-    brick.inputs["Scale"].default_value = 1.0
-    brick.inputs["Mortar Size"].default_value = 0.18
-    brick.inputs["Mortar Smooth"].default_value = 0.0
-    brick.inputs["Bias"].default_value = 0.0
-    brick.inputs["Brick Width"].default_value = 0.85
-    brick.inputs["Row Height"].default_value = 0.48
-    nt.links.new(scaled.outputs["Vector"], brick.inputs["Vector"])
-    # Brick color is 0 on the pane and 1 on the wall.
-    wall_mask = nt.nodes.new("ShaderNodeSeparateColor")
-    try:
-        wall_mask.mode = "RGB"
-    except Exception:
-        pass
-    nt.links.new(brick.outputs["Color"], wall_mask.inputs[0])
-    window = _math(nt, "SUBTRACT", 1.0, wall_mask.outputs["Red"])
+    # Two projections. A face that sits on a mullion in X still shows the Y grid,
+    # so a tower cannot collapse to a blank wall the way a single brick volume can.
+    axes = nt.nodes.new("ShaderNodeSeparateXYZ")
+    nt.links.new(moved.outputs["Vector"], axes.inputs["Vector"])
+
+    def pane(coord, period, margin):
+        wrapped = _math(nt, "MODULO", _math(nt, "ADD", coord, 800.0), period)
+        inside = _math(nt, "GREATER_THAN", wrapped, margin)
+        inside = _math(nt, "MULTIPLY", inside, _math(nt, "LESS_THAN", wrapped, period - margin))
+        return inside
+
+    x_pane = pane(axes.outputs["X"], 3.15, 0.38)
+    y_pane = pane(axes.outputs["Y"], 3.15, 0.38)
+    z_pane = pane(axes.outputs["Z"], 3.65, 0.5)
+    window = _math(
+        nt,
+        "MAXIMUM",
+        _math(nt, "MULTIPLY", x_pane, z_pane),
+        _math(nt, "MULTIPLY", y_pane, z_pane),
+    )
     wall_color, rough = weather_color(
         nt,
         info.outputs["Color"],
         {"moss": 0.55, "rust": 0.2, "mud": 0.3, "scorch": 0.4, "snow": 0.8, "wet": 0.45},
     )
-    glass = _const_rgb(nt, lin(0.10, 0.13, 0.16))
+    glass = _const_rgb(nt, lin(0.05, 0.07, 0.09))
     color = _mix(nt, window, wall_color, glass)
     # Patchy ivy once vegetation rises. Stays off the glass.
     veg = channel_value(nt, ("vegetation",), "vegetation")
@@ -388,8 +385,8 @@ def make_facade_material():
     ivy = _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", veg, ivy_noise.outputs["Fac"]), _math(nt, "SUBTRACT", 1.0, window))
     color = _mix(nt, ivy, color, lin(0.16, 0.32, 0.14))
     cam = nt.nodes.new("ShaderNodeCameraData")
-    haze = _math(nt, "DIVIDE", _math(nt, "SUBTRACT", cam.outputs["View Distance"], 90.0), 420.0)
-    haze = _math(nt, "MINIMUM", _math(nt, "MAXIMUM", haze, 0.0), 0.55)
+    haze = _math(nt, "DIVIDE", _math(nt, "SUBTRACT", cam.outputs["View Distance"], 120.0), 520.0)
+    haze = _math(nt, "MINIMUM", _math(nt, "MAXIMUM", haze, 0.0), 0.22)
     color = _mix(nt, haze, color, lin(0.62, 0.70, 0.78))
     night = channel_value(nt, ("day_night",), "clamp((day_night - 0.48) / 0.2, 0, 1)")
     power = channel_value(nt, ("power",), "power")

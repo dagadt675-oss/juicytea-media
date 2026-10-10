@@ -12,6 +12,25 @@ import bmesh
 import bpy
 from mathutils import Matrix
 
+from engine.city_layout import (
+    DECK_HALF,
+    DECK_LANES,
+    DECK_ROT_Z,
+    DECK_W,
+    FOREGROUND_CARS,
+    FOUNTAIN,
+    SKYLINE_COLORS,
+    SKYLINE_ROWS,
+    TOWER_S,
+    TOWER_W,
+    bridge_spans,
+    deck_direction,
+    deck_point,
+    deck_s_at_y,
+    deck_z,
+    right_vector,
+    tower_pose,
+)
 from engine.meshkit import (
     Kit,
     add_box,
@@ -40,43 +59,18 @@ PARK_Z = 0.7
 LOW_Z = 0.28
 FAR_Z = 1.4
 DECK_Z = 8.5
-DECK_W = 16.0
-DECK_HALF = 8.0
-DECK_X = 18.0
-TOWER_H = 50.0
-TOWER_W = 18.0
-# 11° yaw: the far portal sits left of the near one. s=0 is the near river bank.
-BRIDGE_YAW = math.radians(-11.0)
-DECK_ORIGIN = (18.0, 79.0)
-# s along the deck for the two portals, both over the river.
-TOWER_S = (32.0, 102.0)
-
-
-def _deck_s(y):
-    return (y - DECK_ORIGIN[1]) / math.cos(BRIDGE_YAW)
-
-
-def _deck_point(s):
-    return (
-        DECK_ORIGIN[0] + s * math.sin(BRIDGE_YAW),
-        DECK_ORIGIN[1] + s * math.cos(BRIDGE_YAW),
-    )
 
 
 def _deck_x(y):
-    return _deck_point(_deck_s(y))[0]
+    return deck_point(deck_s_at_y(y))[0]
 
 
 def _deck_z(y):
-    s = _deck_s(y)
-    if s < 0.0:
-        t = max(0.0, min(1.0, (s + 48.0) / 48.0))
-        return 1.6 + t * (DECK_Z - 1.6)
-    return DECK_Z
+    return deck_z(deck_s_at_y(y))
 
 
 def _tower_y(s):
-    return _deck_point(s)[1]
+    return deck_point(s)[1]
 
 
 def _materials():
@@ -240,55 +234,140 @@ def _tower_mesh(name, w, d, h, windows=True):
     return mesh_from_bm(name, bm)
 
 
+_ASSET_MESHES = {}
+
+
+def _kenney(relative):
+    from pathlib import Path
+
+    return Path(__file__).resolve().parents[1] / "assets" / "cc0" / "kenney" / relative
+
+
+def _tint_with_object_color(mesh):
+    """Let the time-lapse recolor a textured mesh through the object color."""
+    for mat in mesh.materials:
+        if mat is None or mat.get("object_tint"):
+            continue
+        nt = mat.node_tree
+        if nt is None:
+            continue
+        bsdf = next((node for node in nt.nodes if node.type == "BSDF_PRINCIPLED"), None)
+        if bsdf is None:
+            continue
+        color_in = bsdf.inputs["Base Color"]
+        mix = nt.nodes.new("ShaderNodeMixRGB")
+        mix.blend_type = "MULTIPLY"
+        mix.inputs["Fac"].default_value = 1.0
+        if color_in.is_linked:
+            source = color_in.links[0].from_socket
+            nt.links.remove(color_in.links[0])
+            nt.links.new(source, mix.inputs["Color1"])
+        else:
+            mix.inputs["Color1"].default_value = color_in.default_value
+        info = nt.nodes.new("ShaderNodeObjectInfo")
+        nt.links.new(info.outputs["Color"], mix.inputs["Color2"])
+        nt.links.new(mix.outputs["Color"], color_in)
+        mat["object_tint"] = True
+
+
+def _load_glb(key, path, tint=False):
+    """Import a CC0 glb and normalize it to 1 m tall, sitting on z = 0."""
+    if key in _ASSET_MESHES:
+        return _ASSET_MESHES[key]
+    if path is None or not path.exists():
+        return None
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(path))
+    meshes = [obj for obj in bpy.data.objects if obj not in before and obj.type == "MESH"]
+    if not meshes:
+        return None
+    bpy.ops.object.select_all(action="DESELECT")
+    for obj in meshes:
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
+    if len(meshes) > 1:
+        bpy.ops.object.join()
+    obj = bpy.context.view_layer.objects.active
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    zs = [vert.co.z for vert in obj.data.vertices]
+    span = max(zs) - min(zs)
+    if span > 1e-4:
+        factor = 1.0 / span
+        for vert in obj.data.vertices:
+            vert.co.x *= factor
+            vert.co.y *= factor
+            vert.co.z *= factor
+        zs = [vert.co.z for vert in obj.data.vertices]
+    drop = -min(zs)
+    for vert in obj.data.vertices:
+        vert.co.z += drop
+    mesh = obj.data
+    mesh.name = f"cc0_{key}"
+    if tint:
+        _tint_with_object_color(mesh)
+    created = [item for item in bpy.data.objects if item not in before]
+    for item in created:
+        bpy.data.objects.remove(item, do_unlink=True)
+    _ASSET_MESHES[key] = mesh
+    return mesh
+
+
+def _prop(kit, coll, name, path, loc, yaw, height, role, tint=False, **extra):
+    mesh = _load_glb(name, path, tint=tint)
+    if mesh is None:
+        return None
+    obj = link_obj(name, mesh, coll)
+    obj.location = loc
+    obj.rotation_euler[2] = yaw
+    obj.scale = (height, height, height)
+    kit.add(obj, role, sink=False, **extra)
+    return obj
+
+
+_TREE_FILES = ("trees/tree.glb", "trees/tree-high.glb", "trees/tree-round.glb", "trees/tree-crooked.glb")
+_PERSON_FILES = (
+    "people/character-a.glb",
+    "people/character-b.glb",
+    "people/character-c.glb",
+    "people/character-d.glb",
+)
+
+
 def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None, kind="round"):
     rng = rng or random
-    greens = [
-        (0.24, 0.55, 0.20, 1),
-        (0.42, 0.68, 0.16, 1),
-        (0.18, 0.42, 0.16, 1),
-        (0.55, 0.66, 0.18, 1),
-    ]
-    autumns = [
+    autumns = (
         (0.72, 0.42, 0.12, 1),
         (0.80, 0.62, 0.16, 1),
         (0.55, 0.28, 0.12, 1),
-    ]
-    leaf = greens[rng.randrange(len(greens))]
-    trunk_h = (1.15 if kind == "pine" else 0.7) * scale
-    trunk_w = (0.07 if kind == "pine" else 0.11) * scale
-    trunk = box_object("trunk", coll, (x, y, z + trunk_h / 2), (trunk_w, trunk_w, trunk_h), mats["trunk"])
-    bm = bmesh.new()
-    if kind == "pine":
-        blobs = ((0, 0, 0.15, 0.42), (0, 0, 0.55, 0.32), (0, 0, 0.95, 0.2))
-    elif kind == "broad":
-        blobs = ((0, 0, 0.05, 0.95), (-0.45, 0.1, 0.0, 0.62), (0.4, -0.15, 0.08, 0.58), (0.1, 0.35, 0.2, 0.5))
-    else:
-        blobs = ((0, 0, 0.15, 0.72), (-0.38, 0.12, -0.05, 0.48), (0.34, -0.1, 0.02, 0.5), (0.05, 0.28, 0.28, 0.42), (-0.12, -0.26, 0.18, 0.4))
-    z_squash = 0.55 if kind == "pine" else 0.82
-    for bx, by, bz, br in blobs:
-        nverts = len(bm.verts)
-        bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1.0)
-        bm.verts.ensure_lookup_table()
-        for vert in bm.verts[nverts:]:
-            vert.co.x = vert.co.x * br * scale + bx * scale
-            vert.co.y = vert.co.y * br * scale + by * scale
-            vert.co.z = vert.co.z * br * z_squash * scale + bz * scale
-    me = mesh_from_bm("canopy", bm)
-    for poly in me.polygons:
-        poly.use_smooth = True
-    canopy = link_obj("canopy", me, coll, (mats["leaf"],))
-    canopy.location = (x, y, z + trunk_h + 0.35 * scale)
-    canopy.color = leaf
-    bare_bm = bmesh.new()
-    for ang in range(5):
-        add_box(bare_bm, (0.15 * ang - 0.3, 0, 0.7), (0.05, 0.05, 1.1 * scale), 0)
-    bare_me = mesh_from_bm("bare", bare_bm)
-    bare = link_obj("bare", bare_me, coll, (mats["trunk"],))
-    bare.location = (x, y, z)
+    )
+    files = {
+        "pine": "trees/tree-high.glb",
+        "broad": "trees/tree-round.glb",
+        "round": "trees/tree.glb",
+        "crooked": "trees/tree-crooked.glb",
+    }
+    path = _kenney(files.get(kind, _TREE_FILES[rng.randrange(len(_TREE_FILES))]))
+    obj = _prop(
+        kit,
+        coll,
+        f"tree-{kind}",
+        path,
+        (x, y, z),
+        rng.uniform(0, 6.28),
+        max(2.6, scale * 2.05),
+        "tree_canopy",
+        tint=True,
+        future=future,
+        delay=delay,
+        leaf=(1.0, 1.0, 1.0, 1.0),
+        autumn=autumns[rng.randrange(3)],
+    )
+    if obj is not None:
+        obj.color = (1.0, 1.0, 1.0, 1.0)
+        return obj
+    trunk = box_object("trunk", coll, (x, y, z + 0.8), (0.25, 0.25, 1.6), mats["trunk"])
     kit.add(trunk, "tree_trunk", future=future, delay=delay, sink=False)
-    item = kit.add(canopy, "tree_canopy", future=future, delay=delay, sink=False, leaf=leaf, autumn=autumns[rng.randrange(3)])
-    kit.add(bare, "tree_bare", future=future, delay=delay, sink=False)
-    return item
+    return trunk
 
 
 _CAR_MESHES = {}
@@ -382,18 +461,26 @@ def _person_mesh():
 
 
 def _person(kit, coll, mats, x, y, z, rng):
+    choice = _PERSON_FILES[rng.randrange(len(_PERSON_FILES))]
+    obj = _prop(
+        kit,
+        coll,
+        choice.rsplit("/", 1)[-1].split(".")[0],
+        _kenney(choice),
+        (x, y, z),
+        rng.uniform(0, 6.28),
+        1.72,
+        "person",
+        float=0.4,
+        bob=0.08,
+    )
+    if obj is not None:
+        return obj
     obj = link_obj("person", _person_mesh(), coll, (mats["cloth"], mats["skin"]))
     obj.location = (x, y, z)
     obj.rotation_euler[2] = rng.uniform(0, 6.28)
-    obj.color = [
-        (0.22, 0.28, 0.38, 1),
-        (0.55, 0.22, 0.2, 1),
-        (0.16, 0.16, 0.18, 1),
-        (0.72, 0.68, 0.58, 1),
-        (0.25, 0.38, 0.32, 1),
-        (0.45, 0.32, 0.28, 1),
-    ][rng.randrange(6)]
     kit.add(obj, "person", float=1.6, bob=0.25, sink=False)
+    return obj
 
 
 def _house(kit, coll, mats, x, y, z, w, d, h, index):
@@ -433,12 +520,10 @@ def _markings(coll, mats, x0, x1, y, z, along="x"):
 
 
 def _lamp(kit, coll, mats, x, y, z):
-    pole = box_object("lamp", coll, (x, y, z + 3.6), (0.18, 0.18, 7.2), mats["trim"])
-    arm = box_object("arm", coll, (x + 0.7, y, z + 7.0), (1.5, 0.12, 0.1), mats["trim"])
-    head = box_object("bulb", coll, (x + 1.3, y, z + 6.75), (0.45, 0.22, 0.16), mats["yellow"])
-    kit.add(pole, "prop", sink=False, float=0.1)
-    kit.add(arm, "prop", sink=False, float=0.15)
-    kit.add(head, "prop", sink=False, float=0.2)
+    obj = _prop(kit, coll, "lamp", _kenney("props/light-curved.glb"), (x, y, z), 0.0, 7.2, "prop")
+    if obj is None:
+        pole = box_object("lamp", coll, (x, y, z + 3.6), (0.18, 0.18, 7.2), mats["trim"])
+        kit.add(pole, "prop", sink=False, float=0.1)
 
 
 def _on_deck(x, y, pad=16.0):
@@ -464,14 +549,8 @@ def build_river_city(kit, mats, rng, pieces):
     _plane("quay", col_g, (0, 80, LOW_Z), (1200, 3.2), mats["trim"])
     _plane("city_ground", col_g, (0, 460, FAR_Z), (2000, 560), mats["trim"])
     _plane("far_meadow", col_g, (0, 420, FAR_Z + 0.04), (2000, 400), mats["park"])
-    _markings(col_g, mats, -40, 55, 12.0, 0.4, "x")
-    _markings(col_g, mats, -40, 55, 20.0, 0.4, "x")
-    for i in range(8):
-        box_object("bar", col_g, (-4.0 + i * 1.5, 16.0, 0.42), (0.55, 9.5, 0.05), mats["mark"])
-    # A simple signal at the crosswalk.
-    box_object("signal_pole", col_g, (8.2, 16.0, 2.6), (0.18, 0.18, 4.6), mats["trim"])
-    box_object("signal_head", col_g, (8.2, 15.7, 4.7), (0.35, 0.22, 0.9), mats["dark"])
-    box_object("signal_red", col_g, (8.2, 15.55, 5.0), (0.16, 0.08, 0.16), mats["bridge"])
+    _markings(col_g, mats, -40, 55, 18.0, 0.4, "x")
+    _markings(col_g, mats, -40, 55, 26.0, 0.4, "x")
 
     for i, x in enumerate((-18.0, 6.0)):
         slab = box_object("slab", col_g, (x, 126.0, LOW_Z + 0.08), (8.0, 3.0, 0.2), mats["road"])
@@ -484,26 +563,11 @@ def build_river_city(kit, mats, rng, pieces):
         box_object("rail_b", col_g, (-4.4, 126.0, LOW_Z + 0.8), (0.2, 2.8, 1.4), mats["trim"])
 
     # Three depths. Center towers stay shorter so the title has open sky.
-    # Colors are grey, white, and light blue, with only a few warm accents.
-    colors = [
-        (0.78, 0.80, 0.83, 1),
-        (0.92, 0.93, 0.94, 1),
-        (0.62, 0.74, 0.86, 1),
-        (0.70, 0.76, 0.82, 1),
-        (0.86, 0.87, 0.88, 1),
-        (0.84, 0.48, 0.42, 1),
-        (0.55, 0.66, 0.80, 1),
-        (0.76, 0.42, 0.40, 1),
-        (0.90, 0.88, 0.84, 1),
-    ]
-    haze = ((0.0, 0.0, 0.0), (0.08, 0.10, 0.12), (0.16, 0.18, 0.20))
+    # Colors and heights live in city_layout so a pass cannot quietly drop them.
+    colors = SKYLINE_COLORS
+    haze = ((0.0, 0.0, 0.0), (0.04, 0.05, 0.06), (0.08, 0.10, 0.12))
     fall_i = 0
-    # y, hmin, hmax, x0, x1, width range
-    rows = (
-        (208.0, 16.0, 36.0, -100.0, 140.0, (10.0, 18.0)),
-        (242.0, 24.0, 48.0, -110.0, 150.0, (8.0, 15.0)),
-        (278.0, 32.0, 64.0, -90.0, 130.0, (7.0, 13.0)),
-    )
+    rows = SKYLINE_ROWS
     for row, (y, hmin, hmax, x0, x1, wr) in enumerate(rows):
         x = x0
         while x < x1:
@@ -550,19 +614,47 @@ def build_river_city(kit, mats, rng, pieces):
         _bridge(kit, col_b, col_v, mats, rng)
 
     # Irregular clusters, not two ruler-straight rows. Kept off the deck.
-    clusters = [(-34, 40), (-28, 58), (-16, 42), (-12, 70), (-36, 72), (2, 60), (-6, 74)]
+    fx, fy = FOUNTAIN
+    pad = link_obj("plaza", cylinder_mesh("plaza", radius=8.2, segments=28), col_g, (mats["concrete"],))
+    pad.location = (fx, fy, PARK_Z + 0.02)
+    pad.scale = (1.0, 1.0, 0.08)
+    basin = link_obj("basin", cylinder_mesh("basin", radius=3.1, segments=24), col_g, (mats["water"],))
+    basin.location = (fx, fy, PARK_Z + 0.1)
+    basin.scale = (1.0, 1.0, 0.06)
+    jet = link_obj("jet", cylinder_mesh("jet", radius=0.35, segments=12), col_g, (mats["water"],))
+    jet.location = (fx, fy, PARK_Z + 0.16)
+    jet.scale = (1.0, 1.0, 1.4)
+    kit.add(pad, "prop", sink=False)
+    kit.add(basin, "prop", sink=False)
+    kit.add(jet, "prop", sink=False)
+    kinds = ("round", "broad", "pine", "crooked")
+    clusters = [(-34, 40), (-28, 52), (-16, 44), (-12, 72), (-36, 72), (4, 62), (-6, 74), (-20, 68)]
     for cx, cy in clusters:
-        for k in range(rng.randint(3, 5)):
-            x = cx + rng.uniform(-3.5, 3.5)
-            y = cy + rng.uniform(-3.2, 3.2)
-            if y < 34 or y > 76 or _on_deck(x, y, 11):
+        for k in range(rng.randint(2, 4)):
+            x = cx + rng.uniform(-2.4, 2.4)
+            y = cy + rng.uniform(-2.2, 2.2)
+            if y < 34 or y > 76 or _on_deck(x, y, 11) or math.hypot(x - fx, y - fy) < 7.2:
                 continue
-            _tree(kit, col_p, mats, x, y, PARK_Z, rng.uniform(3.1, 4.6), future=False, rng=rng, kind="round")
-    for x, y in ((-22, 40), (-22, 56), (-22, 72), (-8, 48), (-30, 66)):
+            _tree(kit, col_p, mats, x, y, PARK_Z, rng.uniform(3.4, 5.2), future=False, rng=rng, kind=rng.choice(kinds))
+    for i in range(10):
+        ang = i / 10.0 * math.tau
+        tx = fx + math.cos(ang) * 10.4
+        ty = fy + math.sin(ang) * 10.4
+        if _on_deck(tx, ty, 11):
+            continue
+        _tree(kit, col_p, mats, tx, ty, PARK_Z, rng.uniform(4.2, 5.6), future=False, rng=rng, kind=kinds[i % 4])
+    for x, y in ((-22, 40), (-22, 72), (-8, 48), (-30, 66), (fx - 9.2, fy), (fx + 9.2, fy)):
         _lamp(kit, col_g, mats, x, y, PARK_Z)
-    for x, y in ((-26, 46), (-14, 62), (-32, 70), (-6, 52)):
-        bench = box_object("bench", col_g, (x, y, PARK_Z + 0.42), (1.6, 0.5, 0.42), mats["wood"])
-        kit.add(bench, "prop", sink=False, float=0.2)
+    for i in range(4):
+        ang = i / 4.0 * math.tau + 0.4
+        bx = fx + math.cos(ang) * 6.4
+        by = fy + math.sin(ang) * 6.4
+        bench = _prop(
+            kit, col_g, "bench", _kenney("props/bench/bench.glb"),
+            (bx, by, PARK_Z), ang + math.pi, 0.85, "prop", float=0.15,
+        )
+        if bench is None:
+            box_object("bench", col_g, (bx, by, PARK_Z + 0.42), (1.6, 0.5, 0.42), mats["wood"])
     for i in range(8):
         fx = rng.uniform(-38, -2)
         fy = rng.uniform(38, 74)
@@ -604,26 +696,35 @@ def build_river_city(kit, mats, rng, pieces):
             bush.color = (0.28, 0.48, 0.2, 1)
             kit.add(bush, "weed", delay=rng.uniform(0.05, 0.45), sink=False, leaf=(0.28, 0.48, 0.2, 1), autumn=(0.55, 0.4, 0.16, 1))
 
-    groups = [(-20, 42, 8), (-16, 56, 7), (-28, 64, 8), (-8, 50, 6), (-22, 72, 7), (-12, 46, 6), (-32, 50, 6)]
+    groups = [(-20, 42, 6), (-28, 64, 6), (-8, 50, 5), (-32, 50, 5), (-12, 72, 5)]
     for gx, gy, n in groups:
         for k in range(n):
             _person(kit, col_v, mats, gx + rng.uniform(-1.6, 1.6), gy + rng.uniform(-1.4, 1.4), PARK_Z, rng)
+    for i in range(16):
+        ang = i / 16.0 * math.tau
+        _person(
+            kit, col_v, mats,
+            fx + math.cos(ang) * rng.uniform(4.2, 5.6),
+            fy + math.sin(ang) * rng.uniform(4.2, 5.6),
+            PARK_Z, rng,
+        )
     for i, y in enumerate(range(36, 74, 3)):
         _person(kit, col_v, mats, -21.2 + (0.4 if i % 2 else -0.3), y, PARK_Z, rng)
-    for i in range(10):
-        _person(kit, col_v, mats, -3.6 + i * 0.85, 16.0, 0.36, rng)
+    land_x, land_y = deck_point(bridge_spans()[-1][1])
+    for i in range(8):
+        _person(kit, col_v, mats, land_x + 9.0 + (i % 4) * 0.7, land_y + 3.2 + (i // 4) * 0.8, 0.36, rng)
     for i in range(16):
         _person(kit, col_v, mats, -26.0 + i * 1.6, 48.0 + (i % 3) * 0.4, PARK_Z, rng)
     for i in range(12):
         _person(kit, col_v, mats, -6.0 - (i % 4) * 0.6, 66.0 + i * 0.5, PARK_Z, rng)
     white = (0.93, 0.93, 0.94, 1)
     models = ("sedan", "taxi", "suv", "hatchback-sports")
-    for i, x in enumerate((-28, -16, -4, 8, 36, 48)):
+    for i, (x, y) in enumerate(FOREGROUND_CARS):
         _car(
             kit,
             col_v,
             mats,
-            (x, 12.5 if i % 2 == 0 else 21.0, 0.4),
+            (x, y, 0.4),
             math.pi / 2.0 if i % 2 == 0 else -math.pi / 2.0,
             white,
             drive=rng.uniform(4.0, 9.0),
@@ -654,39 +755,35 @@ def _power_plant(kit, coll, mats, x, y, z):
         kit.add(puff, "smoke", index=i, sink=True, phase=i / 3.0)
 
 
-def _deck_yaw(y):
-    return math.atan2(_deck_x(y + 0.5) - _deck_x(y - 0.5), 1.0)
-
-
 def _deck_edge(y, side, half=DECK_HALF):
-    yaw = _deck_yaw(y)
-    right = (math.cos(yaw), -math.sin(yaw))
-    x = _deck_x(y) + right[0] * half * side
-    yy = y + right[1] * half * side
-    return (x, yy, _deck_z(y) + 2.2)
+    s = deck_s_at_y(y)
+    x, yy = deck_point(s)
+    rx, ry = right_vector()
+    return (x + rx * half * side, yy + ry * half * side, deck_z(s) + 2.2)
 
 
 def _bridge(kit, col, cars, mats, rng):
-    # Approach through the near tower, then the river span (1 and 2) that falls.
-    # One continuous deck. The middle copy stays hidden until it falls into the river.
-    y0 = _tower_y(-42)
-    y1 = _tower_y(155)
-    spans = (
-        (0, y0, y1),
-        (1, _tower_y(40), _tower_y(72)),
-        (2, _tower_y(70), _tower_y(104)),
-        (3, _tower_y(150), _tower_y(168)),
-    )
-    segments = []
+    # The approach (span 4) is the street from the foreground crossroad up to the
+    # level deck. Spans 1 and 2 stay hidden until the river span falls.
+    segments = {}
     decks = []
-    for i, y0, y1 in spans:
-        x0, x1 = _deck_x(y0), _deck_x(y1)
-        z0, z1 = _deck_z(y0), _deck_z(y1)
-        length = math.hypot(x1 - x0, y1 - y0)
-        yaw = math.atan2(x1 - x0, y1 - y0)
-        pitch = math.atan2(z1 - z0, max(length, 0.1))
-        obj = box_object("deck", col, ((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2), (DECK_W, length, 0.55), mats["road"])
-        obj.rotation_euler = (pitch, 0.0, yaw)
+    for i, s0, s1 in bridge_spans():
+        x0, y0 = deck_point(s0)
+        x1, y1 = deck_point(s1)
+        z0, z1 = deck_z(s0), deck_z(s1)
+        # The approach's high end runs 2 m under the level deck so the miter
+        # does not read as a gap. The layout test still checks the true ends.
+        extra = 2.0 if i == 4 else 0.0
+        dx, dy = deck_direction()
+        horiz = math.hypot(x1 - x0, y1 - y0)
+        pitch = math.atan2(z1 - z0, max(horiz, 0.1))
+        length = math.hypot(horiz + extra, (z1 - z0) * (1.0 + extra / max(horiz, 0.1)))
+        shift = extra / 2.0
+        cx = (x0 + x1) / 2 + dx * shift
+        cy = (y0 + y1) / 2 + dy * shift
+        cz = (z0 + z1) / 2 + ((z1 - z0) / max(s1 - s0, 0.1)) * shift
+        obj = box_object("deck", col, (cx, cy, cz), (DECK_W, length, 0.55), mats["road"])
+        obj.rotation_euler = (pitch, 0.0, DECK_ROT_Z)
         for side in (-1, 1):
             # Thin dark curb. The red is the towers and the main cables, not a side wall.
             rail = box_object("rail", col, (0, 0, 0), (0.45, length * 0.99, 1.15), mats["trim"])
@@ -701,12 +798,33 @@ def _bridge(kit, col, cars, mats, rng):
             mark.location = (0.0, -length / 2 + 2.0 + d * (length / dashes), 0.32)
         item = kit.add(obj, "bridge_deck", i=i, sink=True, length=length)
         decks.append(item)
-        segments.append(obj)
+        segments[i] = obj
+    # The bridge street meets the foreground road here.
+    ix, iy = deck_point(bridge_spans()[-1][1])
+    rx, ry = right_vector()
+    for side in (-1, 1):
+        _prop(
+            kit, col, "signal", _kenney("props/traffic-light.glb"),
+            (ix + rx * side * (DECK_HALF + 1.6), iy + ry * side * (DECK_HALF + 1.6), 0.36),
+            DECK_ROT_Z + (0.0 if side > 0 else math.pi),
+            5.4,
+            "prop",
+        )
+    dx, dy = deck_direction()
+    for d in range(7):
+        bar = box_object(
+            "crosswalk",
+            col,
+            (ix + dx * (d - 3) * 1.35, iy + dy * (d - 3) * 1.35, 0.4),
+            (DECK_W * 0.82, 0.55, 0.05),
+            mats["mark"],
+        )
+        bar.rotation_euler[2] = DECK_ROT_Z
     towers = []
     for i, s in enumerate(TOWER_S):
-        y = _tower_y(s)
-        pivot = empty(f"tower_{i}", col, (_deck_x(y), y, 0.0))
-        pivot.rotation_euler[2] = BRIDGE_YAW
+        loc, rot = tower_pose(s)
+        pivot = empty(f"tower_{i}", col, loc)
+        pivot.rotation_euler[2] = rot
         height = 44.0 if i == 0 else 50.0
         _tower_portal(col, mats, pivot, height, TOWER_W)
         towers.append(kit.add(pivot, "bridge_tower", i=i, height=height, width=TOWER_W, sink=True))
@@ -730,7 +848,7 @@ def _bridge(kit, col, cars, mats, rng):
         suspenders.append(obj)
     colors = [(0.92, 0.92, 0.94, 1), (0.12, 0.12, 0.13, 1), (0.75, 0.18, 0.14, 1), (0.2, 0.32, 0.55, 1)]
     deck_models = ("sedan", "taxi", "suv", "hatchback-sports")
-    lanes = (-5.0, -2.2, 2.2, 5.0)
+    lanes = DECK_LANES
     for i, ly in enumerate((-18, -4, 10, 22)):
         _car(
             kit,
