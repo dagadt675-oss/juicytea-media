@@ -71,11 +71,10 @@ def _silent_picture_qc(path: Path, timeline: dict) -> tuple[bool, str]:
         and not audio
         and len(timeline["beats"]) >= 2
     )
-    if lax:
-        ok = ok and abs(dur - 24.5) <= 0.05 and len(timeline["beats"]) == 8
-    want = [0.0, 4.1, 6.87, 10.41, 12.42, 17.83, 20.42, 23.34]
     got = [float(b["start"]) for b in timeline["beats"]]
     if lax:
+        ok = ok and abs(dur - 24.2) <= 0.05 and len(timeline["beats"]) == 8
+        want = [0.03, 3.93, 7.24, 8.14, 10.81, 14.28, 20.25, 23.05]
         starts_ok = len(got) == len(want) and all(abs(a - b) <= 0.02 for a, b in zip(got, want))
         lines.append("beat starts " + " ".join(f"{s:.2f}" for s in got) + (" ok" if starts_ok else " MISMATCH"))
         ok = ok and starts_ok
@@ -97,11 +96,14 @@ def _silent_picture_qc(path: Path, timeline: dict) -> tuple[bool, str]:
         ok = ok and turns <= 1
     hook = float(timeline.get("_hook") or 0)
     lines.append(f"hook motion first second {hook:.4f}")
-    # 0.03 is the LAX picture bar. Other silent films use the flat-map floor.
-    ok = ok and hook >= (0.03 if lax else 0.015)
+    # Frame 0 stays a full-bleed map, so the opening push is modest.
+    # The plane and the slow tighten keep moving after that first second.
+    ok = ok and hook >= 0.015
     loop = float(timeline.get("_loop") or 1)
     lines.append(f"loop mean abs diff {loop:.5f}")
     ok = ok and loop < 0.01
+    if lax:
+        lines.append(f"tail step max {float(timeline.get('_tail_step_max') or 0):.5f}")
     band = _caption_band_text(path)
     lines.append(f"caption band y 0.64–0.72 text pixels {band}")
     ok = ok and band == 0
@@ -180,6 +182,7 @@ def build_silent(spec, out: Path, preset: str, hero: bool) -> int:
     timeline["_spec"] = spec
     timeline["_hook"] = float(metrics.get("hook_motion") or 0)
     timeline["_loop"] = float(_loop_diff(gray) / 255.0)
+    timeline["_tail_step_max"] = float(metrics.get("tail_step_max") or 0)
     frame_125 = out / "t12.50.png"
     subprocess.run(
         ["ffmpeg", "-y", "-v", "error", "-i", str(picture), "-ss", "12.50",

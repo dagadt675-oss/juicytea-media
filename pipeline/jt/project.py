@@ -86,8 +86,8 @@ def project_points(lon, lat, view: Resolved):
     if view.proj == "merc":
         x0, y0, x1, y1 = view.rect
         scale = (x1 - x0) / max(view.span, 1.0)
-        lat_c = np.clip(lat, -80, 80)
-        lat0 = float(np.clip(view.lat, -80, 80))
+        lat_c = np.clip(lat, -89, 89)
+        lat0 = float(np.clip(view.lat, -89, 89))
         merc = np.degrees(np.log(np.tan(np.pi / 4 + np.radians(lat_c) / 2)))
         merc0 = math.degrees(math.log(math.tan(math.pi / 4 + math.radians(lat0) / 2)))
         # Shortest longitude offset, so a Pacific view can hold both 140°E and 118°W.

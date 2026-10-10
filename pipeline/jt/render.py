@@ -2,7 +2,7 @@
 between projections.
 
 The camera holds, pushes in once at the open, or eases once into the next
-shot. It does not sway. The last encoded frame is a byte copy of frame 0.
+shot. It does not sway. A loop tail, when set, eases the ending into frame 0.
 """
 
 from __future__ import annotations
@@ -17,6 +17,15 @@ import skia
 from jt.captions import groups_for
 from jt.data import resolve_ids
 from jt.draw import Safe, clamp_nontext, overlay, text_pixel_mask
+from jt.loop_tail import (
+    blend_toward_open,
+    ease_span_toward_open,
+    last_frame_time,
+    opening_span,
+    split_shots,
+    tail_progress,
+    tail_start,
+)
 from jt.project import ease_in_out, ease_out, laea_inverse, lerp_camera, resolve
 from jt.themes import get_theme
 
@@ -59,10 +68,19 @@ class Studio:
         if idx == 0:
             cam = cur.copy()
             # One push-in, then a hold. Span only falls, so the shot never reverses.
-            intro = 1.15
-            if t < intro:
-                e = ease_out(t / intro)
-                cam.span = cur.span * (1.85 - 0.85 * e)
+            if cur.push:
+                # Linear across the first second. The default ease finishes early,
+                # and the rest of that second barely moves.
+                intro = 1.0
+                start = float(cur.push)
+                if t < intro:
+                    u = t / intro
+                    cam.span = cur.span * (start - (start - 1.0) * u)
+            else:
+                intro = 1.15
+                if t < intro:
+                    e = ease_out(t / intro)
+                    cam.span = cur.span * (1.85 - 0.85 * e)
         elif cur.cut:
             cam = cur.copy()
         else:
@@ -83,6 +101,20 @@ class Studio:
                     cam = lerp_camera(prev, cur, u)
             else:
                 cam = cur.copy()
+        # A slow tighten for the whole film. Span only falls, including across beats.
+        creep = float(getattr(cur, "creep", 0.0) or 0.0)
+        if creep > 0:
+            dur = float(self.timeline.get("duration") or 1.0)
+            u = min(1.0, max(0.0, t / dur))
+            cam.span = cam.span * (1.0 - creep * u)
+        # After the last word, span eases one way into the frame-0 framing.
+        start = tail_start(self.spec)
+        if start is not None and t > start:
+            dur = float(self.timeline.get("duration") or 0.0)
+            end = last_frame_time(dur, FPS)
+            u = tail_progress(t, start, end)
+            if u > 0:
+                cam.span = ease_span_toward_open(cam.span, opening_span(self.spec.lines[0].camera), u)
         view = resolve(cam.proj, cam.lon, cam.lat, max(4.0, cam.span), self.w, self.h, whip)
         return view, idx, local
 
@@ -110,7 +142,7 @@ def direction_changes(spec, timeline, w: int, h: int, fps: int = 30) -> int:
     """
     studio = Studio(None, spec, timeline, w, h)
     worst = 0
-    for a, b in studio.spans:
+    for a, b in split_shots(studio.spans, tail_start(spec)):
         n = max(3, int(round((b - a) * fps)))
         times = np.linspace(a, max(a, b - 1.0 / fps), n)
         cols = [[], [], []]
@@ -303,8 +335,14 @@ def _background(studio: Studio, t: float, phase: float) -> np.ndarray:
     return frame
 
 
-def render_frame(studio: Studio, t: float, phase: float) -> tuple[np.ndarray, dict]:
+def render_frame(studio: Studio, t: float, phase: float, line_index: int | None = None,
+                 clock: float | None = None) -> tuple[np.ndarray, dict]:
     view, idx, local = studio.camera_at(t, phase)
+    draw_t = t
+    if line_index is not None:
+        idx = line_index
+        local = 0.0 if clock is None else float(clock)
+        draw_t = local
     line = studio.spec.lines[idx]
     highlights = resolve_ids(studio.earth, line.visuals)
     frame = _background(studio, t, phase)
@@ -324,7 +362,7 @@ def render_frame(studio: Studio, t: float, phase: float) -> tuple[np.ndarray, di
     info = overlay(
         canvas, safe, studio.earth, view, line.visuals,
         claim, line.sub, studio.words, studio.groups,
-        t, local, studio.theme, highlights, punch=(line.kind == "p"),
+        draw_t, local, studio.theme, highlights, punch=(line.kind == "p"),
     )
     bgra = surface.makeImageSnapshot().toarray()
     rgb = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
@@ -374,24 +412,36 @@ def render_video(studio: Studio, path: Path, crf: int = 20) -> dict:
     frame0 = None
     contact = []
     contact_at = {int(round(i * (n - 1) / 11)) for i in range(12)}
+    tail = tail_start(studio.spec)
+    tail_end = last_frame_time(float(studio.timeline.get("duration") or 0.0), FPS)
+    tail_diffs = []
     try:
         for i in range(n):
-            if i == n - 1:
-                img = frame0
-            else:
-                t = i / FPS
-                phase = i / (n - 1)
-                img, info = render_frame(studio, t, phase)
-                spills += info["spills"]
-                if info["caption"]:
-                    cap_px.append(info["caption"]["px"])
-                    cap_center.append(info["caption"]["center_frac"])
-                if i % 4 == 0:
-                    unsafe_max = max(unsafe_max, _unsafe_count(img))
+            t = i / FPS
+            phase = i / (n - 1) if n > 1 else 0.0
+            img, info = render_frame(studio, t, phase)
+            spills += info["spills"]
+            if info["caption"]:
+                cap_px.append(info["caption"]["px"])
+                cap_center.append(info["caption"]["center_frac"])
+            if i % 4 == 0:
+                unsafe_max = max(unsafe_max, _unsafe_count(img))
             if i == 0:
                 frame0 = img.copy()
-            if prev is not None and i != n - 1:
-                diffs.append(float(np.mean(np.abs(_down(img) - prev)) / 255.0))
+            elif tail is not None and t > tail and frame0 is not None:
+                # Same camera on both layers, so the land does not ghost.
+                # Only the pills, the arc, and the plane trade places.
+                u = tail_progress(t, tail, tail_end)
+                if u >= 1.0:
+                    img = frame0.copy()
+                else:
+                    opened, _open_info = render_frame(studio, t, phase, line_index=0, clock=0.0)
+                    img = blend_toward_open(img, opened, u)
+            if prev is not None:
+                step = float(np.mean(np.abs(_down(img) - prev)) / 255.0)
+                diffs.append(step)
+                if i >= n - 15:
+                    tail_diffs.append(step)
             prev = _down(img)
             if i in contact_at:
                 contact.append((i / FPS, img))
@@ -421,6 +471,8 @@ def render_video(studio: Studio, path: Path, crf: int = 20) -> dict:
         "frame_diff_min": min(diffs) if diffs else 0,
         "frozen_raw": _frozen_spans(diffs, FPS),
         "loop_raw_max": 0,
+        "tail_step_max": max(tail_diffs) if tail_diffs else 0.0,
+        "tail_steps": tail_diffs,
         "contact": contact,
     }
 
