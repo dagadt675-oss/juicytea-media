@@ -15,10 +15,13 @@ import skia
 
 from jt.captions import active_index
 from jt.project import ease_in_out, ease_out, laea_forward, project_one, project_points, route_blend, route_lonlat
-from jt.themes import NEON, SUB, WHITE, YELLOW
+from jt.themes import NEON, SUB, WHITE, YELLOW, parse_hex
 from style.gold import (
+    PILLS,
     draw_counter,
-    draw_motes,
+    draw_lakes,
+    draw_react,
+    draw_snow,
     draw_sparkles,
     draw_stamp,
     draw_sweep,
@@ -221,12 +224,12 @@ def _chain(lonlat, view, band=None):
     return chains
 
 
-def _badge(safe: Safe, text: str, x: float, y: float, theme, pop: float = 1.0) -> bool:
-    """White pill, red type. Nudges off the title and the caption band, or skips."""
+def _badge(safe: Safe, text: str, x: float, y: float, theme, pop: float = 1.0, style: str = "white") -> bool:
+    """Rounded pill. Nudges off the title and the caption band, or skips."""
     if not text:
         return False
     pop = max(0.55, float(pop))
-    font = safe.font("bold", 42 * pop)
+    font = safe.font("bold", 40 * pop)
     width = font.measureText(text)
     metrics = font.getMetrics()
     pad_x = 16 * safe.s
@@ -234,8 +237,7 @@ def _badge(safe: Safe, text: str, x: float, y: float, theme, pop: float = 1.0) -
     text_h = metrics.fDescent - metrics.fAscent
     bw = width + pad_x * 2
     bh = text_h + pad_y * 2
-    paper = theme.get("paper", (248, 248, 252))
-    ink = theme.get("ink", (196, 22, 58))
+    paper, ink = PILLS.get(style, PILLS["white"])
     offsets = ((0, -1.2), (0, 0.7), (1.05, -0.35), (-1.05, -0.35), (0, -2.0), (0, 1.5))
     for ox, oy in offsets:
         left = x - bw / 2 + ox * bw * 0.45
@@ -243,9 +245,14 @@ def _badge(safe: Safe, text: str, x: float, y: float, theme, pop: float = 1.0) -
         rect = skia.Rect.MakeLTRB(left, top, left + bw, top + bh)
         if safe.hits(rect):
             continue
-        fill = skia.Paint(AntiAlias=True)
-        fill.setColor(skia.ColorSetARGB(255, int(paper[0]), int(paper[1]), int(paper[2])))
-        safe.canvas.drawRRect(skia.RRect.MakeRectXY(rect, bh / 2, bh / 2), fill)
+        if paper is not None:
+            fill = skia.Paint(AntiAlias=True)
+            fill.setColor(skia.ColorSetARGB(255, int(paper[0]), int(paper[1]), int(paper[2])))
+            safe.canvas.drawRRect(skia.RRect.MakeRectXY(rect, bh / 2, bh / 2), fill)
+        else:
+            shadow = skia.Paint(AntiAlias=True)
+            shadow.setColor(skia.ColorSetARGB(220, 0, 0, 0))
+            safe.canvas.drawString(text, left + pad_x + 2 * safe.s, top + (bh - text_h) / 2 - metrics.fAscent + 2 * safe.s, font, shadow)
         baseline = top + (bh - text_h) / 2 - metrics.fAscent
         paint = skia.Paint(AntiAlias=True)
         paint.setColor(skia.ColorSetARGB(255, int(ink[0]), int(ink[1]), int(ink[2])))
@@ -253,6 +260,15 @@ def _badge(safe: Safe, text: str, x: float, y: float, theme, pop: float = 1.0) -
         safe.block(rect)
         return True
     return False
+
+
+def _vis_rgb(vis, default):
+    raw = vis.get("color")
+    if not raw:
+        return tuple(default[:3])
+    if isinstance(raw, str):
+        return parse_hex(raw)
+    return tuple(int(c) for c in raw[:3])
 
 
 def _clip_chains(chains, safe: Safe):
@@ -415,8 +431,8 @@ def draw_flat_map(canvas, earth, view, theme, highlight_ids, scale: float, local
 
 
 def draw_graticule(canvas, view, theme, phase: float):
-    # Solid and densely sampled. Dashes at 20 points were the jagged grid.
-    paint = _stroke((64, 96, 148), 1.3, alpha=120)
+    # Faint grid, the same weight as the gold Short. Solid, not a 20-point dash.
+    paint = _stroke((28, 40, 64), 1.1, alpha=160)
     for lon in range(-150, 181, 30):
         pts = [(lon, lat) for lat in np.linspace(-75, 75, 90)]
         for chain in _chain(pts, view):
@@ -458,18 +474,29 @@ def _draw_growing(canvas, chains, color, scale, local):
         draw_tip(canvas, x, y, scale)
 
 
-def draw_parallel(canvas, safe: Safe, view, theme, phase, lat, label, t, draw_line=True, with_label=True, local: float = 1.0):
-    half = max(view.span * 0.55, 8)
-    pts = [(lon, lat) for lon in np.linspace(view.lon - half, view.lon + half, 160)]
+def draw_parallel(canvas, safe: Safe, view, theme, phase, lat, label, t, draw_line=True, with_label=True, local: float = 1.0, color=None, pill: str = "yellow"):
+    half = max(view.span * 0.65, 8)
+    pts = [(lon, lat) for lon in np.linspace(view.lon - half, view.lon + half, 180)]
     chains = _clip_chains(_chain(pts, view), safe) if draw_line else _chain(pts, view)
+    rgb = tuple(color[:3]) if color is not None else tuple(theme["line"][:3])
     if draw_line:
-        _draw_growing(canvas, chains, theme["line"], safe.s, local)
+        u = grow(local, 0.72)
+        for chain in chains:
+            part, tip = trim_polyline(chain, u)
+            if len(part) < 2:
+                continue
+            paint = _stroke(rgb, 7.0 * safe.s, 255)
+            _polyline(canvas, part, paint)
+            for px, py in (part[0], part[-1]):
+                dot = skia.Paint(AntiAlias=True)
+                dot.setColor(skia.ColorSetARGB(255, rgb[0], rgb[1], rgb[2]))
+                canvas.drawCircle(px, py, 8.0 * safe.s, dot)
+            if tip is not None and u < 0.995:
+                draw_tip(canvas, tip[0], tip[1], safe.s)
     if with_label and label:
-        # Anchor in the open band, using the unclipped line so the pill can sit
-        # beside the stroke even where the stroke runs under the title.
         hit = _anchor(_chain(pts, view), safe)
         if hit and not safe.point_blocked(hit[0], hit[1]):
-            _badge(safe, str(label), hit[0], hit[1], theme, pop_scale(local))
+            _badge(safe, str(label), hit[0], hit[1], theme, pop_scale(local), pill)
 
 
 def draw_meridian(canvas, safe: Safe, view, theme, lon, label, t, draw_line=True, with_label=True, local: float = 1.0):
@@ -550,33 +577,39 @@ def draw_route(canvas, safe: Safe, view, theme, vis, t: float, draw_line=True, w
             _badge(safe, str(vis["label"]), hit[0], hit[1], theme, pop_scale(local))
 
 
-def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t, pop: float = 1.0, local: float = 1.0):
+def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t, pop: float = 1.0, local: float = 1.0, pill: str = "white", radar: str = "drop"):
     hit = project_one(lon, lat, view)
     if hit is None:
         return
     x, y = hit
+    if radar == "none":
+        if label and not safe.point_blocked(x, y):
+            _badge(safe, str(label), x, y, theme, pop_scale(local), pill)
+        return
     if safe.point_blocked(x, y):
         return
-    col = theme["marker"]
+    white = (255, 255, 255)
     dy, sx, sy, ripples = pin_pose(local, safe.s)
+    if radar == "reticle":
+        arrive = grow(local, 0.28)
+        for i, rad in enumerate((18, 36, 56)):
+            canvas.drawCircle(x, y, rad * safe.s * (0.75 + 0.25 * arrive), _stroke(white, 2.4 * safe.s, int(230 * arrive)))
+        canvas.drawLine(x, y - 64 * safe.s, x, y + 22 * safe.s, _stroke(white, 2.0 * safe.s, int(210 * arrive)))
     for frac, alpha in ripples:
-        radius = (14 + 54 * frac) * safe.s
-        canvas.drawCircle(x, y, radius, _stroke(col, 3.0 * safe.s, int(170 * alpha)))
+        radius = (14 + 48 * frac) * safe.s
+        canvas.drawCircle(x, y, radius, _stroke(white, 2.6 * safe.s, int(160 * alpha)))
     canvas.save()
     canvas.translate(x, y + dy)
     canvas.scale(sx, sy)
     canvas.translate(-x, -y)
     fill = skia.Paint(AntiAlias=True)
-    fill.setColor(skia.ColorSetARGB(255, col[0], col[1], col[2]))
-    canvas.drawCircle(x, y, 8.0 * safe.s, fill)
-    core = skia.Paint(AntiAlias=True)
-    paper = theme.get("paper", (248, 248, 248))
-    core.setColor(skia.ColorSetARGB(255, paper[0], paper[1], paper[2]))
-    canvas.drawCircle(x, y, 3.2 * safe.s, core)
+    fill.setColor(skia.ColorSetARGB(255, 255, 255, 255))
+    canvas.drawCircle(x, y, 6.5 * safe.s, fill)
     canvas.restore()
-    draw_sparkles(canvas, x, y + dy, local, safe.s, seed=int(lat * 10 + lon) & 0xFFFF)
+    if radar != "reticle":
+        draw_sparkles(canvas, x, y + dy, local, safe.s, seed=int(lat * 10 + lon) & 0xFFFF)
     if label:
-        _badge(safe, str(label), x, y - 28 * safe.s + dy, theme, pop_scale(local))
+        _badge(safe, str(label), x, y - 36 * safe.s + dy, theme, pop_scale(local), pill)
 
 
 def draw_ruler(canvas, safe: Safe, view, vis, local, t):
@@ -904,6 +937,33 @@ def draw_atmosphere(canvas, view, theme):
     canvas.drawCircle(view.cx, view.cy, view.r * 1.045, _stroke(theme["rim"], 8, 30))
 
 
+def _draw_patch(canvas, view, vis, local, scale):
+    """A lon/lat polygon, for a state the country file does not split out."""
+    pts = vis.get("points") or []
+    if len(pts) < 3:
+        return
+    rgb = _vis_rgb(vis, (200, 112, 18))
+    path = skia.Path()
+    started = False
+    for lat, lon in pts:
+        hit = project_one(float(lon), float(lat), view)
+        if hit is None:
+            if started:
+                break
+            continue
+        if not started:
+            path.moveTo(hit[0], hit[1])
+            started = True
+        else:
+            path.lineTo(hit[0], hit[1])
+    if not started:
+        return
+    path.close()
+    paint = skia.Paint(AntiAlias=True)
+    paint.setColor(skia.ColorSetARGB(230, rgb[0], rgb[1], rgb[2]))
+    canvas.drawPath(path, paint)
+
+
 def _reserve_caption(safe: Safe):
     """Karaoke slot only. The map may use the rest of the frame."""
     safe.block(skia.Rect.MakeLTRB(0, 0.64 * safe.h, safe.w, 0.72 * safe.h))
@@ -920,16 +980,20 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
     flat = bool(theme.get("flat"))
     if flat:
         draw_flat_map(canvas, earth, view, theme, highlight_ids or {}, safe.s, local)
-        draw_sweep(canvas, safe.w, safe.h, local)
-        draw_motes(canvas, safe.w, safe.h, t, safe.s)
+        if any(v.get("type") == "sweep" for v in visuals):
+            draw_sweep(canvas, safe.w, safe.h, local)
+        if any(v.get("type") == "snow" for v in visuals):
+            draw_snow(canvas, safe.w, safe.h, t, safe.s)
     else:
         draw_atmosphere(canvas, view, theme)
         draw_highlight_stroke(canvas, earth, view, theme, highlight_ids or {}, t)
     for vis in visuals:
         kind = vis.get("type")
         if kind == "latline":
+            line_local = local if vis.get("grow", True) else 10.0
             draw_parallel(canvas, safe, view, theme, t, float(vis["lat"]), "", t,
-                          draw_line=True, with_label=False, local=local)
+                          draw_line=True, with_label=False, local=line_local,
+                          color=_vis_rgb(vis, theme["line"]))
         elif kind == "lonline":
             draw_meridian(canvas, safe, view, theme, float(vis["lon"]), "", t,
                           draw_line=True, with_label=False, local=local)
@@ -944,8 +1008,10 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
     for vis in visuals:
         kind = vis.get("type")
         if kind == "latline":
+            line_local = local if vis.get("grow", True) else 10.0
             draw_parallel(canvas, safe, view, theme, t, float(vis["lat"]), vis.get("label", ""), t,
-                          draw_line=False, with_label=True, local=local)
+                          draw_line=False, with_label=True, local=line_local,
+                          color=_vis_rgb(vis, theme["line"]), pill=str(vis.get("pill") or "yellow"))
             continue
         if kind == "lonline":
             draw_meridian(canvas, safe, view, theme, float(vis["lon"]), vis.get("label", ""), t,
@@ -955,7 +1021,20 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
             continue
         if kind == "marker":
             draw_marker(canvas, safe, view, theme, float(vis["lat"]), float(vis["lon"]),
-                        str(vis.get("label", "")), t, local=local)
+                        str(vis.get("label", "")), t, local=local,
+                        pill=str(vis.get("pill") or "white"), radar=str(vis.get("radar") or "drop"))
+        elif kind == "tag":
+            _badge(safe, str(vis.get("text", "")), safe.w * float(vis.get("x", 0.5)),
+                   safe.h * float(vis.get("y", 0.14)), theme, pop_scale(local),
+                   str(vis.get("pill") or "yellow"))
+        elif kind == "patch":
+            _draw_patch(canvas, view, vis, local, safe.s)
+        elif kind == "lakes":
+            draw_lakes(canvas, lambda lon, lat: project_one(lon, lat, view), safe.s)
+        elif kind == "react":
+            hit = project_one(float(vis["lon"]), float(vis["lat"]), view)
+            if hit is not None and not safe.point_blocked(hit[0], hit[1]):
+                draw_react(canvas, hit[0], hit[1], local, safe.s)
         elif kind == "route":
             draw_route(canvas, safe, view, theme, vis, t, draw_line=False, with_label=True, local=local)
         elif kind == "ruler":

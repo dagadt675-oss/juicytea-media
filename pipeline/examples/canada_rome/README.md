@@ -1,13 +1,11 @@
-# Part of Canada is further south than Rome
+# Part of Canada is further south than Chicago
 
-Silent style-kit proof. The picture is drawn with `pipeline/style/gold.py`. The renderer does not call espeak or ElevenLabs, and it does not burn karaoke.
+Silent picture drawn with the gold style kit. The renderer does not call espeak or ElevenLabs, and it does not burn karaoke.
 
 ```bash
 python3 pipeline/make_short.py pipeline/specs/canada_rome.yaml --preset final --out pipeline/out/canada_rome
 ```
 
-The spoken lines are reconstructed. YouTube's caption track for the gold Short came back empty, so `say` is not a transcript. The geography is Middle Island in Lake Erie (41.6814°N), about 24 km south of Rome's latitude. It is not Point Pelee.
+The beat words in `timeline.json` are the karaoke cards from the 23 s gold file: Wait, further south than Chicago, Middle Island, the 41.68°N line, California's 42°N border, then Rome, then the snow punchline. Measured colours and the 7.5/10 score are in `pipeline/style/gold_canada.md`.
 
-`timeline.json` has the beat clock. Leave y 0.64–0.72 empty for a later caption pass.
-
-The camera pushes in once, then eases or cuts. It does not sway. Measured notes and the 7.5/10 storyboard score are in `pipeline/style/gold_canada.md`.
+Leave y 0.64–0.72 empty for a later caption pass. The camera pushes in once on the opening second, then cuts. It does not sway.

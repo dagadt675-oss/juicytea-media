@@ -320,9 +320,10 @@ def render_frame(studio: Studio, t: float, phase: float) -> tuple[np.ndarray, di
     canvas = surface.getCanvas()
     canvas.drawImage(skia.Image.fromarray(rgba), 0, 0)
     safe = Safe(canvas, studio.w, studio.h)
+    claim = "" if studio.spec.voice.get("draw_claims") is False else line.claim
     info = overlay(
         canvas, safe, studio.earth, view, line.visuals,
-        line.claim, line.sub, studio.words, studio.groups,
+        claim, line.sub, studio.words, studio.groups,
         t, local, studio.theme, highlights, punch=(line.kind == "p"),
     )
     bgra = surface.makeImageSnapshot().toarray()

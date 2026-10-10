@@ -1,114 +1,281 @@
-# Silent recreation of the gold Canada Short, drawn with the style kit.
-# Spoken lines are reconstructed: the YouTube caption track came back empty.
-# Geography is Middle Island, not Point Pelee. Pelee sits about level with Rome.
-# Karaoke y 0.64–0.72 stays empty. The camera never sways.
+# Silent picture of the gold Canada Short. Karaoke is not burned in.
+# The words below are the on-screen karaoke, one card per beat.
+# Measured from the 1080 file: pipeline/style/gold_canada.md
 id: canada_rome
-title: "Part of Canada Is Further South Than Rome?!"
+title: "Part of Canada Is Further South Than Chicago?"
 theme: midnight
-notes: "Style-kit proof. One opening push-in, then cuts. No sway."
+notes: "Gold-file proof. One opening push, then eases and cuts. No sway. Karaoke y 0.62–0.67 is left empty."
 voice:
   engine: silent
   enforce_pauses: false
+  draw_claims: false
 tags: ["#shorts", "#maps", "#canada"]
 sources:
-  - "Middle Island, Lake Erie: 41°40′53″N, southernmost land in Canada"
-  - "Rome: about 41°53′36″N"
-  - "Gap about 0.21° of latitude, about 24 km"
+  - "Middle Island, Lake Erie: 41.6814°N, southernmost land in Canada"
+  - "Chicago: 41.878°N"
+  - "California's northern border: 42°N"
+  - "Rome: 41.893°N"
 description: |
-  Part of Canada is further south than Rome?
+  Part of Canada is further south than Chicago?
 
-  Middle Island in Lake Erie is the southernmost land in Canada. Rome's latitude passes north of it. The island is about 24 kilometers further south.
+  Middle Island in Lake Erie is the southernmost point of Canada. A line west puts it south of Chicago and south of California's entire northern border. East across the Atlantic, it is south of Rome.
 
   Silent picture. No burned-in karaoke. Leave y 0.64–0.72 empty for captions.
 
   #shorts #maps #canada
-wide: &wide {proj: merc, lon: -84, lat: 45, span: 72}
-erie: &erie {proj: merc, lon: -83.2, lat: 40.5, span: 8, fly: 2.6}
+
+wide: &wide {proj: merc, lon: -100, lat: 45, span: 90}
+lakes: &lakes {proj: merc, lon: -84, lat: 42.6, span: 26, cut: true}
+erie: &erie {proj: merc, lon: -82.6, lat: 41.4, span: 13, cut: true}
+usa: &usa {proj: merc, lon: -104, lat: 38, span: 66, cut: true}
+atl: &atl {proj: merc, lon: -18, lat: 38, span: 80, cut: true}
+rome: &rome {proj: merc, lon: 12.8, lat: 41.6, span: 10, cut: true}
+back: &back {proj: merc, lon: -100, lat: 45, span: 140, cut: true}
+
+grid: &grid {type: graticule}
+lakes_cut: &lakes_cut {type: lakes}
+can: &can {type: highlight, countries: [CAN], colors: ["#E82247"]}
+ita: &ita {type: highlight, countries: [ITA], colors: ["#05AEE0"]}
+lat68: &lat68 {type: latline, lat: 41.6814, color: "#FED40A", grow: false}
+lat42: &lat42 {type: latline, lat: 42.0, color: "#FED40A", grow: false}
+tag68: &tag68 {type: tag, text: "41.68°N", pill: yellow, x: 0.50, y: 0.13}
+isle: &isle {type: marker, lat: 41.6814, lon: -82.6822, label: "MIDDLE ISLAND", pill: red, radar: reticle}
+acres: &acres {type: tag, text: "46 ACRES · POPULATION 0", pill: ghost, x: 0.46, y: 0.55}
+usa_pill: &usa_pill {type: marker, lat: 41.45, lon: -83.3, label: "USA", pill: blue, radar: none}
+can_pill: &can_pill {type: marker, lat: 42.2, lon: -81.3, label: "CANADA", pill: red, radar: none}
+south: &south {type: tag, text: "CANADA'S SOUTHERNMOST POINT", pill: yellow, x: 0.50, y: 0.24}
+chi: &chi {type: marker, lat: 41.878, lon: -87.630, label: "CHICAGO", pill: white, radar: drop}
+chi_lat: &chi_lat {type: marker, lat: 41.878, lon: -87.630, label: "CHICAGO 41.88°N", pill: white, radar: drop}
+cali_name: &cali_name {type: marker, lat: 36.7, lon: -119.4, label: "CALIFORNIA", pill: yellow, radar: none}
+cali_edge: &cali_edge {type: marker, lat: 42.0, lon: -121.5, label: "CALIFORNIA BORDER = 42°N", pill: purple, radar: none}
+rome_pin: &rome_pin {type: marker, lat: 41.893, lon: 12.496, label: "ROME 41.90°N", pill: white, radar: drop}
+ocean_pill: &ocean_pill {type: marker, lat: 38.5, lon: -40, label: "ATLANTIC OCEAN", pill: blue, radar: none}
+snow: &snow {type: snow}
+cali: &cali
+  type: patch
+  color: [200, 112, 18]
+  points:
+    - [42.0, -124.4]
+    - [40.4, -124.4]
+    - [38.8, -123.8]
+    - [37.2, -122.4]
+    - [35.6, -121.2]
+    - [34.4, -120.5]
+    - [33.6, -118.2]
+    - [32.6, -117.2]
+    - [32.6, -114.7]
+    - [34.3, -114.3]
+    - [36.0, -114.6]
+    - [38.0, -114.1]
+    - [40.0, -114.0]
+    - [42.0, -114.0]
+
 lines:
-  - text: "Part of Canada is further south than Rome?"
+  - text: "Wait..."
     kind: q
-    dur: 1.40
-    say: "Part of Canada is further south than Rome?"
-    claim: "Part of Canada is\nfurther south\nthan *Rome?*"
+    dur: 1.0
+    say: "Wait..."
+    claim: "Wait..."
     sub: ""
     camera: *wide
-    visuals:
-      - {type: highlight, countries: [CAN]}
+    visuals: [*grid, *lakes_cut, *can]
 
-  - text: "The spot is Middle Island, in Lake Erie."
+  - text: "Further south"
     kind: s
-    dur: 3.20
-    say: "The spot is Middle Island, in Lake Erie."
-    claim: "The spot is\n*Middle Island,*\nin Lake Erie."
+    dur: 1.0
+    say: "Further south"
+    claim: "Further south"
+    sub: ""
+    camera: *wide
+    visuals: [*grid, *lakes_cut, *can]
+
+  - text: "Than Chicago?!"
+    kind: s
+    dur: 1.0
+    say: "Than Chicago?!"
+    claim: "Than Chicago?!"
+    sub: ""
+    camera: *lakes
+    visuals:
+      - *grid
+      - *lakes_cut
+      - *can
+      - *chi
+      - {type: react, lat: 46.8, lon: -81.5}
+
+  - text: "Middle Island"
+    kind: s
+    dur: 1.0
+    say: "Middle Island"
+    claim: "Middle Island"
+    sub: ""
+    camera: *erie
+    visuals: [*grid, *lakes_cut, *can, *isle]
+
+  - text: "A tiny dot"
+    kind: s
+    dur: 1.0
+    say: "A tiny dot"
+    claim: "A tiny dot"
+    sub: ""
+    camera: *erie
+    visuals: [*grid, *lakes_cut, *can, *isle, *acres, *usa_pill]
+
+  - text: "In Lake Erie"
+    kind: s
+    dur: 1.0
+    say: "In Lake Erie"
+    claim: "In Lake Erie"
+    sub: ""
+    camera: *erie
+    visuals: [*grid, *lakes_cut, *can, *isle, *acres, *usa_pill, *can_pill]
+
+  - text: "Southernmost"
+    kind: s
+    dur: 1.0
+    say: "Southernmost"
+    claim: "Southernmost"
+    sub: ""
+    camera: *erie
+    visuals: [*grid, *lakes_cut, *can, *isle, *south]
+
+  - text: "Point of Canada"
+    kind: s
+    dur: 1.0
+    say: "Point of Canada"
+    claim: "Point of Canada"
+    sub: ""
+    camera: *erie
+    visuals: [*grid, *lakes_cut, *can, *isle, *south, *tag68]
+
+  - text: "A line west"
+    kind: s
+    dur: 1.0
+    say: "A line west"
+    claim: "A line west"
     sub: ""
     camera: *erie
     visuals:
-      - {type: highlight, countries: [CAN]}
-      - {type: marker, lat: 41.6814, lon: -82.6822, label: "MIDDLE ISLAND"}
+      - *grid
+      - *lakes_cut
+      - *can
+      - *isle
+      - *tag68
+      - {type: latline, lat: 41.6814, color: "#FED40A"}
 
-  - text: "This line is Rome's latitude."
+  - text: "It's south"
     kind: s
-    dur: 3.40
-    say: "This line is Rome's latitude."
-    claim: "This line is\n*Rome's* latitude."
+    dur: 1.0
+    say: "It's south"
+    claim: "It's south"
     sub: ""
     camera: *erie
-    visuals:
-      - {type: highlight, countries: [CAN]}
-      - {type: marker, lat: 41.6814, lon: -82.6822, label: "MIDDLE ISLAND"}
-      - {type: latline, lat: 41.893, label: "ROME 41.9°N"}
+    visuals: [*grid, *lakes_cut, *can, *isle, *tag68, *lat68, *chi]
 
-  - text: "The island sits south of that line."
+  - text: "Of Chicago"
     kind: s
-    dur: 2.20
-    say: "The island sits south of that line."
-    claim: "The island sits\n*south* of that line."
+    dur: 1.0
+    say: "Of Chicago"
+    claim: "Of Chicago"
     sub: ""
     camera: *erie
-    visuals:
-      - {type: highlight, countries: [CAN]}
-      - {type: marker, lat: 41.6814, lon: -82.6822, label: "MIDDLE ISLAND"}
-      - {type: latline, lat: 41.893, label: "ROME 41.9°N"}
+    visuals: [*grid, *lakes_cut, *can, *tag68, *lat68, *chi_lat]
 
-  - text: "That gap is about 24 kilometers."
+  - text: "California's"
     kind: s
-    dur: 4.20
-    say: "That gap is about 24 kilometers."
-    claim: "That gap is about\n*24* kilometers."
+    dur: 1.0
+    say: "California's"
+    claim: "California's"
     sub: ""
-    camera: {proj: merc, lon: -80, lat: 40.5, span: 24}
-    visuals:
-      - {type: highlight, countries: [CAN]}
-      - {type: marker, lat: 41.6814, lon: -82.6822, label: "MIDDLE ISLAND"}
-      - {type: latline, lat: 41.893, label: "ROME 41.9°N"}
-      - {type: counter, value: 24, unit: "km"}
+    camera: *usa
+    visuals: [*grid, *lakes_cut, *can, *tag68, *lat42, *cali, *cali_name, *cali_edge]
 
-  - text: "Rome is across the Atlantic."
+  - text: "Northern border"
     kind: s
-    dur: 3.80
-    say: "Rome is across the Atlantic."
-    claim: "Rome is across\nthe *Atlantic.*"
+    dur: 1.0
+    say: "Northern border"
+    claim: "Northern border"
     sub: ""
-    camera: {proj: merc, lon: 12.5, lat: 42, span: 80, cut: true}
-    visuals:
-      - {type: marker, lat: 41.893, lon: 12.496, label: "ROME"}
+    camera: *usa
+    visuals: [*grid, *lakes_cut, *can, *tag68, *lat42, *cali, *cali_name, *cali_edge]
 
-  - text: "Not north of Rome."
+  - text: "Now go east"
     kind: s
-    dur: 1.70
-    say: "Not north of Rome."
-    claim: "Not *north*\nof Rome."
+    dur: 1.0
+    say: "Now go east"
+    claim: "Now go east"
     sub: ""
-    camera: {proj: merc, lon: -84, lat: 45, span: 120, cut: true}
-    visuals:
-      - {type: highlight, countries: [CAN]}
-      - {type: stamp, text: "X"}
+    camera: *usa
+    visuals: [*grid, *lakes_cut, *can, *tag68, *lat42, *cali, *cali_name, *cali_edge]
 
-  - text: "Further south than Rome."
+  - text: "The Atlantic"
+    kind: s
+    dur: 2.0
+    say: "The Atlantic"
+    claim: "The Atlantic"
+    sub: ""
+    camera: *atl
+    visuals: [*grid, *tag68, *lat68, *ocean_pill]
+
+  - text: "Of Rome"
+    kind: s
+    dur: 1.0
+    say: "Of Rome"
+    claim: "Of Rome"
+    sub: ""
+    camera: *rome
+    visuals: [*grid, *tag68, *lat68, *rome_pin]
+
+  - text: "Rome,"
+    kind: s
+    dur: 1.0
+    say: "Rome,"
+    claim: "Rome,"
+    sub: ""
+    camera: *rome
+    visuals: [*grid, *tag68, *lat68, *rome_pin, *ita]
+
+  - text: "Italy!"
+    kind: s
+    dur: 1.0
+    say: "Italy!"
+    claim: "Italy!"
+    sub: ""
+    camera: *rome
+    visuals: [*grid, *tag68, *lat68, *rome_pin, *ita]
+
+  - text: "Someone says"
+    kind: s
+    dur: 1.0
+    say: "Someone says"
+    claim: "Someone says"
+    sub: ""
+    camera: *back
+    visuals: [*grid, *lakes_cut, *can, *snow]
+
+  - text: "All snow"
+    kind: s
+    dur: 1.0
+    say: "All snow"
+    claim: "All snow"
+    sub: ""
+    camera: *back
+    visuals: [*grid, *lakes_cut, *can, *snow]
+
+  - text: "And polar bears"
     kind: p
-    dur: 3.10
-    say: "Further south than Rome."
-    claim: "Further *south*\nthan Rome."
+    dur: 1.0
+    say: "And polar bears"
+    claim: "And polar bears"
     sub: ""
-    camera: {proj: merc, lon: -84, lat: 45, span: 180, cut: true}
-    visuals: []
+    camera: *back
+    visuals: [*grid, *lakes_cut, *can, *snow]
+
+  - text: "Just say..."
+    kind: p
+    dur: 1.0
+    say: "Just say..."
+    claim: "Just say..."
+    sub: ""
+    camera: *back
+    visuals: [*grid, *lakes_cut, *can, *snow]

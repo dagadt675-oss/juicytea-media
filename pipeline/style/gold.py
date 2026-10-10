@@ -14,13 +14,26 @@ import skia
 
 from jt.project import ease_out
 
-# Storyboard clusters, lifted a hair so the field is navy rather than black.
-OCEAN = (8, 10, 26)
-LAND = (40, 50, 74)
-NEON_RGB = (228, 32, 68)
-PAPER = (248, 248, 248)
-INK = (196, 20, 52)
-COAST = (6, 10, 22)
+# Medians from the 1080 gold file, one frame per second.
+OCEAN = (8, 8, 24)          # #080818
+LAND = (40, 48, 72)         # #283048
+NEON_RGB = (232, 34, 71)    # #E82247  Canada
+PAPER = (248, 248, 248)     # #F8F8F8
+INK = (18, 18, 22)
+GOLD = (254, 212, 10)       # #FED40A  karaoke stress + latitude line
+CYAN = (5, 174, 224)        # #05AEE0  Italy
+PURPLE = (200, 29, 159)     # #C81D9F  California-border pill
+COAST = (168, 184, 204)
+
+# Fill, ink. ghost has no fill.
+PILLS = {
+    "white": (PAPER, INK),
+    "red": (NEON_RGB, (255, 255, 255)),
+    "yellow": (GOLD, (22, 16, 8)),
+    "purple": (PURPLE, (255, 255, 255)),
+    "blue": ((3, 89, 169), (255, 255, 255)),
+    "ghost": (None, (255, 255, 255)),
+}
 
 BOLD = "/usr/share/fonts/truetype/macos/Inter-Bold.ttf"
 FALLBACK = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
@@ -206,6 +219,77 @@ def draw_sparkles(canvas, x: float, y: float, local: float, s: float = 1.0, seed
         px = x + math.cos(ang) * dist
         py = y + math.sin(ang) * dist
         canvas.drawCircle(px, py, (2.4 - 1.2 * age) * s, _paint(255, 186, 196, alpha))
+
+
+# 50m Canada/US rings fill the Great Lakes. The gold film shows them as navy holes.
+LAKES = (
+    # Superior
+    ((46.55, -92.10), (46.75, -90.80), (47.00, -89.40), (47.40, -88.20), (47.90, -87.20),
+     (48.30, -88.40), (48.15, -89.60), (47.60, -90.70), (47.00, -91.60), (46.70, -92.05)),
+    # Michigan
+    ((41.75, -86.60), (42.50, -86.70), (44.20, -86.60), (45.70, -86.10), (45.90, -85.20),
+     (45.40, -85.40), (44.00, -86.20), (43.00, -86.20), (42.00, -86.40)),
+    # Huron
+    ((43.05, -82.45), (43.80, -82.20), (44.80, -81.80), (45.80, -82.20), (46.00, -83.80),
+     (45.20, -83.60), (44.00, -82.80), (43.30, -82.50)),
+    # Erie. Keeps the water south of the Ontario shore.
+    ((41.68, -83.35), (41.48, -82.95), (41.42, -82.40), (41.50, -81.70), (41.70, -81.05),
+     (42.05, -80.30), (42.25, -79.80), (42.60, -79.15), (42.82, -79.20), (42.70, -79.85),
+     (42.50, -80.55), (42.25, -81.35), (41.95, -82.15), (41.80, -82.70), (41.70, -83.15)),
+    # Ontario
+    ((43.30, -79.10), (43.45, -77.80), (43.70, -76.60), (44.05, -76.40), (43.85, -77.40),
+     (43.50, -78.80), (43.28, -79.20)),
+)
+
+
+def draw_lakes(canvas, project, s: float = 1.0):
+    """Navy holes for the Great Lakes. project(lon, lat) -> (x, y) or None."""
+    paint = _paint(*OCEAN)
+    edge = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style)
+    edge.setStrokeWidth(1.4 * s)
+    edge.setColor(skia.ColorSetARGB(255, 168, 184, 204))
+    for ring in LAKES:
+        path = skia.Path()
+        started = False
+        for lat, lon in ring:
+            hit = project(lon, lat)
+            if hit is None:
+                continue
+            if not started:
+                path.moveTo(hit[0], hit[1])
+                started = True
+            else:
+                path.lineTo(hit[0], hit[1])
+        if not started:
+            continue
+        path.close()
+        canvas.drawPath(path, paint)
+        canvas.drawPath(path, edge)
+
+
+def draw_snow(canvas, w: int, h: int, t: float, s: float = 1.0):
+    """White specks falling down. One direction. The caption slot stays clear."""
+    y0b, y1b = 0.64 * h, 0.72 * h
+    for i in range(48):
+        x = (i * 137 + 30) % w
+        y = ((i * 91) + t * 42.0) % (h + 20) - 10
+        if y0b <= y <= y1b:
+            continue
+        canvas.drawCircle(x, y, (1.4 + (i % 3) * 0.5) * s, _paint(236, 242, 248, 200))
+
+
+def draw_react(canvas, x: float, y: float, local: float, s: float = 1.0):
+    """A small popped face for the hook. One overshoot, then it holds."""
+    if local < 0.02:
+        return
+    sc = pop_scale(local, punch=True)
+    r = 34 * s * sc
+    canvas.drawCircle(x, y - r * 0.85, 14 * s * sc, _paint(120, 210, 240))
+    canvas.drawCircle(x, y, r, _paint(*GOLD))
+    for sx in (-1, 1):
+        canvas.drawCircle(x + sx * 11 * s * sc, y - 6 * s * sc, 7 * s * sc, _paint(255, 255, 255))
+        canvas.drawCircle(x + sx * 11 * s * sc, y - 4 * s * sc, 3.2 * s * sc, _paint(20, 16, 8))
+    canvas.drawCircle(x, y + 12 * s * sc, 6 * s * sc, _paint(20, 16, 8))
 
 
 def draw_motes(canvas, w: int, h: int, t: float, s: float = 1.0):
