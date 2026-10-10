@@ -28,11 +28,12 @@ lax: &lax [33.9425, -118.4081]
 nrt: &nrt [35.7720, 140.3929]
 cam: &cam {proj: merc, lon: -160, lat: 44, span: 150, push: 1.28, creep: 0.05}
 back: &back {proj: merc, lon: -160, lat: 44, span: 150, cut: true, creep: 0.05}
+wait: &wait {type: tag, text: "WAIT...", x: 0.50, y: 0.168, pill: white, band: top, size: 26, head: 0.55, until: 1.55, tight: true}
 lie: &lie {type: tag, text: "YOUR MAP IS LYING", x: 0.50, y: 0.20, pill: red, band: top, size: 42, head: 0.45, until: 1.55}
 lying: &lying {type: tag, text: "YOUR MAP IS LYING", x: 0.50, y: 0.20, pill: red, band: top, size: 42}
 lakes: &lakes {type: lakes}
-la: &la {type: marker, lat: 33.9425, lon: -118.4081, label: "LA", radar: steady}
-tyo: &tyo {type: marker, lat: 35.7720, lon: 140.3929, label: "TOKYO", radar: steady}
+la: &la {type: marker, lat: 33.9425, lon: -118.4081, label: "LA", radar: steady, side: right}
+tyo: &tyo {type: marker, lat: 35.7720, lon: 140.3929, label: "TOKYO", radar: steady, side: left}
 arc: &arc {type: route, mode: great, style: solid, a: *lax, b: *nrt, from: 0.62, draw: 1.15}
 held: &held {type: route, mode: great, style: solid, a: *lax, b: *nrt, grow: false}
 glow: &glow {type: route, mode: great, style: solid, a: *lax, b: *nrt, grow: false, glow: true}
@@ -44,7 +45,7 @@ lines:
     claim: "Your flight from LA to Tokyo curves up toward Alaska."
     sub: ""
     camera: *cam
-    visuals: [*lakes, *la, *tyo, *arc, *plane, *lie]
+    visuals: [*lakes, *la, *tyo, *arc, *plane, *wait, *lie]
 
   - text: "And that curve is about three hundred miles shorter."
     kind: s

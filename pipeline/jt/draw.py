@@ -724,7 +724,51 @@ def draw_route(canvas, safe: Safe, view, theme, vis, t: float, draw_line=True, w
             _badge(safe, str(vis["label"]), hit[0], hit[1], theme, pop_scale(local))
 
 
-def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t, pop: float = 1.0, local: float = 1.0, pill: str = "white", radar: str = "drop"):
+def _city_pill(safe: Safe, text: str, x: float, y: float, theme, side: str, pill: str = "white") -> bool:
+    """City name below the pin, biased away from the route.
+
+    The arc and the dashed line sit on or above the pin, and the plane rides
+    that line. Below the pin stays clear of both. The pill is clamped into the
+    safe rect so it cannot vanish when the map tightens.
+    """
+    font = safe.font("bold", 34)
+    width = font.measureText(text)
+    metrics = font.getMetrics()
+    pad_x, pad_y = 14 * safe.s, 7 * safe.s
+    text_h = metrics.fDescent - metrics.fAscent
+    bw = width + pad_x * 2
+    bh = text_h + pad_y * 2
+    top = y + 16 * safe.s
+    if side == "left":
+        left = x - bw + 16 * safe.s
+    else:
+        left = x - 16 * safe.s
+    margin = 4 * safe.s
+    if left < safe.left + margin:
+        left = safe.left + margin
+    if left + bw > safe.right - margin:
+        left = safe.right - margin - bw
+    cap0 = 0.64 * safe.h
+    if top + bh > cap0 - 6 * safe.s:
+        top = cap0 - 6 * safe.s - bh
+    if top < safe.top + margin:
+        top = safe.top + margin
+    rect = skia.Rect.MakeLTRB(left, top, left + bw, top + bh)
+    if safe.hits(rect):
+        return False
+    paper, ink = PILLS.get(pill, PILLS["white"])
+    fill = skia.Paint(AntiAlias=True)
+    fill.setColor(skia.ColorSetARGB(255, int(paper[0]), int(paper[1]), int(paper[2])))
+    safe.canvas.drawRRect(skia.RRect.MakeRectXY(rect, bh / 2, bh / 2), fill)
+    baseline = top + (bh - text_h) / 2 - metrics.fAscent
+    paint = skia.Paint(AntiAlias=True)
+    paint.setColor(skia.ColorSetARGB(255, int(ink[0]), int(ink[1]), int(ink[2])))
+    safe.canvas.drawString(text, left + pad_x, baseline, font, paint)
+    safe.block(rect)
+    return True
+
+
+def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t, pop: float = 1.0, local: float = 1.0, pill: str = "white", radar: str = "drop", side: str = "right"):
     hit = project_one(lon, lat, view)
     if hit is None:
         return
@@ -745,7 +789,7 @@ def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t, pop: float 
         canvas.drawCircle(x, y, 6.6 * safe.s, fill)
         canvas.drawCircle(x, y, 11 * safe.s, _stroke((255, 176, 188), 2.0 * safe.s, 80))
         if label:
-            _badge(safe, str(label), x, y - 20 * safe.s, theme, 1.0, pill, tight=True)
+            _city_pill(safe, str(label), x, y, theme, side, pill)
         return
     if radar == "none":
         if label and not safe.point_blocked(x, y):
@@ -797,22 +841,6 @@ def draw_flight(canvas, safe: Safe, view, vis, t: float):
     else:
         pts = route_lonlat("great", lat1, lon1, lat2, lon2, 120)
     idx = min(len(pts) - 2, max(0, int(u * (len(pts) - 1))))
-    # Step back along the line if this spot would sit on a city label.
-    for _ in range(10):
-        lon, lat = pts[idx]
-        hit = project_one(lon, lat, view)
-        if hit is None:
-            return
-        x, y = hit
-        crowded = False
-        for clat, clon in ((lat1, lon1), (lat2, lon2)):
-            pin = project_one(clon, clat, view)
-            if pin is not None and math.hypot(x - pin[0], y - (pin[1] - 20 * safe.s)) < 78 * safe.s:
-                crowded = True
-                break
-        if not crowded or idx <= 1:
-            break
-        idx -= 1
     lon, lat = pts[idx]
     hit = project_one(lon, lat, view)
     if hit is None:
@@ -1295,6 +1323,7 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
                 str(vis.get("pill") or "white"),
                 size=float(vis.get("size", 44)),
                 min_pop=0.12,
+                tight=bool(vis.get("tight")),
             )
     _reserve_title(safe)
     if any(v.get("type") == "graticule" for v in visuals):
@@ -1316,7 +1345,8 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
         if kind == "marker":
             draw_marker(canvas, safe, view, theme, float(vis["lat"]), float(vis["lon"]),
                         str(vis.get("label", "")), t, local=local,
-                        pill=str(vis.get("pill") or "white"), radar=str(vis.get("radar") or "drop"))
+                        pill=str(vis.get("pill") or "white"), radar=str(vis.get("radar") or "drop"),
+                        side=str(vis.get("side") or "right"))
         elif kind == "tag":
             if str(vis.get("band") or "") == "top":
                 continue
