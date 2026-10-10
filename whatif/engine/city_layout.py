@@ -34,23 +34,24 @@ LEVEL_S1 = 150.0
 FAR_S = 185.0
 FAR_Z = 1.8
 
-# Grey, white, and light blue, with a few salmon towers. Locked by a test.
+# Grey, white, light blue, and salmon. The back row is lifted toward blue in the scene.
 SKYLINE_COLORS = (
     (0.78, 0.80, 0.83, 1),
-    (0.92, 0.93, 0.94, 1),
+    (0.94, 0.94, 0.93, 1),
     (0.62, 0.74, 0.86, 1),
-    (0.70, 0.76, 0.82, 1),
-    (0.86, 0.87, 0.88, 1),
+    (0.70, 0.73, 0.78, 1),
+    (0.90, 0.86, 0.80, 1),
     (0.84, 0.48, 0.42, 1),
     (0.55, 0.66, 0.80, 1),
-    (0.76, 0.42, 0.40, 1),
-    (0.90, 0.88, 0.84, 1),
+    (0.80, 0.45, 0.40, 1),
+    (0.86, 0.62, 0.55, 1),
+    (0.73, 0.80, 0.88, 1),
 )
-# y, hmin, hmax, x0, x1, (wmin, wmax). Back row is the tall one.
+# y, hmin, hmax, x0, x1, (wmin, wmax). Heights stay inside the frame (88 m clips).
 SKYLINE_ROWS = (
-    (208.0, 22.0, 42.0, -100.0, 140.0, (10.0, 18.0)),
-    (242.0, 30.0, 54.0, -110.0, 150.0, (8.0, 15.0)),
-    (278.0, 40.0, 68.0, -90.0, 130.0, (7.0, 13.0)),
+    (208.0, 16.0, 50.0, -110.0, 150.0, (9.0, 18.0)),
+    (242.0, 22.0, 68.0, -120.0, 160.0, (8.0, 16.0)),
+    (278.0, 28.0, 84.0, -100.0, 150.0, (7.0, 14.0)),
 )
 
 # Park paths. Cars must not sit on these.
@@ -97,30 +98,35 @@ def south_s():
     return deck_s_at_y(CROSS_Y)
 
 
+def _smooth(t):
+    t = max(0.0, min(1.0, t))
+    return t * t * (3.0 - 2.0 * t)
+
+
 def deck_z(s):
+    """Smoothstep ramps so the slope is flat where it meets the level deck."""
     if s < 0.0:
         s0 = south_s()
         t = (s - s0) / (0.0 - s0)
-        t = max(0.0, min(1.0, t))
-        return SOUTH_Z + t * (DECK_Z - SOUTH_Z)
+        return SOUTH_Z + _smooth(t) * (DECK_Z - SOUTH_Z)
     if s > LEVEL_S1:
-        t = min(1.0, (s - LEVEL_S1) / (FAR_S - LEVEL_S1))
-        return DECK_Z + t * (FAR_Z - DECK_Z)
+        t = (s - LEVEL_S1) / (FAR_S - LEVEL_S1)
+        return DECK_Z + _smooth(t) * (FAR_Z - DECK_Z)
     return DECK_Z
 
 
 def bridge_spans():
     """(index, s0, s1). 1 and 2 are the hidden wreckage copies.
 
-    The approach runs a few meters under the level deck, and the far ramp
-    starts a few meters back under it, so the square ends cannot leave a gap.
+    Spans meet at a shared s, where deck_z is continuous, so a vertical
+    cross-section there is the same shape for both pieces.
     """
     return (
         (0, 0.0, LEVEL_S1),
         (1, 40.0, 72.0),
         (2, 70.0, 104.0),
-        (3, LEVEL_S1 - 6.0, FAR_S),
-        (4, south_s(), 8.0),
+        (3, LEVEL_S1, FAR_S),
+        (4, south_s(), 0.0),
     )
 
 

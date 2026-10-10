@@ -385,9 +385,10 @@ def make_facade_material():
     ivy = _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", veg, ivy_noise.outputs["Fac"]), _math(nt, "SUBTRACT", 1.0, window))
     color = _mix(nt, ivy, color, lin(0.16, 0.32, 0.14))
     cam = nt.nodes.new("ShaderNodeCameraData")
-    haze = _math(nt, "DIVIDE", _math(nt, "SUBTRACT", cam.outputs["View Distance"], 120.0), 520.0)
-    haze = _math(nt, "MINIMUM", _math(nt, "MAXIMUM", haze, 0.0), 0.22)
-    color = _mix(nt, haze, color, lin(0.62, 0.70, 0.78))
+    # Far towers go lighter and bluer. The close window-grid test stays under the start distance.
+    haze = _math(nt, "DIVIDE", _math(nt, "SUBTRACT", cam.outputs["View Distance"], 170.0), 420.0)
+    haze = _math(nt, "MINIMUM", _math(nt, "MAXIMUM", haze, 0.0), 0.34)
+    color = _mix(nt, haze, color, lin(0.74, 0.80, 0.86))
     night = channel_value(nt, ("day_night",), "clamp((day_night - 0.48) / 0.2, 0, 1)")
     power = channel_value(nt, ("power",), "power")
     lit = _math(nt, "GREATER_THAN", ivy_noise.outputs["Fac"], 0.42)

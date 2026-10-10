@@ -11,6 +11,7 @@ from pathlib import Path
 from engine.city_layout import (
     SKYLINE_COLORS,
     SKYLINE_ROWS,
+    deck_z,
     layout_errors,
 )
 
@@ -18,6 +19,10 @@ from engine.city_layout import (
 class BridgeGeometryTest(unittest.TestCase):
     def test_deck_meets_the_road_and_towers_straddle_it(self):
         self.assertEqual(layout_errors(), [])
+
+    def test_ramp_arrives_flat_on_the_level_deck(self):
+        slope = (deck_z(0.0) - deck_z(-0.4)) / 0.4
+        self.assertLess(slope, 0.04)
 
     def test_scene_uses_the_shared_layout(self):
         text = (Path(__file__).resolve().parents[1] / "engine" / "scenes.py").read_text(encoding="utf-8")

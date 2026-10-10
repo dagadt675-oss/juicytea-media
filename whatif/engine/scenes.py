@@ -324,7 +324,6 @@ def _prop(kit, coll, name, path, loc, yaw, height, role, tint=False, **extra):
     return obj
 
 
-_TREE_FILES = ("trees/tree.glb", "trees/tree-high.glb", "trees/tree-round.glb", "trees/tree-crooked.glb")
 _PERSON_FILES = (
     "people/character-a.glb",
     "people/character-b.glb",
@@ -334,40 +333,76 @@ _PERSON_FILES = (
 
 
 def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None, kind="round"):
+    """Round canopy: a trunk plus 3–6 smooth icospheres, like the reference park."""
     rng = rng or random
+    from mathutils import Vector
+    from mathutils.noise import noise as bl_noise
+
     autumns = (
         (0.72, 0.42, 0.12, 1),
-        (0.80, 0.62, 0.16, 1),
+        (0.62, 0.48, 0.16, 1),
         (0.55, 0.28, 0.12, 1),
     )
-    files = {
-        "pine": "trees/tree-high.glb",
-        "broad": "trees/tree-round.glb",
-        "round": "trees/tree.glb",
-        "crooked": "trees/tree-crooked.glb",
-    }
-    path = _kenney(files.get(kind, _TREE_FILES[rng.randrange(len(_TREE_FILES))]))
-    obj = _prop(
-        kit,
-        coll,
-        f"tree-{kind}",
-        path,
-        (x, y, z),
-        rng.uniform(0, 6.28),
-        max(2.6, scale * 2.05),
+    greens = (
+        (0.30, 0.58, 0.20, 1),
+        (0.42, 0.66, 0.24, 1),
+        (0.22, 0.48, 0.16, 1),
+    )
+    if rng.random() < 0.22:
+        leaf = (0.76, 0.78, 0.26, 1)
+    else:
+        leaf = greens[rng.randrange(len(greens))]
+    height = max(4.2, scale * 1.45) * rng.uniform(0.7, 1.3)
+    if kind == "pine":
+        height *= 1.15
+    trunk_h = height * (0.42 if kind == "pine" else 0.32)
+    trunk_r = height * 0.035
+    trunk = link_obj("trunk", cylinder_mesh("trunk", radius=trunk_r, segments=7), coll, (mats["trunk"],))
+    trunk.location = (x, y, z)
+    trunk.scale = (1.0, 1.0, trunk_h)
+    kit.add(trunk, "tree_trunk", future=future, delay=delay, sink=False)
+
+    bm = bmesh.new()
+    count = 4 if kind == "pine" else rng.randint(3, 6)
+    blobs = [(0.0, 0.0, trunk_h + height * 0.16, height * (0.22 if kind == "pine" else 0.30))]
+    for i in range(count - 1):
+        ang = rng.uniform(0.0, math.tau)
+        rad = height * rng.uniform(0.05, 0.18)
+        blobs.append(
+            (
+                math.cos(ang) * rad,
+                math.sin(ang) * rad,
+                trunk_h + height * rng.uniform(0.02, 0.34),
+                height * rng.uniform(0.14, 0.26),
+            )
+        )
+    seed = Vector((rng.uniform(0, 20), rng.uniform(0, 20), rng.uniform(0, 20)))
+    for bx, by, bz, br in blobs:
+        nverts = len(bm.verts)
+        bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1.0)
+        bm.verts.ensure_lookup_table()
+        squash = 0.78 if kind == "pine" else rng.uniform(0.86, 1.05)
+        for vert in bm.verts[nverts:]:
+            push = bl_noise(vert.co * 1.8 + seed) * 0.16
+            vert.co += vert.co.normalized() * push
+            vert.co.x = vert.co.x * br + bx
+            vert.co.y = vert.co.y * br + by
+            vert.co.z = vert.co.z * br * squash + bz
+    me = mesh_from_bm("canopy", bm)
+    for poly in me.polygons:
+        poly.use_smooth = True
+    canopy = link_obj("canopy", me, coll, (mats["leaf"],))
+    canopy.location = (x, y, z)
+    canopy.color = leaf
+    return kit.add(
+        canopy,
         "tree_canopy",
-        tint=True,
         future=future,
         delay=delay,
-        leaf=(1.0, 1.0, 1.0, 1.0),
+        sink=False,
+        leaf=leaf,
         autumn=autumns[rng.randrange(3)],
     )
-    if obj is not None:
-        obj.color = (1.0, 1.0, 1.0, 1.0)
-        return obj
-    trunk = box_object("trunk", coll, (x, y, z + 0.8), (0.25, 0.25, 1.6), mats["trunk"])
-    kit.add(trunk, "tree_trunk", future=future, delay=delay, sink=False)
-    return trunk
 
 
 _CAR_MESHES = {}
@@ -565,7 +600,8 @@ def build_river_city(kit, mats, rng, pieces):
     # Three depths. Center towers stay shorter so the title has open sky.
     # Colors and heights live in city_layout so a pass cannot quietly drop them.
     colors = SKYLINE_COLORS
-    haze = ((0.0, 0.0, 0.0), (0.04, 0.05, 0.06), (0.08, 0.10, 0.12))
+    # Back rows read lighter and bluer, the way distance washes the reference skyline.
+    haze = ((0.0, 0.0, 0.02), (0.05, 0.06, 0.09), (0.10, 0.12, 0.16))
     fall_i = 0
     rows = SKYLINE_ROWS
     for row, (y, hmin, hmax, x0, x1, wr) in enumerate(rows):
@@ -578,9 +614,12 @@ def build_river_city(kit, mats, rng, pieces):
             w = rng.uniform(*wr)
             d = rng.uniform(wr[0] * 0.75, wr[1] * 0.9)
             h = rng.uniform(hmin, hmax)
-            if abs(x) < 28.0:
-                h *= 0.72
-            base_col = colors[(row * 3 + int(x)) % len(colors)]
+            # Neighbors jump between short and tall instead of clustering in the middle.
+            if rng.random() < 0.4:
+                h = hmin + (hmax - hmin) * (0.12 if rng.random() < 0.45 else 0.94)
+            if abs(x) < 22.0:
+                h *= 0.78
+            base_col = colors[(row * 5 + int(x) // 6) % len(colors)]
             hz = haze[row]
             color = (
                 min(1.0, base_col[0] + hz[0]),
@@ -762,40 +801,88 @@ def _deck_edge(y, side, half=DECK_HALF):
     return (x + rx * half * side, yy + ry * half * side, deck_z(s) + 2.2)
 
 
+def _deck_ribbon(coll, mats, s0, s1):
+    """A slab whose cross-section is vertical, so two spans that share s meet flush."""
+    from mathutils import Vector
+
+    rx, ry = right_vector()
+    half = DECK_HALF
+    top = 0.28
+    thick = 0.55
+    curb = 0.42
+    samples = max(2, int(abs(s1 - s0) / 4.0) + 1)
+    bm = bmesh.new()
+    loops = []
+    for i in range(samples):
+        t = i / (samples - 1)
+        s = s0 + (s1 - s0) * t
+        x, y = deck_point(s)
+        z = deck_z(s)
+        left = bm.verts.new((x - rx * half, y - ry * half, z + top))
+        right = bm.verts.new((x + rx * half, y + ry * half, z + top))
+        left_b = bm.verts.new((x - rx * half, y - ry * half, z + top - thick))
+        right_b = bm.verts.new((x + rx * half, y + ry * half, z + top - thick))
+        # Curb sits on the same samples, so it arrives flat with the roadway.
+        il = bm.verts.new((x - rx * (half - curb), y - ry * (half - curb), z + top))
+        ir = bm.verts.new((x + rx * (half - curb), y + ry * (half - curb), z + top))
+        il_t = bm.verts.new((x - rx * (half - curb), y - ry * (half - curb), z + top + 0.85))
+        ir_t = bm.verts.new((x + rx * (half - curb), y + ry * (half - curb), z + top + 0.85))
+        ol_t = bm.verts.new((x - rx * half, y - ry * half, z + top + 0.85))
+        or_t = bm.verts.new((x + rx * half, y + ry * half, z + top + 0.85))
+        loops.append((left, right, left_b, right_b, il, ir, il_t, ir_t, ol_t, or_t))
+    for a, b in zip(loops, loops[1:]):
+        bm.faces.new((a[0], b[0], b[1], a[1]))
+        bm.faces.new((a[2], a[3], b[3], b[2]))
+        bm.faces.new((a[2], b[2], b[0], a[0]))
+        bm.faces.new((a[1], b[1], b[3], a[3]))
+        for inner, outer, inner_t, outer_t in ((4, 0, 6, 8), (5, 1, 7, 9)):
+            bm.faces.new((a[inner], b[inner], b[inner_t], a[inner_t]))
+            bm.faces.new((a[inner_t], b[inner_t], b[outer_t], a[outer_t]))
+            bm.faces.new((a[outer_t], b[outer_t], b[outer], a[outer]))
+    cap0, cap1 = loops[0], loops[-1]
+    bm.faces.new((cap0[0], cap0[2], cap0[3], cap0[1]))
+    bm.faces.new((cap1[0], cap1[1], cap1[3], cap1[2]))
+    bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
+    center = Vector((0.0, 0.0, 0.0))
+    for vert in bm.verts:
+        center += vert.co
+    center /= len(bm.verts)
+    for vert in bm.verts:
+        vert.co -= center
+    me = mesh_from_bm("deck", bm)
+    obj = link_obj("deck", me, coll, (mats["road"],))
+    obj.location = center
+    return obj, center
+
+
 def _bridge(kit, col, cars, mats, rng):
     # The approach (span 4) is the street from the foreground crossroad up to the
     # level deck. Spans 1 and 2 stay hidden until the river span falls.
+    # Each span is a ribbon with a vertical cut, so the shared end is one edge.
     segments = {}
     decks = []
     for i, s0, s1 in bridge_spans():
         x0, y0 = deck_point(s0)
         x1, y1 = deck_point(s1)
         z0, z1 = deck_z(s0), deck_z(s1)
-        # The approach's high end runs 2 m under the level deck so the miter
-        # does not read as a gap. The layout test still checks the true ends.
-        extra = 2.0 if i == 4 else 0.0
-        dx, dy = deck_direction()
         horiz = math.hypot(x1 - x0, y1 - y0)
         pitch = math.atan2(z1 - z0, max(horiz, 0.1))
-        length = math.hypot(horiz + extra, (z1 - z0) * (1.0 + extra / max(horiz, 0.1)))
-        shift = extra / 2.0
-        cx = (x0 + x1) / 2 + dx * shift
-        cy = (y0 + y1) / 2 + dy * shift
-        cz = (z0 + z1) / 2 + ((z1 - z0) / max(s1 - s0, 0.1)) * shift
-        obj = box_object("deck", col, (cx, cy, cz), (DECK_W, length, 0.55), mats["road"])
-        obj.rotation_euler = (pitch, 0.0, DECK_ROT_Z)
-        for side in (-1, 1):
-            # Thin dark curb. The red is the towers and the main cables, not a side wall.
-            rail = box_object("rail", col, (0, 0, 0), (0.45, length * 0.99, 1.15), mats["trim"])
-            rail.parent = obj
-            rail.matrix_parent_inverse = Matrix.Identity(4)
-            rail.location = (side * (DECK_HALF - 0.3), 0, 0.7)
-        dashes = max(4, int(length / 9.0))
-        for d in range(dashes):
-            mark = box_object("bdash", col, (0, 0, 0), (0.4, 3.2, 0.06), mats["yellow"])
+        length = math.hypot(horiz, z1 - z0)
+        obj, center = _deck_ribbon(col, mats, s0, s1)
+        from mathutils import Vector
+
+        center_v = Vector(center)
+        step = max(length / max(4, int(length / 9.0)), 6.0)
+        s = s0
+        direction = 1.0 if s1 >= s0 else -1.0
+        while (s1 - s) * direction > 3.0:
+            x, y = deck_point(s)
+            mark = box_object("bdash", col, (0, 0, 0), (0.38, 3.0, 0.05), mats["yellow"])
             mark.parent = obj
             mark.matrix_parent_inverse = Matrix.Identity(4)
-            mark.location = (0.0, -length / 2 + 2.0 + d * (length / dashes), 0.32)
+            mark.location = Vector((x, y, deck_z(s) + 0.32)) - center_v
+            mark.rotation_euler = (pitch, 0.0, DECK_ROT_Z)
+            s += direction * step
         item = kit.add(obj, "bridge_deck", i=i, sink=True, length=length)
         decks.append(item)
         segments[i] = obj
@@ -849,16 +936,24 @@ def _bridge(kit, col, cars, mats, rng):
     colors = [(0.92, 0.92, 0.94, 1), (0.12, 0.12, 0.13, 1), (0.75, 0.18, 0.14, 1), (0.2, 0.32, 0.55, 1)]
     deck_models = ("sedan", "taxi", "suv", "hatchback-sports")
     lanes = DECK_LANES
-    for i, ly in enumerate((-18, -4, 10, 22)):
+    from mathutils import Vector
+
+    deck_obj = segments[0]
+    heading = math.atan2(deck_direction()[1], deck_direction()[0])
+    rx, ry = right_vector()
+    for i, s in enumerate((46.0, 64.0, 82.0, 98.0)):
+        x, y = deck_point(s)
+        lane = lanes[i % 4]
+        pos = Vector((x + rx * lane, y + ry * lane, deck_z(s) + 0.32))
         _car(
             kit,
             cars,
             mats,
             (0, 0, 0),
-            0.0 if i % 2 == 0 else math.pi,
+            heading if i % 2 == 0 else heading + math.pi,
             colors[i % 4],
-            parent=segments[0],
-            local=(lanes[i % 4], ly, 0.55),
+            parent=deck_obj,
+            local=tuple(pos - Vector(deck_obj.location)),
             drive=8.0,
             model=deck_models[i % 4],
         )
