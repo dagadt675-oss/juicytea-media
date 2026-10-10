@@ -14,8 +14,22 @@ import numpy as np
 import skia
 
 from jt.captions import active_index
-from jt.project import ease_out, laea_forward, project_one, project_points, route_lonlat
+from jt.project import ease_in_out, ease_out, laea_forward, project_one, project_points, route_blend, route_lonlat
 from jt.themes import NEON, SUB, WHITE, YELLOW
+from style.gold import (
+    draw_counter,
+    draw_motes,
+    draw_sparkles,
+    draw_stamp,
+    draw_sweep,
+    draw_tip,
+    highlight_glint,
+    grow,
+    pin_pose,
+    pop_scale,
+    pulse_rgb,
+    trim_polyline,
+)
 
 BOLD = "/usr/share/fonts/truetype/macos/Inter-Bold.ttf"
 SEMI = "/usr/share/fonts/truetype/macos/Inter-SemiBold.ttf"
@@ -207,11 +221,12 @@ def _chain(lonlat, view, band=None):
     return chains
 
 
-def _badge(safe: Safe, text: str, x: float, y: float, theme) -> bool:
+def _badge(safe: Safe, text: str, x: float, y: float, theme, pop: float = 1.0) -> bool:
     """White pill, red type. Nudges off the title and the caption band, or skips."""
     if not text:
         return False
-    font = safe.font("bold", 42)
+    pop = max(0.55, float(pop))
+    font = safe.font("bold", 42 * pop)
     width = font.measureText(text)
     metrics = font.getMetrics()
     pad_x = 16 * safe.s
@@ -266,10 +281,52 @@ def _glow(canvas, chains, color, scale: float):
         _polyline(canvas, chain, core)
 
 
+def _unwrap_lons(lons, lon0: float) -> np.ndarray:
+    """Continuous longitudes. A dateline step stays a short step, not a jump across the map."""
+    lons = np.asarray(lons, np.float64)
+    if len(lons) == 0:
+        return lons
+    step = np.empty(len(lons), np.float64)
+    step[0] = (lons[0] - lon0 + 180.0) % 360.0 - 180.0
+    step[1:] = (np.diff(lons) + 180.0) % 360.0 - 180.0
+    return float(lon0) + np.cumsum(step)
+
+
+def _flat_ring(lon, lat, view):
+    """One closed ring. The canvas clip cuts it. Do not close a chopped fragment.
+
+    Closing the visible piece of a ring drew a straight chord. That chord was
+    the triangular slab across Canada and the Arctic islands.
+    """
+    if view.proj == "merc":
+        lon_u = _unwrap_lons(lon, view.lon)
+        x0, y0, x1, y1 = view.rect
+        scale = (x1 - x0) / max(view.span, 1.0)
+        lat_c = np.clip(lat, -80, 80)
+        lat0 = float(np.clip(view.lat, -80, 80))
+        merc = np.degrees(np.log(np.tan(np.pi / 4.0 + np.radians(lat_c) / 2.0)))
+        merc0 = math.degrees(math.log(math.tan(math.pi / 4.0 + math.radians(lat0) / 2.0)))
+        x = view.cx + (lon_u - view.lon) * scale
+        y = view.cy - (merc - merc0) * scale
+    else:
+        x, y, _vis = project_points(lon, lat, view)
+    if len(x) < 3:
+        return []
+    if view.rect:
+        x0, y0, x1, y1 = view.rect
+        pad = 120.0
+        if (np.all(x < x0 - pad) or np.all(x > x1 + pad)
+                or np.all(y < y0 - pad) or np.all(y > y1 + pad)):
+            return []
+    return [[(float(x[i]), float(y[i])) for i in range(len(x))]]
+
+
 def _ring_paths(ring, view):
     """Projected pieces of one coastline ring. Fills only when the ring faces us."""
     lon = np.asarray(ring[:, 0], np.float64)
     lat = np.asarray(ring[:, 1], np.float64)
+    if view.proj != "ortho":
+        return _flat_ring(lon, lat, view)
     if view.proj == "ortho":
         mid = len(lon) // 2
         # Cheap reject: the sample point is on the back of the globe.
@@ -298,7 +355,7 @@ def _ring_paths(ring, view):
     return pieces
 
 
-def draw_flat_map(canvas, earth, view, theme, highlight_ids, scale: float):
+def draw_flat_map(canvas, earth, view, theme, highlight_ids, scale: float, local: float = 0.0):
     """Anti-aliased flat country fills. No shade, no relief."""
     hi = {}
     for cid, rgb in (highlight_ids or {}).items():
@@ -335,8 +392,9 @@ def draw_flat_map(canvas, earth, view, theme, highlight_ids, scale: float):
                 path.close()
                 canvas.drawPath(path, land_fill)
                 canvas.drawPath(path, coast)
+    glint = skia.Path()
     for iso in later:
-        rgb = hi[iso]
+        rgb = pulse_rgb(hi[iso], local)
         fill = skia.Paint(AntiAlias=True)
         fill.setColor(skia.ColorSetARGB(255, rgb[0], rgb[1], rgb[2]))
         edge = _stroke(rgb, 2.2 * scale, 255)
@@ -349,6 +407,10 @@ def draw_flat_map(canvas, earth, view, theme, highlight_ids, scale: float):
                 path.close()
                 canvas.drawPath(path, fill)
                 canvas.drawPath(path, edge)
+                glint.addPath(path)
+    if later and view.rect:
+        x0, y0, x1, y1 = view.rect
+        highlight_glint(canvas, glint, local, int(x1 - x0), int(y1 - y0))
     canvas.restore()
 
 
@@ -381,29 +443,44 @@ def _anchor(chains, safe: Safe):
     return best
 
 
-def draw_parallel(canvas, safe: Safe, view, theme, phase, lat, label, t, draw_line=True, with_label=True):
+def _draw_growing(canvas, chains, color, scale, local):
+    u = grow(local, 0.72)
+    grown = []
+    tips = []
+    for chain in chains:
+        part, tip = trim_polyline(chain, u)
+        if len(part) >= 2:
+            grown.append(part)
+        if tip is not None and u < 0.995:
+            tips.append(tip)
+    _glow(canvas, grown, color, scale)
+    for x, y in tips:
+        draw_tip(canvas, x, y, scale)
+
+
+def draw_parallel(canvas, safe: Safe, view, theme, phase, lat, label, t, draw_line=True, with_label=True, local: float = 1.0):
     half = max(view.span * 0.55, 8)
     pts = [(lon, lat) for lon in np.linspace(view.lon - half, view.lon + half, 160)]
     chains = _clip_chains(_chain(pts, view), safe) if draw_line else _chain(pts, view)
     if draw_line:
-        _glow(canvas, chains, theme["line"], safe.s)
+        _draw_growing(canvas, chains, theme["line"], safe.s, local)
     if with_label and label:
         # Anchor in the open band, using the unclipped line so the pill can sit
         # beside the stroke even where the stroke runs under the title.
         hit = _anchor(_chain(pts, view), safe)
         if hit and not safe.point_blocked(hit[0], hit[1]):
-            _badge(safe, str(label), hit[0], hit[1], theme)
+            _badge(safe, str(label), hit[0], hit[1], theme, pop_scale(local))
 
 
-def draw_meridian(canvas, safe: Safe, view, theme, lon, label, t, draw_line=True, with_label=True):
+def draw_meridian(canvas, safe: Safe, view, theme, lon, label, t, draw_line=True, with_label=True, local: float = 1.0):
     pts = [(lon, lat) for lat in np.linspace(view.lat - view.span * 0.65, view.lat + view.span * 0.65, 160)]
     chains = _clip_chains(_chain(pts, view), safe) if draw_line else _chain(pts, view)
     if draw_line:
-        _glow(canvas, chains, theme["line"], safe.s)
+        _draw_growing(canvas, chains, theme["line"], safe.s, local)
     if with_label and label:
         hit = _anchor(_chain(pts, view), safe)
         if hit and not safe.point_blocked(hit[0], hit[1]):
-            _badge(safe, str(label), hit[0], hit[1], theme)
+            _badge(safe, str(label), hit[0], hit[1], theme, pop_scale(local))
 
 
 def _route_anchor(pts, view, safe: Safe, mode: str):
@@ -421,30 +498,59 @@ def _route_anchor(pts, view, safe: Safe, mode: str):
     return best
 
 
-def draw_route(canvas, safe: Safe, view, theme, vis, draw_line=True, with_label=True):
-    """Great-circle arc or Mercator rhumb. One stroke, optional pill."""
+def _morph_u(vis, t: float) -> float:
+    t0 = float(vis.get("bend_at", 15.5))
+    t1 = float(vis.get("bend_end", t0 + 1.3))
+    if t1 <= t0:
+        return 1.0
+    if t <= t0:
+        return 0.0
+    if t >= t1:
+        return 1.0
+    return ease_in_out((t - t0) / (t1 - t0))
+
+
+def draw_route(canvas, safe: Safe, view, theme, vis, t: float, draw_line=True, with_label=True, local: float = 1.0):
+    """Great-circle arc, Mercator rhumb, or a morph from one to the other."""
     a = vis.get("a") or [0, 0]
     b = vis.get("b") or [0, 0]
     mode = str(vis.get("mode", "great"))
-    pts = route_lonlat(mode, float(a[0]), float(a[1]), float(b[0]), float(b[1]), 200)
+    lat1, lon1, lat2, lon2 = float(a[0]), float(a[1]), float(b[0]), float(b[1])
+    bend = 1.0
+    if mode == "morph":
+        bend = _morph_u(vis, t)
+        pts = route_blend(lat1, lon1, lat2, lon2, bend, 200)
+    else:
+        pts = route_lonlat(mode, lat1, lon1, lat2, lon2, 200)
     raw = _chain(pts, view)
     if draw_line:
         chains = _clip_chains(raw, safe)
+        u = grow(local, 0.72)
+        grown = []
+        tips = []
+        for chain in chains:
+            part, tip = trim_polyline(chain, u)
+            if len(part) >= 2:
+                grown.append(part)
+            if tip is not None and u < 0.995:
+                tips.append(tip)
         if vis.get("style") == "dashed":
             wide = _stroke(theme["line"], 12 * safe.s, alpha=48)
             core = _stroke(theme["line"], 3.6 * safe.s, 255, dash=[12 * safe.s, 9 * safe.s])
-            for chain in chains:
+            for chain in grown:
                 _polyline(canvas, chain, wide)
                 _polyline(canvas, chain, core)
         else:
-            _glow(canvas, chains, theme["line"], safe.s)
-    if with_label and vis.get("label"):
-        hit = _route_anchor(pts, view, safe, mode)
+            _glow(canvas, grown, theme["line"], safe.s)
+        for x, y in tips:
+            draw_tip(canvas, x, y, safe.s)
+    if with_label and vis.get("label") and bend >= 0.45:
+        hit = _route_anchor(pts, view, safe, "great" if mode == "morph" else mode)
         if hit is not None:
-            _badge(safe, str(vis["label"]), hit[0], hit[1], theme)
+            _badge(safe, str(vis["label"]), hit[0], hit[1], theme, pop_scale(local))
 
 
-def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t):
+def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t, pop: float = 1.0, local: float = 1.0):
     hit = project_one(lon, lat, view)
     if hit is None:
         return
@@ -452,21 +558,25 @@ def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t):
     if safe.point_blocked(x, y):
         return
     col = theme["marker"]
-    phase = (t * 0.85) % 1.0
-    for shift in (0.0, 0.5):
-        p = (phase + shift) % 1.0
-        radius = (12 + 46 * p) * safe.s
-        alpha = int(190 * (1.0 - p))
-        canvas.drawCircle(x, y, radius, _stroke(col, 3.0 * safe.s, alpha))
+    dy, sx, sy, ripples = pin_pose(local, safe.s)
+    for frac, alpha in ripples:
+        radius = (14 + 54 * frac) * safe.s
+        canvas.drawCircle(x, y, radius, _stroke(col, 3.0 * safe.s, int(170 * alpha)))
+    canvas.save()
+    canvas.translate(x, y + dy)
+    canvas.scale(sx, sy)
+    canvas.translate(-x, -y)
     fill = skia.Paint(AntiAlias=True)
     fill.setColor(skia.ColorSetARGB(255, col[0], col[1], col[2]))
     canvas.drawCircle(x, y, 8.0 * safe.s, fill)
     core = skia.Paint(AntiAlias=True)
-    paper = theme.get("paper", (248, 248, 252))
+    paper = theme.get("paper", (248, 248, 248))
     core.setColor(skia.ColorSetARGB(255, paper[0], paper[1], paper[2]))
     canvas.drawCircle(x, y, 3.2 * safe.s, core)
+    canvas.restore()
+    draw_sparkles(canvas, x, y + dy, local, safe.s, seed=int(lat * 10 + lon) & 0xFFFF)
     if label:
-        _badge(safe, str(label), x, y, theme)
+        _badge(safe, str(label), x, y - 28 * safe.s + dy, theme, pop_scale(local))
 
 
 def draw_ruler(canvas, safe: Safe, view, vis, local, t):
@@ -518,26 +628,31 @@ def draw_bignum(safe: Safe, vis, local):
                   sub_font, WHITE, "left")
 
 
-def draw_claim(safe: Safe, claim: str, sub: str, local: float):
-    u = ease_out(min(1.0, local / 0.16))
-    # Size the type so the slammed frame (scale 1.14) still clears x = 900.
+def draw_claim(safe: Safe, claim: str, sub: str, local: float, punch: bool = False):
+    u = grow(local, 0.34)
+    # Size the type so the one overshoot still clears x = 900.
     lines = claim.split("\n")
     parsed_for_fit = [parse_accent(line) for line in lines]
     max_w = (safe.right - safe.left) - 64 * safe.s
+    peak = 1.18 if punch else 1.09
     size = 92.0
     while size > 64:
-        probe = safe.font("bold", size * 1.14)
+        probe = safe.font("bold", size * peak)
         widest = max(sum(probe.measureText(bit) for bit, _acc in parts) for parts in parsed_for_fit)
         if widest <= max_w:
             break
         size -= 2
-    scale = 1.14 - 0.14 * u
+    scale = pop_scale(local, punch=punch)
     font = safe.font("bold", size * scale)
     sub_font = safe.font("med", 56)
     metrics = font.getMetrics()
     line_h = (metrics.fDescent - metrics.fAscent) + 6 * safe.s
-    # Top of the first line sits just under the top safe edge.
-    baseline = safe.top + 8 * safe.s - metrics.fAscent
+    # Top band for ordinary lines. The punchline sits lower, where the gold film
+    # puts the big white words, still clear of the karaoke slot.
+    if punch:
+        baseline = 0.40 * safe.h
+    else:
+        baseline = safe.top + 8 * safe.s - metrics.fAscent
     widths = []
     parsed = []
     for line in lines:
@@ -562,12 +677,15 @@ def draw_claim(safe: Safe, claim: str, sub: str, local: float):
         rect.offset(shift, 0)
         left += shift
     if rect.bottom() > safe.bottom:
-        return
-    _pill(safe.canvas, rect, 20 * safe.s)
+        return None
     y = baseline
+    shadow = skia.Paint(AntiAlias=True)
+    _rgba(shadow, (0, 0, 0, 200))
     for parts, width in zip(parsed, widths):
         x = left + (block_w - width) / 2
         for bit, acc in parts:
+            for dx, dy in ((0, 3 * safe.s), (2 * safe.s, 2 * safe.s)):
+                safe.canvas.drawString(bit, x + dx, y + dy, font, shadow)
             color = NEON if acc else WHITE
             paint = skia.Paint(AntiAlias=True)
             _rgba(paint, color)
@@ -582,6 +700,7 @@ def draw_claim(safe: Safe, claim: str, sub: str, local: float):
     safe.canvas.drawRect(skia.Rect.MakeLTRB(left, bar_y, left + wipe_w, bar_y + 4 * safe.s), bar)
     if sub:
         safe.text(sub, left, y - sub_font.getMetrics().fAscent, sub_font, SUB, "left")
+    return rect
 
 
 def draw_caption(safe: Safe, words, groups, t) -> dict | None:
@@ -786,11 +905,8 @@ def draw_atmosphere(canvas, view, theme):
 
 
 def _reserve_caption(safe: Safe):
-    """Keep the route and pills out of the karaoke slot (y 0.64–0.72) and below it.
-
-    A silent short leaves that band empty so karaoke can be composited later.
-    """
-    safe.block(skia.Rect.MakeLTRB(0, 0.58 * safe.h, safe.w, safe.h))
+    """Karaoke slot only. The map may use the rest of the frame."""
+    safe.block(skia.Rect.MakeLTRB(0, 0.64 * safe.h, safe.w, 0.72 * safe.h))
 
 
 def _reserve_title(safe: Safe):
@@ -799,23 +915,29 @@ def _reserve_title(safe: Safe):
 
 
 def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups, t, local, theme,
-            highlight_ids=None) -> dict:
+            highlight_ids=None, punch: bool = False) -> dict:
     _reserve_caption(safe)
     flat = bool(theme.get("flat"))
     if flat:
-        draw_flat_map(canvas, earth, view, theme, highlight_ids or {}, safe.s)
+        draw_flat_map(canvas, earth, view, theme, highlight_ids or {}, safe.s, local)
+        draw_sweep(canvas, safe.w, safe.h, local)
+        draw_motes(canvas, safe.w, safe.h, t, safe.s)
     else:
         draw_atmosphere(canvas, view, theme)
         draw_highlight_stroke(canvas, earth, view, theme, highlight_ids or {}, t)
-    # The line is drawn before the title is reserved, so it can pass behind the card.
     for vis in visuals:
         kind = vis.get("type")
         if kind == "latline":
-            draw_parallel(canvas, safe, view, theme, t, float(vis["lat"]), "", t, draw_line=True, with_label=False)
+            draw_parallel(canvas, safe, view, theme, t, float(vis["lat"]), "", t,
+                          draw_line=True, with_label=False, local=local)
         elif kind == "lonline":
-            draw_meridian(canvas, safe, view, theme, float(vis["lon"]), "", t, draw_line=True, with_label=False)
+            draw_meridian(canvas, safe, view, theme, float(vis["lon"]), "", t,
+                          draw_line=True, with_label=False, local=local)
         elif kind == "route":
-            draw_route(canvas, safe, view, theme, vis, draw_line=True, with_label=False)
+            draw_route(canvas, safe, view, theme, vis, t, draw_line=True, with_label=False, local=local)
+    claim_rect = draw_claim(safe, claim, sub, local, punch=punch)
+    if claim_rect is not None:
+        safe.block(claim_rect)
     _reserve_title(safe)
     if any(v.get("type") == "graticule" for v in visuals):
         draw_graticule(canvas, view, theme, t)
@@ -823,28 +945,34 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
         kind = vis.get("type")
         if kind == "latline":
             draw_parallel(canvas, safe, view, theme, t, float(vis["lat"]), vis.get("label", ""), t,
-                          draw_line=False, with_label=True)
+                          draw_line=False, with_label=True, local=local)
             continue
         if kind == "lonline":
             draw_meridian(canvas, safe, view, theme, float(vis["lon"]), vis.get("label", ""), t,
-                          draw_line=False, with_label=True)
+                          draw_line=False, with_label=True, local=local)
             continue
         if kind in ("highlight", "graticule"):
             continue
         if kind == "marker":
             draw_marker(canvas, safe, view, theme, float(vis["lat"]), float(vis["lon"]),
-                        str(vis.get("label", "")), t)
+                        str(vis.get("label", "")), t, local=local)
         elif kind == "route":
-            draw_route(canvas, safe, view, theme, vis, draw_line=False, with_label=True)
+            draw_route(canvas, safe, view, theme, vis, t, draw_line=False, with_label=True, local=local)
         elif kind == "ruler":
             draw_ruler(canvas, safe, view, vis, local, t)
+        elif kind == "counter":
+            rect = draw_counter(
+                canvas, safe.w * 0.50, safe.h * 0.48,
+                int(vis.get("value", 0)), str(vis.get("unit", "")), local, safe.s,
+            )
+            safe.block(rect)
+        elif kind == "stamp":
+            draw_stamp(canvas, safe.w * 0.72, safe.h * 0.48, local, safe.s, str(vis.get("text", "X")))
         elif kind == "bignum":
-            _badge(safe, str(vis.get("text", "")), safe.w * 0.50, safe.h * 0.46, theme)
+            _badge(safe, str(vis.get("text", "")), safe.w * 0.50, safe.h * 0.46, theme, pop_scale(local, True))
         elif kind == "ghost":
             draw_ghost(canvas, safe, earth, view, vis, local)
         elif kind == "island":
             draw_island(canvas, safe, vis, t)
-    # Country stroke uses the same highlight ids the sampler did. Passed via visuals.
-    draw_claim(safe, claim, sub, local)
     cap = draw_caption(safe, words, groups, t) if words else None
     return {"caption": cap, "spills": safe.spills, "overlaps": safe.overlaps}

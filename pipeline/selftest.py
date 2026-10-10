@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from jt.captions import active_index, groups_for, switch_error  # noqa: E402
 from jt.project import laea_forward, laea_inverse, project_one, project_points, resolve, route_lonlat  # noqa: E402
+from jt.render import _reversals, direction_changes  # noqa: E402
 from jt.spec import load_spec, pause_problems, silent_timeline  # noqa: E402
 
 
@@ -79,13 +80,25 @@ def main() -> int:
     route = load_spec(Path(__file__).resolve().parent / "specs" / "lax_tokyo.yaml")
     clock = silent_timeline(route)
     ok &= check("eight silent beats", len(clock["beats"]) == 8 and clock["words"] == [], str(len(clock["beats"])))
-    ok &= check("silent length", 22.0 <= clock["duration"] <= 24.0, str(clock["duration"]))
+    ok &= check("silent length", abs(clock["duration"] - 24.5) < 0.02, str(clock["duration"]))
     joined = " ".join(ln["say"] for ln in clock["beats"])
     ok &= check(
         "script kept",
-        joined.startswith("Why does a flight from LA to Tokyo") and "hundreds of kilometers" in joined
+        joined.startswith("Why does your flight from LA to Tokyo") and "hundreds of kilometers" in joined
         and "over Alaska" not in joined,
         joined[:80],
+    )
+    turns = direction_changes(route, clock, 1080, 1920)
+    ok &= check("no camera sway", turns == 0, str(turns))
+    alaska_clock = {"duration": 2.0 * len(spec.lines), "words": [],
+                    "lines": [{"start": 2.0 * i} for i in range(len(spec.lines))]}
+    alaska_turns = direction_changes(spec, alaska_clock, 1080, 1920)
+    ok &= check("alaska camera does not sway", alaska_turns <= 1, str(alaska_turns))
+    ok &= check("one ease is not a sway", _reversals([0, 1, 2, 3, 3], 0.02) <= 1)
+    ok &= check(
+        "oscillation fails the gate",
+        _reversals([0, 1, 2, 1, 0, 1], 0.02) > 1,
+        str(_reversals([0, 1, 2, 1, 0, 1], 0.02)),
     )
 
     print("SELFTEST", "PASS" if ok else "FAIL")

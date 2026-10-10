@@ -1,0 +1,279 @@
+{
+  "duration": 23.0,
+  "silent": true,
+  "captions_burned_in": false,
+  "caption_band": {
+    "y0": 0.64,
+    "y1": 0.72
+  },
+  "lead_in": 0.0,
+  "lines": [
+    {
+      "index": 0,
+      "text": "Part of Canada is further south than Rome?",
+      "say": "Part of Canada is further south than Rome?",
+      "kind": "q",
+      "start": 0.0,
+      "end": 1.4,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Part of Canada is\nfurther south\nthan *Rome?*",
+        "sub": ""
+      },
+      "claim": "Part of Canada is\nfurther south\nthan *Rome?*",
+      "sub": ""
+    },
+    {
+      "index": 1,
+      "text": "The spot is Middle Island, in Lake Erie.",
+      "say": "The spot is Middle Island, in Lake Erie.",
+      "kind": "s",
+      "start": 1.4,
+      "end": 4.6,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "The spot is\n*Middle Island,*\nin Lake Erie.",
+        "sub": ""
+      },
+      "claim": "The spot is\n*Middle Island,*\nin Lake Erie.",
+      "sub": ""
+    },
+    {
+      "index": 2,
+      "text": "This line is Rome's latitude.",
+      "say": "This line is Rome's latitude.",
+      "kind": "s",
+      "start": 4.6,
+      "end": 8.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "This line is\n*Rome's* latitude.",
+        "sub": ""
+      },
+      "claim": "This line is\n*Rome's* latitude.",
+      "sub": ""
+    },
+    {
+      "index": 3,
+      "text": "The island sits south of that line.",
+      "say": "The island sits south of that line.",
+      "kind": "s",
+      "start": 8.0,
+      "end": 10.2,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "The island sits\n*south* of that line.",
+        "sub": ""
+      },
+      "claim": "The island sits\n*south* of that line.",
+      "sub": ""
+    },
+    {
+      "index": 4,
+      "text": "That gap is about 24 kilometers.",
+      "say": "That gap is about 24 kilometers.",
+      "kind": "s",
+      "start": 10.2,
+      "end": 14.4,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "That gap is about\n*24* kilometers.",
+        "sub": ""
+      },
+      "claim": "That gap is about\n*24* kilometers.",
+      "sub": ""
+    },
+    {
+      "index": 5,
+      "text": "Rome is across the Atlantic.",
+      "say": "Rome is across the Atlantic.",
+      "kind": "s",
+      "start": 14.4,
+      "end": 18.2,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Rome is across\nthe *Atlantic.*",
+        "sub": ""
+      },
+      "claim": "Rome is across\nthe *Atlantic.*",
+      "sub": ""
+    },
+    {
+      "index": 6,
+      "text": "Not north of Rome.",
+      "say": "Not north of Rome.",
+      "kind": "s",
+      "start": 18.2,
+      "end": 19.9,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Not *north*\nof Rome.",
+        "sub": ""
+      },
+      "claim": "Not *north*\nof Rome.",
+      "sub": ""
+    },
+    {
+      "index": 7,
+      "text": "Further south than Rome.",
+      "say": "Further south than Rome.",
+      "kind": "p",
+      "start": 19.9,
+      "end": 23.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Further *south*\nthan Rome.",
+        "sub": ""
+      },
+      "claim": "Further *south*\nthan Rome.",
+      "sub": ""
+    }
+  ],
+  "beats": [
+    {
+      "index": 0,
+      "text": "Part of Canada is further south than Rome?",
+      "say": "Part of Canada is further south than Rome?",
+      "kind": "q",
+      "start": 0.0,
+      "end": 1.4,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Part of Canada is\nfurther south\nthan *Rome?*",
+        "sub": ""
+      },
+      "claim": "Part of Canada is\nfurther south\nthan *Rome?*",
+      "sub": ""
+    },
+    {
+      "index": 1,
+      "text": "The spot is Middle Island, in Lake Erie.",
+      "say": "The spot is Middle Island, in Lake Erie.",
+      "kind": "s",
+      "start": 1.4,
+      "end": 4.6,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "The spot is\n*Middle Island,*\nin Lake Erie.",
+        "sub": ""
+      },
+      "claim": "The spot is\n*Middle Island,*\nin Lake Erie.",
+      "sub": ""
+    },
+    {
+      "index": 2,
+      "text": "This line is Rome's latitude.",
+      "say": "This line is Rome's latitude.",
+      "kind": "s",
+      "start": 4.6,
+      "end": 8.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "This line is\n*Rome's* latitude.",
+        "sub": ""
+      },
+      "claim": "This line is\n*Rome's* latitude.",
+      "sub": ""
+    },
+    {
+      "index": 3,
+      "text": "The island sits south of that line.",
+      "say": "The island sits south of that line.",
+      "kind": "s",
+      "start": 8.0,
+      "end": 10.2,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "The island sits\n*south* of that line.",
+        "sub": ""
+      },
+      "claim": "The island sits\n*south* of that line.",
+      "sub": ""
+    },
+    {
+      "index": 4,
+      "text": "That gap is about 24 kilometers.",
+      "say": "That gap is about 24 kilometers.",
+      "kind": "s",
+      "start": 10.2,
+      "end": 14.4,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "That gap is about\n*24* kilometers.",
+        "sub": ""
+      },
+      "claim": "That gap is about\n*24* kilometers.",
+      "sub": ""
+    },
+    {
+      "index": 5,
+      "text": "Rome is across the Atlantic.",
+      "say": "Rome is across the Atlantic.",
+      "kind": "s",
+      "start": 14.4,
+      "end": 18.2,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Rome is across\nthe *Atlantic.*",
+        "sub": ""
+      },
+      "claim": "Rome is across\nthe *Atlantic.*",
+      "sub": ""
+    },
+    {
+      "index": 6,
+      "text": "Not north of Rome.",
+      "say": "Not north of Rome.",
+      "kind": "s",
+      "start": 18.2,
+      "end": 19.9,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Not *north*\nof Rome.",
+        "sub": ""
+      },
+      "claim": "Not *north*\nof Rome.",
+      "sub": ""
+    },
+    {
+      "index": 7,
+      "text": "Further south than Rome.",
+      "say": "Further south than Rome.",
+      "kind": "p",
+      "start": 19.9,
+      "end": 23.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Further *south*\nthan Rome.",
+        "sub": ""
+      },
+      "claim": "Further *south*\nthan Rome.",
+      "sub": ""
+    }
+  ],
+  "words": [],
+  "sample_rate": null,
+  "voice": "none",
+  "id": "canada_rome",
+  "title": "Part of Canada Is Further South Than Rome?!",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "note": "No audio and no burned-in karaoke. Fit an ElevenLabs read to beats[].say locally. Leave y 0.64\u20130.72 of the height empty for captions."
+}

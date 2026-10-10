@@ -1,0 +1,114 @@
+# Silent recreation of the gold Canada Short, drawn with the style kit.
+# Spoken lines are reconstructed: the YouTube caption track came back empty.
+# Geography is Middle Island, not Point Pelee. Pelee sits about level with Rome.
+# Karaoke y 0.64–0.72 stays empty. The camera never sways.
+id: canada_rome
+title: "Part of Canada Is Further South Than Rome?!"
+theme: midnight
+notes: "Style-kit proof. One opening push-in, then cuts. No sway."
+voice:
+  engine: silent
+  enforce_pauses: false
+tags: ["#shorts", "#maps", "#canada"]
+sources:
+  - "Middle Island, Lake Erie: 41°40′53″N, southernmost land in Canada"
+  - "Rome: about 41°53′36″N"
+  - "Gap about 0.21° of latitude, about 24 km"
+description: |
+  Part of Canada is further south than Rome?
+
+  Middle Island in Lake Erie is the southernmost land in Canada. Rome's latitude passes north of it. The island is about 24 kilometers further south.
+
+  Silent picture. No burned-in karaoke. Leave y 0.64–0.72 empty for captions.
+
+  #shorts #maps #canada
+wide: &wide {proj: merc, lon: -84, lat: 45, span: 72}
+erie: &erie {proj: merc, lon: -83.2, lat: 40.5, span: 8, fly: 2.6}
+lines:
+  - text: "Part of Canada is further south than Rome?"
+    kind: q
+    dur: 1.40
+    say: "Part of Canada is further south than Rome?"
+    claim: "Part of Canada is\nfurther south\nthan *Rome?*"
+    sub: ""
+    camera: *wide
+    visuals:
+      - {type: highlight, countries: [CAN]}
+
+  - text: "The spot is Middle Island, in Lake Erie."
+    kind: s
+    dur: 3.20
+    say: "The spot is Middle Island, in Lake Erie."
+    claim: "The spot is\n*Middle Island,*\nin Lake Erie."
+    sub: ""
+    camera: *erie
+    visuals:
+      - {type: highlight, countries: [CAN]}
+      - {type: marker, lat: 41.6814, lon: -82.6822, label: "MIDDLE ISLAND"}
+
+  - text: "This line is Rome's latitude."
+    kind: s
+    dur: 3.40
+    say: "This line is Rome's latitude."
+    claim: "This line is\n*Rome's* latitude."
+    sub: ""
+    camera: *erie
+    visuals:
+      - {type: highlight, countries: [CAN]}
+      - {type: marker, lat: 41.6814, lon: -82.6822, label: "MIDDLE ISLAND"}
+      - {type: latline, lat: 41.893, label: "ROME 41.9°N"}
+
+  - text: "The island sits south of that line."
+    kind: s
+    dur: 2.20
+    say: "The island sits south of that line."
+    claim: "The island sits\n*south* of that line."
+    sub: ""
+    camera: *erie
+    visuals:
+      - {type: highlight, countries: [CAN]}
+      - {type: marker, lat: 41.6814, lon: -82.6822, label: "MIDDLE ISLAND"}
+      - {type: latline, lat: 41.893, label: "ROME 41.9°N"}
+
+  - text: "That gap is about 24 kilometers."
+    kind: s
+    dur: 4.20
+    say: "That gap is about 24 kilometers."
+    claim: "That gap is about\n*24* kilometers."
+    sub: ""
+    camera: {proj: merc, lon: -80, lat: 40.5, span: 24}
+    visuals:
+      - {type: highlight, countries: [CAN]}
+      - {type: marker, lat: 41.6814, lon: -82.6822, label: "MIDDLE ISLAND"}
+      - {type: latline, lat: 41.893, label: "ROME 41.9°N"}
+      - {type: counter, value: 24, unit: "km"}
+
+  - text: "Rome is across the Atlantic."
+    kind: s
+    dur: 3.80
+    say: "Rome is across the Atlantic."
+    claim: "Rome is across\nthe *Atlantic.*"
+    sub: ""
+    camera: {proj: merc, lon: 12.5, lat: 42, span: 80, cut: true}
+    visuals:
+      - {type: marker, lat: 41.893, lon: 12.496, label: "ROME"}
+
+  - text: "Not north of Rome."
+    kind: s
+    dur: 1.70
+    say: "Not north of Rome."
+    claim: "Not *north*\nof Rome."
+    sub: ""
+    camera: {proj: merc, lon: -84, lat: 45, span: 120, cut: true}
+    visuals:
+      - {type: highlight, countries: [CAN]}
+      - {type: stamp, text: "X"}
+
+  - text: "Further south than Rome."
+    kind: p
+    dur: 3.10
+    say: "Further south than Rome."
+    claim: "Further *south*\nthan Rome."
+    sub: ""
+    camera: {proj: merc, lon: -84, lat: 45, span: 180, cut: true}
+    visuals: []

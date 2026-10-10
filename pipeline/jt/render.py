@@ -1,7 +1,8 @@
 """Frame renderer. Orthographic globe and flat Mercator / LAEA, with a whip
-between projections and motion on every frame.
+between projections.
 
-The last encoded frame is a byte copy of frame 0 so the loop closes.
+The camera holds, pushes in once at the open, or eases once into the next
+shot. It does not sway. The last encoded frame is a byte copy of frame 0.
 """
 
 from __future__ import annotations
@@ -16,7 +17,7 @@ import skia
 from jt.captions import groups_for
 from jt.data import resolve_ids
 from jt.draw import Safe, clamp_nontext, overlay, text_pixel_mask
-from jt.project import ease_in_out, laea_inverse, lerp_camera, resolve
+from jt.project import ease_in_out, ease_out, laea_inverse, lerp_camera, resolve
 from jt.themes import get_theme
 
 FPS = 30
@@ -57,47 +58,76 @@ class Studio:
         whip = 0.0
         if idx == 0:
             cam = cur.copy()
-            # A short ease-in, then the shot holds. Zero velocity at both ends.
-            beat_dur = self.spans[0][1] - self.spans[0][0]
-            intro = min(1.25, max(0.8, beat_dur * 0.45))
+            # One push-in, then a hold. Span only falls, so the shot never reverses.
+            intro = 1.15
             if t < intro:
-                e = ease_in_out(t / intro)
-                cam.lon = cur.lon + 8.0 * (1.0 - e)
-                cam.span = cur.span * (1.06 - 0.06 * e)
-            else:
-                cam = cur.copy()
+                e = ease_out(t / intro)
+                cam.span = cur.span * (1.85 - 0.85 * e)
+        elif cur.cut:
+            cam = cur.copy()
         else:
             prev = self.spec.lines[idx - 1].camera
             beat_dur = self.spans[idx][1] - self.spans[idx][0]
-            # Long enough to read as a flight, short enough to arrive before the line ends.
-            fly = min(1.55, max(1.05, beat_dur * 0.62))
-            if local < fly:
+            # fly is one ease into the shot. Span, lon, and lat each move one way.
+            fly = float(cur.fly) if cur.fly else min(1.35, max(0.7, beat_dur * 0.45))
+            if local < fly and (prev.proj != cur.proj or prev.lon != cur.lon or prev.lat != cur.lat or prev.span != cur.span):
                 u = local / fly
                 if prev.proj != cur.proj:
                     if u < 0.5:
                         cam = prev.copy()
-                        cam.span = prev.span * (1.0 + 0.08 * ease_in_out(u / 0.5))
                         whip = ease_in_out(u / 0.5)
                     else:
                         cam = cur.copy()
-                        cam.span = cur.span * (1.0 + 0.08 * (1.0 - ease_in_out((u - 0.5) / 0.5)))
                         whip = 1.0 - ease_in_out((u - 0.5) / 0.5)
                 else:
                     cam = lerp_camera(prev, cur, u)
             else:
                 cam = cur.copy()
-        # A triangle sway so a flat fill never sits still. Full cycles over the
-        # video, so the copied first frame matches the end. Speed stays high
-        # except for the single frame where the sway turns around.
-        dur = max(float(self.timeline["duration"]), 1.0)
-        cycles = max(8, round(dur / 1.7))
-        period = dur / cycles
-        phase = (t % period) / period
-        tri = 1.0 - abs(2.0 * phase - 1.0)
-        amp = min(9.5, 0.34 * cam.span)
-        cam.lon += amp * (2.0 * tri - 1.0)
         view = resolve(cam.proj, cam.lon, cam.lat, max(4.0, cam.span), self.w, self.h, whip)
         return view, idx, local
+
+
+def _reversals(values, eps: float) -> int:
+    arr = np.asarray(values, np.float64)
+    if len(arr) < 3:
+        return 0
+    signs = []
+    for delta in np.diff(arr):
+        if abs(float(delta)) < eps:
+            continue
+        signs.append(1 if delta > 0 else -1)
+    changes = 0
+    for a, b in zip(signs, signs[1:]):
+        if a != b:
+            changes += 1
+    return changes
+
+
+def direction_changes(spec, timeline, w: int, h: int, fps: int = 30) -> int:
+    """Most reversals of lon, lat, or span inside any one shot.
+
+    A push-in and a single ease are monotonic. A sway reverses over and over.
+    """
+    studio = Studio(None, spec, timeline, w, h)
+    worst = 0
+    for a, b in studio.spans:
+        n = max(3, int(round((b - a) * fps)))
+        times = np.linspace(a, max(a, b - 1.0 / fps), n)
+        cols = [[], [], []]
+        for t in times:
+            view, _idx, _local = studio.camera_at(float(t), 0.0)
+            cols[0].append(view.lon)
+            cols[1].append(view.lat)
+            cols[2].append(view.span)
+        # Unwrap longitude so a dateline crossing is not a fake reversal.
+        lon = np.asarray(cols[0], np.float64)
+        if len(lon):
+            acc = np.empty_like(lon)
+            acc[0] = lon[0]
+            acc[1:] = (np.diff(lon) + 180.0) % 360.0 - 180.0
+            cols[0] = lon[0] + np.cumsum(np.r_[0.0, acc[1:]])
+        worst = max(worst, *(_reversals(col, 0.02) for col in cols))
+    return worst
 
 
 def _vignette(w, h):
@@ -253,6 +283,8 @@ def _background(studio: Studio, t: float, phase: float) -> np.ndarray:
     if theme.get("flat"):
         frame = np.empty((h, w, 3), np.uint8)
         frame[:] = theme["bg0"]
+        from style.gold import drift_field
+        drift_field(frame, t, studio.star_x[::2], studio.star_y[::2])
         return frame
     ys = np.linspace(0, 1, h, dtype=np.float32)[:, None]
     top = np.array(theme["bg0"], np.float32)
@@ -291,7 +323,7 @@ def render_frame(studio: Studio, t: float, phase: float) -> tuple[np.ndarray, di
     info = overlay(
         canvas, safe, studio.earth, view, line.visuals,
         line.claim, line.sub, studio.words, studio.groups,
-        t, local, studio.theme, highlights,
+        t, local, studio.theme, highlights, punch=(line.kind == "p"),
     )
     bgra = surface.makeImageSnapshot().toarray()
     rgb = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
@@ -342,11 +374,8 @@ def render_video(studio: Studio, path: Path, crf: int = 20) -> dict:
     contact = []
     contact_at = {int(round(i * (n - 1) / 11)) for i in range(12)}
     try:
-        # A voiced Short copies frame 0 onto the last frame so the loop matches.
-        # A silent Short keeps the last beat, so the timeline and the picture agree.
-        copy_loop = not studio.timeline.get("silent")
         for i in range(n):
-            if i == n - 1 and copy_loop:
+            if i == n - 1:
                 img = frame0
             else:
                 t = i / FPS
