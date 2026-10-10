@@ -119,7 +119,9 @@ def silent_timeline(spec: Spec) -> dict:
     """
     if spec.voice.get("engine") != "silent":
         raise ValueError("silent_timeline is only for voice.engine: silent")
-    t = 0.0
+    t = round(float(spec.voice.get("lead") or 0.0), 2)
+    if t < 0:
+        raise ValueError("voice.lead must be >= 0")
     lines = []
     for i, ln in enumerate(spec.lines):
         if ln.dur <= 0:
@@ -147,7 +149,7 @@ def silent_timeline(spec: Spec) -> dict:
         "silent": True,
         "captions_burned_in": False,
         "caption_band": {"y0": 0.64, "y1": 0.72},
-        "lead_in": 0.0,
+        "lead_in": round(float(spec.voice.get("lead") or 0.0), 2),
         "lines": lines,
         "beats": lines,
         "words": [],

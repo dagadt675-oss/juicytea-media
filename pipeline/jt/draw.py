@@ -1113,11 +1113,16 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
                    str(vis.get("pill") or "yellow"),
                    size=float(vis.get("size", 40)))
         elif kind == "callout":
+            # `at` is the absolute time the pill springs in, so it can land on a word
+            # inside the beat instead of on the sentence start.
+            age = local if vis.get("at") in (None, "") else t - float(vis["at"])
+            if age < 0:
+                continue
             draw_callout(
                 safe, str(vis.get("text", "")), str(vis.get("sub", "")),
                 safe.w * float(vis.get("x", 0.50)),
                 safe.h * float(vis.get("y", 0.42)),
-                pop_scale(local, True),
+                pop_scale(age, True),
                 str(vis.get("pill") or "yellow"),
                 size=float(vis.get("size", 58)),
             )

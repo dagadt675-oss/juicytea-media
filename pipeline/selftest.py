@@ -79,7 +79,11 @@ def main() -> int:
 
     route = load_spec(Path(__file__).resolve().parent / "specs" / "lax_tokyo.yaml")
     clock = silent_timeline(route)
-    ok &= check("six silent beats", len(clock["beats"]) == 6 and clock["words"] == [], str(len(clock["beats"])))
+    starts = [ln["start"] for ln in clock["beats"]]
+    want_starts = [0.03, 3.93, 7.24, 8.14, 10.81, 14.28, 20.25, 23.05]
+    ok &= check("eight silent beats", len(clock["beats"]) == 8 and clock["words"] == [], str(len(clock["beats"])))
+    ok &= check("voice length", abs(clock["duration"] - 24.2) < 0.02, str(clock["duration"]))
+    ok &= check("sentence starts", starts == want_starts, str(starts))
     joined = " ".join(ln["say"] for ln in clock["beats"])
     low = joined.lower()
     ok &= check(
@@ -102,13 +106,17 @@ def main() -> int:
     ok &= check("lie pill", "YOUR MAP IS LYING" in blob, blob)
     ok &= check("payoff pill", "≈300 MI SHORTER" in blob and "480 KM" in blob, blob)
     ok &= check("no alaska overclaim", "OVER ALASKA" not in blob.upper() and "TOWARD ALASKA" not in blob.upper(), blob)
-    reveal = route.lines[4].visuals
-    modes = [v.get("mode") for v in reveal if v.get("type") == "route"]
+    reveal = next(ln for ln in route.lines if "bends north" in ln.say)
+    modes = [v.get("mode") for v in reveal.visuals if v.get("type") == "route"]
+    morph = next(v for v in reveal.visuals if v.get("mode") == "morph")
+    ok &= check("arc lifts off the rhumb", modes == ["rhumb", "morph"], str(modes))
     ok &= check(
-        "arc lifts off the rhumb",
-        modes == ["rhumb", "morph"] and any(v.get("clock") == "local" for v in reveal),
-        str(modes),
+        "bend covers 19s",
+        float(morph["bend_at"]) <= 19.0 <= float(morph["bend_end"]),
+        f"{morph['bend_at']}–{morph['bend_end']}",
     )
+    payoff = next(v for v in route.lines[1].visuals if v.get("type") == "callout")
+    ok &= check("pill lands on the miles", 4.6 <= float(payoff["at"]) <= 5.0, str(payoff["at"]))
     ok &= check("opening arc is already drawing", float(route.lines[0].visuals[-2].get("from", 0)) >= 0.4)
     turns = direction_changes(route, clock, 1080, 1920)
     ok &= check("no camera sway", turns == 0, str(turns))

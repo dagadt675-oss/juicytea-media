@@ -1,13 +1,16 @@
-# Silent picture for the US LA–Tokyo read. Durations below are placeholders.
-# Replace them from words.json before the timed render. Do not ship this clock.
+# Silent picture timed to the US LA–Tokyo read.
+# Sentence starts: 0.03, 3.93, 7.24, 8.14, 10.81, 14.28, 20.25, 23.05. Picture ends at 24.20.
+# The miles pill springs in at 4.72 so it is up on "three hundred miles" (~4.9).
+# The solid path bends across 18.55–19.45, centered on "bends north" (~19).
 id: lax_tokyo
 title: "Why LA→Tokyo curves toward Alaska"
 theme: midnight
-notes: "Six scenes, provisional durations. No camera sway. Karaoke band y 0.64–0.72 stays empty. The arc bends toward Alaska; it does not fly over Alaska, and the film never says the flight is exactly the great circle."
+notes: "Eight sentences, 24.2 s. No camera sway. Karaoke band y 0.64–0.72 stays empty. The arc bends toward Alaska; the film does not say the flight flies over Alaska or flies exactly the great circle."
 voice:
   engine: silent
   enforce_pauses: false
   draw_claims: false
+  lead: 0.03
 tags: ["#shorts", "#maps", "#flights"]
 sources:
   - "LAX and Narita published airport positions, used only as the pin locations"
@@ -17,7 +20,7 @@ description: |
 
   And that curve is about three hundred miles shorter. Why? Because your flat map is lying. On a Mercator map, the straight line looks shortest. But Earth is a sphere, and the real shortest path is a great circle that bends north. So next time your flight tracker curves north... it's not a mistake.
 
-  Silent picture. No burned-in karaoke. Fit the voice to timeline.json once words.json arrives. Keep captions inside y 0.64–0.72.
+  Silent picture. No burned-in karaoke. The voice fits timeline.json. Keep captions inside y 0.64–0.72.
 
   #shorts #maps #flights
 lax: &lax [33.9425, -118.4081]
@@ -33,7 +36,7 @@ held: &held {type: route, mode: great, style: solid, a: *lax, b: *nrt, grow: fal
 lines:
   - text: "Your flight from LA to Tokyo curves up toward Alaska."
     kind: q
-    dur: 4.00
+    dur: 3.90
     claim: "Your flight from LA to Tokyo curves up toward Alaska."
     sub: ""
     camera: *cam
@@ -41,7 +44,7 @@ lines:
 
   - text: "And that curve is about three hundred miles shorter."
     kind: s
-    dur: 3.20
+    dur: 3.31
     claim: "And that curve is about three hundred miles shorter."
     sub: ""
     camera: *cam
@@ -50,19 +53,27 @@ lines:
       - *la
       - *tyo
       - *held
-      - {type: callout, text: "≈300 MI SHORTER", sub: "480 KM", x: 0.50, y: 0.38, pill: yellow, size: 58}
+      - {type: callout, text: "≈300 MI SHORTER", sub: "480 KM", x: 0.50, y: 0.38, pill: yellow, size: 58, at: 4.72}
 
-  - text: "Why? Because your flat map is lying."
+  - text: "Why?"
     kind: s
-    dur: 2.60
-    claim: "Why? Because your flat map is lying."
+    dur: 0.90
+    claim: "Why?"
+    sub: ""
+    camera: *cam
+    visuals: [*lakes, *la, *tyo, *held, *lie]
+
+  - text: "Because your flat map is lying."
+    kind: s
+    dur: 2.67
+    claim: "Because your flat map is lying."
     sub: ""
     camera: *cam
     visuals: [*lakes, *la, *tyo, *held, *lie]
 
   - text: "On a Mercator map, the straight line looks shortest."
     kind: s
-    dur: 3.40
+    dur: 3.47
     claim: "On a Mercator map, the straight line looks shortest."
     sub: ""
     camera: *cam
@@ -74,7 +85,7 @@ lines:
 
   - text: "But Earth is a sphere, and the real shortest path is a great circle that bends north."
     kind: s
-    dur: 4.20
+    dur: 5.97
     claim: "But Earth is a sphere, and the real shortest path is a great circle that bends north."
     sub: ""
     camera: *cam
@@ -83,12 +94,20 @@ lines:
       - *la
       - *tyo
       - {type: route, mode: rhumb, style: dashed, a: *lax, b: *nrt, grow: false}
-      - {type: route, mode: morph, style: solid, a: *lax, b: *nrt, grow: false, clock: local, bend_at: 0.25, bend_end: 1.55}
+      - {type: route, mode: morph, style: solid, a: *lax, b: *nrt, grow: false, bend_at: 18.55, bend_end: 19.45}
 
-  - text: "So next time your flight tracker curves north... it's not a mistake."
+  - text: "So next time your flight tracker curves north..."
+    kind: s
+    dur: 2.80
+    claim: "So next time your flight tracker curves north..."
+    sub: ""
+    camera: *back
+    visuals: [*lakes, *la, *tyo, *arc, *lie]
+
+  - text: "it's not a mistake."
     kind: p
-    dur: 3.00
-    claim: "So next time your flight tracker curves north... it's not a mistake."
+    dur: 1.15
+    claim: "it's not a mistake."
     sub: ""
     camera: *back
     visuals: [*lakes, *la, *tyo, *arc, *lie]

@@ -72,11 +72,14 @@ def _silent_picture_qc(path: Path, timeline: dict) -> tuple[bool, str]:
         and len(timeline["beats"]) >= 2
     )
     got = [float(b["start"]) for b in timeline["beats"]]
-    lines.append("beat starts " + " ".join(f"{s:.2f}" for s in got))
     if lax:
-        # The six-beat picture is built. Durations stay provisional until words.json.
-        ok = ok and len(timeline["beats"]) == 6
-        lines.append("lax clock provisional until words.json")
+        ok = ok and abs(dur - 24.2) <= 0.05 and len(timeline["beats"]) == 8
+        want = [0.03, 3.93, 7.24, 8.14, 10.81, 14.28, 20.25, 23.05]
+        starts_ok = len(got) == len(want) and all(abs(a - b) <= 0.02 for a, b in zip(got, want))
+        lines.append("beat starts " + " ".join(f"{s:.2f}" for s in got) + (" ok" if starts_ok else " MISMATCH"))
+        ok = ok and starts_ok
+    else:
+        lines.append("beat starts " + " ".join(f"{s:.2f}" for s in got))
     shown_ok = True
     for beat in timeline["beats"]:
         shown = " ".join(str(beat["on_screen"]["claim"]).replace("*", "").split())
