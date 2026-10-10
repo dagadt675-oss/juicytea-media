@@ -88,7 +88,9 @@ def project_points(lon, lat, view: Resolved):
         lat0 = float(np.clip(view.lat, -80, 80))
         merc = np.degrees(np.log(np.tan(np.pi / 4 + np.radians(lat_c) / 2)))
         merc0 = math.degrees(math.log(math.tan(math.pi / 4 + math.radians(lat0) / 2)))
-        x = view.cx + (lon - view.lon) * scale
+        # Shortest longitude offset, so a Pacific view can hold both 140°E and 118°W.
+        dlon = (lon - view.lon + 180.0) % 360.0 - 180.0
+        x = view.cx + dlon * scale
         y = view.cy - (merc - merc0) * scale
         vis = (x >= x0) & (x <= x1) & (y >= y0) & (y <= y1)
         return x, y, vis
@@ -136,6 +138,64 @@ def laea_inverse(x, y, lon0, lat0):
     phi = np.where(near, phi0, phi)
     lam = np.where(near, 0.0, lam)
     return lon0 + np.degrees(lam), np.degrees(phi)
+
+
+def _merc_psi(phi: float) -> float:
+    return math.log(math.tan(math.pi / 4.0 + phi / 2.0))
+
+
+def _inv_merc_psi(psi: float) -> float:
+    return 2.0 * math.atan(math.exp(psi)) - math.pi / 2.0
+
+
+def route_lonlat(mode: str, lat1: float, lon1: float, lat2: float, lon2: float, n: int = 181):
+    """(lon, lat) samples. `great` is the sphere's short arc. `rhumb` is straight on Mercator."""
+    n = max(2, int(n))
+    if mode == "rhumb":
+        return _rhumb_lonlat(lat1, lon1, lat2, lon2, n)
+    if mode == "great":
+        return _great_lonlat(lat1, lon1, lat2, lon2, n)
+    raise ValueError(f"route mode must be great or rhumb, got {mode}")
+
+
+def _great_lonlat(lat1: float, lon1: float, lat2: float, lon2: float, n: int):
+    def unit(lat, lon):
+        phi, lam = math.radians(lat), math.radians(lon)
+        return np.array([
+            math.cos(phi) * math.cos(lam),
+            math.cos(phi) * math.sin(lam),
+            math.sin(phi),
+        ], np.float64)
+
+    a = unit(lat1, lon1)
+    b = unit(lat2, lon2)
+    omega = math.acos(float(np.clip(np.dot(a, b), -1.0, 1.0)))
+    if omega < 1e-8:
+        return [(lon1, lat1), (lon2, lat2)]
+    pts = []
+    for i in range(n):
+        t = i / (n - 1)
+        s = (math.sin((1.0 - t) * omega) * a + math.sin(t * omega) * b) / math.sin(omega)
+        s = s / np.linalg.norm(s)
+        lat = math.degrees(math.asin(float(np.clip(s[2], -1.0, 1.0))))
+        lon = math.degrees(math.atan2(float(s[1]), float(s[0])))
+        pts.append((lon, lat))
+    return pts
+
+
+def _rhumb_lonlat(lat1: float, lon1: float, lat2: float, lon2: float, n: int):
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    lam1 = math.radians(lon1)
+    dlam = math.radians((lon2 - lon1 + 180.0) % 360.0 - 180.0)
+    psi1, psi2 = _merc_psi(phi1), _merc_psi(phi2)
+    pts = []
+    for i in range(n):
+        t = i / (n - 1)
+        phi = _inv_merc_psi(psi1 + (psi2 - psi1) * t)
+        lam = lam1 + dlam * t
+        lon = (math.degrees(lam) + 180.0) % 360.0 - 180.0
+        pts.append((lon, math.degrees(phi)))
+    return pts
 
 
 def lerp_camera(a, b, u: float):

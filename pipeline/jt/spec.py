@@ -32,6 +32,7 @@ class Line:
     camera: Camera
     visuals: list
     say: str
+    dur: float = 0.0
 
 
 @dataclass
@@ -79,6 +80,7 @@ def load_spec(path: str | Path) -> Spec:
             camera=_camera(item["camera"]),
             visuals=list(item.get("visuals") or []),
             say=say,
+            dur=float(item.get("dur", 0.0) or 0.0),
         ))
     if len(lines) < 2:
         raise ValueError("a short needs at least two lines")
@@ -102,6 +104,50 @@ def load_spec(path: str | Path) -> Spec:
     if problems and voice.get("enforce_pauses", True):
         raise ValueError("pause rules failed:\n- " + "\n- ".join(problems))
     return spec
+
+
+def silent_timeline(spec: Spec) -> dict:
+    """Beat clock for a picture with no voice and no burned-in karaoke.
+
+    Each line's `dur` is the beat length. The owner's voice is fitted later.
+    """
+    if spec.voice.get("engine") != "silent":
+        raise ValueError("silent_timeline is only for voice.engine: silent")
+    t = 0.0
+    lines = []
+    for i, ln in enumerate(spec.lines):
+        if ln.dur <= 0:
+            raise ValueError(f"line {i} needs a positive dur on a silent short")
+        start = round(t, 2)
+        t = round(t + ln.dur, 2)
+        claim = ln.claim
+        lines.append({
+            "index": i,
+            "text": ln.text,
+            "say": ln.say,
+            "kind": ln.kind,
+            "start": start,
+            "end": t,
+            "gap": 0.0,
+            "words": [],
+            "on_screen": {"claim": claim, "sub": ln.sub},
+            "claim": claim,
+            "sub": ln.sub,
+        })
+    if not lines:
+        raise ValueError("silent short has no beats")
+    return {
+        "duration": t,
+        "silent": True,
+        "captions_burned_in": False,
+        "caption_band": {"y0": 0.64, "y1": 0.72},
+        "lead_in": 0.0,
+        "lines": lines,
+        "beats": lines,
+        "words": [],
+        "sample_rate": None,
+        "voice": "none",
+    }
 
 
 def gaps_of(spec: Spec) -> list[float]:

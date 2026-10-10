@@ -24,6 +24,7 @@ Each line is one sentence:
   - `highlight` with `countries: [USA]` or `sovereignties: ["France"]`
   - `marker` (`lat`, `lon`, `label`)
   - `latline` / `lonline`
+  - `route` — `mode: great` (great-circle arc) or `mode: rhumb` (straight on Mercator), `a: [lat, lon]`, `b: [lat, lon]`, optional `label`, `style: solid` or `dashed`
   - `ruler` with `a: [lat, lon]`, `b: [lat, lon]`, `label`
   - `bignum` (`text`, `unit`)
   - `ghost` — true-size overlay (`country`, `anchor_lon`, `anchor_lat`, `label`)
@@ -52,6 +53,8 @@ voice:
 ```
 
 `words` is either `{words: [{text, start, end}]}` or an ElevenLabs alignment file (`characters`, `character_start_times_seconds`, `character_end_times_seconds`). Put the spoken word in `text` if you use the first form. One entry per line, in order. `engine: whisper` aligns a wav with faster-whisper using the line as the prompt, when that package is installed.
+
+`engine: silent` renders no voice and no karaoke. Each line needs `dur` (seconds). The picture stays empty from 64% to 72% of the height so captions can be composited later. `timeline.json` lists each beat's start, end, spoken line, and on-screen claim. See `pipeline/examples/lax_tokyo/`.
 
 The mixer then:
 
@@ -117,7 +120,7 @@ Az utolsó mondat kamerája és nagy felirata egyezzen az elsővel. Az utolsó k
 
 ### Hang
 
-Az espeak-ng csak ellenőrzés, nem publikálható hang. Éles anyag: soronként egy wav és egy időzítés (`engine: takes`), ElevenLabs kulcs nélkül. A formátum a fenti angol részben van.
+Az espeak-ng csak ellenőrzés, nem publikálható hang. Éles anyag: soronként egy wav és egy időzítés (`engine: takes`), ElevenLabs kulcs nélkül. A formátum a fenti angol részben van. `engine: silent` néma kép, karaoke nélkül; a sorok `dur` mezője adja a hosszt, a felirat helye a kép 64–72%-a.
 
 A hangeffek kódból vannak (suhintás, kattanás, tikkelés, csengés). A csúcsuk legalább 12 dB-lel a hang alatt marad. A nagybetűs szó vége kb. +7 dB. A hangerő két menetben −14 LUFS, a csúcs ≤ −1,5 dBTP, AAC 320 kbps.
 

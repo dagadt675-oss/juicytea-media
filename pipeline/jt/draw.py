@@ -14,7 +14,7 @@ import numpy as np
 import skia
 
 from jt.captions import active_index
-from jt.project import ease_out, laea_forward, project_one, project_points
+from jt.project import ease_out, laea_forward, project_one, project_points, route_lonlat
 from jt.themes import NEON, SUB, WHITE, YELLOW
 
 BOLD = "/usr/share/fonts/truetype/macos/Inter-Bold.ttf"
@@ -406,6 +406,44 @@ def draw_meridian(canvas, safe: Safe, view, theme, lon, label, t, draw_line=True
             _badge(safe, str(label), hit[0], hit[1], theme)
 
 
+def _route_anchor(pts, view, safe: Safe, mode: str):
+    """A free point on the route: the northern crest of a great circle, else the middle."""
+    best = None
+    best_key = None
+    for i, (lon, lat) in enumerate(pts):
+        hit = project_one(lon, lat, view)
+        if hit is None or safe.point_blocked(hit[0], hit[1]):
+            continue
+        key = (-lat, abs(i - (len(pts) - 1) / 2.0)) if mode == "great" else abs(i - (len(pts) - 1) / 2.0)
+        if best_key is None or key < best_key:
+            best_key = key
+            best = hit
+    return best
+
+
+def draw_route(canvas, safe: Safe, view, theme, vis, draw_line=True, with_label=True):
+    """Great-circle arc or Mercator rhumb. One stroke, optional pill."""
+    a = vis.get("a") or [0, 0]
+    b = vis.get("b") or [0, 0]
+    mode = str(vis.get("mode", "great"))
+    pts = route_lonlat(mode, float(a[0]), float(a[1]), float(b[0]), float(b[1]), 200)
+    raw = _chain(pts, view)
+    if draw_line:
+        chains = _clip_chains(raw, safe)
+        if vis.get("style") == "dashed":
+            wide = _stroke(theme["line"], 12 * safe.s, alpha=48)
+            core = _stroke(theme["line"], 3.6 * safe.s, 255, dash=[12 * safe.s, 9 * safe.s])
+            for chain in chains:
+                _polyline(canvas, chain, wide)
+                _polyline(canvas, chain, core)
+        else:
+            _glow(canvas, chains, theme["line"], safe.s)
+    if with_label and vis.get("label"):
+        hit = _route_anchor(pts, view, safe, mode)
+        if hit is not None:
+            _badge(safe, str(vis["label"]), hit[0], hit[1], theme)
+
+
 def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t):
     hit = project_one(lon, lat, view)
     if hit is None:
@@ -748,7 +786,10 @@ def draw_atmosphere(canvas, view, theme):
 
 
 def _reserve_caption(safe: Safe):
-    """Captions have no backing card, so the line must not run through them."""
+    """Keep the route and pills out of the karaoke slot (y 0.64–0.72) and below it.
+
+    A silent short leaves that band empty so karaoke can be composited later.
+    """
     safe.block(skia.Rect.MakeLTRB(0, 0.58 * safe.h, safe.w, safe.h))
 
 
@@ -773,6 +814,8 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
             draw_parallel(canvas, safe, view, theme, t, float(vis["lat"]), "", t, draw_line=True, with_label=False)
         elif kind == "lonline":
             draw_meridian(canvas, safe, view, theme, float(vis["lon"]), "", t, draw_line=True, with_label=False)
+        elif kind == "route":
+            draw_route(canvas, safe, view, theme, vis, draw_line=True, with_label=False)
     _reserve_title(safe)
     if any(v.get("type") == "graticule" for v in visuals):
         draw_graticule(canvas, view, theme, t)
@@ -791,6 +834,8 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
         if kind == "marker":
             draw_marker(canvas, safe, view, theme, float(vis["lat"]), float(vis["lon"]),
                         str(vis.get("label", "")), t)
+        elif kind == "route":
+            draw_route(canvas, safe, view, theme, vis, draw_line=False, with_label=True)
         elif kind == "ruler":
             draw_ruler(canvas, safe, view, vis, local, t)
         elif kind == "bignum":
@@ -801,5 +846,5 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
             draw_island(canvas, safe, vis, t)
     # Country stroke uses the same highlight ids the sampler did. Passed via visuals.
     draw_claim(safe, claim, sub, local)
-    cap = draw_caption(safe, words, groups, t)
+    cap = draw_caption(safe, words, groups, t) if words else None
     return {"caption": cap, "spills": safe.spills, "overlaps": safe.overlaps}

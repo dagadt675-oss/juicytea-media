@@ -342,8 +342,11 @@ def render_video(studio: Studio, path: Path, crf: int = 20) -> dict:
     contact = []
     contact_at = {int(round(i * (n - 1) / 11)) for i in range(12)}
     try:
+        # A voiced Short copies frame 0 onto the last frame so the loop matches.
+        # A silent Short keeps the last beat, so the timeline and the picture agree.
+        copy_loop = not studio.timeline.get("silent")
         for i in range(n):
-            if i == n - 1:
+            if i == n - 1 and copy_loop:
                 img = frame0
             else:
                 t = i / FPS

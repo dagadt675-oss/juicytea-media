@@ -12,8 +12,8 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from jt.captions import active_index, groups_for, switch_error  # noqa: E402
-from jt.project import laea_forward, laea_inverse, project_one, resolve  # noqa: E402
-from jt.spec import load_spec, pause_problems  # noqa: E402
+from jt.project import laea_forward, laea_inverse, project_one, project_points, resolve, route_lonlat  # noqa: E402
+from jt.spec import load_spec, pause_problems, silent_timeline  # noqa: E402
 
 
 def check(name, ok, detail=""):
@@ -58,6 +58,35 @@ def main() -> int:
     flat = resolve("merc", 0, 0, 40, 1080, 1920)
     origin = project_one(0, 0, flat)
     ok &= check("merc origin", origin is not None and abs(origin[0] - flat.cx) < 1.5, str(origin))
+
+    pac = resolve("merc", -170, 42, 132, 1080, 1920)
+    nrt = project_one(140.3929, 35.7720, pac)
+    lax = project_one(-118.4081, 33.9425, pac)
+    ok &= check("pacific pins", nrt is not None and lax is not None and nrt[0] < pac.cx < lax[0], f"{nrt} {lax}")
+
+    great = route_lonlat("great", 33.9425, -118.4081, 35.7720, 140.3929, 181)
+    rhumb = route_lonlat("rhumb", 33.9425, -118.4081, 35.7720, 140.3929, 61)
+    crest = max(great, key=lambda p: p[1])
+    ok &= check("gc crest", 47.4 <= crest[1] <= 48.0 and -172.0 <= crest[0] <= -169.0, f"{crest[1]:.2f}N {crest[0]:.2f}")
+    ok &= check("arc north of rhumb", crest[1] > max(p[1] for p in rhumb) + 8.0, f"{crest[1]:.2f}")
+    lons = np.array([p[0] for p in rhumb])
+    lats = np.array([p[1] for p in rhumb])
+    x, y, vis = project_points(lons, lats, pac)
+    chord = np.abs((y[-1] - y[0]) * x - (x[-1] - x[0]) * y + x[-1] * y[0] - y[-1] * x[0])
+    dev = float(chord.max() / max(math.hypot(x[-1] - x[0], y[-1] - y[0]), 1.0))
+    ok &= check("rhumb straight on mercator", bool(np.all(vis)) and dev < 2.0, f"{dev:.2f}px")
+
+    route = load_spec(Path(__file__).resolve().parent / "specs" / "lax_tokyo.yaml")
+    clock = silent_timeline(route)
+    ok &= check("eight silent beats", len(clock["beats"]) == 8 and clock["words"] == [], str(len(clock["beats"])))
+    ok &= check("silent length", 22.0 <= clock["duration"] <= 24.0, str(clock["duration"]))
+    joined = " ".join(ln["say"] for ln in clock["beats"])
+    ok &= check(
+        "script kept",
+        joined.startswith("Why does a flight from LA to Tokyo") and "hundreds of kilometers" in joined
+        and "over Alaska" not in joined,
+        joined[:80],
+    )
 
     print("SELFTEST", "PASS" if ok else "FAIL")
     return 0 if ok else 1

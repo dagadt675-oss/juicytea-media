@@ -81,9 +81,9 @@ def synth_lines(spec, work: Path) -> list[dict]:
             else:
                 raise ValueError(f"line {i} has a wav but no word timings")
             audio = _resample(audio, sr)
-        elif engine == "takes":
+        elif engine in ("takes", "silent"):
             raise ValueError(
-                f"line {i} has no wav. engine 'takes' is the shippable path and does not fall back to espeak."
+                f"line {i} has no wav. engine '{engine}' does not fall back to espeak."
             )
         else:
             audio, sr, words = speak(line.say, spec.voice.get("voice", "en-us"), int(spec.voice.get("rate", 138)))

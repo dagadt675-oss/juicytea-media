@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -28,7 +29,7 @@ from jt.data import build_earth  # noqa: E402
 from jt.qc import ebur128, evaluate, write_report  # noqa: E402
 from jt.render import FPS, Studio, render_stills, render_video, save_contact  # noqa: E402
 from jt.review import write_packet  # noqa: E402
-from jt.spec import load_spec  # noqa: E402
+from jt.spec import load_spec, silent_timeline  # noqa: E402
 
 PRESETS = {
     "final": (1080, 1920, 17),
@@ -45,9 +46,120 @@ def _trim(audio, n_frames: int):
     return audio[:samples]
 
 
+def _silent_picture_qc(path: Path, timeline: dict) -> tuple[bool, str]:
+    """Geometry and an empty karaoke band. No loudness — there is no voice."""
+    from jt.qc import ffprobe
+
+    info = ffprobe(path)
+    v = next(s for s in info["streams"] if s["codec_type"] == "video")
+    audio = [s for s in info["streams"] if s["codec_type"] == "audio"]
+    w, h = int(v["width"]), int(v["height"])
+    rate = v["r_frame_rate"]
+    num, den = [float(x) for x in rate.split("/")]
+    fps = num / den if den else 0
+    dur = float(v.get("duration") or info["format"].get("duration") or 0)
+    lines = [
+        f"geometry {w}x{h} @ {fps:.3f} fps  h264 {v.get('pix_fmt')}",
+        f"duration {dur:.2f}s  beats {len(timeline['beats'])}",
+        f"audio streams {len(audio)}",
+        "captions burned in: no",
+    ]
+    ok = (
+        w == 1080 and h == 1920 and abs(fps - 30) < 0.01
+        and v.get("codec_name") == "h264"
+        and not audio
+        and 22.0 <= dur <= 24.0
+        and len(timeline["beats"]) == 8
+    )
+    band = _caption_band_text(path)
+    lines.append(f"caption band y 0.64–0.72 text pixels {band}")
+    ok = ok and band == 0
+    lines.insert(0, "RESULT PASS  silent picture" if ok else "RESULT FAIL  silent picture")
+    return ok, "\n".join(lines) + "\n"
+
+
+def _caption_band_text(path: Path) -> int:
+    """White/yellow/cyan/orange pixels inside the karaoke slot, sampled twice a second."""
+    import numpy as np
+    from jt.draw import text_pixel_mask
+
+    raw = subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", str(path), "-vf", "fps=2",
+         "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+        capture_output=True, check=True,
+    ).stdout
+    frame = 1080 * 1920 * 3
+    n = len(raw) // frame
+    worst = 0
+    y0, y1 = int(0.64 * 1920), int(0.72 * 1920)
+    for i in range(n):
+        img = np.frombuffer(raw[i * frame:(i + 1) * frame], np.uint8).reshape(1920, 1080, 3)
+        worst = max(worst, int(np.count_nonzero(text_pixel_mask(img[y0:y1]))))
+    return worst
+
+
+def build_silent(spec, out: Path, preset: str, hero: bool) -> int:
+    """Picture only. Does not call espeak or ElevenLabs."""
+    import shutil
+
+    from jt.review import write_packet
+
+    out.mkdir(parents=True, exist_ok=True)
+    w, h, crf = PRESETS[preset]
+    earth = build_earth()
+    timeline = silent_timeline(spec)
+    timeline.update({
+        "id": spec.id,
+        "title": spec.title,
+        "width": w,
+        "height": h,
+        "fps": FPS,
+        "note": (
+            "No audio and no burned-in karaoke. "
+            "Fit an ElevenLabs read to beats[].say locally. "
+            "Leave y 0.64–0.72 of the height empty for captions."
+        ),
+    })
+    (out / "timeline.json").write_text(json.dumps(timeline, indent=2))
+    (out / "description.txt").write_text(spec.description)
+    print(f"silent picture {w}x{h} {timeline['duration']:.2f}s  no voice", flush=True)
+    studio = Studio(earth, spec, timeline, w, h)
+    hero_metrics = None
+    if hero and (w, h) != (1080, 1920):
+        times = [round((ln["start"] + ln["end"]) / 2, 2) for ln in timeline["beats"]]
+        hero_metrics = render_stills(Studio(earth, spec, timeline, 1080, 1920), times, out / "stills")
+    picture = out / "silent.mp4"
+    metrics = render_video(studio, picture, crf=crf)
+    contact = metrics.pop("contact")
+    save_contact(contact, out / "contact.jpg")
+    stills = out / "stills"
+    stills.mkdir(exist_ok=True)
+    for ln in timeline["beats"]:
+        t = (ln["start"] + ln["end"]) / 2.0
+        dest = stills / f"t{t:05.2f}.png"
+        subprocess.run(
+            ["ffmpeg", "-y", "-v", "error", "-i", str(picture), "-ss", f"{t:.3f}",
+             "-frames:v", "1", str(dest)],
+            check=True,
+        )
+    (out / "render_metrics.json").write_text(json.dumps(metrics, indent=2))
+    shutil.copyfile(picture, out / "final.mp4")
+    ok, text = _silent_picture_qc(picture, timeline)
+    (out / "qc.txt").write_text(text)
+    write_packet(spec, out, {"checks": [], "pass": ok}, {"voice": "none"})
+    print(text)
+    if not ok:
+        print("PICTURE FAIL — silent.mp4 was still written", flush=True)
+        return 2
+    print("SILENT PICTURE", picture, flush=True)
+    return 0
+
+
 def build(spec_path: Path, out: Path, preset: str, hero: bool) -> int:
     spec = load_spec(spec_path)
     out.mkdir(parents=True, exist_ok=True)
+    if spec.voice.get("engine") == "silent":
+        return build_silent(spec, out, preset, hero)
     earth = build_earth()
     print("voice…", flush=True)
     takes = synth_lines(spec, out / "takes")
