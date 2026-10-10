@@ -16,7 +16,7 @@ import skia
 from jt.captions import groups_for
 from jt.data import resolve_ids
 from jt.draw import Safe, clamp_nontext, overlay, text_pixel_mask
-from jt.project import ease_out, laea_inverse, lerp_camera, resolve
+from jt.project import ease_in_out, laea_inverse, lerp_camera, resolve
 from jt.themes import get_theme
 
 FPS = 30
@@ -57,42 +57,40 @@ class Studio:
         whip = 0.0
         if idx == 0:
             cam = cur.copy()
-            # Linear spin through the first second, then ease back onto the
-            # base view before the next beat so the cut does not jump.
+            # A short ease-in, then the shot holds. Zero velocity at both ends.
             beat_dur = self.spans[0][1] - self.spans[0][0]
-            if t < 1.05:
-                spin = 36.0 * (t / 1.05)
-                zoom = math.sin(math.pi * min(1.0, t / 1.05))
+            intro = min(1.25, max(0.8, beat_dur * 0.45))
+            if t < intro:
+                e = ease_in_out(t / intro)
+                cam.lon = cur.lon + 8.0 * (1.0 - e)
+                cam.span = cur.span * (1.06 - 0.06 * e)
             else:
-                back = min(1.0, (t - 1.05) / max(0.45, beat_dur - 1.05))
-                spin = 36.0 * (1.0 - ease_out(back))
-                zoom = 0.0
-            cam.lon = cur.lon + spin
-            cam.span = cur.span * (1.0 - 0.12 * zoom)
+                cam = cur.copy()
         else:
             prev = self.spec.lines[idx - 1].camera
-            fly = 0.72
+            beat_dur = self.spans[idx][1] - self.spans[idx][0]
+            # Long enough to read as a flight, short enough to arrive before the line ends.
+            fly = min(1.55, max(1.05, beat_dur * 0.62))
             if local < fly:
                 u = local / fly
                 if prev.proj != cur.proj:
-                    if u < 0.46:
+                    if u < 0.5:
                         cam = prev.copy()
-                        cam.span = prev.span * (1.0 + 0.16 * ease_out(u / 0.46))
-                        whip = u / 0.46
+                        cam.span = prev.span * (1.0 + 0.08 * ease_in_out(u / 0.5))
+                        whip = ease_in_out(u / 0.5)
                     else:
                         cam = cur.copy()
-                        cam.span = cur.span * (1.0 + 0.16 * (1.0 - ease_out((u - 0.46) / 0.54)))
-                        whip = 1.0 - (u - 0.46) / 0.54
+                        cam.span = cur.span * (1.0 + 0.08 * (1.0 - ease_in_out((u - 0.5) / 0.5)))
+                        whip = 1.0 - ease_in_out((u - 0.5) / 0.5)
                 else:
                     cam = lerp_camera(prev, cur, u)
             else:
                 cam = cur.copy()
-        wob = math.sin(2 * math.pi * phase)
-        cam.lon += 1.6 * wob
-        cam.span *= 1.0 + 0.02 * wob
+        # Slow drift so a held flat map is not a frozen frame. Small enough
+        # that the copied first frame does not pop.
+        drift = 0.45 * math.sin(t * 1.15) + 0.22 * math.sin(t * 2.05)
+        cam.lon += drift
         view = resolve(cam.proj, cam.lon, cam.lat, max(4.0, cam.span), self.w, self.h, whip)
-        if idx == 0 and t < 1.05:
-            view.cy += 58.0 * math.sin(math.pi * (t / 1.05)) * (self.h / 1920.0)
         return view, idx, local
 
 
@@ -166,6 +164,8 @@ def _living_light(col, across, t):
 
 
 def _paint_ortho(frame, earth, view, highlights, theme, phase, t):
+    if theme.get("flat"):
+        return
     r = view.r
     cx, cy = view.cx, view.cy
     h, w = frame.shape[:2]
@@ -208,6 +208,8 @@ def _paint_ortho(frame, earth, view, highlights, theme, phase, t):
 
 
 def _paint_flat(frame, earth, view, highlights, theme, phase, t):
+    if theme.get("flat"):
+        return
     x0, y0, x1, y1 = view.rect
     if x1 <= x0 or y1 <= y0:
         return
@@ -242,6 +244,10 @@ def _paint_flat(frame, earth, view, highlights, theme, phase, t):
 def _background(studio: Studio, t: float, phase: float) -> np.ndarray:
     h, w = studio.h, studio.w
     theme = studio.theme
+    if theme.get("flat"):
+        frame = np.empty((h, w, 3), np.uint8)
+        frame[:] = theme["bg0"]
+        return frame
     ys = np.linspace(0, 1, h, dtype=np.float32)[:, None]
     top = np.array(theme["bg0"], np.float32)
     bot = np.array(theme["bg1"], np.float32)
@@ -269,7 +275,8 @@ def render_frame(studio: Studio, t: float, phase: float) -> tuple[np.ndarray, di
     else:
         _paint_flat(frame, studio.earth, view, highlights, studio.theme, phase, t)
     clamp_nontext(frame)
-    frame = np.clip(frame.astype(np.float32) * studio.vignette[..., None], 0, 255).astype(np.uint8)
+    if not studio.theme.get("flat"):
+        frame = np.clip(frame.astype(np.float32) * studio.vignette[..., None], 0, 255).astype(np.uint8)
     rgba = np.dstack([frame, np.full((studio.h, studio.w), 255, np.uint8)])
     surface = skia.Surface(studio.w, studio.h)
     canvas = surface.getCanvas()

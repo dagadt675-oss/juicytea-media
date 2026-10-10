@@ -2,7 +2,7 @@
 
 Generic, script-driven YouTube Shorts renderer for map facts. One YAML file is one video. The picture, karaoke, sound and QC all come from that file.
 
-The old one-off Alaska renderer only drew an orthographic globe with flat fills. This one flies between an orthographic globe, Mercator and Lambert equal-area, shades relief, and refuses to finish when QC fails.
+The default picture is a flat political map: navy field, muted land, one country in neon red, a single line or a pin with radar rings, and white pills with red type. It is the look of the Canada Short (flat fills, no shaded relief). Mercator and Lambert are still available. A distance-field "relief" is not drawn.
 
 The seven old topics (Hans Island, London, France, Diomede, Ceuta/Melilla, Congo) are not specs here. `specs/alaska.yaml` is only a renderer test. Later videos should be more dramatic: danger, scandal, stories that are hard to believe. Copy the Alaska file and change the lines.
 
@@ -39,24 +39,27 @@ The last line should use the same camera and the same claim as the first line. T
 
 ### Sound
 
-Input is a voice wav plus word times, or the built-in espeak-ng placeholder.
+A shippable Short does not use espeak. espeak-ng is only the stand-in when no recording exists, so the pipeline can be checked. Do not publish that audio.
 
-- Per-line takes, level-matched, with the gaps from the spec and a little room tone (not digital silence).
-- Whoosh on each camera move, pop on a keyword, tick on a number, ding on the punchline, swell into the loop. All synthesised. No samples.
-- SFX peak is kept 12 dB under the voice peak.
-- Keyword tails get about +7 dB on the last 0.3 s.
-- Two-pass loudnorm to −14 LUFS, true peak ≤ −1.5 dBTP, AAC 320 kbps.
-
-Drop real reads in later without code changes:
+Shippable input is one wav and one timing file per line. `engine` is `takes`. No API key is read.
 
 ```yaml
 voice:
-  engine: espeak
+  engine: takes
   takes:
     - {wav: takes/s00.wav, words: takes/s00.json}
+    - {wav: takes/s01.wav, words: takes/s01.json}
 ```
 
-`words` is either `{words: [{text, start, end}]}` or ElevenLabs character alignment (`characters`, `character_start_times_seconds`, `character_end_times_seconds`). `engine: whisper` aligns a wav with faster-whisper using the line as the prompt, when that package is installed.
+`words` is either `{words: [{text, start, end}]}` or an ElevenLabs alignment file (`characters`, `character_start_times_seconds`, `character_end_times_seconds`). Put the spoken word in `text` if you use the first form. One entry per line, in order. `engine: whisper` aligns a wav with faster-whisper using the line as the prompt, when that package is installed.
+
+The mixer then:
+
+- Level-matches the takes, inserts the gaps from the spec, and uses room tone rather than digital silence.
+- Adds a whoosh on each camera move, a pop on a keyword, a tick on a number, a ding on the punchline, and a swell into the loop. All synthesised. No samples.
+- Keeps the SFX peak 12 dB under the voice peak.
+- Lifts keyword tails about +7 dB on the last 0.3 s.
+- Runs two-pass loudnorm to −14 LUFS, true peak ≤ −1.5 dBTP, AAC 320 kbps.
 
 ### Commands
 
@@ -90,7 +93,7 @@ pipeline/out/alaska/
 
 Egy YAML = egy Short. A kép, a karaoke, a hang és az ellenőrzés mind abból készül.
 
-A régi Alaska-render csak egy gömböt rajzolt, lapos színekkel. Ez gömb és lapos térkép között is repül (Mercator és egyenlő területű vetület), domborzatot árnyal, és ha az ellenőrzés bukik, nem enged tovább.
+Az alap kép lapos politikai térkép: sötétkék háttér, egy ország neonpirossal, egy vonal vagy egy tű radar-gyűrűkkel, fehér kapszula piros felirattal. Nincs domborzat. A Mercator és a Lambert megmarad.
 
 A régi hét téma (Hans-sziget, London, Franciaország, Diomede, Ceuta, Kongó) nincs benne. Az `specs/alaska.yaml` csak teszt. A következő témák legyenek erősebbek: veszély, botrány, hihetetlen történet. Másoláshoz az Alaska fájl a minta.
 
@@ -114,7 +117,7 @@ Az utolsó mondat kamerája és nagy felirata egyezzen az elsővel. Az utolsó k
 
 ### Hang
 
-A teszt hang espeak-ng. Később egy wav és egy időzítés-JSON elég, ElevenLabs kulcs nélkül.
+Az espeak-ng csak ellenőrzés, nem publikálható hang. Éles anyag: soronként egy wav és egy időzítés (`engine: takes`), ElevenLabs kulcs nélkül. A formátum a fenti angol részben van.
 
 A hangeffek kódból vannak (suhintás, kattanás, tikkelés, csengés). A csúcsuk legalább 12 dB-lel a hang alatt marad. A nagybetűs szó vége kb. +7 dB. A hangerő két menetben −14 LUFS, a csúcs ≤ −1,5 dBTP, AAC 320 kbps.
 

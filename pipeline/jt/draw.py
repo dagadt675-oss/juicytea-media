@@ -15,7 +15,7 @@ import skia
 
 from jt.captions import active_index
 from jt.project import ease_out, laea_forward, project_one, project_points
-from jt.themes import SUB, WHITE, YELLOW
+from jt.themes import NEON, SUB, WHITE, YELLOW
 
 BOLD = "/usr/share/fonts/truetype/macos/Inter-Bold.ttf"
 SEMI = "/usr/share/fonts/truetype/macos/Inter-SemiBold.ttf"
@@ -94,6 +94,32 @@ class Safe:
         self.top = 0.135 * h
         self.bottom = 0.775 * h
         self.spills = 0
+        self.overlaps = 0
+        self.blockers = []
+
+    def block(self, rect) -> None:
+        self.blockers.append(rect)
+
+    def hits(self, rect) -> bool:
+        if rect.left() < self.left or rect.right() > self.right:
+            return True
+        if rect.top() < self.top or rect.bottom() > self.bottom:
+            return True
+        for other in self.blockers:
+            if rect.right() < other.left() or rect.left() > other.right():
+                continue
+            if rect.bottom() < other.top() or rect.top() > other.bottom():
+                continue
+            return True
+        return False
+
+    def point_blocked(self, x: float, y: float) -> bool:
+        if x < self.left or x > self.right or y < self.top or y > self.bottom:
+            return True
+        for other in self.blockers:
+            if other.left() <= x <= other.right() and other.top() <= y <= other.bottom():
+                return True
+        return False
 
     def font(self, which: str, ref_px: float):
         return skia.Font(faces()[which], max(8.0, ref_px * self.s))
@@ -181,40 +207,203 @@ def _chain(lonlat, view, band=None):
     return chains
 
 
+def _badge(safe: Safe, text: str, x: float, y: float, theme) -> bool:
+    """White pill, red type. Nudges off the title and the caption band, or skips."""
+    if not text:
+        return False
+    font = safe.font("bold", 42)
+    width = font.measureText(text)
+    metrics = font.getMetrics()
+    pad_x = 16 * safe.s
+    pad_y = 8 * safe.s
+    text_h = metrics.fDescent - metrics.fAscent
+    bw = width + pad_x * 2
+    bh = text_h + pad_y * 2
+    paper = theme.get("paper", (248, 248, 252))
+    ink = theme.get("ink", (196, 22, 58))
+    offsets = ((0, -1.2), (0, 0.7), (1.05, -0.35), (-1.05, -0.35), (0, -2.0), (0, 1.5))
+    for ox, oy in offsets:
+        left = x - bw / 2 + ox * bw * 0.45
+        top = y - bh / 2 + oy * bh
+        rect = skia.Rect.MakeLTRB(left, top, left + bw, top + bh)
+        if safe.hits(rect):
+            continue
+        fill = skia.Paint(AntiAlias=True)
+        fill.setColor(skia.ColorSetARGB(255, int(paper[0]), int(paper[1]), int(paper[2])))
+        safe.canvas.drawRRect(skia.RRect.MakeRectXY(rect, bh / 2, bh / 2), fill)
+        baseline = top + (bh - text_h) / 2 - metrics.fAscent
+        paint = skia.Paint(AntiAlias=True)
+        paint.setColor(skia.ColorSetARGB(255, int(ink[0]), int(ink[1]), int(ink[2])))
+        safe.canvas.drawString(text, left + pad_x, baseline, font, paint)
+        safe.block(rect)
+        return True
+    return False
+
+
+def _clip_chains(chains, safe: Safe):
+    kept = []
+    for chain in chains:
+        cur = []
+        for x, y in chain:
+            if safe.point_blocked(x, y):
+                if len(cur) >= 2:
+                    kept.append(cur)
+                cur = []
+            else:
+                cur.append((x, y))
+        if len(cur) >= 2:
+            kept.append(cur)
+    return kept
+
+
+def _glow(canvas, chains, color, scale: float):
+    if not chains:
+        return
+    wide = _stroke(color, 16 * scale, alpha=64)
+    core = _stroke(color, 3.4 * scale, alpha=255)
+    for chain in chains:
+        _polyline(canvas, chain, wide)
+        _polyline(canvas, chain, core)
+
+
+def _ring_paths(ring, view):
+    """Projected pieces of one coastline ring. Fills only when the ring faces us."""
+    lon = np.asarray(ring[:, 0], np.float64)
+    lat = np.asarray(ring[:, 1], np.float64)
+    if view.proj == "ortho":
+        mid = len(lon) // 2
+        # Cheap reject: the sample point is on the back of the globe.
+        x1, y1, vis1 = project_points(lon[mid:mid + 1], lat[mid:mid + 1], view)
+        if len(vis1) and not bool(vis1[0]):
+            return []
+    x, y, vis = project_points(lon, lat, view)
+    if not np.any(vis):
+        return []
+    facing = float(np.mean(vis)) >= 0.72
+    pieces = []
+    cur = []
+    for i in range(len(x)):
+        if not vis[i]:
+            if len(cur) >= 3 and facing:
+                pieces.append(cur)
+            cur = []
+            continue
+        if cur and abs(x[i] - cur[-1][0]) > 140:
+            if len(cur) >= 3 and facing:
+                pieces.append(cur)
+            cur = []
+        cur.append((float(x[i]), float(y[i])))
+    if len(cur) >= 3 and facing:
+        pieces.append(cur)
+    return pieces
+
+
+def draw_flat_map(canvas, earth, view, theme, highlight_ids, scale: float):
+    """Anti-aliased flat country fills. No shade, no relief."""
+    hi = {}
+    for cid, rgb in (highlight_ids or {}).items():
+        if cid >= len(earth.meta) or not earth.meta[cid]:
+            continue
+        if rgb[0] < 0:
+            rgb = theme["hi"]
+        hi[earth.meta[cid]["iso"]] = tuple(int(c) for c in rgb[:3])
+    canvas.save()
+    if view.proj == "ortho":
+        clip = skia.Path()
+        clip.addCircle(view.cx, view.cy, view.r)
+        canvas.clipPath(clip, doAntiAlias=True)
+    elif view.rect:
+        x0, y0, x1, y1 = view.rect
+        canvas.clipRect(skia.Rect.MakeLTRB(x0, y0, x1, y1), doAntiAlias=True)
+    land_rgb = theme["land"]
+    coast_rgb = theme.get("coast", (6, 12, 32))
+    land_fill = skia.Paint(AntiAlias=True)
+    land_fill.setColor(skia.ColorSetARGB(255, land_rgb[0], land_rgb[1], land_rgb[2]))
+    coast = _stroke(coast_rgb, 1.6 * scale, 255)
+    # Unhighlighted land first, neon country on top.
+    later = []
+    for iso, rings in earth.rings.items():
+        if iso in hi:
+            later.append(iso)
+            continue
+        for ring in rings:
+            for piece in _ring_paths(ring, view):
+                path = skia.Path()
+                path.moveTo(piece[0][0], piece[0][1])
+                for px, py in piece[1:]:
+                    path.lineTo(px, py)
+                path.close()
+                canvas.drawPath(path, land_fill)
+                canvas.drawPath(path, coast)
+    for iso in later:
+        rgb = hi[iso]
+        fill = skia.Paint(AntiAlias=True)
+        fill.setColor(skia.ColorSetARGB(255, rgb[0], rgb[1], rgb[2]))
+        edge = _stroke(rgb, 2.2 * scale, 255)
+        for ring in earth.rings.get(iso, []):
+            for piece in _ring_paths(ring, view):
+                path = skia.Path()
+                path.moveTo(piece[0][0], piece[0][1])
+                for px, py in piece[1:]:
+                    path.lineTo(px, py)
+                path.close()
+                canvas.drawPath(path, fill)
+                canvas.drawPath(path, edge)
+    canvas.restore()
+
+
 def draw_graticule(canvas, view, theme, phase: float):
-    paint = _stroke(theme["line"], 1.6, alpha=110, dash=[9, 11], phase=phase * 52)
+    # Solid and densely sampled. Dashes at 20 points were the jagged grid.
+    paint = _stroke((64, 96, 148), 1.3, alpha=120)
     for lon in range(-150, 181, 30):
-        pts = [(lon, lat) for lat in np.linspace(-70, 78, 20)]
+        pts = [(lon, lat) for lat in np.linspace(-75, 75, 90)]
         for chain in _chain(pts, view):
             _polyline(canvas, chain, paint)
     for lat in range(-60, 76, 30):
-        pts = [(lon, lat) for lon in np.linspace(-180, 180, 36)]
+        pts = [(lon, lat) for lon in np.linspace(-180, 180, 120)]
         for chain in _chain(pts, view):
             _polyline(canvas, chain, paint)
 
 
-def draw_parallel(canvas, safe: Safe, view, theme, phase, lat, label, t):
-    paint = _stroke(theme["line"], 3.2, alpha=200, dash=[14, 10], phase=(t * 42) % 48)
-    pts = [(lon, lat) for lon in np.linspace(view.lon - view.span, view.lon + view.span, 40)]
-    chains = _chain(pts, view)
+def _anchor(chains, safe: Safe):
+    """A point on the line that sits in the open band, not on the title."""
+    target = 0.46 * safe.h
+    best = None
+    best_d = 1e9
     for chain in chains:
-        _polyline(canvas, chain, paint)
-    if label and chains:
-        mid = chains[0][len(chains[0]) // 2]
-        font = safe.font("semi", 56)
-        safe.text(label, mid[0], mid[1] - 14 * safe.s, font, WHITE, "center")
+        for x, y in chain[::3]:
+            if safe.point_blocked(x, y):
+                continue
+            d = abs(y - target)
+            if d < best_d:
+                best_d = d
+                best = (x, y)
+    return best
 
 
-def draw_meridian(canvas, safe: Safe, view, theme, lon, label, t):
-    paint = _stroke(theme["line"], 3.4, alpha=210, dash=[14, 10], phase=(t * 48) % 48)
-    pts = [(lon, lat) for lat in np.linspace(view.lat - view.span * 0.6, view.lat + view.span * 0.6, 28)]
-    chains = _chain(pts, view)
-    for chain in chains:
-        _polyline(canvas, chain, paint)
-    if label and chains:
-        mid = chains[0][len(chains[0]) // 2]
-        font = safe.font("semi", 56)
-        safe.text(label, mid[0] + 12 * safe.s, mid[1], font, WHITE, "left")
+def draw_parallel(canvas, safe: Safe, view, theme, phase, lat, label, t, draw_line=True, with_label=True):
+    half = max(view.span * 0.55, 8)
+    pts = [(lon, lat) for lon in np.linspace(view.lon - half, view.lon + half, 160)]
+    chains = _clip_chains(_chain(pts, view), safe) if draw_line else _chain(pts, view)
+    if draw_line:
+        _glow(canvas, chains, theme["line"], safe.s)
+    if with_label and label:
+        # Anchor in the open band, using the unclipped line so the pill can sit
+        # beside the stroke even where the stroke runs under the title.
+        hit = _anchor(_chain(pts, view), safe)
+        if hit and not safe.point_blocked(hit[0], hit[1]):
+            _badge(safe, str(label), hit[0], hit[1], theme)
+
+
+def draw_meridian(canvas, safe: Safe, view, theme, lon, label, t, draw_line=True, with_label=True):
+    pts = [(lon, lat) for lat in np.linspace(view.lat - view.span * 0.65, view.lat + view.span * 0.65, 160)]
+    chains = _clip_chains(_chain(pts, view), safe) if draw_line else _chain(pts, view)
+    if draw_line:
+        _glow(canvas, chains, theme["line"], safe.s)
+    if with_label and label:
+        hit = _anchor(_chain(pts, view), safe)
+        if hit and not safe.point_blocked(hit[0], hit[1]):
+            _badge(safe, str(label), hit[0], hit[1], theme)
 
 
 def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t):
@@ -222,14 +411,24 @@ def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t):
     if hit is None:
         return
     x, y = hit
-    pulse = 0.5 + 0.5 * math.sin(t * 5.4)
+    if safe.point_blocked(x, y):
+        return
     col = theme["marker"]
-    canvas.drawCircle(x, y, 8 + 6 * pulse, _stroke(col, 3.5, 230))
+    phase = (t * 0.85) % 1.0
+    for shift in (0.0, 0.5):
+        p = (phase + shift) % 1.0
+        radius = (12 + 46 * p) * safe.s
+        alpha = int(190 * (1.0 - p))
+        canvas.drawCircle(x, y, radius, _stroke(col, 3.0 * safe.s, alpha))
     fill = skia.Paint(AntiAlias=True)
     fill.setColor(skia.ColorSetARGB(255, col[0], col[1], col[2]))
-    canvas.drawCircle(x, y, 4.0, fill)
-    font = safe.font("bold", 56)
-    safe.text(label, x, y - 18 * safe.s, font, WHITE, "center")
+    canvas.drawCircle(x, y, 8.0 * safe.s, fill)
+    core = skia.Paint(AntiAlias=True)
+    paper = theme.get("paper", (248, 248, 252))
+    core.setColor(skia.ColorSetARGB(255, paper[0], paper[1], paper[2]))
+    canvas.drawCircle(x, y, 3.2 * safe.s, core)
+    if label:
+        _badge(safe, str(label), x, y, theme)
 
 
 def draw_ruler(canvas, safe: Safe, view, vis, local, t):
@@ -331,16 +530,16 @@ def draw_claim(safe: Safe, claim: str, sub: str, local: float):
     for parts, width in zip(parsed, widths):
         x = left + (block_w - width) / 2
         for bit, acc in parts:
-            color = YELLOW if acc else WHITE
+            color = NEON if acc else WHITE
             paint = skia.Paint(AntiAlias=True)
             _rgba(paint, color)
             safe.canvas.drawString(bit, x, y, font, paint)
             x += font.measureText(bit)
         y += line_h
-    # Wipe under the claim. Yellow, and the pill keeps it inside the safe rect.
+    # Neon rule under the title, the same red as the stressed word.
     wipe_w = block_w * u
     bar = skia.Paint(AntiAlias=True)
-    _rgba(bar, YELLOW)
+    _rgba(bar, NEON)
     bar_y = baseline + metrics.fDescent + 2 * safe.s
     safe.canvas.drawRect(skia.Rect.MakeLTRB(left, bar_y, left + wipe_w, bar_y + 4 * safe.s), bar)
     if sub:
@@ -407,14 +606,17 @@ def draw_caption(safe: Safe, words, groups, t) -> dict | None:
     if rect.top() < safe.top or rect.bottom() > safe.bottom:
         safe.spills += 1
         return None
-    _pill(safe.canvas, rect, 16 * safe.s)
     cursor = x
+    outline_w = max(3.0, 6.5 * safe.s)
     for (text, i), tw in zip(tokens, widths):
         f = pop if i == idx else font
         color = YELLOW if i == idx else WHITE
+        stroke = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style)
+        stroke.setStrokeWidth(outline_w)
+        stroke.setColor(skia.ColorSetARGB(255, 0, 0, 0))
+        safe.canvas.drawString(text, cursor, baseline, f, stroke)
         paint = skia.Paint(AntiAlias=True)
         _rgba(paint, color)
-        # Optically center the popped word on the same baseline.
         safe.canvas.drawString(text, cursor, baseline, f, paint)
         cursor += tw + gap
     glyph_center = baseline + metrics.fAscent * 0.5
@@ -545,26 +747,54 @@ def draw_atmosphere(canvas, view, theme):
     canvas.drawCircle(view.cx, view.cy, view.r * 1.045, _stroke(theme["rim"], 8, 30))
 
 
+def _reserve_caption(safe: Safe):
+    """Captions have no backing card, so the line must not run through them."""
+    safe.block(skia.Rect.MakeLTRB(0, 0.58 * safe.h, safe.w, safe.h))
+
+
+def _reserve_title(safe: Safe):
+    """Pills stay below the title. The line is allowed under the title card."""
+    safe.block(skia.Rect.MakeLTRB(0, 0, safe.w, 0.34 * safe.h))
+
+
 def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups, t, local, theme,
             highlight_ids=None) -> dict:
-    draw_atmosphere(canvas, view, theme)
-    # A faint moving grid is always on, so a hold is never a still photograph.
-    draw_graticule(canvas, view, theme, t)
-    draw_highlight_stroke(canvas, earth, view, theme, highlight_ids or {}, t)
-    highlights = {}
+    _reserve_caption(safe)
+    flat = bool(theme.get("flat"))
+    if flat:
+        draw_flat_map(canvas, earth, view, theme, highlight_ids or {}, safe.s)
+    else:
+        draw_atmosphere(canvas, view, theme)
+        draw_highlight_stroke(canvas, earth, view, theme, highlight_ids or {}, t)
+    # The line is drawn before the title is reserved, so it can pass behind the card.
     for vis in visuals:
         kind = vis.get("type")
         if kind == "latline":
-            draw_parallel(canvas, safe, view, theme, t, float(vis["lat"]), vis.get("label", ""), t)
+            draw_parallel(canvas, safe, view, theme, t, float(vis["lat"]), "", t, draw_line=True, with_label=False)
         elif kind == "lonline":
-            draw_meridian(canvas, safe, view, theme, float(vis["lon"]), vis.get("label", ""), t)
-        elif kind == "marker":
+            draw_meridian(canvas, safe, view, theme, float(vis["lon"]), "", t, draw_line=True, with_label=False)
+    _reserve_title(safe)
+    if any(v.get("type") == "graticule" for v in visuals):
+        draw_graticule(canvas, view, theme, t)
+    for vis in visuals:
+        kind = vis.get("type")
+        if kind == "latline":
+            draw_parallel(canvas, safe, view, theme, t, float(vis["lat"]), vis.get("label", ""), t,
+                          draw_line=False, with_label=True)
+            continue
+        if kind == "lonline":
+            draw_meridian(canvas, safe, view, theme, float(vis["lon"]), vis.get("label", ""), t,
+                          draw_line=False, with_label=True)
+            continue
+        if kind in ("highlight", "graticule"):
+            continue
+        if kind == "marker":
             draw_marker(canvas, safe, view, theme, float(vis["lat"]), float(vis["lon"]),
                         str(vis.get("label", "")), t)
         elif kind == "ruler":
             draw_ruler(canvas, safe, view, vis, local, t)
         elif kind == "bignum":
-            draw_bignum(safe, vis, local)
+            _badge(safe, str(vis.get("text", "")), safe.w * 0.50, safe.h * 0.46, theme)
         elif kind == "ghost":
             draw_ghost(canvas, safe, earth, view, vis, local)
         elif kind == "island":
@@ -572,4 +802,4 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
     # Country stroke uses the same highlight ids the sampler did. Passed via visuals.
     draw_claim(safe, claim, sub, local)
     cap = draw_caption(safe, words, groups, t)
-    return {"caption": cap, "spills": safe.spills}
+    return {"caption": cap, "spills": safe.spills, "overlaps": safe.overlaps}

@@ -142,7 +142,6 @@ def lerp_camera(a, b, u: float):
     from jt.spec import Camera
     e = ease_in_out(u)
     span = a.span + (b.span - a.span) * e
-    span *= 1.0 + 0.06 * math.sin(e * math.pi)
     return Camera(
         a.proj,
         ang_lerp(a.lon, b.lon, e),

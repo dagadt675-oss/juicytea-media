@@ -29,7 +29,7 @@ The old seven-topic slate (Hans, London, France, Diomede, Ceuta, Congo) is not i
 
 - Script-driven beats, not a hardcoded camera.
 - Orthographic globe plus Mercator and Lambert equal-area, with a whip when the projection changes.
-- Relief hillshade, atmosphere rim, moving graticule, pulsing country highlight.
+- Flat political map: neon country, one line or a pin, white pills. No relief.
 - Claim slam, karaoke (spoken word yellow), markers, rulers, big numbers, true-size ghost, split-island card.
 - Every glyph is clamped inside the safe zone by the drawer.
 

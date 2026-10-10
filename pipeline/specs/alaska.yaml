@@ -4,8 +4,10 @@
 id: alaska
 title: "Which US State Is Farthest EAST? (Not Maine)"
 theme: midnight
-notes: "Renderer test. By longitude, not the everyday 'Maine' answer."
+notes: "Renderer test only. espeak is not a shippable voice. By longitude, not the everyday Maine answer."
 voice:
+  # espeak is a pipeline check. A shippable Short uses engine: takes
+  # with an ElevenLabs wav and word JSON. See pipeline/README.md.
   engine: espeak
   voice: en-us
   rate: 136
@@ -22,7 +24,7 @@ description: |
 
   Alaska's Aleutian Islands cross the 180th meridian. By longitude, Pochnoi Point on Semisopochnoi Island (179°46′E) is the easternmost point in the US, while Amatignak Island (179°06′W) is the westernmost by that measure. So Alaska is both, and it is the only US state in the Eastern Hemisphere.
 
-  ⚠️ Made with AI: the map animation is generated with code from Natural Earth public-domain map data, and the voiceover in this test render is a placeholder (espeak-ng). A published version uses an ElevenLabs read. Facts were checked against the sources below.
+  ⚠️ NOT SHIPPABLE. This file is a renderer test. The picture is a flat map from Natural Earth public-domain data. The voice is espeak-ng because no ElevenLabs recording was supplied. Do not publish this audio. A shippable Short swaps in per-line wavs and word timings (see the voice.takes block in pipeline/README.md). Facts were checked against the sources below.
 
   Sources:
   - alaska.gov: Geography of Alaska
@@ -40,7 +42,6 @@ lines:
     camera: {proj: ortho, lon: -98, lat: 43, span: 70}
     visuals:
       - {type: highlight, countries: [USA]}
-      - {type: graticule}
 
   - text: "MAINE? Not by longitude."
     kind: s
@@ -80,7 +81,6 @@ lines:
     visuals:
       - {type: highlight, countries: [USA]}
       - {type: lonline, lon: 180, label: "180°"}
-      - {type: bignum, text: "180°", unit: "MERIDIAN"}
 
   - text: "So Alaska is the WESTERNMOST state."
     kind: s
@@ -101,7 +101,6 @@ lines:
     visuals:
       - {type: highlight, countries: [USA]}
       - {type: marker, lat: 51.959, lon: 179.771, label: "POCHNOI"}
-      - {type: bignum, text: "179°E", unit: "POCHNOI"}
 
   - text: "The only state in the EASTERN Hemisphere."
     kind: p
@@ -111,7 +110,6 @@ lines:
     camera: {proj: ortho, lon: 175, lat: 54, span: 26}
     visuals:
       - {type: highlight, countries: [USA]}
-      - {type: bignum, text: "EAST", unit: "HEMISPHERE"}
 
   - text: "Which state is farthest EAST?"
     kind: q
@@ -120,4 +118,3 @@ lines:
     camera: {proj: ortho, lon: -98, lat: 43, span: 70}
     visuals:
       - {type: highlight, countries: [USA]}
-      - {type: graticule}
