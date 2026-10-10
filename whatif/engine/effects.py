@@ -24,7 +24,8 @@ def water_surface(ch, kind):
         return 0.05 + ch["flood"] * 1.35 + ch["water"] * 3.1
     if kind == "farm":
         return 0.02 + ch["flood"] * 0.9 + ch["water"] * 0.8
-    return 0.18 + ch["flood"] * 0.95 + ch["water"] * 1.15
+    # The park and cross street stay dry. Only the quay and subway flood.
+    return 0.18 + ch["flood"] * 0.42 + ch["water"] * 1.15
 
 
 def _sink(item, ch, loc):
@@ -289,6 +290,12 @@ def _bridge(kit, ch):
             rot.x += u * (1.15 if i == 1 else -1.2)
             loc.z -= u * 3.4
             item.obj.hide_render = u > 0.94
+        elif i == 0:
+            # The approach is the deck in frame. Late collapse breaks it without removing the stump.
+            u = smoother(0.8, 1.0, ch["collapse"])
+            rot.x += u * 0.42
+            loc.z -= u * 1.8
+            item.obj.hide_render = False
         else:
             item.obj.hide_render = False
         if item.extra.get("sink"):
@@ -331,7 +338,7 @@ def _bridge(kit, ch):
         anchors.append(Vector((ax, ay, az - sag * 0.35 - geology * 28.0)))
     if len(tower_pts) < 2:
         return
-    sag_main = 4.6 + ch["collapse"] * 6.0 + ch["sag"] * 1.4
+    sag_main = 2.6 + ch["collapse"] * 4.2 + ch["sag"] * 1.2
     sides = []
     for sidx, sign in enumerate((-1, 1)):
         pts = [
@@ -344,7 +351,7 @@ def _bridge(kit, ch):
         sides.append(curve)
         cables = bridge["cables"][sidx * 36 : (sidx + 1) * 36]
         for seg, (a, b) in zip(cables, zip(curve, curve[1:])):
-            aim_z(seg, a, b, 0.075)
+            aim_z(seg, a, b, 0.42)
     # Suspenders across the main span.
     y0 = bridge["towers"][0].base_loc.y + 0.4
     y1 = bridge["towers"][1].base_loc.y - 0.4
@@ -363,7 +370,7 @@ def _bridge(kit, ch):
             sus.hide_render = True
             continue
         sus.hide_render = False
-        aim_z(sus, top, deck, 0.032 * (1.0 - snap))
+        aim_z(sus, top, deck, 0.09 * (1.0 - snap))
 
 
 def _span_points(pts, sags, count):
@@ -430,8 +437,8 @@ def _weather_fx(kit, ch, frame, fps, snow):
         obj.hide_render = False
         column = index % 10
         row = (index // 10) % 8
-        x = -18 + column * 4.0 + (index % 3) * 0.4 + ch.get("wind", 0.0) * (6.0 if kind == "rain" else 2.5)
-        y = -14 + row * 3.5
+        x = -20 + column * 4.4 + (index % 3) * 0.4 + ch.get("wind", 0.0) * (6.0 if kind == "rain" else 2.5)
+        y = -16 + row * 5.5
         speed = 9.0 if kind == "rain" else 1.6 if kind == "snow" else 0.8
         phase = (t * speed + index * 0.17) % 1.0
         z = 14.0 * (1.0 - phase)
@@ -451,12 +458,12 @@ def _sky(kit, ch, frame, fps):
     # 0.16 noon-ish, ~0.5 sunset, ~0.78 night.
     if dn < 0.42:
         u = clamp((dn - 0.12) / 0.3)
-        elev = _lerp(0.78, 1.15, u)
-        energy = _lerp(3.5, 2.1, u)
-        color = Vector(lin(1.0, 0.97, 0.92)[:3]).lerp(Vector(lin(1.0, 0.62, 0.32)[:3]), u)
-        sky = Vector(lin(0.64, 0.76, 0.88)[:3]).lerp(Vector(lin(0.95, 0.62, 0.42)[:3]), u * 0.85)
-        sky_e = _lerp(0.95, 0.8, u)
-        fill = 0.45
+        elev = _lerp(1.02, 1.18, u)
+        energy = _lerp(6.2, 2.8, u)
+        color = Vector(lin(1.0, 0.74, 0.42)[:3]).lerp(Vector(lin(1.0, 0.50, 0.22)[:3]), u)
+        sky = Vector(lin(0.50, 0.72, 0.96)[:3]).lerp(Vector(lin(0.98, 0.58, 0.32)[:3]), u * 0.8)
+        sky_e = _lerp(0.9, 0.75, u)
+        fill = 0.14
     elif dn < 0.68:
         u = clamp((dn - 0.42) / 0.26)
         elev = _lerp(1.15, 1.72, u)
@@ -479,8 +486,9 @@ def _sky(kit, ch, frame, fps):
         sky_e *= 1.0 + ch["heat"] * 0.15
     if ch["dust"] > 0.01:
         sky = sky.lerp(Vector(lin(0.72, 0.62, 0.48)[:3]), ch["dust"] * 0.5)
-    kit.sun.rotation_euler = Euler((elev, 0.08, -0.62))
+    kit.sun.rotation_euler = Euler((elev, 0.08, -0.85))
     kit.sun.data.energy = energy
+    kit.sun.data.angle = 0.06 if dn > 0.68 else 0.30
     kit.sun.data.color = (color.x, color.y, color.z)
     kit.fill.data.energy = fill * (1.0 - 0.3 * ch["ice"])
     if kit.world_bg:

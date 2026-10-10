@@ -32,16 +32,33 @@ from engine.meshkit import (
     parent_keep,
 )
 
-# Layout, meters. Camera looks north (+Y) from the south.
-RIVER_Y0 = -1.15
-RIVER_Y1 = 7.35
-PARK_Z = 0.92
-LOW_Z = 0.46
-FAR_Z = 1.08
-DECK_Z = 2.62
-DECK_X = 6.2
-TOWER_H = 15.4
-TOWER_W = 4.6
+# Layout, meters. Camera looks north (+Y), slightly down, from the south.
+# Bands, near to far: cross street, park, river, skyline.
+RIVER_Y0 = 2.6
+RIVER_Y1 = 19.2
+PARK_Z = 0.62
+LOW_Z = 0.30
+FAR_Z = 0.95
+DECK_Z = 2.28
+DECK_X = 4.8
+TOWER_H = 16.4
+TOWER_W = 4.9
+
+
+def _deck_x(y):
+    """Bridge centerline. Near end sits under the bottom of the frame; it drifts right toward the tower."""
+    if y < 8.0:
+        return 0.55 + (y + 17.0) / 25.0 * 4.25
+    return 4.8 + (y - 8.0) / 22.0 * 1.15
+
+
+def _deck_z(y):
+    """Short ramp at the frame edge, then a level span so perspective does the rise."""
+    if y < -12.5:
+        t = (y + 17.2) / 4.7
+        t = max(0.0, min(1.0, t))
+        return 0.78 + t * (DECK_Z - 0.78)
+    return DECK_Z
 
 
 def _materials():
@@ -57,22 +74,23 @@ def _materials():
     )
     bridge = make_surface(
         "BridgeRed",
-        lin(0.84, 0.10, 0.08),
+        lin(0.86, 0.09, 0.07),
         {"moss": 0.15, "rust": 1.0, "mud": 0.2, "scorch": 0.35, "snow": 0.7, "wet": 0.4},
+        roughness=0.34,
     )
     cable = make_surface(
         "Cable",
-        lin(0.12, 0.12, 0.13),
+        lin(0.22, 0.20, 0.19),
         {"moss": 0.05, "rust": 0.9, "mud": 0.1, "scorch": 0.2, "snow": 0.4, "wet": 0.3},
     )
     road = make_surface(
         "Road",
-        lin(0.24, 0.25, 0.27),
+        lin(0.14, 0.15, 0.16),
         {"moss": 0.55, "rust": 0.05, "mud": 0.8, "scorch": 0.45, "snow": 1.0, "wet": 0.85},
     )
     park = make_surface(
         "Park",
-        lin(0.30, 0.58, 0.24),
+        lin(0.34, 0.64, 0.22),
         {"moss": 0.2, "rust": 0.0, "mud": 0.45, "scorch": 0.65, "snow": 1.0, "wet": 0.35},
     )
     dirt = make_surface(
@@ -87,6 +105,7 @@ def _materials():
     )
     water = make_water_material()
     mark = make_surface("Mark", lin(0.92, 0.92, 0.88), {"snow": 1.0, "mud": 0.6, "wet": 0.4, "scorch": 0.3})
+    concrete = make_surface("Concrete", lin(0.78, 0.76, 0.70), {"snow": 0.9, "mud": 0.45, "wet": 0.35, "moss": 0.25})
     yellow = make_surface("Yellow", lin(0.86, 0.72, 0.18), {"snow": 1.0, "mud": 0.5, "wet": 0.3})
     leaf = make_object_color_surface(
         "Leaf",
@@ -136,6 +155,7 @@ def _materials():
         "sand": sand,
         "water": water,
         "mark": mark,
+        "concrete": concrete,
         "yellow": yellow,
         "leaf": leaf,
         "trunk": trunk,
@@ -185,11 +205,19 @@ def _windows(bm, center, size, floors, cols):
 def _tower_mesh(name, w, d, h):
     bm = bmesh.new()
     add_box(bm, (0, 0, h / 2), (w, d, h), 0)
-    floors = max(2, int(h / 1.65))
-    cols = max(2, int(w / 1.2))
+    floors = max(2, int(h / 1.55))
+    cols = max(2, int(w / 1.05))
     _windows(bm, (0, 0, h / 2), (w, d, h), floors, cols)
-    if h > 8:
-        add_box(bm, (0, 0, h - 0.18), (w * 0.72, d * 0.72, 0.36), 0)
+    # Corner pilasters so the shaft isn't a bare box.
+    pier = 0.10
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            add_box(bm, (sx * (w / 2), sy * (d / 2), h / 2), (pier, pier, h * 0.98), 0)
+    if h > 9:
+        add_box(bm, (0, 0, h + 0.16), (w * 0.62, d * 0.62, 0.32), 0)
+        add_box(bm, (w * 0.12, 0, h + 0.55), (w * 0.28, d * 0.28, 0.5), 0)
+    if h > 16:
+        add_box(bm, (0, 0, h + 1.15), (0.08, 0.08, 1.3), 0)
     return mesh_from_bm(name, bm)
 
 
@@ -207,15 +235,21 @@ def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None):
         (0.55, 0.28, 0.12, 1),
     ]
     leaf = greens[rng.randrange(len(greens))]
-    trunk_h = 0.9 * scale
-    trunk = box_object(f"trunk", coll, (x, y, z + trunk_h / 2), (0.18 * scale, 0.18 * scale, trunk_h), mats["trunk"])
-    canopy = ico_object(
-        "canopy",
-        coll,
-        (x, y, z + trunk_h + 0.55 * scale),
-        (1.15 * scale, 1.05 * scale, 0.85 * scale),
-        mats["leaf"],
-    )
+    trunk_h = 0.85 * scale
+    trunk = box_object("trunk", coll, (x, y, z + trunk_h / 2), (0.16 * scale, 0.16 * scale, trunk_h), mats["trunk"])
+    bm = bmesh.new()
+    blobs = ((0, 0, 0.15, 0.72), (-0.38, 0.12, -0.05, 0.48), (0.34, -0.1, 0.02, 0.5), (0.05, 0.28, 0.28, 0.42), (-0.12, -0.26, 0.18, 0.4))
+    for bx, by, bz, br in blobs:
+        nverts = len(bm.verts)
+        bmesh.ops.create_icosphere(bm, subdivisions=1, radius=1.0)
+        bm.verts.ensure_lookup_table()
+        for vert in bm.verts[nverts:]:
+            vert.co.x = vert.co.x * br * scale + bx * scale
+            vert.co.y = vert.co.y * br * scale + by * scale
+            vert.co.z = vert.co.z * br * 0.82 * scale + bz * scale
+    me = mesh_from_bm("canopy", bm)
+    canopy = link_obj("canopy", me, coll, (mats["leaf"],))
+    canopy.location = (x, y, z + trunk_h + 0.35 * scale)
     canopy.color = leaf
     bare_bm = bmesh.new()
     for ang in range(5):
@@ -229,24 +263,53 @@ def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None):
     return item
 
 
-def _car(kit, coll, mats, loc, yaw, color, parent=None, local=None, drive=0.0):
-    bm = bmesh.new()
-    add_box(bm, (0, 0, 0.38), (0.86, 1.85, 0.42), 0)
-    add_box(bm, (0, -0.05, 0.72), (0.78, 0.95, 0.38), 1)
-    me = mesh_from_bm("car", bm)
-    obj = link_obj("car", me, coll, (mats["car"], mats["glass"]))
+_CAR_MESHES = {}
+
+
+def _kenney_car_mesh(model):
+    if model in _CAR_MESHES:
+        return _CAR_MESHES[model]
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parents[1] / "assets" / "cc0" / "kenney" / "cars" / f"{model}.fbx"
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.fbx(filepath=str(path))
+    meshes = [o for o in bpy.data.objects if o not in before and o.type == "MESH"]
+    if not meshes:
+        return None
+    bpy.ops.object.select_all(action="DESELECT")
+    for obj in meshes:
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
+    if len(meshes) > 1:
+        bpy.ops.object.join()
+    obj = bpy.context.view_layer.objects.active
+    obj.scale = (0.01, 0.01, 0.01)
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    zs = [v.co.z for v in obj.data.vertices]
+    dz = -min(zs)
+    for vert in obj.data.vertices:
+        vert.co.z += dz
+    # Length stays on X (nose is +X). Callers yaw the car onto the lane.
+    for vert in obj.data.vertices:
+        vert.co.x *= 0.82
+        vert.co.y *= 0.82
+        vert.co.z *= 0.82
+    mesh = obj.data
+    mesh.name = f"kenney_{model}"
+    bpy.data.objects.remove(obj)
+    _CAR_MESHES[model] = mesh
+    return mesh
+
+
+def _car(kit, coll, mats, loc, yaw, color, parent=None, local=None, drive=0.0, model="sedan"):
+    mesh = _kenney_car_mesh(model)
+    if mesh is None:
+        bm = bmesh.new()
+        add_box(bm, (0, 0, 0.4), (0.9, 2.0, 0.7), 0)
+        mesh = mesh_from_bm("car", bm)
+    obj = link_obj("car", mesh, coll)
     obj.color = color
-    # wheels
-    for wx, wy in ((-0.38, -0.55), (0.38, -0.55), (-0.38, 0.55), (0.38, 0.55)):
-        wbm = bmesh.new()
-        bmesh.ops.create_cone(wbm, cap_ends=True, segments=8, radius1=0.18, radius2=0.18, depth=0.12)
-        for v in wbm.verts:
-            v.co.x, v.co.z = v.co.z, v.co.x
-        wme = mesh_from_bm("wheel", wbm)
-        wheel = link_obj("wheel", wme, coll, (mats["rubber"],))
-        wheel.parent = obj
-        wheel.location = (wx, wy, 0.18)
-        wheel.matrix_parent_inverse = Matrix.Identity(4)
     if parent is not None:
         obj.parent = parent
         obj.matrix_parent_inverse = Matrix.Identity(4)
@@ -318,168 +381,180 @@ def _markings(coll, mats, x0, x1, y, z, along="x"):
             yy += step
 
 
+def _lamp(kit, coll, mats, x, y, z):
+    pole = box_object("lamp", coll, (x, y, z + 1.55), (0.07, 0.07, 3.1), mats["trim"])
+    arm = box_object("arm", coll, (x + 0.22, y, z + 3.02), (0.48, 0.05, 0.05), mats["trim"])
+    head = box_object("bulb", coll, (x + 0.42, y, z + 2.9), (0.18, 0.1, 0.07), mats["yellow"])
+    kit.add(pole, "prop", sink=False, float=0.1)
+    kit.add(arm, "prop", sink=False, float=0.15)
+    kit.add(head, "prop", sink=False, float=0.2)
+
+
 def build_river_city(kit, mats, rng, pieces):
     col_g = kit.collection("Terrain")
     col_c = kit.collection("City")
     col_b = kit.collection("Bridge")
     col_v = kit.collection("Life")
     col_p = kit.collection("Plants")
-    # Catch-all ground so the frame never shows a void.
-    _plane("bedrock", col_g, (0, -8, -0.55), (140, 140), mats["dirt"], 0.2)
-    _plane("near_fill", col_g, (2, -6, PARK_Z - 0.04), (70, 36), mats["park"])
-    _plane("far", col_g, (0, 15.5, FAR_Z), (60, 22), mats["trim"])
-    _plane("park", col_g, (-4.0, -11.0, PARK_Z), (40, 18), mats["park"])
-    _plane("front", col_g, (0, -28, PARK_Z), (90, 36), mats["road"])
-    low = _plane("lowroad", col_g, (0, -2.25, LOW_Z), (36, 2.5), mats["road"])
-    # Quays.
-    box_object("quay_n", col_g, (0, RIVER_Y0 - 0.15, 0.28), (40, 0.35, 0.56), mats["trim"])
-    box_object("quay_f", col_g, (-4, RIVER_Y1 + 0.1, 0.45), (30, 0.4, 0.9), mats["trim"])
-    # Lane markings. Foreground road and low road. Keep the caption meadow clear of clutter.
-    _markings(col_g, mats, -20, 22, -16.6, PARK_Z + 0.06, "x")
-    _markings(col_g, mats, -20, 22, -18.5, PARK_Z + 0.06, "x")
-    for i, x in enumerate(range(-8, 10, 3)):
-        box_object("cross", col_g, (x * 0.15 - 1 + i * 0.0, -15.2, PARK_Z + 0.06), (0.35, 1.4, 0.02), mats["mark"])
-    # A few crosswalk bars across the near road.
-    for i in range(6):
-        box_object("bar", col_g, (-2.2 + i * 0.55, -15.15, PARK_Z + 0.065), (0.28, 2.4, 0.02), mats["mark"])
+    # Wide ground. Park and the cross street sit above the flood; the quay does not.
+    _plane("bedrock", col_g, (0, 4, -0.8), (160, 160), mats["dirt"], 0.2)
+    _plane("road", col_g, (0.4, -14.2, 0.56), (46, 11), mats["road"])
+    _plane("park", col_g, (-1.2, -5.0, PARK_Z), (54, 10.6), mats["park"])
+    _plane("path_long", col_g, (-7.4, -4.6, PARK_Z + 0.035), (1.25, 9.2), mats["concrete"])
+    _plane("path_cross", col_g, (-6.2, -1.4, PARK_Z + 0.04), (18, 1.05), mats["concrete"])
+    _plane("sidewalk", col_g, (0.2, -9.2, 0.6), (42, 1.2), mats["concrete"])
+    _plane("quay", col_g, (1.0, 1.15, LOW_Z), (50, 0.9), mats["trim"])
+    _plane("city_ground", col_g, (2.0, 32.0, FAR_Z), (74, 30), mats["trim"])
+    _plane("far_fill", col_g, (0, 48, FAR_Z - 0.04), (90, 16), mats["dirt"])
+    # Cross-street lanes and a crosswalk. Traffic runs east-west along the bottom of the frame.
+    _markings(col_g, mats, -16, 18, -14.15, 0.64, "x")
+    _markings(col_g, mats, -16, 18, -15.55, 0.64, "x")
+    for i in range(7):
+        box_object("bar", col_g, (-4.4 + i * 0.42, -14.9, 0.65), (0.22, 2.3, 0.02), mats["mark"])
 
-    # Cave-in slabs on the low road.
-    for i, x in enumerate((-6.5, -3.2)):
-        slab = box_object("slab", col_g, (x, -2.3, LOW_Z + 0.06), (2.4, 2.1, 0.08), mats["road"])
-        box_object("hole", col_g, (x, -2.3, LOW_Z - 0.35), (2.2, 1.9, 0.4), mats["dark"])
+    for i, x in enumerate((-6.2, -2.4)):
+        slab = box_object("slab", col_g, (x, 1.15, LOW_Z + 0.05), (2.2, 0.8, 0.08), mats["road"])
+        box_object("hole", col_g, (x, 1.15, LOW_Z - 0.35), (1.8, 0.65, 0.3), mats["dark"])
         kit.add(slab, "road_slab", index=i, sink=False)
 
     if "subway" in pieces:
-        box_object("stair", col_g, (-1.2, -2.5, LOW_Z - 0.15), (1.4, 1.1, 0.45), mats["dark"])
-        box_object("rail_a", col_g, (-1.9, -2.5, LOW_Z + 0.35), (0.08, 1.2, 0.55), mats["trim"])
-        box_object("rail_b", col_g, (-0.5, -2.5, LOW_Z + 0.35), (0.08, 1.2, 0.55), mats["trim"])
+        box_object("stair", col_g, (1.6, 1.15, LOW_Z - 0.08), (1.4, 0.8, 0.32), mats["dark"])
+        box_object("rail_a", col_g, (1.05, 1.15, LOW_Z + 0.28), (0.08, 0.85, 0.48), mats["trim"])
+        box_object("rail_b", col_g, (2.15, 1.15, LOW_Z + 0.28), (0.08, 0.85, 0.48), mats["trim"])
 
-    # Skyline. Leave a gap where the bridge lands.
+    # Dense skyline band behind the river. The middle stays shorter so the title has sky.
     colors = [
-        (0.62, 0.78, 0.88, 1),
-        (0.92, 0.93, 0.94, 1),
-        (0.82, 0.76, 0.66, 1),
-        (0.72, 0.45, 0.40, 1),
-        (0.52, 0.62, 0.74, 1),
-        (0.88, 0.80, 0.70, 1),
-        (0.45, 0.52, 0.60, 1),
-        (0.78, 0.55, 0.48, 1),
+        (0.93, 0.95, 0.97, 1),
+        (0.62, 0.76, 0.90, 1),
+        (0.96, 0.55, 0.40, 1),
+        (0.98, 0.78, 0.42, 1),
+        (0.82, 0.38, 0.32, 1),
+        (0.48, 0.58, 0.76, 1),
+        (0.90, 0.80, 0.66, 1),
+        (0.74, 0.50, 0.46, 1),
+        (0.78, 0.84, 0.90, 1),
     ]
     fall_i = 0
-    x = -18.0
-    row = 0
-    while x < 20.5:
-        if 4.2 < x < 11.2:
-            x += 1.2
-            continue
-        w = rng.uniform(2.3, 4.6)
-        d = rng.uniform(2.3, 4.0)
-        band = row % 3
-        if band == 0:
-            h = rng.uniform(6.0, 12.0)
-            y = 9.2 + rng.uniform(-0.3, 0.4)
-        elif band == 1:
-            h = rng.uniform(12.0, 24.0)
-            y = 12.6
-        else:
-            h = rng.uniform(16.0, 32.0)
-            y = 16.0
-        color = colors[rng.randrange(len(colors))]
-        falling = h > 14 and fall_i < 6
-        if h > 12 and falling:
-            split = h * 0.56
-            base = link_obj("tower", _tower_mesh("tower", w, d, split), col_c, (mats["wall"], mats["window"]))
-            base.location = (x, y, FAR_Z)
-            base.color = color
-            top = link_obj("top", _tower_mesh("top", w * 0.96, d * 0.96, h - split), col_c, (mats["wall"], mats["window"]))
-            top.location = (x, y, FAR_Z + split)
-            top.color = color
-            kit.add(base, "building_base", sink=True, fall_at=None)
-            kit.add(top, "building_top", sink=True, fall_at=0.40 + fall_i * 0.045, index=fall_i, top_h=h - split)
-            fall_i += 1
-        else:
-            obj = link_obj("tower", _tower_mesh("tower", w, d, h), col_c, (mats["wall"], mats["window"]))
-            obj.location = (x, y, FAR_Z)
-            obj.color = color
-            kit.add(obj, "building_base", sink=True, fall_at=None)
-        x += w + rng.uniform(0.35, 0.85)
-        row += 1
+    # y, height min, height max, x0, x1. Front row leaves a slot for the bridge landing.
+    rows = (
+        (19.4, 6.0, 11.0, -18.0, 22.0),
+        (23.2, 10.0, 18.0, -19.0, 23.0),
+        (27.4, 16.0, 26.0, -18.0, 22.0),
+        (31.5, 20.0, 34.0, -14.0, 18.0),
+    )
+    for row, (y, hmin, hmax, x0, x1) in enumerate(rows):
+        x = x0
+        while x < x1:
+            if row <= 1 and 3.2 < x < 7.6:
+                x += 0.8
+                continue
+            w = rng.uniform(1.35, 2.45)
+            d = rng.uniform(1.45, 2.55)
+            h = rng.uniform(hmin, hmax)
+            if -1.5 < x < 7.5:
+                h *= 0.62
+            color = colors[(row * 3 + int(x * 2)) % len(colors)]
+            falling = fall_i < 10 and ((row == 0 and h > 8.5) or (row > 0 and h > 12))
+            if falling:
+                split = h * 0.55
+                base = link_obj("tower", _tower_mesh("tower", w, d, split), col_c, (mats["wall"], mats["window"]))
+                base.location = (x, y + (row % 2) * 0.4, FAR_Z)
+                base.color = color
+                top = link_obj("top", _tower_mesh("top", w * 0.94, d * 0.94, h - split), col_c, (mats["wall"], mats["window"]))
+                top.location = (x, y + (row % 2) * 0.4, FAR_Z + split)
+                top.color = color
+                kit.add(base, "building_base", sink=True, fall_at=None)
+                kit.add(top, "building_top", sink=True, fall_at=0.38 + fall_i * 0.04, index=fall_i, top_h=h - split)
+                fall_i += 1
+            else:
+                obj = link_obj("tower", _tower_mesh("tower", w, d, h), col_c, (mats["wall"], mats["window"]))
+                obj.location = (x, y + (row % 2) * 0.35, FAR_Z)
+                obj.color = color
+                kit.add(obj, "building_base", sink=True, fall_at=None)
+            x += w + rng.uniform(0.08, 0.28)
 
     if "power" in pieces:
-        _power_plant(kit, col_c, mats, -19.5, 10.5, FAR_Z)
+        _power_plant(kit, col_c, mats, -16.5, 22.5, FAR_Z)
 
     if "bridge" in pieces:
         _bridge(kit, col_b, col_v, mats, rng)
 
     if "suburbs" in pieces:
-        for i in range(6):
-            _house(kit, col_c, mats, -16.5 + (i % 3) * 3.3, -7.6 - (i // 3) * 3.4, PARK_Z, 2.2, 1.8, 1.7, i)
+        for i in range(4):
+            _house(kit, col_c, mats, -15.5 + i * 2.6, -6.4, PARK_Z, 1.8, 1.5, 1.45, i)
 
-    # Park trees, kept off the open meadow in the lower middle.
+    # Park trees along the paths, kept off the caption center.
     spots = [
-        (-15, -6, 1.3),
-        (-12.5, -11, 1.5),
-        (-14, -13.5, 1.1),
-        (-9, -5.5, 1.4),
-        (-8, -12.5, 1.2),
-        (-5.5, -6.2, 1.0),
-        (2.5, -6.0, 1.15),
-        (3.4, -8.5, 0.9),
-        (-11, -8.5, 1.25),
-        (0.5, -5.4, 1.05),
-        (-17, -10, 1.4),
-        (4.2, -5.2, 0.85),
+        (-14.5, -1.5, 1.35),
+        (-12.2, -4.2, 1.55),
+        (-11.0, 0.4, 1.15),
+        (-9.2, -6.5, 1.4),
+        (-8.6, -2.2, 1.05),
+        (-6.4, 0.8, 1.25),
+        (-5.2, -5.4, 0.95),
+        (-3.4, -1.6, 1.2),
+        (-15.8, -6.8, 1.45),
+        (-2.2, 1.2, 0.9),
+        (7.6, -2.4, 1.15),
+        (9.2, -5.2, 1.35),
+        (6.4, 0.6, 0.95),
+        (-13.0, -8.2, 1.2),
     ]
     for x, y, s in spots:
         _tree(kit, col_p, mats, x, y, PARK_Z, s, future=False, rng=rng)
+    for x, y in ((-12.4, -3.2), (-8.8, -0.4), (-5.6, -4.6), (-14.2, 0.2), (8.2, -3.6), (-10.2, -7.2)):
+        _lamp(kit, col_g, mats, x, y, PARK_Z)
 
     if "forest" in pieces:
-        # Future forest. Delays stagger the takeover.
-        for ix in range(-15, 18, 3):
-            for iy in (9.5, 12.5, 15.5):
-                if 4.0 < ix < 10.0 and iy < 11:
+        for ix in range(-16, 20, 3):
+            for iy in (21.5, 25.5, 29.5):
+                if 3.0 < ix < 8.5 and iy < 23:
                     continue
-                _tree(kit, col_p, mats, ix, iy, FAR_Z, rng.uniform(1.3, 2.1), future=True, delay=0.25 + (ix % 5) * 0.05, rng=rng)
-        for i in range(28):
-            x = rng.uniform(-16, 18)
-            if 5.5 < x < 10.5 and rng.random() < 0.5:
-                continue
+                _tree(kit, col_p, mats, ix, iy, FAR_Z, rng.uniform(1.2, 2.0), future=True, delay=0.22 + (ix % 5) * 0.05, rng=rng)
+        for i in range(34):
+            x = rng.uniform(-16, 16)
             y = rng.choice([
-                rng.uniform(-14, -4),
-                rng.uniform(-3.2, -1.4),
-                rng.uniform(8.2, 14),
+                rng.uniform(-8.5, 1.5),
+                rng.uniform(3.4, 6.5),
+                rng.uniform(20.5, 30.0),
             ])
-            z = PARK_Z if y < -3.5 else (LOW_Z if y < 0 else FAR_Z)
-            _tree(kit, col_p, mats, x, y, z, rng.uniform(0.8, 2.2), future=True, delay=rng.uniform(0.15, 0.85), rng=rng)
-        for i in range(18):
-            x = rng.uniform(-14, 12)
-            y = rng.uniform(-13, -5)
-            bush = ico_object("bush", col_p, (x, y, PARK_Z + 0.25), (0.45, 0.4, 0.28), mats["leaf"])
-            bush.color = (0.30, 0.58, 0.18, 1)
-            kit.add(bush, "weed", delay=rng.uniform(0.05, 0.45), sink=False, leaf=(0.30, 0.58, 0.18, 1), autumn=(0.62, 0.48, 0.16, 1))
+            if 2.5 < x < 8.0 and y < 8:
+                continue
+            z = PARK_Z if y < 2.2 else (LOW_Z if y < RIVER_Y1 else FAR_Z)
+            _tree(kit, col_p, mats, x, y, z, rng.uniform(0.85, 2.05), future=True, delay=rng.uniform(0.12, 0.8), rng=rng)
+        for i in range(16):
+            x = rng.uniform(-14, 4)
+            y = rng.uniform(-7, 1)
+            bush = ico_object("bush", col_p, (x, y, PARK_Z + 0.22), (0.4, 0.36, 0.24), mats["leaf"])
+            bush.color = (0.32, 0.58, 0.18, 1)
+            kit.add(bush, "weed", delay=rng.uniform(0.05, 0.4), sink=False, leaf=(0.32, 0.58, 0.18, 1), autumn=(0.62, 0.48, 0.16, 1))
 
-    # People and cars.
-    for i in range(8):
-        _person(kit, col_v, mats, rng.uniform(-12, 2), rng.uniform(-13, -6), PARK_Z, rng)
+    for i in range(6):
+        _person(kit, col_v, mats, rng.uniform(-13, -2), rng.uniform(-6.5, 0.5), PARK_Z, rng)
     car_colors = [
         (0.92, 0.92, 0.94, 1),
         (0.08, 0.08, 0.09, 1),
-        (0.75, 0.12, 0.12, 1),
-        (0.15, 0.28, 0.62, 1),
-        (0.85, 0.72, 0.18, 1),
+        (0.78, 0.14, 0.12, 1),
+        (0.16, 0.30, 0.64, 1),
+        (0.88, 0.74, 0.18, 1),
     ]
-    for i, x in enumerate((-12, -6, 0, 8, 14)):
-        _car(kit, col_v, mats, (x, -17.4 if i % 2 == 0 else -16.5, PARK_Z + 0.02), 1.57 if i % 2 == 0 else -1.57, car_colors[i % 5], drive=rng.uniform(2.5, 5.0))
-    for i, x in enumerate((-8, -2, 6)):
-        _car(kit, col_v, mats, (x, -11.2, PARK_Z + 0.02), 0.15, car_colors[(i + 2) % 5], drive=0.0)
-    for i, x in enumerate((-5.5, 1.5)):
-        _car(kit, col_v, mats, (x, -2.3, LOW_Z + 0.02), 1.57, car_colors[i], drive=1.5)
+    models = ("sedan", "taxi", "suv", "hatchback-sports")
+    for i, x in enumerate((-6.4, -2.2, 1.8, 5.6)):
+        _car(
+            kit,
+            col_v,
+            mats,
+            (x, -13.35 if i % 2 == 0 else -14.85, 0.66),
+            math.pi / 2.0 if i % 2 == 0 else -math.pi / 2.0,
+            car_colors[i % 5],
+            drive=rng.uniform(2.2, 4.2),
+            model=models[i % 4],
+        )
 
-    # Water last so it can be found.
     bm = bmesh.new()
-    add_box(bm, (0, 0, -0.12), (70, 28, 0.24), 0)
+    add_box(bm, (0, 0, -0.12), (80, 22, 0.24), 0)
     water = link_obj("water", mesh_from_bm("water", bm), col_g, (mats["water"],))
-    water.location = (2, 2.2, 0.18)
+    water.location = (1.5, 11.2, 0.18)
     kit.water = kit.add(water, "water", sink=False)
     kit.kind = "city"
 
@@ -500,44 +575,59 @@ def _power_plant(kit, coll, mats, x, y, z):
         kit.add(puff, "smoke", index=i, sink=True, phase=i / 3.0)
 
 
+def _deck_yaw(y):
+    return math.atan2(_deck_x(y + 0.5) - _deck_x(y - 0.5), 1.0)
+
+
+def _deck_edge(y, side):
+    yaw = _deck_yaw(y)
+    right = (math.cos(yaw), -math.sin(yaw))
+    x = _deck_x(y) + right[0] * 1.62 * side
+    yy = y + right[1] * 1.62 * side
+    return (x, yy, _deck_z(y) + 0.55)
+
+
 def _bridge(kit, col, cars, mats, rng):
-    # Flat deck segments along Y, plus a near ramp down to the foreground road.
+    # Four spans along the centerline. 1 and 2 are the river span that later falls.
+    # One continuous approach through the near tower. The joint sits inside the portal.
+    # Spans 1 and 2 are the river span that later falls.
+    spans = (
+        (0, -17.2, 9.2),
+        (1, 8.4, 16.2),
+        (2, 15.6, 22.6),
+        (3, 22.0, 30.0),
+    )
     segments = []
-    specs = [
-        # i, y center, length, z, rot_x for ramp
-        # Positive X rotation lifts the far end onto the tower deck and drops the near end onto the road.
-        (0, -9.2, 15.0, 1.78, 0.115),
-        (1, -0.4, 7.2, DECK_Z, 0.0),
-        (2, 5.4, 6.4, DECK_Z, 0.0),
-        (3, 10.2, 4.6, DECK_Z, 0.0),
-    ]
     decks = []
-    for i, y, length, z, rot in specs:
-        obj = box_object("deck", col, (DECK_X, y, z), (3.15, length, 0.22), mats["road"])
-        obj.rotation_euler[0] = rot
-        # railings
+    for i, y0, y1 in spans:
+        x0, x1 = _deck_x(y0), _deck_x(y1)
+        z0, z1 = _deck_z(y0), _deck_z(y1)
+        length = math.hypot(x1 - x0, y1 - y0)
+        yaw = math.atan2(x1 - x0, y1 - y0)
+        pitch = math.atan2(z1 - z0, max(length, 0.1))
+        obj = box_object("deck", col, ((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2), (3.35, length, 0.22), mats["road"])
+        obj.rotation_euler = (pitch, 0.0, yaw)
         for side in (-1, 1):
-            rail = box_object("rail", col, (0, 0, 0), (0.12, length * 0.96, 0.55), mats["bridge"])
+            rail = box_object("rail", col, (0, 0, 0), (0.14, length * 0.98, 0.62), mats["bridge"])
             rail.parent = obj
             rail.matrix_parent_inverse = Matrix.Identity(4)
-            rail.location = (side * 1.55, 0, 0.35)
-        # lane dashes in local space
-        dash_count = int(length / 1.5)
-        for d in range(dash_count):
-            mark = box_object("bdash", col, (0, 0, 0), (0.1, 0.55, 0.02), mats["yellow"] if side else mats["mark"])
+            rail.location = (side * 1.62, 0, 0.38)
+        dashes = max(2, int(length / 1.45))
+        for d in range(dashes):
+            mark = box_object("bdash", col, (0, 0, 0), (0.1, 0.55, 0.025), mats["yellow"])
             mark.parent = obj
             mark.matrix_parent_inverse = Matrix.Identity(4)
-            mark.location = (0.15, -length / 2 + 0.8 + d * 1.5, 0.12)
+            mark.location = (0.0, -length / 2 + 0.7 + d * (length / dashes), 0.13)
         item = kit.add(obj, "bridge_deck", i=i, sink=True, length=length)
         decks.append(item)
         segments.append(obj)
-    # Towers standing in the river.
     towers = []
-    for i, y in enumerate((0.15, 6.35)):
-        pivot = empty(f"tower_{i}", col, (DECK_X, y, 0.0))
-        _tower_portal(col, mats, pivot, TOWER_H, TOWER_W)
-        towers.append(kit.add(pivot, "bridge_tower", i=i, height=TOWER_H, width=TOWER_W, sink=True))
-    # Cables and suspenders. Meshes are unit cylinders aimed every frame.
+    for i, y in enumerate((8.0, 22.2)):
+        pivot = empty(f"tower_{i}", col, (_deck_x(y), y, 0.0))
+        pivot.rotation_euler[2] = _deck_yaw(y)
+        height = TOWER_H if i == 0 else TOWER_H * 0.92
+        _tower_portal(col, mats, pivot, height, TOWER_W)
+        towers.append(kit.add(pivot, "bridge_tower", i=i, height=height, width=TOWER_W, sink=True))
     cyl = cylinder_mesh("cable", radius=1.0, segments=6)
     cables = []
     for side in (-1, 1):
@@ -548,19 +638,20 @@ def _bridge(kit, col, cars, mats, rng):
     for _ in range(42):
         obj = link_obj("sus", cyl, col, (mats["cable"],))
         suspenders.append(obj)
-    # Cars on the two main spans.
-    colors = [(0.92, 0.92, 0.94, 1), (0.1, 0.1, 0.12, 1), (0.7, 0.15, 0.14, 1), (0.2, 0.35, 0.7, 1)]
-    for i, (seg, ly) in enumerate(((segments[1], -1.2), (segments[1], 0.8), (segments[2], -0.6), (segments[2], 1.1))):
+    colors = [(0.92, 0.92, 0.94, 1), (0.1, 0.1, 0.12, 1), (0.75, 0.16, 0.12, 1), (0.2, 0.35, 0.7, 1)]
+    deck_models = ("sedan", "taxi", "suv", "hatchback-sports")
+    for i, (seg, ly) in enumerate(((segments[0], -3.2), (segments[0], 2.4), (segments[0], 6.8))):
         _car(
             kit,
             cars,
             mats,
             (0, 0, 0),
-            0.0,
+            0.0 if i % 2 == 0 else math.pi,
             colors[i],
             parent=seg,
             local=(0.55 if i % 2 == 0 else -0.55, ly, 0.16),
-            drive=2.2,
+            drive=2.4,
+            model=deck_models[i % 4],
         )
     kit.bridge = {
         "decks": decks,
@@ -568,39 +659,42 @@ def _bridge(kit, col, cars, mats, rng):
         "cables": cables,
         "suspenders": suspenders,
         "anchors": [
-            (DECK_X - 1.55, -3.4, 3.15),
-            (DECK_X + 1.55, -3.4, 3.15),
-            (DECK_X - 1.55, 11.4, 3.05),
-            (DECK_X + 1.55, 11.4, 3.05),
+            _deck_edge(0.4, -1),
+            _deck_edge(0.4, 1),
+            _deck_edge(28.5, -1),
+            _deck_edge(28.5, 1),
         ],
     }
 
 
 def _tower_portal(coll, mats, pivot, height, width):
     def leg(side):
-        obj = box_object("leg", coll, (0, 0, 0), (0.42, 0.55, height), mats["bridge"])
+        obj = box_object("leg", coll, (0, 0, 0), (0.72, 0.78, height), mats["bridge"])
         obj.parent = pivot
         obj.matrix_parent_inverse = Matrix.Identity(4)
         obj.location = (side * width / 2, 0, height / 2)
     leg(-1)
     leg(1)
-    for z in (3.5, 7.1, 10.4):
-        beam = box_object("beam", coll, (0, 0, 0), (width, 0.36, 0.32), mats["bridge"])
+    for z in (height * 0.28, height * 0.52, height * 0.74):
+        beam = box_object("beam", coll, (0, 0, 0), (width, 0.42, 0.36), mats["bridge"])
         beam.parent = pivot
         beam.matrix_parent_inverse = Matrix.Identity(4)
         beam.location = (0, 0, z)
-    # X braces in the portal (XZ plane).
-    for z0, z1 in ((3.7, 6.9), (7.3, 10.2)):
+    for z0, z1 in ((height * 0.30, height * 0.50), (height * 0.54, height * 0.72)):
         for sign in (-1, 1):
-            brace = box_object("brace", coll, (0, 0, 0), (0.12, 0.12, (z1 - z0) * 1.15), mats["bridge"])
+            brace = box_object("brace", coll, (0, 0, 0), (0.16, 0.16, (z1 - z0) * 1.2), mats["bridge"])
             brace.parent = pivot
             brace.matrix_parent_inverse = Matrix.Identity(4)
-            brace.location = (0, 0.18 * sign, (z0 + z1) / 2)
-            brace.rotation_euler[1] = sign * 0.72
-    cap = box_object("cap", coll, (0, 0, 0), (width + 0.6, 0.7, 0.28), mats["bridge"])
+            brace.location = (0, 0.22 * sign, (z0 + z1) / 2)
+            brace.rotation_euler[1] = sign * 0.78
+    cap = box_object("cap", coll, (0, 0, 0), (width + 0.8, 0.9, 0.36), mats["bridge"])
     cap.parent = pivot
     cap.matrix_parent_inverse = Matrix.Identity(4)
-    cap.location = (0, 0, height + 0.1)
+    cap.location = (0, 0, height + 0.15)
+    saddle = box_object("saddle", coll, (0, 0, 0), (width * 0.72, 0.45, 0.22), mats["bridge"])
+    saddle.parent = pivot
+    saddle.matrix_parent_inverse = Matrix.Identity(4)
+    saddle.location = (0, 0, height + 0.42)
 
 
 def build_coast(kit, mats, rng, with_city):
@@ -683,7 +777,7 @@ def build_farm(kit, mats, rng):
 
 def build_strata(kit, mats):
     col = kit.collection("Geology")
-    pivot = empty("strata", col, (0, 16.5, 0.0))
+    pivot = empty("strata", col, (2.0, 26.0, 0.0))
     layers = [
         (0.0, 1.4, lin(0.42, 0.30, 0.20), "rock"),
         (1.4, 1.3, lin(0.55, 0.52, 0.48), "rock"),
@@ -708,7 +802,7 @@ def build_strata(kit, mats):
         tree.color = (0.30, 0.5, 0.18, 1)
     kit.add(pivot, "strata", sink=False)
     # Glacier in the river, hidden until the ice age.
-    glacier = ico_object("glacier", kit.collection("Weather"), (4, 3.5, 0.6), (3.5, 2.2, 1.1), mats["snow"])
+    glacier = ico_object("glacier", kit.collection("Weather"), (3.5, 12.0, 0.5), (4.2, 2.6, 1.2), mats["snow"])
     kit.add(glacier, "glacier", sink=False)
 
 
@@ -992,7 +1086,7 @@ def build_scene(scene, spec, features):
         build_wave(kit, mats)
     if spec.get("mascot", True):
         corners = {
-            "city": (-16.8, -13.2, 0.92),
+            "city": (-14.2, -7.4, 0.62),
             "suburb": (13.0, 8.5, 0.1),
             "desert": (14.0, -3.0, 0.05),
             "coast": (12.0, -7.0, 0.3),
@@ -1007,17 +1101,17 @@ def build_scene(scene, spec, features):
 
 def _lights(kit):
     sun_data = bpy.data.lights.new("Sun", "SUN")
-    sun_data.energy = 3.2
-    sun_data.angle = 0.09
-    sun_data.color = (1.0, 0.97, 0.92)
+    sun_data.energy = 5.4
+    sun_data.angle = 0.48
+    sun_data.color = (1.0, 0.82, 0.55)
     sun = bpy.data.objects.new("Sun", sun_data)
     kit.collection("Lights").objects.link(sun)
     sun.rotation_euler = (0.92, 0.05, -0.55)
     kit.sun = sun
     fill_data = bpy.data.lights.new("Fill", "SUN")
-    fill_data.energy = 0.55
-    fill_data.angle = 0.6
-    fill_data.color = (0.75, 0.84, 1.0)
+    fill_data.energy = 0.22
+    fill_data.angle = 0.8
+    fill_data.color = (1.0, 0.86, 0.72)
     fill = bpy.data.objects.new("Fill", fill_data)
     kit.collection("Lights").objects.link(fill)
     fill.rotation_euler = (1.1, 0.2, 2.4)
@@ -1026,6 +1120,6 @@ def _lights(kit):
     kit.scene.world = world
     world.use_nodes = True
     bg = world.node_tree.nodes["Background"]
-    bg.inputs[0].default_value = lin(0.64, 0.76, 0.88)
-    bg.inputs[1].default_value = 0.9
+    bg.inputs[0].default_value = lin(0.55, 0.74, 0.94)
+    bg.inputs[1].default_value = 1.15
     kit.world_bg = bg

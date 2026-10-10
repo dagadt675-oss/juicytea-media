@@ -13,9 +13,10 @@ scene:
   seed: 11
 format: A
 camera:
-  location: [12, -50, 36]
-  target: [4, 6, 5]
-  lens: 36
+  # Wide locked view: skyline band, river, bridge from the bottom center, park on the left.
+  location: [0.0, -26.0, 14.0]
+  target: [1.5, 8.0, -1.0]
+  lens: 18
   sensor_fit: VERTICAL
   sensor_height: 24
 ui:
@@ -28,8 +29,8 @@ beats:
     channels:
       vanish:
         - {u: 0.0, v: 0.0}
-        - {u: 0.42, v: 0.55}
-        - {u: 1.0, v: 0.55}
+        - {u: 0.45, v: 0.72}
+        - {u: 1.0, v: 1.0}
 
   - id: power
     time_label: "+1 HOUR"

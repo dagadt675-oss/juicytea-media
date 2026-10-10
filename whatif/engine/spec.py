@@ -163,11 +163,15 @@ def resolve(spec: dict) -> dict:
         end = t + seconds
         t = end
         if beat.get("reset"):
-            # Hard cut back to the opening state on the next frame.
+            # Hold the current value up to the cut, then snap. A lone key at the
+            # snap would lerp every channel back toward the opening for the whole film.
             snap = start + 1.0 / fps
+            hold = start
             for name in CHANNELS:
-                channel_keys[name].append((snap, float(channel_keys[name][0][1])))
-                current[name] = float(channel_keys[name][0][1])
+                opening = float(channel_keys[name][0][1])
+                channel_keys[name].append((hold, float(current[name])))
+                channel_keys[name].append((snap, opening))
+                current[name] = opening
         channels = {}
         preset = beat.get("preset")
         if preset:

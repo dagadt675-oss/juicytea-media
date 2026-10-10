@@ -150,6 +150,12 @@ def _render_settings(scene, resolved, samples, scale):
     scene.cycles.caustics_reflective = False
     scene.cycles.caustics_refractive = False
     scene.cycles.use_light_tree = False
+    try:
+        scene.cycles.use_fast_gi = True
+        scene.world.light_settings.ao_factor = 1.0
+        scene.world.light_settings.distance = 1.6
+    except Exception as exc:
+        print("ao", exc)
     scene.render.use_motion_blur = False
     scene.render.use_persistent_data = True
     scene.render.resolution_x = int(resolved["width"])
