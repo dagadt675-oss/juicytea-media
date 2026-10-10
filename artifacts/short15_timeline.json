@@ -1,0 +1,312 @@
+{
+  "id": "short15_football_earth_v5",
+  "silent": true,
+  "voice": null,
+  "captions_burned_in": false,
+  "caption_band": {
+    "y0": 0.64,
+    "y1": 0.72,
+    "px0": 1229,
+    "px1": 1382,
+    "note": "Clean plate. Draw karaoke here. Do not cover with picture."
+  },
+  "fps": 30,
+  "width": 1080,
+  "height": 1920,
+  "duration": 18.4,
+  "script": "I turned Earth into an American football. The North Pole is now in space. Sorry, Santa. Your workshop is now in space. Oceans? They slide. Plot twist: Earth is already forty-three kilometers fatter than it is tall. It's basically a football... that someone sat on.",
+  "words": [
+    {
+      "text": "I",
+      "start": 0.03,
+      "end": 0.15
+    },
+    {
+      "text": "turned",
+      "start": 0.15,
+      "end": 0.42
+    },
+    {
+      "text": "Earth",
+      "start": 0.51,
+      "end": 0.84
+    },
+    {
+      "text": "into",
+      "start": 0.84,
+      "end": 1.11
+    },
+    {
+      "text": "an",
+      "start": 1.11,
+      "end": 1.2
+    },
+    {
+      "text": "American",
+      "start": 1.2,
+      "end": 1.74
+    },
+    {
+      "text": "football.",
+      "start": 1.74,
+      "end": 2.28
+    },
+    {
+      "text": "The",
+      "start": 2.91,
+      "end": 3.0
+    },
+    {
+      "text": "North",
+      "start": 3.0,
+      "end": 3.24
+    },
+    {
+      "text": "Pole",
+      "start": 3.24,
+      "end": 3.48
+    },
+    {
+      "text": "is",
+      "start": 3.48,
+      "end": 3.6
+    },
+    {
+      "text": "now",
+      "start": 3.6,
+      "end": 3.81
+    },
+    {
+      "text": "in",
+      "start": 3.81,
+      "end": 4.08
+    },
+    {
+      "text": "space.",
+      "start": 4.08,
+      "end": 4.44
+    },
+    {
+      "text": "Sorry,",
+      "start": 4.83,
+      "end": 5.21
+    },
+    {
+      "text": "Santa.",
+      "start": 5.34,
+      "end": 5.7
+    },
+    {
+      "text": "Your",
+      "start": 6.12,
+      "end": 6.27
+    },
+    {
+      "text": "workshop",
+      "start": 6.27,
+      "end": 6.75
+    },
+    {
+      "text": "is",
+      "start": 6.75,
+      "end": 6.84
+    },
+    {
+      "text": "now",
+      "start": 6.84,
+      "end": 6.96
+    },
+    {
+      "text": "in",
+      "start": 6.96,
+      "end": 7.1
+    },
+    {
+      "text": "space.",
+      "start": 7.1,
+      "end": 7.41
+    },
+    {
+      "text": "Oceans?",
+      "start": 7.8,
+      "end": 8.34
+    },
+    {
+      "text": "They",
+      "start": 8.88,
+      "end": 9.06
+    },
+    {
+      "text": "slide.",
+      "start": 9.06,
+      "end": 9.63
+    },
+    {
+      "text": "Plot",
+      "start": 10.11,
+      "end": 10.35
+    },
+    {
+      "text": "twist:",
+      "start": 10.35,
+      "end": 10.77
+    },
+    {
+      "text": "Earth",
+      "start": 11.07,
+      "end": 11.31
+    },
+    {
+      "text": "is",
+      "start": 11.31,
+      "end": 11.46
+    },
+    {
+      "text": "already",
+      "start": 11.46,
+      "end": 11.88
+    },
+    {
+      "text": "forty-three",
+      "start": 11.88,
+      "end": 12.54
+    },
+    {
+      "text": "kilometers",
+      "start": 12.54,
+      "end": 13.14
+    },
+    {
+      "text": "fatter",
+      "start": 13.17,
+      "end": 13.5
+    },
+    {
+      "text": "than",
+      "start": 13.5,
+      "end": 13.68
+    },
+    {
+      "text": "it",
+      "start": 13.68,
+      "end": 13.77
+    },
+    {
+      "text": "is",
+      "start": 13.77,
+      "end": 13.95
+    },
+    {
+      "text": "tall.",
+      "start": 13.95,
+      "end": 14.43
+    },
+    {
+      "text": "It's",
+      "start": 15.06,
+      "end": 15.22
+    },
+    {
+      "text": "basically",
+      "start": 15.22,
+      "end": 15.5
+    },
+    {
+      "text": "a",
+      "start": 15.5,
+      "end": 15.58
+    },
+    {
+      "text": "football...",
+      "start": 15.58,
+      "end": 15.84
+    },
+    {
+      "text": "that",
+      "start": 16.2,
+      "end": 16.38
+    },
+    {
+      "text": "someone",
+      "start": 16.38,
+      "end": 16.71
+    },
+    {
+      "text": "sat",
+      "start": 16.71,
+      "end": 17.0
+    },
+    {
+      "text": "on.",
+      "start": 17.0,
+      "end": 17.22
+    }
+  ],
+  "beats": [
+    {
+      "id": "hook",
+      "start": 0.0,
+      "end": 0.97,
+      "visual": "Elongated football Earth spinning from frame 0, Africa forward, laces on the left."
+    },
+    {
+      "id": "leather_snap",
+      "start": 0.97,
+      "end": 2.91,
+      "visual": "Surface snaps to smooth leather. Gold continents, white end-stripes, laces."
+    },
+    {
+      "id": "north_pole",
+      "start": 2.91,
+      "end": 4.83,
+      "visual": "Tilt up. The pointy north tip sits in the starfield."
+    },
+    {
+      "id": "santa",
+      "start": 4.83,
+      "end": 7.41,
+      "visual": "Stylized 3D figure and cabin on the tip. Smoke drifts. Not a copyrighted character."
+    },
+    {
+      "id": "oceans",
+      "start": 7.8,
+      "end": 9.63,
+      "visual": "Real ocean color slides toward the equator. Continents stay put."
+    },
+    {
+      "id": "plot_twist",
+      "start": 10.11,
+      "end": 11.88,
+      "visual": "The football eases toward a rounder Earth."
+    },
+    {
+      "id": "fatter",
+      "start": 11.88,
+      "end": 14.43,
+      "visual": "Oblate Earth, wider than it is tall. Dashed limb stays out of the caption strip."
+    },
+    {
+      "id": "basically",
+      "start": 15.06,
+      "end": 16.38,
+      "visual": "Shape creeps back toward a football as the sitter appears above it."
+    },
+    {
+      "id": "sat_on",
+      "start": 16.71,
+      "end": 17.55,
+      "visual": "Figure sits and the ball squashes. Hold is at least 0.6 s with a settle bounce."
+    },
+    {
+      "id": "loop",
+      "start": 17.55,
+      "end": 18.4,
+      "visual": "Figure lifts, ball springs back to the opening football. Last frame equals frame 0."
+    }
+  ],
+  "notes": [
+    "Word times are the mapped v4 narration (American English). I starts at 0.03 s; the picture is already moving at frame 0.",
+    "Sorry and Santa are the emphasis pair. Micro-gaps are already in the word times before forty-three and before fatter.",
+    "Loop the picture into the hook. The last frame is frame 0."
+  ]
+}
