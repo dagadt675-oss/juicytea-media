@@ -13,10 +13,10 @@ scene:
   seed: 11
 format: A
 camera:
-  # Looks straight up the bridge, which sits just right of center.
-  location: [-14.0, -18.0, 50.0]
-  target: [0.0, 110.0, 2.0]
-  lens: 32
+  # 40 m up, about 18° down. Bands: skyline, wide river, park, road.
+  location: [-18.0, -22.0, 40.0]
+  target: [4.0, 95.0, 2.0]
+  lens: 58
   sensor_fit: HORIZONTAL
   sensor_width: 36
   clip_end: 2500

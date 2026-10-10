@@ -39,26 +39,44 @@ RIVER_Y1 = 248.0
 PARK_Z = 0.7
 LOW_Z = 0.28
 FAR_Z = 1.4
-DECK_Z = 9.5
+DECK_Z = 8.5
 DECK_W = 16.0
 DECK_HALF = 8.0
-DECK_X = 16.0
-TOWER_H = 78.0
+DECK_X = 18.0
+TOWER_H = 50.0
 TOWER_W = 18.0
-# Both portals stand on this straight axis, over the river.
-TOWER_Y = (96.0, 164.0)
+# 11° yaw: the far portal sits left of the near one. s=0 is the near river bank.
+BRIDGE_YAW = math.radians(-11.0)
+DECK_ORIGIN = (18.0, 79.0)
+# s along the deck for the two portals, both over the river.
+TOWER_S = (32.0, 102.0)
+
+
+def _deck_s(y):
+    return (y - DECK_ORIGIN[1]) / math.cos(BRIDGE_YAW)
+
+
+def _deck_point(s):
+    return (
+        DECK_ORIGIN[0] + s * math.sin(BRIDGE_YAW),
+        DECK_ORIGIN[1] + s * math.cos(BRIDGE_YAW),
+    )
 
 
 def _deck_x(y):
-    """The bridge is a straight line. Perspective, not a bend, makes it recede."""
-    return DECK_X
+    return _deck_point(_deck_s(y))[0]
 
 
 def _deck_z(y):
-    if y < 22.0:
-        t = max(0.0, min(1.0, (y + 8.0) / 30.0))
-        return 2.2 + t * (DECK_Z - 2.2)
+    s = _deck_s(y)
+    if s < 0.0:
+        t = max(0.0, min(1.0, (s + 48.0) / 48.0))
+        return 1.6 + t * (DECK_Z - 1.6)
     return DECK_Z
+
+
+def _tower_y(s):
+    return _deck_point(s)[1]
 
 
 def _materials():
@@ -436,17 +454,24 @@ def build_river_city(kit, mats, rng, pieces):
     # Real scale. Park and the cross street stay above the flood; the quay does not.
     # Planes run far past the frustum so no brown edge can enter the frame.
     _plane("bedrock", col_g, (0, 2000, -6.0), (24000, 24000), mats["park"], 0.4)
-    _plane("road", col_g, (0, 10, 0.35), (900, 70), mats["road"])
-    _plane("park", col_g, (-10, 62, PARK_Z), (900, 100), mats["park"])
-    _plane("promenade", col_g, (-18, 62, PARK_Z + 0.06), (3.2, 92), mats["concrete"])
-    _plane("sidewalk", col_g, (0, 32, 0.48), (900, 4.0), mats["concrete"])
-    _plane("quay", col_g, (0, 108, LOW_Z), (900, 4.0), mats["trim"])
+    _plane("road", col_g, (0, 14, 0.32), (1200, 48), mats["road"])
+    _plane("park", col_g, (-6, 55, PARK_Z), (1200, 48), mats["park"])
+    _plane("promenade", col_g, (-22, 55, PARK_Z + 0.05), (3.4, 44), mats["concrete"])
+    _plane("path_a", col_g, (-8, 48, PARK_Z + 0.05), (36, 2.2), mats["concrete"])
+    _plane("path_b", col_g, (-30, 64, PARK_Z + 0.05), (2.2, 28), mats["concrete"])
+    _plane("path_c", col_g, (-4, 68, PARK_Z + 0.05), (28, 2.0), mats["concrete"])
+    _plane("sidewalk", col_g, (0, 30, 0.46), (1200, 3.6), mats["concrete"])
+    _plane("quay", col_g, (0, 80, LOW_Z), (1200, 3.2), mats["trim"])
     _plane("city_ground", col_g, (0, 460, FAR_Z), (2000, 560), mats["trim"])
     _plane("far_meadow", col_g, (0, 420, FAR_Z + 0.04), (2000, 400), mats["park"])
-    _markings(col_g, mats, -80, 80, 6.0, 0.42, "x")
-    _markings(col_g, mats, -80, 80, 14.0, 0.42, "x")
+    _markings(col_g, mats, -40, 55, 12.0, 0.4, "x")
+    _markings(col_g, mats, -40, 55, 20.0, 0.4, "x")
     for i in range(8):
-        box_object("bar", col_g, (-6.0 + i * 1.6, 10.0, 0.44), (0.7, 10.0, 0.05), mats["mark"])
+        box_object("bar", col_g, (-4.0 + i * 1.5, 16.0, 0.42), (0.55, 9.5, 0.05), mats["mark"])
+    # A simple signal at the crosswalk.
+    box_object("signal_pole", col_g, (8.2, 16.0, 2.6), (0.18, 0.18, 4.6), mats["trim"])
+    box_object("signal_head", col_g, (8.2, 15.7, 4.7), (0.35, 0.22, 0.9), mats["dark"])
+    box_object("signal_red", col_g, (8.2, 15.55, 5.0), (0.16, 0.08, 0.16), mats["bridge"])
 
     for i, x in enumerate((-18.0, 6.0)):
         slab = box_object("slab", col_g, (x, 126.0, LOW_Z + 0.08), (8.0, 3.0, 0.2), mats["road"])
@@ -475,14 +500,14 @@ def build_river_city(kit, mats, rng, pieces):
     fall_i = 0
     # y, hmin, hmax, x0, x1, width range
     rows = (
-        (214.0, 32.0, 78.0, -170.0, 190.0, (11.0, 22.0)),
-        (252.0, 55.0, 120.0, -180.0, 200.0, (9.0, 18.0)),
-        (296.0, 80.0, 165.0, -160.0, 180.0, (8.0, 15.0)),
+        (208.0, 16.0, 36.0, -100.0, 140.0, (10.0, 18.0)),
+        (242.0, 24.0, 48.0, -110.0, 150.0, (8.0, 15.0)),
+        (278.0, 32.0, 64.0, -90.0, 130.0, (7.0, 13.0)),
     )
     for row, (y, hmin, hmax, x0, x1, wr) in enumerate(rows):
         x = x0
         while x < x1:
-            gap = row == 0 and abs(x - DECK_X) < 16.0
+            gap = row == 0 and abs(x - _deck_x(y)) < 14.0
             if gap:
                 x += 4.0
                 continue
@@ -524,18 +549,37 @@ def build_river_city(kit, mats, rng, pieces):
     if "bridge" in pieces:
         _bridge(kit, col_b, col_v, mats, rng)
 
-    # Two rows of small round trees along the promenade. The lawn stays open.
-    for i, y in enumerate(range(28, 102, 9)):
-        _tree(kit, col_p, mats, -24.0, y, PARK_Z, 4.2 + (i % 3) * 0.35, future=False, rng=rng, kind="round")
-        _tree(kit, col_p, mats, -12.5, y, PARK_Z, 3.6 + (i % 2) * 0.4, future=False, rng=rng, kind="round")
-    for x, y in ((-24, 36), (-24, 70), (-12.5, 52), (-12.5, 88)):
+    # Irregular clusters, not two ruler-straight rows. Kept off the deck.
+    clusters = [(-34, 40), (-28, 58), (-16, 42), (-12, 70), (-36, 72), (2, 60), (-6, 74)]
+    for cx, cy in clusters:
+        for k in range(rng.randint(3, 5)):
+            x = cx + rng.uniform(-3.5, 3.5)
+            y = cy + rng.uniform(-3.2, 3.2)
+            if y < 34 or y > 76 or _on_deck(x, y, 11):
+                continue
+            _tree(kit, col_p, mats, x, y, PARK_Z, rng.uniform(3.1, 4.6), future=False, rng=rng, kind="round")
+    for x, y in ((-22, 40), (-22, 56), (-22, 72), (-8, 48), (-30, 66)):
         _lamp(kit, col_g, mats, x, y, PARK_Z)
+    for x, y in ((-26, 46), (-14, 62), (-32, 70), (-6, 52)):
+        bench = box_object("bench", col_g, (x, y, PARK_Z + 0.42), (1.6, 0.5, 0.42), mats["wood"])
+        kit.add(bench, "prop", sink=False, float=0.2)
+    for i in range(8):
+        fx = rng.uniform(-38, -2)
+        fy = rng.uniform(38, 74)
+        if _on_deck(fx, fy, 12):
+            continue
+        bed = box_object("bed", col_g, (fx, fy, PARK_Z + 0.12), (2.2, 1.3, 0.16), mats["dirt"])
+        kit.add(bed, "prop", sink=False)
+        for k in range(5):
+            flower = ico_object("flower", col_p, (fx + rng.uniform(-0.8, 0.8), fy + rng.uniform(-0.4, 0.4), PARK_Z + 0.35), 0.22, mats["leaf"])
+            flower.color = [(0.85, 0.35, 0.38, 1), (0.9, 0.78, 0.3, 1), (0.85, 0.55, 0.7, 1)][k % 3]
+            kit.add(flower, "flower", sink=False, leaf=tuple(flower.color), autumn=(0.45, 0.32, 0.18, 1))
 
     if "forest" in pieces:
         kinds = ("round", "broad", "pine")
-        for ix in range(-40, 30, 10):
-            for iy in range(36, 100, 11):
-                if _on_deck(ix, iy, 12) or ix < -8:
+        for ix in range(-20, 24, 9):
+            for iy in range(40, 76, 10):
+                if _on_deck(ix, iy, 12):
                     continue
                 _tree(
                     kit, col_p, mats, ix, iy, PARK_Z,
@@ -551,38 +595,38 @@ def build_river_city(kit, mats, rng, pieces):
                     rng.uniform(6.0, 11.0), future=True, delay=0.15 + (abs(ix) % 6) * 0.05,
                     rng=rng, kind=rng.choice(kinds),
                 )
-        for i in range(40):
-            x = rng.uniform(-55, 10)
-            y = rng.uniform(34, 110)
-            bush = ico_object("bush", col_p, (x, y, PARK_Z + 0.6), (1.1, 0.9, 0.7), mats["leaf"])
+        for i in range(18):
+            x = rng.uniform(-36, 0)
+            y = rng.uniform(38, 74)
+            if _on_deck(x, y, 11):
+                continue
+            bush = ico_object("bush", col_p, (x, y, PARK_Z + 0.45), (0.7, 0.6, 0.45), mats["leaf"])
             bush.color = (0.28, 0.48, 0.2, 1)
             kit.add(bush, "weed", delay=rng.uniform(0.05, 0.45), sink=False, leaf=(0.28, 0.48, 0.2, 1), autumn=(0.55, 0.4, 0.16, 1))
 
-    for i, y in enumerate(range(30, 100, 2)):
-        _person(kit, col_v, mats, -16.2, y, PARK_Z, rng)
-        if i % 2 == 0:
-            _person(kit, col_v, mats, -20.4, y, PARK_Z, rng)
-    for i in range(12):
-        _person(kit, col_v, mats, -5.2 + i * 0.95, 10.0, 0.4, rng)
+    groups = [(-20, 42, 8), (-16, 56, 7), (-28, 64, 8), (-8, 50, 6), (-22, 72, 7), (-12, 46, 6), (-32, 50, 6)]
+    for gx, gy, n in groups:
+        for k in range(n):
+            _person(kit, col_v, mats, gx + rng.uniform(-1.6, 1.6), gy + rng.uniform(-1.4, 1.4), PARK_Z, rng)
+    for i, y in enumerate(range(36, 74, 3)):
+        _person(kit, col_v, mats, -21.2 + (0.4 if i % 2 else -0.3), y, PARK_Z, rng)
+    for i in range(10):
+        _person(kit, col_v, mats, -3.6 + i * 0.85, 16.0, 0.36, rng)
     for i in range(16):
-        _person(kit, col_v, mats, -30.0 + i * 3.2, 33.0, 0.52, rng)
-    car_colors = [
-        (0.92, 0.92, 0.94, 1),
-        (0.08, 0.08, 0.09, 1),
-        (0.78, 0.14, 0.12, 1),
-        (0.16, 0.30, 0.64, 1),
-        (0.88, 0.74, 0.18, 1),
-    ]
+        _person(kit, col_v, mats, -26.0 + i * 1.6, 48.0 + (i % 3) * 0.4, PARK_Z, rng)
+    for i in range(12):
+        _person(kit, col_v, mats, -6.0 - (i % 4) * 0.6, 66.0 + i * 0.5, PARK_Z, rng)
+    white = (0.93, 0.93, 0.94, 1)
     models = ("sedan", "taxi", "suv", "hatchback-sports")
-    for i, x in enumerate((-42, -22, -4, 16, 36, 54)):
+    for i, x in enumerate((-28, -16, -4, 8, 36, 48)):
         _car(
             kit,
             col_v,
             mats,
-            (x, 8.2 if i % 2 == 0 else 16.8, 0.55),
+            (x, 12.5 if i % 2 == 0 else 21.0, 0.4),
             math.pi / 2.0 if i % 2 == 0 else -math.pi / 2.0,
-            car_colors[i % 5],
-            drive=rng.uniform(6.0, 14.0),
+            white,
+            drive=rng.uniform(4.0, 9.0),
             model=models[i % 4],
         )
 
@@ -624,11 +668,14 @@ def _deck_edge(y, side, half=DECK_HALF):
 
 def _bridge(kit, col, cars, mats, rng):
     # Approach through the near tower, then the river span (1 and 2) that falls.
+    # One continuous deck. The middle copy stays hidden until it falls into the river.
+    y0 = _tower_y(-42)
+    y1 = _tower_y(155)
     spans = (
-        (0, -4.0, 58.0),
-        (1, 50.0, 120.0),
-        (2, 112.0, 170.0),
-        (3, 162.0, 260.0),
+        (0, y0, y1),
+        (1, _tower_y(40), _tower_y(72)),
+        (2, _tower_y(70), _tower_y(104)),
+        (3, _tower_y(150), _tower_y(168)),
     )
     segments = []
     decks = []
@@ -656,18 +703,19 @@ def _bridge(kit, col, cars, mats, rng):
         decks.append(item)
         segments.append(obj)
     towers = []
-    for i, y in enumerate(TOWER_Y):
+    for i, s in enumerate(TOWER_S):
+        y = _tower_y(s)
         pivot = empty(f"tower_{i}", col, (_deck_x(y), y, 0.0))
-        pivot.rotation_euler[2] = _deck_yaw(y)
-        height = TOWER_H if i == 0 else TOWER_H * 0.86
+        pivot.rotation_euler[2] = BRIDGE_YAW
+        height = 44.0 if i == 0 else 50.0
         _tower_portal(col, mats, pivot, height, TOWER_W)
         towers.append(kit.add(pivot, "bridge_tower", i=i, height=height, width=TOWER_W, sink=True))
         # Ivy that grows onto the legs as the years pass.
-        for k in range(6):
-            ivy = ico_object("ivy", col, (0, 0, 0), (2.2, 1.4, 3.5), mats["leaf"])
+        for k in range(4):
+            ivy = ico_object("ivy", col, (0, 0, 0), (1.3, 0.9, 2.0), mats["leaf"])
             ivy.parent = pivot
             ivy.matrix_parent_inverse = Matrix.Identity(4)
-            ivy.location = ((-1 if k % 2 == 0 else 1) * TOWER_W * 0.42, 0.8, 8.0 + k * 12.0)
+            ivy.location = ((-1 if k % 2 == 0 else 1) * TOWER_W * 0.42, 0.6, 8.0 + k * 7.0)
             ivy.color = (0.2, 0.4, 0.16, 1)
             kit.add(ivy, "tree_canopy", future=True, delay=0.45 + k * 0.04, sink=False, leaf=(0.2, 0.4, 0.16, 1), autumn=(0.4, 0.32, 0.14, 1))
     cyl = cylinder_mesh("cable", radius=1.0, segments=8)
@@ -677,13 +725,13 @@ def _bridge(kit, col, cars, mats, rng):
             obj = link_obj("cable", cyl, col, (mats["bridge"],))
             cables.append(obj)
     suspenders = []
-    for _ in range(48):
+    for _ in range(20):
         obj = link_obj("sus", cyl, col, (mats["cable"],))
         suspenders.append(obj)
     colors = [(0.92, 0.92, 0.94, 1), (0.12, 0.12, 0.13, 1), (0.75, 0.18, 0.14, 1), (0.2, 0.32, 0.55, 1)]
     deck_models = ("sedan", "taxi", "suv", "hatchback-sports")
-    lanes = (-8.4, -4.2, 4.2, 8.4)
-    for i, ly in enumerate((-22, -8, 6, 18)):
+    lanes = (-5.0, -2.2, 2.2, 5.0)
+    for i, ly in enumerate((-18, -4, 10, 22)):
         _car(
             kit,
             cars,
@@ -703,10 +751,11 @@ def _bridge(kit, col, cars, mats, rng):
         "suspenders": suspenders,
         "half": DECK_HALF - 0.8,
         "anchors": [
-            _deck_edge(28.0, -1),
-            _deck_edge(28.0, 1),
-            _deck_edge(230.0, -1),
-            _deck_edge(230.0, 1),
+            # Just inside each river bank, on the deck. Not down in the park.
+            _deck_edge(_tower_y(8), -1),
+            _deck_edge(_tower_y(8), 1),
+            _deck_edge(_tower_y(118), -1),
+            _deck_edge(_tower_y(118), 1),
         ],
     }
 

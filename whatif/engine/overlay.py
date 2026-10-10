@@ -148,7 +148,7 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
         a = state["title_alpha"]
         # Two centered lines in the sky, well above the caption band.
         lines = _wrap_title(state["title"])
-        y = int(height * 0.09)
+        y = int(height * 0.07)
         gap = int(title_size * 1.05)
         block_h = gap * (len(lines) - 1)
         y -= block_h // 2
@@ -170,7 +170,7 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
     else:
         # Left counter. Sits on the open water/park edge, above y=0.64.
         x = int(width * 0.055)
-        y = int(height * 0.46)
+        y = int(height * 0.42)
         _shadow_text(img, (x, y), state["label"], label_font, fill=_alpha((255, 255, 255), 230), anchor="lt", radius=4, opacity=120)
         num_y = y + int(height * 0.022)
         _shadow_text(img, (x, num_y), state["number"], number_font, fill=_alpha((255, 255, 255), 255), anchor="lt", radius=6, opacity=140)

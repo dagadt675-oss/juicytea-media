@@ -286,11 +286,14 @@ def _bridge(kit, ch):
         loc.z -= droop
         rot = _euler(item.base_rot)
         if i in (1, 2):
-            # The span between the towers drops into the river and stays visible as wreckage.
+            # Hidden while the continuous deck is whole. Later they are the wreckage in the river.
             u = smoother(0.62 + (i - 1) * 0.04, 0.86 + (i - 1) * 0.03, ch["collapse"])
             rot.x += u * (0.9 if i == 1 else -1.05)
             loc.z -= u * 9.2
-            item.obj.hide_render = False
+            hidden = u < 0.08
+            item.obj.hide_render = hidden
+            for child in item.obj.children:
+                child.hide_render = hidden
         elif i == 0:
             u = smoother(0.9, 1.0, ch["collapse"])
             rot.x += u * 0.06
@@ -349,7 +352,7 @@ def _bridge(kit, ch):
         far_a = anchors[2 + sidx]
         top_a = tower_pts[0][sidx]
         top_b = tower_pts[1][sidx]
-        back_n = _catenary(near_a, top_a, span / 14.0, 8)
+        back_n = _catenary(near_a, top_a, 1.4, 6)
         main = _catenary(top_a, top_b, sag, 14)
         # One side snaps: the main cable leaves the near tower and hangs into the river.
         if sidx == 0 and snap > 0.04:
@@ -362,7 +365,7 @@ def _bridge(kit, ch):
                     drop = top_a.lerp(Vector((top_a.x, (ya + yb) * 0.5, 1.2)), t / 0.55)
                     hung.append(Vector((p.x, p.y, (1.0 - snap) * p.z + snap * drop.z)))
             main = hung
-        back_f = _catenary(top_b, far_a, span / 18.0, 6)
+        back_f = _catenary(top_b, far_a, 1.2, 5)
         curve = back_n + main[1:] + back_f[1:]
         sides.append(curve)
         cables = bridge["cables"][sidx * 36 : (sidx + 1) * 36]
@@ -372,7 +375,7 @@ def _bridge(kit, ch):
             if a.z < -20 or b.z < -20:
                 seg.hide_render = True
                 continue
-            aim_z(seg, a, b, 0.42)
+            aim_z(seg, a, b, 0.28)
         for seg in cables[len(pairs) :]:
             seg.hide_render = True
     count = len(bridge["suspenders"])
