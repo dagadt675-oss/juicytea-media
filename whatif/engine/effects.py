@@ -289,7 +289,7 @@ def _bridge(kit, ch):
             # The span between the towers drops into the river and stays visible as wreckage.
             u = smoother(0.62 + (i - 1) * 0.04, 0.86 + (i - 1) * 0.03, ch["collapse"])
             rot.x += u * (0.9 if i == 1 else -1.05)
-            loc.z -= u * 15.5
+            loc.z -= u * 9.2
             item.obj.hide_render = False
         elif i == 0:
             u = smoother(0.9, 1.0, ch["collapse"])
@@ -312,13 +312,12 @@ def _bridge(kit, ch):
         rot = _euler(item.base_rot)
         rot.z += ch["sag"] * (0.04 if i == 0 else -0.05)
         if i == 1:
-            u = smoother(0.72, 0.95, ch["collapse"])
-            rot.x += u * 0.85
-            loc.z -= u * 1.2
+            u = smoother(0.75, 0.98, ch["collapse"])
+            rot.x += u * 0.25
+            loc.z -= u * 6.0
         else:
-            u = smoother(0.8, 1.0, ch["collapse"])
-            rot.z += u * 0.35
-            loc.z -= u * 0.4
+            u = smoother(0.9, 1.0, ch["collapse"])
+            rot.z += u * 0.05
         if item.extra.get("sink"):
             loc.z -= ch["geology"] * 180.0
         item.obj.location = loc
@@ -338,55 +337,71 @@ def _bridge(kit, ch):
         anchors.append(Vector((ax, ay, az - sag * 1.2 - geology * 180.0)))
     if len(tower_pts) < 2:
         return
-    sag_main = 16.0 + ch["collapse"] * 6.0 + ch["sag"] * 4.0
     ya = bridge["towers"][0].base_loc.y
     yb = bridge["towers"][1].base_loc.y
-    snap = smoother(0.66, 0.88, ch["collapse"])
-    half = float(bridge.get("half", 11.5))
+    span = max(1.0, abs(yb - ya))
+    sag = span / 10.0
+    snap = smoother(0.66, 0.9, ch["collapse"])
+    half = float(bridge.get("half", 7.6))
     sides = []
-    for sidx, sign in enumerate((-1, 1)):
-        pts = [
-            anchors[sidx],
-            tower_pts[0][sidx],
-            tower_pts[1][sidx],
-            anchors[2 + sidx],
-        ]
-        curve = _span_points(pts, [sag_main * 0.45, sag_main, sag_main * 0.4], 37)
-        # One main cable snaps and hangs from the near tower into the river.
-        if sidx == 0 and snap > 0.02:
-            top_z = tower_pts[0][0].z
-            for p in curve:
-                if ya < p.y < yb:
-                    t = (p.y - ya) / max(1.0, yb - ya)
-                    if t > 0.52:
-                        p.z = -50.0
-                    else:
-                        hang = max(1.5, top_z * (1.0 - t / 0.42))
-                        p.z = (1.0 - snap) * p.z + snap * hang
+    for sidx in (0, 1):
+        near_a = anchors[sidx]
+        far_a = anchors[2 + sidx]
+        top_a = tower_pts[0][sidx]
+        top_b = tower_pts[1][sidx]
+        back_n = _catenary(near_a, top_a, span / 14.0, 8)
+        main = _catenary(top_a, top_b, sag, 14)
+        # One side snaps: the main cable leaves the near tower and hangs into the river.
+        if sidx == 0 and snap > 0.04:
+            hung = []
+            for i, p in enumerate(main):
+                t = i / max(1, len(main) - 1)
+                if t > 0.55:
+                    hung.append(Vector((p.x, p.y, -80.0)))
+                else:
+                    drop = top_a.lerp(Vector((top_a.x, (ya + yb) * 0.5, 1.2)), t / 0.55)
+                    hung.append(Vector((p.x, p.y, (1.0 - snap) * p.z + snap * drop.z)))
+            main = hung
+        back_f = _catenary(top_b, far_a, span / 18.0, 6)
+        curve = back_n + main[1:] + back_f[1:]
         sides.append(curve)
         cables = bridge["cables"][sidx * 36 : (sidx + 1) * 36]
-        for seg, (a, b) in zip(cables, zip(curve, curve[1:])):
-            if a.z < -10 or b.z < -10:
+        pairs = list(zip(curve, curve[1:]))
+        for seg, pair in zip(cables, pairs):
+            a, b = pair
+            if a.z < -20 or b.z < -20:
                 seg.hide_render = True
                 continue
-            aim_z(seg, a, b, 1.15)
-    y0 = ya + 2.0
-    y1 = yb - 2.0
+            aim_z(seg, a, b, 0.42)
+        for seg in cables[len(pairs) :]:
+            seg.hide_render = True
     count = len(bridge["suspenders"])
+    per = max(1, count // 2)
     for n, sus in enumerate(bridge["suspenders"]):
-        side = 0 if n < count / 2 else 1
-        k = n if side == 0 else n - count // 2
-        per = max(1, count // 2)
+        side = 0 if n < per else 1
+        k = n if side == 0 else n - per
         t = k / max(1, per - 1)
-        y = _lerp(y0, y1, t)
+        y = _lerp(ya + 3.0, yb - 3.0, t)
         curve = sides[side]
         top = _sample_curve_y(curve, y)
         deck = _deck_edge(poses, y, -half if side == 0 else half)
-        if top is None or deck is None or top.z < -10 or (side == 0 and snap > 0.7):
+        if top is None or deck is None or top.z < -20 or (side == 0 and snap > 0.75):
             sus.hide_render = True
             continue
         sus.hide_render = False
-        aim_z(sus, top, deck, 0.32)
+        aim_z(sus, top, deck, 0.11)
+
+
+def _catenary(a, b, sag, n):
+    pts = []
+    a = Vector(a)
+    b = Vector(b)
+    for i in range(n + 1):
+        t = i / max(1, n)
+        p = a.lerp(b, t)
+        p.z -= sag * 4.0 * t * (1.0 - t)
+        pts.append(p)
+    return pts
 
 
 def _span_points(pts, sags, count):
