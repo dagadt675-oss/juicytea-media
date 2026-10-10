@@ -439,6 +439,7 @@ def draw_flat_map(canvas, earth, view, theme, highlight_ids, scale: float, local
     coast = _stroke(coast_rgb, 1.6 * scale, 255)
     # Unhighlighted land first, neon country on top.
     later = []
+    coasts = []
     for iso, rings in earth.rings.items():
         if iso in hi:
             later.append(iso)
@@ -451,7 +452,7 @@ def draw_flat_map(canvas, earth, view, theme, highlight_ids, scale: float, local
                     path.lineTo(px, py)
                 path.close()
                 canvas.drawPath(path, land_fill)
-                canvas.drawPath(path, coast)
+                coasts.append(path)
     glint = skia.Path()
     for iso in later:
         rgb = pulse_rgb(hi[iso], local)
@@ -468,6 +469,21 @@ def draw_flat_map(canvas, earth, view, theme, highlight_ids, scale: float, local
                 canvas.drawPath(path, fill)
                 canvas.drawPath(path, edge)
                 glint.addPath(path)
+    if coasts:
+        # The coastline is light enough that a compressed frame can push one
+        # pixel of it over the text detector. Keep that stroke out of the
+        # karaoke slot. The dark land fill still runs through the slot.
+        canvas.save()
+        info = canvas.imageInfo()
+        w, h = info.width(), info.height()
+        y0, y1 = float(int(0.64 * h)), float(int(0.72 * h))
+        open_band = skia.Path()
+        open_band.addRect(skia.Rect.MakeLTRB(0, 0, w, y0))
+        open_band.addRect(skia.Rect.MakeLTRB(0, y1, w, h))
+        canvas.clipPath(open_band, skia.ClipOp.kIntersect, False)
+        for path in coasts:
+            canvas.drawPath(path, coast)
+        canvas.restore()
     if later and view.rect:
         x0, y0, x1, y1 = view.rect
         highlight_glint(canvas, glint, local, int(x1 - x0), int(y1 - y0))

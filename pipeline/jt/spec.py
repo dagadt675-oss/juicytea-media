@@ -19,9 +19,10 @@ class Camera:
     span: float
     cut: bool = False
     fly: float | None = None
+    push: float | None = None
 
     def copy(self) -> "Camera":
-        return Camera(self.proj, self.lon, self.lat, self.span, self.cut, self.fly)
+        return Camera(self.proj, self.lon, self.lat, self.span, self.cut, self.fly, self.push)
 
 
 @dataclass
@@ -62,6 +63,7 @@ def _camera(raw: dict) -> Camera:
         span=float(raw.get("span", 60)),
         cut=bool(raw.get("cut", False)),
         fly=float(raw["fly"]) if raw.get("fly") not in (None, "") else None,
+        push=float(raw["push"]) if raw.get("push") not in (None, "") else None,
     )
 
 

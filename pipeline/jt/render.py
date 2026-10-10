@@ -59,10 +59,19 @@ class Studio:
         if idx == 0:
             cam = cur.copy()
             # One push-in, then a hold. Span only falls, so the shot never reverses.
-            intro = 1.15
-            if t < intro:
-                e = ease_out(t / intro)
-                cam.span = cur.span * (1.85 - 0.85 * e)
+            if cur.push:
+                # Linear across the first second. The default ease finishes early,
+                # and the rest of that second barely moves.
+                intro = 1.0
+                start = float(cur.push)
+                if t < intro:
+                    u = t / intro
+                    cam.span = cur.span * (start - (start - 1.0) * u)
+            else:
+                intro = 1.15
+                if t < intro:
+                    e = ease_out(t / intro)
+                    cam.span = cur.span * (1.85 - 0.85 * e)
         elif cur.cut:
             cam = cur.copy()
         else:

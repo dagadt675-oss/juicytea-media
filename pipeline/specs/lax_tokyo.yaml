@@ -22,7 +22,7 @@ description: |
   #shorts #maps #flights
 lax: &lax [33.9425, -118.4081]
 nrt: &nrt [35.7720, 140.3929]
-cam: &cam {proj: merc, lon: -160, lat: 44, span: 150}
+cam: &cam {proj: merc, lon: -160, lat: 44, span: 150, push: 2.2}
 back: &back {proj: merc, lon: -160, lat: 44, span: 150, cut: true}
 lie: &lie {type: tag, text: "YOUR MAP IS LYING", x: 0.50, y: 0.20, pill: red, band: top, size: 42}
 lakes: &lakes {type: lakes}

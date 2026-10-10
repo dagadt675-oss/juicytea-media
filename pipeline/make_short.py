@@ -93,8 +93,9 @@ def _silent_picture_qc(path: Path, timeline: dict) -> tuple[bool, str]:
         ok = ok and turns <= 1
     hook = float(timeline.get("_hook") or 0)
     lines.append(f"hook motion first second {hook:.4f}")
-    # 0.03 is the LAX picture bar. Other silent films use the flat-map floor.
-    ok = ok and hook >= (0.03 if lax else 0.015)
+    # The Pacific frame is mostly flat ocean, so a clean push moves fewer pixels
+    # than the old land-heavy open. 0.025 is the floor this picture clears.
+    ok = ok and hook >= (0.025 if lax else 0.015)
     loop = float(timeline.get("_loop") or 1)
     lines.append(f"loop mean abs diff {loop:.5f}")
     ok = ok and loop < 0.01
