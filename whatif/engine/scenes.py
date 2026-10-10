@@ -806,6 +806,44 @@ def build_ny_harbor(kit, mats, rng):
     kit.kind = "coast"
 
 
+def build_culdesac(kit, mats, rng):
+    """US suburban loop. The snow episode's locked camera lives here."""
+    col = kit.collection("Suburb")
+    _plane("yards", col, (0, 0, 0.0), (46, 40), mats["park"])
+    _plane("asphalt", col, (0, 0, 0.05), (18, 16), mats["road"])
+    _plane("green", col, (0, 0, 0.08), (8, 6), mats["park"])
+    spots = [(-8, -6), (-8, 0), (-8, 6), (8, -6), (8, 0), (8, 6), (-3, 8), (3, 8)]
+    for i, (x, y) in enumerate(spots):
+        _house(kit, col, mats, x, y, 0.08, 2.4, 2.0, 1.8, i)
+        _tree(kit, col, mats, x + (1.6 if x < 0 else -1.6), y + 1.2, 0.08, 1.1, rng=rng)
+    for i, x in enumerate((-2.2, 2.2)):
+        _car(kit, col, mats, (x, -1.5, 0.1), 0.0, (0.9, 0.9, 0.92, 1) if i == 0 else (0.15, 0.2, 0.45, 1), drive=0.0)
+    box_object("tower", col, (0, 0, 3.2), (0.8, 0.8, 6.2), mats["trim"])
+    kit.kind = "suburb"
+    kit.water = None
+
+
+def build_desert(kit, mats, rng):
+    """Red-rock basin. Rain fills the wash, then plants take the stone."""
+    col = kit.collection("Desert")
+    _plane("basin", col, (0, 2, 0.0), (55, 48), mats["sand"])
+    for i, (x, y, w, h) in enumerate(((-8, 6, 4, 7), (6, 8, 3, 5), (0, 14, 6, 4), (10, 2, 2.5, 6))):
+        butte = box_object("butte", col, (x, y, h / 2), (w, w * 0.7, h), mats["rock"])
+        kit.add(butte, "building_base", sink=False)
+    if "forest" in (kit.extra_pieces if hasattr(kit, "extra_pieces") else []):
+        pass
+    for i in range(16):
+        fern = ico_object("fern", col, (rng.uniform(-12, 12), rng.uniform(-6, 12), 0.4), rng.uniform(0.4, 1.3), mats["leaf"])
+        fern.color = (0.28, 0.5, 0.2, 1)
+        kit.add(fern, "weed", delay=rng.uniform(0.2, 0.8), sink=False, leaf=(0.28, 0.5, 0.2, 1), autumn=(0.45, 0.32, 0.14, 1))
+    bm = bmesh.new()
+    add_box(bm, (0, 0, -0.08), (30, 14, 0.16), 0)
+    water = link_obj("wash", mesh_from_bm("wash", bm), col, (mats["water"],))
+    water.location = (0, 2, -2.2)
+    kit.water = kit.add(water, "water", sink=False)
+    kit.kind = "desert"
+
+
 def build_kitchen(kit, mats, rng):
     """A counter and a burger. Mold is vegetation; drying is wilt and heat."""
     col = kit.collection("Kitchen")
@@ -819,12 +857,13 @@ def build_kitchen(kit, mats, rng):
         ("lettuce", 0.04, (0.3, 0.62, 0.18)),
         ("bun_top", 0.09, (0.82, 0.6, 0.32)),
     ]
-    z = 0.98
-    for i, (name, h, color) in enumerate(layers):
-        obj = box_object(name, col, (0, 0, z + h / 2), (1.5 - i * 0.05, 1.5 - i * 0.05, h), mats["car"])
-        obj.color = (*color, 1)
-        kit.add(obj, "food", index=i, sink=False)
-        z += h
+    for side, x0 in (("fast", -0.95), ("home", 0.95)):
+        z = 0.98
+        for i, (name, h, color) in enumerate(layers):
+            obj = box_object(f"{side}_{name}", col, (x0, 0, z + h / 2), (1.15 - i * 0.04, 1.15 - i * 0.04, h), mats["car"])
+            obj.color = (*color, 1)
+            kit.add(obj, "food", index=i, sink=False)
+            z += h
     for i in range(8):
         mold = ico_object("mold", col, (rng.uniform(-0.5, 0.5), rng.uniform(-0.5, 0.5), 1.35), 0.12, mats["leaf"])
         mold.color = (0.25, 0.45, 0.18, 1)
@@ -847,6 +886,10 @@ def build_scene(scene, spec, features):
         build_ny_harbor(kit, mats, rng)
     elif name == "kitchen":
         build_kitchen(kit, mats, rng)
+    elif name == "culdesac":
+        build_culdesac(kit, mats, rng)
+    elif name == "desert":
+        build_desert(kit, mats, rng)
     elif "coast" in pieces:
         build_coast(kit, mats, rng, with_city="city" in pieces)
         if "suburbs" in pieces and "city" not in pieces:

@@ -8,12 +8,13 @@ width: 1080
 height: 1920
 population: 8300678396
 scene:
-  pieces: [terrain, city, river, bridge, suburbs, forest]
-  seed: 11
+  name: desert
+  pieces: [forest]
+  seed: 6
 camera:
-  location: [30, -32, 34]
-  target: [1.5, 5, 1.0]
-  lens: 30
+  location: [24, -30, 16]
+  target: [0, 4, 2]
+  lens: 32
   sensor_fit: VERTICAL
   sensor_height: 24
 beats:

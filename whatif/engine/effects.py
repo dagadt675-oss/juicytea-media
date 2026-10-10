@@ -18,6 +18,8 @@ def _lerp(a, b, t):
 
 
 def water_surface(ch, kind):
+    if kind == "desert":
+        return -2.2 + ch["flood"] * 2.6 + ch["water"] * 0.4
     if kind == "coast":
         return 0.05 + ch["flood"] * 1.35 + ch["water"] * 3.1
     if kind == "farm":
@@ -59,7 +61,7 @@ def apply(kit, ch, frame, fps):
     # Water.
     if kit.water is not None:
         z = water_surface(ch, kind)
-        seabed = -2.45 if kind == "coast" else -5.0
+        seabed = -2.45 if kind == "coast" else (0.0 if kind == "desert" else -5.0)
         obj = kit.water.obj
         if z < seabed + 0.08:
             obj.hide_render = True

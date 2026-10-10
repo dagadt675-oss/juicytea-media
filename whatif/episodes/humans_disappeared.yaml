@@ -1,12 +1,12 @@
 id: humans_disappeared
-title: "What if all humans disappeared?"
+title: "What if every human vanished… right now?"
 status: final
 fps: 30
 width: 1080
 height: 1920
-# UN World Population Prospects 2024, medium projection for 2026,
-# as published by Our World in Data (8,300,678,396).
-population: 8300678396
+# UN World Population Prospects 2024: about 8.2 billion in 2024.
+# https://www.un.org/development/desa/pd/world-population-prospects-2024
+population: 8200000000
 scene:
   pieces: [terrain, city, river, bridge, suburbs, forest, power, subway]
   terrain: city_park
@@ -32,8 +32,8 @@ beats:
         - {u: 1.0, v: 0.55}
 
   - id: power
-    time_label: "1 DAY"
-    ticker: "1 DAY"
+    time_label: "+1 HOUR"
+    ticker: "+1 HOUR"
     narration: "Almost at once, the power fails, and the city lights go dark."
     channels:
       day_night:
@@ -51,8 +51,8 @@ beats:
         - {u: 1.0, v: 0.0}
 
   - id: flood
-    time_label: "2 DAYS"
-    ticker: "2 DAYS"
+    time_label: "+2 DAYS"
+    ticker: "+2 DAYS"
     narration: "Within about two days, the subways flood without their pumps."
     channels:
       day_night:

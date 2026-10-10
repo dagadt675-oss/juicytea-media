@@ -222,7 +222,7 @@ def _draw_hud(img, hud, width, height):
     if hud["countdown"]:
         _shadow_text(
             img,
-            (width * 0.5, height * 0.22),
+            (width * 0.78, height * 0.42),
             hud["countdown"],
             big,
             fill=(255, 255, 255, 70),
@@ -234,8 +234,11 @@ def _draw_hud(img, hud, width, height):
 
 def _wrap_title(title: str) -> list[str]:
     # The reference breaks after "humans".
-    if title.lower().startswith("what if all humans disappeared"):
+    lowered = title.lower()
+    if lowered.startswith("what if all humans disappeared"):
         return ["What if all humans", "disappeared?"]
+    if "every human vanished" in lowered:
+        return ["What if every human", "vanished… right now?"]
     words = title.split()
     if len(words) <= 4:
         return [title]

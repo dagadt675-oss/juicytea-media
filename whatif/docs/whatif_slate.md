@@ -1,28 +1,30 @@
 # What-if slate
 
-This replaces the earlier eight-episode list.
+Production copy of the approved slate (`whatif_slate_v1`). Format B (penny, hole through the Earth, rice, bricks, crowd) is the other agent's module. This engine owns format A, plus the street-level format C version of "Earth stopped spinning."
 
-Format A is a locked camera and a time-lapse. One YAML spec plus a scene. Format B, the scale journey, is another agent's module. Format C is a real-time disaster on the same city, at street level.
+Frame-0 titles do not spoil the payoff. Counters hold at least 0.8 s. US units are the big number. Claims in a finished voiceover need a source. Loops return to frame 0.
 
-## Format A (this engine)
+## Format A
 
-| Episode | Scene | What the spec drives |
-| --- | --- | --- |
-| What if all humans disappeared? | River city | vanish, power, flood, vegetation, collapse, rust, ice, geology |
-| What if it never stopped snowing? | River city | snow, sag, collapse, ice |
-| What if the oceans drained? | `mauna_kea` | water below zero, sand, dust, erosion |
-| What if all the ice melted? | `ny_harbor` | water and flood, sea-level counter |
-| What if it rained for a million years? | River city | rain, flood, mud, erosion, geology |
-| What if a burger sat out for 15 years? | `kitchen` | sag, wilt, vegetation (mold) |
+| Episode | Scene | Counter | Loop |
+| --- | --- | --- | --- |
+| What if every human vanished… right now? | River city | Population 8.2B to 0, then time | Cut back to the opening city |
+| What if it started snowing… and never stopped? | `culdesac` | Day / snow depth (inches, then feet) | Thaw back to the first flake |
+| What if we pulled the plug on the ocean? | `mauna_kea` | Sea level in feet, down to the average ocean depth | Water pours back |
+| What if every glacier on Earth melted? | `ny_harbor` | Sea level in feet, up the Statue of Liberty | Water drains back |
+| What if it rained… for a million years? | `desert` | Years of rain | The basin dries to the opening desert |
+| Leave a burger on the counter for 15 years. | `kitchen` | Days, then years. Two burgers, no logos | Both are fresh again |
 
-Shared format A pieces: global timeline, water plane (rise and drop), snow and sand buildup, vegetation, ice swap (canopy to bare branches), erosion, wet/dry, sag/crack/collapse, rain/snow/wind/fog, day/night/season.
+Shared format A pieces: one global 0..1 timeline, water plane (rise or drain), snow and sand buildup, vegetation, ice swap, erosion, wet/dry, sag, crack, collapse, rain, snow, wind, fog, day/night and season.
+
+Later decay years in episode 1 are labeled in the script doc. The slate marks bridge, forest, and deep-time stamps as timings that have to follow that script.
 
 ## Format C
 
-What if the Earth stopped spinning? Real seconds, not a time-lapse. Countdown, then loose props keep their speed when the ground stops, towers fracture, dust and wind, a wave wall, an underwater grade, and a status HUD. The spin returns and the count is five again, so the shot can loop.
+The slate's orbital "Earth stopped spinning" film is last and not this build. The street-level reel (a countdown, loose objects keeping their speed, a wave over the camera) is format C. Our version loops: the count returns to five and the street is intact. The reference ending is a "simulation complete" card and does not loop. We do not copy that card.
 
-The launch curve stands in for a rigid-body bake. Replacing it does not require a new city.
+HUD: STATUS, rotation, structural failure, red when critical, a large faint countdown. Word timings are `words.json` with `{w, t0, t1}`, the same shape as the map pipeline. Format B's captions, pills, and scale camera stay on that branch.
 
-## Shared with format B
+## What a spec can already draw
 
-Word timings are written as `words.json` in the same `{w, t0, t1}` shape as `pipeline/examples/lax_tokyo/words.json`. Captions, label pills, and the scale-journey camera stay on that agent's branch. This engine does not copy them.
+A single low-sample frame renders for every format A spec above, and for the format C street spec. Only the humans episode is being finished to the reference reel. The others are scenes plus counters, not finished films.

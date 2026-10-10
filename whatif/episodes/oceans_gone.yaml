@@ -22,14 +22,14 @@ beats:
     title: true
     seconds: 3.2
     counter: {mode: sealevel}
-    time_label: "0 M"
+    time_label: "0 FT"
     narration: "The Pacific starts to pull away from the island."
     channels:
       water: -0.2
   - id: shelf
     seconds: 4.2
-    time_label: "−1 KM"
-    ticker: "−1 KM"
+    time_label: "−500 FT"
+    ticker: "−500 FT"
     narration: "The shelf appears, and the mountain stands higher."
     channels:
       water: -0.55
@@ -37,8 +37,8 @@ beats:
       dust: 0.2
   - id: dry
     seconds: 4.2
-    time_label: "SEABED"
-    ticker: "SEABED"
+    time_label: "−12,080 FT"
+    ticker: "−12,080 FT"
     narration: "Mauna Kea is a ridge in a dry, dusty plain."
     channels:
       water: -1.0

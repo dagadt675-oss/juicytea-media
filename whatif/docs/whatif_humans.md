@@ -38,4 +38,4 @@ Calm documentary narration, US English. About 118 words. Each line is one beat. 
 12. Then the lights return, and the city is whole again.
     This line is the loop, not a factual claim. The picture cuts back to the opening city.
 
-Population on screen, 8,300,678,396, is the UN World Population Prospects 2024 medium projection for the world in 2026, as published by Our World in Data. It is a projection, not a census.
+Population on screen is 8,200,000,000. That is the UN World Population Prospects 2024 figure of about 8.2 billion in 2024, not a daily census. https://www.un.org/development/desa/pd/world-population-prospects-2024

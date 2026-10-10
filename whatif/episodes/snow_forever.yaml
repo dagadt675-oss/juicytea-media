@@ -8,11 +8,12 @@ width: 1080
 height: 1920
 population: 8300678396
 scene:
-  pieces: [terrain, city, river, bridge, suburbs]
+  name: culdesac
+  pieces: [suburbs]
   seed: 11
 camera:
-  location: [34, -36, 26]
-  target: [2, 3, 3]
+  location: [22, -26, 16]
+  target: [0, 0, 2]
   lens: 32
   sensor_fit: VERTICAL
   sensor_height: 24
@@ -20,22 +21,23 @@ beats:
   - id: start
     title: true
     seconds: 3.0
-    counter: {mode: population}
+    counter: {mode: time, label: "SNOW DEPTH"}
+    time_label: "DAY 1"
     narration: "The snow starts, and it does not stop."
     channels:
       snow: 0.25
   - id: roofs
     seconds: 4.0
-    time_label: "1 MONTH"
-    ticker: "1 MONTH"
+    time_label: "76 IN"
+    ticker: "76 IN"
     narration: "Roofs sag, and the cars disappear under the drifts."
     channels:
       snow: 0.7
       sag: 0.45
   - id: bury
     seconds: 4.0
-    time_label: "1 YEAR"
-    ticker: "1 YEAR"
+    time_label: "95 FT"
+    ticker: "95 FT"
     narration: "A year on, the streets are gone and the ice settles in."
     channels:
       snow: 1.0
