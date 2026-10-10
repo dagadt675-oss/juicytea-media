@@ -36,6 +36,10 @@ if raw.get("module") == "scale_journey":
 
 `engine/spec.py` has no dependency on `whatif.engine`. The timeline document is a superset of the decay timeline: same top-level timing fields, plus `milestones`, per-frame `counters`, and `caption_band`.
 
+## Shared UI
+
+Format B does not keep a second type stack. `whatif/ui/` calls `engine.overlay` for the shadow, the Noto Serif and Inter fonts, and the caption band at y 0.64–0.78. `whatif/ui/words.py` calls `engine.spec.words_document`, so the voice clock is `{duration, words:[{w,t0,t1}]}`. The pieces that format A did not ship live here: label pills, the outline library (Statue of Liberty, Empire State, Burj Khalifa, stadium, Titanic, person), and the loop helper.
+
 ## What is deliberately different
 
 The decay episode is a locked camera and a channel mixer (`flood`, `rust`, `vegetation`, …). A scale-journey episode is one monotonic dolly and a stack of scale layers. It does not use those effect channels, and it does not share the Noto/Inter overlay. The counter here is Anton, orange and white, on the left, because that is the scale-counter format.
