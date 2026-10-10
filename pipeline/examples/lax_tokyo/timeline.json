@@ -1,0 +1,279 @@
+{
+  "duration": 23.0,
+  "silent": true,
+  "captions_burned_in": false,
+  "caption_band": {
+    "y0": 0.64,
+    "y1": 0.72
+  },
+  "lead_in": 0.0,
+  "lines": [
+    {
+      "index": 0,
+      "text": "Why does a flight from LA to Tokyo curve toward Alaska?",
+      "say": "Why does a flight from LA to Tokyo curve toward Alaska?",
+      "kind": "q",
+      "start": 0.0,
+      "end": 3.3,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Why LA to Tokyo\ncurves toward *ALASKA?*",
+        "sub": "Los Angeles to Tokyo"
+      },
+      "claim": "Why LA to Tokyo\ncurves toward *ALASKA?*",
+      "sub": "Los Angeles to Tokyo"
+    },
+    {
+      "index": 1,
+      "text": "Your flat map is lying.",
+      "say": "Your flat map is lying.",
+      "kind": "s",
+      "start": 3.3,
+      "end": 5.15,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Your flat map\nis *LYING*",
+        "sub": "Longer than it looks"
+      },
+      "claim": "Your flat map\nis *LYING*",
+      "sub": "Longer than it looks"
+    },
+    {
+      "index": 2,
+      "text": "On a Mercator map the straight line looks shortest.",
+      "say": "On a Mercator map the straight line looks shortest.",
+      "kind": "s",
+      "start": 5.15,
+      "end": 7.85,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "The straight line\nlooks *SHORTEST*",
+        "sub": "A rhumb stays straight"
+      },
+      "claim": "The straight line\nlooks *SHORTEST*",
+      "sub": "A rhumb stays straight"
+    },
+    {
+      "index": 3,
+      "text": "But Earth is a sphere \u2014",
+      "say": "But Earth is a sphere \u2014",
+      "kind": "s",
+      "start": 7.85,
+      "end": 9.7,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Earth is a\n*SPHERE*",
+        "sub": "A round Earth"
+      },
+      "claim": "Earth is a\n*SPHERE*",
+      "sub": "A round Earth"
+    },
+    {
+      "index": 4,
+      "text": "the shortest path is a great-circle arc",
+      "say": "the shortest path is a great-circle arc",
+      "kind": "s",
+      "start": 9.7,
+      "end": 12.05,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Shortest path:\na *GREAT CIRCLE*",
+        "sub": "An arc, not that straight line"
+      },
+      "claim": "Shortest path:\na *GREAT CIRCLE*",
+      "sub": "An arc, not that straight line"
+    },
+    {
+      "index": 5,
+      "text": "that bends north toward Alaska.",
+      "say": "that bends north toward Alaska.",
+      "kind": "s",
+      "start": 12.05,
+      "end": 13.9,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "It bends *NORTH*\ntoward Alaska",
+        "sub": "Toward the Aleutians"
+      },
+      "claim": "It bends *NORTH*\ntoward Alaska",
+      "sub": "Toward the Aleutians"
+    },
+    {
+      "index": 6,
+      "text": "That route is hundreds of kilometers shorter than the straight line your map shows.",
+      "say": "That route is hundreds of kilometers shorter than the straight line your map shows.",
+      "kind": "s",
+      "start": 13.9,
+      "end": 18.1,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "*HUNDREDS* of kilometers\nshorter",
+        "sub": "Shorter than that line"
+      },
+      "claim": "*HUNDREDS* of kilometers\nshorter",
+      "sub": "Shorter than that line"
+    },
+    {
+      "index": 7,
+      "text": "So next time your flight tracker curves north\u2026 that's not a mistake.",
+      "say": "So next time your flight tracker curves north\u2026 that's not a mistake.",
+      "kind": "p",
+      "start": 18.1,
+      "end": 23.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "That curve is\nnot a *MISTAKE*",
+        "sub": "The tracker has it right"
+      },
+      "claim": "That curve is\nnot a *MISTAKE*",
+      "sub": "The tracker has it right"
+    }
+  ],
+  "beats": [
+    {
+      "index": 0,
+      "text": "Why does a flight from LA to Tokyo curve toward Alaska?",
+      "say": "Why does a flight from LA to Tokyo curve toward Alaska?",
+      "kind": "q",
+      "start": 0.0,
+      "end": 3.3,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Why LA to Tokyo\ncurves toward *ALASKA?*",
+        "sub": "Los Angeles to Tokyo"
+      },
+      "claim": "Why LA to Tokyo\ncurves toward *ALASKA?*",
+      "sub": "Los Angeles to Tokyo"
+    },
+    {
+      "index": 1,
+      "text": "Your flat map is lying.",
+      "say": "Your flat map is lying.",
+      "kind": "s",
+      "start": 3.3,
+      "end": 5.15,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Your flat map\nis *LYING*",
+        "sub": "Longer than it looks"
+      },
+      "claim": "Your flat map\nis *LYING*",
+      "sub": "Longer than it looks"
+    },
+    {
+      "index": 2,
+      "text": "On a Mercator map the straight line looks shortest.",
+      "say": "On a Mercator map the straight line looks shortest.",
+      "kind": "s",
+      "start": 5.15,
+      "end": 7.85,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "The straight line\nlooks *SHORTEST*",
+        "sub": "A rhumb stays straight"
+      },
+      "claim": "The straight line\nlooks *SHORTEST*",
+      "sub": "A rhumb stays straight"
+    },
+    {
+      "index": 3,
+      "text": "But Earth is a sphere \u2014",
+      "say": "But Earth is a sphere \u2014",
+      "kind": "s",
+      "start": 7.85,
+      "end": 9.7,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Earth is a\n*SPHERE*",
+        "sub": "A round Earth"
+      },
+      "claim": "Earth is a\n*SPHERE*",
+      "sub": "A round Earth"
+    },
+    {
+      "index": 4,
+      "text": "the shortest path is a great-circle arc",
+      "say": "the shortest path is a great-circle arc",
+      "kind": "s",
+      "start": 9.7,
+      "end": 12.05,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Shortest path:\na *GREAT CIRCLE*",
+        "sub": "An arc, not that straight line"
+      },
+      "claim": "Shortest path:\na *GREAT CIRCLE*",
+      "sub": "An arc, not that straight line"
+    },
+    {
+      "index": 5,
+      "text": "that bends north toward Alaska.",
+      "say": "that bends north toward Alaska.",
+      "kind": "s",
+      "start": 12.05,
+      "end": 13.9,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "It bends *NORTH*\ntoward Alaska",
+        "sub": "Toward the Aleutians"
+      },
+      "claim": "It bends *NORTH*\ntoward Alaska",
+      "sub": "Toward the Aleutians"
+    },
+    {
+      "index": 6,
+      "text": "That route is hundreds of kilometers shorter than the straight line your map shows.",
+      "say": "That route is hundreds of kilometers shorter than the straight line your map shows.",
+      "kind": "s",
+      "start": 13.9,
+      "end": 18.1,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "*HUNDREDS* of kilometers\nshorter",
+        "sub": "Shorter than that line"
+      },
+      "claim": "*HUNDREDS* of kilometers\nshorter",
+      "sub": "Shorter than that line"
+    },
+    {
+      "index": 7,
+      "text": "So next time your flight tracker curves north\u2026 that's not a mistake.",
+      "say": "So next time your flight tracker curves north\u2026 that's not a mistake.",
+      "kind": "p",
+      "start": 18.1,
+      "end": 23.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "That curve is\nnot a *MISTAKE*",
+        "sub": "The tracker has it right"
+      },
+      "claim": "That curve is\nnot a *MISTAKE*",
+      "sub": "The tracker has it right"
+    }
+  ],
+  "words": [],
+  "sample_rate": null,
+  "voice": "none",
+  "id": "lax_tokyo",
+  "title": "Why LA\u2192Tokyo curves toward Alaska",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "note": "No audio and no burned-in karaoke. Fit an ElevenLabs read to beats[].say locally. Leave y 0.64\u20130.72 of the height empty for captions."
+}
