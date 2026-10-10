@@ -99,6 +99,18 @@ def ui_state(resolved: dict, frame: int) -> dict:
         else:
             number = raw
             unit = None
+    hud = None
+    if resolved.get("format") == "C":
+        failure = float(ch.get("critical", 0.0))
+        status = "CRITICAL" if failure >= 0.7 or ch.get("wave", 0) > 0.55 else "NOMINAL" if ch.get("inertia", 0) < 0.08 else "FAULT"
+        hud = {
+            "status": status,
+            "failure": failure,
+            "inertia": float(ch.get("inertia", 0.0)),
+            "wave": float(ch.get("wave", 0.0)),
+            "countdown": beat.get("time_label") or "",
+            "critical": status == "CRITICAL",
+        }
     return {
         "title": resolved["title"] if title_alpha > 0.01 else "",
         "title_alpha": title_alpha,
@@ -108,6 +120,7 @@ def ui_state(resolved: dict, frame: int) -> dict:
         "ticker": ticker if ticker_alpha > 0.01 else "",
         "ticker_alpha": ticker_alpha,
         "channels": ch,
+        "hud": hud,
     }
 
 
@@ -161,6 +174,8 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
         unit_y = bbox[3] - int(height * 0.012)
         _shadow_text(img, (unit_x, unit_y), state["unit"], unit_font, fill=_alpha((255, 255, 255), 235), anchor="ls", radius=4, opacity=120)
 
+    if state.get("hud"):
+        _draw_hud(img, state["hud"], width, height)
     if state["ticker_alpha"] > 0.01 and state["ticker"]:
         a = state["ticker_alpha"]
         parts = state["ticker"].split()
@@ -181,6 +196,40 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
                 opacity=int(130 * a),
             )
     return img
+
+
+def _draw_hud(img, hud, width, height):
+    """Format C status panel. Format A never calls this."""
+    label = _font(SANS, max(15, int(width * 0.018)))
+    value = _font(SANS_SEMI, max(18, int(width * 0.026)))
+    big = _font(SERIF, max(120, int(width * 0.22)))
+    x = int(width * 0.06)
+    y = int(height * 0.08)
+    status = hud["status"]
+    color = (220, 48, 42, 255) if hud["critical"] else (255, 255, 255, 230)
+    _shadow_text(img, (x, y), "STATUS", label, fill=(255, 255, 255, 180), anchor="lt", radius=3, opacity=90)
+    _shadow_text(img, (x, y + int(height * 0.02)), status, value, fill=color, anchor="lt", radius=4, opacity=100)
+    rows = (
+        ("INERTIA", f"{hud['inertia'] * 100:.0f}%"),
+        ("WAVE", f"{hud['wave'] * 100:.0f}%"),
+        ("FAILURE", f"{hud['failure'] * 100:.0f}%"),
+    )
+    yy = y + int(height * 0.07)
+    for name, val in rows:
+        _shadow_text(img, (x, yy), name, label, fill=(255, 255, 255, 170), anchor="lt", radius=3, opacity=80)
+        _shadow_text(img, (x + int(width * 0.22), yy), val, value, fill=color, anchor="lt", radius=3, opacity=80)
+        yy += int(height * 0.032)
+    if hud["countdown"]:
+        _shadow_text(
+            img,
+            (width * 0.5, height * 0.22),
+            hud["countdown"],
+            big,
+            fill=(255, 255, 255, 70),
+            anchor="mm",
+            radius=8,
+            opacity=40,
+        )
 
 
 def _wrap_title(title: str) -> list[str]:

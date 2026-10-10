@@ -5,6 +5,7 @@ Pieces are selected by the episode spec. Episode 1 uses the river city.
 
 from __future__ import annotations
 
+import math
 import random
 
 import bmesh
@@ -393,7 +394,7 @@ def build_river_city(kit, mats, rng, pieces):
             top.location = (x, y, FAR_Z + split)
             top.color = color
             kit.add(base, "building_base", sink=True, fall_at=None)
-            kit.add(top, "building_top", sink=True, fall_at=0.40 + fall_i * 0.045, index=fall_i)
+            kit.add(top, "building_top", sink=True, fall_at=0.40 + fall_i * 0.045, index=fall_i, top_h=h - split)
             fall_i += 1
         else:
             obj = link_obj("tower", _tower_mesh("tower", w, d, h), col_c, (mats["wall"], mats["window"]))
@@ -498,10 +499,11 @@ def _bridge(kit, col, cars, mats, rng):
     segments = []
     specs = [
         # i, y center, length, z, rot_x for ramp
-        (0, -12.2, 16.0, 1.45, -0.11),
-        (1, 0.4, 5.6, DECK_Z, 0.0),
-        (2, 5.6, 5.2, DECK_Z, 0.0),
-        (3, 9.8, 4.2, DECK_Z, 0.0),
+        # Positive X rotation lifts the far end onto the tower deck and drops the near end onto the road.
+        (0, -9.2, 15.0, 1.78, 0.115),
+        (1, -0.4, 7.2, DECK_Z, 0.0),
+        (2, 5.4, 6.4, DECK_Z, 0.0),
+        (3, 10.2, 4.6, DECK_Z, 0.0),
     ]
     decks = []
     for i, y, length, z, rot in specs:
@@ -746,13 +748,106 @@ def build_fx_meshes(kit, mats, features):
         mound.hide_render = True
 
 
+def build_mauna_kea(kit, mats, rng):
+    """Hawaii island and Mauna Kea. Ocean drains by lowering the water plane."""
+    col = kit.collection("Coast")
+    _plane("shelf", col, (0, 6, -3.2), (80, 50), mats["sand"], 0.2)
+    _plane("shore", col, (0, -6, 0.15), (40, 10), mats["sand"])
+    # Volcano as stacked rings, wide at the base.
+    for i, (z, rad, h) in enumerate(((0.2, 16, 3.2), (3.2, 11, 3.0), (6.0, 7, 2.6), (8.4, 4.2, 2.2), (10.2, 2.2, 1.4))):
+        obj = box_object("cone", col, (0, 2, z + h / 2), (rad * 2, rad * 1.4, h), mats["rock"])
+        kit.add(obj, "building_base", sink=False, erode=True)
+    for i, dx in enumerate((-1.2, 0.4, 1.5)):
+        dome = ico_object("dome", col, (dx, 2.2, 11.8), 0.55, mats["trim"])
+        kit.add(dome, "prop", sink=False)
+    bm = bmesh.new()
+    add_box(bm, (0, 0, -0.1), (90, 60, 0.2), 0)
+    water = link_obj("pacific", mesh_from_bm("pacific", bm), col, (mats["water"],))
+    water.location = (0, 8, 0.02)
+    kit.water = kit.add(water, "water", sink=False)
+    kit.kind = "coast"
+
+
+def build_ny_harbor(kit, mats, rng):
+    """Harbor water, a low skyline, and a simplified Statue of Liberty."""
+    col = kit.collection("Harbor")
+    col_c = kit.collection("City")
+    _plane("island", col, (-6, -2, 0.35), (10, 8), mats["park"])
+    _plane("manhattan", col, (8, 14, 0.4), (28, 10), mats["trim"])
+    x = -2
+    for i in range(7):
+        h = 8 + (i * 3) % 14
+        w = 2.4
+        obj = link_obj("ny", _tower_mesh("ny", w, w, h), col_c, (mats["wall"], mats["window"]))
+        obj.location = (x, 14, 0.4)
+        obj.color = (0.75, 0.78, 0.82, 1)
+        kit.add(obj, "building_base", sink=False)
+        x += w + 0.7
+    # Statue: pedestal, robe, head, crown, tablet. Copper green.
+    green = (0.22, 0.55, 0.34, 1)
+    ped = box_object("pedestal", col, (-6, -2, 1.6), (2.2, 2.2, 2.4), mats["trim"])
+    robe = box_object("robe", col, (-6, -2, 4.3), (1.3, 1.1, 3.0), mats["car"])
+    robe.color = green
+    head = ico_object("head", col, (-6, -2.1, 6.2), 0.55, mats["car"])
+    head.color = green
+    for i in range(7):
+        ang = i / 7 * 6.28
+        spike = box_object("spike", col, (-6 + math.cos(ang) * 0.35, -2.1 + math.sin(ang) * 0.35, 6.9), (0.08, 0.08, 0.7), mats["car"])
+        spike.color = green
+    tablet = box_object("tablet", col, (-4.7, -2, 4.6), (0.7, 0.15, 1.1), mats["car"])
+    tablet.color = green
+    for obj in (ped, robe, head, tablet):
+        kit.add(obj, "prop", sink=False)
+    bm = bmesh.new()
+    add_box(bm, (0, 0, -0.1), (80, 40, 0.2), 0)
+    water = link_obj("harbor", mesh_from_bm("harbor", bm), col, (mats["water"],))
+    water.location = (2, 2, 0.05)
+    kit.water = kit.add(water, "water", sink=False)
+    kit.kind = "coast"
+
+
+def build_kitchen(kit, mats, rng):
+    """A counter and a burger. Mold is vegetation; drying is wilt and heat."""
+    col = kit.collection("Kitchen")
+    _plane("counter", col, (0, 0, 0.9), (8, 5), mats["trim"], 0.12)
+    _plane("back", col, (0, 2.2, 1.8), (8, 0.2), mats["wall"] if False else mats["trim"], 1.6)
+    # Burger stack, each layer its own object so it can sag.
+    layers = [
+        ("bun_bottom", 0.08, (0.72, 0.55, 0.28)),
+        ("patty", 0.07, (0.28, 0.14, 0.08)),
+        ("cheese", 0.025, (0.9, 0.72, 0.15)),
+        ("lettuce", 0.04, (0.3, 0.62, 0.18)),
+        ("bun_top", 0.09, (0.82, 0.6, 0.32)),
+    ]
+    z = 0.98
+    for i, (name, h, color) in enumerate(layers):
+        obj = box_object(name, col, (0, 0, z + h / 2), (1.5 - i * 0.05, 1.5 - i * 0.05, h), mats["car"])
+        obj.color = (*color, 1)
+        kit.add(obj, "food", index=i, sink=False)
+        z += h
+    for i in range(8):
+        mold = ico_object("mold", col, (rng.uniform(-0.5, 0.5), rng.uniform(-0.5, 0.5), 1.35), 0.12, mats["leaf"])
+        mold.color = (0.25, 0.45, 0.18, 1)
+        kit.add(mold, "weed", delay=0.15 + i * 0.08, sink=False, leaf=(0.25, 0.45, 0.18, 1), autumn=(0.35, 0.28, 0.12, 1))
+    kit.kind = "kitchen"
+    kit.water = None
+
+
 def build_scene(scene, spec, features):
     rng = random.Random(int((spec.get("scene") or {}).get("seed") or 1))
     pieces = set((spec.get("scene") or {}).get("pieces") or ["city", "river", "bridge"])
     kit = Kit(scene)
     mats = _materials()
     kit.mats = mats
-    if "coast" in pieces:
+    kit.format = spec.get("format") or "A"
+    name = (spec.get("scene") or {}).get("name") or ""
+    if name == "mauna_kea":
+        build_mauna_kea(kit, mats, rng)
+    elif name == "ny_harbor":
+        build_ny_harbor(kit, mats, rng)
+    elif name == "kitchen":
+        build_kitchen(kit, mats, rng)
+    elif "coast" in pieces:
         build_coast(kit, mats, rng, with_city="city" in pieces)
         if "suburbs" in pieces and "city" not in pieces:
             for i in range(5):
@@ -761,7 +856,7 @@ def build_scene(scene, spec, features):
         build_farm(kit, mats, rng)
     else:
         build_river_city(kit, mats, rng, pieces)
-    if "city" in pieces or "coast" in pieces or kit.kind == "city":
+    if not name and ("city" in pieces or "coast" in pieces or kit.kind == "city"):
         build_strata(kit, mats)
     build_precip(kit, mats, features)
     build_fx_meshes(kit, mats, features)
@@ -772,6 +867,10 @@ def build_scene(scene, spec, features):
     vol.location = (0, 0, 8)
     vol.hide_render = True
     kit.volume = vol
+    if kit.format == "C":
+        from engine.format_c import build_wave
+
+        build_wave(kit, mats)
     _lights(kit)
     return kit
 

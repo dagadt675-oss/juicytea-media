@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-from engine.spec import load_yaml, resolve, timeline_document  # noqa: E402
+from engine.spec import load_yaml, resolve, timeline_document, words_document  # noqa: E402
 
 
 def blender_bin():
@@ -51,6 +51,7 @@ def main():
     resolved_path = out / "resolved.json"
     resolved_path.write_text(json.dumps(resolved), encoding="utf-8")
     (out / "timeline.json").write_text(json.dumps(timeline_document(resolved), indent=2), encoding="utf-8")
+    (out / "words.json").write_text(json.dumps(words_document(resolved), indent=2), encoding="utf-8")
     frames = out / "frames"
     frames.mkdir(parents=True, exist_ok=True)
     cmd = [

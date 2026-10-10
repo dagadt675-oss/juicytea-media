@@ -11,10 +11,11 @@ scene:
   pieces: [terrain, city, river, bridge, suburbs, forest, power, subway]
   terrain: city_park
   seed: 11
+format: A
 camera:
-  location: [34, -36, 26]
-  target: [2, 3, 3]
-  lens: 32
+  location: [30, -32, 34]
+  target: [1.5, 5, 1.0]
+  lens: 30
   sensor_fit: VERTICAL
   sensor_height: 24
 ui:

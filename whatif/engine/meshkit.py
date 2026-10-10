@@ -250,6 +250,7 @@ def weather_color(nt, base, weights):
     mud = channel_value(nt, ("mud", "rain", "flood"), "max(mud, rain * 0.65 + flood * 0.15)")
     scorch = channel_value(nt, ("scorch", "heat", "fire"), "max(scorch, heat * 0.85, fire * 0.7)")
     snow = channel_value(nt, ("snow", "ice"), "max(snow, ice * 0.95)")
+    sand = channel_value(nt, ("sand",), "sand")
     wet = channel_value(nt, ("wet", "rain"), "max(wet, rain * 0.9)")
 
     color = base
@@ -258,6 +259,7 @@ def weather_color(nt, base, weights):
     color = _mix(nt, _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", mud, weights.get("mud", 0.0)), low.outputs["Result"]), color, lin(0.28, 0.20, 0.12))
     color = _mix(nt, _math(nt, "MULTIPLY", scorch, weights.get("scorch", 0.0)), color, lin(0.10, 0.07, 0.05))
     color = _mix(nt, _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", snow, weights.get("snow", 0.0)), up), color, lin(0.93, 0.95, 0.97))
+    color = _mix(nt, _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", sand, weights.get("sand", weights.get("snow", 0.0))), up), color, lin(0.72, 0.58, 0.32))
     darken = _math(nt, "MULTIPLY", wet, weights.get("wet", 0.7))
     # Mix toward a darker version of itself by blending with black.
     color = _mix(nt, _math(nt, "MULTIPLY", darken, 0.45), color, lin(0.02, 0.02, 0.025))

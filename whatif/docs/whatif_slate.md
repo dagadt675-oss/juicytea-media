@@ -1,40 +1,28 @@
-# What-if episode slate
+# What-if slate
 
-Episode 1 is the one we finish first. The scene and effect libraries are shaped so the rest of the slate is a new spec, not a new film.
+This replaces the earlier eight-episode list.
 
-| # | Title | Scene | Effects the spec drives |
-| --- | --- | --- | --- |
-| 1 | What if all humans disappeared? | River city, bridge, park, suburbs | vanish, power failure, flood, vegetation, collapse, sag, rust, ice, geology |
-| 2 | What if it never stopped snowing? | Same city | snow, sag, collapse, ice |
-| 3 | What if the oceans disappeared? | Coast, ships, seabed | water (negative), dust |
-| 4 | What if it rained nonstop for a year? | River city | rain, flood, wet, mud, vegetation |
-| 5 | What if Earth's gravity halved? | River city | gravity (float, taller plants, choppier water) |
-| 6 | What if every insect vanished? | Forest and farm | wilt, fauna, vegetation |
-| 7 | What if all ice melted? | Coast city | water / flood in steps, sealevel counter |
-| 8 | What if a heatwave never ended? | City or farm | heat, scorch, dust, fire, cracks |
+Format A is a locked camera and a time-lapse. One YAML spec plus a scene. Format B, the scale journey, is another agent's module. Format C is a real-time disaster on the same city, at street level.
 
-## Libraries
+## Format A (this engine)
 
-Scenes, selected by `scene.pieces`:
+| Episode | Scene | What the spec drives |
+| --- | --- | --- |
+| What if all humans disappeared? | River city | vanish, power, flood, vegetation, collapse, rust, ice, geology |
+| What if it never stopped snowing? | River city | snow, sag, collapse, ice |
+| What if the oceans drained? | `mauna_kea` | water below zero, sand, dust, erosion |
+| What if all the ice melted? | `ny_harbor` | water and flood, sea-level counter |
+| What if it rained for a million years? | River city | rain, flood, mud, erosion, geology |
+| What if a burger sat out for 15 years? | `kitchen` | sag, wilt, vegetation (mold) |
 
-- `city`, `river`, `bridge` — the episode 1 diorama
-- `suburbs` — wooden houses that can collapse
-- `forest` — overgrowth inside a city, or a standalone forest
-- `farm` — crops, flowers, birds, animals
-- `coast` — beach, seabed, ships; with `city`, a coast city
-- `power`, `subway` — episode 1 story beats
+Shared format A pieces: global timeline, water plane (rise and drop), snow and sand buildup, vegetation, ice swap (canopy to bare branches), erosion, wet/dry, sag/crack/collapse, rain/snow/wind/fog, day/night/season.
 
-Effects are 0..1 channels ( `water` is signed: negative drops a water body):
+## Format C
 
-- Water level: `flood` rises, `water` rises further or drops to a dry seabed
-- Weather particles: `rain`, `snow`, `dust`, `ash`
-- Plants: `vegetation` grows, `wilt` kills crops and flowers
-- Materials: `rust`, `moss`, `snow`, `mud`, `scorch`, `wet`, `heat`, `ice`
-- Structure: `collapse`, `sag`
-- `gravity` lifts and bobs loose objects, stretches plants, roughens water
-- `vanish` removes people, then cars; `fauna` removes birds and animals
-- `geology` swaps the skyline for a stratigraphic wall with a thin red seam
+What if the Earth stopped spinning? Real seconds, not a time-lapse. Countdown, then loose props keep their speed when the ground stops, towers fracture, dust and wind, a wave wall, an underwater grade, and a status HUD. The spin returns and the count is five again, so the shot can loop.
 
-The on-screen counter modes are `population`, `time`, `sealevel`, and `temperature`. The beat's `time_label` is the step (`1 YEAR`, `+12%`, `49°C`).
+The launch curve stands in for a rigid-body bake. Replacing it does not require a new city.
 
-Specs live in `whatif/episodes/`. Only `humans_disappeared.yaml` is a finished episode. The others are stubs.
+## Shared with format B
+
+Word timings are written as `words.json` in the same `{w, t0, t1}` shape as `pipeline/examples/lax_tokyo/words.json`. Captions, label pills, and the scale-journey camera stay on that agent's branch. This engine does not copy them.

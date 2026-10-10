@@ -1,43 +1,45 @@
-# STUB. Not a sourced script.
+# Format A stub. New York Harbor. Not a sourced script.
 id: ice_melted
-title: "What if all ice melted?"
+title: "What if all the ice melted?"
 status: stub
+format: A
 fps: 30
 width: 1080
 height: 1920
 population: 8300678396
 scene:
-  pieces: [coast, city, suburbs]
-  seed: 9
+  name: ny_harbor
+  pieces: [coast, city]
+  seed: 8
 camera:
-  location: [34, -36, 26]
-  target: [2, 3, 3]
+  location: [18, -28, 14]
+  target: [-2, 2, 3]
   lens: 32
   sensor_fit: VERTICAL
   sensor_height: 24
 beats:
   - id: start
     title: true
-    seconds: 3.0
+    seconds: 3.2
     counter: {mode: sealevel}
-    time_label: "+2%"
-    narration: "The ice melts, and the sea begins to climb."
+    time_label: "+1 M"
+    narration: "The harbor begins to climb the island."
     channels:
-      water: 0.15
-      ice: 0.2
-  - id: streets
+      water: 0.12
+      flood: 0.15
+  - id: pedestal
     seconds: 4.0
-    time_label: "+20%"
-    ticker: "+20%"
-    narration: "The first streets go under."
+    time_label: "+8 M"
+    ticker: "+8 M"
+    narration: "The pedestal disappears under the new sea."
     channels:
       water: 0.45
-      flood: 0.3
-  - id: city
-    seconds: 4.0
-    time_label: "+70%"
-    ticker: "+70%"
-    narration: "Step by step, the city sinks beneath the water."
+      flood: 0.4
+  - id: statue
+    seconds: 4.2
+    time_label: "+20 M"
+    ticker: "+20 M"
+    narration: "Only the torch is left above the water."
     channels:
-      water: 0.9
-      flood: 0.8
+      water: 0.85
+      flood: 0.75

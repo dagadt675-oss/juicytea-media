@@ -2,6 +2,7 @@
 id: snow_forever
 title: "What if it never stopped snowing?"
 status: stub
+format: A
 fps: 30
 width: 1080
 height: 1920

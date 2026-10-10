@@ -43,7 +43,7 @@ def _veg_scale(item, ch):
     if item.extra.get("future"):
         grow = smoother(item.extra.get("delay", 0.0), item.extra.get("delay", 0.0) + 0.22, ch["vegetation"])
     else:
-        grow = 1.0 + 0.2 * ch["vegetation"]
+        grow = 1.0 + 0.85 * ch["vegetation"]
     grow *= 1.0 - 0.88 * wilt
     grow *= 1.0 - 0.65 * heat
     grow *= 1.0 + 0.7 * ch["gravity"]
@@ -71,6 +71,10 @@ def apply(kit, ch, frame, fps):
     _bridge(kit, ch)
     _weather_fx(kit, ch, frame, fps, snow)
     _sky(kit, ch, frame, fps)
+    if getattr(kit, "format", "A") == "C":
+        from engine.format_c import apply_format_c
+
+        apply_format_c(kit, ch, frame, fps)
 
 
 def _structures(kit, ch, frame, fps):
@@ -80,19 +84,27 @@ def _structures(kit, ch, frame, fps):
         obj = item.obj
         if role == "building_base":
             loc = _sink(item, ch, item.base_loc.copy())
+            # Late collapse removes the shaft. Squashing the mesh turns the windows into a cage.
+            ruin = smoother(0.62, 0.92, collapse)
+            bury = _bury_scale(item, ch)
             obj.location = loc
-            obj.scale = item.base_scale * _bury_scale(item, ch)
+            obj.scale = item.base_scale * bury
+            obj.hide_render = ruin > 0.9 or bury < 0.05
         elif role == "building_top":
             loc = item.base_loc.copy()
             fall = item.extra.get("fall_at")
-            u = smoother(fall, fall + 0.15, collapse) if fall is not None else 0.0
-            rot = _euler(item.base_rot, dx=u * 1.45)
-            loc.z -= u * 0.2
-            loc.y -= u * 0.8
+            u = smoother(fall, fall + 0.2, collapse) if fall is not None else 0.0
+            top_h = float(item.extra.get("top_h") or 8.0)
+            rot = _euler(item.base_rot, dx=u * 1.7)
+            # The hinge drops to the ground so the piece lands instead of hanging in the air.
+            loc.z = item.base_loc.z * (1.0 - u) + (loc.z * 0 + 1.15) * u
+            loc.y -= u * top_h * 0.42
             loc = _sink(item, ch, loc)
             obj.location = loc
             obj.rotation_euler = rot
-            obj.scale = item.base_scale * _bury_scale(item, ch)
+            bury = _bury_scale(item, ch)
+            obj.scale = item.base_scale * bury
+            obj.hide_render = bury < 0.04
         elif role == "house":
             u = smoother(0.18 + item.extra["index"] * 0.03, 0.34 + item.extra["index"] * 0.03, collapse)
             # Snow load helps roofs and walls fail.
@@ -110,6 +122,12 @@ def _structures(kit, ch, frame, fps):
             loc.y += u * 0.9
             obj.location = loc
             obj.rotation_euler = _euler(item.base_rot, dx=u * 1.7)
+        elif role == "food":
+            u = max(ch["sag"], ch["wilt"] * 0.5)
+            loc = item.base_loc.copy()
+            loc.z -= u * (0.04 + 0.03 * item.extra.get("index", 0))
+            obj.location = loc
+            obj.rotation_euler.z = u * 0.15 * (1 if item.extra.get("index", 0) % 2 == 0 else -1)
         elif role == "road_slab":
             u = smoother(0.05 + item.extra["index"] * 0.04, 0.16 + item.extra["index"] * 0.04, collapse)
             loc = item.base_loc.copy()
@@ -174,12 +192,12 @@ def _life(kit, ch, frame, fps, snow):
             obj.scale = item.base_scale * s
             leaf = Vector(item.extra.get("leaf", (0.3, 0.55, 0.2, 1))[:3])
             autumn = Vector(item.extra.get("autumn", (0.7, 0.4, 0.12, 1))[:3])
-            mix = clamp(ch["geology"] * 1.1 + ch["wilt"] * 0.8 + ch["heat"] * 0.7)
+            mix = clamp(ch["geology"] * 1.1 + ch["wilt"] * 0.8 + ch["heat"] * 0.7 + max(0.0, ch.get("season", 0.35) - 0.55))
             col = leaf.lerp(autumn, mix)
             if ice > 0.2:
                 col = col.lerp(Vector((0.55, 0.5, 0.46)), ice)
             obj.color = (col.x, col.y, col.z, 1)
-            sway = math.sin(frame * 0.11 + obj.location.x) * 0.015 * (1 + ch["gravity"])
+            sway = math.sin(frame * 0.11 + obj.location.x) * (0.015 + 0.14 * ch.get("wind", 0.0)) * (1 + ch["gravity"])
             obj.rotation_euler = _euler(item.base_rot, dz=sway)
         elif role == "tree_bare":
             grow = _veg_scale(item, ch) if item.extra.get("future") else 1.0
@@ -378,7 +396,7 @@ def _deck_edge(poses, y, x_local):
 
 def _weather_fx(kit, ch, frame, fps, snow):
     if kit.volume is not None:
-        density = ch["ice"] * 0.012 + ch["dust"] * 0.01 + ch["ash"] * 0.008 + ch["rain"] * 0.004
+        density = ch["ice"] * 0.012 + ch["dust"] * 0.01 + ch["ash"] * 0.008 + ch["rain"] * 0.004 + ch.get("fog", 0.0) * 0.01
         kit.volume.hide_render = density < 0.0008
         fog = kit.volume.data.materials[0].node_tree.nodes.get("Fog")
         if fog:
@@ -404,7 +422,7 @@ def _weather_fx(kit, ch, frame, fps, snow):
         obj.hide_render = False
         column = index % 10
         row = (index // 10) % 8
-        x = -18 + column * 4.0 + (index % 3) * 0.4
+        x = -18 + column * 4.0 + (index % 3) * 0.4 + ch.get("wind", 0.0) * (6.0 if kind == "rain" else 2.5)
         y = -14 + row * 3.5
         speed = 9.0 if kind == "rain" else 1.6 if kind == "snow" else 0.8
         phase = (t * speed + index * 0.17) % 1.0

@@ -42,6 +42,17 @@ CHANNELS = (
     "power",
     "power_grid",
     "wet",
+    # Format A extras. All 0..1.
+    "wind",
+    "fog",
+    "season",
+    "erosion",
+    "sand",
+    # Format C, real-time disaster. Unused by time-lapse specs.
+    "inertia",
+    "fracture",
+    "wave",
+    "critical",
 )
 
 DEFAULTS = {
@@ -70,6 +81,15 @@ DEFAULTS = {
     "power": 0.0,
     "power_grid": 1.0,
     "wet": 0.0,
+    "wind": 0.0,
+    "fog": 0.0,
+    "season": 0.35,
+    "erosion": 0.0,
+    "sand": 0.0,
+    "inertia": 0.0,
+    "fracture": 0.0,
+    "wave": 0.0,
+    "critical": 0.0,
 }
 
 
@@ -179,6 +199,7 @@ def resolve(spec: dict) -> dict:
         "id": spec.get("id") or "episode",
         "title": spec.get("title") or "",
         "status": spec.get("status") or "final",
+        "format": spec.get("format") or "A",
         "fps": fps,
         "width": int(spec.get("width", 1080)),
         "height": int(spec.get("height", 1920)),
@@ -241,6 +262,26 @@ def load_resolved(path: Path) -> dict:
         with open(path, "r", encoding="utf-8") as handle:
             return json.load(handle)
     return resolve(load_yaml(path))
+
+
+def words_document(resolved: dict) -> dict:
+    """Voice timings in the same shape as pipeline/examples/lax_tokyo/words.json.
+
+    Format B owns captions. This only shares the word clock so the two
+    pipelines do not invent two schemas.
+    """
+    words = []
+    for beat in resolved["beats"]:
+        tokens = beat["narration"].split()
+        if not tokens:
+            continue
+        span = max(0.05, beat["end"] - beat["start"] - 0.3)
+        step = span / len(tokens)
+        for i, token in enumerate(tokens):
+            t0 = beat["start"] + i * step
+            t1 = t0 + step * 0.92
+            words.append({"w": token, "t0": round(t0, 3), "t1": round(t1, 3)})
+    return {"duration": resolved["duration"], "words": words}
 
 
 def timeline_document(resolved: dict) -> dict:
