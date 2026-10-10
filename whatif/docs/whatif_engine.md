@@ -11,6 +11,8 @@ That writes a silent PNG sequence, composites the UI, and (when you encode) an H
 
 Timing is about 2.6 words per second of narration plus a 0.3 second pause, unless a beat sets `seconds`. Channels listed as a number are the value at the end of the beat. A list of `{u, v}` places keys inside the beat (`u` is 0..1). `reset: true` cuts every channel back to the opening on the next frame so the film can loop.
 
+`format: A` is the time-lapse. `format: C` is the real-time street disaster (`engine/format_c.py`): inertia launch, fracture, wave wall, underwater grade, HUD. Word clocks are `words.json` with `{w, t0, t1}`, the same shape as `pipeline/examples/lax_tokyo/words.json`. Format B's captions and scale camera are not copied here.
+
 Preview stills of episode 1, 1080×1920, are in `/opt/cursor/artifacts/whatif_preview/`:
 
 - `day1.png` — opening day
