@@ -224,11 +224,29 @@ def _chain(lonlat, view, band=None):
     return chains
 
 
-def _badge(safe: Safe, text: str, x: float, y: float, theme, pop: float = 1.0, style: str = "white", size: float = 40) -> bool:
+def _live_pop(vis, t: float, local: float):
+    """Scale for a pill that can wait, arrive, and leave. None means don't draw."""
+    at = vis.get("at")
+    age = local if at in (None, "") else t - float(at)
+    if age < -0.001:
+        return None
+    head = float(vis.get("head") or 0.0)
+    pop = pop_scale(max(0.0, age) + head)
+    until = vis.get("until")
+    if until not in (None, ""):
+        remain = float(until) - t
+        if remain <= 0.0:
+            return None
+        if remain < 0.34:
+            pop *= remain / 0.34
+    return pop
+
+
+def _badge(safe: Safe, text: str, x: float, y: float, theme, pop: float = 1.0, style: str = "white", size: float = 40, min_pop: float = 0.55) -> bool:
     """Rounded pill. Nudges off the title and the caption band, or skips."""
     if not text:
         return False
-    pop = max(0.55, float(pop))
+    pop = max(float(min_pop), float(pop))
     font = safe.font("bold", float(size) * pop)
     width = font.measureText(text)
     metrics = font.getMetrics()
@@ -263,7 +281,7 @@ def _badge(safe: Safe, text: str, x: float, y: float, theme, pop: float = 1.0, s
 
 
 def draw_callout(safe: Safe, text: str, sub: str, x: float, y: float, pop: float,
-                 style: str = "yellow", size: float = 58) -> bool:
+                 style: str = "yellow", size: float = 58, note: str = "") -> bool:
     """One big pill with a smaller line under the hero. Stays out of the caption band."""
     if not text:
         return False
@@ -279,19 +297,27 @@ def draw_callout(safe: Safe, text: str, sub: str, x: float, y: float, pop: float
         sub_m = sub_font.getMetrics()
         text_h = metrics.fDescent - metrics.fAscent
         sub_h = (sub_m.fDescent - sub_m.fAscent) if sub else 0.0
+        note_font = safe.font("bold", float(size) * 0.28 * scale)
+        note_w = note_font.measureText(note) if note else 0.0
+        note_m = note_font.getMetrics()
+        note_h = (note_m.fDescent - note_m.fAscent) if note else 0.0
         gap = 8 * safe.s if sub else 0.0
+        note_gap = 4 * safe.s if note else 0.0
         pad_x = 26 * safe.s
         pad_y = 16 * safe.s
-        bw = max(width, sub_w) + pad_x * 2
-        bh = text_h + sub_h + gap + pad_y * 2
-        return font, sub_font, width, sub_w, metrics, sub_m, text_h, gap, pad_y, bw, bh
+        bw = max(width, sub_w, note_w) + pad_x * 2
+        bh = text_h + sub_h + note_h + gap + note_gap + pad_y * 2
+        return (font, sub_font, note_font, width, sub_w, note_w, metrics, sub_m, note_m,
+                text_h, gap, note_gap, pad_y, bw, bh)
 
-    font, sub_font, width, sub_w, metrics, sub_m, text_h, gap, pad_y, bw, bh = measure(pop)
+    (font, sub_font, note_font, width, sub_w, note_w, metrics, sub_m, note_m,
+     text_h, gap, note_gap, pad_y, bw, bh) = measure(pop)
     # The spring overshoots. Shrink once so the hero still fits the safe width
     # instead of vanishing for the frame where it is largest.
     if bw > avail_w and bw > 0:
         pop *= avail_w / bw
-        font, sub_font, width, sub_w, metrics, sub_m, text_h, gap, pad_y, bw, bh = measure(pop)
+        (font, sub_font, note_font, width, sub_w, note_w, metrics, sub_m, note_m,
+         text_h, gap, note_gap, pad_y, bw, bh) = measure(pop)
     paper, ink = PILLS.get(style, PILLS["yellow"])
     left = x - bw / 2
     top = y - bh / 2
@@ -332,6 +358,16 @@ def draw_callout(safe: Safe, text: str, sub: str, x: float, y: float, pop: float
         sub_paint = skia.Paint(AntiAlias=True)
         sub_paint.setColor(skia.ColorSetARGB(220, int(ink[0]), int(ink[1]), int(ink[2])))
         safe.canvas.drawString(sub, left + (bw - sub_w) / 2, sub_base, sub_font, sub_paint)
+        if note:
+            note_base = sub_base + sub_m.fDescent + note_gap - note_m.fAscent
+            note_paint = skia.Paint(AntiAlias=True)
+            note_paint.setColor(skia.ColorSetARGB(190, int(ink[0]), int(ink[1]), int(ink[2])))
+            safe.canvas.drawString(note, left + (bw - note_w) / 2, note_base, note_font, note_paint)
+    elif note:
+        note_base = baseline + metrics.fDescent + note_gap - note_m.fAscent
+        note_paint = skia.Paint(AntiAlias=True)
+        note_paint.setColor(skia.ColorSetARGB(190, int(ink[0]), int(ink[1]), int(ink[2])))
+        safe.canvas.drawString(note, left + (bw - note_w) / 2, note_base, note_font, note_paint)
     safe.block(rect)
     return True
 
@@ -361,9 +397,13 @@ def _clip_chains(chains, safe: Safe):
     return kept
 
 
-def _glow(canvas, chains, color, scale: float):
+def _glow(canvas, chains, color, scale: float, hot: bool = False):
     if not chains:
         return
+    if hot:
+        halo = _stroke(color, 28 * scale, alpha=70)
+        for chain in chains:
+            _polyline(canvas, chain, halo)
     wide = _stroke(color, 16 * scale, alpha=64)
     core = _stroke(color, 3.4 * scale, alpha=255)
     for chain in chains:
@@ -669,7 +709,7 @@ def draw_route(canvas, safe: Safe, view, theme, vis, t: float, draw_line=True, w
                 _polyline(canvas, chain, wide)
                 _polyline(canvas, chain, core)
         else:
-            _glow(canvas, grown, theme["line"], safe.s)
+            _glow(canvas, grown, theme["line"], safe.s, hot=bool(vis.get("glow")))
         for x, y in tips:
             draw_tip(canvas, x, y, safe.s)
     if with_label and vis.get("label") and bend >= 0.45:
@@ -683,13 +723,30 @@ def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t, pop: float 
     if hit is None:
         return
     x, y = hit
+    white = (255, 255, 255)
+    if radar == "steady":
+        # Round from the first frame. Rings expand and die; they do not squash.
+        if 0.64 * safe.h <= y <= 0.72 * safe.h:
+            return
+        phase = (t * 0.7) % 1.7
+        for start in (0.0, 0.58, 1.16):
+            age = phase - start
+            if 0.0 <= age <= 0.52:
+                frac = age / 0.52
+                canvas.drawCircle(x, y, (11 + 36 * frac) * safe.s, _stroke(white, 2.2 * safe.s, int(140 * (1.0 - frac))))
+        fill = skia.Paint(AntiAlias=True)
+        fill.setColor(skia.ColorSetARGB(255, 255, 255, 255))
+        canvas.drawCircle(x, y, 6.6 * safe.s, fill)
+        canvas.drawCircle(x, y, 11 * safe.s, _stroke((255, 176, 188), 2.0 * safe.s, 80))
+        if label:
+            _badge(safe, str(label), x, y - 36 * safe.s, theme, 1.0, pill)
+        return
     if radar == "none":
         if label and not safe.point_blocked(x, y):
             _badge(safe, str(label), x, y, theme, pop_scale(local), pill)
         return
     if safe.point_blocked(x, y):
         return
-    white = (255, 255, 255)
     dy, sx, sy, ripples = pin_pose(local, safe.s)
     if radar == "reticle":
         arrive = grow(local, 0.28)
@@ -711,6 +768,47 @@ def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t, pop: float 
         draw_sparkles(canvas, x, y + dy, local, safe.s, seed=int(lat * 10 + lon) & 0xFFFF)
     if label:
         _badge(safe, str(label), x, y - 36 * safe.s + dy, theme, pop_scale(local), pill)
+
+
+def draw_flight(canvas, safe: Safe, view, vis, t: float):
+    """A plane that only flies forward along the great circle. It skips the caption band."""
+    a = vis.get("a") or [0, 0]
+    b = vis.get("b") or [0, 0]
+    dur = float(vis.get("dur") or 24.2)
+    u0 = float(vis.get("u0", 0.28))
+    u1 = float(vis.get("u1", 0.86))
+    u = u0 + (u1 - u0) * min(1.0, max(0.0, t / dur))
+    pts = route_lonlat("great", float(a[0]), float(a[1]), float(b[0]), float(b[1]), 80)
+    idx = min(len(pts) - 2, max(0, int(u * (len(pts) - 1))))
+    lon, lat = pts[idx]
+    hit = project_one(lon, lat, view)
+    if hit is None:
+        return
+    x, y = hit
+    band0, band1 = 0.64 * safe.h, 0.72 * safe.h
+    if band0 - 18 <= y <= band1 + 18:
+        return
+    nxt = pts[idx + 1]
+    hit2 = project_one(nxt[0], nxt[1], view)
+    ang = 0.0
+    if hit2 is not None:
+        ang = math.degrees(math.atan2(hit2[1] - y, hit2[0] - x))
+    canvas.save()
+    canvas.translate(x, y)
+    canvas.rotate(ang)
+    glow = skia.Paint(AntiAlias=True)
+    glow.setColor(skia.ColorSetARGB(90, 255, 80, 110))
+    canvas.drawCircle(0, 0, 16 * safe.s, glow)
+    body = skia.Path()
+    body.moveTo(16 * safe.s, 0)
+    body.lineTo(-11 * safe.s, 7 * safe.s)
+    body.lineTo(-5 * safe.s, 0)
+    body.lineTo(-11 * safe.s, -7 * safe.s)
+    body.close()
+    fill = skia.Paint(AntiAlias=True)
+    fill.setColor(skia.ColorSetARGB(255, 255, 248, 250))
+    canvas.drawPath(body, fill)
+    canvas.restore()
 
 
 def draw_ruler(canvas, safe: Safe, view, vis, local, t):
@@ -1100,19 +1198,25 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
                           draw_line=True, with_label=False, local=local)
         elif kind == "route":
             draw_route(canvas, safe, view, theme, vis, t, draw_line=True, with_label=False, local=local)
+        elif kind == "plane":
+            draw_flight(canvas, safe, view, vis, t)
     claim_rect = draw_claim(safe, claim, sub, local, punch=punch)
     if claim_rect is not None:
         safe.block(claim_rect)
     # A top pill sits in the title band, above the map labels, and paints over the route.
     for vis in visuals:
         if vis.get("type") == "tag" and str(vis.get("band") or "") == "top":
+            pop = _live_pop(vis, t, local)
+            if pop is None:
+                continue
             _badge(
                 safe, str(vis.get("text", "")),
                 safe.w * float(vis.get("x", 0.5)),
                 safe.h * float(vis.get("y", 0.20)),
-                theme, pop_scale(local),
+                theme, pop,
                 str(vis.get("pill") or "white"),
                 size=float(vis.get("size", 44)),
+                min_pop=0.12,
             )
     _reserve_title(safe)
     if any(v.get("type") == "graticule" for v in visuals):
@@ -1138,24 +1242,37 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
         elif kind == "tag":
             if str(vis.get("band") or "") == "top":
                 continue
+            pop = _live_pop(vis, t, local)
+            if pop is None:
+                continue
             _badge(safe, str(vis.get("text", "")), safe.w * float(vis.get("x", 0.5)),
-                   safe.h * float(vis.get("y", 0.14)), theme, pop_scale(local),
+                   safe.h * float(vis.get("y", 0.14)), theme, pop,
                    str(vis.get("pill") or "yellow"),
-                   size=float(vis.get("size", 40)))
+                   size=float(vis.get("size", 40)),
+                   min_pop=0.12)
         elif kind == "callout":
             # `at` is the absolute time the pill springs in, so it can land on a word
             # inside the beat instead of on the sentence start.
             age = local if vis.get("at") in (None, "") else t - float(vis["at"])
             if age < 0:
                 continue
+            label = str(vis.get("text", ""))
+            if vis.get("count") not in (None, ""):
+                goal = int(vis["count"])
+                shown = int(round(goal * ease_out(min(1.0, max(0.0, age) / 0.45))))
+                label = f"≈{shown} MI SHORTER"
+            cx = safe.w * float(vis.get("x", 0.50))
+            cy = safe.h * float(vis.get("y", 0.42))
             draw_callout(
-                safe, str(vis.get("text", "")), str(vis.get("sub", "")),
-                safe.w * float(vis.get("x", 0.50)),
-                safe.h * float(vis.get("y", 0.42)),
+                safe, label, str(vis.get("sub", "")),
+                cx, cy,
                 pop_scale(age, True),
                 str(vis.get("pill") or "yellow"),
                 size=float(vis.get("size", 58)),
+                note=str(vis.get("note") or ""),
             )
+            if 0.08 <= age <= 0.5 and not (0.64 * safe.h <= cy <= 0.72 * safe.h):
+                draw_sparkles(canvas, cx, cy, age + 0.12, safe.s, seed=91)
         elif kind == "patch":
             _draw_patch(canvas, view, vis, local, safe.s)
         elif kind == "lakes":

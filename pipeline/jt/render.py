@@ -92,6 +92,12 @@ class Studio:
                     cam = lerp_camera(prev, cur, u)
             else:
                 cam = cur.copy()
+        # A slow tighten for the whole film. Span only falls, including across beats.
+        creep = float(getattr(cur, "creep", 0.0) or 0.0)
+        if creep > 0:
+            dur = float(self.timeline.get("duration") or 1.0)
+            u = min(1.0, max(0.0, t / dur))
+            cam.span = cam.span * (1.0 - creep * u)
         view = resolve(cam.proj, cam.lon, cam.lat, max(4.0, cam.span), self.w, self.h, whip)
         return view, idx, local
 

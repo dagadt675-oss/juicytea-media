@@ -119,7 +119,8 @@ def main() -> int:
     payoff = next(v for v in route.lines[1].visuals if v.get("type") == "callout")
     # "three" starts at 5.488 in words.json. The spring begins just before that.
     ok &= check("pill lands on the miles", 5.20 <= float(payoff["at"]) <= 5.488, str(payoff["at"]))
-    ok &= check("opening arc is already drawing", float(route.lines[0].visuals[-2].get("from", 0)) >= 0.4)
+    opening_route = next(v for v in route.lines[0].visuals if v.get("type") == "route")
+    ok &= check("opening arc is already drawing", float(opening_route.get("from", 0)) >= 0.4)
     turns = direction_changes(route, clock, 1080, 1920)
     ok &= check("no camera sway", turns == 0, str(turns))
     alaska_clock = {"duration": 2.0 * len(spec.lines), "words": [],

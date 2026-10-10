@@ -26,14 +26,17 @@ description: |
   #shorts #maps #flights
 lax: &lax [33.9425, -118.4081]
 nrt: &nrt [35.7720, 140.3929]
-cam: &cam {proj: merc, lon: -160, lat: 44, span: 150, push: 2.2}
-back: &back {proj: merc, lon: -160, lat: 44, span: 150, cut: true}
-lie: &lie {type: tag, text: "YOUR MAP IS LYING", x: 0.50, y: 0.20, pill: red, band: top, size: 42}
+cam: &cam {proj: merc, lon: -160, lat: 44, span: 150, push: 1.28, creep: 0.05}
+back: &back {proj: merc, lon: -160, lat: 44, span: 150, cut: true, creep: 0.05}
+lie: &lie {type: tag, text: "YOUR MAP IS LYING", x: 0.50, y: 0.20, pill: red, band: top, size: 42, head: 0.45, until: 1.55}
+lying: &lying {type: tag, text: "YOUR MAP IS LYING", x: 0.50, y: 0.20, pill: red, band: top, size: 42}
 lakes: &lakes {type: lakes}
-la: &la {type: marker, lat: 33.9425, lon: -118.4081, label: "LA"}
-tyo: &tyo {type: marker, lat: 35.7720, lon: 140.3929, label: "TOKYO"}
+la: &la {type: marker, lat: 33.9425, lon: -118.4081, label: "LA", radar: steady}
+tyo: &tyo {type: marker, lat: 35.7720, lon: 140.3929, label: "TOKYO", radar: steady}
 arc: &arc {type: route, mode: great, style: solid, a: *lax, b: *nrt, from: 0.62, draw: 1.15}
 held: &held {type: route, mode: great, style: solid, a: *lax, b: *nrt, grow: false}
+glow: &glow {type: route, mode: great, style: solid, a: *lax, b: *nrt, grow: false, glow: true}
+plane: &plane {type: plane, a: *lax, b: *nrt, u0: 0.28, u1: 0.86, dur: 24.2}
 lines:
   - text: "Your flight from LA to Tokyo curves up toward Alaska."
     kind: q
@@ -41,7 +44,7 @@ lines:
     claim: "Your flight from LA to Tokyo curves up toward Alaska."
     sub: ""
     camera: *cam
-    visuals: [*lakes, *la, *tyo, *arc, *lie]
+    visuals: [*lakes, *la, *tyo, *arc, *plane, *lie]
 
   - text: "And that curve is about three hundred miles shorter."
     kind: s
@@ -54,7 +57,8 @@ lines:
       - *la
       - *tyo
       - *held
-      - {type: callout, text: "≈300 MI SHORTER", sub: "480 KM", x: 0.50, y: 0.38, pill: yellow, size: 58, at: 5.35}
+      - *plane
+      - {type: callout, text: "≈300 MI SHORTER", count: 300, sub: "480 KM", note: "(LAX-NRT)", x: 0.50, y: 0.36, pill: yellow, size: 54, at: 5.35}
 
   - text: "Why?"
     kind: s
@@ -62,7 +66,7 @@ lines:
     claim: "Why?"
     sub: ""
     camera: *cam
-    visuals: [*lakes, *la, *tyo, *held, *lie]
+    visuals: [*lakes, *la, *tyo, *held, *plane]
 
   - text: "Because your flat map is lying."
     kind: s
@@ -70,7 +74,7 @@ lines:
     claim: "Because your flat map is lying."
     sub: ""
     camera: *cam
-    visuals: [*lakes, *la, *tyo, *held, *lie]
+    visuals: [*lakes, *la, *tyo, *held, *plane, *lying]
 
   - text: "On a Mercator map, the straight line looks shortest."
     kind: s
@@ -83,6 +87,7 @@ lines:
       - *la
       - *tyo
       - {type: route, mode: rhumb, style: dashed, a: *lax, b: *nrt, draw: 0.85}
+      - *plane
 
   - text: "But Earth is a sphere, and the real shortest path is a great circle that bends north."
     kind: s
@@ -96,6 +101,7 @@ lines:
       - *tyo
       - {type: route, mode: rhumb, style: dashed, a: *lax, b: *nrt, grow: false}
       - {type: route, mode: morph, style: solid, a: *lax, b: *nrt, grow: false, bend_at: 18.80, bend_end: 19.75}
+      - *plane
 
   - text: "So next time your flight tracker curves north..."
     kind: s
@@ -103,7 +109,7 @@ lines:
     claim: "So next time your flight tracker curves north..."
     sub: ""
     camera: *back
-    visuals: [*lakes, *la, *tyo, *arc, *lie]
+    visuals: [*lakes, *la, *tyo, *glow, *plane]
 
   - text: "it's not a mistake."
     kind: p
@@ -111,4 +117,10 @@ lines:
     claim: "it's not a mistake."
     sub: ""
     camera: *back
-    visuals: [*lakes, *la, *tyo, *arc, *lie]
+    visuals:
+      - *lakes
+      - *la
+      - *tyo
+      - *glow
+      - *plane
+      - {type: callout, text: "NOT A MISTAKE", x: 0.50, y: 0.36, pill: red, size: 52, at: 23.05}

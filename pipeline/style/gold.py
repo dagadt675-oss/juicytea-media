@@ -358,22 +358,8 @@ def draw_stamp(canvas, x: float, y: float, local: float, s: float = 1.0, text: s
 
 
 def drift_field(frame: np.ndarray, t: float, xs, ys) -> None:
-    """Stars and slower clouds, both moving right. Ocean only; land covers them."""
+    """Stars moving right. One direction, no clouds."""
     h, w = frame.shape[:2]
-    # Clouds first, slower, so stars read as a nearer layer.
-    cloud = np.array([18, 24, 42], np.uint8)
-    for i in range(4):
-        cx = int((i * 280 + 40 + t * 10.0) % (w + 180) - 90)
-        cy = int((0.08 + 0.05 * (i % 3)) * h)
-        rr = 26 + 10 * (i % 3)
-        y0, y1 = max(0, cy - rr), min(h, cy + rr)
-        x0, x1 = max(0, cx - rr * 2), min(w, cx + rr * 2)
-        if y1 <= y0 or x1 <= x0:
-            continue
-        yy = np.arange(y0, y1)[:, None]
-        xx = np.arange(x0, x1)[None, :]
-        mask = ((xx - cx) / (rr * 2)) ** 2 + ((yy - cy) / rr) ** 2 <= 1.0
-        frame[y0:y1, x0:x1][mask] = cloud
     col = (110, 136, 168)
     shift = t * 26.0
     for x, y in zip(xs, ys):

@@ -20,9 +20,10 @@ class Camera:
     cut: bool = False
     fly: float | None = None
     push: float | None = None
+    creep: float = 0.0
 
     def copy(self) -> "Camera":
-        return Camera(self.proj, self.lon, self.lat, self.span, self.cut, self.fly, self.push)
+        return Camera(self.proj, self.lon, self.lat, self.span, self.cut, self.fly, self.push, self.creep)
 
 
 @dataclass
@@ -64,6 +65,7 @@ def _camera(raw: dict) -> Camera:
         cut=bool(raw.get("cut", False)),
         fly=float(raw["fly"]) if raw.get("fly") not in (None, "") else None,
         push=float(raw["push"]) if raw.get("push") not in (None, "") else None,
+        creep=float(raw.get("creep") or 0.0),
     )
 
 
