@@ -268,42 +268,72 @@ def draw_callout(safe: Safe, text: str, sub: str, x: float, y: float, pop: float
     if not text:
         return False
     pop = max(0.72, float(pop))
-    font = safe.font("bold", float(size) * pop)
-    sub_font = safe.font("bold", float(size) * 0.42 * pop)
-    width = font.measureText(text)
-    sub_w = sub_font.measureText(sub) if sub else 0.0
-    metrics = font.getMetrics()
-    sub_m = sub_font.getMetrics()
-    text_h = metrics.fDescent - metrics.fAscent
-    sub_h = (sub_m.fDescent - sub_m.fAscent) if sub else 0.0
-    gap = 8 * safe.s if sub else 0.0
-    pad_x = 26 * safe.s
-    pad_y = 16 * safe.s
-    bw = max(width, sub_w) + pad_x * 2
-    bh = text_h + sub_h + gap + pad_y * 2
+    avail_w = (safe.right - safe.left) - 8 * safe.s
+
+    def measure(scale: float):
+        font = safe.font("bold", float(size) * scale)
+        sub_font = safe.font("bold", float(size) * 0.42 * scale)
+        width = font.measureText(text)
+        sub_w = sub_font.measureText(sub) if sub else 0.0
+        metrics = font.getMetrics()
+        sub_m = sub_font.getMetrics()
+        text_h = metrics.fDescent - metrics.fAscent
+        sub_h = (sub_m.fDescent - sub_m.fAscent) if sub else 0.0
+        gap = 8 * safe.s if sub else 0.0
+        pad_x = 26 * safe.s
+        pad_y = 16 * safe.s
+        bw = max(width, sub_w) + pad_x * 2
+        bh = text_h + sub_h + gap + pad_y * 2
+        return font, sub_font, width, sub_w, metrics, sub_m, text_h, gap, pad_y, bw, bh
+
+    font, sub_font, width, sub_w, metrics, sub_m, text_h, gap, pad_y, bw, bh = measure(pop)
+    # The spring overshoots. Shrink once so the hero still fits the safe width
+    # instead of vanishing for the frame where it is largest.
+    if bw > avail_w and bw > 0:
+        pop *= avail_w / bw
+        font, sub_font, width, sub_w, metrics, sub_m, text_h, gap, pad_y, bw, bh = measure(pop)
     paper, ink = PILLS.get(style, PILLS["yellow"])
-    offsets = ((0, 0), (0, -0.55), (0, 0.45), (0, -1.05), (0, 0.9))
-    for ox, oy in offsets:
-        left = x - bw / 2 + ox * bw * 0.15
-        top = y - bh / 2 + oy * bh * 0.28
-        rect = skia.Rect.MakeLTRB(left, top, left + bw, top + bh)
-        if safe.hits(rect):
-            continue
-        fill = skia.Paint(AntiAlias=True)
-        fill.setColor(skia.ColorSetARGB(255, int(paper[0]), int(paper[1]), int(paper[2])))
-        safe.canvas.drawRRect(skia.RRect.MakeRectXY(rect, min(bh / 2, 36 * safe.s), min(bh / 2, 36 * safe.s)), fill)
-        paint = skia.Paint(AntiAlias=True)
-        paint.setColor(skia.ColorSetARGB(255, int(ink[0]), int(ink[1]), int(ink[2])))
-        baseline = top + pad_y - metrics.fAscent
-        safe.canvas.drawString(text, left + (bw - width) / 2, baseline, font, paint)
-        if sub:
-            sub_base = baseline + metrics.fDescent + gap - sub_m.fAscent
-            sub_paint = skia.Paint(AntiAlias=True)
-            sub_paint.setColor(skia.ColorSetARGB(220, int(ink[0]), int(ink[1]), int(ink[2])))
-            safe.canvas.drawString(sub, left + (bw - sub_w) / 2, sub_base, sub_font, sub_paint)
-        safe.block(rect)
-        return True
-    return False
+    left = x - bw / 2
+    top = y - bh / 2
+    if left < safe.left:
+        left = safe.left
+    if left + bw > safe.right:
+        left = safe.right - bw
+    rect = skia.Rect.MakeLTRB(left, top, left + bw, top + bh)
+    for _ in range(8):
+        if not safe.hits(rect):
+            break
+        nudge = None
+        for other in safe.blockers:
+            if rect.right() < other.left() or rect.left() > other.right():
+                continue
+            if rect.bottom() < other.top() or rect.top() > other.bottom():
+                continue
+            nudge = other.bottom() - rect.top() + 6 * safe.s
+            break
+        if nudge is None:
+            return False
+        rect.offset(0, nudge)
+        if rect.bottom() > safe.bottom:
+            return False
+    else:
+        return False
+    left = rect.left()
+    top = rect.top()
+    fill = skia.Paint(AntiAlias=True)
+    fill.setColor(skia.ColorSetARGB(255, int(paper[0]), int(paper[1]), int(paper[2])))
+    safe.canvas.drawRRect(skia.RRect.MakeRectXY(rect, min(bh / 2, 36 * safe.s), min(bh / 2, 36 * safe.s)), fill)
+    paint = skia.Paint(AntiAlias=True)
+    paint.setColor(skia.ColorSetARGB(255, int(ink[0]), int(ink[1]), int(ink[2])))
+    baseline = top + pad_y - metrics.fAscent
+    safe.canvas.drawString(text, left + (bw - width) / 2, baseline, font, paint)
+    if sub:
+        sub_base = baseline + metrics.fDescent + gap - sub_m.fAscent
+        sub_paint = skia.Paint(AntiAlias=True)
+        sub_paint.setColor(skia.ColorSetARGB(220, int(ink[0]), int(ink[1]), int(ink[2])))
+        safe.canvas.drawString(sub, left + (bw - sub_w) / 2, sub_base, sub_font, sub_paint)
+    safe.block(rect)
+    return True
 
 
 def _vis_rgb(vis, default):

@@ -14,6 +14,6 @@ Outputs:
 - `timeline.json` — eight beats with `start`, `end`, `say`, and `on_screen`
 - `qc.txt` — resolution, the 24.2 s clock, and a check that y 0.64–0.72 has no text pixels
 
-The miles pill springs in at 4.72 s, so it is up when the read says "three hundred miles" (about 4.9 s). The solid path bends from 18.55 s to 19.45 s, centered on "bends north" (about 19 s). Frame 0 already shows the curved arc and the pill `YOUR MAP IS LYING`. The last encoded frame is a byte copy of frame 0.
+In `words.json`, "three" starts at 5.488 s and "miles" ends at 6.277 s. The miles pill springs in at 5.35 s so it is up on that phrase. "bends" is 19.114–19.346 s and "north" is 19.415–19.903 s. The solid path lifts from 18.80 s to 19.75 s. Frame 0 already shows the curved arc and the pill `YOUR MAP IS LYING`. The last encoded frame is a byte copy of frame 0.
 
 The spoken lines say the flight curves toward Alaska, and that the shortest path is a great circle that bends north. They do not say the flight flies over Alaska or that it flies exactly the great circle.

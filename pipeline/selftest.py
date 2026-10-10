@@ -111,12 +111,14 @@ def main() -> int:
     morph = next(v for v in reveal.visuals if v.get("mode") == "morph")
     ok &= check("arc lifts off the rhumb", modes == ["rhumb", "morph"], str(modes))
     ok &= check(
-        "bend covers 19s",
-        float(morph["bend_at"]) <= 19.0 <= float(morph["bend_end"]),
+        "bend covers bends-north",
+        float(morph["bend_at"]) <= 19.114 <= float(morph["bend_end"])
+        and float(morph["bend_at"]) <= 19.415 <= float(morph["bend_end"]),
         f"{morph['bend_at']}–{morph['bend_end']}",
     )
     payoff = next(v for v in route.lines[1].visuals if v.get("type") == "callout")
-    ok &= check("pill lands on the miles", 4.6 <= float(payoff["at"]) <= 5.0, str(payoff["at"]))
+    # "three" starts at 5.488 in words.json. The spring begins just before that.
+    ok &= check("pill lands on the miles", 5.20 <= float(payoff["at"]) <= 5.488, str(payoff["at"]))
     ok &= check("opening arc is already drawing", float(route.lines[0].visuals[-2].get("from", 0)) >= 0.4)
     turns = direction_changes(route, clock, 1080, 1920)
     ok &= check("no camera sway", turns == 0, str(turns))
