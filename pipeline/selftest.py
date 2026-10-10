@@ -79,15 +79,37 @@ def main() -> int:
 
     route = load_spec(Path(__file__).resolve().parent / "specs" / "lax_tokyo.yaml")
     clock = silent_timeline(route)
-    ok &= check("eight silent beats", len(clock["beats"]) == 8 and clock["words"] == [], str(len(clock["beats"])))
-    ok &= check("silent length", abs(clock["duration"] - 24.5) < 0.02, str(clock["duration"]))
+    ok &= check("six silent beats", len(clock["beats"]) == 6 and clock["words"] == [], str(len(clock["beats"])))
     joined = " ".join(ln["say"] for ln in clock["beats"])
+    low = joined.lower()
     ok &= check(
-        "script kept",
-        joined.startswith("Why does your flight from LA to Tokyo") and "hundreds of kilometers" in joined
-        and "over Alaska" not in joined,
-        joined[:80],
+        "us script",
+        joined.startswith("Your flight from LA to Tokyo curves up toward Alaska.")
+        and "three hundred miles shorter" in low
+        and "great circle that bends north" in low
+        and "it's not a mistake" in low
+        and "over alaska" not in low
+        and "exactly the great circle" not in low
+        and "hundreds of kilometers" not in low,
+        joined[:90],
     )
+    pills = []
+    for ln in route.lines:
+        for vis in ln.visuals:
+            if vis.get("type") in ("tag", "callout"):
+                pills.append(f"{vis.get('text', '')} {vis.get('sub', '')}".strip())
+    blob = " | ".join(pills)
+    ok &= check("lie pill", "YOUR MAP IS LYING" in blob, blob)
+    ok &= check("payoff pill", "≈300 MI SHORTER" in blob and "480 KM" in blob, blob)
+    ok &= check("no alaska overclaim", "OVER ALASKA" not in blob.upper() and "TOWARD ALASKA" not in blob.upper(), blob)
+    reveal = route.lines[4].visuals
+    modes = [v.get("mode") for v in reveal if v.get("type") == "route"]
+    ok &= check(
+        "arc lifts off the rhumb",
+        modes == ["rhumb", "morph"] and any(v.get("clock") == "local" for v in reveal),
+        str(modes),
+    )
+    ok &= check("opening arc is already drawing", float(route.lines[0].visuals[-2].get("from", 0)) >= 0.4)
     turns = direction_changes(route, clock, 1080, 1920)
     ok &= check("no camera sway", turns == 0, str(turns))
     alaska_clock = {"duration": 2.0 * len(spec.lines), "words": [],
