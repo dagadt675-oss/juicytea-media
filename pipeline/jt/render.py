@@ -311,7 +311,8 @@ def render_video(studio: Studio, path: Path, crf: int = 20) -> dict:
         "-c:v", "libx264", "-pix_fmt", "yuv420p", "-profile:v", "high",
         "-crf", str(crf), "-preset", "veryfast",
         "-g", "60", "-bf", "2",
-        "-force_key_frames", f"expr:eq(n\\,0)+eq(n\\,{n - 1})",
+        # Commas stay bare: this is an argv option, not a filtergraph.
+        "-force_key_frames", f"expr:eq(n,0)+eq(n,{n - 1})",
         "-color_primaries", "bt709", "-color_trc", "bt709",
         "-colorspace", "bt709", "-color_range", "tv",
         "-movflags", "+faststart",
@@ -348,7 +349,10 @@ def render_video(studio: Studio, path: Path, crf: int = 20) -> dict:
             prev = _down(img)
             if i in contact_at:
                 contact.append((i / FPS, img))
-            proc.stdin.write(img.tobytes())
+            try:
+                proc.stdin.write(img.tobytes())
+            except BrokenPipeError:
+                break
             if i % 30 == 0:
                 print(f"frame {i}/{n}", flush=True)
     finally:

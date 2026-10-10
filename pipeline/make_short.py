@@ -65,13 +65,21 @@ def build(spec_path: Path, out: Path, preset: str, hero: bool) -> int:
 
     norm = out / "norm.wav"
     tp_target = -1.5
+    linear = True
+    measured = {"lufs": -99.0, "tp": 0.0}
     for attempt in range(3):
-        loudnorm_two_pass(out / "mix.wav", norm, tp=tp_target)
+        loudnorm_two_pass(out / "mix.wav", norm, tp=tp_target, linear=linear)
         measured = measure_wav(norm)
-        print(f"loudnorm attempt {attempt + 1}: {measured}", flush=True)
-        if measured["tp"] <= -1.4 and abs(measured["lufs"] + 14) <= 1.2:
+        print(f"loudnorm attempt {attempt + 1}: {measured} linear={linear}", flush=True)
+        if measured["tp"] <= -1.4 and abs(measured["lufs"] + 14) <= 1.0:
             break
-        tp_target -= 0.6
+        # A quiet result means the peaks blocked a linear gain. Switch to the
+        # dynamic pass instead of lowering the ceiling further.
+        if measured["lufs"] < -15.0:
+            linear = False
+            tp_target = -1.5
+        elif measured["tp"] > -1.4:
+            tp_target -= 0.4
     mix_report["wav_lufs"] = measured["lufs"]
     mix_report["wav_tp"] = measured["tp"]
 

@@ -173,7 +173,8 @@ def _whoosh(rng) -> np.ndarray:
     b, a = butter(2, [0.04, 0.28], btype="band")
     y = lfilter(b, a, noise).astype(np.float32)
     t = np.linspace(0, 1, n, dtype=np.float32)
-    env = np.sin(np.pi * t) ** 1.4
+    # abs: sin(pi) can be a hair negative, and a fractional power of that is NaN.
+    env = np.abs(np.sin(np.pi * t)) ** 1.4
     return y * env
 
 
@@ -271,6 +272,8 @@ def mix(spec, voice: np.ndarray, timeline: dict) -> tuple[np.ndarray, dict]:
     duck = 1.0 / (1.0 + 6.0 * (env / voice_peak))
     sfx_l *= duck.astype(np.float32)
     sfx_peak = float(np.max(np.abs(sfx_l))) + 1e-9
+    if not np.isfinite(sfx_peak):
+        raise RuntimeError("SFX bus is not finite")
     target = voice_peak * 10 ** (-12.0 / 20.0)
     sfx_l *= target / sfx_peak
 
@@ -319,15 +322,17 @@ def math_log10(x: float) -> float:
     return float(np.log10(max(x, 1e-12)))
 
 
-def loudnorm_two_pass(src: Path, dst: Path, tp: float = -1.5) -> dict:
+def loudnorm_two_pass(src: Path, dst: Path, tp: float = -1.5, linear: bool = True) -> dict:
     probe = _ffmpeg([
         "ffmpeg", "-hide_banner", "-i", str(src),
         "-af", f"loudnorm=I=-14:TP={tp}:LRA=11:print_format=json",
         "-f", "null", "-",
     ])
     measured = _parse_loudnorm_json(probe)
+    # linear=true cannot lift a peaky file up to -14 without crossing the peak
+    # ceiling. linear=false is the dynamic pass for that case.
     af = (
-        f"loudnorm=I=-14:TP={tp}:LRA=11:linear=true:"
+        f"loudnorm=I=-14:TP={tp}:LRA=11:linear={'true' if linear else 'false'}:"
         f"measured_I={measured['input_i']}:measured_TP={measured['input_tp']}:"
         f"measured_LRA={measured['input_lra']}:measured_thresh={measured['input_thresh']}:"
         f"offset={measured['target_offset']}"
