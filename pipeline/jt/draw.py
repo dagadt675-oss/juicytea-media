@@ -242,7 +242,7 @@ def _live_pop(vis, t: float, local: float):
     return pop
 
 
-def _badge(safe: Safe, text: str, x: float, y: float, theme, pop: float = 1.0, style: str = "white", size: float = 40, min_pop: float = 0.55) -> bool:
+def _badge(safe: Safe, text: str, x: float, y: float, theme, pop: float = 1.0, style: str = "white", size: float = 40, min_pop: float = 0.55, tight: bool = False) -> bool:
     """Rounded pill. Nudges off the title and the caption band, or skips."""
     if not text:
         return False
@@ -256,9 +256,13 @@ def _badge(safe: Safe, text: str, x: float, y: float, theme, pop: float = 1.0, s
     bw = width + pad_x * 2
     bh = text_h + pad_y * 2
     paper, ink = PILLS.get(style, PILLS["white"])
-    offsets = ((0, -1.2), (0, 0.7), (1.05, -0.35), (-1.05, -0.35), (0, -2.0), (0, 1.5))
+    # tight keeps a city name on its pin. The wide search was parking TOKYO up on the arc.
+    offsets = ((0, 0), (0.55, 0), (-0.35, 0), (0.9, 0)) if tight else (
+        (0, -1.2), (0, 0.7), (1.05, -0.35), (-1.05, -0.35), (0, -2.0), (0, 1.5)
+    )
+    scatter = 0.28 if tight else 0.45
     for ox, oy in offsets:
-        left = x - bw / 2 + ox * bw * 0.45
+        left = x - bw / 2 + ox * bw * scatter
         top = y - bh / 2 + oy * bh
         rect = skia.Rect.MakeLTRB(left, top, left + bw, top + bh)
         if safe.hits(rect):
@@ -432,8 +436,10 @@ def _flat_ring(lon, lat, view):
         lon_u = _unwrap_lons(lon, view.lon)
         x0, y0, x1, y1 = view.rect
         scale = (x1 - x0) / max(view.span, 1.0)
-        lat_c = np.clip(lat, -80, 80)
-        lat0 = float(np.clip(view.lat, -80, 80))
+        # 80°N piled every Arctic island onto one parallel, a straight cut
+        # across the top of the frame. 89° is off screen, so the real coast shows.
+        lat_c = np.clip(lat, -89, 89)
+        lat0 = float(np.clip(view.lat, -89, 89))
         merc = np.degrees(np.log(np.tan(np.pi / 4.0 + np.radians(lat_c) / 2.0)))
         merc0 = math.degrees(math.log(math.tan(math.pi / 4.0 + math.radians(lat0) / 2.0)))
         x = view.cx + (lon_u - view.lon) * scale
@@ -739,7 +745,7 @@ def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t, pop: float 
         canvas.drawCircle(x, y, 6.6 * safe.s, fill)
         canvas.drawCircle(x, y, 11 * safe.s, _stroke((255, 176, 188), 2.0 * safe.s, 80))
         if label:
-            _badge(safe, str(label), x, y - 36 * safe.s, theme, 1.0, pill)
+            _badge(safe, str(label), x, y - 20 * safe.s, theme, 1.0, pill, tight=True)
         return
     if radar == "none":
         if label and not safe.point_blocked(x, y):
@@ -771,43 +777,101 @@ def draw_marker(canvas, safe: Safe, view, theme, lat, lon, label, t, pop: float 
 
 
 def draw_flight(canvas, safe: Safe, view, vis, t: float):
-    """A plane that only flies forward along the great circle. It skips the caption band."""
+    """A plane on the line that is actually drawn. It only flies forward."""
     a = vis.get("a") or [0, 0]
     b = vis.get("b") or [0, 0]
+    lat1, lon1, lat2, lon2 = float(a[0]), float(a[1]), float(b[0]), float(b[1])
     dur = float(vis.get("dur") or 24.2)
     u0 = float(vis.get("u0", 0.28))
     u1 = float(vis.get("u1", 0.86))
     u = u0 + (u1 - u0) * min(1.0, max(0.0, t / dur))
-    pts = route_lonlat("great", float(a[0]), float(a[1]), float(b[0]), float(b[1]), 80)
+    straight_from = float(vis.get("straight_from", 10.81))
+    straight_until = float(vis.get("straight_until", 18.80))
+    bend_end = float(vis.get("bend_end", 19.75))
+    if straight_from <= t < straight_until:
+        pts = route_lonlat("rhumb", lat1, lon1, lat2, lon2, 120)
+    elif straight_until <= t <= bend_end:
+        span = max(1e-3, bend_end - straight_until)
+        bend = ease_in_out(min(1.0, (t - straight_until) / span))
+        pts = route_blend(lat1, lon1, lat2, lon2, bend, 120)
+    else:
+        pts = route_lonlat("great", lat1, lon1, lat2, lon2, 120)
     idx = min(len(pts) - 2, max(0, int(u * (len(pts) - 1))))
+    # Step back along the line if this spot would sit on a city label.
+    for _ in range(10):
+        lon, lat = pts[idx]
+        hit = project_one(lon, lat, view)
+        if hit is None:
+            return
+        x, y = hit
+        crowded = False
+        for clat, clon in ((lat1, lon1), (lat2, lon2)):
+            pin = project_one(clon, clat, view)
+            if pin is not None and math.hypot(x - pin[0], y - (pin[1] - 20 * safe.s)) < 78 * safe.s:
+                crowded = True
+                break
+        if not crowded or idx <= 1:
+            break
+        idx -= 1
     lon, lat = pts[idx]
     hit = project_one(lon, lat, view)
     if hit is None:
         return
     x, y = hit
     band0, band1 = 0.64 * safe.h, 0.72 * safe.h
-    if band0 - 18 <= y <= band1 + 18:
+    if band0 - 36 <= y <= band1 + 36:
         return
-    nxt = pts[idx + 1]
+    nxt = pts[min(len(pts) - 1, idx + 1)]
     hit2 = project_one(nxt[0], nxt[1], view)
     ang = 0.0
     if hit2 is not None:
         ang = math.degrees(math.atan2(hit2[1] - y, hit2[0] - x))
+    s = 2.8 * safe.s
     canvas.save()
     canvas.translate(x, y)
     canvas.rotate(ang)
-    glow = skia.Paint(AntiAlias=True)
-    glow.setColor(skia.ColorSetARGB(90, 255, 80, 110))
-    canvas.drawCircle(0, 0, 16 * safe.s, glow)
-    body = skia.Path()
-    body.moveTo(16 * safe.s, 0)
-    body.lineTo(-11 * safe.s, 7 * safe.s)
-    body.lineTo(-5 * safe.s, 0)
-    body.lineTo(-11 * safe.s, -7 * safe.s)
-    body.close()
+    halo = skia.Paint(AntiAlias=True)
+    halo.setColor(skia.ColorSetARGB(55, 255, 60, 90))
+    canvas.drawCircle(-2 * s, 0, 16 * s, halo)
     fill = skia.Paint(AntiAlias=True)
     fill.setColor(skia.ColorSetARGB(255, 255, 248, 250))
-    canvas.drawPath(body, fill)
+    edge = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style)
+    edge.setStrokeWidth(1.3 * safe.s)
+    edge.setColor(skia.ColorSetARGB(240, 232, 34, 71))
+    # Separate shapes so the wings don't fold into a star.
+    fuse = skia.Path()
+    fuse.moveTo(16 * s, 0)
+    fuse.lineTo(-12 * s, 2.4 * s)
+    fuse.lineTo(-14 * s, 0)
+    fuse.lineTo(-12 * s, -2.4 * s)
+    fuse.close()
+    wing = skia.Path()
+    wing.moveTo(2 * s, 1.1 * s)
+    wing.lineTo(-4 * s, 12 * s)
+    wing.lineTo(-7 * s, 11 * s)
+    wing.lineTo(-3 * s, 1.1 * s)
+    wing.close()
+    wing2 = skia.Path()
+    wing2.moveTo(2 * s, -1.1 * s)
+    wing2.lineTo(-4 * s, -12 * s)
+    wing2.lineTo(-7 * s, -11 * s)
+    wing2.lineTo(-3 * s, -1.1 * s)
+    wing2.close()
+    tail = skia.Path()
+    tail.moveTo(-9 * s, 1.2 * s)
+    tail.lineTo(-13 * s, 5.2 * s)
+    tail.lineTo(-15 * s, 4.4 * s)
+    tail.lineTo(-12 * s, 0.6 * s)
+    tail.close()
+    tail2 = skia.Path()
+    tail2.moveTo(-9 * s, -1.2 * s)
+    tail2.lineTo(-13 * s, -5.2 * s)
+    tail2.lineTo(-15 * s, -4.4 * s)
+    tail2.lineTo(-12 * s, -0.6 * s)
+    tail2.close()
+    for part in (wing, wing2, tail, tail2, fuse):
+        canvas.drawPath(part, fill)
+        canvas.drawPath(part, edge)
     canvas.restore()
 
 
@@ -1205,6 +1269,20 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
         safe.block(claim_rect)
     # A top pill sits in the title band, above the map labels, and paints over the route.
     for vis in visuals:
+        if vis.get("type") == "callout" and str(vis.get("band") or "") == "top":
+            age = local if vis.get("at") in (None, "") else t - float(vis["at"])
+            if age < 0:
+                continue
+            draw_callout(
+                safe, str(vis.get("text", "")), str(vis.get("sub", "")),
+                safe.w * float(vis.get("x", 0.50)),
+                safe.h * float(vis.get("y", 0.26)),
+                pop_scale(age, True),
+                str(vis.get("pill") or "red"),
+                size=float(vis.get("size", 48)),
+                note=str(vis.get("note") or ""),
+            )
+            continue
         if vis.get("type") == "tag" and str(vis.get("band") or "") == "top":
             pop = _live_pop(vis, t, local)
             if pop is None:
@@ -1251,6 +1329,8 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
                    size=float(vis.get("size", 40)),
                    min_pop=0.12)
         elif kind == "callout":
+            if str(vis.get("band") or "") == "top":
+                continue
             # `at` is the absolute time the pill springs in, so it can land on a word
             # inside the beat instead of on the sentence start.
             age = local if vis.get("at") in (None, "") else t - float(vis["at"])
@@ -1259,7 +1339,7 @@ def overlay(canvas, safe: Safe, earth, view, visuals, claim, sub, words, groups,
             label = str(vis.get("text", ""))
             if vis.get("count") not in (None, ""):
                 goal = int(vis["count"])
-                shown = int(round(goal * ease_out(min(1.0, max(0.0, age) / 0.45))))
+                shown = int(round(goal * ease_out(min(1.0, max(0.0, age) / 0.09))))
                 label = f"≈{shown} MI SHORTER"
             cx = safe.w * float(vis.get("x", 0.50))
             cy = safe.h * float(vis.get("y", 0.42))
