@@ -18,6 +18,7 @@ if str(ROOT) not in sys.path:
 
 from engine.effects import apply  # noqa: E402
 from engine.meshkit import set_linear_keys  # noqa: E402
+from engine.pov import apply_pov, attach_pov  # noqa: E402
 from engine.scenes import build_scene  # noqa: E402
 from engine.spec import CHANNELS, DEFAULTS, channels_at  # noqa: E402
 
@@ -120,8 +121,9 @@ def _camera(scene, resolved):
     target = cam_spec.get("target") or [2.2, 1.4, 2.4]
     obj.location = loc
     _look_at(obj, target)
-    obj.lock_location = (True, True, True)
-    obj.lock_rotation = (True, True, True)
+    locked = (cam_spec.get("mode") or "locked") != "pov"
+    obj.lock_location = (locked, locked, locked)
+    obj.lock_rotation = (locked, locked, locked)
     scene.camera = obj
     return obj
 
@@ -171,6 +173,7 @@ def _on_frame(scene, *args):
         return
     ch = channels_at(RESOLVED, scene.frame_current)
     apply(KIT, ch, scene.frame_current, RESOLVED["fps"])
+    apply_pov(scene, KIT, RESOLVED, scene.frame_current)
 
 
 def main():
@@ -189,6 +192,9 @@ def main():
     print("objects", len(KIT.items), "kind", KIT.kind)
     _key_channels(scene, RESOLVED)
     _camera(scene, RESOLVED)
+    skin = KIT.mats.get("trim") or KIT.mats.get("car")
+    if skin is not None:
+        attach_pov(scene, KIT, RESOLVED, skin)
     _render_settings(scene, RESOLVED, opts["samples"], opts["scale"])
     bpy.app.handlers.frame_change_post.append(_on_frame)
     frames = _parse_frames(opts["frames"], RESOLVED["frame_count"])

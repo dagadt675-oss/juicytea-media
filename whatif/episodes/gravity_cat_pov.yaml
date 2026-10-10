@@ -1,0 +1,60 @@
+# ROADMAP. Not built. Format C, first-person variant of gravity off.
+# One unbroken POV path, cylinder arms, grab keys. The picnic park and the
+# cat rig (idle / float / held) are still to be made, self-built or CC0.
+# Do not render this as a short until that set exists.
+id: gravity_cat_pov
+title: "Wait… why is your cat floating?"
+status: roadmap
+format: C
+fps: 30
+width: 1080
+height: 1920
+population: 0
+mascot: false
+scene:
+  name: city_park
+  pieces: []
+  seed: 1
+camera:
+  mode: pov
+  lens: 22
+  sensor_fit: VERTICAL
+  sensor_height: 24
+  grabs:
+    bench: [1.2, 2.0, 0.5]
+    can: [-0.8, 3.5, 1.2]
+    pole: [0.4, 6.0, 3.0]
+    cat: [0.2, 4.5, 2.4]
+  path:
+    - {t: 0.0, location: [0.0, -1.2, 1.55], target: [0.2, 3.0, 1.2]}
+    - {t: 2.0, location: [0.0, -0.6, 1.6], target: [0.2, 3.5, 1.8], grab: bench}
+    - {t: 6.0, location: [0.6, 1.5, 2.2], target: [-0.4, 3.5, 1.6], grab: can}
+    - {t: 12.0, location: [0.3, 4.0, 2.8], target: [0.4, 6.0, 3.2], grab: pole}
+    - {t: 18.0, location: [0.2, 3.6, 2.6], target: [0.2, 4.5, 2.4], grab: cat}
+    - {t: 24.0, location: [0.2, 2.0, 1.5], target: [0.2, 3.0, 0.4], grab: cat}
+beats:
+  - id: hook
+    title: true
+    seconds: 2.0
+    time_label: "0 g"
+    narration: "Wait. Why is your cat floating?"
+    channels:
+      gravity_off: 0.15
+  - id: rise
+    preset: gravity_off
+    seconds: 12.0
+    time_label: "5"
+    narration: "Grab something. Push. Reach."
+  - id: safe
+    seconds: 8.0
+    time_label: "0"
+    narration: "Got you."
+    channels:
+      gravity_off: 0.0
+      critical: 0.1
+  - id: return
+    title: true
+    reset: true
+    seconds: 6.0
+    time_label: "0 g"
+    narration: "Your cat is on the blanket again."

@@ -35,6 +35,10 @@ The HUD shows gravity in m/s², speed, a 180 lb person's weight, time left, and 
 
 A small figure with a red sign is placed off to the side of each scene unless the spec sets `mascot: false`. It is an Easter egg, not a character in the story.
 
+A spec chooses the camera with `camera.mode`. `locked` is the wide shot used by episode 1 and the avenue. `pov` is one unbroken first-person path: keys of time, location, look target, and a `grab` name. Cylinder arms on the camera reach toward those grab points. That aim is the stand-in for IK. Second-person lines ("Grab something.") stay in the beat narration until a POV episode is actually cut. They are not burned into episode 1.
+
+Not built yet, on purpose: a city-park picnic set (blanket, bench, trash can, flagpole) and a cartoon cat rig with idle, float, and held poses. Those are self-built or CC0 when a POV short is scheduled. `episodes/gravity_cat_pov.yaml` only records the path. Do not treat it as a renderable film.
+
 Earth stopped spinning uses the avenue, not the slate's orbital globe. The count returns and the street is intact, so the shot can loop. Gravity switched off is the same avenue and the `gravity_off` preset.
 
 ## What a spec can already draw
