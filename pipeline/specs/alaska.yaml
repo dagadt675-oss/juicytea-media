@@ -1,0 +1,120 @@
+# Test fixture only. Proves the generic renderer end to end.
+# The other six legacy map topics were dropped; new topics will be
+# written later and should be more dramatic than a geography quiz.
+id: alaska
+title: "Which US State Is Farthest EAST? (Not Maine)"
+theme: midnight
+notes: "Renderer test only. espeak is not a shippable voice. By longitude, not the everyday Maine answer."
+voice:
+  # espeak is a pipeline check. A shippable Short uses engine: takes
+  # with an ElevenLabs wav and word JSON. See pipeline/README.md.
+  engine: espeak
+  voice: en-us
+  rate: 136
+  lead_in: 0.12
+  tail: 0.16
+tags: ["#shorts", "#geography", "#maps", "#alaska", "#usa"]
+sources:
+  - "alaska.gov: Geography of Alaska"
+  - "USGS: extreme points; Pochnoi Point, Semisopochnoi Island"
+  - "NASA Earth Observatory: Semisopochnoi Island"
+  - "Wikipedia: Geography of Alaska; West Quoddy Head (Maine marker)"
+description: |
+  Which US State Is Farthest EAST? (Not Maine)
+
+  Alaska's Aleutian Islands cross the 180th meridian. By longitude, Pochnoi Point on Semisopochnoi Island (179°46′E) is the easternmost point in the US, while Amatignak Island (179°06′W) is the westernmost by that measure. So Alaska is both, and it is the only US state in the Eastern Hemisphere.
+
+  ⚠️ NOT SHIPPABLE. This file is a renderer test. The picture is a flat map from Natural Earth public-domain data. The voice is espeak-ng because no ElevenLabs recording was supplied. Do not publish this audio. A shippable Short swaps in per-line wavs and word timings (see the voice.takes block in pipeline/README.md). Facts were checked against the sources below.
+
+  Sources:
+  - alaska.gov: Geography of Alaska
+  - USGS: Distances from extreme points to geographic centers
+  - NASA Earth Observatory: Semisopochnoi Island
+  - Wikipedia: Geography of Alaska; West Quoddy Head Light
+
+  #shorts #geography #maps #alaska #usa
+lines:
+  - text: "Which US state is farthest EAST?"
+    kind: q
+    gap: 0.30
+    claim: "Which US state is\nfarthest *EAST?*"
+    sub: "Hint: it's not where you think"
+    camera: {proj: ortho, lon: -98, lat: 43, span: 70}
+    visuals:
+      - {type: highlight, countries: [USA]}
+
+  - text: "MAINE? Not by longitude."
+    kind: s
+    gap: 0.42
+    claim: "*MAINE?*\nNot by longitude"
+    sub: "The textbook answer"
+    camera: {proj: ortho, lon: -68.5, lat: 45.2, span: 16}
+    visuals:
+      - {type: highlight, countries: [USA]}
+      - {type: marker, lat: 44.815, lon: -66.951, label: "MAINE"}
+
+  - text: "By longitude, it's ALASKA."
+    kind: s
+    gap: 0.24
+    claim: "By longitude:\n*ALASKA*"
+    sub: "Yes, really"
+    camera: {proj: ortho, lon: -152, lat: 63, span: 28}
+    visuals:
+      - {type: highlight, countries: [USA]}
+
+  - text: "The Aleutian Islands cross the 180th MERIDIAN."
+    kind: s
+    gap: 0.36
+    claim: "The Aleutians cross\nthe *180°* line"
+    sub: "Halfway around the world"
+    camera: {proj: ortho, lon: 178, lat: 52.2, span: 18}
+    visuals:
+      - {type: highlight, countries: [USA]}
+      - {type: lonline, lon: 180, label: "180°"}
+
+  - text: "Cross it, and west turns into EAST."
+    kind: s
+    gap: 0.21
+    claim: "West turns\ninto *EAST*"
+    sub: "Cross 180° and the sign flips"
+    camera: {proj: ortho, lon: 180, lat: 52.3, span: 9}
+    visuals:
+      - {type: highlight, countries: [USA]}
+      - {type: lonline, lon: 180, label: "180°"}
+
+  - text: "So Alaska is the WESTERNMOST state."
+    kind: s
+    gap: 0.44
+    claim: "Alaska is the\n*WESTERNMOST* state"
+    sub: "Amatignak · 179°06′W"
+    camera: {proj: ortho, lon: -179.1, lat: 51.3, span: 8}
+    visuals:
+      - {type: highlight, countries: [USA]}
+      - {type: marker, lat: 51.262, lon: -179.109, label: "AMATIGNAK"}
+
+  - text: "AND the easternmost one."
+    kind: s
+    gap: 0.57
+    claim: "AND the\n*EASTERNMOST*"
+    sub: "Pochnoi Point · 179°46′E"
+    camera: {proj: ortho, lon: 179.6, lat: 51.95, span: 8}
+    visuals:
+      - {type: highlight, countries: [USA]}
+      - {type: marker, lat: 51.959, lon: 179.771, label: "POCHNOI"}
+
+  - text: "The only state in the EASTERN Hemisphere."
+    kind: p
+    gap: 0.27
+    claim: "The only state in the\n*EASTERN* Hemisphere"
+    sub: "Thanks to the Aleutians"
+    camera: {proj: ortho, lon: 175, lat: 54, span: 26}
+    visuals:
+      - {type: highlight, countries: [USA]}
+
+  - text: "Which state is farthest EAST?"
+    kind: q
+    claim: "Which US state is\nfarthest *EAST?*"
+    sub: "Hint: it's not where you think"
+    camera: {proj: ortho, lon: -98, lat: 43, span: 70}
+    visuals:
+      - {type: highlight, countries: [USA]}

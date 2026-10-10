@@ -1,0 +1,7 @@
+numpy
+scipy
+PyYAML
+soundfile
+pyshp
+pillow
+skia-python
