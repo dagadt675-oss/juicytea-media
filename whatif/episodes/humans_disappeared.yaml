@@ -13,12 +13,13 @@ scene:
   seed: 11
 format: A
 camera:
-  # Wide locked view: skyline band, river, bridge from the bottom center, park on the left.
-  location: [0.0, -26.0, 14.0]
-  target: [1.5, 8.0, -1.0]
-  lens: 18
-  sensor_fit: VERTICAL
-  sensor_height: 24
+  # Drone, about 72 m up. Wide enough that the top fifth of the frame is open sky.
+  location: [-32.0, -24.0, 70.0]
+  target: [22.0, 155.0, 8.0]
+  lens: 34
+  sensor_fit: HORIZONTAL
+  sensor_width: 36
+  clip_end: 2500
 ui:
   counter_y: 0.445
 beats:

@@ -112,8 +112,10 @@ def _camera(scene, resolved):
     data.lens = float(cam_spec.get("lens", 40))
     data.sensor_fit = cam_spec.get("sensor_fit", "VERTICAL")
     data.sensor_height = float(cam_spec.get("sensor_height", 24))
-    data.clip_start = 0.1
-    data.clip_end = 400.0
+    if cam_spec.get("sensor_width"):
+        data.sensor_width = float(cam_spec["sensor_width"])
+    data.clip_start = 0.5
+    data.clip_end = float(cam_spec.get("clip_end", 4000.0))
     data.dof.use_dof = False
     obj = bpy.data.objects.new("Camera", data)
     scene.collection.objects.link(obj)

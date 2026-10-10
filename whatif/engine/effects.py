@@ -30,7 +30,7 @@ def water_surface(ch, kind):
 
 def _sink(item, ch, loc):
     if item.extra.get("sink"):
-        loc.z -= ch["geology"] * 28.0
+        loc.z -= ch["geology"] * 180.0
     return loc
 
 
@@ -286,20 +286,20 @@ def _bridge(kit, ch):
         loc.z -= droop
         rot = _euler(item.base_rot)
         if i in (1, 2):
-            u = smoother(0.62 + (i - 1) * 0.04, 0.82 + (i - 1) * 0.03, ch["collapse"])
-            rot.x += u * (1.15 if i == 1 else -1.2)
-            loc.z -= u * 3.4
-            item.obj.hide_render = u > 0.94
+            # The span between the towers drops into the river and stays visible as wreckage.
+            u = smoother(0.62 + (i - 1) * 0.04, 0.86 + (i - 1) * 0.03, ch["collapse"])
+            rot.x += u * (0.9 if i == 1 else -1.05)
+            loc.z -= u * 15.5
+            item.obj.hide_render = False
         elif i == 0:
-            # The approach is the deck in frame. Late collapse breaks it without removing the stump.
-            u = smoother(0.8, 1.0, ch["collapse"])
-            rot.x += u * 0.42
-            loc.z -= u * 1.8
+            u = smoother(0.9, 1.0, ch["collapse"])
+            rot.x += u * 0.06
+            loc.z -= u * 0.4
             item.obj.hide_render = False
         else:
             item.obj.hide_render = False
         if item.extra.get("sink"):
-            loc.z -= ch["geology"] * 28.0
+            loc.z -= ch["geology"] * 180.0
         item.obj.location = loc
         item.obj.rotation_euler = rot
         bury = _bury_scale(item, ch)
@@ -320,7 +320,7 @@ def _bridge(kit, ch):
             rot.z += u * 0.35
             loc.z -= u * 0.4
         if item.extra.get("sink"):
-            loc.z -= ch["geology"] * 28.0
+            loc.z -= ch["geology"] * 180.0
         item.obj.location = loc
         item.obj.rotation_euler = rot
         item.obj.scale = item.base_scale * _bury_scale(item, ch)
@@ -335,10 +335,14 @@ def _bridge(kit, ch):
     sag = ch["sag"] + ch["collapse"] * 0.4
     anchors = []
     for ax, ay, az in bridge["anchors"]:
-        anchors.append(Vector((ax, ay, az - sag * 0.35 - geology * 28.0)))
+        anchors.append(Vector((ax, ay, az - sag * 1.2 - geology * 180.0)))
     if len(tower_pts) < 2:
         return
-    sag_main = 2.6 + ch["collapse"] * 4.2 + ch["sag"] * 1.2
+    sag_main = 16.0 + ch["collapse"] * 6.0 + ch["sag"] * 4.0
+    ya = bridge["towers"][0].base_loc.y
+    yb = bridge["towers"][1].base_loc.y
+    snap = smoother(0.66, 0.88, ch["collapse"])
+    half = float(bridge.get("half", 11.5))
     sides = []
     for sidx, sign in enumerate((-1, 1)):
         pts = [
@@ -347,16 +351,28 @@ def _bridge(kit, ch):
             tower_pts[1][sidx],
             anchors[2 + sidx],
         ]
-        curve = _span_points(pts, [sag_main * 0.55, sag_main, sag_main * 0.5], 37)
+        curve = _span_points(pts, [sag_main * 0.45, sag_main, sag_main * 0.4], 37)
+        # One main cable snaps and hangs from the near tower into the river.
+        if sidx == 0 and snap > 0.02:
+            top_z = tower_pts[0][0].z
+            for p in curve:
+                if ya < p.y < yb:
+                    t = (p.y - ya) / max(1.0, yb - ya)
+                    if t > 0.52:
+                        p.z = -50.0
+                    else:
+                        hang = max(1.5, top_z * (1.0 - t / 0.42))
+                        p.z = (1.0 - snap) * p.z + snap * hang
         sides.append(curve)
         cables = bridge["cables"][sidx * 36 : (sidx + 1) * 36]
         for seg, (a, b) in zip(cables, zip(curve, curve[1:])):
-            aim_z(seg, a, b, 0.42)
-    # Suspenders across the main span.
-    y0 = bridge["towers"][0].base_loc.y + 0.4
-    y1 = bridge["towers"][1].base_loc.y - 0.4
+            if a.z < -10 or b.z < -10:
+                seg.hide_render = True
+                continue
+            aim_z(seg, a, b, 1.15)
+    y0 = ya + 2.0
+    y1 = yb - 2.0
     count = len(bridge["suspenders"])
-    snap = smoother(0.74, 0.9, ch["collapse"])
     for n, sus in enumerate(bridge["suspenders"]):
         side = 0 if n < count / 2 else 1
         k = n if side == 0 else n - count // 2
@@ -365,12 +381,12 @@ def _bridge(kit, ch):
         y = _lerp(y0, y1, t)
         curve = sides[side]
         top = _sample_curve_y(curve, y)
-        deck = _deck_edge(poses, y, -1.45 if side == 0 else 1.45)
-        if top is None or deck is None or snap > 0.85:
+        deck = _deck_edge(poses, y, -half if side == 0 else half)
+        if top is None or deck is None or top.z < -10 or (side == 0 and snap > 0.7):
             sus.hide_render = True
             continue
         sus.hide_render = False
-        aim_z(sus, top, deck, 0.09 * (1.0 - snap))
+        aim_z(sus, top, deck, 0.32)
 
 
 def _span_points(pts, sags, count):
@@ -458,12 +474,12 @@ def _sky(kit, ch, frame, fps):
     # 0.16 noon-ish, ~0.5 sunset, ~0.78 night.
     if dn < 0.42:
         u = clamp((dn - 0.12) / 0.3)
-        elev = _lerp(1.02, 1.18, u)
-        energy = _lerp(6.2, 2.8, u)
-        color = Vector(lin(1.0, 0.74, 0.42)[:3]).lerp(Vector(lin(1.0, 0.50, 0.22)[:3]), u)
-        sky = Vector(lin(0.50, 0.72, 0.96)[:3]).lerp(Vector(lin(0.98, 0.58, 0.32)[:3]), u * 0.8)
-        sky_e = _lerp(0.9, 0.75, u)
-        fill = 0.14
+        elev = _lerp(1.15, 1.28, u)
+        energy = _lerp(5.2, 2.6, u)
+        color = Vector(lin(1.0, 0.86, 0.68)[:3]).lerp(Vector(lin(1.0, 0.55, 0.28)[:3]), u)
+        sky = Vector(lin(0.58, 0.74, 0.90)[:3]).lerp(Vector(lin(0.98, 0.62, 0.38)[:3]), u * 0.75)
+        sky_e = _lerp(0.85, 0.7, u)
+        fill = 0.16
     elif dn < 0.68:
         u = clamp((dn - 0.42) / 0.26)
         elev = _lerp(1.15, 1.72, u)
@@ -488,7 +504,7 @@ def _sky(kit, ch, frame, fps):
         sky = sky.lerp(Vector(lin(0.72, 0.62, 0.48)[:3]), ch["dust"] * 0.5)
     kit.sun.rotation_euler = Euler((elev, 0.08, -0.85))
     kit.sun.data.energy = energy
-    kit.sun.data.angle = 0.06 if dn > 0.68 else 0.30
+    kit.sun.data.angle = 0.08 if dn > 0.68 else 0.5
     kit.sun.data.color = (color.x, color.y, color.z)
     kit.fill.data.energy = fill * (1.0 - 0.3 * ch["ice"])
     if kit.world_bg:

@@ -328,6 +328,78 @@ def make_object_color_surface(name, weights):
     return mat
 
 
+def make_facade_material():
+    """Wall color from the object, with a fine window grid, ivy, and distance haze."""
+    mat, nt = new_material("Facade")
+    info = nt.nodes.new("ShaderNodeObjectInfo")
+    geom = nt.nodes.new("ShaderNodeNewGeometry")
+    local = nt.nodes.new("ShaderNodeVectorMath")
+    local.operation = "SUBTRACT"
+    nt.links.new(geom.outputs["Position"], local.inputs[0])
+    nt.links.new(info.outputs["Location"], local.inputs[1])
+    # Object random shifts the grid so neighboring towers don't share a rhythm.
+    shift = nt.nodes.new("ShaderNodeVectorMath")
+    shift.operation = "SCALE"
+    shift.inputs["Scale"].default_value = 1.0
+    rand = nt.nodes.new("ShaderNodeCombineXYZ")
+    rand.inputs["X"].default_value = 0.0
+    # Random is a float; push it into X so each tower's bays land differently.
+    nt.links.new(info.outputs["Random"], rand.inputs["X"])
+    moved = nt.nodes.new("ShaderNodeVectorMath")
+    moved.operation = "ADD"
+    nt.links.new(local.outputs["Vector"], moved.inputs[0])
+    nt.links.new(rand.outputs["Vector"], moved.inputs[1])
+    scaled = nt.nodes.new("ShaderNodeVectorMath")
+    scaled.operation = "SCALE"
+    scaled.inputs["Scale"].default_value = 0.42
+    nt.links.new(moved.outputs["Vector"], scaled.inputs[0])
+    brick = nt.nodes.new("ShaderNodeTexBrick")
+    brick.inputs["Color1"].default_value = (0.0, 0.0, 0.0, 1.0)
+    brick.inputs["Color2"].default_value = (0.0, 0.0, 0.0, 1.0)
+    brick.inputs["Mortar"].default_value = (1.0, 1.0, 1.0, 1.0)
+    brick.inputs["Scale"].default_value = 1.0
+    brick.inputs["Mortar Size"].default_value = 0.18
+    brick.inputs["Mortar Smooth"].default_value = 0.0
+    brick.inputs["Bias"].default_value = 0.0
+    brick.inputs["Brick Width"].default_value = 0.85
+    brick.inputs["Row Height"].default_value = 0.48
+    nt.links.new(scaled.outputs["Vector"], brick.inputs["Vector"])
+    # Brick color is 0 on the pane and 1 on the wall.
+    wall_mask = nt.nodes.new("ShaderNodeSeparateColor")
+    try:
+        wall_mask.mode = "RGB"
+    except Exception:
+        pass
+    nt.links.new(brick.outputs["Color"], wall_mask.inputs[0])
+    window = _math(nt, "SUBTRACT", 1.0, wall_mask.outputs["Red"])
+    wall_color, rough = weather_color(
+        nt,
+        info.outputs["Color"],
+        {"moss": 0.55, "rust": 0.2, "mud": 0.3, "scorch": 0.4, "snow": 0.8, "wet": 0.45},
+    )
+    glass = _const_rgb(nt, lin(0.10, 0.13, 0.16))
+    color = _mix(nt, window, wall_color, glass)
+    # Patchy ivy once vegetation rises. Stays off the glass.
+    veg = channel_value(nt, ("vegetation",), "vegetation")
+    ivy_noise = nt.nodes.new("ShaderNodeTexNoise")
+    ivy_noise.inputs["Scale"].default_value = 0.18
+    ivy_noise.inputs["Detail"].default_value = 2.0
+    nt.links.new(local.outputs["Vector"], ivy_noise.inputs["Vector"])
+    ivy = _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", veg, ivy_noise.outputs["Fac"]), _math(nt, "SUBTRACT", 1.0, window))
+    color = _mix(nt, ivy, color, lin(0.16, 0.32, 0.14))
+    cam = nt.nodes.new("ShaderNodeCameraData")
+    haze = _math(nt, "DIVIDE", _math(nt, "SUBTRACT", cam.outputs["View Distance"], 90.0), 420.0)
+    haze = _math(nt, "MINIMUM", _math(nt, "MAXIMUM", haze, 0.0), 0.55)
+    color = _mix(nt, haze, color, lin(0.62, 0.70, 0.78))
+    night = channel_value(nt, ("day_night",), "clamp((day_night - 0.48) / 0.2, 0, 1)")
+    power = channel_value(nt, ("power",), "power")
+    lit = _math(nt, "GREATER_THAN", ivy_noise.outputs["Fac"], 0.42)
+    strength = _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", window, lit), _math(nt, "MULTIPLY", night, _math(nt, "MULTIPLY", power, 8.0)))
+    bsdf = principled(nt, color, 0.62, emission=lin(1.0, 0.78, 0.42), emission_strength=strength)
+    finish(nt, bsdf)
+    return mat
+
+
 def make_window_material():
     mat, nt = new_material("Window")
     info = nt.nodes.new("ShaderNodeObjectInfo")
