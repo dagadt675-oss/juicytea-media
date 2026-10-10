@@ -2,7 +2,7 @@
 
 Generic, script-driven YouTube Shorts renderer for map facts. One YAML file is one video. The picture, karaoke, sound and QC all come from that file.
 
-The default picture is a flat political map: navy field, muted land, one country in neon red, a single line or a pin with radar rings, and white pills with red type. It is the look of the Canada Short (flat fills, no shaded relief). Mercator and Lambert are still available. A distance-field "relief" is not drawn.
+The default picture is the gold style kit in `pipeline/style/`: a full-bleed flat map, navy field, muted land, one country in neon red, white pills with red type, and motion that pops in once. Stars and clouds drift one way. The camera does not sway. See `pipeline/style/gold_canada.md`. Mercator and Lambert are still available. A distance-field "relief" is not drawn.
 
 The seven old topics (Hans Island, London, France, Diomede, Ceuta/Melilla, Congo) are not specs here. `specs/alaska.yaml` is only a renderer test. Later videos should be more dramatic: danger, scandal, stories that are hard to believe. Copy the Alaska file and change the lines.
 
@@ -19,7 +19,7 @@ Each line is one sentence:
 - `kind` — `q` question, `h` hook statement, `s` statement, `p` punchline (exactly one).
 - `gap` — pause after the line, in seconds. Ordinary pauses 0.20–0.45, never two equal in a row, and 0.55–0.60 before the punchline. Standard deviation must be at least 0.10 s.
 - `claim` / `sub` — the big card. Wrap with `\n`. `*stars*` mark the yellow word.
-- `camera` — `proj` (`ortho`, `merc`, `laea`), `lon`, `lat`, `span` (degrees across the view).
+- `camera` — `proj` (`ortho`, `merc`, `laea`), `lon`, `lat`, `span` (degrees across the view). Optional `cut: true` snaps to the new frame instead of easing. Optional `fly` is how many seconds that one ease takes. The camera does not sway. It holds, pushes in once on the opening shot, or eases once into the next shot. A shot that reverses direction more than once fails QC. The longitude sway parameter has been removed; it is not an option.
 - `visuals` — any of:
   - `highlight` with `countries: [USA]` or `sovereignties: ["France"]`
   - `marker` (`lat`, `lon`, `label`)
@@ -107,7 +107,7 @@ A régi hét téma (Hans-sziget, London, Franciaország, Diomede, Ceuta, Kongó)
 - `kind` — `q` kérdés, `h` állító horog, `s` sima mondat, `p` csattanó (pontosan egy).
 - `gap` — szünet a mondat után, másodperc. A sima szünet 0,20–0,45, két egyforma nem jöhet egymás után, a csattanó előtt 0,55–0,60. A szórás legalább 0,10 s.
 - `claim` — a nagy felirat. Sortörés: `\n`. A `*csillag*` sárga.
-- `camera` — `ortho` (gömb), `merc` vagy `laea`, plusz `lon`, `lat`, `span`.
+- `camera` — `ortho` (gömb), `merc` vagy `laea`, plusz `lon`, `lat`, `span`. A kamera nem billeg. Egy nyitás, vagy egy sima átmenet a következő snittre. Ha egy snittben egynél többször irányt vált, az ellenőrzés elbukik.
 - `visuals` — kiemelés, jelölő, szélességi vagy hosszúsági vonal, vonalzó, nagy szám, valódi méretű árnyék (`ghost`), rajzolt sziget.
 
 Témák: `midnight`, `dusk`, `emerald`, `ember`, `noir`. Veszélyes történethez `ember` vagy `noir`.

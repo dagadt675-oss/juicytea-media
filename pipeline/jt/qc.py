@@ -130,7 +130,7 @@ def _check(name: str, ok: bool, detail: str, fail: bool = True) -> dict:
 
 
 def evaluate(path: Path, timeline: dict, mix_report: dict, render_metrics: dict,
-             hero_metrics: dict | None = None) -> dict:
+             hero_metrics: dict | None = None, spec=None) -> dict:
     probe = ffprobe(path)
     v = next(s for s in probe["streams"] if s["codec_type"] == "video")
     a = next(s for s in probe["streams"] if s["codec_type"] == "audio")
@@ -193,6 +193,14 @@ def evaluate(path: Path, timeline: dict, mix_report: dict, render_metrics: dict,
     checks.append(_check("pause_sd", sd >= 0.10, f"SD {sd:.3f}s gaps {['%.2f' % g for g in gaps]}"))
     ratio = float(mix_report.get("sfx_under_voice_db") or 0)
     checks.append(_check("sfx_duck", ratio >= 10, f"SFX peak {ratio:.1f} dB under the voice peak"))
+    if spec is not None:
+        from jt.render import direction_changes
+        turns = direction_changes(spec, timeline, w, h, fps=30)
+        checks.append(_check(
+            "camera_oscillation",
+            turns <= 1,
+            f"max direction changes inside one shot {turns} (a sway is more than one)",
+        ))
     hook = float(render_metrics.get("hook_motion") or 0)
     # 0.03 is the bar used on high-detail footage (players, grass). A flat
     # political map only changes along coasts, so the same number needs a
