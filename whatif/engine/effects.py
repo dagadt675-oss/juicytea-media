@@ -182,17 +182,23 @@ def _structures(kit, ch, frame, fps):
         obj = item.obj
         if role == "building_base":
             loc = _sink(item, ch, item.base_loc.copy())
-            # Shrink to a concrete stump. A few marked skeletons stay standing.
-            ruin = smoother(0.40, 0.92, collapse)
-            stump = 1.0 - ruin * (0.55 if item.extra.get("skeleton") else 0.78)
+            # Year 100 has already lost roofs and leaned. Year 500 topples the rest.
+            # A few marked skeletons stay up as the broken frames.
+            ruin = smoother(0.28, 0.64, collapse)
+            spectacular = smoother(0.72, 1.0, collapse)
+            skeleton = bool(item.extra.get("skeleton"))
+            stump = max(0.14, 1.0 - ruin * (0.15 if skeleton else 0.38) - spectacular * (0.2 if skeleton else 0.42))
             bury = _bury_scale(item, ch)
+            lean = ruin * (0.16 if skeleton else 0.5)
+            topple = spectacular * (0.28 if skeleton else 1.2)
             obj.location = loc
+            obj.rotation_euler = _euler(item.base_rot, dx=min(1.45, lean + topple))
             obj.scale = (
                 item.base_scale.x * bury,
                 item.base_scale.y * bury,
-                item.base_scale.z * max(0.18, stump) * bury,
+                item.base_scale.z * stump * bury,
             )
-            obj.hide_render = bury < 0.05
+            obj.hide_render = bury < 0.05 or (spectacular > 0.82 and not skeleton and int(item.base_loc.x * 3 + item.base_loc.y) % 4 == 0)
         elif role == "building_top":
             loc = item.base_loc.copy()
             fall = item.extra.get("fall_at")
@@ -287,6 +293,39 @@ def _structures(kit, ch, frame, fps):
             obj.scale = (1 + s * 2.0, 0.4 + s * 2.5, 1)
 
 
+def _along(points, dist, loop):
+    """Point and heading (nose along +X) at ``dist`` metres along a polyline."""
+    if not points:
+        return Vector((0.0, 0.0, 0.0)), 0.0
+    if len(points) == 1:
+        return Vector(points[0]), 0.0
+    spans = []
+    total = 0.0
+    for a, b in zip(points, points[1:]):
+        start = Vector(a)
+        end = Vector(b)
+        length = (end - start).length
+        spans.append((start, end, length))
+        total += length
+    if total < 0.05:
+        return Vector(points[0]), 0.0
+    if loop:
+        dist = dist % total
+    else:
+        dist = max(0.0, min(total - 0.01, dist))
+    for start, end, length in spans:
+        if dist <= length or length <= 0.0:
+            t = 0.0 if length <= 0.0 else dist / length
+            pos = start.lerp(end, t)
+            delta = end - start
+            yaw = math.atan2(delta.y, delta.x)
+            return pos, yaw
+        dist -= length
+    last = Vector(points[-1])
+    delta = last - Vector(points[-2])
+    return last, math.atan2(delta.y, delta.x)
+
+
 def _life(kit, ch, frame, fps, snow):
     cars = [item for item in kit.items if item.role == "car"]
     mounds = [item for item in kit.items if item.role == "mound"]
@@ -338,18 +377,70 @@ def _life(kit, ch, frame, fps, snow):
         elif role == "person":
             s = 1.0 - smoother(0.0, 0.2, ch["vanish"])
             obj.hide_render = s < 0.03
-            lift = ch["gravity"] * item.extra.get("float", 0.0)
-            bob = math.sin(frame * 0.18 + obj.location.x) * ch["gravity"] * item.extra.get("bob", 0.0)
-            loc = item.base_loc.copy()
-            loc.z += lift + bob
+            for child in obj.children_recursive:
+                child.hide_render = obj.hide_render
+            path = item.extra.get("path")
+            if path:
+                vanish = ch["vanish"]
+                if "walk_hold" not in obj:
+                    obj["walk_hold"] = (frame / max(fps, 1.0)) * float(item.extra.get("speed", 1.3)) + float(item.extra.get("phase", 0.0))
+                dist = obj["walk_hold"] if vanish > 0.01 else (
+                    (frame / max(fps, 1.0)) * float(item.extra.get("speed", 1.3)) + float(item.extra.get("phase", 0.0))
+                )
+                if vanish <= 0.01:
+                    obj["walk_hold"] = dist
+                loc, yaw = _along(path, dist, loop=True)
+                # Quaternius characters face +Y. Offset so they look along the path.
+                obj.rotation_euler.z = yaw - math.pi / 2.0
+            else:
+                loc = item.base_loc.copy()
+                yaw = None
+            loc.z += ch["gravity"] * item.extra.get("float", 0.0)
+            loc.z += math.sin(frame * 0.18 + obj.location.x) * ch["gravity"] * item.extra.get("bob", 0.0)
             obj.location = loc
             obj.scale = item.base_scale * max(s, 0.001)
+        elif role == "bike":
+            path = item.extra.get("path")
+            vanish = ch["vanish"]
+            if path:
+                if "walk_hold" not in obj:
+                    obj["walk_hold"] = (frame / max(fps, 1.0)) * float(item.extra.get("speed", 4.5)) + float(item.extra.get("phase", 0.0))
+                dist = obj["walk_hold"] if vanish > 0.01 else (
+                    (frame / max(fps, 1.0)) * float(item.extra.get("speed", 4.5)) + float(item.extra.get("phase", 0.0))
+                )
+                if vanish <= 0.01:
+                    obj["walk_hold"] = dist
+                loc, yaw = _along(path, dist, loop=True)
+            else:
+                loc = item.base_loc.copy()
+                yaw = item.base_rot.z
+            tip = smoother(0.04, 0.22, vanish) * 1.35
+            obj.location = loc
+            obj.rotation_euler = Euler((tip, 0.0, yaw))
+            obj.hide_render = False
         elif role == "car":
-            # People vanish. Cars roll to a stop and stay, then rust where they stopped.
-            u = smoother(0.0, 1.0, clamp(ch["vanish"] / 0.55))
-            a = Vector(item.extra["path_from"])
-            b = Vector(item.extra["path_to"])
-            pos = a.lerp(b, u)
+            # People vanish. Moving traffic coasts to a stop. Parked cars stay put.
+            vanish = ch["vanish"]
+            cruise = item.extra.get("cruise")
+            if cruise:
+                speed = float(item.extra.get("speed", 8.0))
+                if "cruise_hold" not in obj:
+                    obj["cruise_hold"] = (frame / max(fps, 1.0)) * speed + float(item.extra.get("phase", 0.0))
+                if vanish <= 0.015:
+                    dist = (frame / max(fps, 1.0)) * speed + float(item.extra.get("phase", 0.0))
+                    obj["cruise_hold"] = dist
+                    pos, travel = _along(cruise, dist, loop=not item.extra.get("stop_line"))
+                    drift = 0.0
+                else:
+                    coast = float(item.extra.get("coast", 7.0)) * smoother(0.0, 0.28, vanish)
+                    pos, travel = _along(cruise, obj["cruise_hold"] + coast, loop=False)
+                    drift = float(item.extra.get("drift", 0.0)) * smoother(0.05, 0.4, vanish)
+                item.extra["travel_yaw"] = travel + drift
+            else:
+                u = smoother(0.0, 1.0, clamp(vanish / 0.55))
+                a = Vector(item.extra["path_from"])
+                b = Vector(item.extra["path_to"])
+                pos = a.lerp(b, u)
             rust = ch["rust"]
             veg = ch["vegetation"]
             hero = bool(item.extra.get("hero"))
@@ -397,8 +488,11 @@ def _life(kit, ch, frame, fps, snow):
             else:
                 husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.18, 0.11, 0.07)), grime_u)
             _paint_descendants(obj, (husk.x, husk.y, husk.z, 1.0), drive_nodes=hero)
-            askew = 0.35 if veg > 0.15 and not hero else 0.08
-            yaw = item.base_rot.z + grime_u * (askew if item.extra.get("index", 0) % 2 == 0 else -askew)
+            if cruise:
+                yaw = float(item.extra.get("travel_yaw", item.base_rot.z))
+            else:
+                askew = 0.35 if veg > 0.15 and not hero else 0.08
+                yaw = item.base_rot.z + grime_u * (askew if item.extra.get("index", 0) % 2 == 0 else -askew)
             if hero:
                 # A quarter turn so the low camera sees the flat tires and rims.
                 yaw -= 0.7 * smoother(0.55, 0.85, rust)
@@ -429,17 +523,22 @@ def _life(kit, ch, frame, fps, snow):
         elif role == "blanket":
             obj.hide_render = ch["vegetation"] < 0.7
         elif role == "frontage":
-            # The same building stays. Several tops lean as the roof gives way.
+            # Same buildings. Year 100 breaks the roofs. Year 500 drops several of them.
             index = int(item.extra.get("index", 0))
-            lean = 0.0
-            if index % 4 == 0:
-                lean = smoother(0.45, 0.9, ch["collapse"]) * 0.62
-            elif index % 17 == 0:
-                lean = smoother(0.55, 0.95, ch["collapse"]) * 0.28
-            obj.rotation_euler = _euler(item.base_rot, dx=lean)
-            obj.hide_render = False
+            ruin = smoother(0.26, 0.62, ch["collapse"])
+            spectacular = smoother(0.72, 1.0, ch["collapse"])
+            lean = ruin * (0.55 if index % 3 == 0 else 0.16)
+            topple = spectacular * (1.15 if index % 2 == 0 else 0.45)
+            obj.rotation_euler = _euler(item.base_rot, dx=min(1.4, lean + topple))
+            stump = max(0.2, 1.0 - ruin * 0.28 - spectacular * 0.4)
+            obj.scale = (
+                item.base_scale.x,
+                item.base_scale.y,
+                item.base_scale.z * stump,
+            )
+            obj.hide_render = spectacular > 0.9 and index % 5 == 1
         elif role == "rubble":
-            s = smoother(0.48, 0.82, ch["collapse"])
+            s = smoother(0.3, 0.58, ch["collapse"])
             obj.hide_render = s < 0.08
             obj.scale = item.base_scale * max(s, 0.001)
         elif role == "prop" and "signal" in obj.name:
@@ -451,8 +550,8 @@ def _life(kit, ch, frame, fps, snow):
             # Day 1 stays city-grey on the far bank. Meadow, then forest floor.
             obj.hide_render = ch["vegetation"] < 0.22
         elif role == "ruin":
-            # Full size once the collapse is underway. Scaling it up reads as a toy.
-            s = smoother(0.35, 0.72, ch["collapse"])
+            # Broken shells are up by year 100 and stay through the collapse.
+            s = smoother(0.4, 0.62, ch["collapse"])
             obj.hide_render = s < 0.08
             obj.scale = item.base_scale
             for child in obj.children:
@@ -513,8 +612,8 @@ def _bridge(kit, ch):
         loc.z -= droop
         rot = _euler(item.base_rot)
         if i in (1, 2):
-            # Hidden while the continuous deck is whole. Later they are the wreckage in the river.
-            u = smoother(0.62 + (i - 1) * 0.04, 0.86 + (i - 1) * 0.03, ch["collapse"])
+            # In the river by year 100. They stay as the fallen span after the deck is gone.
+            u = smoother(0.32 + (i - 1) * 0.03, 0.58 + (i - 1) * 0.02, ch["collapse"])
             rot.x += u * (0.9 if i == 1 else -1.05)
             loc.z -= u * 9.2
             hidden = u < 0.08
@@ -522,15 +621,15 @@ def _bridge(kit, ch):
             for child in item.obj.children:
                 child.hide_render = hidden
         elif i == 0:
-            # The river span settles into the water. It does not slide onto the far bank.
-            u = smoother(0.55, 0.92, ch["collapse"])
-            rot.x += u * 0.62
-            loc.z = item.base_loc.z * (1.0 - u) + 0.15 * u
-            # Year 500 removes the continuous river deck. The wreck pieces and the gap stay.
-            item.obj.hide_render = u > 0.72
+            # Year 100 drops the river span into the water. Year 500 removes it.
+            u = smoother(0.28, 0.58, ch["collapse"])
+            rot.x += u * 0.85
+            loc.z = item.base_loc.z * (1.0 - u) + (-0.35) * u
+            gone = ch["collapse"] > 0.9
+            item.obj.hide_render = gone
             for child in item.obj.children:
                 kept = any(token in child.name for token in ("rebar", "rail", "asphalt_layer", "span_debris", "span_cell"))
-                child.hide_render = "car" not in child.name and not kept and u > 0.45
+                child.hide_render = gone or ("car" not in child.name and not kept and u > 0.45)
         elif i == 4:
             u = smoother(0.75, 1.0, ch["collapse"])
             loc.z -= u * 0.12
@@ -554,20 +653,28 @@ def _bridge(kit, ch):
         loc = item.base_loc.copy()
         rot = _euler(item.base_rot)
         rot.z += ch["sag"] * (0.04 if i == 0 else -0.05)
+        # Year 100 shortens the portals. Year 500 leaves broken pylon stumps.
+        ruin = smoother(0.36, 0.66, ch["collapse"])
+        spectacular = smoother(0.74, 1.0, ch["collapse"])
+        height_left = max(0.12, 1.0 - ruin * 0.38 - spectacular * 0.48)
         if i == 1:
-            u = smoother(0.75, 0.98, ch["collapse"])
-            rot.x += u * 0.25
-            loc.z -= u * 6.0
+            rot.x += ruin * 0.12 + spectacular * 0.85
+            loc.z -= spectacular * 8.0
         else:
-            u = smoother(0.9, 1.0, ch["collapse"])
-            rot.z += u * 0.05
+            rot.z += spectacular * 0.2
+            rot.x += spectacular * 0.35
         if item.extra.get("sink"):
             loc.z -= ch["geology"] * 180.0
         item.obj.location = loc
         item.obj.rotation_euler = rot
-        item.obj.scale = item.base_scale * _bury_scale(item, ch)
+        bury = _bury_scale(item, ch)
+        item.obj.scale = (
+            item.base_scale.x * bury,
+            item.base_scale.y * bury,
+            item.base_scale.z * height_left * bury,
+        )
         q = rot.to_quaternion()
-        h = item.extra["height"]
+        h = item.extra["height"] * height_left
         w = item.extra["width"] / 2
         left = Vector(loc) + q @ Vector((-w, 0, h))
         right = Vector(loc) + q @ Vector((w, 0, h))

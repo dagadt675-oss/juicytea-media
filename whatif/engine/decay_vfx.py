@@ -542,9 +542,10 @@ def drive(kit, ch, frame, fps):
 
     veg = float(ch.get("vegetation", 0.0))
     collapse = float(ch.get("collapse", 0.0))
-    erode = max(0.0, min(1.0, (max(veg, collapse) - 0.18) / 0.72))
-    grime = max(0.0, min(1.0, (veg - 0.12) / 0.7))
-    crack = max(0.0, min(1.0, (veg - 0.22) / 0.7))
+    # Year 1 is only stained. Year 100 is fully eaten. Year 500 stays there.
+    erode = max(0.0, min(1.0, (max(veg, collapse) - 0.16) / 0.5))
+    grime = max(0.0, min(1.0, (veg - 0.1) / 0.52))
+    crack = max(0.0, min(1.0, (veg - 0.16) / 0.5))
     for material in bpy.data.materials:
         tree = material.node_tree
         if tree is None:

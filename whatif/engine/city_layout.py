@@ -74,6 +74,13 @@ GRID_HALF = 4.2
 # Far-bank streets between tower blocks. Spaced so a chunky tower still fits
 # between them. The park street uses the same x as the first one.
 CITY_STREETS = (-22.0, 55.0)
+# The riverside drive sits on land, north of the water. The two north-south
+# streets end on it instead of running into the river. The land and end
+# arterials are the other cross streets, so those roads stop in the grid.
+RIVER_DRIVE_Y = RIVER_Y1 + 18.0
+FAR_LAND_Y = RIVER_Y1 + 40.0
+FAR_MID_Y = 300.0
+FAR_END_Y = 470.0
 
 
 def river_contains(x, y):

@@ -59,8 +59,12 @@ from engine.city_layout import (
     TOWER_S,
     TOWER_W,
     FAR_BANK_S,
+    FAR_END_Y,
+    FAR_LAND_Y,
+    FAR_MID_Y,
     FAR_ROAD_S,
     NEAR_BANK_S,
+    RIVER_DRIVE_Y,
     WATER_BED_Z,
     bridge_spans,
     city_water_top,
@@ -681,6 +685,104 @@ def _person_mesh():
     return _PERSON_MESH
 
 
+def _walker(kit, coll, path, speed, phase):
+    """A rigged pedestrian. The walk cycle plays until the vanish cue."""
+    if not path or not cc0_city.ready():
+        return None
+    x, y, z = path[0]
+    dx = path[-1][0] - path[0][0]
+    dy = path[-1][1] - path[0][1]
+    yaw = math.atan2(dy, dx) - math.pi / 2.0
+    built = cc0_city.place_person(coll, x, y, z, yaw, "Walk", offset=int(phase * 10) % 36)
+    if built is None:
+        return None
+    return kit.add(built, "person", path=path, speed=speed, phase=phase, sink=False, bob=0.0, float=0.0)
+
+
+def _bike(kit, coll, path, phase, drift=0.2):
+    """A downloaded bicycle. It topples when the rider vanishes."""
+    path_glb = Path("/opt/cursor/asset-cache/private/sketchfab_free_standard/Bicycle_Low-Poly_Minimalistic_5c70d53e/Bicycle_Low-Poly_Minimalistic_5c70d53e.glb")
+    mesh = cc0_city.static_mesh(path_glb) if path_glb.exists() else None
+    if mesh is None:
+        return None
+    size = cc0_city._mesh_size(mesh)
+    scale = 1.75 / max(size[0], size[1], 0.01)
+    x, y, z = path[0]
+    obj = link_obj("bike", mesh, coll)
+    obj.location = (x, y, z)
+    obj.scale = (scale, scale, scale)
+    # The rider walks with the bike, a step to the side, and vanishes with everyone else.
+    _walker(kit, coll, [(p[0], p[1] + 0.75, p[2]) for p in path], 4.2, phase)
+    return kit.add(obj, "bike", path=path, speed=4.2, phase=phase, sink=False)
+
+
+def _traffic(kit, coll, cruise, index, speed, phase, stop_line=False, drift=0.0, coast=8.0):
+    """A hub vehicle moving along ``cruise`` until people vanish, then it coasts."""
+    loc = cruise[0]
+    if index >= 6:
+        built = cc0_city.place_fleet_car(coll, loc, 0.0, index=index)
+    else:
+        built = private_assets.place_avenue_car(coll, loc, 0.0, index=index)
+        if built is None:
+            built = cc0_city.place_fleet_car(coll, loc, 0.0, index=index)
+    if built is None:
+        return None
+    return kit.add(
+        built, "car",
+        path_from=loc, path_to=cruise[-1],
+        cruise=cruise, speed=speed, phase=phase,
+        stop_line=stop_line, drift=drift, coast=coast,
+        index=index, paint=(0.92, 0.92, 0.93, 1), sink=False,
+    )
+
+
+def _alive(kit, coll):
+    """Sidewalks, the crosswalk, the park, bikes, and moving lanes. Day 1 only."""
+    z = ROAD_Z + 0.02
+    south = AVE_Y - AVENUE_HALF - SIDEWALK_W * 0.45
+    north = AVE_Y + AVENUE_HALF + SIDEWALK_W * 0.45
+    for i, x0 in enumerate((-78.0, -48.0, -12.0, 18.0, 48.0)):
+        _walker(kit, coll, [(x0, south, z), (x0 + 22.0, south, z)], 1.25, i * 4.0)
+        _walker(kit, coll, [(x0 + 16.0, north, z), (x0 - 6.0, north, z)], 1.15, i * 3.0)
+    # Across the zebra, both ways.
+    zx = CROSS_X
+    for i, side in enumerate((-6.0, -2.0, 2.5, 6.5)):
+        y0 = AVE_Y - AVENUE_HALF - 1.0
+        y1 = AVE_Y + AVENUE_HALF + 1.0
+        path = [(zx + side, y0, z), (zx + side, y1, z)] if i % 2 == 0 else [(zx + side, y1, z), (zx + side, y0, z)]
+        _walker(kit, coll, path, 1.35, i * 1.2)
+    fx, fy = FOUNTAIN
+    for i, (x, y) in enumerate(((-6, -4), (5, 2), (-2, 8), (8, -6))):
+        _walker(kit, coll, [(fx + x, fy + y, PARK_LAND_Z), (fx + x + 8.0, fy + y + 3.0, PARK_LAND_Z)], 1.05, i * 2.5)
+    bike_y = AVE_Y - AVENUE_HALF - 1.15
+    for i, x0 in enumerate((-70.0, -30.0, 8.0, 40.0)):
+        _bike(kit, coll, [(x0, bike_y, z), (x0 + 28.0, bike_y, z)], i * 6.0)
+    # Eastbound queue stops before the crosswalk. Through traffic keeps going.
+    stop_x = zx - DECK_HALF - ZEBRA_DEPTH - STOP_SETBACK - 1.0
+    east_y = AVE_Y + LANE_OFFSETS[0]
+    east_y2 = AVE_Y + LANE_OFFSETS[1]
+    west_y = AVE_Y + LANE_OFFSETS[3]
+    _traffic(kit, coll, [(-70.0, east_y, z), (stop_x, east_y, z)], 0, 7.5, 8.0, stop_line=True, coast=3.0)
+    _traffic(kit, coll, [(-55.0, east_y, z), (stop_x - 6.0, east_y, z)], 1, 7.5, 0.0, stop_line=True, coast=2.0)
+    _traffic(kit, coll, [(-20.0, east_y2, z), (55.0, east_y2, z)], 2, 11.0, 15.0, drift=0.35, coast=9.0)
+    _traffic(kit, coll, [(60.0, west_y, z), (-70.0, west_y, z)], 3, 10.0, 20.0, drift=-0.2, coast=8.0)
+    _traffic(kit, coll, [(40.0, AVE_Y + LANE_OFFSETS[2], z), (stop_x + DECK_W + 8.0, AVE_Y + LANE_OFFSETS[2], z)], 4, 8.0, 4.0, stop_line=True, coast=4.0)
+    # Two transit vehicles from the Kenney fleet. The hub's only coach wears a brand, so it stays out.
+    _traffic(kit, coll, [(-78.0, east_y2, z), (70.0, east_y2, z)], 7, 8.5, 30.0, coast=10.0)
+    _traffic(kit, coll, [(72.0, west_y, z), (-75.0, west_y, z)], 6, 8.0, 12.0, coast=9.0)
+    # Across the bridge, one lane each way, same lane offsets as the deck.
+    rx, ry = right_vector()
+    for lane, index, phase in ((DECK_LANES[1], 2, 5.0), (DECK_LANES[2], 5, 18.0)):
+        pts = []
+        s = RAMP_FLAT_S
+        while s < NEAR_BANK_S - 4.0:
+            x, y = deck_point(s)
+            pts.append((x + rx * lane, y + ry * lane, deck_z(s) + RIBBON_TOP + 0.05))
+            s += 8.0
+        if len(pts) >= 2:
+            _traffic(kit, coll, pts, index, 9.0, phase, coast=6.0)
+
+
 def _person(kit, coll, mats, x, y, z, rng, clip="Idle"):
     if cc0_city.ready():
         built = cc0_city.place_person(coll, x, y, z, rng.uniform(0, 6.28), clip, offset=int(abs(x + y)) % 36)
@@ -932,43 +1034,42 @@ def _paint_along(kit, coll, a, b, z, mats):
         kit.add(mark, "road_mark", sink=False)
 
 
-def _far_bank_network(kit, coll, mats):
-    """The bridge comes ashore into the far-bank grid.
-
-    The four deck lanes continue inland, cross an east-west arterial that
-    meets both north-south streets, and keep going. Two ramps leave the
-    approach onto that arterial. Nothing stops at the abutment.
-    """
-    road = private_assets.road_asphalt_material() or mats["road"]
-    z = FAR_Z + 0.05
-    land = deck_point(FAR_ROAD_S)
-    inland_s = deck_s_at_y(RIVER_Y1 + 170.0)
-    inland = deck_point(inland_s)
-    _road_span(coll, "far_approach", land, inland, DECK_W, z, road)
-    _paint_along(kit, coll, land, inland, z, mats)
-    # Arterial at the landing. Long enough to cross both far-bank streets
-    # and keep going past them, so neither side is a dead end.
-    fx, fy = land
-    x0, x1 = min(CITY_STREETS) - 70.0, max(CITY_STREETS) + 70.0
-    _asphalt_plane("far_arterial", coll, ((x0 + x1) * 0.5, fy, z + 0.01), (x1 - x0, DECK_W), fallback=road)
+def _east_west_road(kit, coll, mats, name, y, x0, x1, z, road):
+    """One far-bank arterial. It crosses the bridge approach and both streets."""
+    _asphalt_plane(name, coll, ((x0 + x1) * 0.5, y, z + 0.01), (x1 - x0, DECK_W), fallback=road)
     for sign in (-1.0, 1.0):
-        _mark(kit, coll, "art_yellow", ((x0 + x1) * 0.5, fy + sign * 0.12, z + 0.04), (x1 - x0 - 8.0, 0.10, 0.03), mats["yellow"])
-    # Leave the bridge intersection and the two street crossings unpainted in the box.
-    crossings = [fx, *CITY_STREETS]
+        _mark(kit, coll, name + "_yellow", ((x0 + x1) * 0.5, y + sign * 0.12, z + 0.04), (x1 - x0 - 8.0, 0.10, 0.03), mats["yellow"])
+    crossings = [_deck_x(y), *CITY_STREETS]
     cursor = x0 + 2.0
     while cursor < x1 - 2.0:
         if any(abs(cursor - cx) < DECK_HALF + 2.0 for cx in crossings):
             cursor += 4.0
             continue
         for offset in (-LANE_W, LANE_W):
-            _mark(kit, coll, "art_dash", (cursor, fy + offset, z + 0.04), (DASH_LEN, 0.12, 0.03), mats["mark"])
+            _mark(kit, coll, name + "_dash", (cursor, y + offset, z + 0.04), (DASH_LEN, 0.12, 0.03), mats["mark"])
         cursor += DASH_LEN + DASH_GAP
-    # A second cross street further inland, so the approach is a through street.
-    fy2 = inland[1] - 40.0
-    _asphalt_plane("far_arterial_2", coll, ((x0 + x1) * 0.5, fy2, z + 0.01), (x1 - x0, DECK_W), fallback=road)
-    for sign in (-1.0, 1.0):
-        _mark(kit, coll, "art2_yellow", ((x0 + x1) * 0.5, fy2 + sign * 0.12, z + 0.04), (x1 - x0 - 8.0, 0.10, 0.03), mats["yellow"])
-    # On-ramps: leave the approach and meet the arterial beside the intersection.
+
+
+def _far_bank_network(kit, coll, mats):
+    """The bridge comes ashore into a grid that stays on land.
+
+    A riverside drive stops the two north-south streets before the water.
+    The approach crosses that drive, the landing arterial, a mid-town
+    arterial, and ends on a northern arterial with blocks on every side.
+    """
+    road = private_assets.road_asphalt_material() or mats["road"]
+    z = FAR_Z + 0.05
+    x0, x1 = min(CITY_STREETS) - 150.0, max(CITY_STREETS) + 150.0
+    _east_west_road(kit, coll, mats, "riverside", RIVER_DRIVE_Y, x0, x1, z, road)
+    land = deck_point(FAR_ROAD_S)
+    inland = deck_point(deck_s_at_y(FAR_END_Y))
+    _road_span(coll, "far_approach", land, inland, DECK_W, z, road)
+    _paint_along(kit, coll, land, inland, z, mats)
+    fx, fy = land
+    _east_west_road(kit, coll, mats, "far_arterial", fy, x0, x1, z + 0.004, road)
+    _east_west_road(kit, coll, mats, "far_arterial_2", FAR_MID_Y, x0, x1, z + 0.004, road)
+    _east_west_road(kit, coll, mats, "far_arterial_end", FAR_END_Y, x0, x1, z + 0.004, road)
+    # On-ramps: leave the approach and meet the landing arterial beside the intersection.
     ramp_s = deck_s_at_y(fy + 28.0)
     rx, ry = right_vector()
     mouth = deck_point(ramp_s)
@@ -1127,10 +1228,14 @@ def _build_streets(kit, coll, mats):
 
 
 def _block_streets(kit, coll, mats):
-    """Plain asphalt between the far towers. No extra crosswalks or red tiles."""
+    """North-south streets between the riverside drive and the last arterial.
+
+    They meet those cross streets. They do not continue into the water or
+    out into empty ground.
+    """
     road_z = FAR_Z + 0.08
-    y0 = RIVER_Y1 + 2.0
-    y1 = 340.0
+    y0 = RIVER_DRIVE_Y + DECK_HALF
+    y1 = FAR_END_Y - DECK_HALF
     mid = (y0 + y1) / 2.0
     depth = y1 - y0
     for sx in CITY_STREETS:
@@ -1140,6 +1245,175 @@ def _block_streets(kit, coll, mats):
         while step < y1:
             _mark(kit, coll, "block_dash", (sx, step, road_z + 0.05), (0.55, 3.2, 0.04), mats["mark"])
             step += 9.0
+
+
+def _on_far_road(x, y, pad=8.0):
+    """True when a footprint would sit on a far-bank road."""
+    if on_block_street(x, pad):
+        return True
+    for road_y in (RIVER_DRIVE_Y, FAR_LAND_Y, FAR_MID_Y, FAR_END_Y):
+        if abs(y - road_y) <= DECK_HALF + pad * 0.45:
+            return True
+    if y <= FAR_END_Y + 24.0 and abs(x - _deck_x(y)) <= DECK_HALF + pad:
+        return True
+    return False
+
+
+def _fit_block(coll, filename, x, y, z, lot, height, yaw, name):
+    """One hub block, shrunk until its footprint sits inside the lot."""
+    block = private_assets.place_city_block(
+        coll, filename, x, y, z, yaw=yaw, height=height, min_z=2.0, name=name,
+    )
+    if block is None:
+        return None
+    bpy.context.view_layer.update()
+    xs, ys = [], []
+    for obj in block.children_recursive:
+        if getattr(obj, "type", "") != "MESH":
+            continue
+        for corner in obj.bound_box:
+            point = obj.matrix_world @ Vector(corner)
+            xs.append(point.x)
+            ys.append(point.y)
+    if xs:
+        wide = max(max(xs) - min(xs), max(ys) - min(ys), 0.01)
+        if wide > lot:
+            block.scale *= lot / wide
+    return block
+
+
+def _fill_far_bank(kit, coll):
+    """Real blocks on the far-bank lots, between the roads, not in them."""
+    files = ("procedural_city_3.glb", "procedural_city_6.glb", "procedural_city_4.glb")
+    lots = (
+        (-130.0, 230.0), (-70.0, 230.0), (110.0, 230.0), (165.0, 230.0),
+        (-130.0, 370.0), (-70.0, 370.0), (110.0, 370.0), (165.0, 370.0),
+        (-145.0, 175.0), (150.0, 175.0),
+    )
+    placed = 0
+    for i, (x, y) in enumerate(lots):
+        if _on_far_road(x, y, 14.0):
+            continue
+        block = _fit_block(
+            coll, files[i % len(files)], x, y, FAR_Z, 58.0,
+            34.0 if y < 250.0 else 46.0, 0.12 if i % 2 == 0 else math.pi, "far_block",
+        )
+        if block is None:
+            continue
+        kit.add(block, "building_base", sink=True, skeleton=(i % 6 == 0))
+        placed += 1
+    # Towers in the gaps between the skyline rows, so the streets run through blocks.
+    y = 205.0
+    while y < FAR_END_Y - 16.0:
+        x = -155.0
+        while x < 185.0:
+            if _on_far_road(x, y, 9.0) or any(abs(y - row) < 16.0 for row in (172.0, 255.0, 360.0)):
+                x += 16.0
+                continue
+            height = 26.0 if y < 250.0 else 40.0
+            if x < 20.0:
+                height = min(height, 34.0)
+            built = private_assets.place_tower(coll, x, y, FAR_Z, height)
+            if built is None and cc0_city.ready():
+                built = cc0_city.place_tower(coll, x, y, FAR_Z, height)
+            if built is not None:
+                kit.add(built, "building_base", sink=True, skeleton=(int(x + y) % 19 == 0))
+                placed += 1
+            x += 20.0
+        y += 28.0
+    return placed
+
+
+def _mesh_prop(coll, path, loc, yaw, height, name):
+    """A downloaded mesh, bottom on loc, scaled to ``height`` metres."""
+    mesh = cc0_city.static_mesh(Path(path))
+    if mesh is None:
+        return None
+    size = cc0_city._mesh_size(mesh)
+    scale = float(height) / max(size[2], 0.01)
+    return cc0_city._spawn(coll, mesh, loc, yaw, scale, name)
+
+
+def _park_approach(kit, coll):
+    """Curbs and piers so the ramp reads as a road over the park, not a ribbon on grass."""
+    roads = Path("/opt/cursor/asset-cache/cc0/extracted/roads_props/kenney_city_kit_roads/Models/GLB format")
+    barrier = roads / "construction-barrier.glb"
+    pillar = roads / "bridge-pillar.glb"
+    if not barrier.exists():
+        barrier = Path("/opt/cursor/asset-cache/cc0/extracted/ruins_decay/quaternius_post_apocalypse/glb/Traffic_Barrier_nugx3heueH.glb")
+    rx, ry = right_vector()
+    s = RAMP_FLAT_S + 2.0
+    while s < NEAR_BANK_S - 1.0:
+        x, y = deck_point(s)
+        z = deck_z(s) + RIBBON_TOP
+        for side in (-1.0, 1.0):
+            edge = DECK_HALF + 0.55
+            curb = _mesh_prop(
+                coll, barrier,
+                (x + rx * side * edge, y + ry * side * edge, z),
+                DECK_ROT_Z, 0.85, "ramp_curb",
+            )
+            if curb is not None:
+                kit.add(curb, "prop", sink=False)
+            rise = z - PARK_Z
+            if rise > 1.1 and pillar.exists() and int(s) % 14 < 5:
+                pier = _mesh_prop(
+                    coll, pillar,
+                    (x + rx * side * (DECK_HALF + 0.2), y + ry * side * (DECK_HALF + 0.2), PARK_Z),
+                    DECK_ROT_Z, rise, "ramp_pier",
+                )
+                if pier is not None:
+                    kit.add(pier, "prop", sink=False)
+        s += 5.5
+
+
+def _mountains(kit, coll):
+    """Photoscan ridges on the horizon, behind the skyline, in every era."""
+    spots = (
+        (-420.0, 760.0, 520.0, 0.4),
+        (-140.0, 820.0, 640.0, 1.2),
+        (180.0, 790.0, 560.0, 2.2),
+        (460.0, 840.0, 600.0, 0.8),
+    )
+    placed = 0
+    for x, y, longest, yaw in spots:
+        obj = private_assets.place(
+            coll, "Glacier_Photoscan_on_Mountain_d7f119cc",
+            (x, y, FAR_Z - 8.0), yaw, longest=longest, name="mountain",
+        )
+        if obj is None:
+            continue
+        kit.add(obj, "mountain", sink=False)
+        placed += 1
+    if placed == 0:
+        cliff = Path("/opt/cursor/asset-cache/cc0/extracted/city_buildings/kenney_retro_urban_kit/Models/GLB format/cliff-side.glb")
+        for i, x in enumerate(range(-500, 560, 140)):
+            obj = _mesh_prop(coll, cliff, (x, 780.0 + (i % 2) * 40.0, FAR_Z), 0.2 * i, 180.0, "ridge")
+            if obj is not None:
+                kit.add(obj, "mountain", sink=False)
+                placed += 1
+    # A slab of blue air in front of the ridges. Near streets sit south of it.
+    mesh = bpy.data.meshes.new("distance_haze")
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1.0)
+    bm.to_mesh(mesh)
+    bm.free()
+    haze = bpy.data.objects.new("distance_haze", mesh)
+    coll.objects.link(haze)
+    haze.location = (20.0, 820.0, 160.0)
+    haze.scale = (1600.0, 220.0, 280.0)
+    mat = bpy.data.materials.new("DistanceHaze")
+    mat.use_nodes = True
+    tree = mat.node_tree
+    tree.nodes.clear()
+    out = tree.nodes.new("ShaderNodeOutputMaterial")
+    vol = tree.nodes.new("ShaderNodeVolumePrincipled")
+    vol.inputs["Color"].default_value = (0.55, 0.66, 0.78, 1.0)
+    vol.inputs["Density"].default_value = 0.0016
+    tree.links.new(vol.outputs["Volume"], out.inputs["Volume"])
+    haze.data.materials.append(mat)
+    kit.add(haze, "mountain", sink=False)
+    return placed
 
 
 def _south_city_blocks(kit, coll, mats, ix, road_z, street_west, street_east, front_north):
@@ -1693,7 +1967,6 @@ def build_river_city(kit, mats, rng, pieces):
     colors = SKYLINE_COLORS
     # Only the far layer is lifted toward haze. Near and mid rows stay saturated.
     haze = ((0.0, 0.0, 0.0), (0.04, 0.05, 0.06), (0.12, 0.14, 0.16), (0.22, 0.24, 0.26))
-    fall_i = 0
     rows = SKYLINE_ROWS
     for row, (y, hmin, hmax, x0, x1, wr) in enumerate(rows):
         x = x0
@@ -1701,11 +1974,10 @@ def build_river_city(kit, mats, rng, pieces):
             w = rng.uniform(*wr)
             # The bridge approach is a road. Towers stay off it on every row,
             # not only the first, and the gap is the road plus the building's own width.
-            corridor = abs(x - _deck_x(y)) < (w * 0.5 + DECK_HALF + 6.0) and y < RIVER_Y1 + 200.0
+            corridor = abs(x - _deck_x(y)) < (w * 0.5 + DECK_HALF + 6.0) and y < FAR_END_Y + 30.0
             if corridor or on_block_street(x, w * 0.5 + 1.0):
                 x += 6.0
                 continue
-            d = min(rng.uniform(wr[0] * 0.72, wr[1] * 0.85), 32.0)
             h = rng.uniform(hmin, hmax)
             # Neighbors jump between short and tall instead of clustering in the middle.
             if rng.random() < 0.4:
@@ -1736,32 +2008,27 @@ def build_river_city(kit, mats, rng, pieces):
                 built = cc0_city.place_tower(col_c, x, y, FAR_Z, h)
             if built is not None:
                 kit.add(built, "building_base", sink=True, skeleton=(row == 3 and int(x) % 80 < 40))
-                x += w + rng.uniform(10.0, 16.0)
+                x += w + rng.uniform(4.0, 8.0)
                 continue
             if _library_tower(kit, col_c, x, y, FAR_Z, h, color):
-                x += w + rng.uniform(10.0, 16.0)
+                x += w + rng.uniform(4.0, 8.0)
                 continue
-            # A box with the facade grid. Depth is the footprint, so the side face shows.
-            falling = fall_i < 8 and row < 2 and h > 40.0
-            if falling:
-                split = h * 0.62
-                base = link_obj("tower", _tower_mesh("tower", w, d, split, windows=False), col_c, (mats["facade"],))
-                base.location = (x, y, FAR_Z)
-                base.color = color
-                top = link_obj("top", _tower_mesh("top", w * 0.72, d * 0.72, h - split, windows=False), col_c, (mats["facade"],))
-                top.location = (x, y, FAR_Z + split)
-                top.color = color
-                kit.add(base, "building_base", sink=True, skeleton=(fall_i % 3 == 0))
-                kit.add(top, "building_top", sink=True, fall_at=0.42 + fall_i * 0.04, index=fall_i, top_h=h - split)
-                fall_i += 1
-            else:
-                obj = link_obj("tower", _tower_mesh("tower", w, d, h, windows=False), col_c, (mats["facade"],))
-                obj.location = (x, y, FAR_Z)
-                obj.color = color
-                kit.add(obj, "building_base", sink=True, skeleton=(row == 3 and int(x) % 80 < 40))
-            x += w + rng.uniform(10.0, 16.0)
+            # No primitive stand-in. The lot stays open until a downloaded block fills it.
+            x += 8.0
 
+    _fill_far_bank(kit, col_c)
     _place_hub_blocks(kit, col_c, mats)
+    _park_approach(kit, col_g)
+    _mountains(kit, col_c)
+    for ruin_loc, ruin_h, ruin_yaw in (
+        ((-18.0, 4.0, ROAD_Z), 12.0, 0.2),
+        ((-80.0, 220.0, FAR_Z), 16.0, 0.4),
+        ((95.0, 235.0, FAR_Z), 18.0, -0.3),
+        ((140.0, 355.0, FAR_Z), 14.0, 1.1),
+    ):
+        shell = _ruin_piece(col_c, ruin_loc, ruin_yaw, ruin_h)
+        if shell is not None:
+            kit.add(shell, "ruin", sink=False)
 
     if "power" in pieces:
         _power_plant(kit, col_c, mats, -70.0, 280.0, FAR_Z)
@@ -1830,25 +2097,25 @@ def build_river_city(kit, mats, rng, pieces):
                     continue
                 _tree(
                     kit, col_p, mats, ix, iy, PARK_Z,
-                    rng.uniform(3.5, 6.5), future=True, delay=rng.uniform(0.35, 0.85),
+                    rng.uniform(3.5, 6.5), future=True, delay=rng.uniform(0.22, 0.5),
                     rng=rng, kind=rng.choice(kinds),
                 )
         for ix in range(-80, 100, 12):
             for iy in (162, 180, 200):
-                if on_block_street(ix, 2.5) or abs(ix - _deck_x(iy)) < DECK_HALF + 8.0:
+                if _on_far_road(ix, iy, 7.0):
                     continue
                 _tree(
                     kit, col_p, mats, ix, iy, FAR_Z,
-                    rng.uniform(7.0, 12.0), future=True, delay=rng.uniform(0.25, 0.7),
+                    rng.uniform(7.0, 12.0), future=True, delay=rng.uniform(0.28, 0.55),
                     rng=rng, kind=rng.choice(kinds),
                 )
         for ix in range(-280, 300, 16):
             for iy in (230, 270, 320, 380):
-                if on_block_street(ix, 2.0) or (abs(ix) < 14 and iy < 250):
+                if _on_far_road(ix, iy, 6.0):
                     continue
                 _tree(
                     kit, col_p, mats, ix, iy, FAR_Z,
-                    rng.uniform(7.0, 12.0), future=True, delay=0.15 + (abs(ix) % 6) * 0.05,
+                    rng.uniform(7.0, 12.0), future=True, delay=0.18 + (abs(ix) % 5) * 0.04,
                     rng=rng, kind=rng.choice(kinds),
                 )
         for i in range(28):
@@ -1859,6 +2126,17 @@ def build_river_city(kit, mats, rng, pieces):
             _plant(
                 kit, col_p, "shrub_01" if i % 2 == 0 else "shrub_02",
                 x, y, PARK_Z, rng.uniform(0.7, 1.3), delay=rng.uniform(0.2, 0.55), yaw=rng.random() * 6.0,
+            )
+        # These stay small at year 100 and close the canopy at year 500.
+        for i in range(36):
+            x = rng.uniform(-90.0, 70.0)
+            y = rng.choice((AVE_Y - 2.0, AVE_Y + 3.0, 48.0, 64.0, 210.0, 250.0, 340.0))
+            if _on_deck(x, y, 8) or _on_far_road(x, y, 6.0) or abs(y - AVE_Y) < 1.2:
+                continue
+            _tree(
+                kit, col_p, mats, x, y, ROAD_Z if y < 40.0 else (PARK_Z if y < 90.0 else FAR_Z),
+                rng.uniform(4.0, 7.5), future=True, delay=0.72, rng=rng,
+                kind="pine" if i % 2 == 0 else "round",
             )
 
     # People stand on paths, the promenade, and around the fountain. A few on the grass.
@@ -1935,6 +2213,7 @@ def build_river_city(kit, mats, rng, pieces):
         kit.add(pad, "wreckage", sink=False)
     hero = next((item.obj for item in kit.items if item.extra.get("hero")), None)
     found_assets.arm_wreck(hero)
+    _alive(kit, col_v)
     for i, (x, y, yaw) in enumerate(FOREGROUND_CARS):
         _car(
             kit,

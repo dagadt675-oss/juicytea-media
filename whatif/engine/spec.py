@@ -438,6 +438,8 @@ def sfx_document(resolved: dict) -> dict:
         },
     ]
     cues = []
+    if vanish:
+        cues.append({"id": "vanish_pop", "kind": "vanish", "file": None, "t": vanish[0] + 0.35, "dur": 0.45, "gain": 0.9, "note": "People pop out. Cars coast and bikes fall."})
     if power:
         cues.append({"id": "power_down", "kind": "power", "file": None, "t": power[0], "dur": 1.4, "gain": 0.8})
     if flood:
