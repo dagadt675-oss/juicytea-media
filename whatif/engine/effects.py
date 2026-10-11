@@ -343,7 +343,7 @@ def _bridge(kit, ch):
     ya = bridge["towers"][0].base_loc.y
     yb = bridge["towers"][1].base_loc.y
     span = max(1.0, abs(yb - ya))
-    sag = span / 10.0
+    sag = span / 7.5
     snap = smoother(0.66, 0.9, ch["collapse"])
     half = float(bridge.get("half", 7.6))
     sides = []
@@ -375,7 +375,7 @@ def _bridge(kit, ch):
             if a.z < -20 or b.z < -20:
                 seg.hide_render = True
                 continue
-            aim_z(seg, a, b, 0.28)
+            aim_z(seg, a, b, 0.85)
         for seg in cables[len(pairs) :]:
             seg.hide_render = True
     count = len(bridge["suspenders"])
@@ -392,7 +392,7 @@ def _bridge(kit, ch):
             sus.hide_render = True
             continue
         sus.hide_render = False
-        aim_z(sus, top, deck, 0.11)
+        aim_z(sus, top, deck, 0.22)
 
 
 def _catenary(a, b, sag, n):
@@ -493,11 +493,12 @@ def _sky(kit, ch, frame, fps):
     if dn < 0.42:
         u = clamp((dn - 0.12) / 0.3)
         elev = _lerp(1.15, 1.28, u)
-        energy = _lerp(5.2, 2.6, u)
-        color = Vector(lin(1.0, 0.86, 0.68)[:3]).lerp(Vector(lin(1.0, 0.55, 0.28)[:3]), u)
-        sky = Vector(lin(0.58, 0.74, 0.90)[:3]).lerp(Vector(lin(0.98, 0.62, 0.38)[:3]), u * 0.75)
-        sky_e = _lerp(0.85, 0.7, u)
-        fill = 0.16
+        energy = _lerp(7.4, 3.2, u)
+        color = Vector(lin(1.0, 0.74, 0.42)[:3]).lerp(Vector(lin(1.0, 0.48, 0.22)[:3]), u)
+        sky = Vector(lin(0.45, 0.68, 0.92)[:3]).lerp(Vector(lin(0.98, 0.62, 0.38)[:3]), u * 0.75)
+        horizon = Vector(lin(0.96, 0.82, 0.62)[:3]).lerp(Vector(lin(0.98, 0.55, 0.32)[:3]), u)
+        sky_e = _lerp(1.05, 0.85, u)
+        fill = 0.28
     elif dn < 0.68:
         u = clamp((dn - 0.42) / 0.26)
         elev = _lerp(1.15, 1.72, u)
@@ -505,6 +506,7 @@ def _sky(kit, ch, frame, fps):
         color = Vector(lin(1.0, 0.62, 0.32)[:3]).lerp(Vector(lin(0.55, 0.68, 1.0)[:3]), u)
         sky = Vector(lin(0.95, 0.55, 0.35)[:3]).lerp(Vector((0.015, 0.02, 0.045)), u)
         sky_e = _lerp(0.7, 0.28, u)
+        horizon = sky
         fill = _lerp(0.4, 0.32, u)
     else:
         u = clamp((dn - 0.68) / 0.2)
@@ -513,6 +515,7 @@ def _sky(kit, ch, frame, fps):
         color = Vector(lin(0.55, 0.68, 1.0)[:3]).lerp(Vector(lin(1.0, 0.97, 0.92)[:3]), u)
         sky = Vector((0.015, 0.02, 0.045)).lerp(Vector(lin(0.64, 0.76, 0.88)[:3]), u)
         sky_e = _lerp(0.28, 0.95, u)
+        horizon = sky
         fill = _lerp(0.32, 0.45, u)
     # Heat haze warms the sky. Dust desaturates it.
     if ch["heat"] > 0.01:
@@ -522,9 +525,11 @@ def _sky(kit, ch, frame, fps):
         sky = sky.lerp(Vector(lin(0.72, 0.62, 0.48)[:3]), ch["dust"] * 0.5)
     kit.sun.rotation_euler = Euler((elev, 0.08, -0.85))
     kit.sun.data.energy = energy
-    kit.sun.data.angle = 0.08 if dn > 0.68 else 0.5
+    kit.sun.data.angle = 0.08 if dn > 0.68 else 0.16
     kit.sun.data.color = (color.x, color.y, color.z)
     kit.fill.data.energy = fill * (1.0 - 0.3 * ch["ice"])
     if kit.world_bg:
-        kit.world_bg.inputs[0].default_value = (sky.x, sky.y, sky.z, 1)
         kit.world_bg.inputs[1].default_value = sky_e
+    if getattr(kit, "sky_zenith", None) is not None:
+        kit.sky_zenith.outputs[0].default_value = (sky.x, sky.y, sky.z, 1)
+        kit.sky_horizon.outputs[0].default_value = (horizon.x, horizon.y, horizon.z, 1)

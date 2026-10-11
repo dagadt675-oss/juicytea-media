@@ -13,15 +13,16 @@ scene:
   seed: 11
 format: A
 camera:
-  # Wide and further back. The bridge sits on the right; the lawn fills the left.
-  location: [-28.0, -18.0, 58.0]
-  target: [-0.2, 127.0, -19.1]
-  lens: 42
+  # Solved against the zenith frame: skyline base 38%, near bank 55%,
+  # promenade 77%, tower x 62%, tower top 13%.
+  location: [-38.0, -25.3, 58.3]
+  target: [2.5, 125.85, -11.0]
+  lens: 57.2
   sensor_fit: HORIZONTAL
   sensor_width: 36
   clip_end: 2500
 ui:
-  counter_y: 0.50
+  counter_y: 0.46
 beats:
   - id: vanish
     title: true

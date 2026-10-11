@@ -359,7 +359,7 @@ def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None, ki
         leaf = (0.76, 0.78, 0.26, 1)
     else:
         leaf = greens[rng.randrange(len(greens))]
-    height = max(4.2, scale * 1.45) * rng.uniform(0.7, 1.3)
+    height = max(8.5, scale * 2.9) * rng.uniform(0.85, 1.2)
     if kind == "pine":
         height *= 1.15
     trunk_h = height * (0.42 if kind == "pine" else 0.32)
@@ -587,7 +587,9 @@ def build_river_city(kit, mats, rng, pieces):
     # Planes run far past the frustum so no brown edge can enter the frame.
     _plane("bedrock", col_g, (0, 2000, -6.0), (24000, 24000), mats["park"], 0.4)
     _plane("road", col_g, (0, 14, 0.32), (1200, 48), mats["road"])
-    _plane("park", col_g, (-6, 55, PARK_Z), (1200, 48), mats["park"])
+    # Park runs from the promenade (y=36) to the near bank (y=82).
+    _plane("park", col_g, (-6, 59, PARK_Z), (1200, 46), mats["park"])
+    _plane("promenade_band", col_g, (-10, 36, PARK_Z + 0.04), (80, 3.2), mats["concrete"])
     for name, px, py, hx, hy in (
         ("v1", -42.0, 58.0, 1.4, 18.0),
         ("v2", -26.0, 58.0, 1.4, 18.0),
@@ -599,8 +601,8 @@ def build_river_city(kit, mats, rng, pieces):
         _plane(name, col_g, (px, py, PARK_Z + 0.05), (hx, hy), mats["concrete"])
     _plane("sidewalk", col_g, (0, 30, 0.46), (1200, 3.6), mats["concrete"])
     _plane("quay", col_g, (0, 80, LOW_Z), (1200, 3.2), mats["trim"])
-    _plane("city_ground", col_g, (0, 460, FAR_Z), (2000, 560), mats["trim"])
-    _plane("far_meadow", col_g, (0, 420, FAR_Z + 0.04), (2000, 400), mats["park"])
+    # City ground covers the far bank. No green meadow behind the towers.
+    _plane("city_ground", col_g, (0, 420, FAR_Z), (2400, 540), mats["trim"])
     for x in range(-40, 42, 6):
         box_object("ldash", col_g, (x, 13.2, 0.40), (2.4, 0.16, 0.04), mats["mark"])
         box_object("ldash2", col_g, (x + 3.0, 18.6, 0.40), (2.4, 0.16, 0.04), mats["mark"])
@@ -637,8 +639,6 @@ def build_river_city(kit, mats, rng, pieces):
             # Neighbors jump between short and tall instead of clustering in the middle.
             if rng.random() < 0.4:
                 h = hmin + (hmax - hmin) * (0.12 if rng.random() < 0.45 else 0.94)
-            if abs(x - 8.0) < 18.0:
-                h *= 0.82
             base_col = colors[(row * 5 + int(x) // 6) % len(colors)]
             hz = haze[row]
             color = (
@@ -664,7 +664,7 @@ def build_river_city(kit, mats, rng, pieces):
                 obj.location = (x, y + (row % 2) * 1.5, FAR_Z)
                 obj.color = color
                 kit.add(obj, "building_base", sink=True, fall_at=None)
-            x += w + rng.uniform(1.2, 4.5)
+            x += w + rng.uniform(0.4, 1.8)
 
     if "power" in pieces:
         _power_plant(kit, col_c, mats, -70.0, 280.0, FAR_Z)
@@ -745,13 +745,17 @@ def build_river_city(kit, mats, rng, pieces):
             bush.color = (0.28, 0.48, 0.2, 1)
             kit.add(bush, "weed", delay=rng.uniform(0.05, 0.45), sink=False, leaf=(0.28, 0.48, 0.2, 1), autumn=(0.55, 0.4, 0.16, 1))
 
-    # Tiny figures spread over the lawn, not a crowd packed on the crosswalk.
-    for i in range(28):
-        x = rng.uniform(-48, -6)
-        y = rng.uniform(38, 74)
-        if _on_deck(x, y, 7) or math.hypot(x - fx, y - fy) < 3.2:
+    # A dense crowd across the lawn. Kept off the bridge deck.
+    placed = 0
+    tries = 0
+    while placed < 150 and tries < 400:
+        tries += 1
+        x = rng.uniform(-55, 8)
+        y = rng.uniform(38, 78)
+        if _on_deck(x, y, 6) or math.hypot(x - fx, y - fy) < 2.4:
             continue
         _person(kit, col_v, mats, x, y, PARK_Z, rng)
+        placed += 1
     for i in range(6):
         ang = i / 6.0 * math.tau
         _person(kit, col_v, mats, fx + math.cos(ang) * 3.4, fy + math.sin(ang) * 3.4, PARK_Z, rng)
@@ -922,7 +926,8 @@ def _bridge(kit, col, cars, mats, rng):
         loc, rot = tower_pose(s)
         pivot = empty(f"tower_{i}", col, loc)
         pivot.rotation_euler[2] = rot
-        height = 30.0 if i == 0 else 36.0
+        # Near portal top is the solved 13% line. The far portal stays under the title.
+        height = 52.7 if i == 0 else 46.0
         _tower_portal(col, mats, pivot, height, TOWER_W)
         towers.append(kit.add(pivot, "bridge_tower", i=i, height=height, width=TOWER_W, sink=True))
         # Ivy that grows onto the legs as the years pass.
@@ -1434,7 +1439,32 @@ def _lights(kit):
     world = bpy.data.worlds.new("Sky")
     kit.scene.world = world
     world.use_nodes = True
-    bg = world.node_tree.nodes["Background"]
-    bg.inputs[0].default_value = lin(0.55, 0.74, 0.94)
-    bg.inputs[1].default_value = 1.15
+    nt = world.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputWorld")
+    bg = nt.nodes.new("ShaderNodeBackground")
+    mix = nt.nodes.new("ShaderNodeMixRGB")
+    zenith = nt.nodes.new("ShaderNodeRGB")
+    horizon = nt.nodes.new("ShaderNodeRGB")
+    geo = nt.nodes.new("ShaderNodeNewGeometry")
+    sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+    ramp = nt.nodes.new("ShaderNodeMapRange")
+    zenith.outputs[0].default_value = lin(0.45, 0.68, 0.92)
+    horizon.outputs[0].default_value = lin(0.97, 0.84, 0.66)
+    # Incoming Z runs from the ground up into the sky. Map it to a soft gradient.
+    ramp.inputs["From Min"].default_value = -0.15
+    ramp.inputs["From Max"].default_value = 0.55
+    ramp.inputs["To Min"].default_value = 1.0
+    ramp.inputs["To Max"].default_value = 0.0
+    ramp.clamp = True
+    nt.links.new(geo.outputs["Incoming"], sep.inputs["Vector"])
+    nt.links.new(sep.outputs["Z"], ramp.inputs["Value"])
+    nt.links.new(ramp.outputs["Result"], mix.inputs["Fac"])
+    nt.links.new(horizon.outputs["Color"], mix.inputs["Color1"])
+    nt.links.new(zenith.outputs["Color"], mix.inputs["Color2"])
+    nt.links.new(mix.outputs["Color"], bg.inputs["Color"])
+    nt.links.new(bg.outputs["Background"], out.inputs["Surface"])
+    bg.inputs[1].default_value = 1.05
     kit.world_bg = bg
+    kit.sky_zenith = zenith
+    kit.sky_horizon = horizon

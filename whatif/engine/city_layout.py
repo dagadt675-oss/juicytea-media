@@ -15,7 +15,7 @@ import math
 # Positive yaw brings the near end down into the camera, onto the foreground road.
 BRIDGE_YAW = math.radians(11.0)
 DECK_ROT_Z = -BRIDGE_YAW
-DECK_ORIGIN = (12.0, 79.0)
+DECK_ORIGIN = (4.1, 79.0)
 DECK_W = 10.0
 DECK_HALF = DECK_W / 2.0
 DECK_Z = 4.6
@@ -36,22 +36,23 @@ FAR_Z = 1.8
 
 # Grey, white, light blue, and salmon. The back row is lifted toward blue in the scene.
 SKYLINE_COLORS = (
-    (0.82, 0.86, 0.90, 1),
-    (0.94, 0.95, 0.96, 1),
-    (0.70, 0.80, 0.90, 1),
-    (0.78, 0.82, 0.88, 1),
-    (0.90, 0.88, 0.84, 1),
-    (0.86, 0.55, 0.50, 1),
-    (0.62, 0.74, 0.86, 1),
-    (0.80, 0.50, 0.46, 1),
-    (0.86, 0.70, 0.64, 1),
-    (0.76, 0.84, 0.92, 1),
+    (0.68, 0.76, 0.84, 1),
+    (0.96, 0.96, 0.95, 1),
+    (0.50, 0.68, 0.88, 1),
+    (0.74, 0.78, 0.82, 1),
+    (0.84, 0.36, 0.32, 1),
+    (0.78, 0.42, 0.36, 1),
+    (0.62, 0.78, 0.90, 1),
+    (0.90, 0.48, 0.40, 1),
+    (0.86, 0.86, 0.88, 1),
+    (0.58, 0.72, 0.84, 1),
 )
-# y, hmin, hmax, x0, x1, (wmin, wmax). Kept under the title at this camera.
+# Front row base is the solved skyline line (world y=168). Back row is tall
+# enough to leave the top of the frame.
 SKYLINE_ROWS = (
-    (188.0, 16.0, 44.0, -140.0, 180.0, (5.2, 9.5)),
-    (210.0, 22.0, 60.0, -150.0, 190.0, (4.8, 8.5)),
-    (236.0, 28.0, 74.0, -130.0, 180.0, (4.4, 8.0)),
+    (172.0, 22.0, 62.0, -150.0, 190.0, (6.0, 11.0)),
+    (198.0, 40.0, 88.0, -160.0, 200.0, (5.5, 10.0)),
+    (228.0, 70.0, 120.0, -140.0, 190.0, (5.0, 9.0)),
 )
 
 # Park paths. Cars must not sit on these.
@@ -67,11 +68,11 @@ PATHS = (
 FOUNTAIN = (-38.0, 60.0)
 # One eastbound row on the near road, clear of the bridge slab and the park paths.
 FOREGROUND_CARS = (
-    (-36.0, 17.6),
-    (-24.0, 17.4),
-    (-12.0, 17.8),
-    (14.0, 17.5),
-    (26.0, 17.7),
+    (-40.0, 17.2),
+    (-28.0, 17.5),
+    (-18.0, 17.3),
+    (8.0, 17.6),
+    (20.0, 17.4),
 )
 DECK_LANES = (-2.4, -0.8, 0.8, 2.4)
 

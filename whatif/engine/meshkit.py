@@ -387,7 +387,7 @@ def make_facade_material():
     cam = nt.nodes.new("ShaderNodeCameraData")
     # Far towers go lighter and bluer. The close window-grid test stays under the start distance.
     haze = _math(nt, "DIVIDE", _math(nt, "SUBTRACT", cam.outputs["View Distance"], 170.0), 420.0)
-    haze = _math(nt, "MINIMUM", _math(nt, "MAXIMUM", haze, 0.0), 0.34)
+    haze = _math(nt, "MINIMUM", _math(nt, "MAXIMUM", haze, 0.0), 0.16)
     color = _mix(nt, haze, color, lin(0.74, 0.80, 0.86))
     night = channel_value(nt, ("day_night",), "clamp((day_night - 0.48) / 0.2, 0, 1)")
     power = channel_value(nt, ("power",), "power")
