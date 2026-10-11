@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import math
+import multiprocessing
 import subprocess
 import sys
 from pathlib import Path
@@ -29,7 +30,10 @@ from jt.show.polys import fill_iso  # noqa: E402
 from jt.show.vfx_core import (  # noqa: E402
     BADGE_TEXT_S,
     accumulate,
+    apply_light_spill,
     badge_state,
+    barrel_distort,
+    box_luminance,
     cloud_alpha,
     draw_atmosphere,
     draw_badge,
@@ -37,11 +41,13 @@ from jt.show.vfx_core import (  # noqa: E402
     draw_neon_path,
     exp_zoom,
     grade,
-    impact_shake,
+    label_style,
     multiply_rgb,
+    overlay_grain,
     overshoot,
     place_labels,
     shadow_offset,
+    spring_approach,
     stress_glow,
     stroke_for_zoom,
     trim_polyline,
@@ -96,6 +102,15 @@ class Proof:
                 a, b = left, right
                 break
         u = 0.0 if float(b["t"]) <= float(a["t"]) else (t - float(a["t"])) / (float(b["t"]) - float(a["t"]))
+        duration = float(b["t"]) - float(a["t"])
+        # Snaps integrate the spring. Long dives keep the eased exponential zoom.
+        # Impact shake is not applied: a snap settles, it does not sway.
+        if b.get("ease") == "spring" and 0.05 < duration <= 0.90:
+            elapsed = max(0.0, t - float(a["t"]))
+            lon = spring_approach(float(a["lon"]), float(b["lon"]), elapsed)
+            lat = spring_approach(float(a["lat"]), float(b["lat"]), elapsed)
+            span = math.exp(spring_approach(math.log(float(a["span"])), math.log(float(b["span"])), elapsed))
+            return Cam(b["proj"], lon, lat, max(4.0, span))
         eased = _ease(b.get("ease", "quintic"), u)
         lon = float(a["lon"]) + (float(b["lon"]) - float(a["lon"])) * eased
         lat = float(a["lat"]) + (float(b["lat"]) - float(a["lat"])) * eased
@@ -103,14 +118,7 @@ class Proof:
             span = exp_zoom(float(a["span"]), float(b["span"]), eased)
         else:
             span = float(a["span"]) + (float(b["span"]) - float(a["span"])) * eased
-        cam = Cam(b["proj"] if eased > 0.55 else a["proj"], lon, lat, max(4.0, span))
-        for beat in self.spec["beats"]:
-            if beat["type"] != "impact":
-                continue
-            dx, dy = impact_shake(t, float(beat["t"]), float(beat.get("dur", 0.25)), float(beat.get("amp", 8)))
-            if dx or dy:
-                cam = Cam(cam.proj, cam.lon + dx * cam.span / W, cam.lat - dy * cam.span / H, cam.span)
-        return cam
+        return Cam(b["proj"] if eased > 0.55 else a["proj"], lon, lat, max(4.0, span))
 
     def _moving(self, t: float) -> bool:
         a = self.cam(max(0.0, t - 0.03))
@@ -123,6 +131,41 @@ class Proof:
             return accumulate([self._draw(t + dt) for dt in (-1.0 / 90.0, 0.0, 1.0 / 90.0)])
         return self._draw(t)
 
+    def _glow_gain(self, t: float) -> float:
+        gain = 0.55 if self.spec.get("spill", True) else 0.0
+        for beat in self.spec["beats"]:
+            if beat["type"] != "impact":
+                continue
+            dur = float(beat.get("dur", 0.25))
+            age = t - float(beat["t"])
+            if dur > 0 and 0.0 <= age <= dur:
+                # A light pulse, not a camera shake.
+                gain += 0.45 * math.sin(math.pi * age / dur)
+        return gain
+
+    def _spill(self, img: np.ndarray, cam: Cam, t: float) -> np.ndarray:
+        gain = self._glow_gain(t)
+        if gain <= 0.02:
+            return img
+        from scipy.ndimage import distance_transform_edt, zoom
+        for beat in self.spec["beats"]:
+            if beat["type"] != "extrude" or t < float(beat["t"]):
+                continue
+            iso = beat.get("iso", "SWE")
+            color = tuple(beat.get("color") or (80, 180, 255))
+            sw, sh = W // 2, H // 2
+            surf = skia.Surface(sw, sh)
+            canvas = surf.getCanvas()
+            canvas.clear(skia.Color4f(0, 0, 0, 0))
+            fill_iso(canvas, self.earth, cam, iso, (255, 255, 255), 255, w=sw, h=sh)
+            alpha = surf.makeImageSnapshot().toarray()[:, :, 3] > 24
+            if int(alpha.sum()) < 8:
+                continue
+            dist = distance_transform_edt(~alpha) * 2.0
+            dist = zoom(dist, (H / sh, W / sw), order=1)[:H, :W]
+            img = apply_light_spill(img, dist, color, radius=110.0, gain=gain)
+        return img
+
     def _draw(self, t: float) -> np.ndarray:
         t = min(self.duration, max(0.0, t))
         cam = self.cam(t)
@@ -133,6 +176,7 @@ class Proof:
                 paper = max(paper, float(beat.get("amount", 0.25)))
         if paper:
             img = multiply_rgb(img, (214, 186, 140), paper)
+        img = self._spill(img, cam, t)
         rgba = np.dstack([img, np.full((H, W), 255, np.uint8)])
         surface = skia.Surface(W, H)
         canvas = surface.getCanvas()
@@ -141,19 +185,27 @@ class Proof:
         zoom = self.open_span / cam.span
         if cam.proj == "ortho":
             strength = max(0.0, 1.0 - (3.0 - min(zoom, 3.0)) / 3.0)
-            # Wider views (zoom near 1) keep the rim. Close views drop it.
             strength = max(0.0, 1.0 - _clamp((zoom - 1.2) / 1.6))
             draw_atmosphere(canvas, view.cx, view.cy, view.r, strength)
             draw_clouds(canvas, t, zoom)
         self._country(canvas, cam, t, zoom)
         self._laser(canvas, cam, t, zoom)
-        self._badges(canvas, t)
-        if self.spec.get("grade", True):
-            bgra = surface.makeImageSnapshot().toarray()
-            rgb = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
-            return grade(rgb, t)
         bgra = surface.makeImageSnapshot().toarray()
-        return np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
+        map_rgb = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
+        if self.spec.get("barrel", True):
+            map_rgb = barrel_distort(map_rgb)
+        plate = np.dstack([map_rgb, np.full((H, W), 255, np.uint8)])
+        surface = skia.Surface(W, H)
+        canvas = surface.getCanvas()
+        canvas.drawImage(skia.Image.fromarray(plate), 0, 0)
+        self._badges(canvas, t, map_rgb)
+        bgra = surface.makeImageSnapshot().toarray()
+        rgb = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
+        if self.spec.get("grade", True):
+            rgb = grade(rgb, t)
+        if self.spec.get("grain", True):
+            rgb = overlay_grain(rgb, t, self.fps)
+        return rgb
 
     def _country(self, canvas, cam: Cam, t: float, zoom: float) -> None:
         view = view_for(cam, W, H)
@@ -195,7 +247,7 @@ class Proof:
             core = stroke_for_zoom(2.4 + 1.6 * hot, zoom)
             draw_neon_path(canvas, shown, (80, 220, 255) if hot < 0.4 else (255, 220, 80), core=core, dash=28)
 
-    def _badges(self, canvas, t: float) -> None:
+    def _badges(self, canvas, t: float, background: np.ndarray) -> None:
         pending = []
         for beat in self.spec["beats"]:
             if beat["type"] not in ("badge", "overshoot") or t < float(beat["t"]):
@@ -211,14 +263,21 @@ class Proof:
         for beat, (x, y) in zip(pending, placed):
             age = t - float(beat["t"])
             if beat["type"] == "badge":
-                draw_badge(canvas, str(beat.get("text", "BADGE")), x, y, age)
+                draw_badge(canvas, str(beat.get("text", "BADGE")), x, y, age, background=background)
             else:
                 scale = overshoot(min(1.0, age / 0.45))
                 if scale <= 0.02:
                     continue
+                lum = box_luminance(background, x, y, 120, 120)
+                ink_rgb, backing = label_style(lum)
                 canvas.save()
                 canvas.translate(x, y)
                 canvas.scale(scale, scale)
+                if backing:
+                    shade = skia.Paint(AntiAlias=True)
+                    shade.setColor(skia.ColorSetARGB(backing, 8, 10, 16))
+                    shade.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 6))
+                    canvas.drawCircle(0, 0, 54, shade)
                 paint = skia.Paint(AntiAlias=True)
                 paint.setColor(skia.ColorSetARGB(255, 255, 214, 48))
                 canvas.drawCircle(0, 0, 46, paint)
@@ -228,7 +287,7 @@ class Proof:
                 except Exception:
                     font = skia.Font(None, 64)
                 ink = skia.Paint(AntiAlias=True)
-                ink.setColor(skia.ColorSetARGB(255, 16, 16, 20))
+                ink.setColor(skia.ColorSetARGB(255, ink_rgb[0], ink_rgb[1], ink_rgb[2]))
                 text = str(beat.get("text", "!"))
                 canvas.drawString(text, -font.measureText(text) / 2, 22, font, ink)
                 canvas.restore()
@@ -263,6 +322,13 @@ def _encode(show: Proof, i0: int, i1: int, path: Path) -> None:
         raise SystemExit(f"ffmpeg failed {code}")
 
 
+def _encode_job(spec_path: str, i0: int, i1: int, path: str) -> str:
+    spec = load_spec(Path(spec_path))
+    show = Proof(spec)
+    _encode(show, i0, i1, Path(path))
+    return path
+
+
 def _concat(parts: list[Path], dest: Path) -> None:
     listing = HERE / "_concat.txt"
     listing.write_text("".join(f"file '{p}'\n" for p in parts))
@@ -294,18 +360,17 @@ def main() -> None:
     assert badge_state(0.0) == (0.0, False)
     assert badge_state(5.0 / 30.0)[1] is False
     assert badge_state(6.0 / 30.0)[1] is True
-    show = Proof(spec)
     cues = cues_for(spec)
     worst, bad = lint_gaps(cues, spec["duration"], 2.0)
     if bad:
         raise SystemExit(f"cue gaps {bad}")
     (HERE / "vfx_cues.json").write_text(json.dumps({"cues": cues, "duration": spec["duration"]}, indent=2) + "\n")
-    ranges = [(0, 180), (180, 360), (360, show.frames)]
-    parts = []
-    for i0, i1 in ranges:
-        part = HERE / f"_part_{i0}_{i1}.mp4"
-        _encode(show, i0, i1, part)
-        parts.append(part)
+    frames = int(round(spec["duration"] * spec["fps"]))
+    ranges = [(0, 180), (180, 360), (360, frames)]
+    jobs = [(str(SPEC), i0, i1, str(HERE / f"_part_{i0}_{i1}.mp4")) for i0, i1 in ranges]
+    ctx = multiprocessing.get_context("spawn")
+    with ctx.Pool(len(jobs)) as pool:
+        parts = [Path(p) for p in pool.starmap(_encode_job, jobs)]
     dest = HERE / "vfx_proof.mp4"
     _concat(parts, dest)
     for part in parts:
@@ -315,16 +380,25 @@ def main() -> None:
     write_report(HERE / "qa.json", qa)
     motion = motion_per_second(dest)
     write_report(HERE / "motion.json", motion)
-    _contact(show, HERE / "contact.jpg")
-    print(json.dumps({
+    _contact(Proof(spec), HERE / "contact.jpg")
+    summary = {
         "structural_motion_mean": qa.get("structural_motion_mean"),
         "structural_event_gap_max": qa.get("structural_event_gap_max"),
-        "structural_pass": qa.get("structural_pass"),
+        "structural_pass": (
+            float(qa.get("structural_motion_mean") or 0) >= 3.7
+            and float(qa.get("structural_event_gap_max") or 99) <= 2.5
+        ),
         "seconds_under_1": motion.get("seconds_under_1"),
         "cue_gap": worst,
         "clouds_wide": round(cloud_alpha(1.0), 2),
         "clouds_close": round(cloud_alpha(4.0), 2),
-    }, indent=2))
+    }
+    print(json.dumps(summary, indent=2))
+    if not summary["structural_pass"]:
+        raise SystemExit(
+            f"structural QC failed: mean {summary['structural_motion_mean']} "
+            f"gap {summary['structural_event_gap_max']}"
+        )
 
 
 if __name__ == "__main__":

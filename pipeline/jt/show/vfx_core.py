@@ -5,9 +5,10 @@ Already in the engine, and left there: smoothstep and cubic-out in
 a single wide glow stroke, pill measureText, a strong vignette, and an
 ortho atmosphere stroke in `jt/draw.py`.
 
-Camera moves elsewhere in the engine are long ease-in-out glides. This
-module does not add shake. Spring, impact shake, Perlin sway, and motion
-jolts are off. Nothing here offsets the camera.
+Camera moves elsewhere in the engine are long ease-in-out glides. Impact
+shake, Perlin sway, and motion jolts stay off: nothing here sways the
+camera. A snap may use the seconds-based spring integrator, which
+overshoots once and settles. Long dives stay on the eased exponential zoom.
 """
 
 from __future__ import annotations
@@ -61,6 +62,39 @@ def overshoot(t: float) -> float:
     if not SPRING_CAMERA:
         return ease_in_out_cubic(t)
     return _spring(t)
+
+
+# Snap integrator. One 1/60 s step uses the owner's update:
+# force = k * (target - pos), vel = (vel + force / m) * damping, pos += vel * dt.
+# Tuned to a small overshoot and a settle inside 0.7 s. Not a sway.
+SPRING_STEP = 1.0 / 60.0
+SPRING_MASS = 1.0
+SPRING_STIFFNESS = 200.0
+SPRING_DAMPING = 0.80
+
+
+def spring_approach(start: float, target: float, elapsed: float, mass: float = SPRING_MASS,
+                    stiffness: float = SPRING_STIFFNESS, damping: float = SPRING_DAMPING) -> float:
+    """Deterministic spring from `start` toward `target` after `elapsed` seconds.
+
+    Same elapsed always returns the same position. Velocity starts at rest,
+    so a settled spring does not drift.
+    """
+    pos = float(start)
+    vel = 0.0
+    if elapsed <= 0.0:
+        return pos
+    step = SPRING_STEP
+    n = int(round(elapsed / step))
+    inv_m = 1.0 / max(1e-6, float(mass))
+    k = float(stiffness)
+    damp = float(damping)
+    goal = float(target)
+    for _ in range(n):
+        force = k * (goal - pos)
+        vel = (vel + force * inv_m * step) * damp
+        pos += vel * step
+    return pos
 
 
 def exp_zoom(z0: float, z1: float, eased_t: float) -> float:
@@ -181,7 +215,7 @@ def badge_state(age: float) -> tuple[float, bool]:
     return scale, age >= BADGE_TEXT_S
 
 
-def draw_badge(canvas, text: str, x: float, y: float, age: float, size: float = 48.0, fill=(16, 18, 22), ink=(255, 214, 48)) -> tuple[float, float, float, float] | None:
+def draw_badge(canvas, text: str, x: float, y: float, age: float, size: float = 48.0, fill=(16, 18, 22), ink=(255, 214, 48), background: np.ndarray | None = None) -> tuple[float, float, float, float] | None:
     font = skia.Font(None, size)
     # Prefer the project face when labels has loaded one.
     try:
@@ -196,13 +230,30 @@ def draw_badge(canvas, text: str, x: float, y: float, age: float, size: float = 
         return None
     rect_w = (width + pad * 2) * scale
     rect_h = size + pad
+    text_ink = ink
+    pill = fill
+    backing = 0
+    if background is not None:
+        lum = box_luminance(background, x, y, max(rect_w, width + pad * 2), rect_h)
+        text_ink, backing = label_style(lum)
+        # Bright ground: dark glyphs on a light pill. Dark ground: the light ink stays.
+        if lum > 0.70:
+            pill = (244, 244, 246)
+        else:
+            text_ink = ink
+            backing = 0
     rect = skia.Rect.MakeXYWH(x - rect_w / 2, y - rect_h / 2, rect_w, rect_h)
+    if backing:
+        shade = skia.Paint(AntiAlias=True)
+        shade.setColor(skia.ColorSetARGB(backing, 8, 10, 16))
+        shade.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 8))
+        canvas.drawRoundRect(rect.makeOutset(6, 6), 22, 22, shade)
     paint = skia.Paint(AntiAlias=True)
-    paint.setColor(skia.ColorSetARGB(235, fill[0], fill[1], fill[2]))
+    paint.setColor(skia.ColorSetARGB(235, pill[0], pill[1], pill[2]))
     canvas.drawRoundRect(rect, 18, 18, paint)
     if show:
         glyph = skia.Paint(AntiAlias=True)
-        glyph.setColor(skia.ColorSetARGB(255, ink[0], ink[1], ink[2]))
+        glyph.setColor(skia.ColorSetARGB(255, text_ink[0], text_ink[1], text_ink[2]))
         canvas.drawString(text, x - width / 2, y + size * 0.32, font, glyph)
     return (rect.left(), rect.top(), rect.right(), rect.bottom())
 
@@ -317,6 +368,155 @@ def grade(img: np.ndarray, t: float) -> np.ndarray:
     rng = np.random.default_rng(int(t * 1000.0) & 0xFFFFFFFF)
     noise = rng.integers(-1, 2, size=out.shape, dtype=np.int16)
     return np.clip(out + noise, 0, 255).astype(np.uint8)
+
+
+def spill_falloff(dist: float, radius: float = 80.0, gain: float = 1.0) -> float:
+    """1/d^2 light around a glow. dist and radius are pixels."""
+    r = max(1.0, float(radius))
+    d = max(0.0, float(dist))
+    return float(gain) / (1.0 + (d * d) / (r * r))
+
+
+_SPILL_EFFECT = None
+
+
+def _spill_effect():
+    global _SPILL_EFFECT
+    if _SPILL_EFFECT is None:
+        _SPILL_EFFECT = skia.RuntimeEffect.MakeForShader("""
+            uniform shader distmap;
+            uniform float gain;
+            uniform float radius;
+            uniform float maxd;
+            half4 main(float2 coord) {
+                float d = distmap.eval(coord).r * maxd;
+                float s = gain / (1.0 + (d * d) / (radius * radius));
+                return half4(s, s, s, 1.0);
+            }
+        """)
+    return _SPILL_EFFECT
+
+
+def apply_light_spill(img: np.ndarray, dist: np.ndarray, color: tuple[int, int, int],
+                      radius: float = 90.0, gain: float = 0.55, maxd: float = 420.0) -> np.ndarray:
+    """Add a camera-space glow. `dist` is pixels to the glowing shape.
+
+    The falloff is evaluated in a SkSL RuntimeEffect from a distance field.
+    """
+    if img.size == 0:
+        return img
+    h, w = img.shape[:2]
+    field = np.clip(dist, 0.0, maxd) / maxd
+    encoded = (field * 255.0).astype(np.uint8)
+    rgba = np.dstack([encoded, np.zeros((h, w), np.uint8), np.zeros((h, w), np.uint8),
+                      np.full((h, w), 255, np.uint8)])
+    child = skia.Image.fromarray(rgba).makeShader()
+    data = np.array([float(gain), float(radius), float(maxd)], np.float32)
+    shader = _spill_effect().makeShader(skia.Data.MakeWithCopy(data.tobytes()), child, 1)
+    surface = skia.Surface(w, h)
+    paint = skia.Paint(AntiAlias=False)
+    paint.setShader(shader)
+    surface.getCanvas().drawPaint(paint)
+    got = surface.makeImageSnapshot().toarray()
+    # toarray is BGRA. The shader wrote the same value in RGB, so any channel works.
+    amount = got[:, :, 0].astype(np.float32) / 255.0
+    glow = np.array(color, np.float32)
+    out = img.astype(np.float32) + amount[..., None] * glow
+    return np.clip(out, 0, 255).astype(np.uint8)
+
+
+_BARREL_MAPS: dict = {}
+
+
+def barrel_distort(img: np.ndarray, k1: float = 0.005, k2: float = 0.003) -> np.ndarray:
+    """Subtle lens barrel on one image. Call this on the map, never on captions.
+
+    Matches ffmpeg lenscorrection: r_src = r * (1 + k1 r^2 + k2 r^4), with r
+    normalised by half the frame width and the lens centred.
+    """
+    h, w = img.shape[:2]
+    key = (h, w, round(k1, 6), round(k2, 6))
+    coords = _BARREL_MAPS.get(key)
+    if coords is None:
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+        cx = (w - 1) * 0.5
+        cy = (h - 1) * 0.5
+        # Each axis is -1..1, so k1=0.005 stays a few pixels even on a tall frame.
+        nx = (xx - cx) / max(cx, 1.0)
+        ny = (yy - cy) / max(cy, 1.0)
+        r2 = nx * nx + ny * ny
+        factor = 1.0 + k1 * r2 + k2 * r2 * r2
+        coords = np.stack([(yy - cy) * factor + cy, (xx - cx) * factor + cx])
+        _BARREL_MAPS[key] = coords
+    from scipy.ndimage import map_coordinates
+    out = np.empty_like(img)
+    for channel in range(img.shape[2]):
+        out[:, :, channel] = map_coordinates(img[:, :, channel], coords, order=1, mode="nearest")
+    return out
+
+
+def barrel_shift(x: float, y: float, w: int, h: int, k1: float = 0.005, k2: float = 0.003) -> tuple[float, float]:
+    """Source pixel a destination pixel reads. The centre does not move."""
+    cx = (w - 1) * 0.5
+    cy = (h - 1) * 0.5
+    nx = (x - cx) / max(cx, 1.0)
+    ny = (y - cy) / max(cy, 1.0)
+    r2 = nx * nx + ny * ny
+    factor = 1.0 + k1 * r2 + k2 * r2 * r2
+    return cx + (x - cx) * factor, cy + (y - cy) * factor
+
+
+_GRAIN = None
+GRAIN_OPACITY = 0.015
+
+
+def _grain_texture() -> np.ndarray:
+    global _GRAIN
+    if _GRAIN is None:
+        _GRAIN = np.random.default_rng(20261011).integers(0, 256, size=(192, 192), dtype=np.uint8)
+    return _GRAIN
+
+
+def overlay_grain(img: np.ndarray, t: float, fps: float = 30.0, opacity: float = GRAIN_OPACITY) -> np.ndarray:
+    """Fixed fine grain, rotated 90/180/270/0 by frame, Overlay at 0.01–0.02.
+
+    The rotation is a function of the frame index, so a re-render matches.
+    """
+    opacity = float(opacity)
+    if opacity <= 0.0:
+        return img
+    h, w = img.shape[:2]
+    frame = int(math.floor(float(t) * float(fps) + 1e-6))
+    turns = (1, 2, 3, 0)[frame % 4]
+    tile = np.rot90(_grain_texture(), turns)
+    reps = (math.ceil(h / tile.shape[0]), math.ceil(w / tile.shape[1]))
+    grain = np.tile(tile, reps)[:h, :w].astype(np.float32) / 255.0
+    base = img.astype(np.float32) / 255.0
+    layer = grain[..., None]
+    over = np.where(base < 0.5, 2.0 * base * layer, 1.0 - 2.0 * (1.0 - base) * (1.0 - layer))
+    mixed = base * (1.0 - opacity) + over * opacity
+    return np.clip(mixed * 255.0, 0, 255).astype(np.uint8)
+
+
+def box_luminance(img: np.ndarray, cx: float, cy: float, width: float, height: float) -> float:
+    """Mean Rec.709 luminance of the pixels under a label, 0..1."""
+    h, w = img.shape[:2]
+    x0 = int(max(0, math.floor(cx - width * 0.5)))
+    x1 = int(min(w, math.ceil(cx + width * 0.5)))
+    y0 = int(max(0, math.floor(cy - height * 0.5)))
+    y1 = int(min(h, math.ceil(cy + height * 0.5)))
+    if x1 <= x0 or y1 <= y0:
+        return 0.0
+    patch = img[y0:y1, x0:x1].astype(np.float32)
+    y = 0.2126 * patch[:, :, 0] + 0.7152 * patch[:, :, 1] + 0.0722 * patch[:, :, 2]
+    return float(y.mean() / 255.0)
+
+
+def label_style(luminance: float) -> tuple[tuple[int, int, int], int]:
+    """Ink RGB and soft-backing alpha. Above 70% luminance the ink goes dark."""
+    if float(luminance) > 0.70:
+        return (18, 20, 26), 150
+    return (255, 248, 236), 0
 
 
 def round_pen(width: float, color: tuple[int, int, int], alpha: int = 255) -> skia.Paint:

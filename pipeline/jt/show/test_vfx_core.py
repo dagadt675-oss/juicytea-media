@@ -9,18 +9,26 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from jt.show.vfx_core import (  # noqa: E402
+    GRAIN_OPACITY,
     badge_state,
+    barrel_shift,
+    box_luminance,
     cloud_alpha,
     _spring,
+    apply_light_spill,
     ease_in_out_cubic,
     ease_in_out_quintic,
     exp_zoom,
     impact_shake,
+    label_style,
     motion_jolt,
+    overlay_grain,
     overshoot,
     perlin_shake,
     place_labels,
     shadow_offset,
+    spill_falloff,
+    spring_approach,
     stress_glow,
 )
 
@@ -46,6 +54,40 @@ def main() -> None:
     assert stress_glow(3.0, [(1.0, 0.4)]) == 0.0
     nudged = place_labels([(100, 100, 80, 40), (100, 100, 80, 40)])
     assert nudged[1][1] > nudged[0][1]
+    # Spring snap: rest at 0, a small overshoot, then a settle. No leftover velocity.
+    assert spring_approach(0.0, 1.0, 0.0) == 0.0
+    assert spring_approach(0.0, 1.0, 0.25) > 1.05
+    assert abs(spring_approach(0.0, 1.0, 0.70) - 1.0) < 0.02
+    assert spring_approach(2.0, 5.0, 0.40) == spring_approach(2.0, 5.0, 0.40)
+    # Long dives are not this integrator. exp_zoom stays the dive.
+    assert abs(exp_zoom(100, 20, 1.0) - 20) < 1e-6
+    assert abs(spill_falloff(0, 80, 1) - 1.0) < 1e-6
+    assert abs(spill_falloff(160, 80, 1) - 0.2) < 1e-6
+    assert spill_falloff(40, 80, 1) > spill_falloff(120, 80, 1)
+    cx, cy = barrel_shift(539.5, 959.5, 1080, 1920)
+    assert abs(cx - 539.5) < 1e-3 and abs(cy - 959.5) < 1e-3
+    edge = barrel_shift(1070, 960, 1080, 1920)
+    assert abs(edge[0] - 1070) > 0.2
+    assert abs(edge[0] - 1070) < 12
+    assert label_style(0.85)[0][0] < 40
+    assert label_style(0.20)[1] == 0
+    import numpy as np
+    white = np.full((40, 40, 3), 250, np.uint8)
+    black = np.zeros((40, 40, 3), np.uint8)
+    assert box_luminance(white, 20, 20, 20, 20) > 0.70
+    assert box_luminance(black, 20, 20, 20, 20) < 0.10
+    assert 0.01 <= GRAIN_OPACITY <= 0.02
+    base = np.full((64, 64, 3), 128, np.uint8)
+    g0 = overlay_grain(base, 0.0, 30)
+    g1 = overlay_grain(base, 1.0 / 30.0, 30)
+    assert np.array_equal(g0, overlay_grain(base, 0.0, 30))
+    assert not np.array_equal(g0, g1)
+    assert float(np.mean(np.abs(g0.astype(np.int16) - base.astype(np.int16)))) < 8
+    dist = np.zeros((24, 24), np.float32)
+    dist[:] = 400
+    dist[8:16, 8:16] = 0
+    lit = apply_light_spill(black[:24, :24], dist, (0, 180, 255), radius=8, gain=0.8)
+    assert lit[12, 12, 2] > lit[0, 0, 2]
     print("vfx_core tests ok")
 
 

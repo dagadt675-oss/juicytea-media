@@ -1,0 +1,80 @@
+{
+  "cues": [
+    {
+      "t": 0.15,
+      "kind": "tick",
+      "name": "rim"
+    },
+    {
+      "t": 0.4,
+      "kind": "tick",
+      "name": "cloud-deck"
+    },
+    {
+      "t": 1.7,
+      "kind": "pop",
+      "name": "sweden"
+    },
+    {
+      "t": 3.3,
+      "kind": "tick",
+      "name": "sun-shadow"
+    },
+    {
+      "t": 4.4,
+      "kind": "tick",
+      "name": "paper"
+    },
+    {
+      "t": 5.1,
+      "kind": "draw",
+      "name": "laser-border"
+    },
+    {
+      "t": 6.3,
+      "kind": "pop",
+      "name": "finland"
+    },
+    {
+      "t": 7.2,
+      "kind": "pop",
+      "name": "badge-market"
+    },
+    {
+      "t": 8.5,
+      "kind": "pop",
+      "name": "overshoot-mark"
+    },
+    {
+      "t": 8.7,
+      "kind": "pop",
+      "name": "badge-finland"
+    },
+    {
+      "t": 10.4,
+      "kind": "tick",
+      "name": "stress-huge"
+    },
+    {
+      "t": 12.4,
+      "kind": "impact",
+      "name": "impact"
+    },
+    {
+      "t": 14.2,
+      "kind": "draw",
+      "name": "laser-second"
+    },
+    {
+      "t": 15.8,
+      "kind": "tick",
+      "name": "cloud-return"
+    },
+    {
+      "t": 16.9,
+      "kind": "pop",
+      "name": "overshoot-return"
+    }
+  ],
+  "duration": 18.0
+}

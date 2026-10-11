@@ -3,13 +3,19 @@ id: vfx_core_proof
 duration: 18
 fps: 30
 grade: true
-# Impact is off unless a beat sets it. This one hit decays inside 0.25 s.
+# Map layer only. Captions are drawn after this, so they stay straight.
+barrel: true
+# Fixed grain, rotated each frame, Overlay at 0.015.
+grain: true
+# 1/d^2 spill around extruded countries. The impact beat pulses it. No camera shake.
+spill: true
 camera:
   - {t: 0.0, proj: ortho, lon: 18, lat: 63, span: 100, ease: out, exp: true}
   - {t: 1.6, proj: ortho, lon: 10, lat: 58, span: 62, ease: out, exp: true}
   - {t: 3.2, proj: ortho, lon: 22, lat: 66, span: 40, ease: cubic, exp: true}
-  - {t: 4.8, proj: merc, lon: 16, lat: 60, span: 24, ease: out, exp: true}
-  - {t: 5.05, proj: merc, lon: 8, lat: 55, span: 14, ease: out, exp: true}
+  - {t: 4.50, proj: merc, lon: 16, lat: 60, span: 24, ease: out, exp: true}
+  # Short snap: spring integrates toward this key, then settles. The next move is a dive.
+  - {t: 5.20, proj: merc, lon: 8, lat: 55, span: 14, ease: spring}
   - {t: 6.4, proj: merc, lon: 26, lat: 64, span: 16, ease: cubic, exp: true}
   - {t: 8.0, proj: merc, lon: 12, lat: 58, span: 12, ease: out, exp: true}
   - {t: 9.6, proj: merc, lon: 24, lat: 66, span: 20, ease: cubic, exp: true}
@@ -30,7 +36,8 @@ beats:
   - {t: 8.50, type: overshoot, name: overshoot-mark, text: "!", x: 540, y: 620}
   - {t: 8.70, type: badge, name: badge-finland, text: "FINLAND", x: 540, y: 420}
   - {t: 10.40, type: stress, name: stress-huge, word: HUGE, dur: 0.7}
-  - {t: 12.40, type: impact, name: impact, dur: 0.25, amp: 10}
+  # Light pulse only. The camera does not shake.
+  - {t: 12.40, type: impact, name: impact, dur: 0.25, amp: 0}
   - {t: 14.20, type: laser, name: laser-second, dur: 1.6}
   - {t: 15.80, type: clouds, name: cloud-return}
   - {t: 16.90, type: overshoot, name: overshoot-return, text: "!", x: 780, y: 500}
