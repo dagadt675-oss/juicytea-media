@@ -1442,6 +1442,22 @@ def _heaved_avenue(kit, coll, mats):
         )
 
 
+def _seat_mass(obj, z, bury=40.0):
+    """Sit the body of a mesh on z. A few low outliers do not hold it in the air."""
+    if obj is None or obj.type != "MESH" or obj.data is None:
+        return
+    bpy.context.view_layer.update()
+    verts = obj.data.vertices
+    if not verts:
+        return
+    step = max(1, len(verts) // 5000)
+    world = obj.matrix_world
+    zs = [(world @ verts[i].co).z for i in range(0, len(verts), step)]
+    zs.sort()
+    base = zs[max(0, int(len(zs) * 0.12))]
+    obj.location.z += (float(z) - float(bury)) - base
+
+
 def _mountains(kit, coll):
     """Hub ranges, several kilometres behind the far bank. They do not age."""
     cache = Path("/opt/cursor/asset-cache/private/mountains")
@@ -1463,9 +1479,10 @@ def _mountains(kit, coll):
     if trio is not None:
         kit.add(trio, "mountain", sink=False)
         placed += 1
-    # Photoscan peak, already about a kilometre across, in front of the range.
-    peak = _mesh_prop(coll, cache / "bk_peak.glb", (1800.0, 4500.0, FAR_Z - 12.0), 0.2, 584.0, "bk_peak")
+    # Photoscan peak. Its scan has a low outlier, so the body is seated on the horizon.
+    peak = _mesh_prop(coll, cache / "bk_peak.glb", (1600.0, 5400.0, FAR_Z), 1.1, 420.0, "bk_peak")
     if peak is not None:
+        _seat_mass(peak, FAR_Z, bury=80.0)
         kit.add(peak, "mountain", sink=False)
         placed += 1
     # Blue air in the kilometres between the skyline and the range.
