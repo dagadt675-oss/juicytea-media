@@ -768,7 +768,7 @@ def _alive(kit, coll):
     # The locked camera's nearest sidewalk. These are the people it can actually read.
     near_y = AVE_Y - AVENUE_HALF - SIDEWALK_W * 0.55
     for i, x in enumerate((-36.0, -24.0, -12.0, -2.0, 8.0, 18.0, 30.0)):
-        _walker(kit, coll, [(x, near_y, z), (x + 10.0, near_y, z)], 1.15, i * 1.3, height=2.55)
+        _walker(kit, coll, [(x, near_y, z), (x + 10.0, near_y, z)], 1.15, i * 1.3, height=3.15)
     for i, y in enumerate((-16.0, -6.0, 2.0)):
         _walker(
             kit, coll,
@@ -781,7 +781,11 @@ def _alive(kit, coll):
             1.15, i * 1.6, height=2.55,
         )
     for i, x0 in enumerate((-20.0, -2.0, 14.0)):
-        _bike(kit, coll, [(x0, near_y - 0.8, z), (x0 + 16.0, near_y - 0.8, z)], i * 3.0, height=2.45)
+        _bike(kit, coll, [(x0, near_y - 0.8, z), (x0 + 16.0, near_y - 0.8, z)], i * 3.0, height=3.05)
+    # Closer to the camera than the avenue, so a person is readable in the wide shot.
+    for i, (x, y) in enumerate(((-74.0, -46.0), (-60.0, -34.0), (-48.0, -54.0), (-36.0, -28.0), (-24.0, -42.0), (-12.0, -36.0))):
+        _walker(kit, coll, [(x, y, z), (x + 7.0, y + 2.5, z)], 1.05, i * 1.1, height=3.5)
+    _bike(kit, coll, [(-66.0, -40.0, z), (-50.0, -37.0, z)], 1.4, height=3.3)
     # Eastbound queue stops before the crosswalk. Through traffic keeps going.
     stop_x = zx - DECK_HALF - ZEBRA_DEPTH - STOP_SETBACK - 1.0
     east_y = AVE_Y + LANE_OFFSETS[0]
@@ -1388,11 +1392,19 @@ def _jagged_stump(coll, x, y):
     return src
 
 
+def _ruin_city_path():
+    """Hub copy of Ruined City Free 5. The Sketchfab download is the fallback."""
+    hub = Path("/opt/cursor/asset-cache/private/debris/ruined_city_free_5.glb")
+    if hub.exists():
+        return hub
+    return Path("/opt/cursor/asset-cache/private/sketchfab/city_blocks/ruined_city_free_5.glb")
+
+
 def _ruin_shells():
     """Building shells from Ruined city FREE (5). Ground planes stay out."""
     if getattr(_ruin_shells, "protos", None) is not None:
         return _ruin_shells.protos
-    path = Path("/opt/cursor/asset-cache/private/sketchfab/city_blocks/ruined_city_free_5.glb")
+    path = _ruin_city_path()
     if not path.exists():
         _ruin_shells.protos = []
         return []
@@ -1423,8 +1435,11 @@ def _spawn_shell(coll, src, native_h, x, y, z, target_h, yaw, name):
     copy.hide_render = False
     copy.hide_viewport = False
     factor = float(target_h) / max(native_h, 0.01)
-    copy.scale = (src.scale.x * factor, src.scale.y * factor, src.scale.z * factor)
-    copy.rotation_euler.z = float(yaw)
+    # Local scale sits under a glTF parent. Copying it bare makes a kilometre-tall shell.
+    world_scale = src.matrix_world.to_scale()
+    copy.scale = (abs(world_scale.x) * factor, abs(world_scale.y) * factor, abs(world_scale.z) * factor)
+    world_rot = src.matrix_world.to_euler()
+    copy.rotation_euler = (world_rot.x, world_rot.y, world_rot.z + float(yaw))
     copy.location = (0.0, 0.0, 0.0)
     bpy.context.view_layer.update()
     pts = [copy.matrix_world @ Vector(corner) for corner in copy.bound_box]
@@ -1491,6 +1506,57 @@ def _collapse_city(kit, coll):
         fallen.rotation_euler.z = yaw
         kit.add(fallen, "fallen", sink=False)
         placed += 1
+    placed += _scatter_hub_debris(kit, coll)
+    return placed
+
+
+def _fit_longest(coll, filename, loc, yaw, longest, name):
+    """A hub debris mesh scaled so its longest side is ``longest`` metres."""
+    path = Path("/opt/cursor/asset-cache/private/debris") / filename
+    mesh = cc0_city.static_mesh(path) if path.exists() else None
+    if mesh is None:
+        return None
+    size = cc0_city._mesh_size(mesh)
+    scale = float(longest) / max(max(size), 0.01)
+    return cc0_city._spawn(coll, mesh, loc, yaw, scale, name)
+
+
+def _scatter_hub_debris(kit, coll):
+    """Hub rubble, rebar, and cracked asphalt kitbashed into the ruined city."""
+    z = ROAD_Z + 0.08
+    fz = FAR_Z + 0.05
+    # file, x, y, z, yaw, longest side, role
+    spots = (
+        ("concrete_rubble_steel.glb", -18.0, AVE_Y - 1.2, z, 0.4, 11.0, "ruin"),
+        ("concrete_rubble_steel.glb", 22.0, AVE_Y + 2.2, z, 1.2, 9.0, "ruin"),
+        ("pbr_debris.glb", -10.0, AVE_Y + 0.6, z, 0.2, 14.0, "ruin"),
+        ("pbr_debris_3.glb", 6.0, AVE_Y - 2.4, z, 0.8, 10.0, "ruin"),
+        ("pbr_debris_2.glb", -36.0, AVE_Y + 1.6, z, 1.6, 7.0, "ruin"),
+        ("asphalt_02.glb", -6.0, AVE_Y, z, 0.05, 10.0, "groundwear"),
+        ("asphalt_02.glb", 34.0, AVE_Y - 1.2, z, 0.15, 9.0, "groundwear"),
+        ("asphalt_03.glb", 12.0, AVE_Y + 1.4, z, 0.0, 2.6, "groundwear"),
+        ("wood_planks_debris.glb", -44.0, AVE_Y - 3.2, z, 0.6, 4.0, "ruin"),
+        ("wood_planks_debris.glb", 46.0, AVE_Y + 3.0, z, 1.4, 3.4, "ruin"),
+        ("trash_tarp.glb", -58.0, 8.0, ROAD_Z + 0.05, 0.3, 5.5, "ruin"),
+        ("scan_pile_concrete.glb", -14.0, 176.0, fz, 0.5, 8.0, "ruin"),
+        ("scan_pile_concrete.glb", 28.0, 168.0, fz, 1.1, 7.0, "ruin"),
+        ("debris_kit.glb", -36.0, 192.0, fz, 0.4, 12.0, "ruin"),
+        ("concrete_rubble_steel.glb", 4.0, 186.0, fz, 2.1, 14.0, "ruin"),
+        ("pbr_debris_3.glb", 48.0, 178.0, fz, 0.7, 11.0, "ruin"),
+        ("pbr_debris.glb", -62.0, 210.0, fz, 0.3, 16.0, "rubble_hill"),
+        ("lowpoly_concrete_debris.glb", -90.0, 240.0, fz, 0.2, 18.0, "rubble_hill"),
+        ("lowpoly_concrete_debris.glb", 70.0, 230.0, fz, 0.9, 16.0, "rubble_hill"),
+        ("lowpoly_concrete_debris.glb", 18.0, 280.0, fz, 1.7, 22.0, "rubble_hill"),
+        ("concrete_rubble_steel.glb", -8.0, 250.0, fz, 0.6, 18.0, "rubble_hill"),
+        ("pbr_debris.glb", 36.0, 300.0, fz, 1.2, 20.0, "rubble_hill"),
+    )
+    placed = 0
+    for filename, x, y, zz, yaw, longest, role in spots:
+        obj = _fit_longest(coll, filename, (x, y, zz), yaw, longest, "debris")
+        if obj is None:
+            continue
+        kit.add(obj, role, sink=False)
+        placed += 1
     return placed
 
 
@@ -1498,21 +1564,24 @@ def _foothill_woods(kit, coll, mats):
     """Trees on the plain between the far bank and the range. Not a painted lawn."""
     rng = random.Random(23)
     placed = 0
-    y = 700.0
-    while y < 2200.0:
-        x = -700.0
-        while x < 1600.0:
-            if abs(x - _deck_x(y)) < 40.0 and y < 900.0:
-                x += 150.0
+    soil = found_assets.pbr_material("FoothillSoil", "leaves_forest_ground", uv=0.05) or mats["dirt"]
+    sheet = _ground_sheet("foothill_land", coll, (400.0, 1300.0, FAR_Z - 0.04), (3200.0, 1700.0), soil, tile=22.0)
+    kit.add(sheet, "mountain", sink=False)
+    y = 560.0
+    while y < 1750.0:
+        x = -600.0
+        while x < 1500.0:
+            if abs(x - _deck_x(y)) < 36.0 and y < 800.0:
+                x += 90.0
                 continue
             _tree(
-                kit, coll, mats, x + rng.uniform(-8.0, 8.0), y, FAR_Z,
-                rng.uniform(8.0, 16.0), future=False, rng=rng,
+                kit, coll, mats, x + rng.uniform(-6.0, 6.0), y, FAR_Z,
+                rng.uniform(12.0, 26.0), future=False, rng=rng,
                 kind="pine" if (int(x + y) % 3 == 0) else "round",
             )
             placed += 1
-            x += 150.0
-        y += 170.0
+            x += 95.0
+        y += 110.0
     return placed
 
 
@@ -1616,29 +1685,36 @@ def _seat_mass(obj, z, bury=40.0):
     obj.location.z += (float(z) - float(bury)) - base
 
 
+def _mountain_scaled(coll, path, loc, yaw, scale, name):
+    """Place a mountain that is already modelled in metres. ``scale`` is uniform."""
+    mesh = cc0_city.static_mesh(Path(path))
+    if mesh is None:
+        return None
+    return cc0_city._spawn(coll, mesh, loc, yaw, scale, name)
+
+
 def _mountains(kit, coll):
     """Hub ranges, several kilometres behind the far bank. They do not age."""
     cache = Path("/opt/cursor/asset-cache/private/mountains")
-    # gaea_range imports about 2 m across and 0.23 m tall. 1800x is a 3.6 km range.
+    # gaea_range imports about 2 m across. The snow peak and the three-peaked
+    # ridge already import at kilometre scale, so they only get a modest scale.
     placed = 0
-    # The locked camera looks up this axis, so the range is centered on it
-    # rather than on world x=0. Scale 2000 turns the 2 m Gaea mesh into a 4 km range.
-    # Buried and further back. Upright, the range's cliff reads as a wall in this camera.
-    span = _mesh_prop(coll, cache / "gaea_range.glb", (1400.0, 3600.0, FAR_Z - 80.0), 1.15, 0.23 * 1800.0, "gaea_range")
+    # Buried and further back so the cliff is not a wall in front of the peaks.
+    span = _mesh_prop(coll, cache / "gaea_range.glb", (1400.0, 4600.0, FAR_Z - 70.0), 1.15, 0.23 * 1500.0, "gaea_range")
     if span is not None:
         kit.add(span, "mountain", sink=False)
         placed += 1
-    # Closer and taller than the last pass, so the peaks clear the skyline.
-    snow = _mesh_prop(coll, cache / "free_textured_mountain.glb", (400.0, 2500.0, FAR_Z - 20.0), -0.2, 620.0, "snow_peak")
+    # 2000 m across and 348 m tall at scale 1. 1.35 keeps the near edge past the skyline.
+    snow = _mountain_scaled(coll, cache / "free_textured_mountain.glb", (500.0, 2900.0, FAR_Z), -0.15, 1.35, "snow_peak")
     if snow is not None:
         kit.add(snow, "mountain", sink=False)
         placed += 1
-    trio = _mesh_prop(coll, cache / "three_peaked.glb", (2300.0, 2700.0, FAR_Z - 16.0), 0.25, 162.0 * 3.4, "three_peaks")
+    trio = _mountain_scaled(coll, cache / "three_peaked.glb", (1900.0, 3300.0, FAR_Z), 0.2, 1.8, "three_peaks")
     if trio is not None:
         kit.add(trio, "mountain", sink=False)
         placed += 1
     # The photoscan faces the camera as a slab, so it stays out of this view.
-    # Blue air in the kilometres between the skyline and the range.
+    # A thin haze only. The last pass washed the peaks out.
     mesh = bpy.data.meshes.new("distance_haze")
     bm = bmesh.new()
     bmesh.ops.create_cube(bm, size=1.0)
@@ -1646,8 +1722,8 @@ def _mountains(kit, coll):
     bm.free()
     haze = bpy.data.objects.new("distance_haze", mesh)
     coll.objects.link(haze)
-    haze.location = (1200.0, 1600.0, 220.0)
-    haze.scale = (8000.0, 700.0, 400.0)
+    haze.location = (900.0, 1100.0, 180.0)
+    haze.scale = (5000.0, 400.0, 280.0)
     mat = bpy.data.materials.new("DistanceHaze")
     mat.use_nodes = True
     tree = mat.node_tree
@@ -1655,7 +1731,7 @@ def _mountains(kit, coll):
     out = tree.nodes.new("ShaderNodeOutputMaterial")
     vol = tree.nodes.new("ShaderNodeVolumePrincipled")
     vol.inputs["Color"].default_value = (0.64, 0.74, 0.86, 1.0)
-    vol.inputs["Density"].default_value = 0.00016
+    vol.inputs["Density"].default_value = 0.00005
     tree.links.new(vol.outputs["Volume"], out.inputs["Volume"])
     haze.data.materials.append(mat)
     kit.add(haze, "mountain", sink=False)
@@ -1747,39 +1823,10 @@ def _south_city_blocks(kit, coll, mats, ix, road_z, street_west, street_east, fr
 
 def _ruin_piece(coll, loc, yaw, height):
     """One damaged high-rise from Ruined City 5, bottom on loc."""
-    path = Path("/opt/cursor/asset-cache/private/sketchfab/city_blocks/ruined_city_free_5.glb")
-    if not path.exists():
+    shells = _ruin_shells()
+    if not shells:
         return None
-    if not hasattr(_ruin_piece, "proto"):
-        before = set(bpy.data.objects)
-        bpy.ops.import_scene.gltf(filepath=str(path))
-        best = None
-        best_h = 0.0
-        bpy.context.view_layer.update()
-        for obj in list(bpy.data.objects):
-            if obj not in before:
-                obj.hide_render = True
-                obj.hide_viewport = True
-            if obj not in before or obj.type != "MESH" or obj.data is None:
-                continue
-            baked = obj.matrix_world.copy()
-            obj.parent = None
-            obj.matrix_world = baked
-        bpy.context.view_layer.update()
-        for obj in list(bpy.data.objects):
-            if obj not in before or obj.type != "MESH" or obj.data is None:
-                continue
-            zs = [(obj.matrix_world @ vert.co).z for vert in obj.data.vertices]
-            xs = [(obj.matrix_world @ vert.co).x for vert in obj.data.vertices]
-            ys = [(obj.matrix_world @ vert.co).y for vert in obj.data.vertices]
-            height_m = max(zs) - min(zs) if zs else 0.0
-            width_m = max(max(xs) - min(xs), max(ys) - min(ys)) if xs else 0.0
-            # Keep a compact facade. A long shell swallows the drone camera.
-            if 6.0 < height_m < 16.0 and width_m < 14.0 and height_m > best_h:
-                best = obj
-                best_h = height_m
-        _ruin_piece.proto = (best, best_h)
-    src, native = _ruin_piece.proto
+    src, native = max(shells, key=lambda item: item[1])
     if src is None:
         return None
     copy = src.copy()
@@ -1790,7 +1837,10 @@ def _ruin_piece(coll, loc, yaw, height):
     copy.rotation_euler.z = float(yaw)
     # Keep the source scale. Replacing it ignores the transform that made the measured height.
     factor = float(height) / max(native, 0.01)
-    copy.scale = (src.scale.x * factor, src.scale.y * factor, src.scale.z * factor)
+    world_scale = src.matrix_world.to_scale()
+    copy.scale = (abs(world_scale.x) * factor, abs(world_scale.y) * factor, abs(world_scale.z) * factor)
+    world_rot = src.matrix_world.to_euler()
+    copy.rotation_euler = (world_rot.x, world_rot.y, world_rot.z + float(yaw))
     bpy.context.view_layer.update()
     xs, ys, zs = [], [], []
     for corner in copy.bound_box:

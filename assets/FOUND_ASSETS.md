@@ -200,3 +200,14 @@ Licenses are commercial-use with no on-screen credit. Ivy Gen is GPL-2.0-or-late
 | `Brick_Ruins_94d63184.blend` | 1250512 | BlendKit royalty-free (render only, raw not in git) | Second broken-brick shell so the ruins are not one mesh | local cache `ruins_debris/Brick_Ruins_94d63184` | BlendKit |
 | `Scan_Rubble_ruins_01def269.blend` | 8111926 | BlendKit royalty-free (render only, raw not in git) | Scanned rubble piles at the feet of the shells | local cache `ruins_debris/Scan_Rubble_ruins_01def269` | BlendKit |
 | `Scan_Pile_of_rubble_8d90c8f1.blend` | 34877890 | BlendKit royalty-free (render only, raw not in git) | Larger rubble mounds for the 100y and 500y streets | local cache `ruins_debris/Scan_Pile_of_rubble_8d90c8f1` | BlendKit |
+| `concrete_rubble_steel.glb` | 19333720 | Free Standard (hub, no attribution, raw not in git) | Concrete rubble with steel bars, the main 100y/500y mound | Drive `1lSyTM9_FIWsITCj4sd1sd6BNErFxLxci` | hub Debris |
+| `pbr_debris.glb` | 11198488 | Free Standard (hub, no attribution, raw not in git) | Large concrete slabs kitbashed into the collapse | Drive `1MK12j95AzBVcUK_7JIR0GRF_4r4WdyqY` | hub Debris |
+| `pbr_debris_3.glb` | 8868764 | Free Standard (hub, no attribution, raw not in git) | Concrete shards and rebar | Drive `1OIPRVnjAXgNffPp7e3z6zFBUwxUMXZej` | hub Debris |
+| `pbr_debris_2.glb` | 4078712 | Free Standard (hub, no attribution, raw not in git) | Sheet-metal debris on the avenue | Drive `1jvEeyuDU6N_8WBR1hbDXAsrQbB3GO2MN` | hub Debris |
+| `scan_pile_concrete.glb` | 2765236 | Free Standard (hub, no attribution, raw not in git) | Scanned pile of concrete at the ruin feet | Drive `1gK-41dRKshvapWK1PdqlXffpsf6TDm9x` | hub Debris |
+| `lowpoly_concrete_debris.glb` | 4106428 | Free Standard (hub, no attribution, raw not in git) | Low-poly concrete piles for the distant rubble hills | Drive `1Ffhb4eAY-IENKbXjNVgr-iC8aAUOIN2B` | hub Debris |
+| `debris_kit.glb` | 16698204 | Free Standard (hub, no attribution, raw not in git) | Mixed debris kit on the far-bank streets | Drive `1q4tW4Wmu-HpT55OT2k4wJyLS0PahhTXU` | hub Debris |
+| `asphalt_02.glb` | 11800436 | Free Standard (hub, no attribution, raw not in git) | Cracked asphalt slab on the avenue from year 1 | Drive `1jcCbD5lZQdQ8gOvXpB-EMS1bFqTn6rSp` | hub Debris |
+| `asphalt_03.glb` | 6422828 | Free Standard (hub, no attribution, raw not in git) | Manhole in the cracked avenue | Drive `1XoXSTcQ32Dh1clQeiPXxwxMD3ZlIkES6` | hub Debris |
+| `wood_planks_debris.glb` | 4287332 | Free Standard (hub, no attribution, raw not in git) | Wood plank debris along the sidewalk | Drive `1EDdc7NHKqIWXgCWbejxj85d5x12P8sPl` | hub Debris |
+| `trash_tarp.glb` | 7612564 | Free Standard (hub, no attribution, raw not in git) | Trash pile under a tarp in the near park | Drive `100TtFFQafSrJDj-RHhl0q4DUEDmxLQdb` | hub Debris |

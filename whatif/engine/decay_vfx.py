@@ -1,22 +1,30 @@
 """Owner decay toolkit. One value per channel, applied to the same buildings.
 
 Erosion is a noise mask plus pointiness and ambient occlusion. Displace
-crumbles those meshes. Ivy and moss grow by proximity to one animated sphere.
-Street grass follows a crack mask that widens with the years. The river deck
-is cell-fractured, held by breakable fixed constraints, and dropped by the
-collapse trigger. Dust is a gas flow on the pieces plus a volume that only
-thickens while they are moving.
+crumbles those meshes. Ivy and moss grow by proximity to one animated sphere,
+and Ivy Gen climbs the facades and the bridge pillars. Street grass follows a
+crack mask that widens with the years. The river deck and the camera-facing
+buildings are cell-fractured, held by breakable fixed constraints, and baked
+once into a cache. Stills read that cache. They do not run the simulation.
+Dust is a gas flow on the pieces plus a volume that only thickens while they
+are moving. Year 500 swaps the avenue for an A.N.T. landscape and a forest of
+instanced trees.
 """
 
 from __future__ import annotations
 
 import random
+from pathlib import Path
 
 import bmesh
 import bpy
 from mathutils import Matrix, Vector
 
+from engine import cc0_city
 from engine import found_assets
+from engine.city_layout import AVE_Y, FAR_Z, ROAD_Z
+
+FRACTURE_CACHE = Path("/opt/cursor/asset-cache/private/fracture_cache/building_eras_v5.blend")
 
 
 def _value(tree, name):
@@ -321,9 +329,21 @@ def arm_buildings(kit):
         if score < best:
             best = score
             host = item.obj
+    hosts = []
     if host is not None:
-        for grown in found_assets.grow_ivy(host, (host.location.x, host.location.y - 4.2, host.location.z + 3.2), length=6.5):
-            kit.add(grown, "weed", delay=0.32, sink=False, leaf=(0.16, 0.38, 0.12, 1))
+        hosts.append(host)
+    for item in kit.items:
+        if item.role != "frontage" or item.obj == host or item.obj.type != "MESH":
+            continue
+        loc = item.obj.location
+        if -90.0 < loc.x < 70.0 and -20.0 < loc.y < 20.0:
+            hosts.append(item.obj)
+    for obj in hosts[:4]:
+        _ivy_on(kit, obj, 7.5)
+    legs = [obj for obj in bpy.data.objects if obj.type == "MESH" and obj.name.startswith("leg")]
+    legs.sort(key=lambda obj: obj.matrix_world.translation.y)
+    for leg in legs[:2]:
+        _ivy_on(kit, leg, 9.0)
 
 
 def fracture_deck(obj, coll):
@@ -521,8 +541,534 @@ def fracture_deck(obj, coll):
     return pieces, trigger, dust
 
 
+def _enable_vfx_addons():
+    """Cell Fracture and A.N.T. Landscape. Blender 4.5 ships them as extensions."""
+    import addon_utils
+
+    for module in ("bl_ext.user_default.cell_fracture", "bl_ext.user_default.antlandscape"):
+        try:
+            addon_utils.enable(module, default_set=False, persistent=False)
+        except Exception as exc:
+            print("addon", module, exc)
+    return hasattr(bpy.ops.object, "add_fracture_cell_objects"), hasattr(bpy.ops.mesh, "landscape_add")
+
+
+def _ivy_on(kit, obj, length):
+    if obj is None or obj.type != "MESH":
+        return 0
+    seed = obj.matrix_world.translation + Vector((0.4, -0.6, max(obj.dimensions.z, 1.0) * 0.35))
+    grown = found_assets.grow_ivy(obj, (seed.x, seed.y, seed.z), length=length)
+    for item in grown:
+        kit.add(item, "weed", delay=0.26, sink=False, leaf=(0.16, 0.38, 0.12, 1))
+    return len(grown)
+
+
+def _world_copy(src, coll, name):
+    """A world-space duplicate, light enough for a boolean fracture."""
+    bpy.context.view_layer.update()
+    bm = bmesh.new()
+    bm.from_mesh(src.data)
+    bm.transform(src.matrix_world)
+    if not bm.verts:
+        bm.free()
+        return None
+    center = sum((vert.co for vert in bm.verts), Vector()) / len(bm.verts)
+    for vert in bm.verts:
+        vert.co -= center
+    mesh = bpy.data.meshes.new(name)
+    bm.to_mesh(mesh)
+    bm.free()
+    obj = bpy.data.objects.new(name, mesh)
+    coll.objects.link(obj)
+    obj.location = center
+    if src.data.materials:
+        mesh.materials.append(src.data.materials[0])
+    verts = len(mesh.vertices)
+    if verts > 1600:
+        ratio = min(0.4, 1400.0 / verts)
+        mod = obj.modifiers.new("Lite", "DECIMATE")
+        mod.ratio = ratio
+        bpy.ops.object.select_all(action="DESELECT")
+        obj.select_set(True)
+        bpy.context.view_layer.objects.active = obj
+        try:
+            bpy.ops.object.modifier_apply(modifier=mod.name)
+        except RuntimeError as exc:
+            print("decimate", name, exc)
+    return obj
+
+
+def _keep_band(obj, low_frac, high_frac):
+    """Drop vertices outside a fraction of the mesh height. Roofs stay, bases go."""
+    mesh = obj.data
+    zs = [vert.co.z for vert in mesh.vertices]
+    if not zs:
+        return False
+    lo, hi = min(zs), max(zs)
+    span = max(hi - lo, 0.01)
+    low = lo + span * low_frac
+    high = lo + span * high_frac
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    kill = [vert for vert in bm.verts if vert.co.z < low - 0.02 or vert.co.z > high + 0.02]
+    if len(kill) >= len(bm.verts):
+        bm.free()
+        return False
+    bmesh.ops.delete(bm, geom=kill, context="VERTS")
+    if not bm.faces:
+        bm.free()
+        return False
+    bm.to_mesh(mesh)
+    bm.free()
+    mesh.update()
+    return True
+
+
+def _cell_fracture(obj, limit):
+    before = set(bpy.data.objects)
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    try:
+        bpy.ops.object.add_fracture_cell_objects(
+            source={"VERT_OWN"},
+            source_limit=int(limit),
+            source_noise=0.18,
+            recursion=0,
+            use_smooth_faces=False,
+            use_sharp_edges=False,
+            use_sharp_edges_apply=False,
+            use_data_match=True,
+            use_island_split=False,
+            margin=0.015,
+            use_recenter=True,
+            use_remove_original=False,
+            collection_name="",
+            use_debug_points=False,
+            use_debug_redraw=False,
+            use_debug_bool=False,
+            mass_mode="UNIFORM",
+            mass=18.0,
+        )
+    except RuntimeError as exc:
+        print("cell fracture", obj.name, exc)
+        return []
+    return [item for item in bpy.data.objects if item not in before and item.type == "MESH"]
+
+
+def _pin_shards(shards, coll, reach, threshold):
+    centers = [shard.matrix_world.translation.copy() for shard in shards]
+    joints = []
+    for index, left in enumerate(shards):
+        for follow, right in enumerate(shards[index + 1:], start=index + 1):
+            if (centers[index] - centers[follow]).length > reach:
+                continue
+            empty = bpy.data.objects.new("era_fix", None)
+            coll.objects.link(empty)
+            empty.location = (centers[index] + centers[follow]) * 0.5
+            bpy.ops.object.select_all(action="DESELECT")
+            empty.select_set(True)
+            bpy.context.view_layer.objects.active = empty
+            try:
+                bpy.ops.rigidbody.constraint_add()
+            except RuntimeError:
+                continue
+            con = empty.rigid_body_constraint
+            if con is None:
+                continue
+            con.type = "FIXED"
+            con.object1 = left
+            con.object2 = right
+            con.use_breaking = True
+            con.breaking_threshold = float(threshold)
+            joints.append(empty)
+            if len(joints) >= 16:
+                return joints
+    return joints
+
+
+def _activate(obj, passive=False):
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    if obj.rigid_body is None:
+        try:
+            bpy.ops.rigidbody.object_add()
+        except RuntimeError as exc:
+            print("rigid body", obj.name, exc)
+            return
+    body = obj.rigid_body
+    if body is None:
+        return
+    body.type = "PASSIVE" if passive else "ACTIVE"
+    body.collision_shape = "BOX" if passive else "CONVEX_HULL"
+    body.friction = 0.85
+    body.mass = 80.0 if passive else 18.0
+    body.use_margin = True
+    body.collision_margin = 0.04
+
+
+def _bake_pose(shards, helpers, frames):
+    """Run the rigid-body cache once and freeze the last frame onto the meshes."""
+    scene = bpy.context.scene
+    if scene.rigidbody_world is None:
+        bpy.ops.rigidbody.world_add()
+    world = scene.rigidbody_world
+    world.enabled = True
+    world.point_cache.frame_start = 1
+    world.point_cache.frame_end = int(frames)
+    world.substeps_per_frame = 2
+    world.solver_iterations = 6
+    scene.frame_start = 1
+    scene.frame_end = int(frames)
+    try:
+        with bpy.context.temp_override(scene=scene, point_cache=world.point_cache):
+            bpy.ops.ptcache.free_bake()
+    except RuntimeError:
+        pass
+    scene.frame_set(1)
+    starts = [shard.matrix_world.copy() for shard in shards]
+    with bpy.context.temp_override(scene=scene, point_cache=world.point_cache):
+        bpy.ops.ptcache.bake(bake=True)
+    scene.frame_set(int(frames))
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    poses = []
+    for shard, start in zip(shards, starts):
+        pose = shard.evaluated_get(depsgraph).matrix_world.copy()
+        now = pose.to_translation()
+        origin = start.to_translation()
+        # A shard that flies into the lens fills the frame. Keep it on the lot.
+        if (now - origin).length > 28.0 or now.y < -15.0 or now.z > origin.z + 6.0:
+            pose = start.copy()
+            pose.translation.z = max(0.3, origin.z - 5.0)
+        poses.append(pose)
+    for shard, pose in zip(shards, poses):
+        bpy.ops.object.select_all(action="DESELECT")
+        shard.select_set(True)
+        bpy.context.view_layer.objects.active = shard
+        if shard.rigid_body is not None:
+            try:
+                bpy.ops.rigidbody.object_remove()
+            except RuntimeError:
+                pass
+        shard.matrix_world = pose
+    world.enabled = False
+    # Deleting constraint empties while the rigid-body world still points at
+    # them segfaults Blender 4.5. Park them out of the shot instead.
+    for helper in helpers:
+        helper.hide_render = True
+        helper.hide_viewport = True
+        helper.location.z = -400.0
+        con = helper.rigid_body_constraint
+        if con is not None:
+            con.enabled = False
+        if helper.rigid_body is not None:
+            helper.rigid_body.kinematic = True
+            helper.rigid_body.type = "PASSIVE"
+    return poses
+
+
+def _fracture_one(src, coll, limit, band, threshold):
+    copy = _world_copy(src, coll, "fracture_src")
+    if copy is None:
+        return [], [], None
+    if band is not None and not _keep_band(copy, band[0], band[1]):
+        bpy.data.objects.remove(copy, do_unlink=True)
+        return [], [], None
+    shards = _cell_fracture(copy, limit)
+    bpy.data.objects.remove(copy, do_unlink=True)
+    sized = []
+    for shard in shards:
+        if max(shard.dimensions) > 40.0:
+            bpy.data.objects.remove(shard, do_unlink=True)
+            continue
+        sized.append(shard)
+    shards = sized
+    if len(shards) < 2:
+        for shard in shards:
+            bpy.data.objects.remove(shard, do_unlink=True)
+        return [], [], None
+    for shard in shards:
+        _activate(shard, passive=False)
+    reach = 0.0
+    centers = [shard.matrix_world.translation for shard in shards]
+    for index, left in enumerate(centers):
+        for right in centers[index + 1:]:
+            reach = max(reach, (left - right).length)
+    joints = _pin_shards(shards, coll, max(1.2, reach * 0.55), threshold)
+    ground_z = min(center.z for center in centers) - 1.4
+    ground = bpy.data.objects.new("era_ground", bpy.data.meshes.new("era_ground"))
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1.0)
+    bm.to_mesh(ground.data)
+    bm.free()
+    coll.objects.link(ground)
+    ground.location = (sum(center.x for center in centers) / len(centers), sum(center.y for center in centers) / len(centers), ground_z)
+    ground.scale = (40.0, 40.0, 0.4)
+    _activate(ground, passive=True)
+    return shards, joints, ground
+
+
+def _link_cached(coll):
+    if not FRACTURE_CACHE.exists():
+        return []
+    with bpy.data.libraries.load(str(FRACTURE_CACHE), link=False) as (src, dst):
+        dst.objects = list(src.objects)
+    loaded = []
+    for obj in dst.objects:
+        if obj is None or obj.type != "MESH":
+            continue
+        coll.objects.link(obj)
+        loaded.append(obj)
+    return loaded
+
+
+def _store_cache(shards):
+    FRACTURE_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    blocks = set(shards)
+    blocks.update(shard.data for shard in shards if shard.data is not None)
+    bpy.data.libraries.write(str(FRACTURE_CACHE), blocks, fake_user=True)
+
+
+def fracture_buildings(kit):
+    """Roofs at year 100, tower tops at year 500. Bake once, then reuse the cache."""
+    cell_ok, _ant_ok = _enable_vfx_addons()
+    coll = kit.collection("City")
+    cached = _link_cached(coll)
+    if cached:
+        for obj in cached:
+            role = "fracture500" if int(obj.get("era", 500)) >= 500 else "fracture100"
+            kit.add(obj, role, sink=False)
+        print("fracture cache", len(cached))
+        return len(cached)
+    if not cell_ok:
+        print("cell fracture addon missing")
+        return 0
+    roofs = []
+    tops = []
+    for item in kit.items:
+        obj = item.obj
+        host = obj if obj.type == "MESH" and obj.data is not None else None
+        if host is None:
+            best_n = 0
+            for child in obj.children_recursive:
+                if child.type != "MESH" or child.data is None:
+                    continue
+                n = len(child.data.vertices)
+                if 12 < n < 30000 and n > best_n:
+                    host = child
+                    best_n = n
+        if host is None:
+            continue
+        count = len(host.data.vertices)
+        if count < 12 or count > 8000 or max(host.dimensions) > 45.0:
+            continue
+        loc = host.matrix_world.translation
+        if item.role == "frontage" and -120.0 < loc.x < 80.0 and -40.0 < loc.y < 30.0:
+            roofs.append(host)
+        elif item.role == "building_base" and -140.0 < loc.x < 160.0 and 140.0 < loc.y < 320.0:
+            tops.append(host)
+    roofs.sort(key=lambda obj: abs(obj.location.x + 20.0) + abs(obj.location.y))
+    tops.sort(key=lambda obj: abs(obj.location.x) + abs(obj.location.y - 180.0))
+    print("fracture candidates", len(roofs), len(tops), flush=True)
+    made = []
+    helpers = []
+    # One bake for every building. A second point-cache bake segfaults Blender 4.5.
+    for obj, limit, band, threshold, era, role, name in (
+        *[(obj, 8, (0.62, 1.0), 12.0, 100, "fracture100", "era100_roof") for obj in roofs[:2]],
+        *[(obj, 10, (0.22, 1.0), 6.0, 500, "fracture500", "era500_top") for obj in tops[:2]],
+    ):
+        shards, joints, ground = _fracture_one(obj, coll, limit, band, threshold)
+        helpers.extend(joints)
+        if ground is not None:
+            helpers.append(ground)
+        for shard in shards:
+            shard["era"] = era
+            shard.name = name
+            kit.add(shard, role, sink=False)
+            made.append(shard)
+    if made:
+        _bake_pose(made, helpers, 24)
+    if made:
+        _store_cache(made)
+    scene = bpy.context.scene
+    scene.frame_start = 1
+    scene.frame_end = 1800
+    if scene.rigidbody_world is not None:
+        scene.rigidbody_world.enabled = False
+    print("fractured buildings", len(made))
+    return len(made)
+
+
+def ant_hills(kit):
+    """Uneven ground where the asphalt was. Hidden until year 500."""
+    _cell_ok, ant_ok = _enable_vfx_addons()
+    if not ant_ok:
+        print("ant landscape addon missing")
+        return 0
+    coll = kit.collection("Terrain")
+    soil = found_assets.pbr_material("HillSoil", "leaves_forest_ground", uv=0.35) or kit.mats.get("dirt")
+    placed = 0
+    for name, size_x, size_y, loc, height, seed in (
+        ("AvenueHills", 150.0, 24.0, (-6.0, AVE_Y, ROAD_Z + 0.12), 2.6, 11),
+        ("FarHills", 220.0, 70.0, (10.0, 200.0, FAR_Z + 0.2), 4.2, 19),
+    ):
+        before = set(bpy.data.objects)
+        try:
+            bpy.ops.mesh.landscape_add(
+                refresh=True,
+                ant_terrain_name=name,
+                subdivision_x=36,
+                subdivision_y=22,
+                mesh_size_x=size_x,
+                mesh_size_y=size_y,
+                random_seed=seed,
+                noise_type="hetero_terrain",
+                basis_type="PERLIN_NEW",
+                noise_size=0.5,
+                noise_depth=4,
+                amplitude=0.42,
+                frequency=1.15,
+                dimension=0.9,
+                lacunarity=2.05,
+                height=height,
+                height_offset=-0.35,
+                at_cursor=False,
+                smooth_mesh=True,
+                tri_face=False,
+                water_plane=False,
+            )
+        except RuntimeError as exc:
+            print("ant", name, exc)
+            continue
+        created = [obj for obj in bpy.data.objects if obj not in before and obj.type == "MESH"]
+        if not created:
+            print("ant made nothing", name)
+            continue
+        land = created[0]
+        for extra in created[1:]:
+            bpy.data.objects.remove(extra, do_unlink=True)
+        if land.name not in coll.objects:
+            for holder in list(land.users_collection):
+                holder.objects.unlink(land)
+            coll.objects.link(land)
+        land.location = loc
+        if soil is not None:
+            land.data.materials.clear()
+            land.data.materials.append(soil)
+        kit.add(land, "hills", sink=False)
+        placed += 1
+    return placed
+
+
+def _ruin_forest_group():
+    ng = bpy.data.node_groups.get("RuinForest")
+    if ng is not None:
+        return ng
+    ng = bpy.data.node_groups.new("RuinForest", "GeometryNodeTree")
+    ng.interface.new_socket(name="Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
+    density = ng.interface.new_socket(name="Density", in_out="INPUT", socket_type="NodeSocketFloat")
+    density.default_value = 0.012
+    ng.interface.new_socket(name="Trees", in_out="INPUT", socket_type="NodeSocketCollection")
+    ng.interface.new_socket(name="Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
+    nodes = ng.nodes
+    links = ng.links
+    gin = nodes.new("NodeGroupInput")
+    gout = nodes.new("NodeGroupOutput")
+    dist = nodes.new("GeometryNodeDistributePointsOnFaces")
+    dist.distribute_method = "RANDOM"
+    links.new(gin.outputs["Geometry"], dist.inputs["Mesh"])
+    links.new(gin.outputs["Density"], dist.inputs["Density"])
+    plants = nodes.new("GeometryNodeCollectionInfo")
+    plants.inputs["Separate Children"].default_value = True
+    plants.inputs["Reset Children"].default_value = False
+    links.new(gin.outputs["Trees"], plants.inputs["Collection"])
+    inst = nodes.new("GeometryNodeInstanceOnPoints")
+    inst.inputs["Pick Instance"].default_value = True
+    links.new(dist.outputs["Points"], inst.inputs["Points"])
+    links.new(plants.outputs["Instances"], inst.inputs["Instance"])
+    yaw = nodes.new("FunctionNodeRandomValue")
+    yaw.data_type = "FLOAT"
+    yaw.inputs[2].default_value = 0.0
+    yaw.inputs[3].default_value = 6.28318
+    spin = nodes.new("ShaderNodeCombineXYZ")
+    links.new(yaw.outputs[1], spin.inputs["Z"])
+    links.new(spin.outputs["Vector"], inst.inputs["Rotation"])
+    scale_rng = nodes.new("FunctionNodeRandomValue")
+    scale_rng.data_type = "FLOAT"
+    scale_rng.inputs[2].default_value = 0.65
+    scale_rng.inputs[3].default_value = 1.85
+    scale = nodes.new("ShaderNodeCombineXYZ")
+    for axis in ("X", "Y", "Z"):
+        links.new(scale_rng.outputs[1], scale.inputs[axis])
+    links.new(scale.outputs["Vector"], inst.inputs["Scale"])
+    links.new(inst.outputs["Instances"], gout.inputs["Geometry"])
+    return ng
+
+
+def scatter_ruin_forest(kit):
+    """Thousands of instanced trees over the year-500 ruins. The meshes are not copied."""
+    sources = []
+    for item in kit.items:
+        obj = item.obj
+        if item.role != "tree_canopy" or obj.type != "MESH" or obj.data is None:
+            continue
+        if len(obj.data.vertices) > 20000:
+            continue
+        sources.append(obj)
+        if len(sources) >= 4:
+            break
+    if len(sources) < 2 and cc0_city.ready():
+        for kind, height in (("round", 9.0), ("pine", 12.0)):
+            built = cc0_city.place_tree(kit.collection("Plants"), 0.0, 0.0, -80.0, height, kind)
+            if built is not None:
+                sources.append(built)
+    if not sources:
+        print("ruin forest has no tree")
+        return 0
+    protos = bpy.data.collections.new("RuinTreeProtos")
+    for index, src in enumerate(sources):
+        proto = bpy.data.objects.new(f"ruin_tree_{index}", src.data)
+        proto.scale = src.scale.copy()
+        proto.rotation_euler = src.rotation_euler.copy()
+        protos.objects.link(proto)
+    group = _ruin_forest_group()
+    coll = kit.collection("Plants")
+    placed = 0
+    for name, loc, size, density in (
+        ("ruin_canopy", (16.0, 240.0, FAR_Z + 0.15), (380.0, 240.0), 0.009),
+        ("street_canopy", (-8.0, AVE_Y, ROAD_Z + 0.2), (140.0, 18.0), 0.045),
+    ):
+        bm = bmesh.new()
+        w, d = size
+        verts = [bm.verts.new(co) for co in ((-w / 2, -d / 2, 0.0), (w / 2, -d / 2, 0.0), (w / 2, d / 2, 0.0), (-w / 2, d / 2, 0.0))]
+        bm.faces.new(verts)
+        mesh = bpy.data.meshes.new(name)
+        bm.to_mesh(mesh)
+        bm.free()
+        obj = bpy.data.objects.new(name, mesh)
+        coll.objects.link(obj)
+        obj.location = loc
+        mod = obj.modifiers.new("RuinForest", "NODES")
+        mod.node_group = group
+        mod.show_viewport = False
+        trees = _socket(mod, "Trees")
+        thick = _socket(mod, "Density")
+        if trees:
+            mod[trees] = protos
+        if thick:
+            mod[thick] = density
+        kit.add(obj, "swallow", sink=False)
+        placed += 1
+    print("ruin forest patches", placed, "protos", len(sources))
+    return placed
+
+
 def install(kit):
     arm_buildings(kit)
+    fracture_buildings(kit)
+    ant_hills(kit)
+    scatter_ruin_forest(kit)
     deck = next((item.obj for item in kit.items if item.role == "bridge_deck" and item.extra.get("i") == 0), None)
     fractured = fracture_deck(deck, kit.collection("Bridge")) if deck is not None else []
     if fractured:
@@ -597,8 +1143,15 @@ def _drive_span(kit, collapse):
 
 
 def spin_sun(kit, frame, fps, beat_id):
-    """Sweep the sun during a time jump. Review frames at the end of a beat stay put."""
+    """Sweep the sun during a time jump. The last frames of a beat stay at noon.
+
+    A still is the last frame of the beat. Leaving the spin running there
+    dropped the sun behind the range and the city read as a night shot.
+    """
     if beat_id not in {"weeds", "houses", "towers", "bridge", "forest"}:
         return 0.0
-    # Two revolutions a second while the years are skipping.
+    ends = {"weeds": 498, "houses": 746, "towers": 871, "bridge": 984, "forest": 1096}
+    end = ends.get(beat_id)
+    if end is not None and frame >= end - 3:
+        return 0.0
     return (frame / max(fps, 1.0)) * 6.28318 * 2.0

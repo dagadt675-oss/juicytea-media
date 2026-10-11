@@ -248,10 +248,11 @@ def _structures(kit, ch, frame, fps):
             near = bool(item.extra.get("near_bank")) or item.base_loc.y < 800.0
             bury = _bury_scale(item, ch)
             obj.location = loc
-            # Year 500 removes the intact towers. City blocks also go at year 100,
-            # because scaling the empty does not shrink the meshes inside them.
+            # Year 100 replaces the far skyline with ruin shells. Year 500
+            # removes every intact tower that is not already falling over.
+            far = item.base_loc.y > 150.0
             block = obj.name.startswith("far_block") or obj.name.startswith("nyc") or obj.name.startswith("wtc")
-            gone = (not topple) and (spectacular > 0.62 or (ruin > 0.8 and block))
+            gone = (not topple) and (spectacular > 0.5 or (far and collapse > 0.52) or (ruin > 0.8 and block))
             obj.hide_render = bury < 0.05 or gone
             if topple:
                 ang = min(1.45, ruin * 0.85 + spectacular * 0.7)
@@ -633,6 +634,17 @@ def _life(kit, ch, frame, fps, snow):
             obj.scale = item.base_scale * (0.72 + 0.28 * s)
             for child in obj.children_recursive:
                 child.hide_render = obj.hide_render
+        elif role == "fracture100":
+            # Baked roof and floor shards. Up for year 100, gone once the tower falls.
+            obj.hide_render = not (0.48 < ch["collapse"] < 0.9)
+        elif role == "fracture500":
+            obj.hide_render = ch["collapse"] < 0.85
+        elif role == "hills":
+            obj.hide_render = ch["collapse"] < 0.85
+        elif role == "swallow":
+            obj.hide_render = ch["collapse"] < 0.82
+        elif role == "rubble_hill":
+            obj.hide_render = ch["collapse"] < 0.85
         elif role == "fallen":
             obj.hide_render = ch["collapse"] < 0.7
             for child in obj.children_recursive:
