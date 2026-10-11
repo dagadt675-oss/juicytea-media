@@ -105,13 +105,21 @@ def _pack(name, obj):
     return col
 
 
-def _instance(col, location, yaw=0.0, mirror=1.0):
+def _instance(col, location, yaw=0.0, mirror=1.0, *, cull="block", lod="", dist=0.0):
     empty = bpy.data.objects.new(col.name + "_i", None)
     empty.instance_type = "COLLECTION"
     empty.instance_collection = col
     empty.location = location
     empty.rotation_euler = (0.0, 0.0, yaw)
     empty.scale = (mirror, 1.0, 1.0)
+    empty["cull"] = cull
+    empty["dist"] = float(dist)
+    if lod:
+        empty["lod"] = lod
+        empty["lod_hidden"] = 1 if lod == "far" else 0
+        empty.hide_render = lod == "far"
+    else:
+        empty["lod_hidden"] = 0
     return _link(empty)
 
 
@@ -175,7 +183,7 @@ def _decimate(obj, ratio, name):
     return copy
 
 
-def _block(path: Path, name: str, hero: bool = False):
+def _block(path: Path, name: str, hero: bool = False, want_far: bool = False):
     if not path.exists():
         print(f"MISSING BLOCK {path}", flush=True)
         return None
@@ -202,8 +210,11 @@ def _block(path: Path, name: str, hero: bool = False):
         print(f"HERO {name} {hero_pack[1][0]:.0f}x{hero_pack[1][1]:.0f}x{hero_pack[1][2]:.0f}", flush=True)
     _apply_scale(joined, (CELL / span[0], CELL / span[1], ((CELL / span[0]) + (CELL / span[1])) * 0.5))
     print(f"BLOCK {joined.name} was {span[0]:.0f}x{span[1]:.0f}x{span[2]:.0f} m", flush=True)
-    far = _decimate(joined, 0.07, name + "Far")
-    return _pack(name, joined), _pack(name + "Far", far), hero_pack
+    far_pack = None
+    if want_far:
+        far = _decimate(joined, 0.07, name + "Far")
+        far_pack = _pack(name + "Far", far)
+    return _pack(name, joined), far_pack, hero_pack
 
 
 # Brick canyon pulled up to the landing sidewalk. Filled when that block is placed.
@@ -232,10 +243,11 @@ def _tile(blocks):
                 continue
             near, far, _hero = blocks[(i * 3 + j * 5) % len(blocks)]
             dist = math.hypot(cx, cy)
-            col = near if dist < 320.0 else far
             yaw = ((i * 2 + j) % 4) * (math.pi / 2.0)
             mirror = -1.0 if (i + j) % 2 == 0 else 1.0
-            _instance(col, (cx, cy, 0.0), yaw, mirror)
+            _instance(near, (cx, cy, 0.0), yaw, mirror, lod="near" if far is not None else "", dist=dist)
+            if far is not None:
+                _instance(far, (cx, cy, 0.0), yaw, mirror, lod="far", dist=dist)
             placed += 1
     print(f"CITY tiles {placed}", flush=True)
 
@@ -274,6 +286,8 @@ def _wtc():
     _fit_height(empty, meshes, WTC_TIP_M)
     empty.location.x = WTC_AT[0]
     empty.location.y = WTC_AT[1]
+    empty["cull"] = "block"
+    empty["lod_hidden"] = 0
     bpy.context.view_layer.update()
     print(f"WTC at {tuple(round(v, 1) for v in empty.location)} tip {WTC_TIP_M}", flush=True)
 
@@ -613,7 +627,116 @@ def _place_canyon(hero_pack):
     print(f"CANYON center {center} size {tuple(round(v, 1) for v in size)}", flush=True)
 
 
-def dress_city():
+# Sun shines along -Z after build_b points +Z at this vector.
+_SUN_AIM = mathutils.Vector((0.45, -0.25, 0.86))
+LOD_DISTANCE = 320.0
+
+
+def _tag_props():
+    """Mark roots the camera may hide. The tower, the coin and the hero stay."""
+    skip = {"EmpireState", "Penny", "Star", "Sun", "Fill", "Cam"}
+    for obj in bpy.data.objects:
+        if obj.parent is not None or obj.type in {"CAMERA", "LIGHT"}:
+            continue
+        if obj.get("cull") or obj.get("punchline"):
+            continue
+        if obj.name in skip or obj.name.startswith("Sun"):
+            continue
+        obj["cull"] = "prop"
+        obj["lod_hidden"] = 0
+
+
+def _apply_hide(obj, hide: bool):
+    obj.hide_render = hide
+    for child in obj.children:
+        _apply_hide(child, hide)
+
+
+def set_distant_lod(enabled: bool):
+    """Swap in the decimated block only past LOD_DISTANCE. Off keeps every near mesh."""
+    for obj in bpy.data.objects:
+        kind = obj.get("lod")
+        if kind not in ("near", "far"):
+            continue
+        distant = float(obj.get("dist", 0.0)) >= LOD_DISTANCE
+        hide = (kind == "far") if not enabled else ((kind == "far") != distant)
+        obj["lod_hidden"] = 1 if hide else 0
+        obj.hide_render = hide
+
+
+def restore_cull():
+    for obj in bpy.data.objects:
+        if "lod_hidden" not in obj.keys():
+            continue
+        _apply_hide(obj, bool(obj["lod_hidden"]))
+
+
+def _corners(obj):
+    pts = []
+    col = getattr(obj, "instance_collection", None)
+    if col is not None:
+        for child in col.all_objects:
+            if child.type != "MESH":
+                continue
+            world = obj.matrix_world @ child.matrix_world
+            pts.extend(world @ mathutils.Vector(corner) for corner in child.bound_box)
+    if len(pts) < 2:
+        pts = [obj.matrix_world @ mathutils.Vector(corner) for corner in obj.bound_box]
+    if pts and obj.get("cull") == "block":
+        span = max(p.x for p in pts) - min(p.x for p in pts)
+        if span < 1.0:
+            center = obj.matrix_world.translation
+            pts = [
+                mathutils.Vector((center.x + x, center.y + y, z))
+                for x in (-100.0, 100.0)
+                for y in (-100.0, 100.0)
+                for z in (0.0, 80.0)
+            ]
+    return pts
+
+
+def _in_frame(corners, cam, scene, margin):
+    from bpy_extras.object_utils import world_to_camera_view
+
+    for corner in corners:
+        ndc = world_to_camera_view(scene, cam, corner)
+        if ndc.z > -5.0 and -margin <= ndc.x <= 1.0 + margin and -margin <= ndc.y <= 1.0 + margin:
+            return True
+    return False
+
+
+def cull_to_camera(cam, margin=0.22, shadow_m=80.0, near_m=120.0):
+    """Hide blocks and props outside the frame. Keep a margin and up-sun shadow casters."""
+    restore_cull()
+    scene = bpy.context.scene
+    incoming = (-_SUN_AIM).normalized()
+    shadow = mathutils.Vector((incoming.x, incoming.y, 0.0))
+    if shadow.length > 1e-8:
+        shadow.normalize()
+    hidden = 0
+    kept = 0
+    origin = cam.matrix_world.translation
+    for obj in bpy.data.objects:
+        if obj.hide_render or obj.get("cull") not in ("block", "prop"):
+            continue
+        corners = _corners(obj)
+        if not corners:
+            kept += 1
+            continue
+        center = sum(corners, mathutils.Vector()) / len(corners)
+        if (center - origin).length < near_m or _in_frame(corners, cam, scene, margin):
+            kept += 1
+            continue
+        shifted = [corner + shadow * shadow_m for corner in corners]
+        if _in_frame(shifted, cam, scene, margin):
+            kept += 1
+            continue
+        _apply_hide(obj, True)
+        hidden += 1
+    print(f"CULL hide {hidden} keep {kept}", flush=True)
+
+
+def dress_city(lod: bool = False):
     """Tile the NYC blocks, then the tower streets, sidewalk life, and One WTC."""
     import os
     if os.environ.get("SKIP_CITY") == "1":
@@ -625,7 +748,7 @@ def dress_city():
     blocks = []
     canyon = None
     for name in ("procedural_city_6", "procedural_city_3", "procedural_city_4"):
-        loaded = _block(HUB / f"{name}.glb", name, hero=(name == "procedural_city_3"))
+        loaded = _block(HUB / f"{name}.glb", name, hero=(name == "procedural_city_3"), want_far=lod)
         if loaded is None:
             continue
         blocks.append(loaded)
@@ -641,4 +764,6 @@ def dress_city():
     _crosswalks()
     _props()
     _commute()
-    return _people()
+    arms = _people()
+    _tag_props()
+    return arms

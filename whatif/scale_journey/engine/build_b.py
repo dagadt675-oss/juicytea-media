@@ -1028,32 +1028,46 @@ def _blur(scene, cam, penny, fr, frame):
     scene.frame_set(frame + 1)
 
 
-def main():
-    job = _job()
-    _clear()
-    scene = bpy.context.scene
+# Kept only where a 1080x1920 A/B against 24 samples, 12 bounces, OIDN,
+# no culling and no LOD stayed at SSIM >= 0.99 on frames 0, 200 and 690.
+# Adaptive sampling below 24 samples broke the facade. 4 and 6 bounces did
+# not, and did not get faster. Distant LOD rewrote that same facade.
+# There is no GPU on this machine.
+SPEED = {
+    "adaptive": True,
+    "threshold": 0.01,
+    "min_samples": 1,
+    "bounces": 12,
+    "persistent": True,
+    "cull": True,
+    "lod": False,
+}
+
+
+def configure_cycles(scene, job, speed=None):
+    speed = SPEED if speed is None else speed
     scene.render.engine = "CYCLES"
     scene.cycles.device = "CPU"
-    scene.cycles.samples = max(4, int(job.get("samples", 16)))
+    scene.cycles.samples = max(1, int(job.get("samples", 24)))
     scene.cycles.use_denoising = True
     try:
         scene.cycles.denoiser = "OPENIMAGEDENOISE"
     except Exception:
         pass
-    scene.cycles.use_adaptive_sampling = True
-    scene.cycles.adaptive_threshold = 0.04
-    scene.cycles.adaptive_min_samples = 1
+    scene.cycles.use_adaptive_sampling = bool(speed["adaptive"])
+    scene.cycles.adaptive_threshold = float(speed["threshold"])
+    scene.cycles.adaptive_min_samples = int(speed["min_samples"])
+    scene.cycles.max_bounces = int(speed["bounces"])
+    scene.cycles.diffuse_bounces = int(speed["bounces"])
+    scene.cycles.glossy_bounces = int(speed["bounces"])
+    scene.cycles.transmission_bounces = int(speed["bounces"])
+    scene.cycles.transparent_max_bounces = int(speed["bounces"])
+    scene.cycles.sample_clamp_indirect = 0.0
     try:
-        scene.cycles.use_light_tree = False
+        scene.cycles.use_light_tree = True
     except Exception:
         pass
-    scene.render.use_persistent_data = True
-    scene.cycles.max_bounces = 2
-    scene.cycles.diffuse_bounces = 1
-    scene.cycles.glossy_bounces = 1
-    scene.cycles.transmission_bounces = 0
-    scene.cycles.transparent_max_bounces = 0
-    scene.cycles.sample_clamp_indirect = 0.0
+    scene.render.use_persistent_data = bool(speed["persistent"])
     scene.render.use_motion_blur = True
     scene.render.motion_blur_shutter = 0.6
     scene.cycles.motion_blur_position = "END"
@@ -1061,74 +1075,101 @@ def main():
     scene.render.resolution_y = int(job["height"])
     scene.render.resolution_percentage = int(job.get("scale", 100))
     scene.render.image_settings.file_format = "PNG"
+    scene.render.image_settings.compression = 15
     scene.view_settings.view_transform = "AgX"
     try:
         scene.view_settings.look = "AgX - Medium High Contrast"
     except Exception:
         pass
     scene.view_settings.exposure = 0.35
+    try:
+        prefs = bpy.context.preferences.addons["cycles"].preferences
+        prefs.get_devices()
+        for device in prefs.devices:
+            print(f"DEVICE {device.type} {device.name}", flush=True)
+    except Exception as exc:
+        print(f"DEVICE none {exc}", flush=True)
+
+
+def prepare_scene(job, lod=False):
+    _clear()
+    scene = bpy.context.scene
     _sun()
     hdr = str(HDRI if HDRI.exists() else job["hdri"])
     _world(hdr)
-    from engine.manhattan import dress_city, tick_city
-
     _empire()
     _liberty()
-    arms = dress_city() or []
+    from engine.manhattan import dress_city
+
+    arms = dress_city(lod=lod) or []
     penny = _penny()
     cam = _camera()
+    return scene, cam, penny, arms
+
+
+def render_frame(scene, cam, penny, arms, fr, dest: Path, speed=None):
+    from engine.manhattan import cull_to_camera, restore_cull, set_distant_lod, tick_city
+
+    speed = SPEED if speed is None else speed
+    t = float(fr["t"])
+    gx, gy = _air_gap(t)
+    pgx, pgy = _air_gap(max(0.0, t - 1.0 / 30.0))
+    prev_cam = list(fr.get("prev_cam") or fr["cam"])
+    prev_penny = list(fr.get("prev_penny") or fr["penny"])
+    prev_cam[0] += pgx
+    prev_cam[1] += pgy
+    prev_penny[0] += pgx
+    prev_penny[1] += pgy
+    prev_penny[2] += 0.02
+    curr_cam = (fr["cam"][0] + gx, fr["cam"][1] + gy, fr["cam"][2])
+    curr_penny = (fr["penny"][0] + gx, fr["penny"][1] + gy, fr["penny"][2] + 0.02)
+    target = (fr["target"][0] + gx, fr["target"][1] + gy, fr["target"][2])
+    walk_frame = 12 + int(t * 24.0) % 40
+    scene.cycles.seed = int(fr["frame"])
+    _blur(
+        scene,
+        cam,
+        penny,
+        {"cam": curr_cam, "penny": curr_penny, "prev_cam": prev_cam, "prev_penny": prev_penny, "rot": fr.get("rot"), "prev_rot": fr.get("prev_rot")},
+        walk_frame,
+    )
+    cam.data.lens = float(fr.get("lens") or 14)
+    cam.data.dof.use_dof = False
+    _look(cam, target)
+    penny.rotation_euler = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
+    for arm in arms:
+        if arm.get("punchline"):
+            _punchline(arm, t)
+        else:
+            _head(arm, t)
+    tick_city(t)
+    bpy.context.view_layer.update()
+    _clear_camera(cam, {penny, bpy.data.objects.get("Rim") or penny})
+    _look(cam, target)
+    set_distant_lod(bool(speed["lod"]))
+    if speed["cull"]:
+        cull_to_camera(cam)
+    else:
+        restore_cull()
+    bpy.context.view_layer.update()
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    scene.render.image_settings.file_format = "PNG"
+    scene.render.filepath = str(dest)
+    bpy.ops.render.render(write_still=True)
+
+
+def main():
+    job = _job()
+    scene, cam, penny, arms = prepare_scene(job, lod=bool(SPEED["lod"]))
+    configure_cycles(scene, job, SPEED)
     out = Path(job["out"])
     out.mkdir(parents=True, exist_ok=True)
-    for index, fr in enumerate(job["frames"]):
-        prev = {
-            "cam": fr.get("prev_cam") or fr["cam"],
-            "penny": fr.get("prev_penny") or fr["penny"],
-            "prev_cam": fr.get("prev_cam") or fr["cam"],
-            "prev_penny": fr.get("prev_penny") or fr["penny"],
-        }
-        t = float(fr["t"])
-        gx, gy = _air_gap(t)
-        pgx, pgy = _air_gap(max(0.0, t - 1.0 / 30.0))
-        prev_cam = list(fr.get("prev_cam") or fr["cam"])
-        prev_penny = list(fr.get("prev_penny") or fr["penny"])
-        prev_cam[0] += pgx
-        prev_cam[1] += pgy
-        prev_penny[0] += pgx
-        prev_penny[1] += pgy
-        prev_penny[2] += 0.02
-        curr_cam = (fr["cam"][0] + gx, fr["cam"][1] + gy, fr["cam"][2])
-        curr_penny = (fr["penny"][0] + gx, fr["penny"][1] + gy, fr["penny"][2] + 0.02)
-        target = (fr["target"][0] + gx, fr["target"][1] + gy, fr["target"][2])
-        walk_frame = 12 + int(t * 24.0) % 40
-        _blur(scene, cam, penny, {"cam": curr_cam, "penny": curr_penny, "prev_cam": prev_cam, "prev_penny": prev_penny}, walk_frame)
-        cam.data.lens = float(fr.get("lens") or job.get("lens_mm") or 14)
-        cam.data.dof.use_dof = False
-        _look(cam, target)
-        penny.rotation_euler = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
-        for arm in arms:
-            if arm.get("punchline"):
-                _punchline(arm, float(fr["t"]))
-            else:
-                _head(arm, float(fr["t"]))
-        tick_city(t)
-        bpy.context.view_layer.update()
-        _clear_camera(cam, {penny, bpy.data.objects.get("Rim") or penny})
-        _look(cam, target)
-        png_path = out / f"f_{fr['frame']:04d}.png"
-        scene.render.image_settings.file_format = "PNG"
-        scene.render.filepath = str(png_path)
-        bpy.ops.render.render(write_still=True)
-        if job.get("plate_format") == "exr":
-            scene.render.image_settings.file_format = "OPEN_EXR"
-            scene.render.image_settings.color_depth = "16"
-            exr_path = out / f"f_{fr['frame']:04d}.exr"
-            image = bpy.data.images.get("Render Result")
-            if image is not None:
-                image.save_render(str(exr_path))
-            scene.render.image_settings.file_format = "PNG"
-        if index % 10 == 0 or index + 1 == len(job["frames"]):
-            print(f"PENNY {index + 1}/{len(job['frames'])} frame {fr['frame']}", flush=True)
-    print(f"PENNY_DONE {len(job['frames'])}", flush=True)
+    frames = job["frames"]
+    for index, fr in enumerate(frames):
+        render_frame(scene, cam, penny, arms, fr, out / f"f_{fr['frame']:04d}.png", SPEED)
+        if index % 10 == 0 or index + 1 == len(frames):
+            print(f"PENNY {index + 1}/{len(frames)} frame {fr['frame']}", flush=True)
+    print(f"PENNY_DONE {len(frames)}", flush=True)
 
 
 if __name__ == "__main__":
