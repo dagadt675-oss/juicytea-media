@@ -1465,10 +1465,8 @@ def _mountains(kit, coll):
     placed = 0
     # The locked camera looks up this axis, so the range is centered on it
     # rather than on world x=0. Scale 2000 turns the 2 m Gaea mesh into a 4 km range.
-    span = _mesh_prop(coll, cache / "gaea_range.glb", (2100.0, 5600.0, FAR_Z - 40.0), 0.15, 0.23 * 2000.0, "gaea_range")
+    span = _mesh_prop(coll, cache / "gaea_range.glb", (2100.0, 5600.0, FAR_Z - 30.0), 0.15, 0.23 * 2000.0, "gaea_range")
     if span is not None:
-        # The import is a wide sheet. Extra height turns the relief into a ridgeline.
-        span.scale.z *= 2.6
         kit.add(span, "mountain", sink=False)
         placed += 1
     # Already about 2 km wide, with a snow peak. It sits in the left half of that range.
