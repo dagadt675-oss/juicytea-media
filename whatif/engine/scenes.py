@@ -73,6 +73,7 @@ from engine.city_layout import (
     south_s,
     tower_pose,
 )
+from engine import decay_vfx
 from engine.meshkit import (
     Kit,
     add_box,
@@ -246,6 +247,20 @@ def _materials():
 
 def _plane(name, coll, center, size, mat, z_thickness=0.08):
     return box_object(name, coll, center, (size[0], size[1], z_thickness), mat)
+
+
+def _ground_sheet(name, coll, center, size, mat, tile=2.8):
+    """A flat sheet whose UVs repeat the texture every ``tile`` metres."""
+    w, d = float(size[0]), float(size[1])
+    bm = bmesh.new()
+    verts = [bm.verts.new(co) for co in ((-w / 2, -d / 2, 0.0), (w / 2, -d / 2, 0.0), (w / 2, d / 2, 0.0), (-w / 2, d / 2, 0.0))]
+    face = bm.faces.new(verts)
+    layer = bm.loops.layers.uv.new("UVMap")
+    for loop in face.loops:
+        loop[layer].uv = ((loop.vert.co.x + w / 2) / tile, (loop.vert.co.y + d / 2) / tile)
+    obj = link_obj(name, mesh_from_bm(name, bm), coll, (mat,))
+    obj.location = center
+    return obj
 
 
 def _windows(bm, center, size, floors, cols):
@@ -1186,51 +1201,21 @@ def _only_beat(kit, obj, beat):
 
 
 def _street_facade(kit, coll, mats, x, y, z):
-    """Break one avenue building in place. Neighbours stay. The lot grows over."""
-    concrete = found_assets.pbr_material("FacadeCrack", "cracked_concrete_wall", uv=0.4, displace=0.04) or mats["concrete"]
-    rebar = found_assets.pbr_material("FacadeRebar", "rebar_reinforced_concrete", uv=1.1) or concrete
-    moss = found_assets.pbr_material("FacadeMoss", "worn_mossy_plasterwall", uv=0.55) or concrete
-    litter = found_assets.pbr_material("FacadeLitter", "leaves_forest_ground", uv=0.45) or mats["dirt"]
-    pavement = found_assets.pbr_material("FacadePave", "road_damaged", uv=0.6, displace=0.08) or mats["road"]
-    dark = mats["dark"]
+    """Hub plants at the avenue building. The shader, displace, and ivy gen age the mesh."""
     face_y = y - 4.15
-    # Missing glass and broken frames on the south face, the side the drone sees.
-    for i, (dx, dz, w, h) in enumerate((
-        (-2.2, 2.2, 1.3, 1.6), (0.2, 2.4, 1.5, 1.7), (2.1, 1.8, 1.2, 1.4),
-        (-1.4, 5.2, 1.6, 1.5), (1.3, 5.6, 1.4, 1.3), (-0.2, 8.2, 1.8, 1.2),
-    )):
-        hole = box_object("missing_glass", coll, (x + dx, face_y, z + dz), (w, 0.18, h), dark)
-        kit.add(hole, "rubble", sink=False)
-        frame = box_object("window_frame", coll, (x + dx, face_y - 0.12, z + dz + h * 0.42), (w * 0.9, 0.16, 0.12), concrete)
-        frame.rotation_euler = (0.15 * (i % 2), 0.0, 0.2 if i % 2 else -0.35)
-        kit.add(frame, "rubble", sink=False)
-        rod = link_obj("rebar", cylinder_mesh("facade_rebar", radius=0.035, segments=5), coll, (rebar,))
-        rod.location = (x + dx + 0.3, face_y - 0.2, z + dz)
-        rod.rotation_euler = (1.1, 0.3 * i, 0.4)
-        rod.scale = (1.0, 1.0, 1.4 + (i % 3) * 0.3)
-        kit.add(rod, "rubble", sink=False)
-    # The top floors cave in. Slabs stay on this lot.
-    for i, (dx, dz, rot) in enumerate(((-1.2, 10.2, (0.5, 0.2, 0.3)), (1.4, 9.4, (0.8, -0.3, 0.6)), (0.2, 0.45, (0.35, 0.1, 0.8)))):
-        slab = box_object("roof_cave", coll, (x + dx, face_y - (0.15 if dz > 2 else 1.2), z + dz), (1.6, 0.9, 0.18), concrete if i else rebar)
-        slab.rotation_euler = rot
-        kit.add(slab, "rubble", sink=False)
     for i, (dx, dz, slug) in enumerate((
-        (-2.0, 1.4, "fern_02"), (-0.4, 2.8, "moss_01"), (1.6, 1.8, "fern_02"),
-        (-1.2, 4.6, "shrub_01"), (1.1, 5.4, "moss_01"), (0.2, 7.6, "fern_02"),
-        (-1.8, 8.8, "moss_01"), (1.8, 9.2, "shrub_02"),
+        (-2.0, 1.2, "fern_02"), (-0.4, 2.4, "moss_01"), (1.6, 1.6, "fern_02"),
+        (-1.2, 3.8, "shrub_01"), (1.1, 4.4, "moss_01"), (0.2, 5.5, "fern_02"),
     )):
-        _plant(kit, coll, slug, x + dx, face_y - 0.35, z + dz, 0.7 + (i % 3) * 0.25, delay=0.32, yaw=i * 0.4)
-    pave = box_object("cracked_pave", coll, (x, y - 6.2, z + 0.1), (7.0, 2.4, 0.05), pavement)
-    kit.add(pave, "year_green", sink=False)
-    leaves_pad = box_object("leaf_pad", coll, (x + 0.5, y - 6.2, z + 0.08), (10.0, 4.0, 0.03), litter)
-    kit.add(leaves_pad, "late_meadow", sink=False)
-    for i, (dx, dy, slug, height) in enumerate((
-        (-3.2, -6.5, "shrub_01", 1.4), (3.4, -5.8, "shrub_02", 1.6),
-        (-1.2, -8.0, "grass_medium_01", 0.7), (2.0, -7.2, "fern_02", 0.6),
-        (0.4, -5.2, "moss_01", 0.35), (-4.5, -9.0, "fir_sapling", 2.8),
-        (4.2, -8.4, "pine_sapling_small", 3.1),
-    )):
-        _plant(kit, coll, slug, x + dx, y + dy, z, height, delay=0.34, yaw=i * 0.5, role="tree_canopy" if height > 2 else "weed")
+        _plant(kit, coll, slug, x + dx, face_y - 0.35, z + dz, 0.8 + (i % 3) * 0.3, delay=0.32, yaw=i * 0.4)
+    rng = random.Random(8)
+    for i in range(22):
+        _plant(
+            kit, coll,
+            ("grass_medium_01", "grass_medium_02", "fern_02", "shrub_02", "moss_01")[i % 5],
+            x + rng.uniform(-6.0, 6.0), y - rng.uniform(5.0, 12.0), z,
+            rng.uniform(0.4, 1.3), delay=0.3, yaw=i,
+        )
 
 
 def _place_hub_blocks(kit, coll, mats):
@@ -1366,47 +1351,32 @@ def _close_forest(kit, coll, mats):
             road_z, rng.uniform(3.4, 5.0), future=True, delay=0.74, rng=rng,
             kind="pine" if i % 2 == 0 else "round",
         )
-    # The beige city floor is what the wide camera sees in front of the blocks.
-    # A saturated grass sheet is what reads as meadow from that height.
-    # Stop south of the avenue. The hero lane and the cracked husk road stay asphalt.
-    lot = _plane("lot_grass", coll, (-20.0, -80.0, road_z + 0.08), (420.0, 150.0), mats["park"])
-    kit.add(lot, "year_green", sink=False)
-    soil = found_assets.pbr_material("LotSoil", "leaves_forest_ground", uv=0.2) or mats["dirt"]
-    for i, (lx, ly) in enumerate(((-40.0, -30.0), (-10.0, -55.0), (20.0, -18.0), (-70.0, -80.0))):
-        pad = _plane("litter_pad", coll, (lx, ly, road_z + 0.1), (18.0, 12.0), soil)
-        kit.add(pad, "late_meadow", sink=False)
-    meadow = found_assets.pbr_material("ClosedGrass", "grass_ground", uv=0.15) or mats["park"]
-    sheet = _plane("avenue_meadow", coll, (-8.0, AVE_Y, road_z + 0.045), (150.0, 18.0), meadow)
-    kit.add(sheet, "late_meadow", sink=False)
-    leaves = found_assets.pbr_material("IvyCard", "forest_leaves_02", uv=1.6) or mats["leaf"]
-    for item in list(kit.items):
-        if item.role != "frontage":
-            continue
-        x, y, z = item.obj.location
-        if not (-100.0 < x < 40.0 and -80.0 < y < 18.0):
-            continue
-        index = int(item.extra.get("index", 0))
-        for step, dz in enumerate((2.4, 5.2, 8.0)):
-            card = box_object(
-                "ivy_card", coll, (x + (0.6 if index % 2 else -0.6), y - 5.2, z + dz),
-                (3.2, 0.12, 2.8), leaves,
-            )
-            card.rotation_euler.z = 0.15 * step
-            kit.add(card, "weed", delay=0.4, sink=False, leaf=(0.16, 0.36, 0.12, 1))
-        if index % 3 == 0:
-            slab = box_object(
-                "roof_fall", coll, (x + 2.2, y - 7.5, road_z + 0.4),
-                (6.5, 3.6, 0.35), mats["concrete"],
-            )
-            slab.rotation_euler = (0.4, 0.15, 0.5)
-            kit.add(slab, "rubble", sink=False)
+    grass = decay_vfx.crack_material("LotGrass", "grass_ground") or mats["park"]
+    soil = decay_vfx.crack_material("LotSoil", "leaves_forest_ground") or mats["dirt"]
+    # Crack mask widens with the years. Day 1 is invisible; year 500 covers the lot.
+    lot = _ground_sheet("lot_grass", coll, (-20.0, -80.0, road_z + 0.08), (420.0, 150.0), grass, tile=3.2)
+    kit.add(lot, "crack_sheet", sink=False)
+    for lx, ly in ((-40.0, -30.0), (-8.0, -55.0), (24.0, -16.0), (-70.0, -90.0), (-32.0, -12.0)):
+        pad = _ground_sheet("litter_pad", coll, (lx, ly, road_z + 0.1), (16.0, 10.0), soil, tile=2.2)
+        kit.add(pad, "crack_sheet", sink=False)
+    meadow = decay_vfx.crack_material("ClosedGrass", "grass_ground") or grass
+    sheet = _ground_sheet("avenue_meadow", coll, (-8.0, AVE_Y + 6.0, road_z + 0.05), (160.0, 12.0), meadow, tile=2.6)
+    kit.add(sheet, "crack_sheet", sink=False)
+    for i in range(20):
+        _tree(
+            kit, coll, mats,
+            rng.uniform(-70.0, 55.0), rng.uniform(40.0, 78.0),
+            road_z, rng.uniform(2.6, 4.8), future=True, delay=0.72, rng=rng,
+            kind="pine" if i % 2 == 0 else "round",
+        )
+    # Erosion, displace, and the proximity ivy live in decay_vfx.install.
 
 
 def _hero_broken_road(kit, coll, mats):
     """Cracked, displaced asphalt under the husk, hidden on day 1."""
     hx, hy, _yaw = HERO_SPORTS
     road_z = ROAD_Z
-    cracked = found_assets.pbr_material("HeroCracks", "road_damaged", uv=0.55, displace=0.28) or mats["road"]
+    cracked = decay_vfx.crack_material("HeroSoil", "grass_ground") or mats["park"]
     w, d, step = 20.0, 14.0, 0.45
     bm = bmesh.new()
     nx, ny = int(w / step), int(d / step)
@@ -1458,12 +1428,14 @@ def _hero_broken_road(kit, coll, mats):
         )
         mark.rotation_euler.z = rng.uniform(0.0, math.pi)
         kit.add(mark, "groundwear", sink=False)
-    for i, dx in enumerate((-3.2, -1.1, 0.6, 2.4, 4.1)):
+    for i in range(16):
         _plant(
-            kit, coll, "grass_bermuda_01" if i % 2 == 0 else "weed_plant_02",
-            hx + dx, hy + (0.35 if i % 2 else -0.45), road_z + 0.02,
-            0.28 + (i % 3) * 0.08, delay=0.55, yaw=i * 0.4,
+            kit, coll, ("grass_medium_01", "grass_bermuda_01", "fern_02", "weed_plant_02")[i % 4],
+            hx + rng.uniform(-6.0, 5.0), hy + rng.uniform(-5.5, 2.0), road_z,
+            rng.uniform(0.35, 0.9), delay=0.4, yaw=i,
         )
+    # Through the bonnet once the nose has swung toward the camera.
+    _plant(kit, coll, "fir_sapling", hx + 0.85, hy - 0.7, road_z, 2.3, delay=0.45, yaw=0.4, role="tree_canopy")
 
 
 def _break_river_span(obj, coll, kit, mats):
@@ -1917,6 +1889,7 @@ def build_river_city(kit, mats, rng, pieces):
     found_assets.stamp_material(mats.get("wall"), "plaster")
     _close_forest(kit, kit.collection("Terrain"), mats)
     _hero_broken_road(kit, kit.collection("Terrain"), mats)
+    decay_vfx.install(kit)
     for i, y in enumerate((112.0, 122.0, 132.0, 142.0)):
         _plant(kit, kit.collection("Bridge"), "fern_02" if i % 2 == 0 else "nettle_plant", 3.5 + i * 0.8, y, 0.15, 0.9, delay=0.45, yaw=i)
         _plant(kit, kit.collection("Bridge"), "moss_01", 8.0 - i * 0.4, y + 2.0, 0.1, 0.3, delay=0.4, yaw=0.5)

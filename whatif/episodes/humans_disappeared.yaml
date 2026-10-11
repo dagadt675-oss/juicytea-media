@@ -157,8 +157,8 @@ beats:
       collapse: 1.0
       sag: 0.6
     camera:
-      - {u: 0.0, location: [-32.8, -18.0, 3.4], target: [-32.8, 0.3, 5.2], lens: 28, fstop: 4.0}
-      - {u: 1.0, location: [-32.8, -11.0, 2.2], target: [-32.8, 0.3, 4.4], lens: 32, fstop: 2.8}
+      - {u: 0.0, location: [-34.0, -11.2, 1.55], target: [-32.8, 0.2, 3.6], lens: 32, fstop: 3.2}
+      - {u: 1.0, location: [-33.2, -8.0, 1.2], target: [-32.8, 0.2, 3.0], lens: 36, fstop: 2.4}
 
   - id: drone_span
     seconds: 2.6

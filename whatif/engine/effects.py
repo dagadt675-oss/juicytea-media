@@ -8,6 +8,7 @@ import bpy
 from mathutils import Euler, Vector
 
 from engine.city_layout import city_water_top
+from engine import decay_vfx
 from engine.meshkit import aim_z, clamp, lin, smoother
 
 
@@ -431,8 +432,8 @@ def _life(kit, ch, frame, fps, snow):
             # The same building stays. Several tops lean as the roof gives way.
             index = int(item.extra.get("index", 0))
             lean = 0.0
-            if index % 5 == 0:
-                lean = smoother(0.5, 0.92, ch["collapse"]) * 0.42
+            if index % 4 == 0:
+                lean = smoother(0.45, 0.9, ch["collapse"]) * 0.62
             elif index % 17 == 0:
                 lean = smoother(0.55, 0.95, ch["collapse"]) * 0.28
             obj.rotation_euler = _euler(item.base_rot, dx=lean)
@@ -469,6 +470,11 @@ def _life(kit, ch, frame, fps, snow):
         elif role == "year_green":
             # Year 1 stays paved. Year 100 is already grass. Year 500 keeps it.
             obj.hide_render = ch["vegetation"] < 0.42
+        elif role == "year_age":
+            # Dark windows and ivy. Off on day 1, on by year 100.
+            obj.hide_render = ch["vegetation"] < 0.48
+        elif role == "crack_sheet":
+            obj.hide_render = False
         elif role == "segment_prop":
             show = getattr(kit, "beat_id", "") == item.extra.get("only")
             obj.hide_render = not show
@@ -520,9 +526,10 @@ def _bridge(kit, ch):
             u = smoother(0.55, 0.92, ch["collapse"])
             rot.x += u * 0.62
             loc.z = item.base_loc.z * (1.0 - u) + 0.15 * u
-            item.obj.hide_render = False
+            # Year 500 removes the continuous river deck. The wreck pieces and the gap stay.
+            item.obj.hide_render = u > 0.72
             for child in item.obj.children:
-                kept = any(token in child.name for token in ("rebar", "rail", "asphalt_layer", "span_debris"))
+                kept = any(token in child.name for token in ("rebar", "rail", "asphalt_layer", "span_debris", "span_cell"))
                 child.hide_render = "car" not in child.name and not kept and u > 0.45
         elif i == 4:
             u = smoother(0.75, 1.0, ch["collapse"])
@@ -760,13 +767,15 @@ def _sky(kit, ch, frame, fps):
         sky_e *= 1.0 + ch["heat"] * 0.15
     if ch["dust"] > 0.01:
         sky = sky.lerp(Vector(lin(0.72, 0.62, 0.48)[:3]), ch["dust"] * 0.5)
-    kit.sun.rotation_euler = Euler((elev, 0.08, -0.85))
+    yaw = -0.85 + decay_vfx.spin_sun(kit, frame, fps, getattr(kit, "beat_id", ""))
+    kit.sun.rotation_euler = Euler((elev, 0.08, yaw))
     kit.sun.data.energy = energy
     kit.sun.data.angle = 0.025 if dn < 0.42 else (0.1 if dn > 0.68 else 0.2)
     kit.sun.data.color = (color.x, color.y, color.z)
     kit.fill.data.energy = fill * (1.0 - 0.3 * ch["ice"])
     if kit.world_bg:
         kit.world_bg.inputs[1].default_value = sky_e
+    decay_vfx.drive(kit, ch, frame, fps)
     if getattr(kit, "sky_zenith", None) is not None:
         kit.sky_zenith.outputs[0].default_value = (sky.x, sky.y, sky.z, 1)
         kit.sky_horizon.outputs[0].default_value = (horizon.x, horizon.y, horizon.z, 1)
