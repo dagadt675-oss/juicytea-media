@@ -1,0 +1,237 @@
+# What if you shrank by half every second?
+# Zoom IN, from a person to a proton. Real sizes; seconds are the halving clock.
+schema: scale_journey/1
+id: shrink_half
+title: "What if you shrank by half every second?"
+status: final
+module: scale_journey
+fps: 30
+width: 1080
+height: 1920
+direction: in
+seed: 5
+caption_band: [1229, 1382]
+
+timing:
+  hook_hold: 2.4
+  journey_end: 53.25
+  ending_hold: 3.6
+  dissolve: 0.6
+
+camera:
+  lens_mm: 32
+  sensor_height_mm: 24
+  sensor_fit: VERTICAL
+  pitch_deg: 12
+  look_frac: 0.45
+  framing: 0.52
+  # Farthest the camera gets: a full-body view. After that it only moves in.
+  hold_distance_m: 4.6
+
+counter:
+  primary:
+    label: SECONDS
+    source: second
+  secondary:
+    label: HEIGHT
+    source: length
+
+quantity:
+  preset: shrink_half
+  start_m: 1.70
+
+hook:
+  fade_start: 2.0
+  fade_end: 2.9
+  highlight: "half"
+  say: "What if you shrank by half every second?"
+  lines:
+    - "What if you shrank"
+    - "by half"
+    - "every second?"
+
+ending:
+  highlight: "proton"
+  lines:
+    - "You'd be inside a proton."
+    - "The real you is still 1.70 m tall."
+
+milestones:
+  - id: you
+    t: 1.0
+    second: 0
+    proxy: person
+    proxy_height_m: 1.70
+    label: "YOU"
+    sub: "1.70 m"
+    say: "You are one metre seventy."
+    fact: ""
+
+  - id: ball
+    t: 5.35
+    match_height_m: 0.22
+    proxy_height_m: 0.22
+    proxy: marker
+    label: "A FOOTBALL"
+    sub: "22 cm"
+    say: "Three seconds. About the width of a football."
+    fact: "A size-5 football is about 22 cm across."
+
+  - id: quarter
+    t: 8.53
+    match_height_m: 0.02426
+    proxy_height_m: 0.02426
+    proxy: marker
+    label: "A QUARTER"
+    sub: "24.3 mm"
+    say: "Six seconds. You could hide behind a quarter."
+    fact: "US quarter, 24.26 mm across."
+
+  - id: pepper
+    t: 11.13
+    match_height_m: 0.004
+    proxy_height_m: 0.004
+    proxy: marker
+    label: "A PEPPERCORN"
+    sub: "4 mm"
+    say: "Smaller than a peppercorn."
+    fact: "A peppercorn, about 4 mm."
+
+  - id: salt
+    t: 14.45
+    match_height_m: 0.0004
+    proxy_height_m: 0.0004
+    proxy: marker
+    label: "A GRAIN OF SALT"
+    sub: "0.40 mm"
+    say: "A grain of table salt."
+    fact: "Table salt, about 0.4 mm."
+
+  - id: hair
+    t: 16.97
+    match_height_m: 0.00007
+    proxy_height_m: 0.00007
+    proxy: marker
+    label: "A HAIR"
+    sub: "70 µm"
+    say: "As wide as a hair."
+    fact: "A scalp hair, about 70 micrometres."
+
+  - id: cell
+    t: 20.19
+    match_height_m: 7.5e-6
+    proxy_height_m: 7.5e-6
+    proxy: marker
+    label: "A RED CELL"
+    sub: "7.5 µm"
+    say: "You'd fit across a red blood cell."
+    fact: "Red blood cell, about 7.5 micrometres."
+
+  - id: mito
+    t: 23.10
+    match_height_m: 1.0e-6
+    proxy_height_m: 1.0e-6
+    proxy: marker
+    label: "A MITOCHONDRION"
+    sub: "1 µm"
+    say: "About the length of a mitochondrion."
+    fact: "A mitochondrion, about 1 micrometre."
+
+  - id: virus
+    t: 26.42
+    match_height_m: 1.0e-7
+    proxy_height_m: 1.0e-7
+    proxy: marker
+    label: "A VIRUS"
+    sub: "100 nm"
+    say: "Virus scale."
+    fact: "About 100 nanometres, a coronavirus-sized virion."
+
+  - id: dna
+    t: 32.06
+    match_height_m: 2.0e-9
+    proxy_height_m: 2.0e-9
+    proxy: marker
+    label: "A DNA HELIX"
+    sub: "2 nm"
+    say: "As wide as the DNA double helix."
+    fact: "B-DNA is about 2 nanometres across."
+
+  - id: hydrogen
+    t: 36.38
+    match_height_m: 1.058e-10
+    proxy_height_m: 1.058e-10
+    proxy: marker
+    label: "A HYDROGEN ATOM"
+    sub: "0.106 nm"
+    say: "A hydrogen atom."
+    fact: "Hydrogen, about two Bohr radii across."
+
+  - id: empty
+    t: 41.4
+    second: 39.0
+    label: "STILL EMPTY"
+    sub: "inside the atom"
+    say: "Most of the atom is empty space. Keep going."
+    fact: "Still inside the atom. Almost all of it is empty."
+
+  - id: deeper
+    t: 45.9
+    second: 43.5
+    label: "STILL EMPTY"
+    sub: "no nucleus yet"
+    say: "Still nothing solid."
+    fact: "The nucleus is still ahead of you."
+
+  - id: nucleus
+    t: 50.53
+    match_height_m: 5.5e-15
+    proxy_height_m: 5.5e-15
+    proxy: marker
+    label: "A CARBON NUCLEUS"
+    sub: "~5.5 fm"
+    say: "A carbon nucleus."
+    fact: "Carbon nucleus, roughly 5.5 femtometres across."
+
+  - id: proton
+    t: 53.25
+    match_height_m: 8.4075e-16
+    proxy_height_m: 8.4075e-16
+    proxy: marker
+    label: "A PROTON"
+    sub: "0.841 fm"
+    say: "Fifty-one seconds. You are the size of a proton's charge radius."
+    fact: "Proton rms charge radius, 0.841 femtometres."
+
+sources:
+  - id: clock
+    used_for: "Height = 1.70 m × 2^(−seconds). The counter is that clock, not a metaphor."
+  - id: start
+    used_for: "1.70 m starting height, a scenario choice near adult human height."
+  - id: football
+    used_for: "Size-5 ball. IFAB Law 2 circumference 68–70 cm, so diameter about 22 cm. Used 22 cm."
+  - id: quarter
+    used_for: "US quarter diameter 24.26 mm. United States Mint."
+  - id: pepper
+    used_for: "Peppercorn about 4 mm. A kitchen-scale approximation."
+  - id: salt
+    used_for: "Table-salt crystal about 0.4 mm. Crystals vary; this is a round typical size."
+  - id: hair
+    used_for: "Terminal scalp hair about 70 µm. Published diameters span roughly 40–120 µm."
+  - id: rbc
+    used_for: "Erythrocyte diameter about 7.5 µm. Standard histology figure."
+  - id: mito
+    used_for: "Mitochondrion about 1 µm. Organelles span roughly 0.5–2 µm; 1 µm is the round figure used here."
+  - id: virus
+    used_for: "100 nm. SARS-CoV-2 virions are often described around 50–140 nm; 100 nm is the midpoint used here."
+  - id: dna
+    used_for: "B-DNA helix diameter about 2.0 nm."
+  - id: hydrogen
+    used_for: "Diameter taken as 2 × Bohr radius. CODATA a0 gives about 0.1058 nm."
+  - id: empty
+    used_for: "Narrative beats at 39 s and 43.5 s, where the size is picometres and there is no solid object to point at. The atom's nucleus is still far smaller."
+  - id: carbon
+    used_for: "Liquid-drop estimate R = 1.2 fm × A^(1/3), A = 12, diameter about 5.5 fm. A model, not a measured edge."
+  - id: proton
+    used_for: "CODATA 2022 proton rms charge radius 0.84075 fm. An rms charge radius, not a hard shell."
+    url: "https://physics.nist.gov/cgi-bin/cuu/Value?rp"

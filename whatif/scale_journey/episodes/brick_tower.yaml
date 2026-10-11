@@ -1,0 +1,46 @@
+# Stack generic 2x2 stud bricks until the bottom one fails.
+# No logos and no brand name on screen. "LEGO" is a voiceover mention only.
+format: B
+id: brick_tower
+title: "How tall can a toy-brick tower get before the bottom brick breaks?"
+status: final
+preset: brick_tower
+fps: 30
+width: 1080
+height: 1920
+
+timing:
+  hook_hold: 3.0
+  duration_sec: 50.0
+
+quantity:
+  # Open University figure reported by the BBC: about 375,000 2x2 bricks.
+  bricks: 375000
+  kind: "2x2"
+  logo: false
+  # System course height, 9.6 mm. Geometry only.
+  course_m: 0.0096
+
+say:
+  first: "One brick. About four tenths of an inch."
+  dad: "Past a six-foot person. About one hundred and ninety bricks."
+  liberty: "The Statue of Liberty. Three hundred and five feet."
+  empire: "The Empire State Building, tip included."
+  burj: "The Burj Khalifa. Two thousand seven hundred and seventeen feet."
+  strain: "Three hundred thousand bricks. The bottom one is glowing."
+  failure: "It gives up around three hundred and seventy-five thousand bricks. About two miles, for a perfectly balanced tower."
+  record: "The real record is one hundred and fifteen feet."
+
+sources:
+  - id: load
+    used_for: "About 375,000 2x2 bricks, roughly 3.5 km, before the bottom one fails. 375,000 × 9.6 mm is 3.6 km. Say about 2 miles."
+    url: "https://www.bbc.com/news/magazine-20578627"
+  - id: record
+    used_for: "Tallest interlocking-plastic-brick structure, 35.05 m (114 ft 11 in), Milan, 2015."
+    url: "https://www.guinnessworldrecords.com/world-records/tallest-structure-built-with-interlocking-plastic-bricks"
+  - id: course
+    used_for: "9.6 mm system height. A 6 ft person is about 190 courses. Liberty 305 ft is about 9,700. The Empire State tip 1,454 ft is about 46,200. Burj Khalifa 2,717 ft is about 86,300."
+  - id: buckle
+    used_for: "A real tower buckles or topples before this load. Voice a perfectly balanced tower."
+  - id: trademark
+    used_for: "Generic stud brick. No logo. The brand name is a factual voiceover mention only, or say toy bricks in the title."

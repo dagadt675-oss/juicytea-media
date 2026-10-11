@@ -1,0 +1,53 @@
+# Rice on a chessboard. Double it every square. The heap is instanced.
+# The camera, not the heap, is what reaches orbit.
+format: B
+id: rice_chessboard
+title: "1 grain of rice. Double it every square. 64 squares."
+status: final
+preset: rice_chessboard
+fps: 30
+width: 1080
+height: 1920
+seed: 11
+
+timing:
+  hook_hold: 3.0
+  duration_sec: 56.0
+
+quantity:
+  squares: 64
+  # Scenario kernel. Real grains run about 15–29 mg. Voice "hundreds of years."
+  grain_mass_kg: 0.000025
+  bulk_density_kg_m3: 800
+  repose_deg: 34
+  world_harvest_t: 544700000
+  # Camera altitude for the last beat. ISS is about 408 km. The heap is not that tall.
+  camera_altitude_m: 408000
+
+say:
+  first: "One grain on square one."
+  pinch: "Square ten is five hundred and twelve grains. A pinch, then a cup."
+  bag: "Square twenty. About twenty-nine pounds."
+  house: "Square thirty. About thirteen tonnes. The pile leaves the board."
+  town: "Square forty. About fourteen thousand tonnes."
+  mountain: "Square fifty. About fourteen million tonnes."
+  year: "Square fifty-six alone is more than the world grows in a year."
+  last: "Square sixty-four. Eighteen quintillion grains, counting every square."
+  reality: "Hundreds of years of the whole world's rice. The king could not pay."
+
+sources:
+  - id: chessboard
+    used_for: "Square n gets 2^(n-1) grains. All 64 squares are 2^64 − 1 = 18,446,744,073,709,551,615."
+    url: "https://en.wikipedia.org/wiki/Wheat_and_chessboard_problem"
+  - id: harvest
+    used_for: "World rice production 2025/26, 544.7 million tonnes milled."
+    url: "https://www.ers.usda.gov/media/29230/rcs-26e.pdf"
+  - id: kernel
+    used_for: "25 mg is a scenario mass inside a roughly 15–29 mg range. At 25 mg the total is about 847 years of that harvest. Voice hundreds of years, not a single precise year."
+  - id: density
+    used_for: "Bulk density 800 kg/m3, inside FAO's 0.78–0.85 g/ml for milled rice. Pile height is visual only until a sourced bulk density is locked."
+    url: "https://www.fao.org/4/t0567e/T0567E08.htm"
+  - id: orbit
+    used_for: "Camera at 408 km, a typical ISS altitude. The heap height is the cone, and it is far shorter."
+  - id: instancer
+    used_for: "The picture instances a few thousand grains inside the true cone. The counter shows 2^64 − 1."

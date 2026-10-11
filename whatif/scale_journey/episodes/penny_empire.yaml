@@ -1,0 +1,79 @@
+# What if you dropped a penny off the Empire State Building?
+# Format B. Follow the fall from the 102nd floor. The payoff is ~25 mph.
+format: B
+id: penny_empire
+title: "Could a falling penny actually kill someone?"
+title_highlight: "kill someone?"
+status: final
+preset: penny_fall
+fps: 30
+width: 1080
+height: 1920
+seed: 4
+
+timing:
+  # Slate beat clock, not the raw 34 s fall. The last 4 s rise back to the ledge.
+  duration_sec: 40.0
+  hook_hold: 3.0
+
+camera:
+  lens_mm: 22
+  # Close follow. It eases wider on the way down and returns on the rise.
+  offset_m: [0.48, -0.11, 0.06]
+  penny_x_m: 0.22
+
+quantity:
+  # US one-cent coin. Face-on drag is the ~25 mph the counter lands on.
+  mass_kg: 0.0025
+  diameter_m: 0.01905
+  # The mesh is drawn about 3× across so the coin reads in a vertical follow shot. Drag uses diameter_m.
+  thickness_m: 0.00152
+  cd: 1.14
+  air_kg_m3: 1.204
+
+hook:
+  say: "Could a falling penny actually kill someone?"
+
+ending:
+  lines:
+    - "Ow."
+    - "The penny's fine."
+    - "The guy's fine."
+
+say:
+  hook: "Could a falling penny actually kill someone?"
+  fall: "It speeds up, then it levels off, about fifty feet down."
+  floors: "A Statue of Liberty would only reach the three-hundred-foot mark."
+  drag: "You might think it keeps speeding up. Air resistance holds it around twenty-five miles an hour."
+  liberty: "There is the Statue of Liberty. Three hundred and five feet. Still twenty-five."
+  edge: "Edge-on, the fastest case, it might reach sixty-five. Still well short of deadly."
+  hit: "It hits a cap. Ow. MythBusters fired pennies at sixty-four miles an hour and only scuffed things."
+  rise: "So the penny's fine. The guy's fine. Want to drop it again?"
+
+references: [empire, liberty, person]
+
+# Do not voice a real drop. The observatory deck has safety fencing.
+sources:
+  - id: penny
+    used_for: "Mass 2.500 g, diameter 0.750 in (19.05 mm), thickness 1.52 mm."
+    title: "United States Mint, one-cent coin specifications"
+  - id: drag
+    used_for: "Face-on disk, Cd 1.14, air 1.204 kg/m3. v = sqrt(2mg / ρ A Cd) rounds to 25 mph."
+    note: "Edge-on is faster. The on-screen range is up to 65 mph, and that figure still needs the Veritasium wind-tunnel video before a voiceover uses it."
+  - id: deck
+    used_for: "102nd-floor observatory and roof, 1,250 ft. Tip 1,454 ft."
+    url: "https://www.esbnyc.com/about/facts-figures"
+  - id: terminal
+    used_for: "Terminal velocity after about 50 ft, then about 25 mph, not lethal."
+    url: "https://www.scientificamerican.com/article/could-a-penny-dropped-off/"
+  - id: mythbusters
+    used_for: "Pennies fired at 64.4 mph did minor damage."
+    url: "https://www.businessinsider.com/drop-penny-off-empire-state-building-2015-12"
+  - id: liberty
+    used_for: "Statue of Liberty, ground to torch, 305 ft 1 in."
+    url: "https://www.nps.gov/stli/learn/historyculture/statue-statistics.htm"
+  - id: fall-time
+    used_for: "1,250 ft at 25 mph is about 34 s, ignoring the first 50 ft. The picture uses the 40 s beat clock, including the rise."
+  - id: mint
+    used_for: "US penny production ended in 2025. Optional hook, not on frame 0."
+    url: "https://home.treasury.gov/news/featured-stories/penny-production-cessation-faqs"
