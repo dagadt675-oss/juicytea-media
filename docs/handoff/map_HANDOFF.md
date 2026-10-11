@@ -4,7 +4,7 @@ Last updated: 2026-10-11.
 
 This file is the only briefing a new agent gets, plus the git repo. Read it before editing. Update it at the end of every future run that changes the picture, the rules, the branches, or the next step, then commit it on the branch you are actually working on and copy it to `/opt/cursor/artifacts/handoff/map_HANDOFF.md`.
 
-Picture this document describes: `greenland_africa_v8.mp4` on `cursor/greenland-africa-v8-7e9d`. v7 is the parent (`0cc786a` on `cursor/greenland-africa-v7-7e9d`).
+Picture this document describes: `greenland_africa_v8.mp4` in commit `87d43d4` on `cursor/greenland-africa-v8-7e9d`. v7 is the parent (`0cc786a` on `cursor/greenland-africa-v7-7e9d`).
 
 ## Where the code actually is
 
