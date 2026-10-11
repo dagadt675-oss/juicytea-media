@@ -39,7 +39,7 @@ HDRI_DIR = Path("/tmp/plane_hdri")
 SKY_FILES = {
     "city": "belfast_sunset_puresky_2k.hdr",
     "forest": "kloofendal_48d_partly_cloudy_puresky_2k.hdr",
-    "mountains": "lago_disola_4k.hdr",
+    "mountains": "belfast_sunset_puresky_2k.hdr",
     "ocean": "belfast_sunset_puresky_2k.hdr",
     "desert": "goegap_2k.hdr",
     "cloudsea": "kloofendal_48d_partly_cloudy_puresky_2k.hdr",
@@ -397,42 +397,49 @@ def _principled(name, color, roughness, metallic=0.0):
     return mat, bsdf
 
 
+def _polish_paint(mat):
+    """Keep the downloaded paint, normal, and roughness maps. Add a clearcoat."""
+    if mat is None or mat.node_tree is None:
+        return
+    bsdf = next((node for node in mat.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+    if bsdf is None:
+        return
+    if "Coat Weight" in bsdf.inputs:
+        bsdf.inputs["Coat Weight"].default_value = 0.42
+    if "Coat Roughness" in bsdf.inputs:
+        bsdf.inputs["Coat Roughness"].default_value = 0.12
+    if "Specular IOR Level" in bsdf.inputs:
+        bsdf.inputs["Specular IOR Level"].default_value = 0.55
+    if "Base Color" not in bsdf.inputs or not bsdf.inputs["Base Color"].is_linked:
+        return
+    link = bsdf.inputs["Base Color"].links[0]
+    nt = mat.node_tree
+    ao = nt.nodes.new("ShaderNodeAmbientOcclusion")
+    if "Distance" in ao.inputs:
+        ao.inputs["Distance"].default_value = 0.55
+    mix = nt.nodes.new("ShaderNodeMixRGB")
+    mix.blend_type = "MULTIPLY"
+    mix.inputs["Fac"].default_value = 0.28
+    nt.links.new(link.from_socket, mix.inputs["Color1"])
+    nt.links.new(ao.outputs["Color"], mix.inputs["Color2"])
+    nt.links.new(mix.outputs["Color"], bsdf.inputs["Base Color"])
+
+
 def _shade_airliner(body):
     by_name = {mat.name: mat for mat in body.data.materials if mat}
-    main = by_name.get("Material.001")
-    if main and main.node_tree:
-        bsdf = next(n for n in main.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
-        bsdf.inputs["Base Color"].default_value = (0.74, 0.76, 0.78, 1.0)
-        bsdf.inputs["Roughness"].default_value = 0.22
-        if "Coat Weight" in bsdf.inputs:
-            bsdf.inputs["Coat Weight"].default_value = 0.55
-        if "Coat Roughness" in bsdf.inputs:
-            bsdf.inputs["Coat Roughness"].default_value = 0.08
-        if "Specular IOR Level" in bsdf.inputs:
-            bsdf.inputs["Specular IOR Level"].default_value = 0.5
     paint = by_name.get("Matal solid paint white")
-    if paint and paint.node_tree:
-        bsdf = next(n for n in paint.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
-        bsdf.inputs["Roughness"].default_value = 0.18
-        if "Coat Weight" in bsdf.inputs:
-            bsdf.inputs["Coat Weight"].default_value = 0.4
-    grey, _ = _principled("BellyGrey", (0.42, 0.44, 0.47), 0.45, 0.04)
-    body.data.materials.append(grey)
-    grey_i = len(body.data.materials) - 1
-    # Tube skin gets its own material so the x-ray can fade it without melting the wings.
-    tube_src = main if main is not None else paint
-    tube = tube_src.copy() if tube_src is not None else grey.copy()
+    _polish_paint(paint)
+    # Tube skin is a copy of the real paint so the x-ray fades the fuselage only.
+    tube = paint.copy() if paint is not None else body.data.materials[0].copy()
     tube.name = "FuselageSkin"
     body.data.materials.append(tube)
     tube_i = len(body.data.materials) - 1
     for poly in body.data.polygons:
+        if poly.material_index != 0:
+            continue
         c = poly.center
         in_tube = abs(c.x) < 3.7 and -30.0 < c.y < 16.0 and 3.2 < c.z < 11.5
-        if not in_tube or poly.material_index not in (0, 3, tube_i):
-            continue
-        if c.z < 6.15:
-            poly.material_index = grey_i
-        else:
+        if in_tube and c.z >= 6.15:
             poly.material_index = tube_i
 
 
@@ -591,10 +598,10 @@ def _labels(root):
     font = bpy.data.fonts.load(str(font_path)) if font_path.is_file() else None
     # (text, color, location, em size)
     specs = {
-        "l38": ("38%", AMBER, (6.2, -7.0, 16.2), 2.5),
-        "l39": ("39%", AMBER, (0.0, -7.0, 16.2), 2.5),
-        "l32": ("32%", GREEN, (-6.2, -7.0, 16.2), 2.5),
-        "l44": ("44%", RED, (1.2, -9.0, 13.5), 3.6),
+        "l38": ("38%", AMBER, (8.0, -3.4, 11.2), 1.15),
+        "l39": ("39%", AMBER, (0.0, -3.4, 11.2), 1.15),
+        "l32": ("32%", GREEN, (-8.0, -3.4, 11.2), 1.15),
+        "l44": ("44%", RED, (-1.5, -1.6, 8.2), 1.05),
         "l28": ("28%", BRIGHT, (-11.5, -4.2, 10.6), 2.8),
     }
     out = {}
@@ -692,7 +699,7 @@ def _alpine_grade(mat):
     dist.inputs["From Min"].default_value = 4000.0
     dist.inputs["From Max"].default_value = 26000.0
     dist.inputs["To Min"].default_value = 0.0
-    dist.inputs["To Max"].default_value = 0.72
+    dist.inputs["To Max"].default_value = 0.22
     dist.clamp = True
     nt.links.new(cam.outputs["View Distance"], dist.inputs["Value"])
     haze = nt.nodes.new("ShaderNodeMixRGB")
@@ -739,6 +746,8 @@ def _place_mountain(parent, col, z0, x, y, scale, yaw, mirror=False):
     inst.rotation_euler[2] = yaw
     # Seat the lowest vertex on z=0 so peaks stay a known height below the jet.
     inst.location = (x, y, -z0 * scale)
+    inst["cull"] = 1
+    inst["cull_radius"] = abs(scale) * (1.15 if abs(scale) > 40 else 520.0)
     _link(inst)
     return inst
 
@@ -749,15 +758,14 @@ def _alps_range(parent):
     peaks, peaks_z = _import_mountain("three_peaked.glb", "ThreePeaks")
     textured, textured_z = _import_mountain("free_textured_mountain.glb", "TexturedPeak")
     cliff, cliff_z = _import_mountain("bk_snow_cliff.glb", "SnowCliff")
-    # gaea imports 2 m wide. Scale 1600-1900 makes a 3-4 km range with real ridges.
-    # Centres sit 8-20 km out so the jet is above the range, not against a wall.
-    # Near edge of each range is still several kilometres from the jet.
-    # Overlap them into one range 4–12 km ahead, so the camera looks down on the tops.
-    _place_mountain(parent, gaea, gaea_z, 3400.0, 200.0, 2000.0, 0.2)
-    _place_mountain(parent, gaea, gaea_z, 5600.0, -1400.0, 1800.0, 2.5, mirror=True)
-    _place_mountain(parent, peaks, peaks_z, 5600.0, 200.0, 4.5, -0.2)
-    _place_mountain(parent, textured, textured_z, 11000.0, -1600.0, 2.6, 0.6)
-    _place_mountain(parent, cliff, cliff_z, 9000.0, 2200.0, 5.0, 1.4)
+    # Snowy peaks sit a few kilometres ahead and rise toward the jet.
+    # Gaea fills the valley so the horizon is land, not a cut tile edge.
+    # Peaks begin about 2 km ahead and rise toward a jet at ~1.2 km.
+    _place_mountain(parent, peaks, peaks_z, 2800.0, -200.0, 4.2, 0.2)
+    _place_mountain(parent, textured, textured_z, 5200.0, 900.0, 2.2, -0.35)
+    _place_mountain(parent, gaea, gaea_z, 9000.0, -2200.0, 1600.0, 0.5)
+    _place_mountain(parent, gaea, gaea_z, 12000.0, 1800.0, 1500.0, 2.1, mirror=True)
+    _place_mountain(parent, cliff, cliff_z, 3600.0, 700.0, 2.6, 0.5)
     print("hub mountains placed")
 
 
@@ -786,11 +794,29 @@ def _forest_trees(parent):
         return
     # Photoscanned saplings are 6–9 m. Scale them into a 16–30 m canopy.
     # The strip sits ahead of the nose across the forest scroll (phase ~400–1,200 m).
+    # A close stand under the chase camera at t≈7.4 (the tile has scrolled ~1 km).
     ground_z = -2.0
-    cols = 88
-    rows = 44
-    spacing = 18.0
-    x0 = 180.0
+    cols = 26
+    rows = 16
+    spacing = 12.0
+    x0 = 980.0
+    lods = {}
+
+    def lod_for(mesh):
+        if mesh.name in lods:
+            return lods[mesh.name]
+        tmp = bpy.data.objects.new("lodtmp", mesh.copy())
+        _link(tmp)
+        mod = tmp.modifiers.new("Dec", "DECIMATE")
+        mod.ratio = 0.22
+        bpy.context.view_layer.objects.active = tmp
+        bpy.ops.object.modifier_apply(modifier="Dec")
+        low = tmp.data
+        low.name = mesh.name + "_far"
+        bpy.data.objects.remove(tmp, do_unlink=True)
+        lods[mesh.name] = low
+        return low
+
     for i in range(cols * rows):
         src, height = templates[(i * 3) % len(templates)]
         obj = src.copy()
@@ -805,10 +831,15 @@ def _forest_trees(parent):
         obj.scale = (scale, scale, scale * (0.85 + (i % 5) * 0.06))
         obj.location = (
             x0 + (i % cols) * spacing + jitter_x,
-            (i // cols) * spacing - (rows * spacing) * 0.5 - 220.0 + jitter_y,
+            (i // cols) * spacing - (rows * spacing) * 0.5 + jitter_y,
             ground_z,
         )
         obj.rotation_euler[2] = (i % 11) * 0.57
+        low = lod_for(src.data)
+        obj["near_mesh"] = src.data.name
+        obj["lod_mesh"] = low.name
+        obj["cull"] = 1
+        obj["cull_radius"] = metres * 0.55
         _link(obj)
     print("realistic trees", len(templates), "instances", cols * rows)
 
@@ -832,6 +863,8 @@ def _easy_cloud(parent, loc, scale, density, kind):
     if mat and mat.node_tree:
         for node in mat.node_tree.nodes:
             if node.type == "GROUP" and node.node_tree and "Realistic" in node.node_tree.name:
+                if "Color" in node.inputs:
+                    node.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
                 if "Density" in node.inputs:
                     node.inputs["Density"].default_value = density
     return obj
@@ -917,6 +950,8 @@ def _city_instances(parent):
             inst.location = (ix * 560.0 - 200.0, iy * 460.0, 0.0)
             inst.scale = (3.8, 3.8, 3.8)
             inst.rotation_euler[2] = (ix * 0.35 + iy * 0.55)
+            inst["cull"] = 1
+            inst["cull_radius"] = 700.0
             _link(inst)
 
 
@@ -972,19 +1007,19 @@ def _biome_tiles():
     cloud_root = bpy.data.objects.new("CloudField", None)
     _link(cloud_root)
     # Easy Clouds volumes. A gap along the fuselage lets the jet read through the wisps.
+    # Low density so the volumes stay sunlit white, with grey only in the shade.
     bank = [
-        ((-4, -16, 9), (48, 26, 18), 3.2),
-        ((12, 14, 12), (40, 28, 16), 2.4),
-        ((-16, 6, 6), (32, 20, 14), 3.8),
-        ((20, -8, 10), (36, 22, 16), 2.2),
-        ((2, -24, 15), (26, 16, 11), 2.0),
-        ((-22, -2, 16), (22, 14, 10), 2.6),
+        ((-4, -16, 9), (48, 26, 18), 0.07),
+        ((12, 14, 12), (40, 28, 16), 0.05),
+        ((-16, 6, 6), (32, 20, 14), 0.08),
+        ((20, -8, 10), (36, 22, 16), 0.045),
+        ((2, -24, 15), (26, 16, 11), 0.04),
+        ((-22, -2, 16), (22, 14, 10), 0.06),
     ]
     for loc, scale, density in bank:
         _easy_cloud(cloud_root, loc, scale, density, "punch")
-    # Wingtip vortices: long thin volumes trailing the tips (aircraft Y is the span).
-    _easy_cloud(cloud_root, (-16, -27, 5.2), (22, 2.2, 2.2), 8, "vortex")
-    _easy_cloud(cloud_root, (-16, 27, 5.2), (22, 2.2, 2.2), 8, "vortex")
+    _easy_cloud(cloud_root, (-16, -27, 5.2), (22, 2.2, 2.2), 0.04, "vortex")
+    _easy_cloud(cloud_root, (-16, 27, 5.2), (22, 2.2, 2.2), 0.04, "vortex")
     shaft = _godrays()
     shaft.parent = cloud_root
     copies["_godrays"] = (shaft, shaft)
@@ -1006,7 +1041,7 @@ def build_scene():
     scene.cycles.transmission_bounces = 4
     scene.cycles.transparent_max_bounces = 8
     scene.cycles.volume_bounces = 2
-    scene.cycles.volume_max_steps = 64
+    scene.cycles.volume_max_steps = 24
     scene.cycles.volume_step_rate = 1.8
     scene.cycles.light_sampling_threshold = 0.01
     scene.render.use_persistent_data = True
@@ -1086,6 +1121,7 @@ def build_scene():
         "sky_map": sky_map,
         "sky_bg": sky_bg,
         "cabin_light": cabin_light,
+        "sun": sun_obj,
     }
 
 
@@ -1121,6 +1157,14 @@ def _paint(seats, pose):
         seat.location.x = ROW0_X - int(seat.get("row", 0)) * PITCH + shift
 
 
+def _sky_image(sky_name):
+    """Prefer an image already packed in the blend, then the extracted HDRI."""
+    for image in bpy.data.images:
+        if image.name == sky_name or Path(image.filepath).name == sky_name:
+            return image
+    return bpy.data.images.load(str(HDRI_DIR / sky_name), check_existing=True)
+
+
 def apply_pose(state, pose):
     root = state["root"]
     root.location = (0.0, 0.0, pose["altitude"])
@@ -1134,12 +1178,30 @@ def apply_pose(state, pose):
     env = state.get("env")
     if env is not None:
         sky_name = SKY_FILES.get(biome, SKY_FILES["city"])
-        image = bpy.data.images.load(str(HDRI_DIR / sky_name), check_existing=True)
+        image = _sky_image(sky_name)
         if env.image != image:
             env.image = image
         state["sky_map"].inputs["Rotation"].default_value[2] = SKY_TURN.get(biome, 0.0)
     if state.get("sky_bg") is not None:
         state["sky_bg"].inputs["Strength"].default_value = float(pose.get("sky", 0.55))
+    sun = state.get("sun")
+    if sun is not None:
+        if biome == "mountains":
+            sun.rotation_euler = (math.radians(78), math.radians(-8), math.radians(-50))
+            sun.data.energy = 8.0
+            sun.data.color = (1.0, 0.86, 0.62)
+        elif pose.get("clouds") == "punch":
+            sun.rotation_euler = (math.radians(55), math.radians(-6), math.radians(-20))
+            sun.data.energy = 14.0
+            sun.data.color = (1.0, 0.97, 0.92)
+        elif biome == "forest":
+            sun.rotation_euler = (math.radians(58), math.radians(-10), math.radians(-30))
+            sun.data.energy = 9.0
+            sun.data.color = (1.0, 0.9, 0.72)
+        else:
+            sun.rotation_euler = (math.radians(62), math.radians(-12), math.radians(-35))
+            sun.data.energy = 6.5
+            sun.data.color = (1.0, 0.48, 0.18)
     cloud_mode = pose.get("clouds") or ("punch" if pose.get("cloud", 0.0) > 0.72 else "deck")
     if pose.get("inside") or pose.get("interior"):
         cloud_mode = "off"
@@ -1255,12 +1317,85 @@ def apply_pose(state, pose):
         )).to_quaternion()
         obj.rotation_mode = "QUATERNION"
         obj.rotation_quaternion = parent_q.inverted() @ rot
+    if state.get("cull") or state.get("lod"):
+        _view_opt(state)
+
+
+def _view_opt(state):
+    """Drop off-screen scenery from the camera, and optionally swap far trees."""
+    cam = state["cam"]
+    bpy.context.view_layer.update()
+    inv = cam.matrix_world.inverted()
+    scene = state["scene"]
+    lens = max(1.0, cam.data.lens)
+    sensor_h = cam.data.sensor_height or 24.0
+    aspect = scene.render.resolution_x / max(1, scene.render.resolution_y)
+    tan_y = (sensor_h * 0.5 / lens) * 1.5
+    tan_x = tan_y * aspect * 1.5
+    cam_loc = cam.matrix_world.translation
+    for obj in bpy.data.objects:
+        if obj.get("lod_mesh") and state.get("lod") and obj.type == "MESH":
+            dist = (obj.matrix_world.translation - cam_loc).length
+            name = obj["lod_mesh"] if dist > 750.0 else obj["near_mesh"]
+            if obj.data.name != name and name in bpy.data.meshes:
+                obj.data = bpy.data.meshes[name]
+        if not state.get("cull") or not obj.get("cull"):
+            continue
+        radius = float(obj.get("cull_radius", 40.0))
+        loc = obj.matrix_world.translation
+        dist = (loc - cam_loc).length
+        obj.visible_shadow = True
+        if dist < 300.0:
+            obj.visible_camera = True
+            continue
+        p = inv @ loc
+        depth = -p.z
+        if depth < -radius:
+            obj.visible_camera = False
+            continue
+        limit_x = tan_x * max(depth, 1.0) + radius
+        limit_y = tan_y * max(depth, 1.0) + radius
+        obj.visible_camera = abs(p.x) <= limit_x and abs(p.y) <= limit_y
+
+
+def _configure_cycles(scene, job):
+    scene.cycles.samples = int(job.get("samples", scene.cycles.samples))
+    scene.cycles.use_denoising = bool(job.get("denoise", True))
+    if job.get("denoiser"):
+        scene.cycles.denoiser = job["denoiser"]
+    scene.cycles.use_adaptive_sampling = bool(job.get("adaptive", False))
+    if job.get("adaptive"):
+        scene.cycles.adaptive_threshold = float(job.get("threshold", 0.01))
+        scene.cycles.adaptive_min_samples = int(job.get("min_samples", 1))
+    if "bounces" in job:
+        bounces = int(job["bounces"])
+        scene.cycles.max_bounces = bounces
+        scene.cycles.diffuse_bounces = min(scene.cycles.diffuse_bounces, bounces)
+        scene.cycles.glossy_bounces = min(scene.cycles.glossy_bounces, bounces)
+        scene.cycles.transmission_bounces = min(scene.cycles.transmission_bounces, bounces)
+        scene.cycles.volume_bounces = int(job.get("volume_bounces", 2))
+        scene.cycles.transparent_max_bounces = int(job.get("transparent_bounces", 6))
+    if "persistent" in job:
+        scene.render.use_persistent_data = bool(job["persistent"])
+    print(
+        "cycles",
+        scene.cycles.samples,
+        "adaptive", scene.cycles.use_adaptive_sampling,
+        "denoise", scene.cycles.denoiser if scene.cycles.use_denoising else "off",
+        "bounces", scene.cycles.max_bounces,
+        "vol", scene.cycles.volume_bounces,
+        "trans", scene.cycles.transparent_max_bounces,
+        "persist", scene.render.use_persistent_data,
+        flush=True,
+    )
 
 
 def render_job(job):
     state = build_scene()
+    state["cull"] = bool(job.get("cull"))
+    state["lod"] = bool(job.get("lod"))
     scene = state["scene"]
-    scene.cycles.samples = int(job.get("samples", 8))
+    _configure_cycles(scene, job)
     scene.render.resolution_percentage = int(job.get("scale", 100))
     tasks = []
     for segment in job.get("segments", []):
@@ -1295,7 +1430,9 @@ def render_job(job):
         apply_pose(state, pose_at(frame_time(frame)))
         scene.cycles.seed = int(frame) * 997 + 17
         scene.render.filepath = str(path)
+        tick = time.perf_counter()
         bpy.ops.render.render(write_still=True)
+        print(f"BENCH frame={frame} seconds={time.perf_counter() - tick:.3f}", flush=True)
         rendered[frame] = png
         done += 1
         if done == 1 or done % 20 == 0 or done == len(unique):
