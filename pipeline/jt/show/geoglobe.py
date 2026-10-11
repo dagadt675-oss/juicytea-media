@@ -165,7 +165,7 @@ class Episode:
         if t >= self.tail0:
             opening, _mode = self._keyed(0.0)
             nxt, _nmode = self._keyed(1.0 / self.fps)
-            u = ease_out(_window(t, self.tail0, self.duration - 1.0 / self.fps))
+            u = _window(t, self.tail0, self.duration - 1.0 / self.fps)
             # A real pull-in from a wider globe. The last frame is one opening step short.
             end_span = opening.span + (opening.span - nxt.span)
             span = opening.span * 1.45 + (end_span - opening.span * 1.45) * u
@@ -289,8 +289,8 @@ class Episode:
             if 0.0 <= age <= 0.22:
                 kick = max(kick, math.sin(math.pi * age / 0.22))
         s = 4.05 + 0.7 * kick
-        ox = 540.0 + 170.0 * math.sin(t * 1.5)
-        oy = 1020.0 + 110.0 * math.sin(t * 1.15)
+        ox = 540.0 + 220.0 * math.sin(t * 2.2)
+        oy = 1000.0 + 150.0 * math.sin(t * 1.8)
 
         def pt(x, y):
             return ox + x * s, oy - y * s

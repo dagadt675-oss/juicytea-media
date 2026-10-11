@@ -6,7 +6,7 @@
   "loop": true,
   "camera": [
     {"t": 0.0, "proj": "ortho", "lon": 18.0, "lat": 63.0, "span": 80, "mode": "map"},
-    {"t": 2.8, "proj": "ortho", "lon": 20.0, "lat": 62.0, "span": 56, "mode": "map"},
+    {"t": 2.8, "proj": "ortho", "lon": 20.0, "lat": 62.0, "span": 56, "mode": "map", "ease": "out"},
     {"t": 3.5, "proj": "merc", "lon": 22.0, "lat": 63.0, "span": 32, "mode": "map", "ease": "out"},
     {"t": 6.0, "proj": "merc", "lon": 20.2, "lat": 61.0, "span": 14, "mode": "map"},
     {"t": 8.0, "proj": "merc", "lon": 19.4, "lat": 60.5, "span": 7.5, "mode": "map"},
