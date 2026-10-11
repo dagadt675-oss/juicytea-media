@@ -15,8 +15,8 @@ import skia
 
 from jt.data import build_earth
 from jt.draw import _ring_paths
-from jt.project import ang_lerp, project_points
-from jt.show.basemap import build_plates, view_for
+from jt.project import ang_delta, ang_lerp, project_points
+from jt.show.basemap import build_plates, crossfade, view_for
 from jt.show.camera import Cam
 from jt.show.clock import load_clock
 from jt.show.cues import pack as pack_cues
@@ -38,7 +38,7 @@ from jt.show.greenland import (
 )
 from jt.show.labels import Hud, leader_label, pill, strike
 from jt.show.fast_render import RasterCache, SlotCache
-from jt.show.lod import load_local, load_regional, paint_lod
+from jt.show.lod import load_local, load_regional, paint_named
 from jt.show.pack import layout
 from jt.show.polys import _path_of, group_shape, shape_from
 from jt.show.props import contact_ripple, dashed_path, dust
@@ -169,34 +169,115 @@ def _smooth(u: float) -> float:
     return u * u * (3.0 - 2.0 * u)
 
 
-def _move_at(t: float) -> tuple[Cam, Move | None, Cam]:
-    """Landed camera, the move in progress, and the camera that move leaves."""
-    cam = OPEN
-    for move in MOVES:
-        end = move.t + move.dur
-        if t < move.t:
-            return cam, None, cam
-        if t < end:
-            return cam, move, move.end
-        cam = move.end
-    return cam, None, cam
+def _anchors() -> list[tuple]:
+    """One continuous visit. Gaps are uneven, and none of them sit still.
+
+    The fifth value is the globe blend: 0 is the flat map, 1 is the globe.
+    """
+    return [
+        (0.00, 0.0, -6.0, 36.0, 150.0),
+        (1.40, 0.0, -9.0, 40.0, 132.0),
+        (2.70, 0.0, -12.0, 44.0, 118.0),
+        (3.50, 0.0, -13.0, 45.0, 112.0),
+        (4.75, 1.0, -22.0, 42.0, 92.0),
+        (5.90, 1.0, -40.0, 72.0, 38.0),
+        (6.60, 1.0, -41.0, 73.0, 35.0),
+        (8.05, 0.0, -28.0, 58.0, 78.0),
+        (9.55, 0.0, -32.0, 62.0, 66.0),
+        (11.20, 0.0, -36.0, 66.0, 56.0),
+        (12.95, 0.0, -40.0, 70.0, 49.0),
+        (14.55, 0.0, -41.0, 71.0, 45.0),
+        (16.40, 0.0, -42.0, 72.0, 40.0),
+        (18.50, 0.0, -8.0, 46.0, 62.0),
+        (20.50, 0.0, 8.0, 18.0, 76.0),
+        (22.40, 0.0, 17.0, 5.0, 90.0),
+        (24.50, 0.0, 17.6, 3.4, 86.0),
+        (26.70, 0.0, 17.3, 2.0, 83.0),
+        (28.80, 0.0, 17.0, 1.0, 81.0),
+        (30.70, 0.0, 17.4, 5.0, 72.0),
+        (32.80, 0.0, 18.0, 12.0, 62.0),
+        (35.50, 0.0, 20.0, 8.0, 66.0),
+        (37.30, 0.0, 18.4, 4.0, 74.0),
+        (39.70, 0.0, 17.0, 0.0, 84.0),
+        (42.50, 0.0, 16.4, -0.8, 80.0),
+        (45.30, 0.0, 17.0, 0.5, 86.0),
+        (47.40, 0.0, 2.0, 18.0, 108.0),
+        (49.30, 0.0, -4.0, 30.0, 130.0),
+        (51.00, 0.0, -6.0, 38.0, 148.0),
+        (T_LAST, 0.0, -6.0, 36.0, 150.0),
+    ]
+
+
+_ANCHORS = _anchors()
+
+
+def _unwrap_lons(rows: list[tuple]) -> list[float]:
+    out = [rows[0][2]]
+    for prev, row in zip(rows, rows[1:]):
+        out.append(out[-1] + ang_delta(prev[2], row[2]))
+    return out
+
+
+_UNWRAP_LON = _unwrap_lons(_ANCHORS)
+
+
+def _catmull(u: float, p0: float, p1: float, p2: float, p3: float) -> float:
+    u2 = u * u
+    u3 = u2 * u
+    return 0.5 * (
+        (2.0 * p1)
+        + (-p0 + p2) * u
+        + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * u2
+        + (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * u3
+    )
+
+
+def _spline_channel(t: float, values: list[float]) -> float:
+    rows = _ANCHORS
+    if t <= rows[0][0]:
+        return values[0]
+    if t >= rows[-1][0]:
+        return values[-1]
+    i = 1
+    while i < len(rows) - 1 and rows[i][0] < t:
+        i += 1
+    i = max(1, min(i, len(rows) - 1))
+    # segment is rows[i-1] -> rows[i]
+    i0 = max(0, i - 2)
+    i1 = i - 1
+    i2 = i
+    i3 = min(len(rows) - 1, i + 1)
+    span = rows[i2][0] - rows[i1][0]
+    u = 0.0 if span <= 1e-6 else (t - rows[i1][0]) / span
+    return _catmull(u, values[i0], values[i1], values[i2], values[i3])
+
+
+def camera_channels(t: float) -> tuple[float, float, float, float]:
+    """Globe blend, longitude, latitude, span. The blend never steps."""
+    w = _spline_channel(t, [row[1] for row in _ANCHORS])
+    lon = _spline_channel(t, _UNWRAP_LON)
+    lat = _spline_channel(t, [row[3] for row in _ANCHORS])
+    log_span = _spline_channel(t, [math.log(row[4]) for row in _ANCHORS])
+    span = math.exp(log_span)
+    span = max(28.0, min(170.0, span))
+    w = 0.0 if w < 0.0 else 1.0 if w > 1.0 else w
+    return w, lon, lat, span
+
+
+def camera_blend(t: float) -> tuple[Cam, Cam, float]:
+    w, lon, lat, span = camera_channels(t)
+    return Cam("merc", lon, lat, span), Cam("ortho", lon, lat, span), w
 
 
 def camera_at(t: float) -> Cam:
-    left, move, right = _move_at(t)
-    if move is None:
-        return left
-    u = 0.0 if move.dur <= 0 else (t - move.t) / move.dur
-    s = _smooth(u)
-    # A projection change is a cut on the word, then an ease inside the new one.
-    if left.proj != right.proj:
-        left = Cam(right.proj, left.lon, left.lat, left.span)
-    return Cam(
-        right.proj,
-        ang_lerp(left.lon, right.lon, s),
-        left.lat + (right.lat - left.lat) * s,
-        exp_zoom(left.span, right.span, s),
-    )
+    merc, ortho, w = camera_blend(t)
+    return ortho if w >= 0.5 else merc
+
+
+def _move_at(t: float) -> tuple[Cam, Move | None, Cam]:
+    """Kept for callers that still ask which story move is nearest."""
+    cam = camera_at(t)
+    return cam, None, cam
 
 
 def journey(t: float) -> tuple[float, float, float]:
@@ -224,38 +305,90 @@ def _between(t: float, a: float, b: float) -> bool:
     return a <= t < b
 
 
+def _blink_open(t: float) -> float:
+    """A short blink about every 1.4 s, so a hold is never empty."""
+    phase = (t * 0.72) % 1.0
+    if phase < 0.46 or phase > 0.54:
+        return 0.0
+    return math.sin(math.pi * (phase - 0.46) / 0.08)
+
+
+def _window(t: float, a: float, b: float, edge: float = 0.30) -> float:
+    """Fade in and out. Nothing hard-cuts on or off."""
+    if t <= a or t >= b or b <= a:
+        return 0.0
+    fin = 1.0 if edge <= 0 else _smooth(min(1.0, (t - a) / edge))
+    fout = 1.0 if edge <= 0 else _smooth(min(1.0, (b - t) / edge))
+    return fin * fout
+
+
+def _globe_mix(span: float) -> float:
+    """0 is the regional plate, 1 is Blue Marble. The ramp is wide on purpose."""
+    if span <= 40.0:
+        return 0.0
+    if span >= 82.0:
+        return 1.0
+    return _smooth((span - 40.0) / 42.0)
+
+
+def _pull_color(src: np.ndarray, ref: np.ndarray, amount: float) -> np.ndarray:
+    if amount <= 0.02:
+        return src
+    out = src.astype(np.float32)
+    target = ref.astype(np.float32)
+    for c in range(3):
+        sm = float(out[:, :, c].mean())
+        rm = float(target[:, :, c].mean())
+        ss = float(out[:, :, c].std()) + 1e-3
+        rs = float(target[:, :, c].std()) + 1e-3
+        matched = (out[:, :, c] - sm) * (rs / ss) + rm
+        out[:, :, c] = out[:, :, c] * (1.0 - amount) + matched * amount
+    return np.clip(out, 0, 255).astype(np.uint8)
+
+
+def _curl(img: np.ndarray, w: float) -> np.ndarray:
+    """Pinch the flat map toward a disk so it reads as wrapping, not a dissolve."""
+    k = 0.30 * _smooth(w)
+    if k < 0.02:
+        return img
+    from scipy.ndimage import map_coordinates
+    h, wd = img.shape[:2]
+    yy, xx = np.indices((h, wd), dtype=np.float32)
+    cx = (wd - 1) * 0.5
+    cy = (h - 1) * 0.5
+    dx = xx - cx
+    dy = yy - cy
+    pinch = k * ((dx / (wd * 0.5)) ** 2 + (dy / (h * 0.5)) ** 2)
+    sx = cx + dx * (1.0 - pinch)
+    sy = cy + dy * (1.0 - pinch)
+    out = np.empty_like(img)
+    for c in range(3):
+        out[:, :, c] = map_coordinates(img[:, :, c], [sy, sx], order=1, mode="nearest")
+    return out
+
+
 def check_moves() -> None:
-    """Fail if a move overlaps, runs long, or the loop misses frame 0."""
-    prev_end = 0.0
-    for move in MOVES:
-        if move.t < prev_end - 1e-6:
-            raise AssertionError(f"{move.name} overlaps the previous move")
-        if move.name == "slide":
-            if not 3.0 <= move.dur <= 5.0:
-                raise AssertionError("slide duration")
-        elif move.name == "loop":
-            if not 0.45 <= move.dur <= 0.55:
-                raise AssertionError("loop duration")
-        elif not 0.50 <= move.dur <= 1.20:
-            raise AssertionError(f"{move.name} duration {move.dur}")
-        if move.t + move.dur > T_LAST + 1e-6:
-            raise AssertionError(f"{move.name} runs past the last frame")
-        prev_end = move.t + move.dur
-        # Ends of an ease-in-out are slower than the middle.
-        u0, u1 = _smooth(0.10), _smooth(0.50) - _smooth(0.40)
-        if u0 >= u1:
-            raise AssertionError("ease is not slow at the start")
+    """The picture is one move. No one-frame scale jump, and the loop closes."""
     end = camera_at(T_LAST)
-    if (end.proj, round(end.lon, 5), round(end.lat, 5), round(end.span, 5)) != (
-        OPEN.proj, round(OPEN.lon, 5), round(OPEN.lat, 5), round(OPEN.span, 5)
+    start = camera_at(0.0)
+    if (end.proj, round(end.lon, 4), round(end.lat, 4), round(end.span, 3)) != (
+        start.proj, round(start.lon, 4), round(start.lat, 4), round(start.span, 3)
     ):
         raise AssertionError("last frame is not the opening camera")
-    # A hold does not move.
-    hold_t = MOVES[0].t + MOVES[0].dur + 0.20
-    a, b = camera_at(hold_t), camera_at(hold_t + 0.25)
-    if abs(a.span - b.span) > 1e-6 or abs(a.lat - b.lat) > 1e-6 or abs(ang_lerp(a.lon, b.lon, 0)) > 1e-6:
-        if abs(a.lon - b.lon) > 1e-4 or abs(a.lat - b.lat) > 1e-4 or abs(a.span - b.span) > 1e-4:
-            raise AssertionError("hold is drifting")
+    if abs(camera_channels(0.0)[0]) > 1e-6 or abs(camera_channels(T_LAST)[0]) > 1e-6:
+        raise AssertionError("the loop must open and close on the flat map")
+    dt = 1.0 / FPS
+    prev_w, _lon, _lat, prev_span = camera_channels(0.0)
+    t = dt
+    while t <= T_LAST + 1e-9:
+        w, _lon, _lat, span = camera_channels(t)
+        ratio = max(span, prev_span) / max(1e-6, min(span, prev_span))
+        if ratio > 1.04:
+            raise AssertionError(f"span jumped at {t:.3f}: {prev_span:.2f} -> {span:.2f}")
+        if abs(w - prev_w) > 0.05:
+            raise AssertionError(f"globe blend jumped at {t:.3f}")
+        prev_w, prev_span = w, span
+        t += dt
 
 
 def beat_rows() -> list[dict]:
@@ -423,24 +556,34 @@ class Episode:
         self.cache_layers = True
         self._plate_cache = RasterCache()
         self._border_cache: dict[str, SlotCache] = {}
+        self._merc = OPEN
+        self._ortho = Cam("ortho", OPEN.lon, OPEN.lat, OPEN.span)
+        self._pw = 0.0
+
+    def _graded(self, cam) -> np.ndarray:
+        """Regional and Blue Marble crossfade, with the colours pulled together."""
+        mix = _globe_mix(cam.span)
+        if mix <= 0.001:
+            return paint_named("regional", self.plates, cam, W, H)
+        globe = paint_named("globe", self.plates, cam, W, H)
+        if mix >= 0.999:
+            return globe
+        regional = paint_named("regional", self.plates, cam, W, H)
+        pull = 1.0 - abs(2.0 * mix - 1.0)
+        return crossfade(_pull_color(regional, globe, 0.9 * pull), _pull_color(globe, regional, 0.9 * pull), mix)
 
     def render(self, t: float) -> np.ndarray:
-        cam = camera_at(t)
-        left, move, right = _move_at(t)
-        if move is not None and left.proj == right.proj:
-            u = 0.0 if move.dur <= 0 else (t - move.t) / move.dur
-            span_a, span_b = left.span, right.span
+        merc, ortho, w = camera_blend(t)
+        self._merc, self._ortho, self._pw = merc, ortho, w
+        cam = ortho if w >= 0.5 else merc
+        if w <= 0.004:
+            plate = self._graded(merc)
+        elif w >= 0.996:
+            plate = self._graded(ortho)
         else:
-            u, span_a, span_b = 1.0, cam.span, cam.span
-        key = (cam.proj, cam.lon, cam.lat, cam.span, u, span_a, span_b)
-
-        def _plate():
-            return paint_lod(cam, W, H, self.plates, u, span_a, span_b)
-
-        if self.cache_layers:
-            plate = self._plate_cache.take(key, _plate)
-        else:
-            plate = _plate()
+            flat = _curl(self._graded(merc), w)
+            globe = self._graded(ortho)
+            plate = crossfade(flat, globe, _smooth(w))
         rgba = np.dstack([plate, np.full((H, W), 255, np.uint8)])
         surface = skia.Surface(W, H)
         canvas = surface.getCanvas()
@@ -541,7 +684,20 @@ class Episode:
         key = (cam.proj, cam.lon, cam.lat, cam.span, extra)
         return slot.take(key, build)
 
+    def _layer(self, canvas, fade: float):
+        if fade <= 0.02:
+            return False
+        if fade >= 0.985:
+            return True
+        paint = skia.Paint()
+        paint.setAlphaf(float(fade))
+        canvas.saveLayer(None, paint)
+        return True
+
     def _path(self, rings, cam) -> skia.Path:
+        w = getattr(self, "_pw", 0.0)
+        if 0.004 < w < 0.996:
+            return self._blend_path(rings, w)
         view = view_for(cam, W, H)
         path = skia.Path()
         path.setFillType(skia.PathFillType.kEvenOdd)
@@ -552,6 +708,37 @@ class Episode:
                 path.moveTo(piece[0][0], piece[0][1])
                 for x, y in piece[1:]:
                     path.lineTo(x, y)
+                path.close()
+        return path
+
+    def _blend_path(self, rings, w: float) -> skia.Path:
+        vm = view_for(self._merc, W, H)
+        vo = view_for(self._ortho, W, H)
+        path = skia.Path()
+        path.setFillType(skia.PathFillType.kEvenOdd)
+        for ring in rings:
+            arr = np.asarray(ring, np.float64)
+            if len(arr) < 4:
+                continue
+            step = max(1, len(arr) // 180)
+            arr = arr[::step]
+            xm, ym, vism = project_points(arr[:, 0], arr[:, 1], vm)
+            xo, yo, viso = project_points(arr[:, 0], arr[:, 1], vo)
+            vis = vism if w < 0.5 else viso
+            if int(np.count_nonzero(vis)) < 3:
+                continue
+            x = xm * (1.0 - w) + xo * w
+            y = ym * (1.0 - w) + yo * w
+            moved = False
+            for i in range(len(x)):
+                if not vis[i]:
+                    continue
+                if not moved:
+                    path.moveTo(float(x[i]), float(y[i]))
+                    moved = True
+                else:
+                    path.lineTo(float(x[i]), float(y[i]))
+            if moved:
                 path.close()
         return path
 
@@ -584,38 +771,69 @@ class Episode:
         rings = []
         for iso in AFRICA:
             rings.extend(self.earth.rings.get(iso) or [])
-        return self._box(cam, rings[::2] if len(rings) > 80 else rings)
+        rings = rings[::2] if len(rings) > 80 else rings
+        if cam.proj != "merc":
+            return self._box(cam, rings)
+        # Keep points that sit past the frame. Clipping them makes the box,
+        # and every shape parked on it, jump when a coast crosses the edge.
+        view = view_for(cam, W, H)
+        scale = W / max(cam.span, 1.0)
+        lat0 = max(-85.0, min(85.0, cam.lat))
+        merc0 = math.degrees(math.log(math.tan(math.pi / 4.0 + math.radians(lat0) / 2.0)))
+        xs, ys = [], []
+        for ring in rings:
+            step = max(1, len(ring) // 40)
+            arr = np.asarray(ring, np.float64)[::step]
+            lon = arr[:, 0]
+            lat = np.clip(arr[:, 1], -85.0, 85.0)
+            dlon = (lon - cam.lon + 180.0) % 360.0 - 180.0
+            merc = np.degrees(np.log(np.tan(math.pi / 4.0 + np.radians(lat) / 2.0)))
+            xs.append(view.cx + dlon * scale)
+            ys.append(view.cy - (merc - merc0) * scale)
+        if not xs:
+            return None
+        x = np.concatenate(xs)
+        y = np.concatenate(ys)
+        return float(x.min()), float(y.min()), float(x.max()), float(y.max())
 
     def _world(self, canvas, cam, t: float) -> None:
-        if cam.proj == "merc" and cam.span >= 130:
-            draw_clouds(canvas, 0.0, 1.0, W, H, alpha=0.16)
-        if cam.proj == "ortho":
-            view = view_for(cam, W, H)
-            draw_atmosphere(canvas, view.cx, view.cy, view.r, 0.85)
+        if cam.proj == "merc" and cam.span >= 130 and self._pw < 0.5:
+            draw_clouds(canvas, t * 0.15, 1.0, W, H, alpha=0.16 * (1.0 - self._pw))
+        if self._pw > 0.04:
+            view = view_for(self._ortho, W, H)
+            draw_atmosphere(canvas, view.cx, view.cy, view.r, 0.85 * self._pw)
 
         africa = self._border(
-            "africa", cam, (),
+            "africa", cam, (round(self._pw, 3), round(cam.lon, 2), round(cam.lat, 2), round(cam.span, 2)),
             lambda: self._path([ring for iso in AFRICA for ring in (self.earth.rings.get(iso) or [])], cam),
         )
-        tint = 96 if t < CLOCK.algeria or t >= CLOCK.outro else 70
+        breath = 1.0 + 0.07 * math.sin(t * 1.35)
+        base_tint = 96.0 if t < CLOCK.algeria - 0.2 or t >= CLOCK.outro else 78.0
+        # The fourteen-to-Algeria handoff eases the gold back instead of cutting it.
+        if CLOCK.algeria - 0.55 <= t <= CLOCK.algeria + 0.45:
+            u = _smooth((t - (CLOCK.algeria - 0.55)) / 1.0)
+            base_tint = 96.0 + (78.0 - 96.0) * u
+        tint = int(max(0, min(255, base_tint * breath)))
         self._fill(canvas, africa, (255, 176, 48), tint)
-        coast = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=3.0)
-        coast.setColor(skia.ColorSetARGB(230, 255, 214, 120))
+        pulse = 0.5 + 0.5 * math.sin(t * 2.15)
+        coast = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=2.4 + 1.4 * pulse)
+        coast.setColor(skia.ColorSetARGB(int(190 + 50 * pulse), 255, 214, 120))
         canvas.drawPath(africa, coast)
 
-        compare = _between(t, CLOCK.algeria, CLOCK.usa)
-        if compare:
+        compare = _window(t, CLOCK.algeria - 0.45, CLOCK.usa + 0.35, 0.45)
+        if compare > 0.02:
             alg = self._border("dza", cam, (), lambda: self._path(self.earth.rings.get("DZA") or [], cam))
-            self._fill(canvas, alg, GREEN, 170)
-            _neon(canvas, alg, (180, 255, 190), 2.4)
-        if _between(t, CLOCK.congo, CLOCK.usa):
+            self._fill(canvas, alg, GREEN, int(170 * compare))
+            _neon(canvas, alg, (180, 255, 190), 2.4 * compare)
+        congo = _window(t, CLOCK.congo - 0.35, CLOCK.usa + 0.35, 0.40)
+        if congo > 0.02:
             drc = self._border("cod", cam, (), lambda: self._path(self.earth.rings.get("COD") or [], cam))
-            self._fill(canvas, drc, BLUE, 170)
-            _neon(canvas, drc, (170, 210, 255), 2.4)
+            self._fill(canvas, drc, BLUE, int(170 * congo))
+            _neon(canvas, drc, (170, 210, 255), 2.4 * congo)
 
         lon, lat, _u = journey(t)
-        tiles = _between(t, CLOCK.africa14 + D_AFRICA, CLOCK.algeria)
-        packing = _between(t, CLOCK.usa, CLOCK.outro)
+        tiles = _window(t, CLOCK.africa14 + D_AFRICA - 0.05, CLOCK.algeria + 0.20, 0.45)
+        packing = _window(t, CLOCK.usa - 0.05, CLOCK.outro + 0.85, 0.20)
         sticker = CLOCK.drag <= t < HUGE_T + D_HUGE and not tiles and not compare and not packing
         inplace = t < CLOCK.drag or t >= HUGE_T + D_HUGE
         if inplace:
@@ -656,9 +874,9 @@ class Episode:
             eq = [(lon_i, 0.0) for lon_i in np.linspace(-30, 55, 24)]
             dashed_path(canvas, cam, eq, W, H, 1.0, phase=0.0)
 
-        if tiles:
-            self._paint_fourteen(canvas, cam, t)
-        if compare:
+        if tiles > 0.02:
+            self._paint_fourteen(canvas, cam, t, tiles)
+        if compare > 0.08:
             path = self._border(
                 "chip", cam, CHIP,
                 lambda: self._path(
@@ -668,7 +886,7 @@ class Episode:
             )
             self._fill(canvas, path, RED, 210)
             _neon(canvas, path, (255, 236, 236), 2.6)
-        if packing:
+        if packing > 0.02:
             self._paint_pack(canvas, cam, t)
 
         if CLOCK.drop <= t <= CLOCK.drop + 0.50 and sticker:
@@ -703,7 +921,7 @@ class Episode:
                 mouth, bob = gag_pose(t, CLOCK.excuse0, CLOCK.excuse1, 2)
                 draw_face(
                     canvas, (box[0] + box[2]) / 2, (box[1] + box[3]) / 2,
-                    box[2] - box[0], "smug", mouth=mouth, bob=bob, crown=1.0,
+                    box[2] - box[0], "smug", mouth=mouth, bob=bob, blink=_blink_open(t), crown=1.0,
                 )
         if CLOCK.drag + 0.3 <= t < CLOCK.drop and not _between(t, CLOCK.africa14 + D_AFRICA, CLOCK.outro):
             lon, lat, _u = journey(t)
@@ -716,7 +934,7 @@ class Episode:
                 mouth, bob = gag_pose(t, CLOCK.wait0, CLOCK.wait1, 2)
                 draw_face(
                     canvas, (box[0] + box[2]) / 2, (box[1] + box[3]) / 2,
-                    min(box[2] - box[0], 280), expr, mouth=mouth, bob=bob,
+                    min(box[2] - box[0], 280), expr, mouth=mouth, bob=bob, blink=_blink_open(t),
                 )
         if CLOCK.hi0 - 0.05 <= t <= CLOCK.hi1 + 0.25:
             box = self._box(cam, self.earth.rings.get("DZA") or [])
@@ -724,7 +942,7 @@ class Episode:
                 mouth, bob = gag_pose(t, CLOCK.hi0, CLOCK.hi1, 2)
                 fx = min(max(200.0, (box[0] + box[2]) / 2), W - 220.0)
                 fy = min(max(360.0, (box[1] + box[3]) / 2 - 20.0), 1000.0)
-                draw_face(canvas, fx, fy, max(80.0, box[2] - box[0]), "smug", mouth=mouth, bob=bob)
+                draw_face(canvas, fx, fy, max(80.0, box[2] - box[0]), "smug", mouth=mouth, bob=bob, blink=_blink_open(t))
                 self._mouth = (fx, fy + max(80.0, box[2] - box[0]) * 0.16)
         elif _between(t, CLOCK.algeria, CLOCK.usa):
             rings = [reproject_true(ring, HOME[0], HOME[1], CHIP[0], CHIP[1]) for ring in (self.earth.rings.get("GRL") or [])]
@@ -732,7 +950,7 @@ class Episode:
             if box and box[2] - box[0] > 40:
                 draw_face(
                     canvas, (box[0] + box[2]) / 2, (box[1] + box[3]) / 2,
-                    box[2] - box[0], "sad",
+                    box[2] - box[0], "sad", blink=_blink_open(t),
                 )
 
     def _hand(self, canvas, cam, t: float) -> None:
@@ -808,7 +1026,7 @@ class Episode:
         print(f"fit {mode} pieces {len(places)}/{len(targets)}", flush=True)
         return out, px_full, ref_w
 
-    def _paint_fourteen(self, canvas, cam, t: float) -> None:
+    def _paint_fourteen(self, canvas, cam, t: float, fade: float = 1.0) -> None:
         if self._fit14 is None:
             ref = Cam("merc", 17, 0, 84)
             names = [(f"g{i:02d}", self.greenland) for i in range(14)]
@@ -838,9 +1056,11 @@ class Episode:
             if t < hit or name not in places:
                 continue
             fx, fy, rot = places[name]
-            pop = icon_pop((t - hit) * MOTION_FPS, 18)
+            pop = icon_pop((t - hit) * MOTION_FPS, 18) * fade
+            if pop <= 0.04:
+                continue
             self.greenland.draw(
-                canvas, x0 + fx * bw, y0 + fy * bh, px, tones[index % 2], 220,
+                canvas, x0 + fx * bw, y0 + fy * bh, px, tones[index % 2], int(220 * min(1.0, fade)),
                 pop=pop, shadow=0.15, stroke=(255, 244, 236), stroke_w=2.0, rot=rot,
             )
         canvas.restore()
@@ -882,14 +1102,18 @@ class Episode:
         if n:
             canvas.clipPath(path, doAntiAlias=True)
         self._pack_boxes = {}
-        for name, shape, rgb, t0 in specs:
+        for index, (name, shape, rgb, t0) in enumerate(specs):
             if t < t0 or name not in places:
+                continue
+            out0 = CLOCK.outro + index * 0.12
+            life = 1.0 if t < out0 else 1.0 - _smooth(min(1.0, (t - out0) / 0.55))
+            pop = icon_pop((t - t0) * MOTION_FPS, 18) * life
+            if pop <= 0.03:
                 continue
             fx, fy, rot = places[name]
             ox, oy = x0 + fx * bw, y0 + fy * bh
-            pop = icon_pop((t - t0) * MOTION_FPS, 18)
             shape.draw(
-                canvas, ox, oy, px, rgb, 215, pop=pop, shadow=0.2,
+                canvas, ox, oy, px, rgb, int(215 * life), pop=pop, shadow=0.2,
                 stroke=(255, 248, 244), stroke_w=2.2, rot=rot,
             )
             self._pack_boxes[name] = self._shape_box(shape, ox, oy, px * pop, rot)
@@ -898,45 +1122,61 @@ class Episode:
     def _lettering(self, canvas, cam, t: float) -> None:
         hud = Hud(canvas, W, H)
         b = CLOCK
-        lie = t < b.t("NOT") or t >= b.lying
-        if lie:
-            pill(hud, "THIS MAP IS LYING", W * 0.5, 300, RED, size=54, pop=1.0, glow=RED, kind="lying", nudge=False)
-        if t < b.t("NOT"):
-            self._country_pills(hud, cam, t)
-        if b.t("BIG") <= t < b.t("NOT") + 0.30:
-            box = pill(hud, "SAME SIZE", W * 0.5, 620, PAPER, ink=INK, size=48, pop=1.0, kind="same", nudge=False)
-            if t >= b.t("NOT") and box is not None:
-                strike(canvas, box, _smooth(min(1.0, (t - b.t("NOT")) / 0.28)))
-        if b.excuse0 <= t <= b.excuse1 + 0.12:
-            pill(hud, "EXCUSE ME?", W * 0.5, 340, PAPER, ink=INK, size=64, pop=1.0, kind="gag", nudge=False)
-        if b.t("POLES") <= t < b.sixteen:
-            pill(hud, "~3× WIDER", W * 0.5, 300, GOLD, ink=INK, size=64, pop=1.0, kind="wide", nudge=False)
-            pill(hud, "~9× AREA", W * 0.5, 420, GOLD, ink=INK, size=56, pop=1.0, kind="area", nudge=False)
-        if b.sixteen <= t < b.africa14 + D_AFRICA:
+        def faded(fade, fn):
+            if fade <= 0.02:
+                return
+            layered = fade < 0.985
+            if layered:
+                paint = skia.Paint()
+                paint.setAlphaf(float(fade))
+                canvas.saveLayer(None, paint)
+            fn()
+            if layered:
+                canvas.restore()
+
+        lie = _window(t, -0.2, b.t("NOT") + 0.15, 0.28) 
+        lie = max(lie, _window(t, b.lying - 0.25, T_LAST + 1.0, 0.28))
+        faded(lie, lambda: pill(hud, "THIS MAP IS LYING", W * 0.5, 300, RED, size=54, pop=1.0, glow=RED, kind="lying", nudge=False))
+        name_fade = max(_window(t, -0.2, b.t("NOT"), 0.30), _window(t, b.lying - 0.2, T_LAST + 1.0, 0.30))
+        faded(name_fade, lambda: self._country_pills(hud, cam, t))
+        same = _window(t, b.t("BIG") - 0.05, b.t("NOT") + 0.45, 0.25)
+        if same > 0.02:
+            box_hold = {}
+            def _same():
+                box_hold["box"] = pill(hud, "SAME SIZE", W * 0.5, 620, PAPER, ink=INK, size=48, pop=1.0, kind="same", nudge=False)
+            faded(same, _same)
+            if t >= b.t("NOT") and box_hold.get("box") is not None:
+                strike(canvas, box_hold["box"], _smooth(min(1.0, (t - b.t("NOT")) / 0.28)))
+        faded(_window(t, b.excuse0 - 0.08, b.excuse1 + 0.28, 0.22),
+              lambda: pill(hud, "EXCUSE ME?", W * 0.5, 340, PAPER, ink=INK, size=64, pop=1.0, kind="gag", nudge=False))
+        ratio = _window(t, b.t("POLES") - 0.08, b.sixteen + 0.05, 0.28)
+        faded(ratio, lambda: pill(hud, "~3× WIDER", W * 0.5, 300, GOLD, ink=INK, size=64, pop=1.0, kind="wide", nudge=False))
+        faded(ratio, lambda: pill(hud, "~9× AREA", W * 0.5, 420, GOLD, ink=INK, size=56, pop=1.0, kind="area", nudge=False))
+        count = _window(t, b.sixteen - 0.08, b.africa14 + D_AFRICA + 0.15, 0.28)
+        if count > 0.02:
             _lon, lat, _u = journey(t)
             mult = display_multiplier(lat)
-            moving = b.drag <= t < b.drag + D_SLIDE
-            text = f"{mult:.1f}×" if moving else f"{max(1, int(round(mult)))}×"
-            pill(hud, text, W * 0.5, 360, (18, 16, 14), ink=GOLD, size=72, pop=1.0, glow=GOLD, kind="counter", nudge=False)
-            if b.t("TOO", after=b.sixteen) <= t < b.drag:
-                pill(hud, "TOO BIG", W * 0.5, 490, RED, size=40, pop=1.0, kind="toobig", nudge=False)
-        if b.wait0 <= t <= b.wait1 + 0.1:
-            pill(hud, "WAIT... WHAT?!", W * 0.5, 430, PAPER, ink=INK, size=52, pop=1.0, kind="gag", nudge=False)
-        if b.africa14 + D_AFRICA <= t < b.algeria:
+            # One decimal the whole time, so 16× never jumps to 16.0×.
+            text = f"{mult:.1f}×"
+            faded(count, lambda: pill(hud, text, W * 0.5, 360, (18, 16, 14), ink=GOLD, size=72, pop=1.0, glow=GOLD, kind="counter", nudge=False))
+            too = _window(t, b.t("TOO", after=b.sixteen) - 0.05, b.drag + 0.15, 0.22)
+            faded(too, lambda: pill(hud, "TOO BIG", W * 0.5, 490, RED, size=40, pop=1.0, kind="toobig", nudge=False))
+        faded(_window(t, b.wait0 - 0.06, b.wait1 + 0.28, 0.22),
+              lambda: pill(hud, "WAIT... WHAT?!", W * 0.5, 430, PAPER, ink=INK, size=52, pop=1.0, kind="gag", nudge=False))
+        tile_label = _window(t, b.africa14 + D_AFRICA - 0.05, b.algeria + 0.25, 0.35)
+        if tile_label > 0.02:
             n = sum(1 for hit in _tile_times() if t + 1e-6 >= hit)
-            pill(hud, f"{max(1, n)}×", W * 0.5, 360, (18, 16, 14), ink=GOLD, size=72, pop=1.0, glow=GOLD, kind="fourteen", nudge=False)
-        if _between(t, b.algeria, b.usa):
+            faded(tile_label, lambda: pill(hud, f"{max(1, n)}×", W * 0.5, 360, (18, 16, 14), ink=GOLD, size=72, pop=1.0, glow=GOLD, kind="fourteen", nudge=False))
+        if _window(t, b.algeria - 0.35, b.usa + 0.2, 0.35) > 0.2:
             self._compare_labels(hud, canvas, cam, t)
-        if b.hi0 <= t <= b.hi1 + 0.2:
+        hi = _window(t, b.hi0 - 0.06, b.hi1 + 0.30, 0.22)
+        if hi > 0.02:
             mouth = getattr(self, "_mouth", (420.0, 640.0))
             bx = min(W - 200.0, max(240.0, mouth[0] + 210.0))
             by = min(1000.0, max(300.0, mouth[1] - 150.0))
-            pill(hud, "HI, TINY.", bx, by, PAPER, ink=INK, size=48, pop=1.0, kind="gag", nudge=False)
-        if _between(t, b.usa, b.outro):
+            faded(hi, lambda: pill(hud, "HI, TINY.", bx, by, PAPER, ink=INK, size=48, pop=1.0, kind="gag", nudge=False))
+        if _window(t, b.usa - 0.05, b.outro + 0.9, 0.25) > 0.15:
             self._pack_labels(hud, canvas, t)
-        if t >= b.lying:
-            # Names return with the lie, drawn after the shapes.
-            self._country_pills(hud, cam, t)
         self.qc = {
             "overlaps": hud.overlap_pairs(),
             "safe": hud.safe_hits(),
@@ -975,20 +1215,37 @@ class Episode:
         b = CLOCK
         boxes = getattr(self, "_pack_boxes", {})
         # STILL BIGGER is registered first so country labels dodge it.
-        if t >= b.still:
-            pill(hud, "STILL BIGGER", W * 0.5, 340, GOLD, ink=INK, size=46, pop=1.0, kind="still", nudge=False)
-        if b.t("TOGETHER", after=b.europe - 1) <= t < b.still:
-            pill(hud, "ALL FOUR FIT", W * 0.5, 340, PAPER, ink=INK, size=44, pop=1.0, kind="fit", nudge=False)
-        if t >= b.room:
-            pill(hud, "ROOM TO SPARE", W * 0.5, 1040, PAPER, ink=INK, size=44, pop=1.0, kind="room", nudge=False)
+        def faded(fade, fn):
+            if fade <= 0.04:
+                return
+            if fade < 0.985:
+                paint = skia.Paint()
+                paint.setAlphaf(float(fade))
+                canvas.saveLayer(None, paint)
+                fn()
+                canvas.restore()
+            else:
+                fn()
+
+        faded(_window(t, b.still - 0.08, b.outro + 0.55, 0.30),
+              lambda: pill(hud, "STILL BIGGER", W * 0.5, 340, GOLD, ink=INK, size=46, pop=1.0, kind="still", nudge=False))
+        faded(_window(t, b.t("TOGETHER", after=b.europe - 1) - 0.05, b.still + 0.05, 0.25),
+              lambda: pill(hud, "ALL FOUR FIT", W * 0.5, 340, PAPER, ink=INK, size=44, pop=1.0, kind="fit", nudge=False))
+        faded(_window(t, b.room - 0.06, b.outro + 0.45, 0.25),
+              lambda: pill(hud, "ROOM TO SPARE", W * 0.5, 1040, PAPER, ink=INK, size=44, pop=1.0, kind="room", nudge=False))
         specs = (
             ("usa", "USA", USA_C, b.usa),
             ("chn", "CHINA", CHN_C, b.china),
             ("ind", "INDIA", IND_C, b.india),
             ("eur", "EUROPE", EUR_C, b.europe),
         )
-        for name, text, rgb, t0 in specs:
-            if t < t0 + 0.15 or name not in boxes:
+        for index, (name, text, rgb, t0) in enumerate(specs):
+            if name not in boxes:
+                continue
+            out0 = b.outro + index * 0.12
+            life = 1.0 if t < out0 else 1.0 - _smooth(min(1.0, (t - out0) / 0.55))
+            fade = _window(t, t0, b.outro + 1.1, 0.28) * life
+            if fade <= 0.08:
                 continue
             x0, y0, x1, y1 = boxes[name]
             cx = min(W - 150.0, max(150.0, (x0 + x1) / 2))
@@ -998,7 +1255,9 @@ class Episode:
                 cy = min(860.0, max(520.0, y0 + 70.0))
             else:
                 cy = min(980.0, max(520.0, (y0 + y1) / 2))
-            pill(hud, text, cx, cy, rgb, size=36, pop=1.0, kind=name, nudge=False)
+            faded(fade, lambda cx=cx, cy=cy, text=text, rgb=rgb, name=name: pill(
+                hud, text, cx, cy, rgb, size=36, pop=1.0, kind=name, nudge=False,
+            ))
 
     def _shape_box(self, shape, ox, oy, px, rot) -> tuple[float, float, float, float]:
         turn = math.radians(rot)
