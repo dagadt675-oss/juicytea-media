@@ -1,4 +1,4 @@
-"""Greenland vs Africa, silent, locked to the 42.411 s take.
+"""Greenland vs Africa, silent, locked to the 52.43 s take.
 
 Frame 0 is the flat Mercator lie: Greenland painted as large as Africa,
 with the THIS MAP IS LYING pill already settled (the loop has to land on
@@ -19,9 +19,11 @@ from jt.project import project_one
 from jt.show.basemap import build_plates, paint_plate, view_for
 from jt.show.camera import Cam, CameraTrack, Key
 from jt.show.clock import load_clock
+from jt.captions import active_index, groups_for
 from jt.show.cues import pack as pack_cues
+from jt.show.moves import ease_out_back
 from jt.show.faces import draw_face, gag_pose
-from jt.show.labels import Hud, big_number, comparison_card, leader_label, pill, strike
+from jt.show.labels import Hud, big_number, comparison_card, faces, leader_label, pill, strike
 from jt.show.pack import layout
 from jt.show.polys import (
     Shape, _path_of, fill_iso, fill_ring_list, fill_union, group_shape, km_ring, project_lonlat, shape_from,
@@ -110,6 +112,7 @@ def _cues() -> list:
         (11.46, "tick", "snap-punch"),
         (b.sixteen, "impact", "sixteen"),
         (w("TOO", after=b.sixteen), "tick", "too-big"),
+        (w("BIG", after=b.sixteen), "tick", "too-big-land"),
         (w("LET"), "whoosh", "drag"),
         (w("EQUATOR"), "draw", "equator"),
         (w("TRUTH"), "tick", "truth"),
@@ -229,8 +232,8 @@ def apply_motion(cam: Cam, t: float) -> Cam:
         span *= 1.0 - 0.05 * u
         lon -= 10.0 * u
         lat += 4.0 * u
-        # 6.9 s: a 7% snap with the round-earth inset. One way, so later beats stay put.
-        span *= 1.0 - 0.08 * _bump(t, 6.9, 0.28)
+        # Snap with the round-earth inset, then again on SIXTEEN.
+        span *= 1.0 - 0.08 * _bump(t, b.t("ROUND"), 0.28)
         span *= 1.0 - 0.11 * _bump(t, b.sixteen, 0.36)
     # Shrink/drag keeps moving, and sits higher so the tip clears the caption band.
     if b.sixteen + 0.5 < t < b.drag:
@@ -258,17 +261,18 @@ def apply_motion(cam: Cam, t: float) -> Cam:
         span *= 1.0 - 0.03 * u
     # Snap-zooms. Each one moves the coasts, so the structural meter sees an event.
     # Negative amount is a pull-out. They settle before the loop tail.
+    sits = b.t("SITS", after=10)
     for t0, amount, dlon, dur in (
-        # Sharp and early. A slower punch at 11.85 was swallowed by the
-        # SIXTEEN snap, which left 10.47–13.2 as one quiet stretch.
-        (11.46, 0.13, 2.2, 0.20),
-        (28.20, 0.10, -1.2, 0.42),
+        # The pole snap sits between the grid and SIXTEEN, so that stretch
+        # is three events instead of one quiet push.
+        (sits, 0.13, 2.2, 0.20),
+        (b.algeria, 0.10, -1.2, 0.42),
         (b.usa, 0.10, 1.0, 0.42),
         (b.china, 0.10, -1.0, 0.42),
         (b.india, 0.10, 0.8, 0.42),
         (b.europe, 0.10, -1.0, 0.42),
-        (b.europe + 1.35, -0.10, 0.0, 0.42),
-        (43.35, 0.09, -0.8, 0.42),
+        (b.t("TOGETHER", after=b.europe - 1), -0.10, 0.0, 0.42),
+        (b.t("HUGE", after=b.outro), 0.09, -0.8, 0.55),
     ):
         p = _punch(t, t0, dur)
         span *= 1.0 - amount * p
@@ -278,6 +282,15 @@ def apply_motion(cam: Cam, t: float) -> Cam:
         deg = span * (3.0 / 1080.0)
         lat -= deg
         lon += deg * 0.4
+    # Drag to the first shrink is several seconds. A pulse every 1.2 s
+    # keeps the counter's coast from reading as one hold.
+    if b.drag <= t < b.shrinks[0]:
+        k = 0
+        while b.drag + k * 1.2 < b.shrinks[0] - 0.15 and k < 8:
+            p = _punch(t, b.drag + k * 1.2, 0.34)
+            span *= 1.0 - 0.05 * p
+            lat += 0.7 * p
+            k += 1
     # A 3% one-way zoom on the holds that would otherwise sit still.
     # The loop tail is left alone so the last frame stays one step before frame 0.
     if t < TAIL0:
@@ -292,6 +305,39 @@ def apply_motion(cam: Cam, t: float) -> Cam:
                 lon += 1.2 * u
                 break
     return Cam(cam.proj, lon, lat, max(12.0, span))
+
+
+def _shrink_u(t: float) -> float:
+    """0 at the drag, 1 at the landing. Three spoken shrinks are the steps."""
+    b = CLOCK
+    # u values are the journey fraction whose latitude reads 16, 8, 4, 2, then 1.
+    marks = (
+        (b.drag, 0.0),
+        (b.shrinks[0], 0.097),  # reads about 8×
+        (b.shrinks[1], 0.241),  # reads about 4×
+        (b.shrinks[2], 0.379),  # reads about 2.5×
+        (b.drop, 1.0),
+    )
+    if t <= marks[0][0]:
+        return 0.0
+    if t >= marks[-1][0]:
+        return 1.0
+    for i, ((t0, v0), (t1, v1)) in enumerate(zip(marks, marks[1:])):
+        if t <= t1:
+            dur = max(0.08, t1 - t0)
+            x = _clamp((t - t0) / dur)
+            if i == 0:
+                # The drag counts down across the whole gap, not in one lurch.
+                e = _smooth(x)
+            else:
+                # Most of this shrink lands in the first 0.4 s. The rest creeps.
+                fast = min(0.92, 0.40 / dur)
+                if x < fast:
+                    e = 0.84 * (1.0 - (1.0 - x / fast) ** 2)
+                else:
+                    e = 0.84 + 0.16 * (x - fast) / (1.0 - fast)
+            return v0 + (v1 - v0) * e
+    return 1.0
 
 
 def _journey(t: float) -> tuple[float, float, float, float]:
@@ -309,7 +355,9 @@ def _journey(t: float) -> tuple[float, float, float, float]:
     elif t >= b.drop:
         u = 1.0
     else:
-        u = _smooth((t - b.drag) / max(0.2, b.drop - b.drag))
+        # Each spoken shrink is its own drop. The tail of the segment keeps
+        # creeping so the gap before the next word is not a hold.
+        u = _shrink_u(t)
     end_lat = 6.0
     end_lon = HOME_LON + 58.0
     bow = 8.0 * math.sin(math.pi * min(1.0, max(0.0, u)))
@@ -335,8 +383,8 @@ def _piece_fly(t: float, t0: float, t_end: float) -> float:
     """Scale-in on the word, hold, then ease out with the outro."""
     if t < t0:
         return 0.0
-    if t < t0 + 0.42:
-        u = (t - t0) / 0.42
+    if t < t0 + 0.70:
+        u = (t - t0) / 0.70
         e = u * u * (3.0 - 2.0 * u)
         return 0.62 + 0.38 * e
     if t > t_end:
@@ -379,21 +427,43 @@ def _fourteen_cue_rows() -> list:
 
 
 def scale_report() -> dict:
-    """No stepped Mercator pops. The counter is a smooth function of latitude."""
+    """The counter moves during the drag, and each spoken shrink is its own drop."""
     b = CLOCK
     times = np.arange(b.drag, b.drop + 1e-9, 0.05)
     disp = np.array([pose(float(t))["disp"] for t in times], np.float64)
-    steps = np.abs(np.diff(disp))
     end = float(pose(b.drop)["disp"])
+    drops = []
+    for hit in b.shrinks:
+        before = float(pose(hit - 0.15)["disp"])
+        after = float(pose(min(b.drop, hit + 0.45))["disp"])
+        drops.append(round(before - after, 3))
+    # Rounded counter during the drag, before the first shrink.
+    shown = []
+    t = b.drag
+    while t < b.shrinks[0]:
+        shown.append(int(round(float(pose(t)["disp"]))))
+        t += 0.1
+    longest = 0.0
+    run_t = b.drag
+    prev = shown[0] if shown else 0
+    for i, value in enumerate(shown):
+        if value != prev:
+            longest = max(longest, (b.drag + i * 0.1) - run_t)
+            run_t = b.drag + i * 0.1
+            prev = value
+    longest = max(longest, b.shrinks[0] - run_t)
     return {
         "start": round(float(disp[0]), 3),
         "end": round(end, 3),
-        "max_step": round(float(steps.max()) if len(steps) else 0.0, 4),
+        "shrink_drops": drops,
+        "counter_gap": round(longest, 3),
         "samples": int(len(disp)),
         "pass": bool(
             float(disp[0]) > 14.0
             and end < 2.2
-            and (len(steps) == 0 or float(steps.max()) < 0.55)
+            and len(drops) == 3
+            and all(d >= 1.2 for d in drops)
+            and longest <= 1.5
         ),
     }
 
@@ -445,7 +515,11 @@ def pose(t: float) -> dict:
         t = 0.0
     b = CLOCK
     disp, lon, lat, travel = _journey(t)
-    globe = 2.50
+    globe = b.t("NOT")
+    poles = b.t("POLES")
+    stretches = b.t("STRETCHES")
+    remember = b.t("REMEMBER", after=b.outro)
+    huge = b.t("HUGE", after=b.outro)
     return {
         "t": t,
         "disp": disp,
@@ -464,10 +538,12 @@ def pose(t: float) -> dict:
         "algeria": max(hold(t, 3.30, 4.40, 0.15), hold(t, b.algeria - 0.26, b.congo + 1.7, 0.18)),
         "drc": hold(t, b.congo - 0.47, b.congo + 1.68, 0.16),
         "show16": hold(t, b.sixteen, b.drop - 0.25, 0.08),
-        "label3": hold(t, 8.70, b.sixteen - 0.35, 0.16),
+        "label3": hold(t, poles - 0.15, b.sixteen - 0.25, 0.16),
         "inset": hold(t, b.heres + 1.1, b.heres + 5.0, 0.18),
         "peel": ramp(t, b.heres + 1.2, b.heres + 2.8),
-        "stretch": hold(t, 7.95, b.sixteen + 0.9, 0.2),
+        "stretch": hold(t, stretches - 0.05, b.sixteen + 0.6, 0.2),
+        "pop_back": ease_out_back(_clamp((t - remember) / 0.7)) if remember <= t < huge else 0.0,
+        "inflate": ramp(t, huge, huge + 0.7) if t >= huge else 0.0,
         "path": ramp(t, b.drag, b.drag + 1.52) * (1.0 - ramp(t, b.drop - 0.25, b.drop + 0.15)),
         "dust": hold(t, b.drop, b.drop + 0.50, 0.02),
         "tiles": ramp(t, b.drop + 0.48, b.drop + 0.66) * (1.0 - ramp(t, b.fourteen + 1.05, b.algeria - 0.25)),
@@ -496,7 +572,8 @@ def _arrive(t: float, t0: float) -> float:
 
 
 def _blink(t: float) -> float:
-    for t0 in (1.40, 8.10, 16.40, 27.80, 35.50):
+    b = CLOCK
+    for t0 in (b.t("BIG"), b.t("STRETCHES"), b.drag, b.drop, b.hi0, b.still):
         if 0.0 <= t - t0 <= 0.08:
             return 1.0
     return 0.0
@@ -504,7 +581,7 @@ def _blink(t: float) -> float:
 
 def _squash(t: float) -> float:
     b = CLOCK
-    for start in (b.excuse0, b.drag, b.shrinks[2], b.drop, b.hi0, b.still):
+    for start in (b.excuse0, b.t("STRETCHES"), b.drag, b.shrinks[0], b.shrinks[1], b.shrinks[2], b.drop, b.hi0, b.still):
         age = t - start
         if 0.0 <= age <= 0.24:
             u = age / 0.24
@@ -598,14 +675,62 @@ def _paste(acc, covered, count, alpha, mcx, mcy, ox, oy, rgb, vis: float) -> Non
     view_n[mask] += 1
 
 
+def _draw_karaoke(canvas, t: float, w: int, h: int) -> None:
+    """Spoken word in gold, the rest of the 1–3 word group in white, in the caption band."""
+    rows = []
+    for word in CLOCK.words:
+        text = str(word["w"])
+        if text.lower().strip(".,!?;:") == "around":
+            text = "round"
+        rows.append({"text": text, "start": float(word["t0"]), "end": float(word["t1"])})
+    idx = active_index(rows, t)
+    if idx is None:
+        return
+    group = next(g for g in groups_for(rows) if idx in g)
+    size = 72.0
+    font = skia.Font(faces()["bold"], size)
+    pop = skia.Font(faces()["black"], size * 1.06)
+    tokens = [(rows[i]["text"].upper(), i) for i in group]
+    gap = 16.0
+    widths = [(pop if i == idx else font).measureText(text) for text, i in tokens]
+    total = sum(widths) + gap * (len(tokens) - 1)
+    while total > w - 80 and size > 56 and len(tokens) > 1:
+        if group[-1] != idx:
+            group = group[:-1]
+        else:
+            group = group[1:]
+        tokens = [(rows[i]["text"].upper(), i) for i in group]
+        widths = [(pop if i == idx else font).measureText(text) for text, i in tokens]
+        total = sum(widths) + gap * max(0, len(tokens) - 1)
+    metrics = pop.getMetrics()
+    center = 0.68 * h
+    baseline = center - metrics.fAscent * 0.45
+    x = w / 2 - total / 2
+    outline = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style)
+    outline.setStrokeWidth(7)
+    outline.setColor(skia.ColorSetARGB(255, 0, 0, 0))
+    cursor = x
+    for (text, i), tw in zip(tokens, widths):
+        f = pop if i == idx else font
+        canvas.drawString(text, cursor, baseline, f, outline)
+        paint = skia.Paint(AntiAlias=True)
+        if i == idx:
+            paint.setColor(skia.ColorSetARGB(255, 254, 212, 10))
+        else:
+            paint.setColor(skia.ColorSetARGB(255, 255, 255, 255))
+        canvas.drawString(text, cursor, baseline, f, paint)
+        cursor += tw + gap
+
+
 def _grid_pop(t: float) -> float:
-    """A short brightening of the pole grid at 10.4 s. It fades back."""
-    if t < 10.25 or t > 10.7:
+    """A short brightening of the pole grid on the word poles."""
+    t0 = CLOCK.t("POLES")
+    if t < t0 - 0.05 or t > t0 + 0.45:
         return 0.0
-    if t < 10.45:
-        u = (t - 10.25) / 0.20
+    if t < t0 + 0.18:
+        u = (t - (t0 - 0.05)) / 0.23
     else:
-        u = 1.0 - (t - 10.45) / 0.25
+        u = 1.0 - (t - (t0 + 0.18)) / 0.27
     u = _clamp(u)
     return u * u * (3.0 - 2.0 * u)
 
@@ -645,24 +770,26 @@ def _zoom_blur(img: np.ndarray, amount: float) -> np.ndarray:
 
 def _keys() -> list[Key]:
     b = CLOCK
+    deny = b.t("NOT")
+    stretches = b.t("STRETCHES")
+    poles = b.t("POLES")
     rows = [
         (0.00, "merc", -12, 54, 152),
-        # 4% push-in, plus a slow one-way drift so the opening clears the motion floor.
-        (2.50, "merc", 2.5, 49.6, 145.9),
-        (2.55, "merc", 2.5, 49.6, 145.9),
-        (3.25, "ortho", -22, 34, 120),
-        (3.70, "ortho", -18, 36, 108),
-        (4.22, "ortho", -16, 33, 86),
-        (4.52, "ortho", -40, 68, 48),
-        (5.08, "ortho", -40, 70, 44),
-        (5.55, "merc", -14, 36, 90),
-        (8.50, "merc", -12, 46, 78),
-        (11.30, "merc", -30, 56, 62),
-        (13.50, "merc", -38, 62, 52),
-        (15.30, "merc", -40, 72, 68),
-        (18.20, "merc", -28, 50, 62),
-        (20.80, "merc", 2, 14, 54),
-        # From the drop onward the camera follows this take's words.
+        # Push-in through the hook, then the globe snap on the denial.
+        (deny - 0.20, "merc", 2.5, 49.6, 145.9),
+        (deny, "merc", 2.5, 49.6, 145.9),
+        (b.t("EVEN"), "ortho", -22, 34, 120),
+        (b.excuse0 - 0.45, "ortho", -18, 36, 108),
+        (b.excuse0 - 0.12, "ortho", -16, 33, 86),
+        (b.excuse0, "ortho", -40, 68, 48),
+        (b.excuse1, "ortho", -40, 70, 44),
+        (b.heres, "merc", -14, 36, 90),
+        (stretches, "merc", -12, 46, 78),
+        (poles, "merc", -30, 56, 62),
+        (b.sixteen, "merc", -38, 62, 52),
+        (b.drag, "merc", -40, 72, 68),
+        (b.shrinks[0], "merc", -28, 50, 62),
+        (b.shrinks[2], "merc", 2, 14, 54),
         (b.drop + 0.95, "merc", 18, 6, 46),
         (b.algeria + 0.24, "merc", 10, 4, 62),
         (b.hi0 + 0.15, "merc", 12, 2, 58),
@@ -670,8 +797,10 @@ def _keys() -> list[Key]:
         (b.usa + 0.35, "merc", 17, -20, 84),
         (b.still + 0.35, "merc", 17, -21, 82),
         (b.room + 0.45, "merc", 17, -20, 84),
-        (b.outro + 1.30, "merc", -8, 44, 118),
-        (b.lying - 0.45, "merc", -11, 50, 140),
+        # So next time: pull out. Remember / huge / lying follow the words.
+        (b.outro + 0.35, "merc", -8, 44, 118),
+        (b.t("HUGE", after=b.outro), "merc", -11, 50, 132),
+        (b.lying - 0.15, "merc", -11, 50, 140),
         (TAIL0, "merc", -12, 52, 146),
     ]
     keys = [Key(t, Cam(p, lon, lat, span)) for t, p, lon, lat, span in rows]
@@ -812,7 +941,12 @@ class Greenland:
         if st["drc"] > 0.05:
             fill_iso(canvas, self.earth, cam, "COD", (36, 112, 210), int(200 * st["drc"]),
                      stroke=(255, 255, 255), stroke_w=5.5, w=w, h=h)
-        inplace = 0.0 if st["t"] >= CLOCK.drag else (1.0 - st["detached"])
+        # Home Greenland is the opening lie, and it is back once the return
+        # has landed. In between, only the sticker is drawn.
+        if st["t"] < CLOCK.drag or (st["t"] >= CLOCK.outro and st["detached"] < 0.55):
+            inplace = 1.0 - st["detached"]
+        else:
+            inplace = 0.0
         if inplace > 0.04:
             fill_iso(canvas, self.earth, cam, "GRL", (232, 28, 58), int(188 * inplace),
                      stroke=(255, 255, 255), stroke_w=6.5, w=w, h=h)
@@ -841,9 +975,11 @@ class Greenland:
                     shadow=1.55, w=w, h=h,
                 )
             canvas.save()
-            if anchor is not None and (sx != 1.0 or sy != 1.0 or pop_s != 1.0 or pop_dy != 0.0):
+            back = 0.78 + 0.28 * st["pop_back"] if st["pop_back"] else 1.0
+            grown = 1.0 + 0.42 * st["inflate"]
+            if anchor is not None and (sx != 1.0 or sy != 1.0 or pop_s != 1.0 or pop_dy != 0.0 or back != 1.0 or grown != 1.0):
                 canvas.translate(anchor[0], anchor[1] + pop_dy)
-                canvas.scale(sx * pop_s, sy * pop_s)
+                canvas.scale(sx * pop_s * back * grown, sy * pop_s * back * grown)
                 canvas.translate(-anchor[0], -anchor[1])
             sticker = 230 if st["t"] >= CLOCK.drag else int(230 * st["detached"])
             fill_ring_list(
@@ -1179,9 +1315,11 @@ class Greenland:
                 sx, sy = _land_squash(st["t"])
                 anchor = project_lonlat(cam, st["lon"], st["lat"], w, h)
                 canvas.save()
-                if anchor is not None and (sx != 1.0 or sy != 1.0 or pop_s != 1.0 or pop_dy != 0.0):
+                back = 0.78 + 0.28 * st["pop_back"] if st["pop_back"] else 1.0
+                grown = 1.0 + 0.42 * st["inflate"]
+                if anchor is not None and (sx != 1.0 or sy != 1.0 or pop_s != 1.0 or pop_dy != 0.0 or back != 1.0 or grown != 1.0):
                     canvas.translate(anchor[0], anchor[1] + pop_dy)
-                    canvas.scale(sx * pop_s, sy * pop_s)
+                    canvas.scale(sx * pop_s * back * grown, sy * pop_s * back * grown)
                     canvas.translate(-anchor[0], -anchor[1])
                 draw_face(
                     canvas, (box[0] + box[2]) / 2, (box[1] + box[3]) / 2,
@@ -1235,9 +1373,10 @@ class Greenland:
             abox = self._bbox(cam, w, h)
             equal_brackets(canvas, gbox, abox, st["equals"])
         if st["lying"] > 0.05:
-            pop = 1.0 if st["t"] < 2.4 or st["t"] >= 41.7 else max(0.9, st["lying"])
+            early = st["t"] < CLOCK.t("NOT")
+            pop = 1.0 if early else max(0.9, _arrive(st["t"], CLOCK.lying))
             pill(hud, "THIS MAP IS LYING", w * 0.5, 860, RED, size=92, pop=pop, glow=RED, kind="lying", nudge=False)
-        show_names = st["t"] < 2.15 or (3.05 < st["t"] < 5.20) or st["t"] >= 39.35
+        show_names = st["t"] < CLOCK.t("NOT") or (CLOCK.t("EVEN") < st["t"] < CLOCK.heres) or st["t"] >= CLOCK.outro
         if st["names"] > 0.4 and geo and show_names:
             gbox = self._box_of(cam, self.earth.rings.get("GRL") or [], w, h)
             abox = self._bbox(cam, w, h)
@@ -1255,7 +1394,7 @@ class Greenland:
         if st["gag_excuse"] > 0.2:
             pill(hud, "EXCUSE ME?", w * 0.5, h * 0.28, PAPER, ink=INK, size=72, pop=1.0, kind="gag")
         if st["label3"] > 0.1 and geo:
-            pulse = 1.0 + 0.08 * _punch(st["t"], 11.46, 0.20)
+            pulse = 1.0 + 0.08 * _punch(st["t"], CLOCK.t("POLES"), 0.28)
             pill(hud, "~3× WIDER", w * 0.5, h * 0.24, (255, 214, 48), ink=INK, size=80, pop=pulse, kind="number")
             pill(hud, "~9× AREA  70°N", w * 0.5, h * 0.34, (255, 214, 48), ink=INK, size=72, pop=pulse, kind="number")
         if st["show16"] > 0.08 and st["t"] < CLOCK.drop:
@@ -1364,6 +1503,7 @@ class Greenland:
         self._last_caps = hud.caps
         self._last_boxes = list(hud.boxes)
         self._last_overlaps = hud.overlap_pairs()
+        _draw_karaoke(canvas, st["t"], w, h)
         return hud.safe_hits() + hud.band_hits() + hud.overlap_hits()
 
     def _paint_fourteen(self, canvas, cam, st, w, h):
