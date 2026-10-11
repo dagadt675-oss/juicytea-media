@@ -5,13 +5,18 @@ fps: 30
 grade: true
 # Impact is off unless a beat sets it. This one hit decays inside 0.25 s.
 camera:
-  - {t: 0.0, proj: ortho, lon: 18, lat: 63, span: 96, ease: quintic, exp: true}
-  - {t: 3.2, proj: ortho, lon: 15, lat: 61, span: 46, ease: quintic, exp: true}
-  - {t: 6.4, proj: merc, lon: 18, lat: 62, span: 28, ease: cubic, exp: true}
-  - {t: 9.6, proj: merc, lon: 14, lat: 60, span: 16, ease: cubic, exp: true}
-  - {t: 12.8, proj: merc, lon: 22, lat: 64, span: 22, ease: quintic, exp: true}
-  - {t: 16.2, proj: ortho, lon: 18, lat: 63, span: 70, ease: quintic, exp: true}
-  - {t: 18.0, proj: ortho, lon: 16, lat: 62, span: 84, ease: quintic, exp: true}
+  - {t: 0.0, proj: ortho, lon: 18, lat: 63, span: 100, ease: out, exp: true}
+  - {t: 1.6, proj: ortho, lon: 10, lat: 58, span: 62, ease: out, exp: true}
+  - {t: 3.2, proj: ortho, lon: 22, lat: 66, span: 40, ease: cubic, exp: true}
+  - {t: 4.8, proj: merc, lon: 16, lat: 60, span: 24, ease: out, exp: true}
+  - {t: 6.4, proj: merc, lon: 26, lat: 64, span: 16, ease: cubic, exp: true}
+  - {t: 8.0, proj: merc, lon: 12, lat: 58, span: 12, ease: out, exp: true}
+  - {t: 9.6, proj: merc, lon: 24, lat: 66, span: 20, ease: cubic, exp: true}
+  - {t: 11.2, proj: merc, lon: 14, lat: 59, span: 14, ease: out, exp: true}
+  - {t: 12.8, proj: merc, lon: 28, lat: 65, span: 26, ease: cubic, exp: true}
+  - {t: 14.4, proj: merc, lon: 16, lat: 60, span: 18, ease: out, exp: true}
+  - {t: 16.0, proj: ortho, lon: 20, lat: 62, span: 48, ease: out, exp: true}
+  - {t: 18.0, proj: ortho, lon: 12, lat: 58, span: 88, ease: quintic, exp: true}
 beats:
   - {t: 0.15, type: atmosphere, name: rim}
   - {t: 0.40, type: clouds, name: cloud-deck}

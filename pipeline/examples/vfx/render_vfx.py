@@ -64,6 +64,9 @@ def load_spec(path: Path) -> dict:
 
 
 def _ease(name: str, u: float) -> float:
+    u = 0.0 if u < 0 else 1.0 if u > 1 else u
+    if name == "out":
+        return 1.0 - (1.0 - u) ** 3
     if name == "cubic":
         return ease_in_out_cubic(u)
     return ease_in_out_quintic(u)
@@ -112,7 +115,7 @@ class Proof:
     def _moving(self, t: float) -> bool:
         a = self.cam(max(0.0, t - 0.03))
         b = self.cam(t)
-        return abs(math.log(a.span) - math.log(b.span)) > 0.012 or abs(a.lon - b.lon) > 0.15
+        return abs(math.log(a.span) - math.log(b.span)) > 0.035
 
     def render(self, t: float) -> np.ndarray:
         # Sub-frame accumulation only while the camera is actually moving fast.
