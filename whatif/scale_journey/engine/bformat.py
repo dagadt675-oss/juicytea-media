@@ -167,29 +167,32 @@ def _held(rows, t):
     return chosen
 
 
-# SE corner of each setback, metres. The coin stays just outside this corner.
-TOWER_TIERS = (
-    (320.0, 381.0, 18.0, 14.0),
-    (210.0, 320.0, 28.0, 22.0),
-    (110.0, 210.0, 40.0, 30.0),
-    (28.0, 110.0, 52.0, 38.0),
-    (0.0, 28.0, 62.0, 46.0),
+# Southeast corner the coin must clear, measured on the Free Standard
+# Empire State mesh after the tip is scaled to 443.2 m. The crown ledge
+# is the hook. Lower values step out so the fall stays in open air.
+_ESB_CORNERS = (
+    (443.0, 27.0, 25.0),
+    (381.0, 27.0, 25.0),
+    (330.0, 32.0, 30.0),
+    (250.0, 42.0, 42.0),
+    (180.0, 48.0, 82.0),
+    (120.0, 78.0, 128.0),
+    (50.0, 96.0, 148.0),
+    (0.0, 104.0, 154.0),
 )
 
 
-def _tier_corner(z: float) -> tuple[float, float]:
-    look = max(0.0, z - 24.0)
-    for z0, z1, hx, hy in TOWER_TIERS:
-        if z0 <= look < z1:
-            return hx, hy
-    if look >= TOWER_TIERS[0][1]:
-        return TOWER_TIERS[0][2], TOWER_TIERS[0][3]
-    return TOWER_TIERS[-1][2], TOWER_TIERS[-1][3]
-
-
 def _penny_xy(z: float) -> tuple[float, float]:
-    hx, hy = _tier_corner(z)
-    return hx + 2.4, hy + 2.2
+    keys = _ESB_CORNERS
+    if z >= keys[0][0]:
+        return keys[0][1], keys[0][2]
+    if z <= keys[-1][0]:
+        return keys[-1][1], keys[-1][2]
+    for (z0, x0, y0), (z1, x1, y1) in zip(keys, keys[1:]):
+        if z1 <= z <= z0:
+            u = (z0 - z) / (z0 - z1) if z0 != z1 else 0.0
+            return x0 + (x1 - x0) * u, y0 + (y1 - y0) * u
+    return keys[-1][1], keys[-1][2]
 
 
 def _penny(raw: dict) -> BEpisode:
@@ -302,12 +305,12 @@ def _penny(raw: dict) -> BEpisode:
         else:
             xy = _penny_xy(z_vis)
             penny = (xy[0], xy[1], z_vis + 0.08)
-        hook_cam = (ledge_penny[0] - 2.6, ledge_penny[1] - 2.1, ledge_penny[2] + 1.25)
-        hook_tgt = (ledge_penny[0] + 34.0, ledge_penny[1] + 44.0, 350.0)
+        hook_cam = (ledge_penny[0] + 6.5, ledge_penny[1] + 8.0, ledge_penny[2] + 8.0)
+        hook_tgt = (ledge_penny[0] - 22.0, ledge_penny[1] - 18.0, ledge_penny[2] - 55.0)
         chase_cam = (penny[0] + 0.45, penny[1] + 3.4, penny[2] + 1.55)
         chase_tgt = (penny[0] + 0.1, penny[1] + 1.15, penny[2] - 1.15)
-        hit_cam = (penny[0] - 1.4, penny[1] - 4.4, max(2.35, penny[2] + 1.7))
-        hit_tgt = (penny[0] + 0.7, penny[1] + 0.35, 0.55)
+        hit_cam = (penny[0] + 2.4, penny[1] + 3.6, max(2.4, penny[2] + 1.8))
+        hit_tgt = (penny[0] - 0.4, penny[1] - 0.2, max(0.4, penny[2] + 0.3))
         if t < 3.0 or t >= 36.2:
             cam, target, lens = hook_cam, hook_tgt, 13.0
         elif t < 4.2:

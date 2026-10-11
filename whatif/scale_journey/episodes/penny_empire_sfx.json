@@ -1,0 +1,14 @@
+{
+  "episode": "penny_empire",
+  "narration": false,
+  "music": false,
+  "cues": [
+    {"t": 0.0, "id": "deck_wind", "note": "Low wind on the observation deck. Holds under the hook."},
+    {"t": 2.85, "id": "flick", "note": "Small metallic tick as the penny leaves the ledge."},
+    {"t": 3.2, "id": "rush", "note": "Air rush. Steady, not rising in pitch. The speed stays near 25 mph."},
+    {"t": 34.35, "id": "impact", "note": "Light tap on concrete. Not a crash."},
+    {"t": 34.65, "id": "bounce", "note": "Tiny second tick, quieter than the impact."},
+    {"t": 35.1, "id": "cloth", "note": "A short rustle as the person looks down. No voice."},
+    {"t": 36.2, "id": "deck_wind", "note": "Cut back to the same deck wind as 0.0 so the loop matches."}
+  ]
+}

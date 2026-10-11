@@ -32,6 +32,12 @@ All Python, and every mesh built in `engine/build.py` (rice grain, pile, person,
 
 `engine/gen_textures.py` bakes the facade, bokeh card, and starfield at render time. Those images are procedural and original.
 
+## Hero models kept out of git
+
+The Empire State Building mesh (Sketchfab Free Standard, PeeJaa, model `47187dafbafa47948f9af4e140e72582`) and the Statue of Liberty mesh (Sketchfab Free Standard, vikramart2001, model `6cb75e326e784acb8e40d192281a93fe`) are commercial-use and not redistributed. `engine/build_b.py` reads them from `cache/private/`, which is gitignored. Do not commit the glb files.
+
+City blocks, roads, taxis, the hot dog, pedestrians, and the rooftop dance clip come from the CC0 library fetched by `tools/fetch_library.py`. The zips stay in `cache/library/`.
+
 ## Blender
 
 Renders are made with Blender 4.5.9 LTS, GPL. Blender itself is not vendored; install it beside the repo (`~/apps/blender-4.5.9-linux-x64`) or pass `--blender`.

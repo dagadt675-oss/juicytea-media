@@ -24,14 +24,11 @@ for path in (str(WHATIF), str(ROOT)):
     if path not in sys.path:
         sys.path.insert(0, path)
 
-# Same corners as engine.bformat.TOWER_TIERS. The coin clears the SE corner.
-TOWER_TIERS = (
-    (320.0, 381.0, 18.0, 14.0),
-    (210.0, 320.0, 28.0, 22.0),
-    (110.0, 210.0, 40.0, 30.0),
-    (28.0, 110.0, 52.0, 38.0),
-    (0.0, 28.0, 62.0, 46.0),
-)
+CACHE = ROOT / "cache" / "library" / "extracted"
+PRIVATE = ROOT / "cache" / "private"
+# Sketchfab Free Standard. Not redistributed; the fetch/cache holds the files.
+ESB_GLB = PRIVATE / "empire_state.glb"
+LIBERTY_GLB = PRIVATE / "statue_liberty.glb"
 
 
 def _job() -> dict:
@@ -177,79 +174,212 @@ def _sun():
     fill_obj.rotation_euler = (math.radians(55), 0.2, math.radians(20))
 
 
-def _tower(stone):
-    for index, (z0, z1, hx, hy) in enumerate(TOWER_TIERS):
-        height = z1 - z0
-        body = _box(f"Tier{index}", hx, hy, height, (hx * 0.5, hy * 0.5, z0 + height * 0.5))
-        _assign(body, stone)
-        lip = _box(f"Lip{index}", hx + 1.4, hy + 1.4, 0.45, ((hx + 1.4) * 0.5, (hy + 1.4) * 0.5, z1 - 0.2))
-        _assign(lip, stone)
-        _piers(z0 + 0.6, z1 - 0.8, hx, hy, stone)
-    crown = TOWER_TIERS[0]
-    _spire(crown[2] * 0.34, crown[3] * 0.28, crown[1], stone)
-    _railing(crown[2], crown[3], crown[1])
+KIT = CACHE / "assets_cc0_city_buildings" / "city_buildings"
+ROADS = CACHE / "assets_cc0_roads_props" / "roads_props" / "kenney_city_kit_roads" / "Models" / "GLB format"
+CARS = CACHE / "assets_cc0_vehicles" / "vehicles" / "kenney_car_kit" / "Models" / "GLB format"
+FOOD = CACHE / "assets_cc0_food" / "food" / "kenney_food_kit" / "Models" / "GLB format"
+MEN = CACHE / "assets_cc0_characters" / "characters" / "quaternius_animated_men" / "glb"
+DANCE = CACHE / "assets_cc0_animations" / "animations" / "quaternius_universal_animation_library" / "Universal Animation Library[Standard]" / "Unreal-Godot" / "UAL1_Standard.glb"
+HDRI = CACHE / "assets_cc0_hdri" / "hdri" / "polyhaven_hdris_2k" / "belfast_sunset_puresky" / "belfast_sunset_puresky_2k.hdr"
 
 
-def _piers(z0, z1, hx, hy, stone):
-    height = max(0.4, z1 - z0)
-    z = z0 + height * 0.5
-    step = 3.6
-    x = 1.6
-    while x < hx - 0.8:
-        _assign(_box(f"PierY{x:.0f}{z0:.0f}", 0.42, 0.38, height, (x, hy + 0.16, z)), stone)
-        x += step
-    y = 1.6
-    while y < hy - 0.8:
-        _assign(_box(f"PierX{y:.0f}{z0:.0f}", 0.38, 0.42, height, (hx + 0.16, y, z)), stone)
-        y += step
+def _imported(path):
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(path))
+    return [obj for obj in bpy.data.objects if obj not in before]
 
 
-def _spire(x, y, z0, stone):
-    bpy.ops.mesh.primitive_cone_add(vertices=4, radius1=2.6, depth=62.0, location=(x, y, z0 + 31.0))
-    spire = bpy.context.object
-    spire.name = "Spire"
-    _assign(spire, stone)
-    _assign(_box("Mast", 1.1, 1.1, 8.0, (x, y, z0 + 4.0)), stone)
+def _bounds(objs):
+    mn = mathutils.Vector((1e9, 1e9, 1e9))
+    mx = mathutils.Vector((-1e9, -1e9, -1e9))
+    for obj in objs:
+        if obj.type != "MESH":
+            continue
+        for corner in obj.bound_box:
+            world = obj.matrix_world @ mathutils.Vector(corner)
+            mn = mathutils.Vector((min(mn.x, world.x), min(mn.y, world.y), min(mn.z, world.z)))
+            mx = mathutils.Vector((max(mx.x, world.x), max(mx.y, world.y), max(mx.z, world.z)))
+    return mn, mx
 
 
-def _railing(hx, hy, deck):
-    metal = _mat("Rail", (0.35, 0.38, 0.42), 1.0, 0.0)
-    z = deck + 0.55
-    _assign(_box("RailY", hx + 1.2, 0.08, 0.08, (hx * 0.5, hy + 0.55, z)), metal)
-    _assign(_box("RailX", 0.08, hy + 1.2, 0.08, (hx + 0.55, hy * 0.5, z)), metal)
-    for i, x in enumerate((2.0, 6.0, 10.0, 14.0, hx)):
-        _assign(_box(f"PostY{i}", 0.08, 0.08, 1.1, (x, hy + 0.55, deck + 0.55)), metal)
-    for i, y in enumerate((2.0, 6.0, 10.0, hy)):
-        _assign(_box(f"PostX{i}", 0.08, 0.08, 1.1, (hx + 0.55, y, deck + 0.55)), metal)
+def _parent_keep(children, empty):
+    for obj in children:
+        if obj.parent is not None:
+            continue
+        world = obj.matrix_world.copy()
+        obj.parent = empty
+        obj.matrix_world = world
 
 
-def _city(stone_a, stone_b):
-    rng = random.Random(7)
-    spots = []
-    for gx in range(0, 5):
-        for gy in range(0, 5):
-            cx = 88 + gx * 28 + rng.uniform(-4, 4)
-            cy = 70 + gy * 26 + rng.uniform(-4, 4)
-            spots.append((cx, cy))
-    spots += [(36, 78), (48, 96), (70, 88), (24, 60), (100, 36)]
-    for i, (cx, cy) in enumerate(spots):
-        w = rng.uniform(12, 22)
-        d = rng.uniform(12, 20)
-        h = rng.choice((28, 40, 55, 70, 96, 120, 150))
-        mat = stone_a if i % 3 else stone_b
-        _assign(_box(f"Block{i}", w, d, h, (cx, cy, h * 0.5)), mat)
+def _place_model(path, name, location, scale, rotation_z=0.0):
+    objs = _imported(path)
+    empty = _link(bpy.data.objects.new(name, None))
+    roots = [obj for obj in objs if obj.parent is None or obj.parent not in objs]
+    _parent_keep(roots, empty)
+    empty.location = location
+    empty.scale = (scale, scale, scale)
+    empty.rotation_euler = (0.0, 0.0, rotation_z)
+    bpy.context.view_layer.update()
+    return empty, objs
+
+
+def _ground(empty, objs):
+    bpy.context.view_layer.update()
+    mn, _mx = _bounds(objs)
+    empty.location.z -= mn.z
+    bpy.context.view_layer.update()
+
+
+def _empire():
+    if not ESB_GLB.exists():
+        raise RuntimeError(f"missing hero model {ESB_GLB}")
+    objs = _imported(ESB_GLB)
+    meshes = [obj for obj in objs if obj.type == "MESH"]
+    mn, mx = _bounds(meshes)
+    height = mx.z - mn.z
+    scale = 443.2 / height
+    empty = _link(bpy.data.objects.new("EmpireState", None))
+    roots = [obj for obj in objs if obj.parent is None or obj.parent not in objs]
+    _parent_keep(roots, empty)
+    empty.scale = (scale, scale, scale)
+    empty.location = (0.0, 0.0, -mn.z * scale)
+    bpy.context.view_layer.update()
+    mn2, mx2 = _bounds(meshes)
+    print(f"ESB tip {mx2.z:.1f} m base {mn2.z:.1f} m footprint {mx2.x - mn2.x:.0f} x {mx2.y - mn2.y:.0f}", flush=True)
+    return empty
+
+
+def _liberty():
+    """Liberty Island is about 5 km south-west of the tower. 93 m to the torch."""
+    if not LIBERTY_GLB.exists():
+        print("LIBERTY missing", flush=True)
+        return None
+    objs = _imported(LIBERTY_GLB)
+    meshes = [obj for obj in objs if obj.type == "MESH"]
+    mn, mx = _bounds(meshes)
+    scale = 93.0 / max(0.01, mx.z - mn.z)
+    empty = _link(bpy.data.objects.new("Liberty", None))
+    roots = [obj for obj in objs if obj.parent is None or obj.parent not in objs]
+    _parent_keep(roots, empty)
+    empty.scale = (scale, scale, scale)
+    # South is -Y, west is -X. About 5.0 km from the tower.
+    empty.location = (-1600.0, -4750.0, -mn.z * scale)
+    bpy.context.view_layer.update()
+    return empty
+
+
+def _blocks():
+    folder = KIT / "kenney_city_kit_commercial" / "Models" / "GLB format"
+    names = [
+        "building-skyscraper-a.glb",
+        "building-skyscraper-b.glb",
+        "building-skyscraper-c.glb",
+        "building-skyscraper-d.glb",
+        "building-skyscraper-e.glb",
+        "building-a.glb",
+        "building-b.glb",
+    ]
+    # Outside the hero footprint (about x -270..100, y -145..155).
+    spots = [
+        (170, 30, 48, 0.4),
+        (230, 90, 36, 1.2),
+        (150, 210, 42, 0.2),
+        (240, 190, 30, 2.0),
+        (90, 230, 38, 0.8),
+        (-340, 20, 44, 1.5),
+        (-310, -90, 34, 0.6),
+        (20, -220, 40, 2.2),
+        (200, -40, 46, 1.0),
+        (-60, 240, 32, 0.3),
+        (300, 40, 28, 1.7),
+        (-360, 120, 36, 2.4),
+    ]
+    for index, (x, y, scale, yaw) in enumerate(spots):
+        path = folder / names[index % len(names)]
+        empty, objs = _place_model(path, f"Block{index}", (x, y, 0.0), scale, yaw)
+        _ground(empty, objs)
+
+
+def _roads_and_taxis():
+    road = ROADS / "road-straight.glb"
+    taxi = CARS / "taxi.glb"
+    # A street just south of the tower base, in the fall's view.
+    for i, x in enumerate(range(110, 290, 16)):
+        empty, objs = _place_model(road, f"Road{i}", (x, 168.0, 0.02), 16.0, 0.0)
+        _ground(empty, objs)
+    for i, x in enumerate((130, 168, 206, 244, 150, 220)):
+        yaw = 1.57 if i % 2 == 0 else -1.57
+        empty, objs = _place_model(taxi, f"Taxi{i}", (x, 166.5 if i % 2 == 0 else 171.0, 0.0), 1.7, yaw)
+        _ground(empty, objs)
+    lamp = ROADS / "light-curved.glb"
+    if lamp.exists():
+        for i, x in enumerate((140, 200, 260)):
+            empty, objs = _place_model(lamp, f"Lamp{i}", (x, 160.0, 0.0), 8.0, 0.0)
+            _ground(empty, objs)
+
+
+def _hotdog():
+    path = FOOD / "hot-dog.glb"
+    if not path.exists():
+        return
+    empty, objs = _place_model(path, "HotDog", (108.0, 156.0, 0.9), 2.2, 0.4)
+    _ground(empty, objs)
+
+
+def _action(arm, needle):
+    for action in bpy.data.actions:
+        if needle in action.name:
+            if arm.animation_data is None:
+                arm.animation_data_create()
+            arm.animation_data.action = action
+            return action
+    return None
+
+
+def _people():
+    path = MEN / "Man_in_Suit_mQnGoME1ez.glb"
+    if not path.exists():
+        return None
+    empty, objs = _place_model(path, "Walker0", (105.4, 155.2, 0.0), 0.34, 3.6)
+    _ground(empty, objs)
+    arms = [obj for obj in objs if obj.type == "ARMATURE"]
+    for arm in arms:
+        _action(arm, "Man_Walk")
+    spots = [(128, 161, 0.2), (146, 157, 1.1), (164, 162, 2.6), (186, 156, 0.7), (210, 160, 1.8)]
+    for index, (x, y, yaw) in enumerate(spots, start=1):
+        bpy.ops.object.select_all(action="DESELECT")
+        empty.select_set(True)
+        for obj in objs:
+            obj.select_set(True)
+        bpy.context.view_layer.objects.active = empty
+        bpy.ops.object.duplicate()
+        copy = bpy.context.view_layer.objects.active
+        copy.location = (x, y, empty.location.z)
+        copy.rotation_euler = (0.0, 0.0, yaw)
+    return arms[0] if arms else None
+
+
+def _dancer():
+    """Tiny gag: a mannequin dancing on a far roof. Not in the hero frame."""
+    if not DANCE.exists():
+        return
+    empty, objs = _place_model(DANCE, "Dancer", (230.0, 90.0, 104.0), 0.62, 0.8)
+    for arm in objs:
+        if arm.type == "ARMATURE":
+            _action(arm, "Dance_Loop")
 
 
 def _street(image_path: str):
-    mat = _mat("Grid", (0.7, 0.66, 0.6), 1.0, 0.04)
+    mat = _mat("Grid", (0.45, 0.44, 0.42), 1.0, 0.03)
     nt = mat.node_tree
     bsdf = nt.nodes["Principled BSDF"]
     tex = nt.nodes.new("ShaderNodeTexImage")
     tex.image = bpy.data.images.load(image_path)
     tex.interpolation = "Closest"
+    tex.extension = "REPEAT"
     coord = nt.nodes.new("ShaderNodeTexCoord")
     scale = nt.nodes.new("ShaderNodeMapping")
-    scale.inputs["Scale"].default_value = (1800 / 240, 1800 / 240, 1)
+    scale.inputs["Scale"].default_value = (8.0, 8.0, 1.0)
     sep = nt.nodes.new("ShaderNodeSeparateXYZ")
     nt.links.new(coord.outputs["Generated"], scale.inputs["Vector"])
     nt.links.new(scale.outputs["Vector"], sep.inputs["Vector"])
@@ -258,83 +388,7 @@ def _street(image_path: str):
     nt.links.new(sep.outputs["Y"], comb.inputs["Y"])
     nt.links.new(comb.outputs["Vector"], tex.inputs["Vector"])
     nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
-    tex.extension = "REPEAT"
-    _assign(_box("Ground", 1800, 1800, 0.3, (80, 80, -0.15)), mat)
-
-
-def _traffic():
-    taxi = _mat("Taxi", (0.95, 0.72, 0.12), 1.0, 0.15)
-    dark = _mat("Car", (0.15, 0.16, 0.18), 1.0, 0.0)
-    glass = _mat("Cab", (0.2, 0.24, 0.28), 1.0, 0.0)
-    rng = random.Random(3)
-    roads_x = (8, 78, 140)
-    roads_y = (8, 78, 140)
-    made = 0
-    for road in roads_y:
-        for i in range(6):
-            x = 20 + i * 22 + rng.uniform(-3, 3)
-            if 58 < x < 74 and 40 < road < 56:
-                continue
-            color = taxi if (i + int(road)) % 3 == 0 else dark
-            _car(f"H{made}", (x, road + rng.choice((-2.2, 2.2)), 0.7), color, glass, along_x=True)
-            made += 1
-    for road in roads_x:
-        for i in range(4):
-            y = 24 + i * 24
-            color = taxi if i % 2 == 0 else dark
-            _car(f"V{made}", (road + 2.4, y, 0.7), color, glass, along_x=False)
-            made += 1
-
-
-def _car(name, loc, body, glass, along_x):
-    sx, sy = (4.4, 1.8) if along_x else (1.8, 4.4)
-    _assign(_box(name, sx, sy, 1.1, loc), body)
-    _assign(_box(name + "Win", sx * 0.4, sy * 0.62, 0.45, (loc[0], loc[1], loc[2] + 0.75)), glass)
-
-
-def _crowd():
-    cloth = _mat("Dot", (0.25, 0.28, 0.34), 1.0, 0.0)
-    rng = random.Random(11)
-    for i in range(28):
-        x = rng.uniform(30, 150)
-        y = rng.uniform(24, 140)
-        if 58 < x < 76 and 40 < y < 58:
-            continue
-        _assign(_box(f"Dot{i}", 0.45, 0.35, rng.uniform(1.4, 1.8), (x, y, 0.8)), cloth)
-
-
-def _cart():
-    steel = _mat("Cart", (0.72, 0.74, 0.76), 1.0, 0.0)
-    umbrella = _mat("Umbrella", (0.75, 0.18, 0.16), 1.0, 0.1)
-    _assign(_box("CartBody", 1.6, 0.9, 0.9, (69.2, 47.4, 0.7)), steel)
-    bpy.ops.mesh.primitive_cone_add(vertices=8, radius1=0.55, depth=0.16, location=(69.2, 47.4, 1.7))
-    top = bpy.context.object
-    top.name = "Umbrella"
-    _assign(top, umbrella)
-    _assign(_box("UmbrellaPole", 0.08, 0.08, 1.3, (69.2, 47.4, 1.4)), steel)
-
-
-def _tourist(fbx_path: str, skin_path: str):
-    bpy.ops.import_scene.fbx(filepath=fbx_path)
-    for name in ("Camera", "Light", "Cube"):
-        obj = bpy.data.objects.get(name)
-        if obj:
-            bpy.data.objects.remove(obj, do_unlink=True)
-    arm = bpy.data.objects.get("Root")
-    mesh = bpy.data.objects.get("characterMedium")
-    if arm is None or mesh is None:
-        raise RuntimeError("Kenney character did not import")
-    arm.scale = (0.46, 0.46, 0.46)
-    arm.location = (65.7, 49.1, 0.0)
-    arm.rotation_euler = (0.0, 0.0, math.radians(230))
-    mat = _mat("Skater", (1, 1, 1), 1.0, 0.0)
-    nt = mat.node_tree
-    tex = nt.nodes.new("ShaderNodeTexImage")
-    tex.image = bpy.data.images.load(skin_path)
-    nt.links.new(tex.outputs["Color"], nt.nodes["Principled BSDF"].inputs["Base Color"])
-    mesh.data.materials.clear()
-    _assign(mesh, mat)
-    return arm
+    _assign(_box("Ground", 12000, 12000, 0.4, (-400, -800, -0.35)), mat)
 
 
 def _look(cam, target):
@@ -391,18 +445,28 @@ def _pose_bone(arm, name, rot):
     pose.rotation_euler = rot
 
 
+def _bone(arm, suffix):
+    for pose in arm.pose.bones:
+        if pose.name == suffix or pose.name.endswith(suffix):
+            return pose
+    return None
+
+
 def _head(arm, t):
-    if arm is None:
+    if arm is None or t < 34.15:
         return
-    down = 0.15
-    if t > 34.15:
-        down = 0.15 + 1.05 * min(1.0, (t - 34.15) / 0.5)
-    _pose_bone(arm, "Head", (down, 0.0, 0.0))
-    _pose_bone(arm, "Neck", (down * 0.45, 0.0, 0.0))
-    _pose_bone(arm, "LeftArm", (0.0, 0.0, -1.2))
-    _pose_bone(arm, "RightArm", (0.0, 0.0, 1.2))
-    _pose_bone(arm, "LeftForeArm", (0.0, 0.35, 0.0))
-    _pose_bone(arm, "RightForeArm", (0.0, -0.35, 0.0))
+    down = 0.2 + 0.9 * min(1.0, (t - 34.15) / 0.5)
+    action = arm.animation_data.action if arm.animation_data else None
+    if action is not None:
+        for curve in action.fcurves:
+            if "Head" in curve.data_path or "Neck" in curve.data_path:
+                curve.mute = True
+    for suffix, scale in (("Head", 1.0), ("Neck", 0.45)):
+        pose = _bone(arm, suffix)
+        if pose is None:
+            continue
+        pose.rotation_mode = "XYZ"
+        pose.rotation_euler = (down * scale, 0.0, 0.0)
 
 
 def _air_gap(t):
@@ -414,21 +478,21 @@ def _air_gap(t):
         u = (t - 3.4) / 1.6
     elif t > 31.2:
         u = max(0.0, (33.0 - t) / 1.8)
-    return 4.8 * u, 3.6 * u
+    return 1.6 * u, 1.2 * u
 
 
-def _blur(scene, cam, penny, fr):
-    scene.frame_set(1)
+def _blur(scene, cam, penny, fr, frame):
+    scene.frame_set(frame)
     for obj, prev, curr in (
         (cam, fr["prev_cam"], fr["cam"]),
         (penny, fr["prev_penny"], fr["penny"]),
     ):
         obj.animation_data_clear()
         obj.location = prev
-        obj.keyframe_insert("location", frame=1)
+        obj.keyframe_insert("location", frame=frame)
         obj.location = curr
-        obj.keyframe_insert("location", frame=2)
-    scene.frame_set(2)
+        obj.keyframe_insert("location", frame=frame + 1)
+    scene.frame_set(frame + 1)
 
 
 def main():
@@ -457,18 +521,18 @@ def main():
         scene.view_settings.look = "AgX - Medium High Contrast"
     except Exception:
         pass
-    scene.view_settings.exposure = -0.25
-    _world(job["hdri"])
+    scene.view_settings.exposure = 0.35
     _sun()
-    stone = _facade_mat((0.78, 0.73, 0.64), "Limestone")
-    stone_b = _facade_mat((0.62, 0.58, 0.54), "BrickCity")
-    _tower(stone)
-    _city(stone, stone_b)
-    _street(job["street"])
-    _traffic()
-    _crowd()
-    _cart()
-    arm = _tourist(job["character"], job["skin"])
+    hdr = str(HDRI if HDRI.exists() else job["hdri"])
+    _world(hdr)
+    _empire()
+    _liberty()
+    _blocks()
+    _assign(_box("Harbor", 14000, 14000, 0.2, (-800, -1200, -0.4)), _mat("Harbor", (0.16, 0.17, 0.18), 1.0, 0.0))
+    _roads_and_taxis()
+    _hotdog()
+    _dancer()
+    arm = _people()
     penny = _penny()
     cam = _camera()
     out = Path(job["out"])
@@ -493,7 +557,8 @@ def main():
         curr_cam = (fr["cam"][0] + gx, fr["cam"][1] + gy, fr["cam"][2])
         curr_penny = (fr["penny"][0] + gx, fr["penny"][1] + gy, fr["penny"][2] + 0.02)
         target = (fr["target"][0] + gx, fr["target"][1] + gy, fr["target"][2])
-        _blur(scene, cam, penny, {"cam": curr_cam, "penny": curr_penny, "prev_cam": prev_cam, "prev_penny": prev_penny})
+        walk_frame = 12 + int(t * 24.0) % 40
+        _blur(scene, cam, penny, {"cam": curr_cam, "penny": curr_penny, "prev_cam": prev_cam, "prev_penny": prev_penny}, walk_frame)
         cam.data.lens = float(fr.get("lens") or job.get("lens_mm") or 14)
         _look(cam, target)
         penny.rotation_euler = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
