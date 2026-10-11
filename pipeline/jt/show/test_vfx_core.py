@@ -11,11 +11,14 @@ sys.path.insert(0, str(ROOT))
 from jt.show.vfx_core import (  # noqa: E402
     badge_state,
     cloud_alpha,
+    _spring,
     ease_in_out_cubic,
     ease_in_out_quintic,
     exp_zoom,
     impact_shake,
+    motion_jolt,
     overshoot,
+    perlin_shake,
     place_labels,
     shadow_offset,
     stress_glow,
@@ -28,13 +31,12 @@ def main() -> None:
     assert ease_in_out_cubic(0.5) == 0.5
     assert abs(exp_zoom(80, 20, 0.5) - (80 * 20) ** 0.5) < 1e-6
     assert overshoot(0) == 0 and overshoot(1) == 1
-    assert overshoot(0.15) > 1.0
-    # Shake is zero unless a caller opts in, and it is gone after 0.3 s.
-    assert impact_shake(1.0, 1.0, dur=0.0) == (0.0, 0.0)
-    assert impact_shake(0.0, 1.0, dur=0.25) == (0.0, 0.0)
-    assert impact_shake(1.4, 1.0, dur=0.9) == (0.0, 0.0)
-    dx, dy = impact_shake(1.05, 1.0, dur=0.25, amp=8)
-    assert dx != 0.0 or dy != 0.0
+    assert overshoot(0.15) <= 1.0
+    assert _spring(0.15) > 1.0
+    # Shake, sway, and jolts stay at zero. They are not a QC tool.
+    assert impact_shake(1.05, 1.0, dur=0.25, amp=8) == (0.0, 0.0)
+    assert perlin_shake(1.2, amp=12) == (0.0, 0.0)
+    assert motion_jolt(1.0, 1.0, amount=4) == 0.0
     assert shadow_offset(540, 400, zoom=2)[1] > 0
     assert badge_state(0.0) == (0.0, False)
     assert badge_state(5 / 30)[1] is False

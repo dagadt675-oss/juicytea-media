@@ -23,9 +23,9 @@ BENCHMARK = {
     "motion_second_min": 1.0,
     "event_gap_max": 2.5,
     "hard_cuts_max": 16,
-    # High-frequency structural motion, after the slow shading is filtered out.
-    "structural_motion_min": 3.7,
-    "structural_event_gap_max": 2.5,
+    # Retired. Smooth holds are allowed. The series is still measured.
+    "structural_motion_min": None,
+    "structural_event_gap_max": None,
 }
 
 
@@ -107,10 +107,10 @@ def structural_series(frames: np.ndarray, sigma: float = 8.0) -> np.ndarray:
 
 
 def structural_report(frames: np.ndarray, fps: float) -> dict:
-    """QC's structural read: mean >= 3.7, and no real-event gap over 2.5 s.
+    """Informational structural read. The 3.7 bar is retired.
 
-    Events are peaks of at least 3.5, at least 0.8 s apart. The gap from
-    the first frame to the first event counts.
+    Events are peaks of at least 3.5, at least 0.8 s apart. Nothing fails
+    a picture for a quiet stretch. structural_pass stays null on purpose.
     """
     series = structural_series(frames)
     per_second = []
@@ -132,7 +132,8 @@ def structural_report(frames: np.ndarray, fps: float) -> dict:
         "structural_events": [round(t, 2) for t in events],
         "structural_event_gap_max": round(gap_max, 3),
         "structural_gaps_over_2_5s": long,
-        "structural_pass": mean >= 3.7 and gap_max <= 2.5,
+        "structural_pass": None,
+        "structural_scored": False,
     }
 
 

@@ -5,9 +5,9 @@ Already in the engine, and left there: smoothstep and cubic-out in
 a single wide glow stroke, pill measureText, a strong vignette, and an
 ortho atmosphere stroke in `jt/draw.py`.
 
-This module adds the rest of the owner's list. Impact shake is opt-in,
-decays, and never lasts past 0.3 s. There is no Perlin sway and nothing
-here offsets the camera unless a spec passes impact=True.
+Camera moves elsewhere in the engine are long ease-in-out glides. This
+module does not add shake. Spring, impact shake, Perlin sway, and motion
+jolts are off. Nothing here offsets the camera.
 """
 
 from __future__ import annotations
@@ -21,6 +21,12 @@ import skia
 BADGE_OPEN_S = 5.0 / 30.0
 BADGE_TEXT_S = 6.0 / 30.0
 SHAKE_MAX_S = 0.3
+# SMOOTH. These stay off for every episode. Do not flip them to chase a
+# motion number.
+SPRING_CAMERA = False
+IMPACT_SHAKE = False
+PERLIN_SHAKE = False
+MOTION_JOLTS = False
 
 
 def _clamp(x: float) -> float:
@@ -41,13 +47,20 @@ def ease_in_out_quintic(t: float) -> float:
     return 1.0 - ((-2.0 * t + 2.0) ** 5) / 2.0
 
 
-def overshoot(t: float) -> float:
-    """Spring entrance. 0 at the start, past 1, then settles at 1."""
+def _spring(t: float) -> float:
+    """Old spring curve. Kept so a test can see it. The default path does not call it."""
     t = _clamp(t)
     if t == 0.0 or t == 1.0:
         return t
     c4 = 2.0 * math.pi / 3.0
     return (2.0 ** (-10.0 * t)) * math.sin((t * 10.0 - 0.75) * c4) + 1.0
+
+
+def overshoot(t: float) -> float:
+    """Element entrance. Ease-in-out, and it never passes 1."""
+    if not SPRING_CAMERA:
+        return ease_in_out_cubic(t)
+    return _spring(t)
 
 
 def exp_zoom(z0: float, z1: float, eased_t: float) -> float:
@@ -59,11 +72,9 @@ def exp_zoom(z0: float, z1: float, eased_t: float) -> float:
 
 
 def impact_shake(t: float, t0: float, dur: float = 0.25, amp: float = 1.0) -> tuple[float, float]:
-    """Decaying offset in pixels. Zero outside a window of at most 0.3 s.
-
-    Off unless a caller passes a real t0. Do not call this every frame
-    with a moving t0. That would be the banned sway.
-    """
+    """Camera offset in pixels. Off. A spec cannot turn this on."""
+    if not IMPACT_SHAKE:
+        return 0.0, 0.0
     dur = min(SHAKE_MAX_S, max(0.0, float(dur)))
     age = float(t) - float(t0)
     if dur <= 0.0 or age < 0.0 or age > dur:
@@ -71,6 +82,20 @@ def impact_shake(t: float, t0: float, dur: float = 0.25, amp: float = 1.0) -> tu
     decay = (1.0 - age / dur) ** 2
     wave = math.sin(age * 46.0)
     return amp * wave * decay, amp * 0.35 * wave * decay
+
+
+def perlin_shake(t: float, amp: float = 1.0) -> tuple[float, float]:
+    """Idle sway. Off. The camera does not drift between events."""
+    if PERLIN_SHAKE:
+        return 0.0, 0.0
+    return 0.0, 0.0
+
+
+def motion_jolt(t: float, t0: float, amount: float = 1.0) -> float:
+    """A punch or snap on the camera. Off."""
+    if MOTION_JOLTS:
+        return 0.0
+    return 0.0
 
 
 def accumulate(frames: list[np.ndarray]) -> np.ndarray:
