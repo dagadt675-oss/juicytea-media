@@ -405,6 +405,18 @@ def _head(arm, t):
     _pose_bone(arm, "RightForeArm", (0.0, -0.35, 0.0))
 
 
+def _air_gap(t):
+    """Keep the coin in open air beside the facade during the chase."""
+    if t < 3.4 or t > 33.0:
+        return 0.0, 0.0
+    u = 1.0
+    if t < 5.0:
+        u = (t - 3.4) / 1.6
+    elif t > 31.2:
+        u = max(0.0, (33.0 - t) / 1.8)
+    return 2.4 * u, 1.8 * u
+
+
 def _blur(scene, cam, penny, fr):
     scene.frame_set(1)
     for obj, prev, curr in (
@@ -470,8 +482,13 @@ def main():
         }
         prev["cam"] = fr.get("prev_cam") or fr["cam"]
         prev["penny"] = list(fr.get("prev_penny") or fr["penny"])
+        t = float(fr["t"])
+        gx, gy = _air_gap(t)
+        pgx, pgy = _air_gap(max(0.0, t - 1.0 / 30.0))
+        prev["penny"][0] += pgx
+        prev["penny"][1] += pgy
         prev["penny"][2] = prev["penny"][2] + 0.02
-        curr_penny = (fr["penny"][0], fr["penny"][1], fr["penny"][2] + 0.02)
+        curr_penny = (fr["penny"][0] + gx, fr["penny"][1] + gy, fr["penny"][2] + 0.02)
         _blur(scene, cam, penny, {"cam": fr["cam"], "penny": curr_penny, "prev_cam": prev["cam"], "prev_penny": prev["penny"]})
         cam.data.lens = float(fr.get("lens") or job.get("lens_mm") or 14)
         _look(cam, fr["target"])

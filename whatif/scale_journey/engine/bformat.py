@@ -276,9 +276,7 @@ def _penny(raw: dict) -> BEpisode:
             prev_mph = mph_s
         feet_roll = 1.0 if feet_from == feet_s else _fade(t, feet_change, feet_change + 0.28)
         mph_roll = 1.0 if mph_from == mph_s else _fade(t, mph_change, mph_change + 0.28)
-        title_alpha = 1.0 if phase in ("hook", "hold") else 1.0 - _fade(t, 2.6, 3.3)
-        if phase == "rise":
-            title_alpha = _fade(t, 38.4, 39.2)
+        title_alpha = 1.0 if phase in ("hook", "hold") or t >= 36.2 else 1.0 - _fade(t, 2.6, 3.3)
         ending_alpha = 0.0
         if 34.45 <= t < 36.15:
             ending_alpha = _fade(t, 34.45, 34.85) * (1.0 - _fade(t, 35.85, 36.12))

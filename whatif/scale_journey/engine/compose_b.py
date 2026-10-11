@@ -91,7 +91,7 @@ def compose_b(plate: Image.Image, ep, fr) -> Image.Image:
             _title_line(img, w / 2, y, line, font, fr.title_alpha, highlight)
             y += int(font.size * 1.02)
         title_bottom = y + 8
-    anchor_y = title_bottom if fr.title_alpha > 0.2 else int(h * 0.04)
+    anchor_y = title_bottom if fr.title_alpha > 0.02 else int(h * 0.04)
     img, _box = draw_scale_counter(
         img,
         fr.label_primary,
