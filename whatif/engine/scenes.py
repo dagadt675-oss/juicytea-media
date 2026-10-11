@@ -19,8 +19,12 @@ from engine.city_layout import (
     DECK_W,
     FOREGROUND_CARS,
     FOUNTAIN,
+    INDEX_CANOPY,
+    INDEX_DECK,
+    INDEX_PORTAL,
     SKYLINE_COLORS,
     SKYLINE_ROWS,
+    TOWER_LEG,
     TOWER_S,
     TOWER_W,
     bridge_spans,
@@ -101,11 +105,13 @@ def _materials():
         lin(0.14, 0.15, 0.16),
         {"moss": 0.55, "rust": 0.05, "mud": 0.8, "scorch": 0.45, "snow": 1.0, "wet": 0.85},
     )
+    # Dark blue-grey asphalt. The rendered pixels are what the metric checks
+    # against zenith's deck sample, about sRGB (33, 44, 66).
     deck_asphalt = make_surface(
         "Deck",
-        lin(0.45, 0.50, 0.56),
-        {"moss": 0.35, "rust": 0.05, "mud": 0.55, "scorch": 0.3, "snow": 0.9, "wet": 0.7},
-        roughness=0.72,
+        lin(0.012, 0.034, 0.140),
+        {"moss": 0.15, "rust": 0.02, "mud": 0.25, "scorch": 0.15, "snow": 0.7, "wet": 0.45},
+        roughness=0.92,
     )
     park = make_surface(
         "Park",
@@ -357,28 +363,27 @@ def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None, ki
     )
     if leaf is None:
         leaf = greens[rng.randrange(len(greens))]
-    height = max(8.5, scale * 2.9) * rng.uniform(0.85, 1.2)
+    height = scale * 2.9 * rng.uniform(0.94, 1.06)
     if kind == "pine":
         height *= 1.15
-    trunk_h = height * (0.42 if kind == "pine" else 0.32)
-    trunk_r = height * 0.035
+    trunk_h = height * (0.38 if kind == "pine" else 0.28)
+    trunk_r = height * 0.045
     trunk = link_obj("trunk", cylinder_mesh("trunk", radius=trunk_r, segments=7), coll, (mats["trunk"],))
     trunk.location = (x, y, z)
     trunk.scale = (1.0, 1.0, trunk_h)
     kit.add(trunk, "tree_trunk", future=future, delay=delay, sink=False)
 
     bm = bmesh.new()
-    count = 7
-    blobs = [(0.0, 0.0, trunk_h + height * 0.20, height * 0.30)]
-    for i in range(count - 1):
-        ang = (i / (count - 1)) * math.tau
-        rad = height * 0.13
+    # One round crown plus four tight lobes, so the silhouette stays a ball.
+    blobs = [(0.0, 0.0, trunk_h + height * 0.22, height * 0.36)]
+    for i in range(4):
+        ang = (i / 4.0) * math.tau + 0.4
         blobs.append(
             (
-                math.cos(ang) * rad,
-                math.sin(ang) * rad,
-                trunk_h + height * (0.12 + (i % 2) * 0.08),
-                height * 0.22,
+                math.cos(ang) * height * 0.08,
+                math.sin(ang) * height * 0.08,
+                trunk_h + height * 0.18,
+                height * 0.24,
             )
         )
     seed = Vector((rng.uniform(0, 20), rng.uniform(0, 20), rng.uniform(0, 20)))
@@ -386,9 +391,9 @@ def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None, ki
         nverts = len(bm.verts)
         bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1.0)
         bm.verts.ensure_lookup_table()
-        squash = 0.78 if kind == "pine" else rng.uniform(0.86, 1.05)
+        squash = 0.82 if kind == "pine" else rng.uniform(0.94, 1.04)
         for vert in bm.verts[nverts:]:
-            push = bl_noise(vert.co * 1.8 + seed) * 0.16
+            push = bl_noise(vert.co * 1.4 + seed) * 0.04
             vert.co += vert.co.normalized() * push
             vert.co.x = vert.co.x * br + bx
             vert.co.y = vert.co.y * br + by
@@ -398,6 +403,7 @@ def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None, ki
         poly.use_smooth = True
     canopy = link_obj("canopy", me, coll, (mats["leaf"],))
     canopy.location = (x, y, z)
+    canopy.pass_index = INDEX_CANOPY
     canopy.color = leaf
     return kit.add(
         canopy,
@@ -693,22 +699,22 @@ def build_river_city(kit, mats, rng, pieces):
     basin.scale = (1.0, 1.0, 0.06)
     kit.add(pad, "prop", sink=False)
     kit.add(basin, "prop", sink=False)
-    kinds = ("round", "broad", "pine", "crooked")
-    # Tree clusters sit on the left edge of the lawn, the way the reference does.
-    clusters = [(-46, 40), (-40, 48), (-44, 62), (-36, 72), (-48, 70), (-32, 42)]
-    for cx, cy in clusters:
-        for k in range(rng.randint(2, 4)):
-            x = cx + rng.uniform(-2.2, 2.2)
-            y = cy + rng.uniform(-2.0, 2.0)
-            if y < 34 or y > 76 or _on_deck(x, y, 8) or math.hypot(x - fx, y - fy) < 5.0:
+    # Rows of small round crowns along the left paths. scale ~1.65 is a canopy
+    # about 3.2 m across, which is 5–6% of the frame for the near row.
+    yellow = (0.78, 0.62, 0.16, 1)
+    planted = 0
+    for col, x in enumerate((-40.0, -32.0, -24.0)):
+        for row, y in enumerate((46.0, 54.0, 62.0, 70.0)):
+            px = x + (1.1 if row % 2 else -0.4)
+            py = y + col * 1.4
+            if _on_deck(px, py, 8) or math.hypot(px - fx, py - fy) < 6.0:
                 continue
-            _tree(kit, col_p, mats, x, y, PARK_Z, rng.uniform(3.6, 5.2), future=False, rng=rng, kind=rng.choice(kinds))
-    for ax, ay, colr in (
-        (-48, 46, (0.86, 0.55, 0.14, 1)),
-        (-44, 58, (0.78, 0.42, 0.12, 1)),
-        (-50, 68, (0.90, 0.62, 0.18, 1)),
-    ):
-        _tree(kit, col_p, mats, ax, ay, PARK_Z, 4.8, future=False, rng=rng, leaf=colr)
+            leaf = yellow if planted % 7 == 2 else None
+            _tree(
+                kit, col_p, mats, px, py, PARK_Z,
+                rng.uniform(1.55, 1.75), future=False, rng=rng, kind="round", leaf=leaf,
+            )
+            planted += 1
     for x, y in ((-42, 42), (-42, 70), (-26, 48), (-26, 68), (fx - 5.5, fy), (fx + 5.5, fy)):
         _lamp(kit, col_g, mats, x, y, PARK_Z)
     for i in range(4):
@@ -876,6 +882,7 @@ def _deck_ribbon(coll, mats, s0, s1):
     me = mesh_from_bm("deck", bm)
     obj = link_obj("deck", me, coll, (mats["deck"], mats["concrete"]))
     obj.location = center
+    obj.pass_index = INDEX_DECK
     return obj, center
 
 
@@ -903,10 +910,10 @@ def _bridge(kit, col, cars, mats, rng):
             while (s1 - s) * direction > 2.2:
                 x, y = deck_point(s)
                 z = deck_z(s) + 0.31
-                marks = [(0.0, 0.18, 4.2, mats["yellow"])]
+                marks = [(0.0, 0.16, 3.4, mats["yellow"])]
                 if int(abs(s) / 5.5) % 2 == 0:
-                    for offset in (-4.6, -1.6, 1.6, 4.6):
-                        marks.append((offset, 0.16, 2.0, mats["mark"]))
+                    for offset in DECK_LANES:
+                        marks.append((offset, 0.14, 1.7, mats["mark"]))
                 for offset, width, length_m, mat in marks:
                     mark = box_object("bdash", col, (0, 0, 0), (width, length_m, 0.04), mat)
                     mark.parent = obj
@@ -943,17 +950,19 @@ def _bridge(kit, col, cars, mats, rng):
         loc, rot = tower_pose(s)
         pivot = empty(f"tower_{i}", col, loc)
         pivot.rotation_euler[2] = rot
-        # Near portal top is the solved 13% line. The far portal stays under the title.
-        height = 52.7 if i == 0 else 46.0
-        _tower_portal(col, mats, pivot, height, TOWER_W)
+        # Near portal: leg top at z=62 is about 38% of the frame above the deck.
+        # The far portal stays shorter so it does not fill the title.
+        height = 64.5 if i == 0 else 44.0
+        _tower_portal(col, mats, pivot, height, TOWER_W, INDEX_PORTAL if i == 0 else 0)
         towers.append(kit.add(pivot, "bridge_tower", i=i, height=height, width=TOWER_W, sink=True))
         if i == 0:
-            # Stone pier under the near portal, standing in the river.
+            # Footing under the near portal, narrower than the legs so it does
+            # not widen the red silhouette.
             pier = box_object(
                 "pier",
                 col,
-                (loc[0], loc[1], deck_z(s) * 0.45),
-                (TOWER_W + 8.0, 16.0, deck_z(s) + 1.2),
+                (loc[0], loc[1], deck_z(s) * 0.42),
+                (TOWER_W * 0.72, 4.2, deck_z(s) * 0.85),
                 mats["concrete"],
             )
             pier.rotation_euler[2] = rot
@@ -1018,32 +1027,41 @@ def _bridge(kit, col, cars, mats, rng):
     }
 
 
-def _tower_portal(coll, mats, pivot, height, width):
-    leg_w = max(3.1, width * 0.26)
-    leg_d = leg_w * 1.15
+def _tower_portal(coll, mats, pivot, height, width, pass_index=0):
+    leg_w = TOWER_LEG
+    leg_d = leg_w * 1.25
+
+    def tag(obj):
+        obj.pass_index = pass_index
+        return obj
 
     def leg(side):
         obj = box_object("leg", coll, (0, 0, 0), (leg_w, leg_d, height), mats["bridge"])
         obj.parent = pivot
         obj.matrix_parent_inverse = Matrix.Identity(4)
         obj.location = (side * width / 2, 0, height / 2)
+        tag(obj)
+
     leg(-1)
     leg(1)
-    beam_h = max(1.35, height * 0.028)
-    # Three cross-beams. The cap stays at the solved tower-top height.
-    for frac in (0.40, 0.68):
-        beam = box_object("beam", coll, (0, 0, 0), (width + leg_w * 0.2, leg_d * 0.85, beam_h), mats["bridge"])
+    beam_h = max(0.55, height * 0.020)
+    # Three cross-beams. The cap is the top of the portal.
+    for frac in (0.42, 0.70):
+        beam = box_object("beam", coll, (0, 0, 0), (width + leg_w, leg_d * 0.8, beam_h), mats["bridge"])
         beam.parent = pivot
         beam.matrix_parent_inverse = Matrix.Identity(4)
         beam.location = (0, 0, height * frac)
-    cap = box_object("cap", coll, (0, 0, 0), (width + leg_w, leg_d * 1.35, beam_h * 1.35), mats["bridge"])
+        tag(beam)
+    cap = box_object("cap", coll, (0, 0, 0), (width + leg_w, leg_d * 1.15, beam_h * 1.25), mats["bridge"])
     cap.parent = pivot
     cap.matrix_parent_inverse = Matrix.Identity(4)
-    cap.location = (0, 0, height + beam_h * 0.2)
-    saddle = box_object("saddle", coll, (0, 0, 0), (width * 0.72, leg_d * 0.7, beam_h * 0.7), mats["bridge"])
+    cap.location = (0, 0, height + beam_h * 0.15)
+    tag(cap)
+    saddle = box_object("saddle", coll, (0, 0, 0), (width * 0.62, leg_d * 0.6, beam_h * 0.6), mats["bridge"])
     saddle.parent = pivot
     saddle.matrix_parent_inverse = Matrix.Identity(4)
-    saddle.location = (0, 0, height + beam_h * 0.9)
+    saddle.location = (0, 0, height + beam_h * 0.7)
+    tag(saddle)
 
 
 def build_coast(kit, mats, rng, with_city):

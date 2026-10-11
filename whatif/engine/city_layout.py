@@ -12,16 +12,25 @@ from __future__ import annotations
 
 import math
 
-# Positive yaw brings the near end down into the camera, onto the foreground road.
-BRIDGE_YAW = math.radians(11.0)
+# Yaw sets the deck's screen slope. 2.5° reads as about 58° from horizontal
+# in the locked camera; zenith's centerline is 56.9°.
+BRIDGE_YAW = math.radians(2.5)
 DECK_ROT_Z = -BRIDGE_YAW
 DECK_ORIGIN = (4.1, 79.0)
-DECK_W = 20.0
+# Object-index measurement, not a guess: 15.2 m is 22.6% of the frame at the
+# near bank and 30.4% on the lower deck. Zenith is 22.2% and 30.0%.
+DECK_W = 15.2
 DECK_HALF = DECK_W / 2.0
 DECK_Z = 4.6
 SOUTH_Z = 0.62
-TOWER_W = 22.0
-TOWER_LEG = 1.6
+# Leg centers plus leg thickness. The near portal's outer width measures 18.0%
+# of the frame where the legs meet the deck; zenith is 18.0%.
+TOWER_W = 15.7
+TOWER_LEG = 1.5
+# Object-index ids for the opening metric. Cables and the pier stay at 0.
+INDEX_DECK = 2
+INDEX_CANOPY = 3
+INDEX_PORTAL = 11
 # Both portals are over the water, on the level deck.
 TOWER_S = (32.0, 102.0)
 # Foreground road the approach must join. The road plane is centered at y=14
@@ -74,7 +83,7 @@ FOREGROUND_CARS = (
     (16.0, 14.6),
     (28.0, 14.9),
 )
-DECK_LANES = (-6.2, -2.1, 2.1, 6.2)
+DECK_LANES = (-4.8, -1.6, 1.6, 4.8)
 
 
 def deck_direction():

@@ -375,7 +375,7 @@ def _bridge(kit, ch):
             if a.z < -20 or b.z < -20:
                 seg.hide_render = True
                 continue
-            aim_z(seg, a, b, 0.85)
+            aim_z(seg, a, b, 0.16)
         for seg in cables[len(pairs) :]:
             seg.hide_render = True
     count = len(bridge["suspenders"])
@@ -392,7 +392,7 @@ def _bridge(kit, ch):
             sus.hide_render = True
             continue
         sus.hide_render = False
-        aim_z(sus, top, deck, 0.22)
+        aim_z(sus, top, deck, 0.07)
 
 
 def _catenary(a, b, sag, n):
