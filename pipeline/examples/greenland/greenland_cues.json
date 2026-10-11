@@ -89,6 +89,11 @@
       "name": "poles"
     },
     {
+      "t": 11.46,
+      "kind": "tick",
+      "name": "snap-punch"
+    },
+    {
       "t": 11.579,
       "kind": "pop",
       "name": "greenland-sits"
@@ -140,8 +145,8 @@
     },
     {
       "t": 22.553,
-      "kind": "impact",
-      "name": "drop"
+      "kind": "thud",
+      "name": "land-thud"
     },
     {
       "t": 23.073,

@@ -89,6 +89,47 @@ def equal_bars(canvas, x0: float, x1: float, y: float, length: float, pop: float
         canvas.drawLine(x - length / 2, y, x + length / 2, y, paint)
 
 
+def contact_ripple(canvas, x: float, y: float, age: float):
+    """Two rings bursting from the landing point. Done by 0.45 s."""
+    if age < 0.0 or age > 0.45:
+        return
+    for delay in (0.0, 0.09):
+        u = (age - delay) / 0.36
+        if u <= 0.0 or u >= 1.0:
+            continue
+        rad = 14.0 + 260.0 * u
+        pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=8.0 * (1.0 - u))
+        pen.setColor(skia.ColorSetARGB(int(210 * (1.0 - u)), 255, 244, 220))
+        canvas.drawCircle(x, y, rad, pen)
+
+
+def dashed_rings(canvas, rings, cam, w: int, h: int, alpha: int = 220, phase: float = 0.0, width: float = 3.6):
+    """Dashed coast of a shape left behind, with no fill."""
+    from jt.draw import _ring_paths
+    if alpha < 8:
+        return
+    view = view_for(cam, w, h)
+    path = skia.Path()
+    for ring in rings:
+        for piece in _ring_paths(np.asarray(ring, np.float64), view):
+            if len(piece) < 3:
+                continue
+            path.moveTo(piece[0][0], piece[0][1])
+            for x, y in piece[1:]:
+                path.lineTo(x, y)
+            path.close()
+    if path.countPoints() < 3:
+        return
+    under = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=width + 4.0)
+    under.setColor(skia.ColorSetARGB(int(alpha), 16, 22, 36))
+    under.setPathEffect(skia.DashPathEffect.Make([13, 11], float(phase)))
+    canvas.drawPath(path, under)
+    pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=width)
+    pen.setColor(skia.ColorSetARGB(int(alpha), 255, 248, 236))
+    pen.setPathEffect(skia.DashPathEffect.Make([13, 11], float(phase)))
+    canvas.drawPath(path, pen)
+
+
 def dashed_path(canvas, cam, lonlat, w: int, h: int, grow: float, phase: float = 0.0):
     if grow <= 0.02 or cam.proj != "merc":
         return

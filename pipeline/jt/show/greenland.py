@@ -27,7 +27,7 @@ from jt.show.polys import (
     Shape, _path_of, fill_iso, fill_ring_list, fill_union, group_shape, km_ring, project_lonlat, shape_from,
 )
 from scipy.ndimage import binary_closing
-from jt.show.props import dashed_path, dust, equal_brackets, graticule, sparkles
+from jt.show.props import contact_ripple, dashed_path, dashed_rings, dust, equal_brackets, graticule, sparkles
 from jt.show.mosaic import lloyd_seeds
 from jt.show.truesize import (
     GREENLAND_HOME_LAT,
@@ -107,6 +107,7 @@ def _cues() -> list:
         (w("MORE"), "tick", "more"),
         (w("POLES"), "pop", "poles"),
         (w("SITS", after=10), "pop", "greenland-sits"),
+        (11.46, "tick", "snap-punch"),
         (b.sixteen, "impact", "sixteen"),
         (w("TOO", after=b.sixteen), "tick", "too-big"),
         (w("LET"), "whoosh", "drag"),
@@ -116,7 +117,7 @@ def _cues() -> list:
         (b.shrinks[1], "tick", "shrink-2"),
         (b.shrinks[2], "tick", "shrink-3"),
         (b.wait0, "boing", "wait-what"),
-        (b.drop, "impact", "drop"),
+        (b.drop, "thud", "land-thud"),
         (b.africa14, "pop", "dust"),
         *_fourteen_cue_rows(),
         (b.fourteen, "pop", "fourteen"),
@@ -257,19 +258,26 @@ def apply_motion(cam: Cam, t: float) -> Cam:
         span *= 1.0 - 0.03 * u
     # Snap-zooms. Each one moves the coasts, so the structural meter sees an event.
     # Negative amount is a pull-out. They settle before the loop tail.
-    for t0, amount, dlon in (
-        (11.85, 0.09, 1.2),
-        (28.20, 0.10, -1.2),
-        (b.usa, 0.10, 1.0),
-        (b.china, 0.10, -1.0),
-        (b.india, 0.10, 0.8),
-        (b.europe, 0.10, -1.0),
-        (b.europe + 1.35, -0.10, 0.0),
-        (43.35, 0.09, -0.8),
+    for t0, amount, dlon, dur in (
+        # Sharp and early. A slower punch at 11.85 was swallowed by the
+        # SIXTEEN snap, which left 10.47–13.2 as one quiet stretch.
+        (11.46, 0.13, 2.2, 0.20),
+        (28.20, 0.10, -1.2, 0.42),
+        (b.usa, 0.10, 1.0, 0.42),
+        (b.china, 0.10, -1.0, 0.42),
+        (b.india, 0.10, 0.8, 0.42),
+        (b.europe, 0.10, -1.0, 0.42),
+        (b.europe + 1.35, -0.10, 0.0, 0.42),
+        (43.35, 0.09, -0.8, 0.42),
     ):
-        p = _punch(t, t0, 0.42)
+        p = _punch(t, t0, dur)
         span *= 1.0 - amount * p
         lon += dlon * p
+    # One frame at the landing: about 3 px, then the next frame is back.
+    if abs(t - b.drop) <= (0.5 / FPS):
+        deg = span * (3.0 / 1080.0)
+        lat -= deg
+        lon += deg * 0.4
     # A 3% one-way zoom on the holds that would otherwise sit still.
     # The loop tail is left alone so the last frame stays one step before frame 0.
     if t < TAIL0:
@@ -407,6 +415,15 @@ def _fourteen_cam() -> Cam:
     return Cam("merc", 17.5, 1.0, 84.0)
 
 
+def _pickup_pop(t: float) -> tuple[float, float]:
+    """0.3 s sticker pickup. Scale peaks at 1.08 and the shape lifts off the map."""
+    b = CLOCK
+    if t < b.drag or t > b.drag + 0.30:
+        return 1.0, 0.0
+    s = math.sin(math.pi * (t - b.drag) / 0.30)
+    return 1.0 + 0.08 * s, -42.0 * s
+
+
 def _land_squash(t: float) -> tuple[float, float]:
     """Landing settle: a short squash, then back to the true outline."""
     b = CLOCK
@@ -438,7 +455,7 @@ def pose(t: float) -> dict:
         "lat": lat,
         "travel": travel,
         "detached": ramp(t, b.drag - 0.03, b.drag + 0.29) * (1.0 - ramp(t, b.lying - 1.03, b.lying - 0.45)),
-        "lift": ramp(t, b.drag, b.drag + 0.35) * (1.0 - ramp(t, b.drop - 0.05, b.drop + 0.28)),
+        "lift": ramp(t, b.drag, b.drag + 0.16) * (1.0 - ramp(t, b.drop - 0.05, b.drop + 0.28)),
         "lying": (1.0 if t < globe - 0.02 else (1.0 - ramp(t, globe - 0.02, globe + 0.42)) if t < globe + 0.5
                   else ramp(t, b.lying, b.lying + 0.31) if t >= b.lying else 0.0),
         "names": 1.0 if t < b.excuse1 + 0.18 or t >= b.outro + 2.05 else 0.0,
@@ -730,7 +747,7 @@ class Greenland:
         st = pose(t)
         # Keep the travelling Greenland in frame. Span stays on the track.
         packing = max(st["usa"], st["chn"], st["ind"], st["eur"])
-        follow = hold(st["t"], CLOCK.drag + 0.4, CLOCK.outro - 0.2, 0.4) * (1.0 - st["compare"]) * (1.0 - packing)
+        follow = hold(st["t"], CLOCK.drag + 1.05, CLOCK.outro - 0.2, 0.35) * (1.0 - st["compare"]) * (1.0 - packing)
         # Look south of the shape so Greenland's tip rides above the caption band.
         lift = 8.0 if CLOCK.drag <= st["t"] <= CLOCK.fourteen else 0.0
         # The 14 copies are laid out on one wide frame of the whole continent.
@@ -795,7 +812,7 @@ class Greenland:
         if st["drc"] > 0.05:
             fill_iso(canvas, self.earth, cam, "COD", (36, 112, 210), int(200 * st["drc"]),
                      stroke=(255, 255, 255), stroke_w=5.5, w=w, h=h)
-        inplace = 1.0 - st["detached"]
+        inplace = 0.0 if st["t"] >= CLOCK.drag else (1.0 - st["detached"])
         if inplace > 0.04:
             fill_iso(canvas, self.earth, cam, "GRL", (232, 28, 58), int(188 * inplace),
                      stroke=(255, 255, 255), stroke_w=6.5, w=w, h=h)
@@ -803,21 +820,36 @@ class Greenland:
         if st["detached"] > 0.04 and st["compare"] < 0.45 and st["tiles"] < 0.15 and not packing:
             # The dashed path is the trail. A filled ghost reads as a white smear
             # over the ice at the old position, especially once motion blur is on.
+            hole = ramp(st["t"], CLOCK.drag, CLOCK.drag + 0.22) * (
+                1.0 - ramp(st["t"], CLOCK.drop, CLOCK.drop + 0.28)
+            )
+            if hole > 0.08:
+                dashed_rings(
+                    canvas, self.earth.rings.get("GRL") or [], cam, w, h,
+                    alpha=int(240 * hole), phase=st["t"] * 18.0, width=5.0,
+                )
             moved = [
                 reproject_true(ring, HOME_LON, HOME_LAT, st["lon"], st["lat"])
                 for ring in (self.earth.rings.get("GRL") or [])
             ]
+            pop_s, pop_dy = _pickup_pop(st["t"])
             sx, sy = _land_squash(st["t"])
             anchor = project_lonlat(cam, st["lon"], st["lat"], w, h)
+            if pop_dy < -1.0:
+                fill_ring_list(
+                    canvas, moved, cam, (232, 28, 58), 0,
+                    shadow=1.55, w=w, h=h,
+                )
             canvas.save()
-            if anchor is not None and (sx != 1.0 or sy != 1.0):
-                canvas.translate(anchor[0], anchor[1])
-                canvas.scale(sx, sy)
+            if anchor is not None and (sx != 1.0 or sy != 1.0 or pop_s != 1.0 or pop_dy != 0.0):
+                canvas.translate(anchor[0], anchor[1] + pop_dy)
+                canvas.scale(sx * pop_s, sy * pop_s)
                 canvas.translate(-anchor[0], -anchor[1])
+            sticker = 230 if st["t"] >= CLOCK.drag else int(230 * st["detached"])
             fill_ring_list(
-                canvas, moved, cam, (232, 28, 58), int(230 * st["detached"]),
+                canvas, moved, cam, (232, 28, 58), sticker,
                 stroke=(255, 236, 236), stroke_w=2.2,
-                shadow=0.35 + 1.35 * st["lift"], w=w, h=h,
+                shadow=0.0 if pop_dy < -1.0 else 0.35 + 1.35 * st["lift"], w=w, h=h,
             )
             canvas.restore()
         self._overlays(canvas, cam, st, w, h)
@@ -1065,6 +1097,7 @@ class Greenland:
             p = project_lonlat(cam, st["lon"], st["lat"], w, h)
             if p:
                 dust(canvas, p[0], p[1], st["t"] - CLOCK.drop)
+                contact_ripple(canvas, p[0], p[1], st["t"] - CLOCK.drop)
         # A travelling ring at STILL, so that second moves without shoving the labels.
         ring = _punch(st["t"], CLOCK.still, 0.46)
         if ring > 0.04:
@@ -1142,12 +1175,21 @@ class Greenland:
                 rings = self.earth.rings.get("GRL") or []
             box = self._box_of(cam, rings, w, h)
             if box and (box[2] - box[0]) > 48:
+                pop_s, pop_dy = _pickup_pop(st["t"])
+                sx, sy = _land_squash(st["t"])
+                anchor = project_lonlat(cam, st["lon"], st["lat"], w, h)
+                canvas.save()
+                if anchor is not None and (sx != 1.0 or sy != 1.0 or pop_s != 1.0 or pop_dy != 0.0):
+                    canvas.translate(anchor[0], anchor[1] + pop_dy)
+                    canvas.scale(sx * pop_s, sy * pop_s)
+                    canvas.translate(-anchor[0], -anchor[1])
                 draw_face(
                     canvas, (box[0] + box[2]) / 2, (box[1] + box[3]) / 2,
                     box[2] - box[0], expr, mouth=mouth if expr == "smug" or expr == "shocked" else 0.0,
                     bob=bob, blink=blink, squash=squash,
                     crown=st["gag_excuse"] if expr == "smug" else 0.0,
                 )
+                canvas.restore()
         if st["compare"] > 0.35:
             rings = [
                 reproject_true(ring, HOME_LON, HOME_LAT, 8.0, 20.0)
@@ -1213,8 +1255,9 @@ class Greenland:
         if st["gag_excuse"] > 0.2:
             pill(hud, "EXCUSE ME?", w * 0.5, h * 0.28, PAPER, ink=INK, size=72, pop=1.0, kind="gag")
         if st["label3"] > 0.1 and geo:
-            pill(hud, "~3× WIDER", w * 0.5, h * 0.24, (255, 214, 48), ink=INK, size=80, pop=1.0, kind="number")
-            pill(hud, "~9× AREA  70°N", w * 0.5, h * 0.34, (255, 214, 48), ink=INK, size=72, pop=1.0, kind="number")
+            pulse = 1.0 + 0.08 * _punch(st["t"], 11.46, 0.20)
+            pill(hud, "~3× WIDER", w * 0.5, h * 0.24, (255, 214, 48), ink=INK, size=80, pop=pulse, kind="number")
+            pill(hud, "~9× AREA  70°N", w * 0.5, h * 0.34, (255, 214, 48), ink=INK, size=72, pop=pulse, kind="number")
         if st["show16"] > 0.08 and st["t"] < CLOCK.drop:
             moving = CLOCK.drag < st["t"] < CLOCK.drop
             label = f"{st['disp']:.1f}×" if moving else f"{max(1, int(round(st['disp'])))}×"
