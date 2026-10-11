@@ -29,7 +29,7 @@ def ready() -> bool:
 
 
 def sunny_hdri() -> Path | None:
-    path = CACHE / "hdri" / "polyhaven_hdris_2k" / "kloofendal_48d_partly_cloudy_puresky" / "kloofendal_48d_partly_cloudy_puresky_2k.hdr"
+    path = CACHE / "hdri" / "polyhaven_hdris_2k" / "kloofendal_43d_clear_puresky" / "kloofendal_43d_clear_puresky_2k.hdr"
     return path if path.exists() else None
 
 

@@ -217,15 +217,29 @@ SKETCHFAB = PRIVATE / "sketchfab"
 _PACKS = {}
 
 # Generic cars only. The armored carrier in the same pack stays unused.
+# The pack is sedans, pickups, and two van bodies. No separate taxi, SUV, or bus.
 _CITY_CARS = (
-    ("sedan_body_sedan_white_0", 4.6),
-    ("sedan_body.001_sedan_blue_0", 4.6),
-    ("sedan_body.002_sedan_red_0", 4.6),
-    ("pickup_body_pickup_white_0", 4.9),
-    ("pickup_body.001_pickup_blue_0", 4.9),
-    ("pickup_body.002_pickup_red_0", 4.9),
-    ("van_body_extra1_van_extra1_white_0", 5.2),
+    ("sedan_body_sedan_white_0", "sedan_white_0", 4.8),
+    ("sedan_body.001_sedan_blue_0", "sedan_blue_0", 4.8),
+    ("sedan_body.002_sedan_red_0", "sedan_red_0", 4.8),
+    ("sedan_body.003_sedan_0", "sedan_0", 4.8),
+    ("pickup_body_pickup_white_0", "pickup_white_0", 5.3),
+    ("pickup_body.001_pickup_blue_0", "pickup_blue_0", 5.3),
+    ("pickup_body.002_pickup_red_0", "pickup_red_0", 5.3),
+    ("pickup_body.003_pickup_0", "pickup_0", 5.3),
+    ("van_body_extra1_van_extra1_white_0", "van_extra1_white_0", 5.4),
+    ("van_body_extra1.001_van_extra1_blue_0", "van_extra1_blue_0", 5.4),
+    ("van_body_extra1.004_van_extra1_red_0", "van_extra1_red_0", 5.4),
+    ("van_body_extra1.002_van_extra2_white_0", "van_extra2_white_0", 5.8),
+    ("van_body_extra1.005_van_extra2_red_0", "van_extra2_red_0", 5.8),
 )
+# A '71 Miura SV is about this size. The nose is +X. The engine bay is behind
+# the cabin, so a sapling belongs aft of center, not in the hood.
+HERO_LENGTH = 4.39
+HERO_WIDTH = 1.78
+HERO_HEIGHT = 1.05
+HERO_PAINT = (0.62, 0.075, 0.045)
+_BADGE_TOKENS = ("logo", "badge", "emblem", "lambo", "lamborghini", "crest", "manufacturerplate", "brand")
 
 
 def _load_pack(filename):
@@ -326,26 +340,262 @@ def _place_root(coll, root, loc, yaw, scale, name):
     return empty
 
 
-def place_city_car(coll, loc, yaw, index=0):
-    """A colored sedan, pickup, or van at car length. Nose points along yaw from +X."""
+def _wheels_for(pack, color_key):
+    wheels = []
+    for obj in pack:
+        if obj.type != "MESH" or "wheel" not in obj.name.lower():
+            continue
+        # The plain sedan key "sedan_0" is also inside "sedan_white_0". Match the
+        # plain cars only when the name does not carry another color.
+        if color_key in ("sedan_0", "pickup_0"):
+            if color_key not in obj.name:
+                continue
+            if any(color in obj.name for color in ("white", "blue", "red")):
+                continue
+            wheels.append(obj)
+        elif color_key in obj.name:
+            wheels.append(obj)
+    return wheels
+
+
+def _is_mark(obj):
+    """Badges, crests, and plate text. Body panels named Textured stay."""
+    low = obj.name.lower()
+    if any(token in low for token in _BADGE_TOKENS):
+        return True
+    if obj.type != "MESH":
+        return False
+    for slot in obj.material_slots:
+        material = slot.material
+        if material and any(token in material.name.lower() for token in _BADGE_TOKENS):
+            return True
+    return False
+
+
+def _strip_badges(root):
+    """Hide marque badges and the plate. The hero stays unmarked."""
+    stack = [root]
+    while stack:
+        obj = stack.pop()
+        stack.extend(list(obj.children))
+        if _is_mark(obj):
+            obj.hide_render = True
+            obj.hide_viewport = True
+
+
+def _unique_mesh(obj):
+    if obj.type == "MESH" and obj.data is not None and obj.data.users > 1:
+        obj.data = obj.data.copy()
+    for child in obj.children:
+        _unique_mesh(child)
+
+
+def hero_sports_path():
+    """The Miura file, once it is in the private cache. None until that drop."""
+    if not SKETCHFAB.is_dir():
+        return None
+    for name in ("hero_miura.glb", "miura_sv.glb", "miura.glb"):
+        path = SKETCHFAB / name
+        if path.exists():
+            return path
+    found = sorted(SKETCHFAB.glob("*miura*.glb"))
+    return found[0] if found else None
+
+
+def _place_pack_vehicle(coll, token, color_key, length, loc, yaw, name):
     pack = _load_pack("Low_Poly_Vehicle_Mini_Pack.glb")
     if not pack:
         return None
-    token, length = _CITY_CARS[int(index) % len(_CITY_CARS)]
     mesh = next((obj for obj in pack if obj.type == "MESH" and obj.name == token), None)
     if mesh is None:
         return None
-    root = _pack_root(mesh)
+    parts = [mesh, *_wheels_for(pack, color_key)]
     bpy.context.view_layer.update()
-    bounds = _bounds_of(root)
+    clones = []
+    for src in parts:
+        clone = _clone(src, coll)
+        clones.append(clone)
+    bpy.context.view_layer.update()
+    bounds = _bounds_of(clones[0])
     if bounds is None:
         return None
     native = max(bounds[1] - bounds[0], bounds[3] - bounds[2])
-    align = _front_yaw(root)
-    placed = _place_root(coll, root, loc, float(yaw) + align, float(length) / max(native, 0.01), "car")
-    if placed is not None:
-        _tint_mesh_colors(placed)
-    return placed
+    align = _front_yaw(mesh)
+    center = Vector(((bounds[0] + bounds[1]) * 0.5, (bounds[2] + bounds[3]) * 0.5, bounds[4]))
+    empty = bpy.data.objects.new(name, None)
+    coll.objects.link(empty)
+    empty.location = center
+    bpy.context.view_layer.update()
+    for clone in clones:
+        world = clone.matrix_world.copy()
+        clone.parent = empty
+        clone.matrix_world = world
+    scale = float(length) / max(native, 0.01)
+    empty.scale = (scale, scale, scale)
+    empty.rotation_euler.z = float(yaw) + align
+    empty.location = loc
+    _tint_mesh_colors(empty)
+    return empty
+
+
+def place_city_car(coll, loc, yaw, index=0):
+    """A mini-pack sedan, pickup, or van at real length. Nose points along yaw from +X."""
+    token, color_key, length = _CITY_CARS[int(index) % len(_CITY_CARS)]
+    return _place_pack_vehicle(coll, token, color_key, length, loc, yaw, "car")
+
+
+def _nose_correction(objects, front_token, rear_token):
+    """Yaw that lays the nose (front_token) onto +X. 0 when the ends cannot be told apart."""
+    def mean_y(token):
+        samples = []
+        for obj in objects:
+            if obj.type != "MESH" or token not in obj.name:
+                continue
+            for corner in obj.bound_box:
+                samples.append((obj.matrix_world @ Vector(corner)).y)
+        if not samples:
+            return None
+        return sum(samples) / len(samples)
+
+    front = mean_y(front_token)
+    rear = mean_y(rear_token)
+    if front is None or rear is None or abs(front - rear) < 1e-5:
+        return 0.0
+    # +Y nose needs -90 degrees. -Y nose needs +90 degrees.
+    return -math.pi / 2.0 if front > rear else math.pi / 2.0
+
+
+def _sit_group(coll, meshes, length, loc, yaw, name, nose=0.0):
+    """Bottom-center the meshes on loc and scale the long axis to length."""
+    bpy.context.view_layer.update()
+    bounds = None
+    xs, ys, zs = [], [], []
+    for obj in meshes:
+        if obj.type != "MESH":
+            continue
+        for corner in obj.bound_box:
+            point = obj.matrix_world @ Vector(corner)
+            xs.append(point.x)
+            ys.append(point.y)
+            zs.append(point.z)
+    if not xs:
+        return None
+    bounds = (min(xs), max(xs), min(ys), max(ys), min(zs), max(zs))
+    native = max(bounds[1] - bounds[0], bounds[3] - bounds[2], 0.01)
+    center = Vector(((bounds[0] + bounds[1]) * 0.5, (bounds[2] + bounds[3]) * 0.5, bounds[4]))
+    empty = bpy.data.objects.new(name, None)
+    coll.objects.link(empty)
+    empty.location = center
+    bpy.context.view_layer.update()
+    for obj in meshes:
+        world = obj.matrix_world.copy()
+        obj.parent = empty
+        obj.matrix_world = world
+        obj.hide_render = False
+    empty.scale = (float(length) / native, float(length) / native, float(length) / native)
+    empty.rotation_euler.z = float(yaw) + float(nose)
+    empty.location = loc
+    return empty
+
+
+def place_hero_sports(coll, loc, yaw):
+    """Luxury hero. The Miura file is used when it is in the cache; badges and the plate are hidden.
+
+    Wheels sit on ``loc``. After placement the nose points along ``yaw`` from +X.
+    The engine bay is aft of center, where the sapling is parented.
+    """
+    path = hero_sports_path()
+    if path is None:
+        placed = _place_pack_vehicle(
+            coll, "sedan_body.002_sedan_red_0", "sedan_red_0", HERO_LENGTH, loc, yaw, "hero_sports",
+        )
+        if placed is not None:
+            _unique_mesh(placed)
+        return placed
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(path))
+    new = [obj for obj in bpy.data.objects if obj not in before]
+    keep = []
+    for obj in new:
+        if obj.type != "MESH":
+            continue
+        if obj.name == "Icosphere" or _is_mark(obj):
+            obj.hide_render = True
+            obj.hide_viewport = True
+            continue
+        try:
+            coll.objects.link(obj)
+        except RuntimeError:
+            pass
+        keep.append(obj)
+    nose = _nose_correction(keep, "Hood", "Trunk")
+    empty = _sit_group(coll, keep, HERO_LENGTH, loc, yaw, "hero_sports", nose)
+    if empty is None:
+        return None
+    _strip_badges(empty)
+    _unique_mesh(empty)
+    _tint_mesh_colors(empty)
+    return empty
+
+
+_SEDANS = None
+
+
+def _load_sedans():
+    global _SEDANS
+    if _SEDANS is not None:
+        return _SEDANS
+    path = SKETCHFAB / "low_poly_sedans_11.glb"
+    if not path.exists():
+        _SEDANS = []
+        return _SEDANS
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(path))
+    groups = {}
+    for obj in bpy.data.objects:
+        if obj in before:
+            continue
+        obj.hide_render = True
+        obj.hide_viewport = True
+        if obj.type != "MESH":
+            continue
+        prefix = obj.name.split("_", 1)[0]
+        groups.setdefault(prefix, []).append(obj)
+    cars = []
+    for prefix, meshes in sorted(groups.items()):
+        body = next((mesh for mesh in meshes if "palette" in mesh.name.lower()), None)
+        if body is None:
+            continue
+        bpy.context.view_layer.update()
+        bounds = _bounds_of(body)
+        if bounds is None or max(bounds[1] - bounds[0], bounds[3] - bounds[2]) < 2.0:
+            continue
+        cars.append(meshes)
+    _SEDANS = cars
+    return _SEDANS
+
+
+def place_sedan_pack_car(coll, loc, yaw, index=0):
+    """One of the 11 low-poly sedans, already near real size. Nose along yaw from +X."""
+    cars = _load_sedans()
+    if not cars:
+        return None
+    meshes = cars[int(index) % len(cars)]
+    clones = [_clone(mesh, coll) for mesh in meshes]
+    nose = _nose_correction(clones, "headLight", "stopLight")
+    return _sit_group(coll, clones, 4.8, loc, yaw, "car", nose)
+
+
+def place_avenue_car(coll, loc, yaw, index=0):
+    """Mix the 11-sedan pack with the vehicle mini pack. No Kenney cars."""
+    sedans = _load_sedans()
+    span = len(sedans) + len(_CITY_CARS)
+    slot = int(index) % max(span, 1)
+    if slot < len(sedans):
+        built = place_sedan_pack_car(coll, loc, yaw, slot)
+        if built is not None:
+            return built
+    return place_city_car(coll, loc, yaw, slot)
 
 
 def place_city_prop(coll, token, loc, yaw=0.0, height=1.0, name="prop"):

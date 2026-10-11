@@ -143,8 +143,8 @@ beats:
       collapse: 1.0
       sag: 0.6
     camera:
-      - {u: 0.0, location: [-52.0, 14.5, 2.15], target: [-36.0, 14.5, 0.85], lens: 58, fstop: 2.2}
-      - {u: 1.0, location: [-40.0, 14.55, 1.7], target: [-26.0, 14.5, 0.7], lens: 64, fstop: 2.0}
+      - {u: 0.0, location: [-40.2, 11.7, 1.38], target: [-36.2, 14.5, 0.55], lens: 48, fstop: 2.0}
+      - {u: 1.0, location: [-32.4, 11.6, 1.22], target: [-35.4, 14.5, 0.48], lens: 52, fstop: 1.8}
 
   - id: drone_facade
     seconds: 2.6

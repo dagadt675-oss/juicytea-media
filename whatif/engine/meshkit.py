@@ -503,15 +503,17 @@ def make_water_material():
     noise.inputs["Detail"].default_value = 2.0
     nt.links.new(wave.outputs["Vector"], noise.inputs["Vector"])
     bump = nt.nodes.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.18
+    bump.inputs["Strength"].default_value = 0.42
     bump.inputs["Distance"].default_value = 0.35
     nt.links.new(noise.outputs["Fac"], bump.inputs["Height"])
     drive(bump.inputs["Strength"], "default_value", None, "0.12 + gravity * 0.55", ("gravity",))
     water_shift = channel_value(nt, ("water", "dust", "heat"), "clamp(-water, 0, 1) * 0.0 + dust * 0.35 + heat * 0.15")
-    deep = lin(0.24, 0.64, 0.94)
-    shallow = lin(0.38, 0.78, 1.0)
-    muddy = lin(0.30, 0.26, 0.16)
+    deep = lin(0.16, 0.38, 0.48)
+    muddy = lin(0.22, 0.20, 0.12)
     color = _mix(nt, water_shift, deep, muddy)
+    veg = channel_value(nt, ("vegetation",), "vegetation")
+    murk = lin(0.08, 0.16, 0.09)
+    color = _mix(nt, veg, color, murk)
     bsdf = principled(nt, color, 0.08)
     nt.links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
     finish(nt, bsdf)

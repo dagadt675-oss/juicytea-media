@@ -30,6 +30,7 @@ from engine.city_layout import (
     DECK_ROT_Z,
     DECK_W,
     FOREGROUND_CARS,
+    HERO_SPORTS,
     FOUNTAIN,
     GRID_HALF,
     GRID_X,
@@ -565,10 +566,12 @@ def _kenney_car_mesh(model):
 
 
 def _car(kit, coll, mats, loc, yaw, color, parent=None, local=None, drive=0.0, model="sedan", scale=1.0, force_white=False, **extra):
-    if parent is None and cc0_city.ready():
-        built = cc0_city.place_fleet_car(coll, loc, yaw, index=extra.get("index", 0))
-        if built is None:
-            built = private_assets.place_city_car(coll, loc, yaw, index=extra.get("index", 0))
+    # Avenue and deck cars are the hub mini pack. Kenney stays out of this fleet.
+    if parent is None:
+        if extra.get("hero"):
+            built = private_assets.place_hero_sports(coll, loc, yaw)
+        else:
+            built = private_assets.place_avenue_car(coll, loc, yaw, index=extra.get("index", 0))
         if built is not None:
             kit.add(
                 built, "car", path_from=(loc[0] + drive, loc[1], loc[2]), path_to=loc,
@@ -576,8 +579,8 @@ def _car(kit, coll, mats, loc, yaw, color, parent=None, local=None, drive=0.0, m
                 **{"paint": color, **extra},
             )
             return
-    if parent is not None and cc0_city.ready():
-        built = cc0_city.place_fleet_car(coll, (0.0, 0.0, 0.0), 0.0, index=extra.get("index", 0))
+    elif parent is not None:
+        built = private_assets.place_city_car(coll, (0.0, 0.0, 0.0), 0.0, index=extra.get("index", 0))
         if built is not None:
             built.parent = parent
             built.matrix_parent_inverse = Matrix.Identity(4)
@@ -1059,6 +1062,11 @@ def _south_city_blocks(kit, coll, mats, ix, road_z, street_west, street_east, fr
         cursor = x0 + 6.0
         i = 0
         while cursor < x1 - 4.0:
+            # Leave the drone facade's lot empty so that one building stays itself.
+            if abs(cursor + 50.0) < 9.0 and abs(y + 30.0) < 12.0:
+                cursor += 8.6
+                i += 1
+                continue
             # Avenue frontage stays near 11 m so the locked camera still sees the road.
             h = height if abs(y - north_build) > 8.0 else min(height, 11.0)
             h += (i % 3) * 0.8
@@ -1066,7 +1074,11 @@ def _south_city_blocks(kit, coll, mats, ix, road_z, street_west, street_east, fr
             if obj is not None:
                 obj.rotation_mode = "XYZ"
                 obj.rotation_euler.z = facing
-                kit.add(obj, "frontage", sink=False, index=index0 + i)
+                idx = index0 + i
+                kit.add(obj, "frontage", sink=False, index=idx)
+                if idx % 17 == 0:
+                    pile = ico_object("rubble", coll, (cursor, y, road_z + 0.4), (1.6, 1.2, 0.7), mats["concrete"])
+                    kit.add(pile, "rubble", sink=False, index=idx)
             cursor += 8.6
             i += 1
         return i
@@ -1077,17 +1089,8 @@ def _south_city_blocks(kit, coll, mats, ix, road_z, street_west, street_east, fr
         # back edges are the same buildings, set on the sidewalk line.
         n += row(x0 + 1.0, x1 - 1.0, y1 - 5.5, 18.0, n, 0.0)
         n += row(x0 + 1.0, x1 - 1.0, y0 + 6.0, 22.0, n, math.pi)
-    # Ruined city pieces occupy the same blocks once the collapse rises.
-    for name, x, y, yaw in (
-        ("ruin_sw", ix - 48.0, -16.0, 0.2),
-        ("ruin_se", ix + 42.0, -14.0, -0.3),
-        ("ruin_far_s", ix - 40.0, -96.0, 0.6),
-    ):
-        block = private_assets.place_city_block(
-            coll, "ruined_city_free_5.glb", x, y, road_z, yaw=yaw, height=16.0, min_z=0.2, name=name,
-        )
-        if block is not None:
-            kit.add(block, "ruin", sink=False)
+    # Same buildings from day 1 through year 500. Rubble is added on a few lots;
+    # the towers themselves are not replaced.
     _gutted_room(kit, coll, mats, -50.0, -30.0, road_z)
 
 
@@ -1153,22 +1156,7 @@ def _place_hub_blocks(kit, coll, mats):
         sit("procedural_city_6.glb", x, y, FAR_Z, h, yaw, name)
     sit("one_wtc.glb", -42.0, 164.0, FAR_Z, 90.0, 0.45, "wtc", min_z=1.0)
 
-    ruin_size = private_assets.block_size("ruined_city_free_5.glb", 0.25)
-    if ruin_size is not None:
-        width, depth, native_h = ruin_size
-        height = 40.0
-        scale = height / max(native_h, 0.01)
-        sit(
-            "ruined_city_free_5.glb",
-            58.0,
-            (RIVER_Y1 + 5.0) + depth * scale * 0.5,
-            FAR_Z,
-            height,
-            -0.15,
-            "ruin_block",
-            min_z=0.25,
-            role="ruin",
-        )
+    # The far bank keeps its day-1 towers. They age in place; a second city is not swapped in.
 
     walk = AVE_Y - AVENUE_HALF - SIDEWALK_W * 0.35
     for i, x in enumerate((-62.0, -36.0, 28.0, 52.0)):
@@ -1237,8 +1225,16 @@ def _place_hub_blocks(kit, coll, mats):
         kit.add(tuft, "weed", delay=0.0, sink=False, leaf=(0.2, 0.38, 0.12, 1))
     # Trees come up through the avenue only after the meadow. Sidewalks get a
     # soil sheet at the same time.
-    for x, lane in ((-64.0, -4.0), (-40.0, 3.5), (-18.0, -2.0), (30.0, 4.0), (52.0, -3.2)):
-        _tree(kit, coll, mats, x, AVE_Y + lane, road_z, 2.4, future=True, delay=0.72, rng=rng, kind="round")
+    hx, hy, _hyaw = HERO_SPORTS
+    for i, dx in enumerate((-8.0, -3.0, 1.5, 5.0, 9.0)):
+        crack = box_object("hero_crack", coll, (hx + dx, hy + (0.4 if i % 2 else -0.3), road_z + 0.02), (2.4, 0.22, 0.02), mats["trim"])
+        kit.add(crack, "wear", sink=False)
+        tuft = ico_object("hero_weed", coll, (hx + dx, hy + 0.8, road_z + 0.15), (0.55, 0.4, 0.9), mats["leaf"])
+        kit.add(tuft, "weed", delay=0.08 if i < 2 else 0.55, sink=False, leaf=(0.2, 0.4, 0.12, 1))
+        puddle = box_object("puddle", coll, (hx + dx * 0.6, hy - 1.1, road_z + 0.015), (1.6, 0.9, 0.01), mats["water"])
+        kit.add(puddle, "blanket", sink=False)
+    for x, lane in ((-64.0, -4.0), (-40.0, 3.5), (-18.0, -2.0), (30.0, 4.0), (52.0, -3.2), (-50.0, 6.0), (-8.0, -5.5), (12.0, 3.0)):
+        _tree(kit, coll, mats, x, AVE_Y + lane, road_z, 2.6, future=True, delay=0.7, rng=rng, kind="round")
     for x, lane in ((-55.0, 1.5), (18.0, -5.0), (42.0, 2.0)):
         _tree(kit, coll, mats, x, AVE_Y + lane, road_z, 3.1, future=True, delay=0.8, rng=rng, kind="pine")
     sheet = _plane("walk_blanket", coll, (0.0, AVE_Y - AVENUE_HALF - 1.6, road_z + 0.05), (180.0, 3.4), mats["dirt"])
@@ -1522,6 +1518,38 @@ def build_river_city(kit, mats, rng, pieces):
             continue
         _person(kit, col_v, mats, x, y, PARK_Z, rng)
     white = (0.93, 0.93, 0.94, 1)
+    hx, hy, hyaw = HERO_SPORTS
+    _car(
+        kit, col_v, mats, (hx, hy, ROAD_Z), hyaw, (1.0, 1.0, 1.0),
+        drive=0.0, index=2, hero=True, paint=(1.0, 1.0, 1.0),
+    )
+    # Vines, moss, and a sapling in the rear engine bay. They grow with the years
+    # and stay parented to the hero so a Miura mesh can take the same empty.
+    hero = next((item.obj for item in kit.items if item.extra.get("hero")), None)
+    if hero is not None:
+        for i, (lx, ly, lz, sc) in enumerate((
+            (1.4, 0.15, 0.55, (0.55, 0.35, 0.4)),
+            (0.2, -0.35, 0.7, (0.7, 0.4, 0.55)),
+            (-0.8, 0.2, 0.45, (0.6, 0.4, 0.35)),
+            (-1.5, -0.1, 0.35, (0.45, 0.3, 0.25)),
+        )):
+            vine = ico_object("hero_vine", col_v, (0, 0, 0), sc, mats["leaf"])
+            vine.parent = hero
+            vine.matrix_parent_inverse = Matrix.Identity(4)
+            vine.location = (lx, ly, lz)
+            vine.color = (0.15, 0.32, 0.1, 1)
+            kit.add(vine, "weed", delay=0.45, sink=False, leaf=(0.15, 0.32, 0.1, 1))
+        moss = box_object("hero_moss", col_v, (0, 0, 0), (1.4, 0.9, 0.04), mats["leaf"])
+        moss.parent = hero
+        moss.matrix_parent_inverse = Matrix.Identity(4)
+        moss.location = (-0.2, 0.0, 0.72)
+        moss.color = (0.2, 0.36, 0.14, 1)
+        kit.add(moss, "weed", delay=0.4, sink=False, leaf=(0.2, 0.36, 0.14, 1))
+        sap = ico_object("hero_sapling", col_v, (0, 0, 0), (0.35, 0.35, 1.1), mats["leaf"])
+        sap.parent = hero
+        sap.matrix_parent_inverse = Matrix.Identity(4)
+        sap.location = (-1.15, 0.05, 0.9)
+        kit.add(sap, "tree_canopy", future=True, delay=0.62, sink=False, leaf=(0.22, 0.45, 0.16, 1))
     for i, (x, y, yaw) in enumerate(FOREGROUND_CARS):
         _car(
             kit,
@@ -1750,14 +1778,6 @@ def _bridge(kit, col, cars, mats, rng):
         )
         pier.rotation_euler[2] = rot
         kit.add(pier, "prop", sink=False)
-        # Ivy that grows onto the legs as the years pass.
-        for k in range(4):
-            ivy = ico_object("ivy", col, (0, 0, 0), (1.3, 0.9, 2.0), mats["leaf"])
-            ivy.parent = pivot
-            ivy.matrix_parent_inverse = Matrix.Identity(4)
-            ivy.location = ((-1 if k % 2 == 0 else 1) * TOWER_W * 0.42, 0.6, 8.0 + k * 7.0)
-            ivy.color = (0.2, 0.4, 0.16, 1)
-            kit.add(ivy, "tree_canopy", future=True, delay=0.45 + k * 0.04, sink=False, leaf=(0.2, 0.4, 0.16, 1), autumn=(0.4, 0.32, 0.14, 1))
     cyl = cylinder_mesh("cable", radius=1.0, segments=8)
     cables = []
     for side in (-1, 1):
@@ -1768,31 +1788,7 @@ def _bridge(kit, col, cars, mats, rng):
     for _ in range(20):
         obj = link_obj("sus", cyl, col, (mats["cable"],))
         suspenders.append(obj)
-    colors = [(0.92, 0.92, 0.94, 1), (0.12, 0.12, 0.13, 1), (0.75, 0.18, 0.14, 1), (0.2, 0.32, 0.55, 1)]
-    deck_models = ("sedan", "taxi", "suv", "hatchback-sports")
-    lanes = DECK_LANES
-    from mathutils import Vector
-
-    deck_obj = segments[0]
-    heading = math.atan2(deck_direction()[1], deck_direction()[0])
-    rx, ry = right_vector()
-    for i, s in enumerate((58.0, 78.0)):
-        x, y = deck_point(s)
-        lane = lanes[i]
-        pos = Vector((x + rx * lane, y + ry * lane, deck_z(s) + RIBBON_TOP + 0.02))
-        _car(
-            kit,
-            cars,
-            mats,
-            (0, 0, 0),
-            heading,
-            (0.94, 0.94, 0.95, 1),
-            parent=deck_obj,
-            local=tuple(pos - Vector(deck_obj.location)),
-            drive=0.0,
-            model=deck_models[i % len(deck_models)],
-            index=i + 3,
-        )
+    # No cars on the river span. A light body there read as a box on the deck.
     kit.bridge = {
         "decks": decks,
         "towers": towers,

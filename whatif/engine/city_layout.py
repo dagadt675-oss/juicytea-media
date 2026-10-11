@@ -392,13 +392,15 @@ _WEST_Y = AVE_Y + LANE_OFFSETS[3]
 _WEST_Y2 = AVE_Y + LANE_OFFSETS[2]
 _PARK_S = AVE_Y - AVE_HALF - PARKING_W * 0.5
 _PARK_N = AVE_Y + AVE_HALF + PARKING_W * 0.5
+# The drone hero sits in the southbound-side eastbound lane. Nose +X.
+# A Miura mesh can replace the stand-in without moving this point.
+HERO_SPORTS = (-36.0, _EAST_Y, 0.0)
 # Stopped traffic sits about 7.5 m center to center (a car length plus a
 # short gap). Cars farther from the light are spaced wider. Parked cars
 # face the same way as the lane beside them.
 FOREGROUND_CARS = (
     (-20.0, _EAST_Y, 0.0),
     (-28.0, _EAST_Y, 0.0),
-    (-36.0, _EAST_Y, 0.0),
     (-44.0, _EAST_Y, 0.0),
     (-56.0, _EAST_Y, 0.0),
     (-72.0, _EAST_Y, 0.0),

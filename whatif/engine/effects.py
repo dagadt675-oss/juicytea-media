@@ -73,6 +73,48 @@ def _paint_descendants(obj, color):
         _paint_descendants(child, color)
 
 
+def _crumple_nose(empty):
+    """Push the nose down and back. The mesh copy stays unique to this hero."""
+    nose = empty.matrix_world.to_quaternion() @ Vector((1.0, 0.0, 0.0))
+    for obj in empty.children_recursive:
+        if obj.type != "MESH" or obj.data is None:
+            continue
+        if "vine" in obj.name or "moss" in obj.name or "sapling" in obj.name:
+            continue
+        world_pts = [obj.matrix_world @ vert.co for vert in obj.data.vertices]
+        if not world_pts:
+            continue
+        projections = [(point - empty.matrix_world.translation).dot(nose) for point in world_pts]
+        lo, hi = min(projections), max(projections)
+        span = max(hi - lo, 1e-4)
+        inverse = obj.matrix_world.inverted()
+        for vert, proj, point in zip(obj.data.vertices, projections, world_pts):
+            t = (proj - lo) / span
+            if t < 0.8:
+                continue
+            dent = t - 0.8
+            point = point - nose * dent * 0.7
+            point.z -= dent * 0.45
+            vert.co = inverse @ point
+
+
+def _kill_emission(obj, amount):
+    for mesh in [obj, *list(getattr(obj, "children_recursive", []))]:
+        if getattr(mesh, "type", "") != "MESH":
+            continue
+        for slot in mesh.material_slots:
+            material = slot.material
+            if material is None or material.node_tree is None:
+                continue
+            bsdf = next((node for node in material.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+            if bsdf is None or "Emission Strength" not in bsdf.inputs:
+                continue
+            socket = bsdf.inputs["Emission Strength"]
+            if "emit0" not in material:
+                material["emit0"] = float(socket.default_value)
+            socket.default_value = float(material["emit0"]) * (1.0 - amount)
+
+
 def apply(kit, ch, frame, fps):
     kind = kit.kind
     collapse = ch["collapse"]
@@ -275,23 +317,33 @@ def _life(kit, ch, frame, fps, snow):
             pos = a.lerp(b, u)
             rust = ch["rust"]
             veg = ch["vegetation"]
+            hero = bool(item.extra.get("hero"))
             grime_u = max(rust, smoother(0.05, 0.4, veg) * 0.7)
-            flat = 1.0 - 0.62 * smoother(0.28, 0.92, rust)
+            flat = 1.0 - (0.22 if hero else 0.62) * smoother(0.28, 0.92, rust)
             bury = 0.7 * smoother(0.5, 1.0, max(rust, veg if veg > 0.85 else 0.0))
-            hero = int(item.extra.get("index", 0)) in (0, 2, 8)
-            gone = rust > 0.9 and not hero
             if hero:
-                bury *= 0.35
+                bury = 0.06 * rust
+                if rust > 0.72 and not obj.get("nose_crumpled"):
+                    _crumple_nose(obj)
+                    obj["nose_crumpled"] = True
+            gone = (not hero) and rust > 0.9
             pos.z -= snow * 0.32 + bury
             pos.z += ch["gravity"] * item.extra.get("float", 0.0)
             obj.location = pos
             obj.scale = (item.base_scale.x, item.base_scale.y, item.base_scale.z * max(flat, 0.2))
             obj.hide_render = gone
             for child in obj.children:
-                child.hide_render = gone
-            husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.18, 0.11, 0.07)), grime_u)
+                if child.get("role") not in ("weed", "tree_canopy"):
+                    child.hide_render = gone
+            paint = Vector(item.extra.get("paint", (1.0, 1.0, 1.0))[:3])
+            if hero:
+                # Darken the factory paint. A red or gold Miura still reads through the rust.
+                husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.58, 0.34, 0.26)), min(1.0, grime_u * 0.62))
+            else:
+                husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.18, 0.11, 0.07)), grime_u)
             _paint_descendants(obj, (husk.x, husk.y, husk.z, 1.0))
-            yaw = item.base_rot.z + grime_u * (0.12 if item.extra.get("index", 0) % 2 == 0 else -0.1)
+            askew = 0.35 if veg > 0.15 and not hero else 0.08
+            yaw = item.base_rot.z + grime_u * (askew if item.extra.get("index", 0) % 2 == 0 else -askew)
             obj.rotation_euler = _euler(item.base_rot, dz=yaw - item.base_rot.z)
         elif role == "bird":
             gone = max(ch["fauna"], smoother(0.15, 0.45, ch["vanish"]))
@@ -319,11 +371,21 @@ def _life(kit, ch, frame, fps, snow):
         elif role == "blanket":
             obj.hide_render = ch["vegetation"] < 0.7
         elif role == "frontage":
-            u = smoother(0.42, 0.74, ch["collapse"])
-            keep = int(item.extra.get("index", 0)) % 5 == 0
-            obj.hide_render = (not keep) and u > 0.45
-            for child in obj.children:
-                child.hide_render = obj.hide_render
+            # The same building stays. A few lean as the top gives way.
+            lean = 0.0
+            if int(item.extra.get("index", 0)) % 17 == 0:
+                lean = smoother(0.55, 0.95, ch["collapse"]) * 0.22
+            obj.rotation_euler = _euler(item.base_rot, dx=lean)
+            obj.hide_render = False
+        elif role == "rubble":
+            s = smoother(0.48, 0.82, ch["collapse"])
+            obj.hide_render = s < 0.08
+            obj.scale = item.base_scale * max(s, 0.001)
+        elif role == "prop" and "signal" in obj.name:
+            u = smoother(0.35, 0.8, ch["vegetation"])
+            obj.rotation_euler = _euler(item.base_rot, dx=u * 1.35)
+            obj.location = item.base_loc
+            _kill_emission(obj, u)
         elif role == "forest_floor":
             # Day 1 stays city-grey on the far bank. Meadow, then forest floor.
             obj.hide_render = ch["vegetation"] < 0.22
@@ -378,8 +440,8 @@ def _bridge(kit, ch):
         elif i == 0:
             # The river span settles into the water. It does not slide onto the far bank.
             u = smoother(0.55, 0.92, ch["collapse"])
-            rot.x += u * 0.10
-            loc.z = item.base_loc.z * (1.0 - u) + 0.05 * u
+            rot.x += u * 0.62
+            loc.z = item.base_loc.z * (1.0 - u) + 0.15 * u
             item.obj.hide_render = False
             for child in item.obj.children:
                 child.hide_render = "car" not in child.name and u > 0.45
@@ -586,16 +648,14 @@ def _sky(kit, ch, frame, fps):
         u = clamp((dn - 0.12) / 0.3)
         elev = _lerp(1.05, 1.22, u)
         # The HDRI is the fill. The sun is a cooler, weaker key with a wide angle.
-        energy = _lerp(2.8, 1.5, u)
-        color = Vector(lin(0.95, 0.97, 1.0)[:3]).lerp(Vector(lin(1.0, 0.72, 0.48)[:3]), u)
-        sky = Vector(lin(0.56, 0.74, 0.96)[:3]).lerp(Vector(lin(0.98, 0.62, 0.38)[:3]), u * 0.75)
-        horizon = Vector(lin(0.78, 0.86, 0.94)[:3]).lerp(Vector(lin(0.98, 0.55, 0.32)[:3]), u)
-        sky_e = _lerp(1.55, 0.95, u)
-        fill = 0.18
-        # 0 keeps the sunny HDRI in the sky. Sunset mixes toward the gradient.
-        # A little of the blue gradient keeps the zenith cheerful. The HDRI
-        # still supplies the clouds and the light.
-        sky_mix = _lerp(0.34, 0.55, u)
+        energy = _lerp(5.2, 2.4, u)
+        color = Vector(lin(1.0, 0.96, 0.88)[:3]).lerp(Vector(lin(1.0, 0.72, 0.48)[:3]), u)
+        sky = Vector(lin(0.42, 0.64, 0.95)[:3]).lerp(Vector(lin(0.98, 0.62, 0.38)[:3]), u * 0.75)
+        horizon = Vector(lin(0.96, 0.90, 0.78)[:3]).lerp(Vector(lin(0.98, 0.55, 0.32)[:3]), u)
+        sky_e = _lerp(1.15, 0.85, u)
+        fill = 0.22
+        # Mostly the clear HDRI, with a warm horizon so the sky is not a grey slab.
+        sky_mix = _lerp(0.18, 0.45, u)
     elif dn < 0.68:
         u = clamp((dn - 0.42) / 0.26)
         elev = _lerp(1.15, 1.72, u)
@@ -624,7 +684,7 @@ def _sky(kit, ch, frame, fps):
         sky = sky.lerp(Vector(lin(0.72, 0.62, 0.48)[:3]), ch["dust"] * 0.5)
     kit.sun.rotation_euler = Euler((elev, 0.08, -0.85))
     kit.sun.data.energy = energy
-    kit.sun.data.angle = 0.1 if dn > 0.68 else 0.36
+    kit.sun.data.angle = 0.06 if dn < 0.42 else (0.1 if dn > 0.68 else 0.2)
     kit.sun.data.color = (color.x, color.y, color.z)
     kit.fill.data.energy = fill * (1.0 - 0.3 * ch["ice"])
     if kit.world_bg:
