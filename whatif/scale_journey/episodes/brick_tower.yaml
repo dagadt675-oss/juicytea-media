@@ -1,7 +1,8 @@
-# Stack generic stud bricks until the bottom one fails. No logos, no brand name on screen.
+# Stack generic 2x2 stud bricks until the bottom one fails.
+# No logos and no brand name on screen. "LEGO" is a voiceover mention only.
 format: B
 id: brick_tower
-title: "What if you stacked building bricks until the bottom one broke?"
+title: "How tall can a toy-brick tower get before the bottom brick breaks?"
 status: final
 preset: brick_tower
 fps: 30
@@ -9,27 +10,37 @@ width: 1080
 height: 1920
 
 timing:
-  hook_hold: 2.2
-  duration_sec: 32.0
+  hook_hold: 3.0
+  duration_sec: 50.0
 
 quantity:
-  # Reported average failure load of a 2x4 stud brick in the Open University press test.
-  failure_n: 4240
-  # Scenario mass. Real 2x4 bricks are often quoted near 2–2.5 g. Fact-check.
-  mass_kg: 0.0025
-  # System course height, stud brick, 9.6 mm. Geometry only. No logo.
+  # Open University figure reported by the BBC: about 375,000 2x2 bricks.
+  bricks: 375000
+  kind: "2x2"
+  logo: false
+  # System course height, 9.6 mm. Geometry only.
   course_m: 0.0096
 
 say:
-  first: "One brick."
-  half: "Halfway to the load that cracks the bottom brick."
-  failure: "The bottom brick gives up."
+  first: "One brick. About four tenths of an inch."
+  dad: "Past a six-foot person. About one hundred and ninety bricks."
+  liberty: "The Statue of Liberty. Three hundred and five feet."
+  empire: "The Empire State Building, tip included."
+  burj: "The Burj Khalifa. Two thousand seven hundred and seventeen feet."
+  strain: "Three hundred thousand bricks. The bottom one is glowing."
+  failure: "It gives up around three hundred and seventy-five thousand bricks. About two miles, for a perfectly balanced tower."
+  record: "The real record is one hundred and fifteen feet."
 
 sources:
   - id: load
-    used_for: "4,240 newtons, the average a 2x4 stud brick took in the Open University hydraulic-press test reported by the BBC in 2012."
-    note: "Confirm the paper or the BBC write-up before publishing. Do not put a brand name on screen."
+    used_for: "About 375,000 2x2 bricks, roughly 3.5 km, before the bottom one fails. 375,000 × 9.6 mm is 3.6 km. Say about 2 miles."
+    url: "https://www.bbc.com/news/magazine-20578627"
+  - id: record
+    used_for: "Tallest interlocking-plastic-brick structure, 35.05 m (114 ft 11 in), Milan, 2015."
+    url: "https://www.guinnessworldrecords.com/world-records/tallest-structure-built-with-interlocking-plastic-bricks"
   - id: course
-    used_for: "9.6 mm system height of a standard stud brick."
-  - id: mass
-    used_for: "2.5 g per brick, a scenario mass inside the usual 2–2.5 g range."
+    used_for: "9.6 mm system height. A 6 ft person is about 190 courses. Liberty 305 ft is about 9,700. The Empire State tip 1,454 ft is about 46,200. Burj Khalifa 2,717 ft is about 86,300."
+  - id: buckle
+    used_for: "A real tower buckles or topples before this load. Voice a perfectly balanced tower."
+  - id: trademark
+    used_for: "Generic stud brick. No logo. The brand name is a factual voiceover mention only, or say toy bricks in the title."

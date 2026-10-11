@@ -28,10 +28,10 @@ OUTLINES: dict[str, dict] = {
         "label": "EMPIRE STATE",
         "sub": "1,454 ft",
         "height_m": 443.2,
-        "deck_m": 1050 * FT,  # 86th-floor observatory, the penny's ledge
+        "deck_m": 1250 * FT,  # 102nd-floor observatory / roof, the penny's ledge
         "roof_m": 1250 * FT,
         "kind": "tower",
-        "source": "Tip 1,454 ft including the antenna. 86th-floor observatory 1,050 ft. Empire State Building.",
+        "source": "Roof and 102nd-floor observatory 1,250 ft. Tip 1,454 ft. Empire State Building facts and figures.",
     },
     "burj": {
         "label": "BURJ KHALIFA",

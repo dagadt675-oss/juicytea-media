@@ -2,7 +2,7 @@
 
 Format B from the approved slate. The full test picture is the penny dropped from the Empire State Building. The second spec is rice on a chessboard. Hole-through-the-Earth, the unbranded brick tower, and the Rhode Island crowd resolve to timelines and the instancer.
 
-Shared with formats A and C, not copied: the counter and type in `whatif/engine/overlay.py` (Noto Serif and Inter), plus `whatif/ui/` for label pills, the reference-outline library (Statue of Liberty, Empire State, Burj Khalifa, a stadium, Titanic, a person), the loop helper, and the `words.json` clock.
+Shared with formats A and C: the caption band and the `words.json` clock from `whatif/engine`. The format B counter is the slate's Anton slot stack in `whatif/ui/` (height in feet big, metres small). The same folder holds label pills, the reference outlines (Statue of Liberty, Empire State, Burj Khalifa, a stadium, Titanic, a person), and the loop helper.
 
 ```bash
 python3 whatif/scale_journey/render_episode.py whatif/scale_journey/episodes/penny_empire.yaml

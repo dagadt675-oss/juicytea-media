@@ -76,20 +76,20 @@ def _contact(frame_dir: Path, fps: int, dest: Path):
 
 def _keys(ep, final_dir: Path, dest: Path):
     dest.mkdir(parents=True, exist_ok=True)
-    fps = ep.fps
-    names = {
-        0: "00_hook",
-    }
-    # Payoff frame: first frame of the payoff phase, plus a mid-fall and the street.
-    payoff = next(fr.frame for fr in ep.frames if fr.phase == "payoff")
-    mid = next(fr.frame for fr in ep.frames if fr.phase == "fall" and fr.speed_mps > ep.notes["terminal_mps"] * 0.5)
-    fast = next(fr.frame for fr in ep.frames if fr.phase == "fall" and fr.speed_mps > ep.notes["terminal_mps"] * 0.97)
-    names[mid] = "fall_mid"
-    names[fast] = "terminal"
-    names[payoff] = "payoff"
-    names[len(ep.frames) // 5] = "leaving"
+
+    def first(phase):
+        return next(fr.frame for fr in ep.frames if fr.phase == phase)
+
+    picks = [
+        ("00_hook", 0),
+        ("fall", first("fall")),
+        ("liberty", first("liberty")),
+        ("edge", first("edge")),
+        ("hit", first("hit")),
+        ("loop", ep.frames[-1].frame),
+    ]
     written = []
-    for frame, name in list(names.items())[:6]:
+    for name, frame in picks:
         src = final_dir / f"f_{frame:04d}.png"
         if src.exists():
             target = dest / f"key_{name}.png"
@@ -133,10 +133,18 @@ def render_format_b(args, raw):
             "deck_m": empire["deck_m"],
             "roof_m": empire["roof_m"],
             "tip_m": empire["height_m"],
+            "liberty_m": outline("liberty")["height_m"],
             "facade": textures["facade"],
             "out": str(out / "plates"),
             "frames": [
-                {"frame": fr.frame, "t": fr.t, "cam": list(fr.cam), "target": list(fr.target), "penny": list(fr.penny)}
+                {
+                    "frame": fr.frame,
+                    "t": fr.t,
+                    "cam": list(fr.cam),
+                    "target": list(fr.target),
+                    "penny": list(fr.penny),
+                    "rot": list(fr.rot),
+                }
                 for fr in frames
             ],
         }

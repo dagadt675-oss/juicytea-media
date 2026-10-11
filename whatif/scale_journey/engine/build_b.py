@@ -185,8 +185,10 @@ def _tower(job, facade):
     lip.location = (-0.22, 0.0, 0.0)
     bpy.ops.object.transform_apply(scale=True)
     _assign(lip, stone)
-    step = deck / 86.0
-    _instance_floors(lip, [step * (i + 0.5) for i in range(86)])
+    floors = 102
+    step = deck / floors
+    _instance_floors(lip, [step * (i + 0.5) for i in range(floors)])
+    _liberty(float(job.get("liberty_m", 93.0)))
 
 
 def _penny():
@@ -200,15 +202,19 @@ def _penny():
 
 
 def _person():
-    """5 ft 9 in outline standing on the sidewalk."""
+    """5 ft 9 in outline with a cap, standing where the penny lands."""
     h = 1.7526
     cloth = _mat("Coat", (0.12, 0.16, 0.28), 0.7, 0.02)
     skin = _mat("Skin", (0.55, 0.38, 0.30), 0.6, 0.02)
+    cap = _mat("Cap", (0.15, 0.22, 0.55), 0.55, 0.04)
     root = _link(bpy.data.objects.new("Person", None))
-    root.location = (1.6, 1.4, 0.0)
+    root.location = (0.62, 0.16, 0.0)
 
-    def part(scale, loc, mat):
-        bpy.ops.mesh.primitive_uv_sphere_add(radius=1.0, location=loc)
+    def part(scale, loc, mat, kind="sphere"):
+        if kind == "sphere":
+            bpy.ops.mesh.primitive_uv_sphere_add(radius=1.0, location=loc)
+        else:
+            bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=1.0, depth=1.0, location=loc)
         obj = bpy.context.object
         obj.scale = scale
         bpy.ops.object.transform_apply(scale=True)
@@ -217,7 +223,43 @@ def _person():
 
     part((0.16 * h, 0.1 * h, 0.28 * h), (0, 0, 0.55 * h), cloth)
     part((0.11 * h, 0.11 * h, 0.12 * h), (0, 0, 0.88 * h), skin)
+    part((0.13 * h, 0.13 * h, 0.035 * h), (0, 0, 0.98 * h), cap, kind="cyl")
     return root
+
+
+def _ghost_mat():
+    mat = _mat("Ghost", (0.55, 0.82, 0.58), 0.4, 1.6)
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+    if "Alpha" in bsdf.inputs:
+        bsdf.inputs["Alpha"].default_value = 0.55
+    try:
+        mat.surface_render_method = "BLENDED"
+    except Exception:
+        pass
+    return mat
+
+
+def _liberty(height):
+    """Generic monument massing, ground to torch at the real 305 ft. No likeness."""
+    mat = _ghost_mat()
+    base = (-6.0, 4.5, 0.0)
+    scale = height / 93.0
+
+    def put(name, w, d, h, center):
+        loc = (base[0] + center[0], base[1] + center[1], center[2] * scale)
+        obj = _box(name, w * scale, d * scale, h * scale, loc)
+        _assign(obj, mat)
+        return obj
+
+    put("Pedestal", 8.0, 8.0, 14.0, (0, 0, 7.0))
+    put("Robe", 5.5, 4.5, 50.0, (0, 0, 14.0 + 25.0))
+    put("Head", 3.0, 3.0, 8.0, (0, 0, 68.0))
+    put("Crown", 3.6, 0.5, 7.0, (0, 0, 76.0))
+    put("Arm", 2.0, 2.0, 16.0, (2.4, 0, 78.0))
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=1.3 * scale, location=(base[0] + 2.4, base[1], 93.0 * scale))
+    torch = bpy.context.object
+    torch.name = "Torch"
+    _assign(torch, mat)
 
 
 def _street():
@@ -281,7 +323,11 @@ def main():
         target.location = fr["target"]
         px, py, pz = fr["penny"]
         penny.location = (px, py, pz + 0.012)
-        penny.rotation_euler = (spin * fr["t"], 0.4, 0.0)
+        rot = fr.get("rot")
+        if rot:
+            penny.rotation_euler = tuple(rot)
+        else:
+            penny.rotation_euler = (spin * fr["t"], 1.05, 0.05)
         bpy.context.view_layer.update()
         scene.render.filepath = str(out / f"f_{fr['frame']:04d}.png")
         bpy.ops.render.render(write_still=True)

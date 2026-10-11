@@ -38,7 +38,7 @@ if raw.get("module") == "scale_journey":
 
 ## Shared UI
 
-Format B does not keep a second type stack. `whatif/ui/` calls `engine.overlay` for the shadow, the Noto Serif and Inter fonts, and the caption band at y 0.64–0.78. `whatif/ui/words.py` calls `engine.spec.words_document`, so the voice clock is `{duration, words:[{w,t0,t1}]}`. The pieces that format A did not ship live here: label pills, the outline library (Statue of Liberty, Empire State, Burj Khalifa, stadium, Titanic, person), and the loop helper.
+`whatif/ui/` calls `engine.overlay` for the shadow helper and the caption band at y 0.64–0.78, and `whatif/ui/words.py` calls `engine.spec.words_document`, so the voice clock is `{duration, words:[{w,t0,t1}]}`. The format B counter itself is the slate's Anton slot stack (US unit big, metric small, each value held at least 0.8 s). Label pills, the outline library (Statue of Liberty, Empire State, Burj Khalifa, stadium, Titanic, person), and the loop helper live in `whatif/ui/` because format A did not ship them.
 
 ## What is deliberately different
 

@@ -2,7 +2,7 @@
 # The loop plays the trip backward, so the picture ends on the first frame.
 format: B
 id: earth_hole
-title: "What if you jumped into a hole through the Earth?"
+title: "Dig straight down from your backyard. Where do you come out?"
 status: final
 preset: earth_hole
 fps: 30
@@ -11,52 +11,89 @@ height: 1920
 loop: pingpong
 
 timing:
-  hook_hold: 2.2
+  hook_hold: 3.0
   one_way_sec: 38.2
-  duration_sec: 42.0
+  duration_sec: 48.0
 
-# Antipode of the Empire State Building (40.748° N, 73.986° W)
-# is 40.748° S, 106.014° E, in the southern Indian Ocean.
+# From most of the contiguous US the exit is the southern Indian Ocean, not China.
 antipode:
   lat: -40.748
   lon: 106.014
 exit: "Indian Ocean"
 
 layers:
-  - id: crust
+  - id: backyard
     t: 0.0
-    depth: "0 mi"
-    name: "CRUST"
+    depth: "0"
+    unit: "mi"
+    name: "BACKYARD"
+  - id: mponeng
+    t: 3.0
+    depth: "2.4"
+    unit: "mi"
+    name: "MPONENG"
+    temp: "2.4 mi"
+  - id: kola
+    t: 7.0
+    depth: "7.6"
+    unit: "mi"
+    name: "KOLA"
+    temp: "0.19% of the way"
   - id: mantle
-    t: 6.0
-    depth: "20 mi"
+    t: 12.0
+    depth: "40"
+    unit: "mi"
     name: "MANTLE"
   - id: outer
-    t: 16.0
-    depth: "1,800 mi"
+    t: 18.0
+    depth: "1,800"
+    unit: "mi"
     name: "OUTER CORE"
   - id: inner
-    t: 24.0
-    depth: "3,200 mi"
+    t: 25.0
+    depth: "3,200"
+    unit: "mi"
     name: "INNER CORE"
+    temp: "10,800°F"
+  - id: center
+    t: 31.0
+    depth: "3,959"
+    unit: "mi"
+    name: "CENTER"
+    temp: "weightless"
   - id: ocean
-    t: 38.0
-    depth: "other side"
+    t: 35.0
+    depth: "out"
+    unit: ""
     name: "INDIAN OCEAN"
+    temp: "38 min"
 
 say:
-  crust: "You step off in New York."
-  mantle: "The crust is gone. This is the mantle."
-  outer: "Molten iron. The outer core."
-  inner: "The solid inner core, then back out."
-  ocean: "You come up in the Indian Ocean. Then you fall back the way you came."
+  backyard: "Dig straight down from the backyard. Where do you come out?"
+  mponeng: "Mponeng, the deepest mine, is about two point four miles down."
+  kola: "Kola is the deepest hole humans have drilled. Seven point six miles. That is nineteen hundredths of one percent of the way."
+  mantle: "The crust gives way to the mantle. The walls glow."
+  outer: "The liquid outer core starts about eighteen hundred miles down."
+  inner: "The solid inner core. About as hot as the surface of the Sun. Ten thousand eight hundred degrees."
+  center: "The center. Three thousand nine hundred and fifty-nine miles. You weigh nothing."
+  ocean: "You come up in the southern Indian Ocean, about thirty-eight minutes later, in theory. Then you fall back in."
 
 sources:
-  - id: transit
-    used_for: "About 38 minutes to the other side in a realistic Earth, not a uniform ball."
-    note: "Klotz, American Journal of Physics 2015, gives roughly 38 minutes for PREM. Fact-check the exact figure before publishing."
-  - id: antipode
-    used_for: "The point opposite the Empire State Building is in the southern Indian Ocean, near 41° S, 106° E."
+  - id: kola
+    used_for: "Kola Superdeep Borehole, 12,262 m. That is 0.19% of Earth's radius."
+    url: "https://en.wikipedia.org/wiki/Kola_Superdeep_Borehole"
+  - id: mponeng
+    used_for: "Mponeng, about 3.9 km, deepest mine."
+    url: "https://www.guinnessworldrecords.com/world-records/66169-deepest-mine"
   - id: layers
-    used_for: "Crust, mantle to about 2,900 km, outer core to about 5,150 km, inner core to the centre at 6,371 km."
-    note: "Depth labels in the spec are round miles for the counter, not survey stations."
+    used_for: "Mantle to about 2,890 km, inner core from about 5,150 km, radius 6,371 km."
+    url: "https://pubs.usgs.gov/gip/dynamic/inside.html"
+  - id: heat
+    used_for: "Inner-core boundary about 6,000°C, comparable to the Sun's surface. About 10,800°F."
+    url: "https://www.bbc.com/news/science-environment-22297915"
+  - id: transit
+    used_for: "About 38 minutes 11 seconds through an evacuated tunnel. Say in theory."
+    url: "https://phys.org/news/2015-03-fall-hole-earth.html"
+  - id: antipode
+    used_for: "From most of the contiguous US the exit is the southern Indian Ocean, not China."
+    url: "https://www.weathergraphics.com/tim/antipode/"

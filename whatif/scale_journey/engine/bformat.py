@@ -81,6 +81,12 @@ class BFrame:
     target: tuple[float, float, float] = (0.0, 0.0, 0.0)
     speed_mps: float = 0.0
     fallen_m: float = 0.0
+    metric: str = ""
+    roll: float = 1.0
+    primary_prev: str = ""
+    secondary_roll: float = 1.0
+    secondary_prev: str = ""
+    rot: tuple[float, float, float] = (0.0, 0.0, 0.0)
 
 
 @dataclass
@@ -133,95 +139,225 @@ def resolve_b(path) -> BEpisode:
     raise ValueError(f"unknown format B preset {preset}")
 
 
+def _lerp(a, b, u):
+    return tuple(a[i] + (b[i] - a[i]) * u for i in range(len(a)))
+
+
+def _interp(keys, t) -> float:
+    if t <= keys[0][0]:
+        return float(keys[0][1])
+    if t >= keys[-1][0]:
+        return float(keys[-1][1])
+    for (t0, v0), (t1, v1) in zip(keys, keys[1:]):
+        if t <= t1:
+            if t1 == t0:
+                return float(v1)
+            u = (t - t0) / (t1 - t0)
+            u = u * u * (3.0 - 2.0 * u)
+            return float(v0 + (v1 - v0) * u)
+    return float(keys[-1][1])
+
+
+def _held(rows, t):
+    chosen = rows[0]
+    for row in rows:
+        if t + 1e-9 >= row[0]:
+            chosen = row
+    return chosen
+
+
 def _penny(raw: dict) -> BEpisode:
+    """Beat clock from the slate. Physics still supplies the 25 mph payoff.
+
+    The picture is 40 s, not the ~34 s real fall: the counter holds each
+    slate altitude, and the last four seconds rise back to the ledge.
+    """
     q = raw["quantity"]
     vt = terminal_mps(float(q["mass_kg"]), float(q["diameter_m"]), float(q["cd"]), float(q["air_kg_m3"]))
     drop = float(outline("empire")["deck_m"])
     fall_t = time_to_fall(drop, vt)
-    timing = raw["timing"]
-    hook = float(timing["hook_hold"])
-    payoff = float(timing["payoff_hold"])
-    dissolve = float(timing["dissolve"])
-    duration = hook + fall_t + payoff + dissolve
-    fps = int(raw["fps"])
-    n = int(round(duration * fps))
     mph = vt / MPH
-    deck_ft = drop / FT
-    cam_off = tuple(raw["camera"]["offset_m"])
-    penny_x = float(raw["camera"]["penny_x_m"])
+    fps = int(raw["fps"])
+    duration = float(raw["timing"]["duration_sec"])
+    n = int(round(duration * fps))
+    # Visual altitude, feet. Arrives at each slate height, then holds.
+    altitude = [
+        (0.0, 1250.0),
+        (3.0, 1250.0),
+        (4.2, 1200.0),
+        (6.0, 1200.0),
+        (8.0, 1000.0),
+        (12.0, 1000.0),
+        (14.5, 700.0),
+        (20.0, 700.0),
+        (23.0, 305.0),
+        (27.0, 305.0),
+        (29.2, 150.0),
+        (31.0, 150.0),
+        (33.2, 6.0),
+        (36.0, 6.0),
+        (39.2, 1250.0),
+        (40.0, 1250.0),
+    ]
+    # (t, feet, mph). Each row holds until the next, and every gap is ≥ 0.8 s.
+    shown = [
+        (0.0, 1250, 0),
+        (3.0, 1200, 25),
+        (6.0, 1000, 25),
+        (12.0, 700, 25),
+        (20.0, 600, 25),
+        (21.2, 450, 25),
+        (22.4, 305, 25),
+        (27.0, 150, 25),
+        (31.0, 0, 25),
+        (36.0, 400, 0),
+        (37.2, 800, 0),
+        (38.4, 1200, 0),
+        (39.2, 1250, 0),
+    ]
+    close = (0.48, -0.11, 0.06)
+    wide = (0.98, -0.62, 0.34)
+    cap_xy = (0.62, 0.16)
+    ledge_xy = (0.22, 0.0)
     frames = []
+    prev_feet, prev_mph = None, None
+    feet_from, mph_from = "1,250", "0"
+    feet_change = mph_change = 0.0
     for i in range(n):
         t = i / fps
-        if t < hook:
+        alt_ft = _interp(altitude, min(t, 40.0))
+        _t0, feet, speed_mph = _held(shown, t)
+        if t < 3.0:
             phase = "hook"
-            fallen, speed = 0.0, 0.0
-        elif t < hook + fall_t:
+        elif t < 6.0:
             phase = "fall"
-            fallen, speed = fall_distance_speed(t - hook, vt)
-            fallen = min(fallen, drop)
-        elif t < hook + fall_t + payoff:
-            phase = "payoff"
-            fallen, speed = drop, vt
+        elif t < 12.0:
+            phase = "floors"
+        elif t < 20.0:
+            phase = "drag"
+        elif t < 27.0:
+            phase = "liberty"
+        elif t < 31.0:
+            phase = "edge"
+        elif t < 36.0:
+            phase = "hit"
+        elif t < 39.2:
+            phase = "rise"
         else:
-            phase = "dissolve"
-            fallen, speed = drop, vt
-        z = drop - fallen
-        penny = (penny_x, 0.0, z)
-        cam = (penny[0] + cam_off[0], penny[1] + cam_off[1], penny[2] + cam_off[2])
-        title_alpha = 1.0 - _fade(t, hook - 0.35, hook + 0.25)
-        if phase == "dissolve":
-            title_alpha = 0.0
-        end_in = _fade(t, hook + fall_t, hook + fall_t + 0.45)
-        end_out = _fade(t, hook + fall_t + payoff, hook + fall_t + payoff + dissolve * 0.5)
-        ending_alpha = end_in * (1.0 - end_out) if phase in ("payoff", "dissolve") else 0.0
-        diss = _fade(t, duration - dissolve, duration) if phase == "dissolve" else 0.0
-        remaining_ft = max(0.0, (drop - fallen) / FT)
-        speed_mph = speed / MPH
-        # Integer mph. The 25 mph payoff then holds for the rest of the fall.
-        shown = int(round(speed_mph))
+            phase = "hold"
+        feet_s = f"{int(feet):,}"
+        mph_s = str(int(speed_mph))
+        if feet_s != prev_feet:
+            feet_from = prev_feet or feet_s
+            feet_change = t
+            prev_feet = feet_s
+        if mph_s != prev_mph:
+            mph_from = prev_mph or mph_s
+            mph_change = t
+            prev_mph = mph_s
+        feet_roll = 1.0 if feet_from == feet_s else _fade(t, feet_change, feet_change + 0.28)
+        mph_roll = 1.0 if mph_from == mph_s else _fade(t, mph_change, mph_change + 0.28)
+        # Widen on the way down. The rise is the only return, so the loop matches frame 0.
+        if t < 3.0:
+            off = close
+        elif t < 36.0:
+            off = _lerp(close, wide, _fade(t, 3.0, 33.0))
+        else:
+            off = _lerp(wide, close, _fade(t, 36.0, 39.2))
+        if t < 31.0:
+            xy = ledge_xy
+        elif t < 36.0:
+            xy = _lerp(ledge_xy, cap_xy, _fade(t, 31.0, 33.2))
+        else:
+            xy = _lerp(cap_xy, ledge_xy, _fade(t, 36.0, 39.2))
+        z = alt_ft * FT
+        penny = (xy[0], xy[1], z)
+        cam = (penny[0] + off[0], penny[1] + off[1], penny[2] + off[2])
+        target = (penny[0] - 0.02, penny[1], penny[2] - 0.02)
+        # Face the lens on the way down. Edge-on through the 27–31 s beat. Frame 0 pose at the end.
+        if phase == "edge":
+            tilt, spin = 0.18, t * 11.0
+        elif phase in ("hook", "hold"):
+            tilt, spin = 1.05, 0.15
+        elif phase == "rise":
+            u = _fade(t, 36.0, 39.2)
+            tilt = 0.18 + (1.05 - 0.18) * u
+            spin = (1.0 - u) * 2.0
+        else:
+            tilt, spin = 1.05, 0.4 + t * 3.4
+        title_alpha = 1.0 if phase in ("hook", "hold") else 1.0 - _fade(t, 2.6, 3.3)
+        if phase == "rise":
+            title_alpha = _fade(t, 38.4, 39.2)
+        ending_alpha = 0.0
+        if phase == "hit":
+            ending_alpha = _fade(t, 31.0, 31.6) * (1.0 - _fade(t, 35.2, 36.0))
         pill_title, pill_sub, pill_a = "", "", 0.0
         if phase == "hook":
-            pill_title, pill_sub, pill_a = "86TH FLOOR", f"{deck_ft:,.0f} ft", title_alpha
-        elif shown >= int(round(mph)) - 0 and phase == "fall" and speed_mph > mph * 0.97:
-            pill_title, pill_sub, pill_a = "TERMINAL VELOCITY", f"{round(mph)} mph", 1.0
-        elif phase == "payoff":
-            pill_title, pill_sub, pill_a = "TERMINAL VELOCITY", f"{round(mph)} mph", 1.0 - ending_alpha
+            pill_title, pill_sub, pill_a = "102ND FLOOR", "1,250 ft", 1.0
+        elif phase == "fall":
+            pill_title, pill_sub, pill_a = "TERMINAL VELOCITY", "25 mph", _fade(t, 3.15, 3.6)
+        elif phase == "floors":
+            pill_title, pill_sub, pill_a = "STATUE OF LIBERTY", "305 ft, further down", 1.0
+        elif phase == "drag":
+            pill_title, pill_sub, pill_a = "AIR HOLDS IT", "25 mph", 1.0
+        elif phase == "liberty":
+            pill_title, pill_sub, pill_a = "STATUE OF LIBERTY", "305 ft", 1.0
+        elif phase == "edge":
+            pill_title, pill_sub, pill_a = "EDGE-ON", "up to 65 mph", 1.0
+        elif phase == "hold":
+            pill_title, pill_sub, pill_a = "102ND FLOOR", "1,250 ft", 1.0
+        metric = f"{int(feet) * FT:,.0f} m"
         frames.append(
             BFrame(
                 frame=i,
                 t=t,
                 phase=phase,
-                primary=f"{shown}",
-                primary_unit="mph",
-                secondary=f"{remaining_ft:,.0f}",
-                secondary_unit="ft",
-                label_primary="SPEED",
-                label_secondary="TO GO",
+                primary=feet_s,
+                primary_unit="ft",
+                secondary=mph_s,
+                secondary_unit="mph",
+                label_primary="HEIGHT",
+                label_secondary="SPEED",
                 title_alpha=title_alpha,
                 ending_alpha=ending_alpha,
-                dissolve=diss,
+                dissolve=0.0,
                 pill_title=pill_title,
                 pill_sub=pill_sub,
                 pill_alpha=pill_a,
                 penny=penny,
                 cam=cam,
-                target=penny,
-                speed_mps=speed,
-                fallen_m=fallen,
+                target=target,
+                speed_mps=vt if speed_mph == 25 else 0.0,
+                fallen_m=max(0.0, drop - z),
+                metric=metric,
+                roll=feet_roll,
+                primary_prev=feet_from,
+                secondary_roll=mph_roll,
+                secondary_prev=mph_from,
+                rot=(spin, tilt, 0.05),
             )
         )
+    say = raw.get("say", {})
     beats = [
-        {"id": "hook", "narration": raw["hook"]["say"], "start": 0.0, "end": hook, "time_label": "0 mph"},
-        {"id": "fall", "narration": raw["fall"]["say"], "start": hook, "end": hook + fall_t, "time_label": f"{round(mph)} mph"},
-        {"id": "payoff", "narration": " ".join(raw["ending"]["lines"]), "start": hook + fall_t, "end": duration, "time_label": f"{round(mph)} mph"},
+        {"id": "hook", "narration": say.get("hook", raw["hook"]["say"]), "start": 0.0, "end": 3.0, "time_label": "1,250 ft / 0 mph"},
+        {"id": "fall", "narration": say.get("fall", ""), "start": 3.0, "end": 6.0, "time_label": "1,200 ft / 25 mph"},
+        {"id": "floors", "narration": say.get("floors", ""), "start": 6.0, "end": 12.0, "time_label": "1,000 ft / 25 mph"},
+        {"id": "drag", "narration": say.get("drag", ""), "start": 12.0, "end": 20.0, "time_label": "700 ft / 25 mph"},
+        {"id": "liberty", "narration": say.get("liberty", ""), "start": 20.0, "end": 27.0, "time_label": "305 ft / 25 mph"},
+        {"id": "edge", "narration": say.get("edge", ""), "start": 27.0, "end": 31.0, "time_label": "up to 65 mph"},
+        {"id": "hit", "narration": say.get("hit", ""), "start": 31.0, "end": 36.0, "time_label": "0 ft"},
+        {"id": "rise", "narration": say.get("rise", ""), "start": 36.0, "end": 40.0, "time_label": "1,250 ft"},
     ]
     ep = BEpisode(raw=raw, frames=frames, beats=beats, duration=duration)
     ep.notes = {
         "terminal_mps": vt,
         "terminal_mph": mph,
         "drop_m": drop,
+        "drop_ft": drop / FT,
         "fall_sec": fall_t,
-        "empire": outline("empire"),
+        "picture_sec": duration,
+        "liberty_ft": 305.0,
+        "empire": {k: v for k, v in outline("empire").items() if k != "source"},
     }
     return ep
 
@@ -239,16 +375,25 @@ def _rice(raw: dict) -> BEpisode:
     points = cone_points(8000, radius, height, seed=int(raw.get("seed", 3)))
     # ISS-ish camera altitude. The heap is a few kilometres, not orbital.
     orbit_m = float(q["camera_altitude_m"])
-    h32 = height * ((2**32) / grains) ** (1.0 / 3.0)
+    grain = float(q["grain_mass_kg"])
+    mass_t = mass / 1000.0
+    world_t = float(q.get("world_harvest_t", 544.7e6))
+    years = mass_t / world_t
+    square56_t = (2**55) * grain / 1000.0
     ep = _beat_episode(
         raw,
         primary_label="SQUARE",
-        secondary_label="HEIGHT",
+        secondary_label="GRAINS",
         samples=[
-            (0.0, "1", "1 grain", "", "first"),
-            (8.0, "32", f"{h32 / FT:,.0f} ft", "", "square32"),
-            (16.0, "64", f"{height / FT:,.0f} ft", "", "last"),
-            (24.0, "64", f"{orbit_m / 1000:.0f} km up", "", "orbit"),
+            (0.0, "1", "1", "grain", "first"),
+            (3.0, "10", "512", "grains", "pinch"),
+            (8.0, "20", "29", "lb", "bag"),
+            (13.0, "30", "13", "t", "house"),
+            (19.0, "40", "14,000", "t", "town"),
+            (25.0, "50", "14 million", "t", "mountain"),
+            (32.0, "56", "900 million", "t", "year"),
+            (38.0, "64", "2^64 − 1", "grains", "last"),
+            (46.0, "64", "hundreds of years", "", "reality"),
         ],
     )
     ep.notes = {
@@ -257,6 +402,9 @@ def _rice(raw: dict) -> BEpisode:
         "heap_radius_m": radius,
         "instance_cap": len(points),
         "camera_altitude_m": orbit_m,
+        "years": years,
+        "square56_t": square56_t,
+        "world_harvest_t": world_t,
         "points_sample": points[:3],
     }
     return ep
@@ -274,7 +422,10 @@ def _hole(raw: dict) -> BEpisode:
         raw,
         primary_label="DEPTH",
         secondary_label="LAYER",
-        samples=[(float(item["t"]), item["depth"], item["name"], "", item["id"]) for item in layers],
+        samples=[
+            (float(item["t"]), item["depth"], item.get("temp") or item["name"], item.get("unit", ""), item["id"])
+            for item in layers
+        ],
     )
     ep.notes = {
         "one_way_sec": one_way,
@@ -287,44 +438,65 @@ def _hole(raw: dict) -> BEpisode:
 
 def _bricks(raw: dict) -> BEpisode:
     q = raw["quantity"]
-    n = int(float(q["failure_n"]) / (float(q["mass_kg"]) * G))
-    height = n * float(q["course_m"])
+    course = float(q["course_m"])
+    if "bricks" in q:
+        n = int(q["bricks"])
+    else:
+        n = int(float(q["failure_n"]) / (float(q["mass_kg"]) * G))
+    height = n * course
+    dad = int(round((6 * FT) / course))
+    liberty = int(round((305 * FT) / course))
+    empire = int(round((1454 * FT) / course))
+    burj = int(round((2717 * FT) / course))
     ep = _beat_episode(
         raw,
         primary_label="BRICKS",
         secondary_label="HEIGHT",
         samples=[
             (0.0, "1", "0.4", "in", "first"),
-            (8.0, f"{n // 2:,}", f"{(height * 0.5) / FT:,.0f}", "ft", "half"),
-            (16.0, f"{n:,}", f"{height / FT:,.0f}", "ft", "failure"),
+            (3.0, f"{dad:,}", "6", "ft", "dad"),
+            (7.0, f"{liberty:,}", "305", "ft", "liberty"),
+            (12.0, f"{empire:,}", "1,454", "ft", "empire"),
+            (18.0, f"{burj:,}", "2,717", "ft", "burj"),
+            (24.0, "300,000", "", "", "strain"),
+            (32.0, f"{n:,}", "about 2 mi", "", "failure"),
+            (38.0, "record", "115", "ft", "record"),
         ],
     )
-    ep.notes = {"bricks": n, "height_m": height, "logo": False}
+    ep.notes = {"bricks": n, "height_m": height, "logo": False, "kind": q.get("kind", "2x2")}
     return ep
 
 
 def _crowd(raw: dict) -> BEpisode:
     q = raw["quantity"]
     people = int(q["people"])
-    land_m2 = float(q["land_sq_mi"]) * 2.589988e6
-    each = float(q["each_m2"])
-    needed = people * each
-    points = ellipse_points(4000, needed, seed=int(raw.get("seed", 8)))
+    land = float(q["land_sq_mi"])
+    land_m2 = land * 2.589988e6
+    per_m2 = people / land_m2
+    # Standing room at the density that fills the state. Concert-tight, about 3/m².
+    each = 1.0 / per_m2
+    points = ellipse_points(4000, land_m2, seed=int(raw.get("seed", 8)))
     ep = _beat_episode(
         raw,
         primary_label="PEOPLE",
-        secondary_label="FIT",
+        secondary_label="PLACE",
         samples=[
-            (0.0, "1", "one", "", "person"),
-            (10.0, f"{people / 2:,.0f}", "half", "", "half"),
+            (0.0, "1", "one person", "", "person"),
+            (3.0, f"{int(q.get('stadium', 107601)):,}", "a stadium", "", "stadium"),
+            (8.0, "8.8 million", "New York City", "", "nyc"),
+            (14.0, "340 million", "the United States", "", "us"),
             (20.0, f"{people:,}", "Rhode Island", "", "full"),
+            (30.0, f"{per_m2:.1f}", "per m²", "", "density"),
+            (36.0, "jump", "less than an atom", "", "jump"),
         ],
     )
     ep.notes = {
         "people": people,
-        "needed_sq_mi": needed / 2.589988e6,
-        "land_sq_mi": float(q["land_sq_mi"]),
-        "fits": needed < land_m2,
+        "per_m2": per_m2,
+        "each_m2": each,
+        "needed_sq_mi": land,
+        "land_sq_mi": land,
+        "fits": per_m2 < 4.0,
         "instances": len(points),
     }
     return ep

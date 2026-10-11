@@ -1,7 +1,7 @@
-# All 8 billion people in one place. Rhode Island's land area holds them, standing tight.
+# Could every human fit in one US state? Rhode Island's land, standing tight.
 format: B
 id: crowd_rhode_island
-title: "What if all 8 billion people stood in one place?"
+title: "Could every human on Earth fit in one US state?"
 status: final
 preset: crowd_island
 fps: 30
@@ -10,27 +10,44 @@ height: 1920
 seed: 8
 
 timing:
-  hook_hold: 2.4
-  duration_sec: 34.0
+  hook_hold: 3.0
+  duration_sec: 48.0
 
 quantity:
-  people: 8000000000
-  # US Census land area of Rhode Island.
-  land_sq_mi: 1033.81
-  # Shoulder-to-shoulder standing patch, about 2 square feet.
-  each_m2: 0.186
+  # UN World Population Prospects 2024, about 8.2 billion. Not the round 8.
+  people: 8200000000
+  # Census land area. The slate rounds 1,033.81 sq mi to 1,034.
+  land_sq_mi: 1034
+  stadium: 107601
+  # NYC and US totals are the slate's verify-before-script figures.
+  nyc: 8800000
+  us: 340000000
 
 say:
-  person: "Start with one person."
-  half: "Four billion. Still inside the outline."
-  full: "Eight billion. They fit in Rhode Island, standing close."
+  person: "Start with one person in an empty field."
+  stadium: "Michigan Stadium holds one hundred seven thousand, six hundred and one."
+  nyc: "New York City. About eight point eight million. Check the census before you record this line."
+  us: "The United States. About three hundred and forty million. Same warning."
+  full: "Everyone on Earth. Eight point two billion. The outline is Rhode Island."
+  density: "About three people per square meter of land. Concert-crowd tight."
+  jump: "Everyone jumps at once. Earth moves less than an atom's width."
 
 sources:
   - id: people
-    used_for: "8 billion, the round figure in the slate. UN estimates are a little higher; say which year if you publish."
+    used_for: "About 8.2 billion. UN World Population Prospects 2024."
+    url: "https://www.un.org/development/desa/pd/world-population-prospects-2024"
   - id: rhode_island
-    used_for: "Land area 1,033.81 square miles. US Census Bureau."
-  - id: stance
-    used_for: "0.186 m² is about 2 square feet per person, a tight standing crowd, not a seated one."
+    used_for: "Land area about 1,034 square miles. Census state area file lists 1,033.81."
+    url: "https://www.census.gov/geographies/reference-files/2010/geo/state-area.html"
+  - id: density
+    used_for: "8.2 billion divided by that land area is about 3.1 people per square meter. Total area including water is looser, about 2 per square meter."
+  - id: stadium
+    used_for: "Michigan Stadium capacity 107,601."
+    url: "https://mgoblue.com/sports/2017/6/16/facilities-michigan-stadium-html"
+  - id: jump
+    used_for: "Everybody jump, gathered in Rhode Island. Earth moves less than an atom's width."
+    url: "https://what-if.xkcd.com/8/"
+  - id: nyc-us
+    used_for: "8.8 million and 340 million are the slate's placeholders. Pull a fresh census figure before scripting."
   - id: instancer
-    used_for: "A few thousand person meshes stand in for the crowd. The counter shows 8,000,000,000."
+    used_for: "A few thousand person meshes stand in for the crowd. The counter shows 8,200,000,000."
