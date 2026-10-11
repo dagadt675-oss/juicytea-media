@@ -272,6 +272,7 @@ def apply_motion(cam: Cam, t: float) -> Cam:
         (b.india, 0.10, 0.8, 0.42),
         (b.europe, 0.10, -1.0, 0.42),
         (b.t("TOGETHER", after=b.europe - 1), -0.10, 0.0, 0.42),
+        (b.t("TOGETHER", after=b.europe - 1) + 0.7, 0.12, 2.2, 0.45),
         (b.t("HUGE", after=b.outro), 0.09, -0.8, 0.55),
     ):
         p = _punch(t, t0, dur)
@@ -779,6 +780,7 @@ def _keys() -> list[Key]:
         (deny - 0.20, "merc", 2.5, 49.6, 145.9),
         (deny, "merc", 2.5, 49.6, 145.9),
         (b.t("EVEN"), "ortho", -22, 34, 120),
+        (b.t("ALGERIA") - 0.2, "ortho", -20, 30, 100),
         (b.excuse0 - 0.45, "ortho", -18, 36, 108),
         (b.excuse0 - 0.12, "ortho", -16, 33, 86),
         (b.excuse0, "ortho", -40, 68, 48),
@@ -882,6 +884,15 @@ class Greenland:
         # The 14 copies are laid out on one wide frame of the whole continent.
         if st["tiles"] > 0.08 and st["compare"] < 0.15 and state.b is None:
             cam = _fourteen_cam()
+            # The finished jigsaw keeps drifting until Algeria, so those seconds are not a hold.
+            if st["t"] > CLOCK.fourteen:
+                age = st["t"] - CLOCK.fourteen
+                cam = Cam(
+                    cam.proj,
+                    cam.lon + 2.4 * math.sin(age * 1.3),
+                    cam.lat - 1.1 * age,
+                    cam.span * (1.0 + 0.06 * math.sin(age * 1.7)),
+                )
             # After the 14th piece, pull out so the finished jigsaw reads as one shape.
             if st["t"] > CLOCK.fourteen + 0.2:
                 u = _smooth((st["t"] - (CLOCK.fourteen + 0.2)) / 0.45)
