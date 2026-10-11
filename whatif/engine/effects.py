@@ -293,8 +293,9 @@ def _life(kit, ch, frame, fps, snow):
             loc.z += ch["gravity"] * item.extra.get("float", 0.0)
             tilt = smoother(0.45, 0.9, ch["collapse"])
             obj.location = loc
-            obj.rotation_euler = _euler(item.base_rot, dx=tilt * (1.15 if "lamp" in obj.name else 0.0))
-            obj.hide_render = "lamp" in obj.name and ch["collapse"] > 0.93
+            fallen = 1.25 if "lamp" in obj.name else 0.0
+            obj.rotation_euler = _euler(item.base_rot, dx=tilt * fallen)
+            obj.hide_render = False
     for mound, car in zip(mounds, cars):
         if snow < 0.18:
             mound.obj.hide_render = True
@@ -325,21 +326,19 @@ def _bridge(kit, ch):
             for child in item.obj.children:
                 child.hide_render = hidden
         elif i == 0:
-            # The river span falls into the water. It does not stay a finished road.
-            u = smoother(0.70, 0.96, ch["collapse"])
-            rot.x += u * 0.55
-            loc.z -= u * 7.5
-            loc.y += u * 4.0
+            # The river span settles into the water. It does not slide onto the far bank.
+            u = smoother(0.55, 0.92, ch["collapse"])
+            rot.x += u * 0.10
+            loc.z = item.base_loc.z * (1.0 - u) + 0.05 * u
             item.obj.hide_render = False
             for child in item.obj.children:
-                child.hide_render = ch["vegetation"] > 0.55 or u > 0.35
+                child.hide_render = "car" not in child.name and u > 0.45
         elif i == 4:
-            u = smoother(0.78, 0.98, ch["collapse"])
-            rot.x += u * 0.45
-            loc.z -= u * 4.0
+            u = smoother(0.75, 1.0, ch["collapse"])
+            loc.z -= u * 0.12
             item.obj.hide_render = False
             for child in item.obj.children:
-                child.hide_render = ch["vegetation"] > 0.5 or u > 0.3
+                child.hide_render = "car" not in child.name and ch["vegetation"] > 0.92
         else:
             item.obj.hide_render = False
             for child in item.obj.children:

@@ -44,7 +44,7 @@ class OpeningFrameTest(unittest.TestCase):
 
     def test_locked_camera_landmarks(self):
         camera = self.report["camera"]
-        self.assertEqual([round(v, 1) for v in camera["location"]], [-38.0, -25.3, 58.3])
+        self.assertEqual([round(v, 1) for v in camera["location"]], [-56.0, -42.0, 66.0])
         self.assertAlmostEqual(camera["lens"], 57.2, places=1)
         for name in ("skyline_y", "bank_y", "promenade_y", "portal_x", "portal_y"):
             row = self.report["landmarks"][name]
@@ -81,9 +81,9 @@ class OpeningFrameTest(unittest.TestCase):
                     xs.append(x / 1080.0)
                     ys.append(y / 1920.0)
         self.assertGreater(len(xs), 400)
+        self.assertGreaterEqual(min(xs), 60.0 / 1080.0 - 0.004)
         self.assertLess(max(xs), 0.47)
-        self.assertGreater(max(xs) - min(xs), 0.30)
-        self.assertGreater(sum(xs) / len(xs), 0.12)
+        self.assertGreater(max(xs) - min(xs), 0.20)
         self.assertLess(sum(ys) / len(ys), 0.12)
 
 

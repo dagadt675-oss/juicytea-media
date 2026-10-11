@@ -351,3 +351,67 @@ def place_city_prop(coll, token, loc, yaw=0.0, height=1.0, name="prop"):
         return None
     native_h = max(bounds[5] - bounds[4], 0.01)
     return _place_root(coll, mesh, loc, float(yaw), float(height) / native_h, name)
+
+
+_ROAD_MAT = None
+_ZEBRA = None
+
+
+def road_asphalt_material():
+    """Asphalt from the US 4-lane road. The curved ribbon itself stays hidden."""
+    global _ROAD_MAT
+    if _ROAD_MAT is not None:
+        return _ROAD_MAT
+    path = PRIVATE / "roads" / "realistic_road" / "realistic_road.glb"
+    if not path.exists():
+        return None
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(path))
+    for obj in bpy.data.objects:
+        if obj not in before:
+            obj.hide_render = True
+            obj.hide_viewport = True
+    _ROAD_MAT = bpy.data.materials.get("Road1")
+    return _ROAD_MAT
+
+
+def place_zebra(coll, x, y, z, yaw, across, depth):
+    """One flat 5-stripe zebra.
+
+    The mesh lies in local XZ (the row of bars along X, each bar along Z).
+    A -90° pitch lays it on the ground; yaw then turns it in the street.
+    """
+    global _ZEBRA
+    if _ZEBRA is None:
+        path = PRIVATE / "roads" / "simple_crosswalk" / "simple_crosswalk.glb"
+        if not path.exists():
+            return None
+        before = set(bpy.data.objects)
+        mesh = None
+        bpy.ops.import_scene.gltf(filepath=str(path))
+        for obj in bpy.data.objects:
+            if obj not in before:
+                obj.hide_render = True
+                obj.hide_viewport = True
+            if obj.type == "MESH" and obj.name.startswith("Crosswalk_"):
+                mesh = obj
+                for slot in obj.material_slots:
+                    material = slot.material
+                    if material and material.use_nodes:
+                        bsdf = material.node_tree.nodes.get("Principled BSDF")
+                        if bsdf:
+                            bsdf.inputs["Base Color"].default_value = (0.95, 0.95, 0.93, 1.0)
+                            bsdf.inputs["Roughness"].default_value = 0.45
+        _ZEBRA = mesh
+    if _ZEBRA is None:
+        return None
+    copy = _ZEBRA.copy()
+    coll.objects.link(copy)
+    copy.parent = None
+    copy.hide_render = False
+    copy.hide_viewport = False
+    # Local X is the row (4.54 m). Local Z is the bar length (2.0 m).
+    copy.scale = (float(depth) / 4.544, 1.0, float(across) / 2.0)
+    copy.rotation_euler = (-math.pi / 2.0, 0.0, float(yaw))
+    copy.location = (x, y, z)
+    return copy

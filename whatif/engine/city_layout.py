@@ -22,7 +22,6 @@ DECK_ORIGIN = (4.1, 79.0)
 DECK_W = 15.2
 DECK_HALF = DECK_W / 2.0
 DECK_Z = 4.6
-SOUTH_Z = 0.62
 # Leg centers plus leg thickness. The near portal's outer width measures 18.0%
 # of the frame where the legs meet the deck; zenith is 18.0%.
 TOWER_W = 15.7
@@ -31,17 +30,12 @@ TOWER_LEG = 1.5
 INDEX_DECK = 2
 INDEX_CANOPY = 3
 INDEX_PORTAL = 11
-# Both portals are over the water, on the level deck.
-TOWER_S = (32.0, 102.0)
-# Foreground road the approach must join. y=22 is the avenue center, low in
-# the locked frame (the promenade landmark is y=36).
+# Foreground road the approach must join. y=22 is the avenue center.
 CROSS_Y = 22.0
-CROSS_HALF_Y = 12.0
 CROSS_X0 = -80.0
 CROSS_X1 = 90.0
-LEVEL_S1 = 150.0
-FAR_S = 185.0
-FAR_Z = 1.8
+# Far landing sits on the city ground.
+FAR_Z = 1.4
 
 # The river is a polygon between the near bank (y≈82) and the skyline (y≈168).
 # Water stays inside it, and the surface stays below every walkable top.
@@ -53,13 +47,28 @@ QUAY_Z = 3.2
 PARK_LAND_Z = 0.72
 ROAD_Z = 0.58
 WATER_BED_Z = -1.6
+# Driving surface of the ramp is deck_z + RIBBON_TOP. A centimeter above the
+# avenue keeps the joint from flickering where the two slabs overlap.
+RIBBON_TOP = 0.06
+SOUTH_Z = ROAD_Z - RIBBON_TOP + 0.012
 
-# East-west avenue at the bottom of the frame. Four lanes, sidewalks, curbs.
+# East-west avenue. Four lanes, the same width as the bridge, so the ramp
+# lanes continue straight into the avenue lanes.
 AVE_Y = 22.0
-AVE_HALF = 9.0
-LANE_OFFSETS = (-6.2, -2.1, 2.1, 6.2)
-SIDEWALK_W = 3.4
-# North-south street through the park, in the locked frame, meeting the avenue.
+LANE_W = DECK_W / 4.0
+AVE_HALF = DECK_W / 2.0
+# Parking stalls sit outside the four travel lanes, on the avenue only.
+PARKING_W = 2.5
+AVENUE_HALF = AVE_HALF + PARKING_W
+LANE_OFFSETS = (-1.5 * LANE_W, -0.5 * LANE_W, 0.5 * LANE_W, 1.5 * LANE_W)
+DECK_LANES = LANE_OFFSETS
+SIDEWALK_W = 3.0
+ZEBRA_DEPTH = 2.4
+STOP_SETBACK = 2.5
+# US paint: 10 ft dashes, 30 ft gaps.
+DASH_LEN = 3.05
+DASH_GAP = 9.14
+# Park reference only. The one cross street is the bridge ramp, not this x.
 GRID_X = -22.0
 GRID_HALF = 4.2
 # Far-bank streets between tower blocks. Spaced so a chunky tower still fits
@@ -84,7 +93,7 @@ def land_top(x, y):
     """Walkable surface. Inside the river this is the bed, not the bank."""
     if river_contains(x, y):
         return WATER_BED_Z
-    if abs(y - AVE_Y) <= AVE_HALF + SIDEWALK_W + 2.0:
+    if abs(y - AVE_Y) <= AVENUE_HALF + SIDEWALK_W + 2.0:
         return ROAD_Z
     if y > RIVER_Y1:
         return 1.4
@@ -121,35 +130,7 @@ SKYLINE_ROWS = (
     (480.0, 30.0, 46.0, -290.0, 330.0, (26.0, 38.0)),
 )
 
-# Park paths. Cars must not sit on these.
-# Paths meet the north sidewalk of the avenue (y ≈ 26) so none of them dead-end.
-PATHS = (
-    ("v1", -42.0, 58.0, 1.5, 16.0),
-    ("v2", -26.0, 58.0, 1.5, 16.0),
-    ("v3", -6.0, 58.0, 1.5, 14.0),
-    ("h1", -26.0, 44.0, 22.0, 1.3),
-    ("h2", -26.0, 58.0, 22.0, 1.3),
-    ("h3", -26.0, 72.0, 22.0, 1.3),
-    ("link", -34.0, 46.0, 1.5, 10.0),
-    ("plaza", -38.0, 60.0, 4.5, 4.5),
-)
 FOUNTAIN = (-38.0, 60.0)
-# One eastbound row on the near road, clear of the bridge slab and the park paths.
-# One eastbound row on the near road, clear of the bridge and the park.
-# Eastbound lane of the avenue, clear of the bridge landing near x≈2.
-# yaw 0 points the Kenney nose along +X, the driving direction.
-# Eastbound (y < avenue center, nose +X) and westbound, all inside the frame.
-# The bridge landing is near x≈2, so the row stays to the west of it.
-FOREGROUND_CARS = (
-    (-44.0, 16.6),
-    (-32.0, 16.9),
-    (-20.0, 16.5),
-    (-10.0, 17.0),
-    (-40.0, 26.4),
-    (-26.0, 26.1),
-    (-14.0, 26.6),
-)
-DECK_LANES = (-4.2, -1.4, 1.4, 4.2)
 
 
 def deck_direction():
@@ -179,14 +160,34 @@ def _smooth(t):
     return t * t * (3.0 - 2.0 * t)
 
 
+def _s_at_y(y):
+    return (y - DECK_ORIGIN[1]) / math.cos(BRIDGE_YAW)
+
+
+# Level deck is the river span. The ramp meets it at the near bank and the
+# far road leaves it at the far bank. Towers stand just in the water.
+NEAR_BANK_S = _s_at_y(RIVER_Y0)
+FAR_BANK_S = _s_at_y(RIVER_Y1)
+FAR_ROAD_S = _s_at_y(RIVER_Y1 + 40.0)
+TOWER_S = (_s_at_y(RIVER_Y0 + 12.0), _s_at_y(RIVER_Y1 - 12.0))
+CROSS_HALF_Y = AVENUE_HALF + 1.0
+# The ramp meets the north curb and stays at avenue grade through the crosswalk.
+RAMP_JOIN_S = _s_at_y(AVE_Y + AVENUE_HALF - 0.25)
+RAMP_FLAT_S = _s_at_y(AVE_Y + AVENUE_HALF + ZEBRA_DEPTH + STOP_SETBACK + 1.2)
+
+
 def deck_z(s):
-    """Smoothstep ramps so the slope is flat where it meets the level deck."""
-    if s < 0.0:
-        s0 = south_s()
-        t = (s - s0) / (0.0 - s0)
+    """Flat through the intersection, then a smoothstep up to the river deck."""
+    if s <= RAMP_FLAT_S:
+        return SOUTH_Z
+    if s < NEAR_BANK_S:
+        span = NEAR_BANK_S - RAMP_FLAT_S
+        t = 0.0 if span == 0 else (s - RAMP_FLAT_S) / span
         return SOUTH_Z + _smooth(t) * (DECK_Z - SOUTH_Z)
-    if s > LEVEL_S1:
-        t = (s - LEVEL_S1) / (FAR_S - LEVEL_S1)
+    if s > FAR_BANK_S:
+        span = FAR_ROAD_S - FAR_BANK_S
+        t = 0.0 if span == 0 else (s - FAR_BANK_S) / span
+        t = max(0.0, min(1.0, t))
         return DECK_Z + _smooth(t) * (FAR_Z - DECK_Z)
     return DECK_Z
 
@@ -194,15 +195,20 @@ def deck_z(s):
 def bridge_spans():
     """(index, s0, s1). 1 and 2 are the hidden wreckage copies.
 
-    Spans meet at a shared s, where deck_z is continuous, so a vertical
-    cross-section there is the same shape for both pieces.
+    0 is the river deck between the banks. 4 is the ramp down to the avenue.
+    3 is the far-bank road. They meet at a shared s.
     """
+    a = NEAR_BANK_S
+    b = FAR_BANK_S
+    wreck_a = a + (b - a) * 0.30
+    wreck_b = a + (b - a) * 0.70
+    mid = (wreck_a + wreck_b) * 0.5
     return (
-        (0, 0.0, LEVEL_S1),
-        (1, 40.0, 72.0),
-        (2, 70.0, 104.0),
-        (3, LEVEL_S1, FAR_S),
-        (4, south_s(), 0.0),
+        (0, a, b),
+        (1, wreck_a, mid),
+        (2, mid - 1.0, wreck_b),
+        (3, b, FAR_ROAD_S),
+        (4, RAMP_JOIN_S, a),
     )
 
 
@@ -228,7 +234,7 @@ def on_cross_street(x, y):
 
 def on_deck_road(x, y):
     s = deck_s_at_y(y)
-    if s < south_s() - 0.4 or s > FAR_S + 0.4:
+    if s < RAMP_JOIN_S - 0.4 or s > FAR_ROAD_S + 0.4:
         return False
     cx, cy = deck_point(s)
     return abs(x - cx) <= DECK_HALF + 0.3 and abs(y - cy) < 0.6
@@ -236,7 +242,7 @@ def on_deck_road(x, y):
 
 def on_city_pad(x, y):
     """Far landing, where the deck comes down onto the far bank."""
-    if y < 230.0:
+    if y < RIVER_Y1 - 1.0 or y > RIVER_Y1 + 48.0:
         return False
     s = deck_s_at_y(y)
     cx, _cy = deck_point(s)
@@ -347,7 +353,7 @@ def layout_errors():
                 errors.append(f"tower leg at s={s} stands on the deck instead of straddling it")
             if abs(offset) > DECK_HALF + TOWER_LEG + 1.0:
                 errors.append(f"tower leg at s={s} stands beside the deck")
-    for x, y in FOREGROUND_CARS:
+    for x, y, yaw in FOREGROUND_CARS:
         for rect in PATHS:
             if _on_rect(x, y, rect):
                 errors.append(f"car at {(x, y)} sits on park path {rect[0]}")
@@ -355,6 +361,12 @@ def layout_errors():
             errors.append(f"car at {(x, y)} sits on grass")
         if on_deck_road(x, y):
             errors.append(f"car at {(x, y)} sits on the bridge deck")
+        if abs(x - CROSS_X) < DECK_HALF + ZEBRA_DEPTH and abs(y - AVE_Y) < AVENUE_HALF + ZEBRA_DEPTH:
+            errors.append(f"car at {(x, y)} sits in the intersection")
+        if y < AVE_Y and abs(yaw) > 0.2:
+            errors.append(f"car at {(x, y)} faces against the eastbound lanes")
+        if y > AVE_Y and abs(abs(yaw) - math.pi) > 0.2:
+            errors.append(f"car at {(x, y)} faces against the westbound lanes")
     for lane in DECK_LANES:
         if abs(lane) > DECK_HALF - 1.0:
             errors.append(f"deck lane {lane} is off the roadway")
@@ -362,3 +374,36 @@ def layout_errors():
     if on_deck_road(fx, fy) or on_cross_street(fx, fy):
         errors.append("fountain is on a road")
     return errors
+
+
+# The ramp meets the avenue on the bridge centerline. One intersection.
+CROSS_X = deck_point(south_s())[0]
+# Paths are paths: they meet the north sidewalk west of that intersection.
+PATHS = (
+    ("quay_walk", -30.0, 78.0, 18.0, 1.15),
+    ("to_fountain", -30.0, 66.0, 1.15, 12.0),
+    ("to_sidewalk", -12.0, 40.0, 1.15, 8.0),
+)
+# Eastbound (nose +X) in the south lanes, westbound in the north lanes.
+# None of them sit in the intersection box.
+_EAST_Y = AVE_Y + LANE_OFFSETS[0]
+_EAST_Y2 = AVE_Y + LANE_OFFSETS[1]
+_WEST_Y = AVE_Y + LANE_OFFSETS[3]
+_WEST_Y2 = AVE_Y + LANE_OFFSETS[2]
+_PARK_S = AVE_Y - AVE_HALF - PARKING_W * 0.5
+_PARK_N = AVE_Y + AVE_HALF + PARKING_W * 0.5
+FOREGROUND_CARS = (
+    (-58.0, _EAST_Y2, 0.0),
+    (-36.0, _EAST_Y, 0.0),
+    (24.0, _EAST_Y2, 0.0),
+    (44.0, _EAST_Y, 0.0),
+    (-62.0, _WEST_Y, math.pi),
+    (-40.0, _WEST_Y2, math.pi),
+    (-18.0, _WEST_Y, math.pi),
+    (18.0, _WEST_Y2, math.pi),
+    (38.0, _WEST_Y, math.pi),
+    (-54.0, _PARK_S, 0.0),
+    (-32.0, _PARK_S, 0.0),
+    (30.0, _PARK_N, math.pi),
+    (48.0, _PARK_N, math.pi),
+)

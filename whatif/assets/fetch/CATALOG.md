@@ -273,3 +273,13 @@ Same license and cache folder. Not placed in the river-city episode.
 | Cottage in the forest | `Cottage_in_the_forest.glb` (3.0 MB, 28,818 faces) | snow_forever, nature | One forest diorama, 1417 × 1424 × 2500 file units. Scale the whole scene together; do not treat those units as meters. |
 | Animated civilian Helicopter | `Animated_civilian_Helicopter.glb` (2.3 MB, 21,876 faces) | City and disaster episodes | One clip, `Armature\|ArmatureAction.001`, frames 0–219. The model is 2.61 × 1.68 × 0.71 m; scale the long axis to about 10 m for a light civilian helicopter. Skip the preview icosphere. |
 | Classroom 01 | `Classroom_01.glb` (0.6 MB, 10,168 faces) | Interior POV | One room, 21.2 × 25.2 × 10.7 m. Scale the height to about 3.2 m. |
+
+## Private — road batch (do not redistribute)
+
+Cached under `/opt/cursor/asset-cache/private/roads/`. Sketchfab Free Standard, rendered video only.
+
+| File | Use |
+|---|---|
+| `realistic_road.glb` | Asphalt material for the riverside avenue. The mesh is a curved ribbon, so the straight avenue and its double-yellow / dashed lanes are built in the scene. |
+| `simple_crosswalk.glb` | The only zebra. One copy on each leg of the single avenue intersection. |
+| `road_sections_pack.glb` | Not used for paint. Its lines are a freeway pattern. Curbs in the scene are plain concrete so they do not cover the lanes. |

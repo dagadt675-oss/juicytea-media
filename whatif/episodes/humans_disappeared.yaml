@@ -13,10 +13,10 @@ scene:
   seed: 11
 format: A
 camera:
-  # Solved against the zenith frame: skyline base 38%, near bank 55%,
-  # promenade 77%, tower x 62%, tower top 13%.
-  location: [-38.0, -25.3, 58.3]
-  target: [2.5, 125.85, -11.0]
+  # Far enough west that both tower pairs read, and low enough that the
+  # avenue intersection and the foreground cars sit inside the frame.
+  location: [-56.0, -42.0, 66.0]
+  target: [24.0, 100.0, -6.0]
   lens: 57.2
   sensor_fit: HORIZONTAL
   sensor_width: 36

@@ -18,7 +18,11 @@ from engine import cc0_city
 from engine import private_assets
 from engine.city_layout import (
     AVE_HALF,
+    AVENUE_HALF,
     AVE_Y,
+    CROSS_X,
+    DASH_GAP,
+    DASH_LEN,
     CITY_STREETS,
     DECK_HALF,
     DECK_LANES,
@@ -32,6 +36,7 @@ from engine.city_layout import (
     INDEX_DECK,
     INDEX_PORTAL,
     LANE_OFFSETS,
+    LANE_W,
     PARK_LAND_Z,
     PATHS,
     QUAY_Z,
@@ -39,13 +44,20 @@ from engine.city_layout import (
     RIVER_X1,
     RIVER_Y0,
     RIVER_Y1,
+    RAMP_FLAT_S,
+    RIBBON_TOP,
     ROAD_Z,
     SIDEWALK_W,
+    STOP_SETBACK,
+    ZEBRA_DEPTH,
     SKYLINE_COLORS,
     SKYLINE_ROWS,
     TOWER_LEG,
     TOWER_S,
     TOWER_W,
+    FAR_BANK_S,
+    FAR_ROAD_S,
+    NEAR_BANK_S,
     WATER_BED_Z,
     bridge_spans,
     city_water_top,
@@ -125,7 +137,7 @@ def _materials():
     )
     road = make_surface(
         "Road",
-        lin(0.42, 0.44, 0.47),
+        lin(0.50, 0.52, 0.54),
         {"moss": 0.55, "rust": 0.05, "mud": 0.8, "scorch": 0.45, "snow": 1.0, "wet": 0.85},
     )
     # Dark blue-grey asphalt. The rendered pixels are what the metric checks
@@ -778,88 +790,181 @@ def _mark(kit, coll, name, center, size, mat):
     return obj
 
 
-def _build_streets(kit, coll, mats):
-    """Avenue in the bottom of the frame, plus the park side street.
+def _asphalt_plane(name, coll, center, size, fallback):
+    """Flat asphalt. Uses the US road texture when the private file is present."""
+    mat = private_assets.road_asphalt_material() or fallback
+    w, d = size
+    bm = bmesh.new()
+    verts = [
+        bm.verts.new((-w / 2, -d / 2, 0)),
+        bm.verts.new((w / 2, -d / 2, 0)),
+        bm.verts.new((w / 2, d / 2, 0)),
+        bm.verts.new((-w / 2, d / 2, 0)),
+    ]
+    face = bm.faces.new(verts)
+    uv = bm.loops.layers.uv.new("UVMap")
+    tile = 8.0
+    for loop in face.loops:
+        loop[uv].uv = ((loop.vert.co.x + w / 2) / tile, (loop.vert.co.y + d / 2) / tile)
+    me = mesh_from_bm(name, bm)
+    obj = link_obj(name, me, coll, (mat,))
+    obj.location = (center[0], center[1], center[2])
+    return obj
 
-    Asphalt, white lane dashes, a yellow center line, curbs, light sidewalks,
-    a crosswalk, and a traffic light. The bridge approach lands on this avenue.
+
+def _rotated_mark(kit, coll, name, origin, offset, size, yaw, pitch, mat):
+    """A paint box. Local +Y runs along the road after ``yaw``."""
+    rx, ry = math.cos(yaw), math.sin(yaw)
+    # right_vector() is local +X at DECK_ROT_Z; yaw here is that same angle.
+    mark = box_object(name, coll, (0, 0, 0), size, mat)
+    mark.location = (origin[0] + rx * offset, origin[1] + ry * offset, origin[2])
+    mark.rotation_euler = (pitch, 0.0, yaw)
+    kit.add(mark, "road_mark", sink=False)
+    return mark
+
+
+def _build_streets(kit, coll, mats):
+    """One 4-lane avenue and one cross street, meeting at a single intersection.
+
+    The north leg is the bridge ramp. Crosswalks exist only here, one per leg.
     """
     road_z = ROAD_Z
     y = AVE_Y
-    paint_z = road_z + 0.07
-    # Asphalt from just under the camera to the promenade, so the bottom of
-    # the locked frame is street and not an empty plane.
-    _plane("avenue", coll, (0, 20.0, road_z), (520, 36.0), mats["road"])
-    # Side street across the lawn, from the promenade to the quay, above the grass.
-    shore = RIVER_Y0 - 3.0
-    _plane(
-        "cross_street",
+    paint_z = road_z + 0.045
+    ix = CROSS_X
+    depth = ZEBRA_DEPTH
+    x_west = -88.0
+    x_east = 72.0
+    open_half = DECK_HALF
+    # Bare asphalt between the stop lines. Nothing else is painted there.
+    clear_west = ix - open_half - depth - STOP_SETBACK - 0.6
+    clear_east = ix + open_half + depth + STOP_SETBACK + 0.6
+    _asphalt_plane("avenue", coll, ((x_west + x_east) / 2.0, y, road_z), (x_east - x_west, AVENUE_HALF * 2.0), fallback=mats["road"])
+    # Shoulder south of the sidewalk, so the bottom of the frame is pavement.
+    walk_s = y - AVENUE_HALF - SIDEWALK_W / 2.0
+    walk_n = y + AVENUE_HALF + SIDEWALK_W / 2.0
+    apron_far = walk_s - SIDEWALK_W / 2.0
+    _plane("near_shoulder", coll, ((x_west + x_east) / 2.0, apron_far / 2.0, road_z - 0.02), (x_east - x_west, apron_far), mats["concrete"])
+    stub_end = y - AVENUE_HALF - 16.0
+    stub_near = y - AVENUE_HALF
+    _asphalt_plane(
+        "south_leg",
         coll,
-        (GRID_X, (40.0 + shore) / 2.0, PARK_Z + 0.05),
-        (GRID_HALF * 2, shore - 40.0),
-        mats["road"],
+        (ix, (stub_end + stub_near) / 2.0, road_z + 0.008),
+        (DECK_W, stub_near - stub_end),
+        fallback=mats["road"],
     )
-    # Light sidewalks on both sides. The north one is the promenade (y≈36).
-    _plane("sidewalk_s", coll, (0, 9.0, road_z + 0.05), (520, 8.0), mats["concrete"])
-    _plane("sidewalk_n", coll, (0, 35.0, road_z + 0.06), (520, 6.0), mats["concrete"])
-    box_object("curb_s", coll, (0, 13.2, road_z + 0.10), (480, 0.35, 0.22), mats["concrete"])
-    box_object("curb_n", coll, (0, 31.6, road_z + 0.10), (480, 0.35, 0.22), mats["concrete"])
-    for x in range(-56, 24, 16):
-        if abs(x - GRID_X) < 8:
+    for name, cx, width in (
+        ("walk_sw", (x_west + ix - open_half) / 2.0, ix - open_half - x_west),
+        ("walk_se", (ix + open_half + x_east) / 2.0, x_east - (ix + open_half)),
+    ):
+        _plane(name, coll, (cx, walk_s, road_z + 0.04), (width, SIDEWALK_W), mats["concrete"])
+        _plane(name + "n", coll, (cx, walk_n, road_z + 0.04), (width, SIDEWALK_W), mats["concrete"])
+    # Sidewalks beside the south leg, meeting the avenue sidewalk.
+    side = DECK_HALF + 1.4
+    _plane("stub_walk_w", coll, (ix - side, (stub_end + stub_near) / 2.0, road_z + 0.04), (2.2, stub_near - stub_end), mats["concrete"])
+    _plane("stub_walk_e", coll, (ix + side, (stub_end + stub_near) / 2.0, road_z + 0.04), (2.2, stub_near - stub_end), mats["concrete"])
+    for cy, span in (
+        (y - AVENUE_HALF, (x_west, ix - open_half)),
+        (y - AVENUE_HALF, (ix + open_half, x_east)),
+        (y + AVENUE_HALF, (x_west, ix - open_half)),
+        (y + AVENUE_HALF, (ix + open_half, x_east)),
+    ):
+        a, b = span
+        box_object("curb", coll, ((a + b) / 2.0, cy, road_z + 0.12), (b - a, 0.18, 0.16), mats["concrete"])
+    for x in range(-80, 64, 28):
+        if abs(x - ix) < open_half + 6.0:
             continue
-        _lamp(kit, coll, mats, x, 9.2, road_z + 0.06)
-        _lamp(kit, coll, mats, x, 35.2, road_z + 0.06)
-    if cc0_city.ready() and cc0_city.place_avenue(coll, y, road_z + 0.1):
-        cc0_city.place_side_street(coll, GRID_X, 40.0, RIVER_Y0 - 4.0, PARK_Z + 0.1, width=9.0)
-        paint_z = road_z + 0.2
-    # Four lanes. Dashes are wide enough to read in the full frame.
-    for offset in LANE_OFFSETS:
-        step = -52.0
-        while step < 8.0:
-            if abs(step - GRID_X) < 6.0:
-                step += 8.0
-                continue
-            _mark(kit, coll, "lane", (step, y + offset, paint_z), (3.6, 0.55, 0.04), mats["mark"])
-            step += 8.0
-    _mark(kit, coll, "center", (-22.0, y, paint_z + 0.005), (52.0, 0.62, 0.04), mats["yellow"])
-    # Crosswalk where the bridge meets the avenue.
-    for i in range(9):
-        _mark(
-            kit, coll, "xwalk",
-            (-12.0 + i * 1.7, y, paint_z + 0.01),
-            (0.72, AVE_HALF * 1.85, 0.04),
-            mats["mark"],
-        )
-    # Crosswalk across the side street, on the avenue.
-    for i in range(6):
-        _mark(
-            kit, coll, "xwalk2",
-            (GRID_X, 14.0 + i * 1.6, paint_z + 0.01),
-            (GRID_HALF * 1.7, 0.55, 0.04),
-            mats["mark"],
-        )
-    # Dashes up the side street so the gap reads as a road, not a grey slot.
-    step = 44.0
-    while step < RIVER_Y0 - 8.0:
-        _mark(kit, coll, "side_dash", (GRID_X, step, PARK_Z + 0.1), (0.5, 2.8, 0.04), mats["mark"])
-        step += 8.0
-    ix, _iy = deck_point(south_s())
-    for side, yaw in ((-1, math.pi), (1, 0.0)):
-        _prop(
-            kit, coll, "signal", _kenney("props/traffic-light.glb"),
-            (ix + side * 7.5, 34.2 if side < 0 else 12.4, road_z + 0.06),
-            yaw,
-            5.0,
-            "prop",
-        )
+        _lamp(kit, coll, mats, x, walk_s, road_z + 0.05)
+        _lamp(kit, coll, mats, x, walk_n, road_z + 0.05)
+
+    def outside(a, b):
+        return b < clear_west or a > clear_east
+
+    step = DASH_LEN + DASH_GAP
+    cursor = x_west + 2.0
+    while cursor < x_east - 2.0:
+        if outside(cursor, cursor + DASH_LEN):
+            for offset in (-LANE_W, LANE_W):
+                _mark(kit, coll, "lane", (cursor + DASH_LEN / 2.0, y + offset, paint_z), (DASH_LEN, 0.12, 0.03), mats["mark"])
+        cursor += step
+    # Solid white between the parking lane and the travel lanes.
+    for sign, (a, b) in ((-1.0, (x_west, clear_west)), (1.0, (clear_east, x_east))):
+        if b - a < 1.0:
+            continue
+        _mark(kit, coll, "park_line", ((a + b) / 2.0, y + sign * AVE_HALF, paint_z), (b - a, 0.12, 0.03), mats["mark"])
+        for line in (-0.11, 0.11):
+            _mark(kit, coll, "yellow", ((a + b) / 2.0, y + line, paint_z + 0.004), (b - a, 0.10, 0.03), mats["yellow"])
+    # West and east legs cross the avenue. North and south legs cross the cross street.
+    private_assets.place_zebra(coll, ix - open_half - depth / 2.0, y, paint_z + 0.01, 0.0, AVENUE_HALF * 2.0, depth)
+    private_assets.place_zebra(coll, ix + open_half + depth / 2.0, y, paint_z + 0.01, 0.0, AVENUE_HALF * 2.0, depth)
+    private_assets.place_zebra(coll, ix, y - AVENUE_HALF - depth / 2.0, paint_z + 0.01, math.pi / 2.0, DECK_W, depth)
+    s_zebra = deck_s_at_y(y + AVENUE_HALF) + depth / 2.0
+    zx, zy = deck_point(s_zebra)
+    private_assets.place_zebra(
+        coll, zx, zy, deck_z(s_zebra) + RIBBON_TOP + 0.02,
+        math.pi / 2.0 + DECK_ROT_Z, DECK_W, depth,
+    )
+    # Stop lines sit in front of the crosswalk, across the lanes that must stop.
+    _mark(kit, coll, "stop_eb", (clear_west + 0.3, y - AVE_HALF / 2.0, paint_z + 0.01), (0.28, AVE_HALF, 0.03), mats["mark"])
+    _mark(kit, coll, "stop_wb", (clear_east - 0.3, y + AVE_HALF / 2.0, paint_z + 0.01), (0.28, AVE_HALF, 0.03), mats["mark"])
+    _mark(
+        kit, coll, "stop_nb",
+        (ix + DECK_HALF / 2.0, y - AVENUE_HALF - depth - STOP_SETBACK, paint_z + 0.01),
+        (DECK_HALF, 0.28, 0.03),
+        mats["mark"],
+    )
+    s_stop = deck_s_at_y(y + AVENUE_HALF) + depth + STOP_SETBACK
+    px, py = deck_point(s_stop)
+    rx, ry = right_vector()
+    stop = box_object("stop_sb", coll, (0, 0, 0), (DECK_HALF, 0.28, 0.03), mats["mark"])
+    stop.location = (px - rx * DECK_HALF / 2.0, py - ry * DECK_HALF / 2.0, deck_z(s_stop) + RIBBON_TOP + 0.02)
+    stop.rotation_euler[2] = DECK_ROT_Z
+    kit.add(stop, "road_mark", sink=False)
+    # Short centerline on the south leg, south of its stop line.
+    yellow_n = y - AVENUE_HALF - depth - STOP_SETBACK - 1.2
+    if yellow_n - stub_end > 2.0:
+        for line in (-0.11, 0.11):
+            _mark(kit, coll, "stub_yellow", (ix + line, (yellow_n + stub_end) / 2.0, paint_z + 0.01), (0.10, yellow_n - stub_end, 0.03), mats["yellow"])
+    corners = (
+        (ix - open_half - 1.6, y + AVENUE_HALF + 1.3, -0.6),
+        (ix + open_half + 1.6, y + AVENUE_HALF + 1.3, -2.4),
+        (ix - open_half - 1.6, y - AVENUE_HALF - 1.3, 0.6),
+        (ix + open_half + 1.6, y - AVENUE_HALF - 1.3, 2.4),
+    )
+    for sx, sy, yaw in corners:
+        _prop(kit, coll, "signal", _kenney("props/traffic-light.glb"), (sx, sy, road_z + 0.05), yaw, 5.0, "prop")
+    # Ramp paint starts north of the southbound stop line and climbs to the bank.
+    s = s_stop + 2.6
+    dash_at = DASH_GAP
+    while s < NEAR_BANK_S - 1.5:
+        px, py = deck_point(s)
+        pz = deck_z(s) + RIBBON_TOP + 0.025
+        ds = 0.4
+        pitch = math.atan2(deck_z(s + ds) - deck_z(s - ds), 2.0 * ds)
+        for sign in (-1.0, 1.0):
+            _rotated_mark(kit, coll, "ramp_yellow", (px, py, pz), sign * 0.12, (0.10, 4.0, 0.03), DECK_ROT_Z, pitch, mats["yellow"])
+        if dash_at >= DASH_GAP:
+            for offset in (-LANE_W, LANE_W):
+                _rotated_mark(kit, coll, "ramp_dash", (px, py, pz), offset, (0.12, DASH_LEN, 0.03), DECK_ROT_Z, pitch, mats["mark"])
+            dash_at = 0.0
+        else:
+            dash_at += 4.0
+        s += 4.0
+    # Far-bank road. The bridge joins it. No crosswalk: the only zebra is downtown.
+    fx, fy = deck_point(FAR_ROAD_S)
+    far_z = FAR_Z + 0.04
+    _asphalt_plane("far_road", coll, (fx, fy, far_z), (90.0, DECK_W), fallback=mats["road"])
+    for sign, span in ((-1.0, (fx - 45.0, fx - DECK_HALF - 1.5)), (1.0, (fx + DECK_HALF + 1.5, fx + 45.0))):
+        a, b = span
+        if b - a < 2.0:
+            continue
+        for line in (-0.11, 0.11):
+            _mark(kit, coll, "far_yellow", ((a + b) / 2.0, fy + line, far_z + 0.05), (b - a, 0.10, 0.03), mats["yellow"])
 
 
 def _block_streets(kit, coll, mats):
-    """Asphalt gaps between the tower blocks, from the far bank inland."""
-    if cc0_city.ready():
-        for sx in CITY_STREETS:
-            cc0_city.place_side_street(coll, sx, RIVER_Y1 + 4.0, 260.0, FAR_Z + 0.14, width=9.0)
-        return
+    """Plain asphalt between the far towers. No extra crosswalks or red tiles."""
     road_z = FAR_Z + 0.08
     y0 = RIVER_Y1 + 2.0
     y1 = 340.0
@@ -885,10 +990,15 @@ def build_river_city(kit, mats, rng, pieces):
     # it only after the vegetation channel rises.
     _plane("bedrock", col_g, (0, 800, -6.0), (4000, 4000), mats["trim"], 0.4)
     _build_streets(kit, col_g, mats)
-    # Lawn from the promenade to the quay. It does not cross the river.
-    park_y0 = 39.0
+    # Lawn from the sidewalk to the quay. A gap leaves the ramp uncovered.
+    park_y0 = 36.0
     park_y1 = RIVER_Y0 - 2.2
-    _plane("park", col_g, (0, (park_y0 + park_y1) / 2, PARK_Z), (900, park_y1 - park_y0), mats["park"])
+    ramp_x = CROSS_X
+    gap = DECK_HALF + 2.2
+    park_mid = (park_y0 + park_y1) / 2.0
+    park_depth = park_y1 - park_y0
+    _plane("park_w", col_g, ((-450 + ramp_x - gap) / 2.0, park_mid, PARK_Z), (ramp_x - gap - (-450), park_depth), mats["park"])
+    _plane("park_e", col_g, ((ramp_x + gap + 450) / 2.0, park_mid, PARK_Z), (450 - (ramp_x + gap), park_depth), mats["park"])
     for name, px, py, hx, hy in PATHS:
         _plane(name, col_g, (px, py, PARK_Z + 0.04), (hx * 2, hy * 2), mats["concrete"])
     # Stone quay, about 2.5 m of face above the lawn, with a railing.
@@ -1089,8 +1199,8 @@ def build_river_city(kit, mats, rng, pieces):
                 )
         for i in range(28):
             x = rng.uniform(-70, 20)
-            y = rng.choice((AVE_Y + 6.0, AVE_Y - 4.0, rng.uniform(42, 76)))
-            if _on_deck(x, y, 8):
+            y = rng.uniform(46, 76)
+            if _on_deck(x, y, 9) or abs(y - AVE_Y) < AVENUE_HALF + 2.0:
                 continue
             bush = ico_object("bush", col_p, (x, y, ROAD_Z + 0.15 if abs(y - AVE_Y) < AVE_HALF else PARK_Z + 0.2), (0.55, 0.45, 0.7), mats["leaf"])
             bush.color = (0.22, 0.4, 0.16, 1)
@@ -1111,13 +1221,13 @@ def build_river_city(kit, mats, rng, pieces):
             t = (i + 0.5) / steps - 0.5
             px = cx + (0 if hy > hx else t * hx * 1.6)
             py = cy + (t * hy * 1.6 if hy > hx else 0)
-            if _on_deck(px, py, 8) or py > RIVER_Y0 - 4 or py < AVE_Y + AVE_HALF:
+            if _on_deck(px, py, 8) or py > RIVER_Y0 - 4 or py < AVE_Y + AVENUE_HALF + SIDEWALK_W:
                 continue
             _person(kit, col_v, mats, px, py, PARK_Z, rng)
     for i in range(8):
         ang = i / 8.0 * math.tau
         _person(kit, col_v, mats, fx + math.cos(ang) * 5.2, fy + math.sin(ang) * 5.2, PARK_Z, rng)
-    walk_y = AVE_Y + AVE_HALF + SIDEWALK_W * 0.5
+    walk_y = AVE_Y + AVENUE_HALF + SIDEWALK_W * 0.5
     for x in (-40, -24, -8, 16, 32):
         _person(kit, col_v, mats, x, walk_y, ROAD_Z + 0.06, rng, clip="Walk")
     if cc0_city.ready():
@@ -1139,13 +1249,13 @@ def build_river_city(kit, mats, rng, pieces):
             continue
         _person(kit, col_v, mats, x, y, PARK_Z, rng)
     white = (0.93, 0.93, 0.94, 1)
-    for i, (x, y) in enumerate(FOREGROUND_CARS):
+    for i, (x, y, yaw) in enumerate(FOREGROUND_CARS):
         _car(
             kit,
             col_v,
             mats,
             (x, y, ROAD_Z + 0.25),
-            0.0 if y < AVE_Y else math.pi,
+            yaw,
             white,
             drive=0.0,
             model="sedan",
@@ -1174,7 +1284,7 @@ def _blendkit_crowd(kit, col_v, col_g):
     if not private_assets.ready():
         return
     fx, fy = FOUNTAIN
-    walk_y = AVE_Y + AVE_HALF + SIDEWALK_W * 0.5
+    walk_y = AVE_Y + AVENUE_HALF + SIDEWALK_W * 0.5
 
     def person(token, loc, yaw, height, name):
         obj = private_assets.place(col_v, token, loc, yaw, height=height, name=name)
@@ -1244,15 +1354,15 @@ def _deck_edge(y, side, half=DECK_HALF):
     return (x + rx * half * side, yy + ry * half * side, deck_z(s) + 2.2)
 
 
-def _deck_ribbon(coll, mats, s0, s1):
+def _deck_ribbon(coll, mats, s0, s1, surface="deck"):
     """A slab whose cross-section is vertical, so two spans that share s meet flush."""
     from mathutils import Vector
 
     rx, ry = right_vector()
     half = DECK_HALF
-    top = 0.28
+    top = RIBBON_TOP
     thick = 0.55
-    curb = 1.7
+    curb = 0.22
     samples = max(2, int(abs(s1 - s0) / 4.0) + 1)
     bm = bmesh.new()
     loops = []
@@ -1296,7 +1406,7 @@ def _deck_ribbon(coll, mats, s0, s1):
     for vert in bm.verts:
         vert.co -= center
     me = mesh_from_bm("deck", bm)
-    obj = link_obj("deck", me, coll, (mats["deck"], mats["concrete"]))
+    obj = link_obj("deck", me, coll, (mats[surface], mats["concrete"]))
     obj.location = center
     obj.pass_index = INDEX_DECK
     return obj, center
@@ -1315,52 +1425,36 @@ def _bridge(kit, col, cars, mats, rng):
         horiz = math.hypot(x1 - x0, y1 - y0)
         pitch = math.atan2(z1 - z0, max(horiz, 0.1))
         length = math.hypot(horiz, z1 - z0)
-        obj, center = _deck_ribbon(col, mats, s0, s1)
+        obj, center = _deck_ribbon(col, mats, s0, s1, "road" if i in (3, 4) else "deck")
         from mathutils import Vector
 
         center_v = Vector(center)
-        if i not in (1, 2):
+        if i in (0, 3):
             rx, ry = right_vector()
             direction = 1.0 if s1 >= s0 else -1.0
-            s = s0
+            s = s0 + direction * 2.0
+            dash_at = 0.0
             while (s1 - s) * direction > 2.2:
                 x, y = deck_point(s)
-                z = deck_z(s) + 0.31
-                marks = [(0.0, 0.16, 3.4, mats["yellow"])]
-                if int(abs(s) / 5.5) % 2 == 0:
-                    for offset in DECK_LANES:
-                        marks.append((offset, 0.14, 1.7, mats["mark"]))
+                z = deck_z(s) + RIBBON_TOP + 0.03
+                marks = [(sign * 0.12, 0.10, 4.0, mats["yellow"]) for sign in (-1.0, 1.0)]
+                if dash_at >= DASH_GAP:
+                    for offset in (-LANE_W, LANE_W):
+                        marks.append((offset, 0.12, DASH_LEN, mats["mark"]))
+                    dash_at = 0.0
+                else:
+                    dash_at += 4.0
                 for offset, width, length_m, mat in marks:
-                    mark = box_object("bdash", col, (0, 0, 0), (width, length_m, 0.04), mat)
+                    mark = box_object("bdash", col, (0, 0, 0), (width, length_m, 0.03), mat)
                     mark.parent = obj
                     mark.matrix_parent_inverse = Matrix.Identity(4)
                     mark.location = Vector((x + rx * offset, y + ry * offset, z)) - center_v
                     mark.rotation_euler = (pitch, 0.0, DECK_ROT_Z)
-                s += direction * 4.6
+                    kit.add(mark, "road_mark", sink=False)
+                s += direction * 4.0
         item = kit.add(obj, "bridge_deck", i=i, sink=True, length=length)
         decks.append(item)
         segments[i] = obj
-    # The bridge street meets the foreground road here.
-    ix, iy = deck_point(bridge_spans()[-1][1])
-    rx, ry = right_vector()
-    for side in (-1, 1):
-        _prop(
-            kit, col, "signal", _kenney("props/traffic-light.glb"),
-            (ix + rx * side * (DECK_HALF + 1.6), iy + ry * side * (DECK_HALF + 1.6), 0.36),
-            DECK_ROT_Z + (0.0 if side > 0 else math.pi),
-            5.4,
-            "prop",
-        )
-    dx, dy = deck_direction()
-    for d in range(7):
-        bar = box_object(
-            "crosswalk",
-            col,
-            (ix + dx * (d - 3) * 1.35, iy + dy * (d - 3) * 1.35, 0.4),
-            (DECK_W * 0.82, 0.55, 0.05),
-            mats["mark"],
-        )
-        bar.rotation_euler[2] = DECK_ROT_Z
     towers = []
     for i, s in enumerate(TOWER_S):
         loc, rot = tower_pose(s)
@@ -1368,7 +1462,7 @@ def _bridge(kit, col, cars, mats, rng):
         pivot.rotation_euler[2] = rot
         # Near portal: leg top at z=62 is about 38% of the frame above the deck.
         # The far portal stays shorter so it does not fill the title.
-        height = 64.5 if i == 0 else 44.0
+        height = 64.5 if i == 0 else 52.0
         _tower_portal(col, mats, pivot, height, TOWER_W, INDEX_PORTAL if i == 0 else 0)
         towers.append(kit.add(pivot, "bridge_tower", i=i, height=height, width=TOWER_W, sink=True))
         # Both portals stand on a pier that rises from the river bed to the deck.
@@ -1411,7 +1505,7 @@ def _bridge(kit, col, cars, mats, rng):
     for i, s in enumerate((58.0, 78.0)):
         x, y = deck_point(s)
         lane = lanes[i]
-        pos = Vector((x + rx * lane, y + ry * lane, deck_z(s) + 0.34))
+        pos = Vector((x + rx * lane, y + ry * lane, deck_z(s) + RIBBON_TOP + 0.18))
         _car(
             kit,
             cars,
@@ -1433,11 +1527,10 @@ def _bridge(kit, col, cars, mats, rng):
         "suspenders": suspenders,
         "half": DECK_HALF - 0.8,
         "anchors": [
-            # On the deck edges at each bank, so the main cables do not drop into the river.
-            _deck_edge_s(4.0, -1),
-            _deck_edge_s(4.0, 1),
-            _deck_edge_s(146.0, -1),
-            _deck_edge_s(146.0, 1),
+            _deck_edge_s(NEAR_BANK_S - 1.0, -1),
+            _deck_edge_s(NEAR_BANK_S - 1.0, 1),
+            _deck_edge_s(FAR_BANK_S + 1.0, -1),
+            _deck_edge_s(FAR_BANK_S + 1.0, 1),
         ],
     }
 

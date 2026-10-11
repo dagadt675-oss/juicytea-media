@@ -150,25 +150,31 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
         a = state["title_alpha"]
         # Two centered lines in the sky, well above the caption band.
         lines = _wrap_title(state["title"])
-        # Large, in the open sky left of the portal. The portal's left leg
-        # is near x=0.49, so the block is centered in the sky pocket, not
-        # on the frame center and not jammed into the corner.
-        cx = int(width * 0.255)
-        y = int(height * 0.068)
-        gap = int(title_size * 1.08)
-        block_h = gap * max(0, len(lines) - 1)
-        y -= block_h // 2
-        _title_scrim(img, cx, y + block_h / 2.0, width * 0.23, gap * max(len(lines), 1) * 0.85, a)
+        # 60 px safe margin on a 1080×1920 frame, left-aligned in the sky
+        # pocket so the portal (near x=0.49) does not clip the words.
+        margin_x = width * (60.0 / 1080.0)
+        margin_y = height * (60.0 / 1920.0)
+        max_right = width * 0.46
+        size = title_size
+        title_font = _font(SERIF, size)
+        while size > 22 and max(_font(SERIF, size).getlength(line) for line in lines) > max_right - margin_x - 12:
+            size -= 1
+            title_font = _font(SERIF, size)
+        x = int(margin_x + 8)
+        y = int(margin_y)
+        gap = int(size * 1.15)
+        block_w = max(title_font.getlength(line) for line in lines)
+        _title_scrim(img, x + block_w / 2.0, y + gap * max(len(lines) - 1, 0) / 2.0 + size * 0.4, block_w * 0.62, gap * max(len(lines), 1) * 0.7, a)
         for line in lines:
             _shadow_text(
                 img,
-                (cx, y),
+                (x, y),
                 line,
                 title_font,
                 fill=_alpha((255, 255, 255), 255 * a),
-                anchor="mm",
-                radius=14,
-                opacity=int(170 * a),
+                anchor="lt",
+                radius=8,
+                opacity=int(160 * a),
             )
             y += gap
 
