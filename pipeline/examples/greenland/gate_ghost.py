@@ -24,8 +24,10 @@ sys.path.insert(0, str(ROOT))
 from jt.show.greenland import AFRICA  # noqa: E402
 from jt.show.greenland_v5 import (  # noqa: E402
     H,
+    T_LAST,
     W,
     Episode,
+    _globe_mix,
     _smooth,
     camera_blend,
     camera_channels,
@@ -81,15 +83,15 @@ def check_time(ep: Episode, t: float, countries: dict[str, list]) -> list[str]:
 
 
 def morph_times() -> list[float]:
-    """The outbound zoom, where the two framings used to both be on screen."""
+    """Every 0.1 s of a projection blend or a plate LoD blend, for the whole film."""
     times = []
-    frame = 0
-    while frame / 60.0 < 8.2:
-        t = frame / 60.0
-        w = camera_channels(t)[0]
-        if 6.55 <= t <= 8.15 and 0.004 < w < 0.996:
-            times.append(t)
-        frame += 6
+    t = 0.0
+    while t <= T_LAST + 1e-9:
+        w, _lon, _lat, span = camera_channels(t)
+        mix = _globe_mix(span)
+        if 0.004 < w < 0.996 or 0.02 < mix < 0.98:
+            times.append(round(t, 3))
+        t += 0.1
     return times
 
 
@@ -103,7 +105,11 @@ def main() -> None:
     fails = []
     for t in morph_times():
         fails.extend(check_time(ep, t, countries))
-        print(f"t {t:.3f} w {camera_channels(t)[0]:.3f} fails {len(fails)}", flush=True)
+        w, _lon, _lat, span = camera_channels(t)
+        print(
+            f"t {t:.3f} w {w:.3f} span {span:.1f} mix {_globe_mix(span):.2f} fails {len(fails)}",
+            flush=True,
+        )
     print(f"samples {len(morph_times())} fails {len(fails)} pass {not fails}")
     for row in fails[:40]:
         print(" ", row)
