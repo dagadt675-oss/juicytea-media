@@ -177,10 +177,16 @@ def _structures(kit, ch, frame, fps):
             obj.location = loc
             obj.scale = (puff, puff, puff * 1.3)
         elif role == "flame":
-            s = max(ch["fire"], ch["heat"] * 0.55)
-            obj.hide_render = s < 0.04
-            flicker = 0.75 + 0.25 * math.sin(frame * 0.7 + item.extra["index"])
-            obj.scale = (s * flicker, s * flicker, s * 1.4 * flicker)
+            if item.extra.get("outage"):
+                s = ch["power"] * (1.0 - smoother(0.15, 0.55, ch["vegetation"]))
+                obj.hide_render = s < 0.04
+                flicker = 0.85 + 0.15 * math.sin(frame * 0.9)
+                obj.scale = item.base_scale * max(s * flicker, 0.001)
+            else:
+                s = max(ch["fire"], ch["heat"] * 0.55)
+                obj.hide_render = s < 0.04
+                flicker = 0.75 + 0.25 * math.sin(frame * 0.7 + item.extra["index"])
+                obj.scale = (s * flicker, s * flicker, s * 1.4 * flicker)
         elif role == "crack":
             s = max(ch["heat"], ch["scorch"], ch["dry"] if "dry" in ch else 0.0)
             obj.hide_render = s < 0.08
@@ -278,6 +284,10 @@ def _life(kit, ch, frame, fps, snow):
         elif role == "forest_floor":
             # Day 1 stays city-grey on the far bank. Meadow, then forest floor.
             obj.hide_render = ch["vegetation"] < 0.22
+        elif role == "ruin":
+            s = smoother(0.28, 0.75, ch["collapse"])
+            obj.hide_render = s < 0.05
+            obj.scale = item.base_scale * max(s, 0.001)
         elif role == "prop":
             loc = item.base_loc.copy()
             loc.z += ch["gravity"] * item.extra.get("float", 0.0)

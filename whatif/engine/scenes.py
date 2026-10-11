@@ -15,6 +15,7 @@ from mathutils import Matrix
 
 from engine import assets as assetlib
 from engine import cc0_city
+from engine import private_assets
 from engine.city_layout import (
     AVE_HALF,
     AVE_Y,
@@ -963,12 +964,13 @@ def build_river_city(kit, mats, rng, pieces):
                 1,
             )
             # A packed tower replaces the box when that record is enabled and on disk.
-            if cc0_city.ready():
+            built = private_assets.place_tower(col_c, x, y, FAR_Z, h)
+            if built is None and cc0_city.ready():
                 built = cc0_city.place_tower(col_c, x, y, FAR_Z, h)
-                if built is not None:
-                    kit.add(built, "building_base", sink=True, skeleton=(row == 3 and int(x) % 80 < 40))
-                    x += w + rng.uniform(10.0, 16.0)
-                    continue
+            if built is not None:
+                kit.add(built, "building_base", sink=True, skeleton=(row == 3 and int(x) % 80 < 40))
+                x += w + rng.uniform(10.0, 16.0)
+                continue
             if _library_tower(kit, col_c, x, y, FAR_Z, h, color):
                 x += w + rng.uniform(10.0, 16.0)
                 continue
@@ -1029,12 +1031,16 @@ def build_river_city(kit, mats, rng, pieces):
         ang = i / 4.0 * math.tau + 0.4
         bx = fx + math.cos(ang) * 6.4
         by = fy + math.sin(ang) * 6.4
-        bench = _prop(
-            kit, col_g, "bench", _kenney("props/bench/bench.glb"),
-            (bx, by, PARK_Z), ang + math.pi, 0.8, "prop",
-        )
-        if bench is None:
-            box_object("bench", col_g, (bx, by, PARK_Z + 0.4), (1.6, 0.5, 0.8), mats["wood"])
+        bench = private_assets.place_bench(col_g, bx, by, PARK_Z, ang + math.pi)
+        if bench is not None:
+            kit.add(bench, "prop", sink=False)
+        else:
+            bench = _prop(
+                kit, col_g, "bench", _kenney("props/bench/bench.glb"),
+                (bx, by, PARK_Z), ang + math.pi, 0.8, "prop",
+            )
+            if bench is None:
+                box_object("bench", col_g, (bx, by, PARK_Z + 0.4), (1.6, 0.5, 0.8), mats["wood"])
     for i in range(8):
         bed_x = rng.uniform(-38, -2)
         bed_y = rng.uniform(42, 74)
@@ -1120,6 +1126,7 @@ def build_river_city(kit, mats, rng, pieces):
         deer = cc0_city.place_deer(col_v, -36.0, 70.0, PARK_Z)
         if deer is not None:
             kit.add(deer, "animal", sink=False)
+        _blendkit_crowd(kit, col_v, col_g)
     for i in range(16):
         x = rng.uniform(-50, 10)
         y = rng.uniform(42, 76)
@@ -1155,6 +1162,44 @@ def build_river_city(kit, mats, rng, pieces):
     water.location = ((RIVER_X0 + RIVER_X1) / 2, (RIVER_Y0 + RIVER_Y1) / 2, city_water_top())
     kit.water = kit.add(water, "water", sink=False)
     kit.kind = "city"
+
+
+def _blendkit_crowd(kit, col_v, col_g):
+    """Posed people, a cat, street props, and the ruins that show up later."""
+    if not private_assets.ready():
+        return
+    fx, fy = FOUNTAIN
+    walk_y = AVE_Y + AVE_HALF + SIDEWALK_W * 0.5
+
+    def person(token, loc, yaw, height, name):
+        obj = private_assets.place(col_v, token, loc, yaw, height=height, name=name)
+        if obj is not None:
+            kit.add(obj, "person", float=0.0, bob=0.0, sink=False)
+
+    person("Young_guy_keeps_his_hands_in_pockets_ad9f69fc", (-28.0, walk_y, ROAD_Z + 0.06), 0.4, 1.75, "pockets")
+    person("Lowpoly_Male_Standing_14ab4e7e", (-18.0, 50.0, PARK_Z), 1.2, 1.75, "standing")
+    person("Lowpoly_Female_Talking_by_phone_87771976", (-32.0, 58.0, PARK_Z), 2.4, 1.75, "phone_talk")
+    person("Lowpoly_Male_Sitting_db2280bf", (fx + 4.6, fy + 4.2, PARK_Z), 0.8, 1.25, "sitting")
+    cat = private_assets.place_cat(col_v, -42.0, 64.0, PARK_Z, yaw=1.1)
+    if cat is not None:
+        kit.add(cat, "animal", sink=False)
+    hydrant = private_assets.place_hydrant(col_g, -14.0, walk_y, ROAD_Z)
+    if hydrant is not None:
+        kit.add(hydrant, "prop", sink=False)
+
+    def ruin(token, loc, yaw, longest):
+        obj = private_assets.place(col_g, token, loc, yaw, longest=longest, name="ruin")
+        if obj is not None:
+            kit.add(obj, "ruin", sink=False)
+
+    ruin("Trash_Heap_62d00c11", (-22.0, 58.0, PARK_Z), 0.4, 4.5)
+    ruin("Scan_Rubble_ruins_01def269", (8.0, 162.0, FAR_Z), 0.2, 9.0)
+    ruin("Brick_Ruins_0b2b49b4", (-8.0, 48.0, PARK_Z), 0.6, 2.4)
+    ruin("Brick_Ruins_0b2b49b4", (-44.0, 72.0, PARK_Z), 1.4, 2.4)
+    ruin("Dead_Tree_Trunk_02_7723c39f", (-46.0, 62.0, PARK_Z), 0.7, 4.2)
+    flame = private_assets.place(col_g, "Animated_Fire_Volume_73a03e3d", (-36.0, 168.0, 22.0), 0.0, height=2.4, name="outage")
+    if flame is not None:
+        kit.add(flame, "flame", index=0, outage=True, sink=False)
 
 
 def _power_plant(kit, coll, mats, x, y, z):
