@@ -53,7 +53,6 @@ from jt.show.vfx_core import (
     click_squash,
     cloud_alpha_for_span,
     draw_atmosphere,
-    draw_clouds,
     draw_svg,
     exp_zoom,
     icon_parallax,
@@ -694,16 +693,18 @@ class Episode:
         canvas.saveLayer(None, paint)
         return True
 
-    def _path(self, rings, cam) -> skia.Path:
-        w = getattr(self, "_pw", 0.0)
-        if 0.004 < w < 0.996:
-            return self._blend_path(rings, w)
+    def _path_on(self, rings, cam, full_only: bool) -> skia.Path:
+        """A fill path. Chopped globe limbs are left out so they cannot close into a straight edge."""
         view = view_for(cam, W, H)
         path = skia.Path()
         path.setFillType(skia.PathFillType.kEvenOdd)
         for ring in rings:
-            for piece in _ring_paths(np.asarray(ring, np.float64), view):
+            arr = np.asarray(ring, np.float64)
+            pieces = _ring_paths(arr, view)
+            for piece in pieces:
                 if len(piece) < 3:
+                    continue
+                if full_only and cam.proj == "ortho" and len(piece) < max(8, int(len(arr) * 0.82)):
                     continue
                 path.moveTo(piece[0][0], piece[0][1])
                 for x, y in piece[1:]:
@@ -711,36 +712,28 @@ class Episode:
                 path.close()
         return path
 
-    def _blend_path(self, rings, w: float) -> skia.Path:
-        vm = view_for(self._merc, W, H)
-        vo = view_for(self._ortho, W, H)
-        path = skia.Path()
-        path.setFillType(skia.PathFillType.kEvenOdd)
-        for ring in rings:
-            arr = np.asarray(ring, np.float64)
-            if len(arr) < 4:
+    def _draw_fill(self, canvas, rings, rgb, alpha: int, neon, core: float) -> None:
+        if alpha <= 0 and core <= 0:
+            return
+        w = getattr(self, "_pw", 0.0)
+        if w <= 0.004:
+            layers = ((self._merc, 1.0, False),)
+        elif w >= 0.996:
+            layers = ((self._ortho, 1.0, True),)
+        else:
+            s = _smooth(w)
+            layers = ((self._merc, 1.0 - s, False), (self._ortho, s, True))
+        for cam, weight, full_only in layers:
+            if weight <= 0.02:
                 continue
-            step = max(1, len(arr) // 180)
-            arr = arr[::step]
-            xm, ym, vism = project_points(arr[:, 0], arr[:, 1], vm)
-            xo, yo, viso = project_points(arr[:, 0], arr[:, 1], vo)
-            vis = vism if w < 0.5 else viso
-            if int(np.count_nonzero(vis)) < 3:
-                continue
-            x = xm * (1.0 - w) + xo * w
-            y = ym * (1.0 - w) + yo * w
-            moved = False
-            for i in range(len(x)):
-                if not vis[i]:
-                    continue
-                if not moved:
-                    path.moveTo(float(x[i]), float(y[i]))
-                    moved = True
-                else:
-                    path.lineTo(float(x[i]), float(y[i]))
-            if moved:
-                path.close()
-        return path
+            path = self._path_on(rings, cam, full_only)
+            self._fill(canvas, path, rgb, int(alpha * weight))
+            if core > 0 and weight > 0.08:
+                _neon(canvas, path, neon, core * weight)
+
+    def _path(self, rings, cam) -> skia.Path:
+        # Callers that still want one path (labels, clips) use the camera they pass.
+        return self._path_on(rings, cam, full_only=False)
 
     def _fill(self, canvas, path, rgb, alpha: int) -> None:
         if path.countPoints() < 3 or alpha <= 0:
@@ -797,49 +790,38 @@ class Episode:
         return float(x.min()), float(y.min()), float(x.max()), float(y.max())
 
     def _world(self, canvas, cam, t: float) -> None:
-        if cam.proj == "merc" and cam.span >= 130 and self._pw < 0.5:
-            draw_clouds(canvas, t * 0.15, 1.0, W, H, alpha=0.16 * (1.0 - self._pw))
         if self._pw > 0.04:
             view = view_for(self._ortho, W, H)
             draw_atmosphere(canvas, view.cx, view.cy, view.r, 0.85 * self._pw)
 
-        africa = self._border(
-            "africa", cam, (round(self._pw, 3), round(cam.lon, 2), round(cam.lat, 2), round(cam.span, 2)),
-            lambda: self._path([ring for iso in AFRICA for ring in (self.earth.rings.get(iso) or [])], cam),
-        )
         breath = 1.0 + 0.07 * math.sin(t * 1.35)
         base_tint = 96.0 if t < CLOCK.algeria - 0.2 or t >= CLOCK.outro else 78.0
-        # The fourteen-to-Algeria handoff eases the gold back instead of cutting it.
         if CLOCK.algeria - 0.55 <= t <= CLOCK.algeria + 0.45:
             u = _smooth((t - (CLOCK.algeria - 0.55)) / 1.0)
             base_tint = 96.0 + (78.0 - 96.0) * u
         tint = int(max(0, min(255, base_tint * breath)))
-        self._fill(canvas, africa, (255, 176, 48), tint)
-        pulse = 0.5 + 0.5 * math.sin(t * 2.15)
-        coast = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=2.4 + 1.4 * pulse)
-        coast.setColor(skia.ColorSetARGB(int(190 + 50 * pulse), 255, 214, 120))
-        canvas.drawPath(africa, coast)
+        africa_rings = [ring for iso in AFRICA for ring in (self.earth.rings.get(iso) or [])]
+        self._draw_fill(canvas, africa_rings, (255, 176, 48), tint, (255, 214, 120), 2.2)
 
         compare = _window(t, CLOCK.algeria - 0.45, CLOCK.usa + 0.35, 0.45)
         if compare > 0.02:
-            alg = self._border("dza", cam, (), lambda: self._path(self.earth.rings.get("DZA") or [], cam))
-            self._fill(canvas, alg, GREEN, int(170 * compare))
-            _neon(canvas, alg, (180, 255, 190), 2.4 * compare)
+            self._draw_fill(canvas, self.earth.rings.get("DZA") or [], GREEN, int(170 * compare), (180, 255, 190), 2.4 * compare)
         congo = _window(t, CLOCK.congo - 0.35, CLOCK.usa + 0.35, 0.40)
         if congo > 0.02:
-            drc = self._border("cod", cam, (), lambda: self._path(self.earth.rings.get("COD") or [], cam))
-            self._fill(canvas, drc, BLUE, int(170 * congo))
-            _neon(canvas, drc, (170, 210, 255), 2.4 * congo)
+            self._draw_fill(canvas, self.earth.rings.get("COD") or [], BLUE, int(170 * congo), (170, 210, 255), 2.4 * congo)
 
         lon, lat, _u = journey(t)
         tiles = _window(t, CLOCK.africa14 + D_AFRICA - 0.05, CLOCK.algeria + 0.20, 0.45)
         packing = _window(t, CLOCK.usa - 0.05, CLOCK.outro + 0.85, 0.20)
         sticker = CLOCK.drag <= t < HUGE_T + D_HUGE and not tiles and not compare and not packing
-        inplace = t < CLOCK.drag or t >= HUGE_T + D_HUGE
-        if inplace:
-            path = self._border("grl", cam, (), lambda: self._path(self.earth.rings.get("GRL") or [], cam))
-            self._fill(canvas, path, RED, 188)
-            _neon(canvas, path, (255, 230, 230), 3.2)
+        if t < CLOCK.drag or t >= HUGE_T + D_HUGE:
+            home = 1.0
+        elif t >= CLOCK.outro - 0.2:
+            home = _smooth(min(1.0, (t - (CLOCK.outro - 0.2)) / 1.05))
+        else:
+            home = 0.0
+        if home > 0.02:
+            self._draw_fill(canvas, self.earth.rings.get("GRL") or [], RED, int(188 * home), (255, 230, 230), max(1.6, 3.2 * home))
         if sticker:
             anchor = self._project(cam, lon, lat)
             canvas.save()
@@ -849,43 +831,42 @@ class Episode:
                 canvas.scale(sx, sy)
                 canvas.translate(-anchor[0], -anchor[1])
 
-            def _sticker_path():
-                moved = [
-                    reproject_true(ring, HOME[0], HOME[1], lon, lat)
-                    for ring in (self.earth.rings.get("GRL") or [])
-                ]
-                return self._path(moved, cam)
-
-            path = self._border("sticker", cam, (lon, lat), _sticker_path)
-            self._fill(canvas, path, RED, 210)
-            _neon(canvas, path, (255, 236, 236), 3.0)
+            moved = [
+                reproject_true(ring, HOME[0], HOME[1], lon, lat)
+                for ring in (self.earth.rings.get("GRL") or [])
+            ]
+            self._draw_fill(canvas, moved, RED, 210, (255, 236, 236), 3.0)
             canvas.restore()
-            if CLOCK.drag <= t <= CLOCK.drag + D_SLIDE + 0.25 and cam.proj == "merc":
-                progressed = 1.0 if t >= CLOCK.drag + D_SLIDE else _smooth((t - CLOCK.drag) / D_SLIDE)
+            arc_end = CLOCK.drag + D_SLIDE
+            if CLOCK.drag <= t <= arc_end + 0.40 and cam.proj == "merc":
+                progressed = 1.0 if t >= arc_end else _smooth((t - CLOCK.drag) / D_SLIDE)
+                # Only the recent part of the route, so it reads as a trail, not a guide across the frame.
+                start_u = max(0.0, progressed - 0.22)
                 samples = []
-                for i in range(25):
-                    su = progressed * (i / 24.0)
+                for i in range(18):
+                    su = start_u + (progressed - start_u) * (i / 17.0)
                     samples.append((
                         ang_lerp(HOME[0], DEST[0], su),
                         HOME[1] + (DEST[1] - HOME[1]) * su,
                     ))
-                dashed_path(canvas, cam, samples, W, H, 1.0, phase=0.0)
-        if cam.proj == "merc" and CLOCK.drag <= t < CLOCK.drop + 0.4:
-            eq = [(lon_i, 0.0) for lon_i in np.linspace(-30, 55, 24)]
-            dashed_path(canvas, cam, eq, W, H, 1.0, phase=0.0)
+                fade_in = _smooth(min(1.0, (t - CLOCK.drag) / 0.35))
+                fade_out = 1.0 if t <= arc_end else 1.0 - _smooth((t - arc_end) / 0.40)
+                fade = fade_in * fade_out
+                if fade > 0.04:
+                    paint = skia.Paint()
+                    paint.setAlphaf(float(fade))
+                    canvas.saveLayer(None, paint)
+                    dashed_path(canvas, cam, samples, W, H, 1.0, phase=0.0)
+                    canvas.restore()
 
         if tiles > 0.02:
             self._paint_fourteen(canvas, cam, t, tiles)
         if compare > 0.08:
-            path = self._border(
-                "chip", cam, CHIP,
-                lambda: self._path(
-                    [reproject_true(ring, HOME[0], HOME[1], CHIP[0], CHIP[1]) for ring in (self.earth.rings.get("GRL") or [])],
-                    cam,
-                ),
-            )
-            self._fill(canvas, path, RED, 210)
-            _neon(canvas, path, (255, 236, 236), 2.6)
+            chip_rings = [
+                reproject_true(ring, HOME[0], HOME[1], CHIP[0], CHIP[1])
+                for ring in (self.earth.rings.get("GRL") or [])
+            ]
+            self._draw_fill(canvas, chip_rings, RED, int(210 * min(1.0, compare)), (255, 236, 236), 2.6 * min(1.0, compare))
         if packing > 0.02:
             self._paint_pack(canvas, cam, t)
 
@@ -969,9 +950,6 @@ class Episode:
         px, py = icon_parallax((cam.lon - prev.lon) * 30.0, (cam.lat - prev.lat) * 30.0, 0.015)
         pop = icon_pop(age * MOTION_FPS, 18)
         squash = click_squash(age - 0.20, 0.18)
-        shade = skia.Paint(AntiAlias=True)
-        shade.setColor(skia.ColorSetARGB(46, 10, 14, 20))
-        canvas.drawCircle(x + px, y + py, 62 * pop, shade)
         try:
             draw_svg(canvas, HAND_SVG, x + px, y + py, 210.0, scale=pop * squash)
         except Exception:
