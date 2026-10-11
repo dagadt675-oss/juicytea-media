@@ -25,6 +25,7 @@ quantity:
   # US one-cent coin. Face-on drag is the ~25 mph the counter lands on.
   mass_kg: 0.0025
   diameter_m: 0.01905
+  # The mesh is drawn about 3× across so the coin reads in a vertical follow shot. Drag uses diameter_m.
   thickness_m: 0.00152
   cd: 1.14
   air_kg_m3: 1.204

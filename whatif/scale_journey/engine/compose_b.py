@@ -56,7 +56,7 @@ def _liberty_ghost(img: Image.Image, fr) -> None:
     dz = liberty_z - fr.penny[2]
     y = int(h * 0.50 - dz * 3.4)
     y = max(int(h * 0.30), min(int(h * 0.56), y))
-    x = int(w * 0.68)
+    x = int(w * 0.80)
     fade = 1.0 - min(1.0, abs(dz) / 80.0)
     fade *= min(1.0, max(0.0, (fr.t - 20.0) / 0.6))
     if fade < 0.05:

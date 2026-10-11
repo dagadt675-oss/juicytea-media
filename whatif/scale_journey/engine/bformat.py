@@ -194,8 +194,8 @@ def _penny(raw: dict) -> BEpisode:
         (27.0, 305.0),
         (29.2, 150.0),
         (31.0, 150.0),
-        (33.2, 6.0),
-        (36.0, 6.0),
+        (33.2, 5.45),
+        (36.0, 5.45),
         (39.2, 1250.0),
         (40.0, 1250.0),
     ]
@@ -215,10 +215,10 @@ def _penny(raw: dict) -> BEpisode:
         (38.4, 1200, 0),
         (39.2, 1250, 0),
     ]
-    close = (0.48, -0.11, 0.06)
-    wide = (0.98, -0.62, 0.34)
-    cap_xy = (0.62, 0.16)
-    ledge_xy = (0.22, 0.0)
+    close = (0.62, -0.30, 0.22)
+    wide = (0.70, -0.34, 0.24)
+    cap_xy = (0.48, -0.02)
+    ledge_xy = (0.20, 0.0)
     frames = []
     prev_feet, prev_mph = None, None
     feet_from, mph_from = "1,250", "0"
@@ -276,15 +276,15 @@ def _penny(raw: dict) -> BEpisode:
         target = (penny[0] - 0.02, penny[1], penny[2] - 0.02)
         # Face the lens on the way down. Edge-on through the 27–31 s beat. Frame 0 pose at the end.
         if phase == "edge":
-            tilt, spin = 0.18, t * 11.0
+            tilt, spin = 0.15, t * 11.0
         elif phase in ("hook", "hold"):
-            tilt, spin = 1.05, 0.15
+            tilt, spin = 1.35, 0.2
         elif phase == "rise":
             u = _fade(t, 36.0, 39.2)
-            tilt = 0.18 + (1.05 - 0.18) * u
+            tilt = 0.15 + (1.35 - 0.15) * u
             spin = (1.0 - u) * 2.0
         else:
-            tilt, spin = 1.05, 0.4 + t * 3.4
+            tilt, spin = 1.25, 0.4 + t * 3.4
         title_alpha = 1.0 if phase in ("hook", "hold") else 1.0 - _fade(t, 2.6, 3.3)
         if phase == "rise":
             title_alpha = _fade(t, 38.4, 39.2)

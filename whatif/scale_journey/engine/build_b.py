@@ -149,55 +149,34 @@ def _facade(path: str):
     return mat
 
 
-def _instance_floors(proto, zs):
-    mesh = bpy.data.meshes.new("FloorPts")
-    mesh.from_pydata([(0.0, 0.0, z) for z in zs], [], [])
-    mesh.update()
-    cloud = _link(bpy.data.objects.new("Floors", mesh))
-    proto.parent = cloud
-    proto.parent_type = "VERTEX"
-    cloud.instance_type = "VERTS"
-    cloud.show_instancer_for_render = False
-    return cloud
-
-
 def _tower(job, facade):
     stone = _mat("Stone", (0.62, 0.60, 0.56), 0.8, 0.03)
     deck = float(job["deck_m"])
     roof = float(job["roof_m"])
     tip = float(job["tip_m"])
-    # Facade stops below the ledge so the follow camera is not inside the roof.
-    wall_top = deck - 1.6
+    # The shaft stops at the ledge. The camera stays on the street side of x=0.
+    wall_top = deck - 0.02
     wall = _box("Shaft", 0.9, 28.0, wall_top, (-0.45, 0.0, wall_top * 0.5))
     _assign(wall, facade)
     _uv_facade(wall)
-    ledge = _box("Ledge", 0.5, 0.9, 0.18, (0.02, 0.0, deck - 0.09))
+    ledge = _box("Ledge", 0.36, 0.42, 0.1, (0.10, 0.0, deck - 0.05))
     _assign(ledge, stone)
     bpy.ops.mesh.primitive_cone_add(vertices=4, radius1=3.2, depth=tip - roof, location=(-6.0, 0.0, roof + (tip - roof) * 0.5))
     spire = bpy.context.object
     spire.name = "Spire"
     _assign(spire, stone)
-    # Instanced floor lips, one mesh, 86 copies.
-    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, 0))
-    lip = bpy.context.object
-    lip.name = "LipProto"
-    lip.scale = (0.16, 8.0, 0.08)
-    lip.location = (-0.22, 0.0, 0.0)
-    bpy.ops.object.transform_apply(scale=True)
-    _assign(lip, stone)
-    floors = 102
-    step = deck / floors
-    _instance_floors(lip, [step * (i + 0.5) for i in range(floors)])
     _liberty(float(job.get("liberty_m", 93.0)))
 
 
 def _penny():
-    mat = _mat("Penny", (0.72, 0.42, 0.22), 0.45, 0.08)
-    bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=0.009525, depth=0.00152, location=(0, 0, 0))
+    # Picture scale, about 5×. A real 19 mm coin is a speck in a follow shot.
+    # Drag still uses the real diameter in the spec.
+    mat = _mat("Penny", (0.72, 0.38, 0.18), 0.38, 0.12)
+    show = 3.2
+    bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=0.009525 * show, depth=0.00152 * show, location=(0, 0, 0))
     obj = bpy.context.object
     obj.name = "Penny"
     _assign(obj, mat)
-    _shade(obj)
     return obj
 
 
@@ -208,7 +187,7 @@ def _person():
     skin = _mat("Skin", (0.55, 0.38, 0.30), 0.6, 0.02)
     cap = _mat("Cap", (0.15, 0.22, 0.55), 0.55, 0.04)
     root = _link(bpy.data.objects.new("Person", None))
-    root.location = (0.62, 0.16, 0.0)
+    root.location = (0.48, 0.06, 0.0)
 
     def part(scale, loc, mat, kind="sphere"):
         if kind == "sphere":
@@ -221,9 +200,9 @@ def _person():
         obj.parent = root
         _assign(obj, mat)
 
-    part((0.16 * h, 0.1 * h, 0.28 * h), (0, 0, 0.55 * h), cloth)
-    part((0.11 * h, 0.11 * h, 0.12 * h), (0, 0, 0.88 * h), skin)
-    part((0.13 * h, 0.13 * h, 0.035 * h), (0, 0, 0.98 * h), cap, kind="cyl")
+    part((0.22, 0.16, 0.42), (0, 0, 0.55 * h), cloth)
+    part((0.11, 0.11, 0.12), (0, 0, 1.48), skin)
+    part((0.095, 0.095, 0.022), (0, -0.01, 1.62), cap, kind="cyl")
     return root
 
 
@@ -322,7 +301,7 @@ def main():
         cam.location = fr["cam"]
         target.location = fr["target"]
         px, py, pz = fr["penny"]
-        penny.location = (px, py, pz + 0.012)
+        penny.location = (px, py, pz + 0.035)
         rot = fr.get("rot")
         if rot:
             penny.rotation_euler = tuple(rot)
