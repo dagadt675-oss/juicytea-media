@@ -20,7 +20,7 @@ from jt.show.basemap import build_plates, crossfade, paint_plate, view_for
 from jt.show.camera import Cam, CameraTrack, Key
 from jt.show.cues import pack as pack_cues
 from jt.show.faces import draw_face, gag_pose
-from jt.show.labels import Hud, area_stack, big_number, pill, strike
+from jt.show.labels import Hud, big_number, comparison_card, leader_label, pill, strike
 from jt.show.polys import (
     Shape, fill_iso, fill_ring_list, fill_union, group_shape, km_ring, project_lonlat, shape_from,
 )
@@ -651,10 +651,11 @@ class Greenland:
         if st["lying"] > 0.05:
             pop = 1.0 if st["t"] < 2.4 or st["t"] >= 41.7 else max(0.9, st["lying"])
             pill(hud, "THIS MAP IS LYING", w * 0.5, h * 0.58, RED, size=92, pop=pop, glow=RED, kind="lying")
-        if st["names"] > 0.4 and geo:
+        show_names = st["t"] < 2.15 or (3.05 < st["t"] < 5.20) or st["t"] >= 39.35
+        if st["names"] > 0.4 and geo and show_names:
             gbox = self._box_of(cam, self.earth.rings.get("GRL") or [], w, h)
             abox = self._bbox(cam, w, h)
-            if gbox:
+            if gbox and st["gag_excuse"] < 0.15:
                 gh = gbox[3] - gbox[1]
                 pill(hud, "GREENLAND", (gbox[0] + gbox[2]) / 2, gbox[1] + gh * 0.16,
                      RED, size=62, pop=1.0, kind="country")
@@ -678,32 +679,35 @@ class Greenland:
         if st["show14"] > 0.08:
             n = max(1, min(14, int(round(ramp(st["t"], 23.86, 24.36) * 14))))
             big_number(hud, f"{n}×", w * 0.5, h * 0.22, size=110, pop=_arrive(st["t"], 23.86))
+            comparison_card(hud)
         if st["by_area"] > 0.15:
             pill(hud, "BY AREA", w * 0.5, h * 0.32, RED, size=62, pop=1.0, kind="kicker")
-        if st["areas"] > 0.15:
-            # Full-width number pills cannot sit side by side at this cap height.
-            pill(hud, "AFRICA", w * 0.50, h * 0.37, (120, 72, 16), ink=(255, 248, 230), size=62, pop=1.0, kind="country")
-            pill(hud, "11.73M SQ MI", w * 0.50, h * 0.45, (255, 214, 48), ink=INK, size=84, pop=1.0, kind="sqmi")
-            pill(hud, "GREENLAND", w * 0.50, h * 0.53, RED, size=62, pop=1.0, kind="country")
-            pill(hud, "0.84M SQ MI", w * 0.50, h * 0.60, (255, 214, 48), ink=INK, size=84, pop=1.0, kind="sqmi")
-            pill(hud, "30.37M KM²", w * 0.28, h * 0.755, (28, 36, 48), ink=(236, 240, 244), size=54, pop=1.0, kind="km2")
-            pill(hud, "2.17M KM²", w * 0.72, h * 0.755, (28, 36, 48), ink=(236, 240, 244), size=54, pop=1.0, kind="km2")
         if st["compare"] > 0.25 and geo:
-            alg = project_lonlat(cam, 2.6, 28.0, w, h)
-            drc = project_lonlat(cam, 23.5, -2.5, w, h)
-            chip = project_lonlat(cam, 8.0, 20.0, w, h)
-            if alg:
-                pill(hud, "ALGERIA", alg[0], alg[1] - 90, (24, 150, 78), size=62, pop=1.0, kind="country")
-                pill(hud, "0.92M SQ MI", alg[0], alg[1] - 10, (255, 214, 48), ink=INK, size=80, pop=1.0, kind="number")
-            if chip:
-                pill(hud, "0.84M SQ MI", chip[0], chip[1] + 110, (255, 214, 48), ink=INK, size=80, pop=1.0, kind="number")
-            if drc and st["drc"] > 0.2:
-                pill(hud, "DR CONGO", drc[0], drc[1] - 78, (36, 112, 210), size=62, pop=1.0, kind="country")
-                pill(hud, "0.91M SQ MI", drc[0], drc[1] + 36, (255, 214, 48), ink=INK, size=80, pop=1.0, kind="number")
+            alg_box = self._box_of(cam, self.earth.rings.get("DZA") or [], w, h)
+            drc_box = self._box_of(cam, self.earth.rings.get("COD") or [], w, h)
+            chip_rings = [
+                reproject_true(ring, HOME_LON, HOME_LAT, 8.0, 20.0)
+                for ring in (self.earth.rings.get("GRL") or [])
+            ]
+            chip_box = self._box_of(cam, chip_rings, w, h)
+            avoid = [b for b in (alg_box, chip_box, drc_box) if b]
+            for box in (alg_box, chip_box):
+                if not box:
+                    continue
+                cw = box[2] - box[0]
+                cx = (box[0] + box[2]) / 2
+                cy = (box[1] + box[3]) / 2
+                avoid.append((cx - cw * 0.34, cy - cw * 0.30, cx + cw * 0.34, cy + cw * 0.30))
+            # 0.92 / 0.91 / 0.84 sq mi are 2.381M / 2.345M / 2.166M km² rounded.
+            leader_label(hud, canvas, "ALGERIA", "0.92M SQ MI", alg_box, avoid,
+                         (24, 150, 78), prefer="above", size=44)
+            leader_label(hud, canvas, "GREENLAND", "0.84M SQ MI", chip_box, avoid,
+                         RED, prefer="right", size=44)
+            if st["drc"] > 0.2:
+                leader_label(hud, canvas, "DR CONGO", "0.91M SQ MI", drc_box, avoid,
+                             (36, 112, 210), prefer="left", size=44)
         if st["gag_hi"] > 0.15 and geo:
-            alg = project_lonlat(cam, 2.6, 28.0, w, h)
-            if alg:
-                pill(hud, "HI, TINY.", w * 0.70, h * 0.24, PAPER, ink=INK, size=72, pop=1.0, kind="gag")
+            pill(hud, "HI, TINY.", w * 0.78, h * 0.18, PAPER, ink=INK, size=58, pop=1.0, kind="gag", nudge=False)
         if st["usa"] > 0.3:
             pill(hud, "USA", w * 0.28, h * 0.40, (28, 118, 230), size=62, pop=1.0, kind="country")
         if st["chn"] > 0.3:
@@ -719,7 +723,8 @@ class Greenland:
             pill(hud, "ROOM TO SPARE", w * 0.5, h * 0.74, PAPER, ink=INK, size=70,
                  pop=_arrive(st["t"], 36.07), kind="kicker")
         self._last_caps = hud.caps
-        return hud.safe_hits() + hud.band_hits()
+        self._last_overlaps = hud.overlap_pairs()
+        return hud.safe_hits() + hud.band_hits() + hud.overlap_hits()
 
 
 def cue_payload() -> dict:

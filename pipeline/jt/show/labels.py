@@ -63,6 +63,33 @@ class Hud:
                 n += 1
         return n
 
+    def overlap_hits(self) -> int:
+        """Pairs of pills whose boxes actually cross. Touching edges do not count."""
+        return len(self.overlap_pairs())
+
+    def overlap_pairs(self) -> list[tuple[str, str]]:
+        pairs = []
+        boxes = self.boxes
+        names = [c[0] for c in self.caps] if len(self.caps) == len(boxes) else [str(i) for i in range(len(boxes))]
+        for i in range(len(boxes)):
+            a = boxes[i]
+            for j in range(i + 1, len(boxes)):
+                b = boxes[j]
+                if a[2] <= b[0] + 0.5 or b[2] <= a[0] + 0.5:
+                    continue
+                if a[3] <= b[1] + 0.5 or b[3] <= a[1] + 0.5:
+                    continue
+                pairs.append((names[i], names[j]))
+        return pairs
+
+    def hits_rect(self, rect) -> bool:
+        l, t, r, b = rect
+        for box in self.boxes:
+            if r <= box[0] + 0.5 or box[2] <= l + 0.5 or b <= box[1] + 0.5 or box[3] <= t + 0.5:
+                continue
+            return True
+        return False
+
     def safe_hits(self) -> int:
         top = SAFE_TOP * self.h
         bot = SAFE_BOT * self.h
@@ -107,7 +134,8 @@ def _font(which: str, px: float) -> skia.Font:
 
 
 def pill(hud: Hud, text: str, cx: float, cy: float, fill, ink=(255, 255, 255),
-         size: float = 58, pop: float = 1.0, glow=None, kind: str = "") -> tuple[float, float, float, float] | None:
+         size: float = 58, pop: float = 1.0, glow=None, kind: str = "",
+         nudge: bool = True) -> tuple[float, float, float, float] | None:
     if not text or pop <= 0.04:
         return None
     # Stay near full size so a spring-in doesn't drop the cap height off the spec.
@@ -118,7 +146,8 @@ def pill(hud: Hud, text: str, cx: float, cy: float, fill, ink=(255, 255, 255),
     pad_x, pad_y = 22 * pop, 12 * pop
     tw = width + pad_x * 2
     th = (metrics.fDescent - metrics.fAscent) + pad_y * 2
-    cy = hud.dodge(cy, th)
+    if nudge:
+        cy = hud.dodge(cy, th)
     left = cx - tw / 2
     top = cy - th / 2
     # Keep it on the 9:16 frame.
@@ -142,6 +171,130 @@ def pill(hud: Hud, text: str, cx: float, cy: float, fill, ink=(255, 255, 255),
     hud.boxes.append(box)
     hud.caps.append((kind or text, 0.70 * size * pop))
     return box
+
+
+def comparison_card(hud: Hud) -> None:
+    """One 2-column card in the strip above the bottom safe zone, under the caption band."""
+    w, h = hud.w, hud.h
+    top = BAND[1] * h + 8
+    bottom = SAFE_BOT * h - 8
+    left, right = 24.0, w - 24.0
+    rect = skia.Rect.MakeLTRB(left, top, right, bottom)
+    body = skia.Paint(AntiAlias=True)
+    body.setColor(skia.ColorSetARGB(228, 16, 18, 24))
+    hud.canvas.drawRRect(skia.RRect.MakeRectXY(rect, 22, 22), body)
+    rim = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=2)
+    rim.setColor(skia.ColorSetARGB(255, 255, 255, 255))
+    hud.canvas.drawRRect(skia.RRect.MakeRectXY(rect, 22, 22), rim)
+
+    # The strip under the caption band and above the bottom 20% is 138px.
+    # Names sit on the cap-40 line, miles just under that, km² at a 36px cap.
+    name_font = _font("black", 42)
+    sq_font = _font("black", 50)
+    km_font = _font("black", 52)
+    name_c = skia.Paint(AntiAlias=True)
+    name_c.setColor(skia.ColorSetARGB(255, 244, 244, 246))
+    sq_c = skia.Paint(AntiAlias=True)
+    sq_c.setColor(skia.ColorSetARGB(255, 255, 214, 48))
+    km_c = skia.Paint(AntiAlias=True)
+    km_c.setColor(skia.ColorSetARGB(255, 210, 216, 224))
+    columns = (
+        (w * 0.27, "AFRICA", "11.73M SQ MI", "30.37M KM²"),
+        (w * 0.73, "GREENLAND", "0.84M SQ MI", "2.17M KM²"),
+    )
+    base_name = top + 30
+    base_sq = top + 68
+    base_km = bottom - 16
+    for cx, name, sq, km in columns:
+        hud.canvas.drawString(name, cx - name_font.measureText(name) / 2, base_name, name_font, name_c)
+        hud.canvas.drawString(sq, cx - sq_font.measureText(sq) / 2, base_sq, sq_font, sq_c)
+        hud.canvas.drawString(km, cx - km_font.measureText(km) / 2, base_km, km_font, km_c)
+    hud.boxes.append((left, top, right, bottom))
+    hud.caps.append(("comparison-card", 36.4))
+
+
+def leader_label(hud: Hud, canvas, name: str, sq: str, shape, avoid, fill,
+                 prefer: str = "right", size: float = 44) -> tuple | None:
+    """Two-line name + square miles, outside every shape and face, with a short leader."""
+    if shape is None:
+        return None
+    font = _font("black", size)
+    sub = _font("black", size - 2)
+    tw = max(font.measureText(name), sub.measureText(sq)) + 28
+    th = (size * 1.15) + ((size - 2) * 1.05) + 16
+    sx0, sy0, sx1, sy1 = shape
+    scx, scy = (sx0 + sx1) / 2, (sy0 + sy1) / 2
+    gap = 18.0
+    order = {
+        "above": [(scx, sy0 - gap - th / 2), (sx0 + tw / 2, sy0 - gap - th / 2), (sx1 - tw / 2, sy0 - gap - th / 2)],
+        "right": [(sx1 + gap + tw / 2, scy), (sx1 + gap + tw / 2, sy0 + th), (sx1 + gap + tw / 2, sy1 - th)],
+        "left": [(sx0 - gap - tw / 2, scy), (sx0 - gap - tw / 2, sy1 - th / 2), (sx0 - gap - tw / 2, sy0 + th)],
+        "below": [(scx, sy1 + gap + th / 2), (sx0 + tw / 2, sy1 + gap + th / 2), (sx1 - tw / 2, sy1 + gap + th / 2)],
+    }.get(prefer, [])
+    # A few frame-edge fallbacks that stay in the safe band.
+    order = list(order) + [
+        (hud.w * 0.78, SAFE_TOP * hud.h + th / 2 + 10),
+        (hud.w * 0.22, SAFE_TOP * hud.h + th / 2 + 10),
+        (hud.w * 0.5, BAND[0] * hud.h - th / 2 - 10),
+    ]
+    chosen = None
+    for cx, cy in order:
+        left = min(max(12.0, cx - tw / 2), hud.w - tw - 12.0)
+        top = min(max(SAFE_TOP * hud.h + 4, cy - th / 2), BAND[0] * hud.h - th - 6)
+        rect = (left, top, left + tw, top + th)
+        if any(_hits_shape(rect, block) for block in avoid) or hud.hits_rect(rect):
+            continue
+        chosen = rect
+        break
+    if chosen is None:
+        return None
+    left, top, right, bot = chosen
+    body = skia.Paint(AntiAlias=True)
+    body.setColor(skia.ColorSetARGB(235, fill[0], fill[1], fill[2]))
+    hud.canvas.drawRRect(skia.RRect.MakeRectXY(skia.Rect.MakeLTRB(left, top, right, bot), 16, 16), body)
+    ink = skia.Paint(AntiAlias=True)
+    ink.setColor(skia.ColorSetARGB(255, 255, 255, 255))
+    sub_ink = skia.Paint(AntiAlias=True)
+    sub_ink.setColor(skia.ColorSetARGB(255, 255, 236, 140))
+    hud.canvas.drawString(name, left + 14, top + 8 - font.getMetrics().fAscent, font, ink)
+    hud.canvas.drawString(sq, left + 14, top + size + 10 - sub.getMetrics().fAscent, sub, sub_ink)
+    hud.boxes.append(chosen)
+    hud.caps.append((name, 0.70 * size))
+    pcx, pcy = (left + right) / 2, (top + bot) / 2
+    if abs(pcx - scx) >= abs(pcy - scy):
+        tx = sx1 if pcx >= scx else sx0
+        ty = min(max(pcy, sy0 + 8), sy1 - 8)
+        x0 = right if pcx < scx else left
+        y0 = pcy
+    else:
+        tx = min(max(pcx, sx0 + 8), sx1 - 8)
+        ty = sy1 if pcy >= scy else sy0
+        x0 = pcx
+        y0 = bot if pcy < scy else top
+    pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=3)
+    pen.setStrokeCap(skia.Paint.kRound_Cap)
+    pen.setColor(skia.ColorSetARGB(230, 255, 255, 255))
+    canvas.drawLine(x0, y0, tx, ty, pen)
+    return chosen
+
+
+def _hits_shape(rect, shape) -> bool:
+    l, t, r, b = rect
+    sl, st, sr, sb = shape
+    return not (r <= sl or sr <= l or b <= st or sb <= t)
+
+
+def _draw_pill_box(hud, text, left, top, tw, th, font, fill, ink, size, kind):
+    rect = skia.Rect.MakeXYWH(left, top, tw, th)
+    body = skia.Paint(AntiAlias=True)
+    body.setColor(skia.ColorSetARGB(235, fill[0], fill[1], fill[2]))
+    hud.canvas.drawRRect(skia.RRect.MakeRectXY(rect, th / 2, th / 2), body)
+    paint = skia.Paint(AntiAlias=True)
+    paint.setColor(skia.ColorSetARGB(255, ink[0], ink[1], ink[2]))
+    metrics = font.getMetrics()
+    hud.canvas.drawString(text, left + 16, top + 8 - metrics.fAscent, font, paint)
+    hud.boxes.append((left, top, left + tw, top + th))
+    hud.caps.append((kind or text, 0.70 * size))
 
 
 def big_number(hud: Hud, text: str, cx: float, cy: float, size: float = 96, pop: float = 1.0):

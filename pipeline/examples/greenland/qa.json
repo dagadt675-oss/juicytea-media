@@ -1,7 +1,7 @@
 {
   "frames": 1273,
   "fps": 30,
-  "motion_mean": 2.927,
+  "motion_mean": 2.903,
   "motion_min": 0.028,
   "seconds_under_1": [
     1,
@@ -11,8 +11,8 @@
     27
   ],
   "static_holds_s": [],
-  "visual_events": 39,
-  "event_gap_mean": 1.042,
+  "visual_events": 41,
+  "event_gap_mean": 0.99,
   "event_gap_max": 4.133,
   "loop_mean_abs": 0.2872,
   "benchmark": {
