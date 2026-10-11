@@ -136,6 +136,10 @@ def place(coll, token, loc, yaw, height=None, longest=None, name="prop"):
     size = _mesh_size(mesh)
     if height is not None:
         scale = float(height) / max(size[2], 0.01)
+        # A wide kitbash scaled to roof height would fill the locked camera.
+        wide = max(size[0], size[1]) * scale
+        if name == "tower" and wide > 14.0:
+            scale *= 14.0 / wide
     elif longest is not None:
         scale = float(longest) / max(max(size), 0.01)
     else:
@@ -148,6 +152,13 @@ def place_tower(coll, x, y, z, height):
         return None
     token = TOWERS[int(abs(x * 3 + y)) % len(TOWERS)]
     obj = place(coll, token, (x, y, z), 0.0, height=height, name="tower")
+    if obj is None:
+        return None
+    bpy.context.view_layer.update()
+    zs = [(obj.matrix_world @ Vector(corner)).z for corner in obj.bound_box]
+    built = max(zs) - min(zs) if zs else 0.0
+    if built > float(height) * 1.25:
+        obj.scale *= float(height) / built
     _hook_object_decay(obj)
     return obj
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 
+import bpy
 from mathutils import Euler, Vector
 
 from engine.city_layout import city_water_top
@@ -54,16 +55,24 @@ def _veg_scale(item, ch):
     return max(0.0, grow)
 
 
-def _set_building_decay(amount):
-    """Broken windows and grime. The value node is absent on day-1-only materials."""
+def _set_building_decay(amount, forest=0.0):
+    """Broken windows and grime. Forest keeps rising after the grime has saturated."""
     import bpy
 
     for material in bpy.data.materials:
-        if not material.get("decay_hook") or material.node_tree is None:
+        tree = material.node_tree
+        if tree is None:
             continue
-        node = material.node_tree.nodes.get("Decay")
-        if node is not None:
-            node.outputs[0].default_value = float(amount)
+        if material.get("decay_hook"):
+            node = tree.nodes.get("Decay")
+            if node is not None and node.type == "VALUE":
+                node.outputs[0].default_value = float(amount)
+        node = tree.nodes.get("Forest")
+        if node is not None and node.type == "VALUE":
+            node.outputs[0].default_value = float(forest)
+        node = tree.nodes.get("Wreck")
+        if node is not None and node.type == "VALUE" and not material.get("wreck_live"):
+            node.outputs[0].default_value = 0.0
 
 
 def _drive_tint(mesh, color):
@@ -105,13 +114,17 @@ def _crumple_nose(empty):
         lo, hi = min(projections), max(projections)
         span = max(hi - lo, 1e-4)
         inverse = obj.matrix_world.inverted()
+        right = empty.matrix_world.to_quaternion() @ Vector((0.0, 1.0, 0.0))
         for vert, proj, point in zip(obj.data.vertices, projections, world_pts):
             t = (proj - lo) / span
-            if t < 0.8:
+            if t < 0.55:
                 continue
-            dent = t - 0.8
-            point = point - nose * dent * 0.7
-            point.z -= dent * 0.45
+            dent = t - 0.55
+            point = point - nose * dent * 1.35
+            point.z -= dent * 0.85
+            side = (point - empty.matrix_world.translation).dot(right)
+            if abs(side) > 0.35 and t > 0.45:
+                point -= right * (0.22 if side > 0 else -0.22) * dent
             vert.co = inverse @ point
 
 
@@ -139,7 +152,7 @@ def apply(kit, ch, frame, fps):
     snow = max(ch["snow"], ice * 0.95)
     veg = ch["vegetation"]
     # Year 1 (vegetation ~0.30) already breaks patches of windows. Later years go dark.
-    _set_building_decay(smoother(0.08, 0.55, veg))
+    _set_building_decay(smoother(0.08, 0.55, veg), forest=veg)
     # Water.
     if kit.water is not None:
         z = water_surface(ch, kind)
@@ -284,6 +297,8 @@ def _life(kit, ch, frame, fps, snow):
             ice = ch["ice"]
             s = grow * (1.0 - 0.94 * ice)
             obj.hide_render = s < 0.03
+            for child in obj.children:
+                child.hide_render = obj.hide_render
             obj.scale = item.base_scale * s
             leaf = Vector(item.extra.get("leaf", (0.3, 0.55, 0.2, 1))[:3])
             autumn = Vector(item.extra.get("autumn", (0.7, 0.4, 0.12, 1))[:3])
@@ -311,6 +326,8 @@ def _life(kit, ch, frame, fps, snow):
                 s = (1.0 - 0.94 * ch["wilt"]) * (1.0 - 0.8 * ch["heat"])
                 s *= 1.0 + 0.45 * ch["vegetation"] * (0 if role == "flower" else 0.2)
             obj.hide_render = s < 0.03
+            for child in obj.children:
+                child.hide_render = obj.hide_render
             obj.scale = item.base_scale * max(s, 0.001)
             if "leaf" in item.extra:
                 leaf = Vector(item.extra["leaf"][:3])
@@ -340,9 +357,10 @@ def _life(kit, ch, frame, fps, snow):
             bury = 0.7 * smoother(0.5, 1.0, max(rust, veg if veg > 0.85 else 0.0))
             if hero:
                 bury = 0.06 * rust
-                if rust > 0.72 and not obj.get("nose_crumpled"):
+                if rust > 0.55 and not obj.get("nose_crumpled"):
                     _crumple_nose(obj)
                     obj["nose_crumpled"] = True
+                _kill_emission(obj, smoother(0.25, 0.6, rust))
             gone = (not hero) and rust > 0.9
             pos.z -= snow * 0.32 + bury
             pos.z += ch["gravity"] * item.extra.get("float", 0.0)
@@ -352,10 +370,30 @@ def _life(kit, ch, frame, fps, snow):
             for child in obj.children:
                 if child.get("role") not in ("weed", "tree_canopy"):
                     child.hide_render = gone
+            if hero:
+                for child in obj.children_recursive:
+                    low = child.name.lower()
+                    if "glass" in low or "light" in low or "lamp" in low:
+                        child.hide_render = rust > 0.45
+                    if "wheel" not in low or rust <= 0.6:
+                        continue
+                    if "wheel0" not in child:
+                        child["wheel0"] = [child.scale.x, child.scale.y, child.scale.z]
+                    base = child["wheel0"]
+                    child.scale = (base[0], base[1], base[2] * 0.22)
+                    if "rf" in low or "rr" in low:
+                        child.hide_render = rust > 0.7
             paint = Vector(item.extra.get("paint", (1.0, 1.0, 1.0))[:3])
             if hero:
-                # Darken the factory paint. A red or gold Miura still reads through the rust.
-                husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.32, 0.18, 0.11)), min(1.0, grime_u * 0.85))
+                # Almost all the way to the rust texture. A trace of the yellow stays.
+                husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.22, 0.12, 0.06)), min(1.0, grime_u * 0.95))
+                for material in bpy.data.materials:
+                    if not material.get("wreck_mix") or material.node_tree is None:
+                        continue
+                    material["wreck_live"] = True
+                    node = material.node_tree.nodes.get("Wreck")
+                    if node is not None:
+                        node.outputs[0].default_value = float(min(1.0, grime_u * 0.95))
             else:
                 husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.18, 0.11, 0.07)), grime_u)
             _paint_descendants(obj, (husk.x, husk.y, husk.z, 1.0), drive_nodes=hero)
@@ -413,6 +451,14 @@ def _life(kit, ch, frame, fps, snow):
             obj.scale = item.base_scale
             for child in obj.children:
                 child.hide_render = obj.hide_render
+        elif role == "wreckage":
+            s = smoother(0.4, 0.72, ch["rust"])
+            obj.hide_render = s < 0.05
+            obj.scale = item.base_scale * max(s, 0.001)
+            for child in obj.children:
+                child.hide_render = obj.hide_render
+        elif role == "groundwear":
+            obj.hide_render = ch["vegetation"] < 0.2
         elif role == "wear":
             s = smoother(0.06, 0.28, ch["vegetation"])
             obj.hide_render = s < 0.04
@@ -663,16 +709,15 @@ def _sky(kit, ch, frame, fps):
     # 0.16 noon-ish, ~0.5 sunset, ~0.78 night.
     if dn < 0.42:
         u = clamp((dn - 0.12) / 0.3)
-        elev = _lerp(1.05, 1.22, u)
-        # The HDRI is the fill. The sun is a cooler, weaker key with a wide angle.
-        energy = _lerp(5.2, 2.4, u)
-        color = Vector(lin(1.0, 0.96, 0.88)[:3]).lerp(Vector(lin(1.0, 0.72, 0.48)[:3]), u)
-        sky = Vector(lin(0.42, 0.64, 0.95)[:3]).lerp(Vector(lin(0.98, 0.62, 0.38)[:3]), u * 0.75)
-        horizon = Vector(lin(0.96, 0.90, 0.78)[:3]).lerp(Vector(lin(0.98, 0.55, 0.32)[:3]), u)
-        sky_e = _lerp(1.15, 0.85, u)
-        fill = 0.22
-        # Mostly the clear HDRI, with a warm horizon so the sky is not a grey slab.
-        sky_mix = _lerp(0.18, 0.45, u)
+        elev = _lerp(0.72, 0.95, u)
+        # A low warm sun so the shadows have a direction. The camera sees the gradient.
+        energy = _lerp(7.5, 4.2, u)
+        color = Vector(lin(1.0, 0.86, 0.62)[:3]).lerp(Vector(lin(1.0, 0.62, 0.36)[:3]), u)
+        sky = Vector(lin(0.18, 0.38, 0.78)[:3]).lerp(Vector(lin(0.55, 0.32, 0.62)[:3]), u * 0.4)
+        horizon = Vector(lin(0.98, 0.74, 0.48)[:3]).lerp(Vector(lin(0.98, 0.5, 0.28)[:3]), u)
+        sky_e = _lerp(1.35, 1.05, u)
+        fill = 0.08
+        sky_mix = 0.0
     elif dn < 0.68:
         u = clamp((dn - 0.42) / 0.26)
         elev = _lerp(1.15, 1.72, u)
@@ -701,7 +746,7 @@ def _sky(kit, ch, frame, fps):
         sky = sky.lerp(Vector(lin(0.72, 0.62, 0.48)[:3]), ch["dust"] * 0.5)
     kit.sun.rotation_euler = Euler((elev, 0.08, -0.85))
     kit.sun.data.energy = energy
-    kit.sun.data.angle = 0.06 if dn < 0.42 else (0.1 if dn > 0.68 else 0.2)
+    kit.sun.data.angle = 0.025 if dn < 0.42 else (0.1 if dn > 0.68 else 0.2)
     kit.sun.data.color = (color.x, color.y, color.z)
     kit.fill.data.energy = fill * (1.0 - 0.3 * ch["ice"])
     if kit.world_bg:

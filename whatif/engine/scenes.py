@@ -11,10 +11,11 @@ from pathlib import Path
 
 import bmesh
 import bpy
-from mathutils import Matrix
+from mathutils import Matrix, Vector
 
 from engine import assets as assetlib
 from engine import cc0_city
+from engine import found_assets
 from engine import private_assets
 from engine.city_layout import (
     AVE_HALF,
@@ -414,6 +415,17 @@ def _library_tower(kit, coll, x, y, z, height, color):
     return True
 
 
+def _plant(kit, coll, slug, x, y, z, height, delay=0.2, yaw=0.0, role="weed"):
+    """A downloaded plant. Hidden until vegetation passes ``delay``."""
+    built = found_assets.place(coll, slug, (x, y, z), yaw, height, name=slug)
+    if built is None:
+        return None
+    return kit.add(
+        built, role, delay=delay, sink=False, leaf=(0.2, 0.42, 0.16, 1),
+        future=role == "tree_canopy",
+    )
+
+
 def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None, kind="round", leaf=None):
     """A registry tree when a pack is enabled, otherwise the lobed crown."""
     rng = rng or random
@@ -809,21 +821,39 @@ def _mark(kit, coll, name, center, size, mat):
 
 
 def _asphalt_plane(name, coll, center, size, fallback):
-    """Flat asphalt. Uses the US road texture when the private file is present."""
+    """Asphalt. Wide planes are a grid so the cracked-asphalt displacement can show."""
     mat = private_assets.road_asphalt_material() or fallback
     w, d = size
     bm = bmesh.new()
-    verts = [
-        bm.verts.new((-w / 2, -d / 2, 0)),
-        bm.verts.new((w / 2, -d / 2, 0)),
-        bm.verts.new((w / 2, d / 2, 0)),
-        bm.verts.new((-w / 2, d / 2, 0)),
-    ]
-    face = bm.faces.new(verts)
-    uv = bm.loops.layers.uv.new("UVMap")
-    tile = 8.0
-    for loop in face.loops:
-        loop[uv].uv = ((loop.vert.co.x + w / 2) / tile, (loop.vert.co.y + d / 2) / tile)
+    step = 1.1 if max(w, d) > 16.0 else 0.0
+    uv = None
+    tile = 4.0
+    if step <= 0.0:
+        verts = [
+            bm.verts.new((-w / 2, -d / 2, 0)),
+            bm.verts.new((w / 2, -d / 2, 0)),
+            bm.verts.new((w / 2, d / 2, 0)),
+            bm.verts.new((-w / 2, d / 2, 0)),
+        ]
+        face = bm.faces.new(verts)
+        uv = bm.loops.layers.uv.new("UVMap")
+        for loop in face.loops:
+            loop[uv].uv = ((loop.vert.co.x + w / 2) / tile, (loop.vert.co.y + d / 2) / tile)
+    else:
+        nx = max(2, int(w / step))
+        ny = max(2, int(d / step))
+        grid = []
+        for iy in range(ny + 1):
+            row = []
+            for ix in range(nx + 1):
+                row.append(bm.verts.new((-w / 2 + w * ix / nx, -d / 2 + d * iy / ny, 0)))
+            grid.append(row)
+        uv = bm.loops.layers.uv.new("UVMap")
+        for iy in range(ny):
+            for ix in range(nx):
+                face = bm.faces.new((grid[iy][ix], grid[iy][ix + 1], grid[iy + 1][ix + 1], grid[iy + 1][ix]))
+                for loop in face.loops:
+                    loop[uv].uv = ((loop.vert.co.x + w / 2) / tile, (loop.vert.co.y + d / 2) / tile)
     me = mesh_from_bm(name, bm)
     obj = link_obj(name, me, coll, (mat,))
     obj.location = (center[0], center[1], center[2])
@@ -1094,30 +1124,88 @@ def _south_city_blocks(kit, coll, mats, ix, road_z, street_west, street_east, fr
     _gutted_room(kit, coll, mats, -50.0, -30.0, road_z)
 
 
+def _ruin_piece(coll, loc, yaw, height):
+    """One damaged high-rise from Ruined City 5, bottom on loc."""
+    path = Path("/opt/cursor/asset-cache/private/sketchfab/city_blocks/ruined_city_free_5.glb")
+    if not path.exists():
+        return None
+    if not hasattr(_ruin_piece, "proto"):
+        before = set(bpy.data.objects)
+        bpy.ops.import_scene.gltf(filepath=str(path))
+        best = None
+        best_h = 0.0
+        bpy.context.view_layer.update()
+        for obj in list(bpy.data.objects):
+            if obj not in before:
+                obj.hide_render = True
+                obj.hide_viewport = True
+            if obj not in before or obj.type != "MESH" or obj.data is None:
+                continue
+            zs = [(obj.matrix_world @ vert.co).z for vert in obj.data.vertices]
+            xs = [(obj.matrix_world @ vert.co).x for vert in obj.data.vertices]
+            height_m = max(zs) - min(zs) if zs else 0.0
+            width_m = max(xs) - min(xs) if xs else 0.0
+            # The file also contains city-sized shells. Only a single mid-rise facade is usable here.
+            if 6.0 < height_m < 16.0 and width_m < 18.0 and height_m > best_h:
+                best = obj
+                best_h = height_m
+        _ruin_piece.proto = (best, best_h)
+    src, native = _ruin_piece.proto
+    if src is None:
+        return None
+    copy = src.copy()
+    coll.objects.link(copy)
+    copy.hide_render = False
+    copy.location = Vector((0.0, 0.0, 0.0))
+    copy.rotation_euler.z = float(yaw)
+    copy.scale = (float(height) / max(native, 0.01),) * 3
+    bpy.context.view_layer.update()
+    xs, ys, zs = [], [], []
+    for corner in copy.bound_box:
+        point = copy.matrix_world @ Vector(corner)
+        xs.append(point.x)
+        ys.append(point.y)
+        zs.append(point.z)
+    copy.location = Vector((float(loc[0]) - (min(xs) + max(xs)) * 0.5, float(loc[1]) - (min(ys) + max(ys)) * 0.5, float(loc[2]) - min(zs)))
+    return copy
+
+
 def _gutted_room(kit, coll, mats, x, y, z):
-    """A windowed shell the drone flies through. Vines and a cat stay inside."""
-    # South wall split around a 2.4 m window so the camera has an opening.
-    box_object("room_w", coll, (x - 3.6, y - 5.5, z + 3.6), (4.8, 0.35, 7.2), mats["concrete"])
-    box_object("room_e", coll, (x + 3.6, y - 5.5, z + 3.6), (4.8, 0.35, 7.2), mats["concrete"])
-    box_object("room_head", coll, (x, y - 5.5, z + 5.9), (2.4, 0.35, 2.6), mats["concrete"])
-    box_object("room_sill", coll, (x, y - 5.5, z + 0.7), (2.4, 0.35, 1.4), mats["concrete"])
-    box_object("room_back", coll, (x, y + 5.5, z + 3.6), (12.0, 0.4, 7.2), mats["trim"])
-    box_object("room_side_w", coll, (x - 6.0, y, z + 3.6), (0.4, 11.0, 7.2), mats["concrete"])
-    box_object("room_side_e", coll, (x + 6.0, y, z + 3.6), (0.4, 11.0, 7.2), mats["concrete"])
-    box_object("room_ceiling", coll, (x, y, z + 6.5), (11.6, 11.0, 0.28), mats["concrete"])
-    floor = box_object("room_floor", coll, (x, y, z + 0.08), (11.2, 11.0, 0.12), mats["dirt"])
-    kit.add(floor, "blanket", sink=False)
-    # Hanging stems, not faceted blobs. They drop from the ceiling inside the window.
-    for i, (vx, vy) in enumerate(((-0.7, -3.2), (0.55, -2.4), (-0.15, -1.2), (0.9, -4.0))):
-        stem = box_object(
-            "vine", coll, (x + vx, y + vy, z + 4.6), (0.08, 0.08, 2.4 + (i % 2) * 0.6), mats["leaf"],
-        )
-        stem.color = (0.16, 0.34, 0.12, 1)
-        kit.add(stem, "weed", delay=0.35, sink=False, leaf=(0.16, 0.34, 0.12, 1))
-        leaf = ico_object("vine_leaf", coll, (x + vx, y + vy, z + 3.2 - i * 0.25), (0.28, 0.22, 0.35), mats["leaf"])
-        leaf.color = (0.2, 0.4, 0.14, 1)
-        kit.add(leaf, "weed", delay=0.35, sink=False, leaf=(0.2, 0.4, 0.14, 1))
-    cat = private_assets.place_cat(coll, x + 0.4, y - 5.5, z + 1.45, yaw=0.4)
+    """Ruined-city facade, then a gutted room the drone enters. Ivy hangs on the wall."""
+    plaster = found_assets.pbr_material("RoomPlaster", "worn_cracked_plaster", uv=0.45, displace=0.03) or mats["concrete"]
+    floor_mat = found_assets.pbr_material("RoomFloor", "concrete_floor_damaged_01", uv=0.35, displace=0.04) or mats["dirt"]
+    litter = found_assets.pbr_material("RoomLitter", "forest_leaves_02", uv=0.5) or mats["dirt"]
+    # Ruined-city shells are a whole block tall; they were covering the locked camera.
+    # The facade drone uses the cracked-plaster opening and Ivy Gen instead.
+    wall = box_object("room_sill", coll, (x, y - 4.2, z + 0.55), (2.6, 0.28, 1.1), plaster)
+    found_assets.stamp_object(wall, "plaster")
+    head = box_object("room_head", coll, (x, y - 4.2, z + 5.6), (2.6, 0.28, 1.6), plaster)
+    jamb_l = box_object("room_w", coll, (x - 1.55, y - 4.2, z + 3.2), (0.45, 0.32, 6.4), plaster)
+    jamb_r = box_object("room_e", coll, (x + 1.55, y - 4.2, z + 3.2), (0.45, 0.32, 6.4), plaster)
+    for piece in (head, jamb_l, jamb_r):
+        found_assets.stamp_object(piece, "plaster")
+    box_object("room_back", coll, (x, y + 4.8, z + 3.2), (10.0, 0.35, 6.4), plaster)
+    box_object("room_side_w", coll, (x - 5.0, y, z + 3.2), (0.3, 9.0, 6.4), plaster)
+    box_object("room_side_e", coll, (x + 5.0, y, z + 3.2), (0.3, 9.0, 6.4), plaster)
+    # A broken slab for a ceiling, with a gap so the sun still falls inside.
+    box_object("room_ceiling", coll, (x - 2.2, y + 0.4, z + 6.2), (5.2, 8.0, 0.18), plaster)
+    floor = box_object("room_floor", coll, (x, y, z + 0.06), (9.4, 8.6, 0.1), floor_mat)
+    kit.add(floor, "prop", sink=False)
+    for i, (vx, vy) in enumerate(((-1.4, 1.2), (1.6, 0.4), (0.2, 2.4), (-2.2, -0.6))):
+        tile = box_object("tile", coll, (x + vx, y + vy, z + 0.16), (0.7, 0.55, 0.04), floor_mat)
+        tile.rotation_euler = (0.15 * (i % 2), 0.2, i)
+        kit.add(tile, "rubble", sink=False)
+        _plant(kit, coll, "fern_02" if i % 2 == 0 else "moss_01", x + vx, y + vy, z, 0.45 + i * 0.08, delay=0.3, yaw=i)
+    _plant(kit, coll, "bark_debris_01", x + 0.8, y + 1.1, z, 0.35, delay=0.25, yaw=0.4)
+    _plant(kit, coll, "dry_branches_medium_01", x - 1.2, y + 0.6, z, 0.4, delay=0.28, yaw=1.1)
+    litter_mat = box_object("litter", coll, (x + 0.3, y - 1.5, z + 0.12), (2.4, 1.6, 0.02), litter)
+    kit.add(litter_mat, "groundwear", sink=False)
+    ivy_host = jamb_l
+    for grown in found_assets.grow_ivy(ivy_host, (x - 1.2, y - 4.0, z + 4.8), length=4.5):
+        kit.add(grown, "weed", delay=0.32, sink=False, leaf=(0.18, 0.4, 0.14, 1))
+    for grown in found_assets.grow_ivy(head, (x + 0.2, y - 4.0, z + 5.2), length=3.2):
+        kit.add(grown, "weed", delay=0.36, sink=False, leaf=(0.16, 0.36, 0.12, 1))
+    cat = private_assets.place_cat(coll, x + 0.15, y - 3.6, z + 1.15, yaw=0.6)
     if cat is not None:
         kit.add(cat, "animal", sink=False)
 
@@ -1179,74 +1267,45 @@ def _place_hub_blocks(kit, coll, mats):
         if bikes is not None:
             kit.add(bikes, "prop", sink=False)
 
-    # Year-1 wear. These stay off the hub blocks: those files are buildings.
+    # Real plants, not icosphere gems. They stay hidden until vegetation rises.
     rng = random.Random(5)
-    for i in range(55):
+    meadow = ("grass_medium_01", "grass_medium_02", "grass_bermuda_01", "weed_plant_02", "dandelion_01")
+    for i in range(36):
         wx = rng.uniform(-78.0, 8.0)
         wy = rng.uniform(40.0, 80.0)
         if abs(wx - _deck_x(wy)) < DECK_HALF + 3.5:
             continue
-        scale = (rng.uniform(0.7, 1.35), rng.uniform(0.55, 1.05), rng.uniform(0.75, 1.25))
-        weed = ico_object("weed", coll, (wx, wy, PARK_Z + 0.08), scale, mats["leaf"])
-        weed.color = (0.16, 0.34, 0.10, 1)
-        kit.add(weed, "weed", delay=0.0, sink=False, leaf=(0.16, 0.34, 0.10, 1))
+        _plant(kit, coll, meadow[i % len(meadow)], wx, wy, PARK_Z, rng.uniform(0.35, 0.8), delay=0.12, yaw=rng.random() * math.tau)
     for i, x in enumerate((-78.0, -58.0, -40.0, -18.0, 22.0, 40.0, 58.0)):
         for sign in (-1.0, 1.0):
-            stain = box_object(
-                "stain", coll,
-                (x, AVE_Y + sign * (2.4 if i % 2 == 0 else 6.2), road_z + 0.01),
-                (8.5, 1.7, 0.012),
-                mats["dirt"],
+            _plant(
+                kit, coll, "grass_medium_01" if sign < 0 else "weed_plant_02",
+                x, AVE_Y + sign * (AVENUE_HALF - 0.4), road_z,
+                rng.uniform(0.28, 0.55), delay=0.08, yaw=rng.random() * 3.0,
             )
-            kit.add(stain, "wear", sink=False)
-            crack = box_object(
-                "crack", coll,
-                (x + 1.4, AVE_Y + sign * 4.2, road_z + 0.016),
-                (7.5, 0.32, 0.015),
-                mats["trim"],
-            )
-            kit.add(crack, "wear", sink=False)
-            tuft = ico_object(
-                "tuft", coll,
-                (x, AVE_Y + sign * (AVENUE_HALF - 0.6), road_z + 0.06),
-                (0.45, 0.35, 0.7),
-                mats["leaf"],
-            )
-            kit.add(tuft, "weed", delay=0.0, sink=False, leaf=(0.22, 0.40, 0.12, 1))
-    for i in range(18):
-        wx = rng.uniform(-70.0, 60.0)
-        if abs(wx - ix) < DECK_HALF + 4.0:
-            continue
-        leaf = box_object(
-            "leaf", coll,
-            (wx, AVE_Y + rng.choice((-8.2, -3.4, 3.1, 7.6)), road_z + 0.02),
-            (rng.uniform(0.8, 1.6), rng.uniform(0.5, 1.1), 0.03),
-            mats["dirt"],
-        )
-        leaf.rotation_euler[2] = rng.uniform(0.0, math.pi)
-        kit.add(leaf, "weed", delay=0.0, sink=False, leaf=(0.34, 0.28, 0.12, 1))
     for i, y in enumerate((-6.0, -22.0, -40.0, -58.0, -78.0)):
-        crack = box_object("stub_crack", coll, (ix + (1.6 if i % 2 == 0 else -1.8), y, road_z + 0.02), (0.28, 6.0, 0.015), mats["trim"])
-        kit.add(crack, "wear", sink=False)
-        tuft = ico_object("stub_tuft", coll, (ix - DECK_HALF + 0.8, y, road_z + 0.05), (0.4, 0.3, 0.65), mats["leaf"])
-        kit.add(tuft, "weed", delay=0.0, sink=False, leaf=(0.2, 0.38, 0.12, 1))
-    # Trees come up through the avenue only after the meadow. Sidewalks get a
-    # soil sheet at the same time.
+        _plant(kit, coll, "fern_02", ix - DECK_HALF + 0.6, y, road_z, 0.7, delay=0.2, yaw=1.2)
     hx, hy, _hyaw = HERO_SPORTS
-    for i, dx in enumerate((-8.0, -3.0, 1.5, 5.0, 9.0)):
-        crack = box_object("hero_crack", coll, (hx + dx, hy + (0.4 if i % 2 else -0.3), road_z + 0.02), (2.4, 0.22, 0.02), mats["trim"])
-        kit.add(crack, "wear", sink=False)
-        tuft = ico_object("hero_weed", coll, (hx + dx, hy + 0.8, road_z + 0.15), (0.55, 0.4, 0.9), mats["leaf"])
-        kit.add(tuft, "weed", delay=0.08 if i < 2 else 0.55, sink=False, leaf=(0.2, 0.4, 0.12, 1))
-        puddle = box_object("puddle", coll, (hx + dx * 0.6, hy - 1.1, road_z + 0.015), (1.6, 0.9, 0.01), mats["water"])
-        kit.add(puddle, "blanket", sink=False)
+    for i, (dx, dy, slug, height, delay) in enumerate((
+        (-1.6, 0.7, "grass_bermuda_01", 0.35, 0.35),
+        (0.4, -0.8, "grass_medium_02", 0.45, 0.4),
+        (1.8, 0.5, "weed_plant_02", 0.55, 0.42),
+        (-0.3, 1.3, "moss_01", 0.22, 0.5),
+        (2.2, -1.4, "fern_02", 0.6, 0.48),
+        (-2.4, -0.4, "dandelion_01", 0.28, 0.18),
+    )):
+        _plant(kit, coll, slug, hx + dx, hy + dy, road_z, height, delay=delay, yaw=i * 0.7)
     for x, lane in ((-64.0, -4.0), (-40.0, 3.5), (-18.0, -2.0), (30.0, 4.0), (52.0, -3.2), (-50.0, 6.0), (-8.0, -5.5), (12.0, 3.0)):
-        _tree(kit, coll, mats, x, AVE_Y + lane, road_z, 2.6, future=True, delay=0.7, rng=rng, kind="round")
+        _tree(kit, coll, mats, x, AVE_Y + lane, road_z, 2.6, future=True, delay=0.55, rng=rng, kind="round")
+        _plant(kit, coll, "fir_sapling", x + 1.4, AVE_Y + lane, road_z, 1.6, delay=0.5, yaw=0.4, role="tree_canopy")
+    for x, y in ((-70.0, -8.0), (-48.0, -6.0), (-22.0, -10.0), (8.0, -8.0)):
+        _plant(kit, coll, "pine_sapling_small", x, y, road_z + 11.0, 2.2, delay=0.62, yaw=0.5, role="tree_canopy")
     for x, lane in ((-55.0, 1.5), (18.0, -5.0), (42.0, 2.0)):
         _tree(kit, coll, mats, x, AVE_Y + lane, road_z, 3.1, future=True, delay=0.8, rng=rng, kind="pine")
-    sheet = _plane("walk_blanket", coll, (0.0, AVE_Y - AVENUE_HALF - 1.6, road_z + 0.05), (180.0, 3.4), mats["dirt"])
+    grass_mat = found_assets.pbr_material("AvenueGrass", "grass_ground", uv=0.2) or mats["dirt"]
+    sheet = _plane("walk_blanket", coll, (0.0, AVE_Y - AVENUE_HALF - 1.6, road_z + 0.05), (180.0, 3.4), grass_mat)
     kit.add(sheet, "blanket", sink=False)
-    sheet_n = _plane("walk_blanket_n", coll, (0.0, AVE_Y + AVENUE_HALF + 1.6, road_z + 0.05), (180.0, 3.4), mats["dirt"])
+    sheet_n = _plane("walk_blanket_n", coll, (0.0, AVE_Y + AVENUE_HALF + 1.6, road_z + 0.05), (180.0, 3.4), grass_mat)
     kit.add(sheet_n, "blanket", sink=False)
     deer = cc0_city.place_deer(coll, -28.0, 156.0, FAR_Z)
     if deer is not None:
@@ -1478,9 +1537,10 @@ def build_river_city(kit, mats, rng, pieces):
             y = rng.uniform(46, 76)
             if _on_deck(x, y, 9) or abs(y - AVE_Y) < AVENUE_HALF + 2.0:
                 continue
-            bush = ico_object("bush", col_p, (x, y, ROAD_Z + 0.15 if abs(y - AVE_Y) < AVE_HALF else PARK_Z + 0.2), (0.55, 0.45, 0.7), mats["leaf"])
-            bush.color = (0.22, 0.4, 0.16, 1)
-            kit.add(bush, "weed", delay=rng.uniform(0.08, 0.55), sink=False, leaf=(0.22, 0.4, 0.16, 1), autumn=(0.45, 0.32, 0.14, 1))
+            _plant(
+                kit, col_p, "shrub_01" if i % 2 == 0 else "shrub_02",
+                x, y, PARK_Z, rng.uniform(0.7, 1.3), delay=rng.uniform(0.2, 0.55), yaw=rng.random() * 6.0,
+            )
 
     # People stand on paths, the promenade, and around the fountain. A few on the grass.
     def _on_path(px, py):
@@ -1537,6 +1597,18 @@ def build_river_city(kit, mats, rng, pieces):
         )
         if sap is not None:
             kit.add(sap, "tree_canopy", future=True, delay=0.55, sink=False, leaf=(0.22, 0.45, 0.16, 1))
+    # Debris stays off the car until the rust channel rises, so day 1 stays the showroom Miura.
+    for slug, dx, dy, height, yaw in (
+        ("moss_01", -0.2, 0.35, 0.18, 0.4),
+        ("bark_debris_01", 0.6, -0.15, 0.22, 1.2),
+        ("dry_branches_medium_01", -0.8, 0.1, 0.28, 0.6),
+        ("old_tyre", 1.5, 0.9, 0.35, 0.2),
+        ("rusted_wheel_rim_01", -1.7, -0.55, 0.62, 1.4),
+        ("fern_02", 0.2, 0.85, 0.4, 0.8),
+    ):
+        _plant(kit, col_v, slug, hx + dx, hy + dy, ROAD_Z + (0.55 if slug == "moss_01" else 0.0), height, delay=0.0, yaw=yaw, role="wreckage")
+    hero = next((item.obj for item in kit.items if item.extra.get("hero")), None)
+    found_assets.arm_wreck(hero)
     for i, (x, y, yaw) in enumerate(FOREGROUND_CARS):
         _car(
             kit,
@@ -1565,6 +1637,24 @@ def build_river_city(kit, mats, rng, pieces):
     water.location = ((RIVER_X0 + RIVER_X1) / 2, (RIVER_Y0 + RIVER_Y1) / 2, city_water_top())
     kit.water = kit.add(water, "water", sink=False)
     kit.kind = "city"
+    for item in kit.items:
+        if item.role == "frontage":
+            found_assets.stamp_object(item.obj, "plaster")
+        elif item.role in ("bridge_deck", "bridge_tower"):
+            found_assets.stamp_object(item.obj, "metal" if item.role == "bridge_tower" else "road")
+        elif item.role == "prop" and any(token in item.obj.name for token in ("east", "nyc", "wtc", "block", "tower", "pier")):
+            found_assets.stamp_object(item.obj, "plaster")
+    road_mat = private_assets.road_asphalt_material()
+    found_assets.stamp_material(road_mat, "road")
+    found_assets.stamp_material(mats.get("road"), "road")
+    found_assets.stamp_material(mats.get("deck"), "road")
+    found_assets.stamp_material(mats.get("facade"), "plaster")
+    found_assets.stamp_material(mats.get("concrete"), "plaster")
+    found_assets.stamp_material(mats.get("bridge"), "metal")
+    found_assets.stamp_material(mats.get("wall"), "plaster")
+    for i, y in enumerate((112.0, 122.0, 132.0, 142.0)):
+        _plant(kit, kit.collection("Bridge"), "fern_02" if i % 2 == 0 else "nettle_plant", 3.5 + i * 0.8, y, 0.15, 0.9, delay=0.45, yaw=i)
+        _plant(kit, kit.collection("Bridge"), "moss_01", 8.0 - i * 0.4, y + 2.0, 0.1, 0.3, delay=0.4, yaw=0.5)
 
 
 def _blendkit_crowd(kit, col_v, col_g):
@@ -1741,6 +1831,9 @@ def _bridge(kit, col, cars, mats, rng):
                     kit.add(mark, "road_mark", sink=False)
                 s += direction * 4.0
         item = kit.add(obj, "bridge_deck", i=i, sink=True, length=length)
+        cracks = obj.modifiers.new("deck_cracks", "SUBSURF")
+        cracks.levels = 1
+        cracks.render_levels = 3
         decks.append(item)
         segments[i] = obj
     towers = []
@@ -2261,9 +2354,9 @@ def _lights(kit):
     geo = nt.nodes.new("ShaderNodeNewGeometry")
     sep = nt.nodes.new("ShaderNodeSeparateXYZ")
     ramp = nt.nodes.new("ShaderNodeMapRange")
-    # Sampled from the zenith frame's open sky, about sRGB (123, 148, 173).
-    zenith.outputs[0].default_value = lin(0.48, 0.58, 0.68)
-    horizon.outputs[0].default_value = lin(0.72, 0.78, 0.84)
+    # Warm horizon under a clear blue zenith. The camera sees this gradient.
+    zenith.outputs[0].default_value = lin(0.22, 0.42, 0.78)
+    horizon.outputs[0].default_value = lin(0.98, 0.72, 0.46)
     ramp.inputs["From Min"].default_value = -0.05
     ramp.inputs["From Max"].default_value = 0.45
     ramp.inputs["To Min"].default_value = 1.0
@@ -2278,7 +2371,7 @@ def _lights(kit):
     sky_mix.name = "SkyMix"
     # 0 keeps the HDRI for lighting. 1 is the night gradient.
     sky_mix.inputs["Fac"].default_value = 0.0
-    hdri_path = cc0_city.sunny_hdri() or (
+    hdri_path = found_assets.clear_sky() or cc0_city.sunny_hdri() or (
         Path(__file__).resolve().parents[1] / "assets" / "cc0" / "hdri" / "kloofendal_48d_partly_cloudy_1k.hdr"
     )
     if hdri_path.exists():
@@ -2303,9 +2396,10 @@ def _lights(kit):
     # Daytime the camera sees the HDRI (sky_mix fac 0). Night raises the fac
     # and both rays see the gradient. A flat dim gradient here made the
     # opening gloomy even when the HDRI was lighting the ground.
+    # Bounces keep the HDRI so the sun still lights the street. The camera sees the gradient.
     nt.links.new(camera.outputs["Is Camera Ray"], shown.inputs["Fac"])
     nt.links.new(sky_mix.outputs["Color"], shown.inputs["Color1"])
-    nt.links.new(sky_mix.outputs["Color"], shown.inputs["Color2"])
+    nt.links.new(gradient.outputs["Color"], shown.inputs["Color2"])
     nt.links.new(shown.outputs["Color"], bg.inputs["Color"])
     nt.links.new(bg.outputs["Background"], out.inputs["Surface"])
     bg.inputs[1].default_value = 0.85
