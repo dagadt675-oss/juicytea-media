@@ -4,7 +4,9 @@ Camera moves live in `jt/show/moves.py`, in the grammar of the Budapest referenc
 
 The flight path itself is not original. `jt/show/flyto.py` is a port of d3-interpolate `src/zoom.js` (ISC, Mike Bostock, 2010-2021), the van Wijk & Nuij curve. MapLibre GL JS `Map.flyTo` (BSD-3-Clause) and deck.gl `FlyToInterpolator` / math.gl `flyToViewport` (MIT) use that same curve; rho is 1.42, MapLibre's default. The intro runs it with ease-out timing, the dive with ease-in, which is MapLibre's `easing` option on `flyTo`. CesiumJS `camera.flyTo` (Apache-2.0) is the same idea with a separate easing function; its flight code is tied to a WebGL globe, so it is not linked. BlenderGIS is GPL, so it is not used.
 
-The radial smear in `apply_zoom_blur` is the glfx.js `zoomBlur` kernel (MIT, Evan Wallace, 2011): samples along the ray to the center, weighted by `4 * (p - p * p)`. Eight taps stand in for the shader's forty.
+The radial smear in `apply_zoom_blur` is the glfx.js `zoomBlur` kernel (MIT, Evan Wallace, 2011): samples along the ray to the center, weighted by `4 * (p - p * p)`. Eight taps stand in for the shader's forty. It runs only while a move is inside its window, then the plate is sharp.
+
+Plates and the two code files are logged in `assets/FOUND_ASSETS.md`, with copies of anything under 50 MB in `assets/found/`.
 
 `jt/show/model_drop.py` is the reusable piece. A spec looks like this:
 

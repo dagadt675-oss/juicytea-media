@@ -51,7 +51,12 @@ def _window(t: float, t0: float, t1: float) -> float:
 
 
 def drop_in(t: float, t0: float, t1: float) -> dict:
-    """Intro drop. u is the zoom (0 wide, 1 arrived). blur is heavy while fast."""
+    """Intro drop. u is the zoom (0 wide, 1 arrived). blur is heavy while fast.
+
+    Outside the window the plate is sharp: blur 0 before the drop and after it lands.
+    """
+    if t < t0 or t > t1:
+        return {"u": 0.0 if t < t0 else 1.0, "blur": 0.0, "kind": "drop_in"}
     x = _window(t, t0, t1)
     u = ease_out(x)
     # Derivative of 1-(1-x)^3 is 3(1-x)^2, largest at x=0.
@@ -61,6 +66,8 @@ def drop_in(t: float, t0: float, t1: float) -> dict:
 
 def match_cut_dive(t: float, t0: float, t1: float) -> dict:
     """Ease-in dive. Radial blur spikes on the last fraction, then cuts to sharp."""
+    if t < t0 or t > t1:
+        return {"u": 0.0 if t < t0 else 1.0, "blur": 0.0, "radial": True, "kind": "match_cut_dive"}
     x = _window(t, t0, t1)
     u = ease_in(x)
     spike = max(0.0, (x - 0.72) / 0.28)

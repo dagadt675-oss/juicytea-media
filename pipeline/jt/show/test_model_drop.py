@@ -68,7 +68,10 @@ def main() -> None:
     assert ease_in(0.5) < ease_out(0.5)
     assert ease_out_back(1) == 1.0
     assert drop_in(0.1, 0.1, 1.9)["blur"] > drop_in(1.8, 0.1, 1.9)["blur"]
+    assert drop_in(0.0, 0.1, 1.9)["blur"] == 0.0
+    assert drop_in(3.0, 0.1, 1.9)["blur"] == 0.0
     assert match_cut_dive(2.5, 1.9, 2.55)["blur"] > match_cut_dive(2.0, 1.9, 2.55)["blur"]
+    assert match_cut_dive(4.0, 1.9, 2.55)["blur"] == 0.0
     view = hero_view_m(spec, 0.60)
     assert 3_000 < view < 6_000, view
     # d3 interpolateZoom, pure zoom: the halfway frame is the geometric mean width.

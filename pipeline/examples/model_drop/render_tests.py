@@ -366,10 +366,14 @@ def render_shot(doc: dict, marble) -> None:
                 lon, lat, width = fly_lonlat(
                     intro["u"], shot["wide_lon"], shot["wide_lat"], shot["wide_m"], lon0, lat0, mid_m,
                 )
-            else:
+            elif t <= 2.55:
                 blur = dive["blur"]
                 radial = True
                 lon, lat, width = fly_lonlat(dive["u"], lon0, lat0, mid_m, lon0, lat0, close_m)
+            else:
+                blur = 0.0
+                radial = False
+                lon, lat, width = lon0, lat0, close_m
             tilt = shot["tilt"] * _smooth((t - 2.45) / 0.55)
             hold = t - float(shot["untilt"])
             heading = heading0
