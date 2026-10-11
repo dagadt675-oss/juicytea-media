@@ -147,9 +147,10 @@ def _world(hdr_path: str):
     nt.links.new(mapping.outputs["Vector"], env.inputs["Vector"])
     bg = nt.nodes.new("ShaderNodeBackground")
     nt.links.new(env.outputs["Color"], bg.inputs["Color"])
-    bg.inputs["Strength"].default_value = 0.65
+    bg.inputs["Strength"].default_value = 0.85
     dark = nt.nodes.new("ShaderNodeBackground")
-    dark.inputs["Strength"].default_value = 0.0
+    nt.links.new(env.outputs["Color"], dark.inputs["Color"])
+    dark.inputs["Strength"].default_value = 0.45
     mix = nt.nodes.new("ShaderNodeMixShader")
     light = nt.nodes.new("ShaderNodeLightPath")
     nt.links.new(light.outputs["Is Camera Ray"], mix.inputs["Fac"])
@@ -159,19 +160,21 @@ def _world(hdr_path: str):
 
 
 def _sun():
+    # Late afternoon, high enough that shadows stay short and soft.
     light = bpy.data.lights.new("Sun", "SUN")
-    light.energy = 4.2
-    light.color = (1.0, 0.72, 0.46)
-    light.angle = 0.0
+    light.energy = 5.0
+    light.color = (1.0, 0.78, 0.55)
+    light.angle = 0.008
     obj = _link(bpy.data.objects.new("Sun", light))
-    direction = mathutils.Vector((0.62, 0.48, 0.55))
-    obj.rotation_euler = mathutils.Vector((0, 0, -1)).rotation_difference(-direction).to_euler()
+    direction = mathutils.Vector((0.45, -0.25, 0.86))
+    obj.rotation_euler = direction.to_track_quat("Z", "Y").to_euler()
     fill = bpy.data.lights.new("Fill", "SUN")
-    fill.energy = 1.6
-    fill.color = (0.78, 0.84, 1.0)
+    fill.energy = 1.4
+    fill.color = (0.75, 0.82, 1.0)
     fill.use_shadow = False
+    fill.angle = 0.4
     fill_obj = _link(bpy.data.objects.new("Fill", fill))
-    fill_obj.rotation_euler = (math.radians(55), 0.2, math.radians(20))
+    fill_obj.rotation_euler = mathutils.Vector((-0.2, 0.55, 0.35)).to_track_quat("Z", "Y").to_euler()
 
 
 KIT = CACHE / "assets_cc0_city_buildings" / "city_buildings"
@@ -230,6 +233,69 @@ def _ground(empty, objs):
     bpy.context.view_layer.update()
 
 
+def _clip_low(meshes, zcut):
+    import bmesh
+
+    for obj in meshes:
+        bm = bmesh.new()
+        bm.from_mesh(obj.data)
+        mw = obj.matrix_world
+        dead = [face for face in bm.faces if (mw @ face.calc_center_median()).z < zcut]
+        if dead:
+            bmesh.ops.delete(bm, geom=dead, context="FACES")
+            bm.to_mesh(obj.data)
+            obj.data.update()
+        print(f"CLIP {obj.name} removed {len(dead)}", flush=True)
+        bm.free()
+
+
+def _sharpen_textures():
+    import subprocess
+
+    for img in list(bpy.data.images):
+        width, height = img.size
+        if width < 128 or height < 128:
+            continue
+        source = PRIVATE / "esb_src.png"
+        sharp_path = PRIVATE / "esb_sharp.png"
+        img.filepath_raw = str(source)
+        img.file_format = "PNG"
+        img.save()
+        subprocess.check_call(
+            [
+                "python3",
+                "-c",
+                (
+                    "from PIL import Image, ImageFilter;"
+                    f"im=Image.open({str(source)!r}).convert('RGB');"
+                    "im=im.resize((im.width*2, im.height*2), Image.Resampling.LANCZOS);"
+                    "im=im.filter(ImageFilter.UnsharpMask(radius=1.2, percent=190, threshold=1));"
+                    f"im.save({str(sharp_path)!r})"
+                ),
+            ]
+        )
+        sharp = bpy.data.images.load(str(sharp_path))
+        for mat in bpy.data.materials:
+            if not mat.use_nodes:
+                continue
+            for node in mat.node_tree.nodes:
+                if node.type == "TEX_IMAGE" and node.image == img:
+                    node.image = sharp
+                    node.interpolation = "Smart"
+        print(f"ESB texture sharpened {width}x{height}", flush=True)
+        return
+
+
+def _podium():
+    stone = _mat("Podium", (0.73, 0.67, 0.58), 0.72, 0.04)
+    glass = _mat("Storefront", (0.12, 0.14, 0.16), 0.15, 0.35)
+    _assign(_box("Podium", 150, 90, 48.0, (10.0, 8.0, 24.0)), stone)
+    for index, x in enumerate(range(-55, 78, 9)):
+        _assign(_box(f"ShopS{index}", 6.2, 0.35, 3.4, (x, 33.2, 2.4)), glass)
+    for index, y in enumerate(range(-28, 32, 9)):
+        _assign(_box(f"ShopE{index}", 0.35, 6.2, 3.4, (81.2, y, 2.4)), glass)
+
+
 def _empire():
     if not ESB_GLB.exists():
         raise RuntimeError(f"missing hero model {ESB_GLB}")
@@ -246,6 +312,9 @@ def _empire():
     bpy.context.view_layer.update()
     mn2, mx2 = _bounds(meshes)
     print(f"ESB tip {mx2.z:.1f} m base {mn2.z:.1f} m footprint {mx2.x - mn2.x:.0f} x {mx2.y - mn2.y:.0f}", flush=True)
+    _clip_low(meshes, 48.0)
+    _sharpen_textures()
+    _podium()
     return empty
 
 
@@ -266,6 +335,150 @@ def _liberty():
     empty.location = (-1600.0, -4750.0, -mn.z * scale)
     bpy.context.view_layer.update()
     return empty
+
+
+def _quads(name, quads, mat, z=0.02):
+    verts = []
+    faces = []
+    for x0, y0, x1, y1 in quads:
+        i = len(verts)
+        verts.extend(((x0, y0, z), (x1, y0, z), (x1, y1, z), (x0, y1, z)))
+        faces.append((i, i + 1, i + 2, i + 3))
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    obj = _link(bpy.data.objects.new(name, mesh))
+    return _assign(obj, mat)
+
+
+def _dup(root, location, scale, yaw):
+    bpy.ops.object.select_all(action="DESELECT")
+
+    def select(obj):
+        obj.select_set(True)
+        for child in obj.children:
+            select(child)
+
+    select(root)
+    bpy.context.view_layer.objects.active = root
+    bpy.ops.object.duplicate(linked=True)
+    copy = bpy.context.view_layer.objects.active
+    copy.location = location
+    copy.scale = scale
+    copy.rotation_euler = (0.0, 0.0, yaw)
+    return copy
+
+
+def _manhattan():
+    """Avenues run north-south, streets east-west. Blocks are about 280 x 80 m."""
+    pitch_x = 280.0 + 30.0
+    pitch_y = 80.0 + 18.0
+    ave_w, st_w = 30.0, 18.0
+    reach = 2500.0
+    asphalt = _mat("Asphalt", (0.045, 0.046, 0.05), 0.92, 0.0)
+    walk = _mat("Concrete", (0.55, 0.53, 0.50), 0.9, 0.02)
+    paint = _mat("Lane", (0.85, 0.75, 0.28), 0.6, 0.0)
+    zebra = _mat("Crosswalk", (0.82, 0.82, 0.80), 0.7, 0.0)
+    _assign(_box("Earth", reach * 4, reach * 4, 0.3, (0.0, 0.0, -0.45)), asphalt)
+    roads, walks, lanes, crosses = [], [], [], []
+    avenues = [i * pitch_x + pitch_x * 0.5 for i in range(-9, 9)]
+    streets = [j * pitch_y + pitch_y * 0.5 for j in range(-28, 28)]
+    for x in avenues:
+        roads.append((x - ave_w * 0.5, -reach, x + ave_w * 0.5, reach))
+        walks.append((x - ave_w * 0.5 - 4.5, -reach, x - ave_w * 0.5, reach))
+        walks.append((x + ave_w * 0.5, -reach, x + ave_w * 0.5 + 4.5, reach))
+    for y in streets:
+        roads.append((-reach, y - st_w * 0.5, reach, y + st_w * 0.5))
+        walks.append((-reach, y - st_w * 0.5 - 4.5, reach, y - st_w * 0.5))
+        walks.append((-reach, y + st_w * 0.5, reach, y + st_w * 0.5 + 4.5))
+    for x in avenues:
+        y = -reach
+        while y < reach:
+            if not any(abs(y - sy) < st_w for sy in streets):
+                lanes.append((x - 0.12, y, x + 0.12, y + 4.0))
+            y += 10.0
+    for y in streets:
+        x = -reach
+        while x < reach:
+            if not any(abs(x - ax) < ave_w for ax in avenues):
+                lanes.append((x, y - 0.12, x + 4.0, y + 0.12))
+            x += 10.0
+    for x in avenues:
+        for y in streets:
+            # One zebra per leg, just outside the intersection box.
+            for k in range(6):
+                yy = y + st_w * 0.5 + 0.6 + k * 0.55
+                crosses.append((x - ave_w * 0.42, yy, x + ave_w * 0.42, yy + 0.28))
+                yy = y - st_w * 0.5 - 0.6 - k * 0.55
+                crosses.append((x - ave_w * 0.42, yy - 0.28, x + ave_w * 0.42, yy))
+            for k in range(6):
+                xx = x + ave_w * 0.5 + 0.6 + k * 0.55
+                crosses.append((xx, y - st_w * 0.42, xx + 0.28, y + st_w * 0.42))
+                xx = x - ave_w * 0.5 - 0.6 - k * 0.55
+                crosses.append((xx - 0.28, y - st_w * 0.42, xx, y + st_w * 0.42))
+    _quads("Roads", roads, asphalt, 0.02)
+    _quads("Sidewalks", walks, walk, 0.06)
+    _quads("Lanes", lanes, paint, 0.07)
+    _quads("Crosswalks", crosses, zebra, 0.075)
+    folder = KIT / "kenney_city_kit_commercial" / "Models" / "GLB format"
+    names = [
+        "building-skyscraper-a.glb",
+        "building-skyscraper-b.glb",
+        "building-skyscraper-c.glb",
+        "building-skyscraper-d.glb",
+        "building-skyscraper-e.glb",
+        "building-a.glb",
+        "building-b.glb",
+    ]
+    protos = []
+    for name in names:
+        empty, objs = _place_model(folder / name, "Proto" + name, (0.0, 0.0, 0.0), 1.0, 0.0)
+        bpy.context.view_layer.update()
+        mn, mx = _bounds(objs)
+        shift = mathutils.Vector(((mn.x + mx.x) * 0.5, (mn.y + mx.y) * 0.5, mn.z))
+        for obj in objs:
+            if obj.parent == empty:
+                obj.matrix_world.translation -= shift
+        empty.location = (0.0, 0.0, -800.0)
+        protos.append(empty)
+    rng = __import__("random").Random(11)
+    placed = 0
+    for i in range(-8, 9):
+        for j in range(-26, 27):
+            if i == 0 and j == 0:
+                continue
+            cx, cy = i * pitch_x, j * pitch_y
+            if cx * cx + cy * cy > reach * reach:
+                continue
+            proto = protos[(i * 3 + j * 5) % len(protos)]
+            height = rng.choice((28, 40, 55, 18, 70, 46, 34))
+            _dup(proto, (cx - 50, cy, 0.0), (42, 28, height), rng.random() * 0.2)
+            other = protos[(i + j * 2) % len(protos)]
+            _dup(other, (cx + 55, cy, 0.0), (32, 24, height * rng.uniform(0.45, 0.9)), 0.1)
+            placed += 1
+    print(f"CITY blocks {placed}", flush=True)
+    taxi = CARS / "taxi.glb"
+    for n, (x, y, yaw) in enumerate(
+        (
+            (110, 96, 1.57),
+            (150, 108, -1.57),
+            (80, 112, 1.57),
+            (40, 68, 1.57),
+            (95, 64, 1.57),
+            (150, 70, -1.57),
+            (210, 66, 1.57),
+            (55, 74, -1.57),
+            (155, 20, 0.0),
+            (155, -40, 3.14),
+            (155, 120, 0.0),
+            (-155, 30, 3.14),
+            (70, -37, 1.57),
+            (220, -37, -1.57),
+            (340, 61, 1.57),
+        )
+    ):
+        empty, objs = _place_model(taxi, f"Taxi{n}", (x, y, 0.0), 1.8, yaw)
+        _ground(empty, objs)
 
 
 def _blocks():
@@ -340,12 +553,31 @@ def _people():
     path = MEN / "Man_in_Suit_mQnGoME1ez.glb"
     if not path.exists():
         return None
-    empty, objs = _place_model(path, "Walker0", (105.4, 155.2, 0.0), 0.34, 3.6)
+    empty, objs = _place_model(path, "Walker0", (125.4, 103.6, 0.0), 0.34, 2.5)
+    for obj in objs:
+        if obj.type != "MESH":
+            continue
+        for slot in obj.material_slots:
+            mat = slot.material
+            if mat and mat.use_nodes:
+                bsdf = mat.node_tree.nodes.get("Principled BSDF")
+                if bsdf:
+                    color = bsdf.inputs["Base Color"].default_value
+                    if color[0] + color[1] + color[2] < 0.45:
+                        bsdf.inputs["Base Color"].default_value = (0.62, 0.48, 0.40, 1.0)
+    face = bpy.data.lights.new("Face", "AREA")
+    face.energy = 180
+    face.color = (1.0, 0.9, 0.78)
+    face.size = 1.6
+    face.use_shadow = False
+    lamp = _link(bpy.data.objects.new("FaceLamp", face))
+    lamp.location = (128.8, 106.6, 2.3)
+    lamp.rotation_euler = mathutils.Vector((-1.7, -1.9, -0.8)).to_track_quat("-Z", "Y").to_euler()
     _ground(empty, objs)
     arms = [obj for obj in objs if obj.type == "ARMATURE"]
     for arm in arms:
         _action(arm, "Man_Walk")
-    spots = [(128, 161, 0.2), (146, 157, 1.1), (164, 162, 2.6), (186, 156, 0.7), (210, 160, 1.8)]
+    spots = [(70, 58, 1.5), (110, 62, 1.6), (140, 59, 4.7), (40, 60, 1.4), (175, 63, 1.2), (20, 57, 1.8)]
     for index, (x, y, yaw) in enumerate(spots, start=1):
         bpy.ops.object.select_all(action="DESELECT")
         empty.select_set(True)
@@ -410,7 +642,7 @@ def _look(cam, target):
 def _penny():
     mat = _mat("Penny", (0.86, 0.42, 0.2), 1.0, 0.08)
     rim = _mat("Rim", (0.55, 0.28, 0.12), 1.0, 0.02)
-    show = 18.0
+    show = 9.0
     radius = 0.009525 * show
     depth = 0.0018 * show
     bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=radius, depth=depth, location=(0, 0, 0))
@@ -453,9 +685,10 @@ def _bone(arm, suffix):
 
 
 def _head(arm, t):
-    if arm is None or t < 34.15:
+    if arm is None or t < 33.4:
         return
-    down = 0.2 + 0.9 * min(1.0, (t - 34.15) / 0.5)
+    _action(arm, "Man_Idle")
+    down = 0.35 + 0.85 * min(1.0, (t - 33.4) / 0.6)
     action = arm.animation_data.action if arm.animation_data else None
     if action is not None:
         for curve in action.fcurves:
@@ -501,8 +734,12 @@ def main():
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
     scene.cycles.device = "CPU"
-    scene.cycles.samples = int(job.get("samples", 1))
-    scene.cycles.use_denoising = False
+    scene.cycles.samples = max(16, int(job.get("samples", 16)))
+    scene.cycles.use_denoising = True
+    try:
+        scene.cycles.denoiser = "OPENIMAGEDENOISE"
+    except Exception:
+        pass
     scene.cycles.max_bounces = 0
     scene.cycles.diffuse_bounces = 0
     scene.cycles.glossy_bounces = 0
@@ -510,7 +747,7 @@ def main():
     scene.cycles.transparent_max_bounces = 0
     scene.cycles.sample_clamp_indirect = 0.0
     scene.render.use_motion_blur = True
-    scene.render.motion_blur_shutter = 0.2
+    scene.render.motion_blur_shutter = 0.5
     scene.cycles.motion_blur_position = "END"
     scene.render.resolution_x = int(job["width"])
     scene.render.resolution_y = int(job["height"])
@@ -527,9 +764,7 @@ def main():
     _world(hdr)
     _empire()
     _liberty()
-    _blocks()
-    _assign(_box("Harbor", 14000, 14000, 0.2, (-800, -1200, -0.4)), _mat("Harbor", (0.16, 0.17, 0.18), 1.0, 0.0))
-    _roads_and_taxis()
+    _manhattan()
     _hotdog()
     _dancer()
     arm = _people()
@@ -564,8 +799,18 @@ def main():
         penny.rotation_euler = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
         _head(arm, float(fr["t"]))
         bpy.context.view_layer.update()
-        scene.render.filepath = str(out / f"f_{fr['frame']:04d}.png")
+        png_path = out / f"f_{fr['frame']:04d}.png"
+        scene.render.image_settings.file_format = "PNG"
+        scene.render.filepath = str(png_path)
         bpy.ops.render.render(write_still=True)
+        if job.get("plate_format") == "exr":
+            scene.render.image_settings.file_format = "OPEN_EXR"
+            scene.render.image_settings.color_depth = "16"
+            exr_path = out / f"f_{fr['frame']:04d}.exr"
+            image = bpy.data.images.get("Render Result")
+            if image is not None:
+                image.save_render(str(exr_path))
+            scene.render.image_settings.file_format = "PNG"
         if index % 10 == 0 or index + 1 == len(job["frames"]):
             print(f"PENNY {index + 1}/{len(job['frames'])} frame {fr['frame']}", flush=True)
     print(f"PENNY_DONE {len(job['frames'])}", flush=True)
