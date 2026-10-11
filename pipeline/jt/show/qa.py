@@ -23,6 +23,9 @@ BENCHMARK = {
     "motion_second_min": 1.0,
     "event_gap_max": 2.5,
     "hard_cuts_max": 16,
+    # High-frequency structural motion, after the slow shading is filtered out.
+    "structural_motion_min": 3.7,
+    "structural_event_gap_max": 2.5,
 }
 
 
@@ -86,6 +89,51 @@ def visual_events(diff: np.ndarray, fps: float, height: float = 4.0, min_gap: fl
         times.append(i / fps)
         last = i
     return times
+
+
+def structural_series(frames: np.ndarray, sigma: float = 8.0) -> np.ndarray:
+    """Frame-diff with the slow shading removed.
+
+    A wide Gaussian is the low-frequency layer (the moving shadow). What
+    remains is coasts, type, and camera snaps. sigma is in pixels of the
+    135×240 QA frame; 8 px rejects a blob about 80 px across.
+    """
+    from scipy.ndimage import gaussian_filter
+    if len(frames) < 2:
+        return np.zeros(0, np.float64)
+    delta = frames[1:].astype(np.float32) - frames[:-1].astype(np.float32)
+    low = gaussian_filter(delta, sigma=(0, sigma, sigma))
+    return np.mean(np.abs(delta - low), axis=(1, 2))
+
+
+def structural_report(frames: np.ndarray, fps: float) -> dict:
+    """QC's structural read: mean >= 3.7, and no real-event gap over 2.5 s.
+
+    Events are peaks of at least 3.5, at least 0.8 s apart. The gap from
+    the first frame to the first event counts.
+    """
+    series = structural_series(frames)
+    per_second = []
+    nsec = int(math_ceil(len(series) / fps)) if len(series) else 0
+    for i in range(nsec):
+        sl = series[int(i * fps):int((i + 1) * fps)]
+        if len(sl):
+            per_second.append(round(float(sl.mean()), 3))
+    events = visual_events(series, fps, height=3.5, min_gap=0.8)
+    ends = float(len(frames) / fps)
+    marks = [0.0] + events + [ends]
+    gaps = [(a, b, b - a) for a, b in zip(marks, marks[1:])]
+    long = [[round(a, 2), round(b, 2), round(g, 2)] for a, b, g in gaps if g > 2.5]
+    mean = float(series.mean()) if len(series) else 0.0
+    gap_max = float(max(g for *_, g in gaps)) if gaps else 0.0
+    return {
+        "structural_motion_mean": round(mean, 3),
+        "structural_motion_per_second": per_second,
+        "structural_events": [round(t, 2) for t in events],
+        "structural_event_gap_max": round(gap_max, 3),
+        "structural_gaps_over_2_5s": long,
+        "structural_pass": mean >= 3.7 and gap_max <= 2.5,
+    }
 
 
 def loop_diff(frames: np.ndarray) -> float:
@@ -159,6 +207,7 @@ def report(path: Path, cues: list[dict] | None = None) -> dict:
         "loop_is_one_step": True,
         "benchmark": BENCHMARK,
     }
+    out.update(structural_report(frames, fps))
     if cues:
         from jt.show.cues import lint_gaps
         dur = len(frames) / fps

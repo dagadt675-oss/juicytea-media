@@ -129,7 +129,7 @@ def dashed_path(canvas, cam, lonlat, w: int, h: int, grow: float):
     canvas.drawPath(path, pen)
 
 
-def graticule(canvas, cam, w: int, h: int, emphasis: float = 0.0):
+def graticule(canvas, cam, w: int, h: int, emphasis: float = 0.0, pop: float = 0.0):
     if cam.proj != "merc":
         return
     view = view_for(cam, w, h)
@@ -164,8 +164,9 @@ def graticule(canvas, cam, w: int, h: int, emphasis: float = 0.0):
     lons = np.linspace(cam.lon - cam.span * 0.95, cam.lon + cam.span * 0.95, 48)
     for lat in range(-45, 76, 15):
         hot = abs(lat - 70) < 1 and emphasis > 0.2
-        color = (255, 214, 90, int(210 * emphasis)) if hot else (170, 198, 206, 110)
-        width = 4.0 if hot else 1.4
+        boost = 1.0 + 1.8 * pop
+        color = (255, 214, 90, min(255, int(210 * emphasis * boost))) if hot else (170, 198, 206, min(255, int(110 * boost)))
+        width = (4.0 if hot else 1.4) * boost
         for run in chain((lon, lat) for lon in lons):
             stroke(run, color, width)
     lats = np.linspace(-50, 78, 40)

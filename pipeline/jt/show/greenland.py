@@ -227,6 +227,8 @@ def apply_motion(cam: Cam, t: float) -> Cam:
         span *= 1.0 - 0.05 * u
         lon -= 10.0 * u
         lat += 4.0 * u
+        # 6.9 s: a 7% snap with the round-earth inset. One way, so later beats stay put.
+        span *= 1.0 - 0.08 * _bump(t, 6.9, 0.28)
         span *= 1.0 - 0.11 * _bump(t, b.sixteen, 0.36)
     # Shrink/drag keeps moving, and sits higher so the tip clears the caption band.
     if b.sixteen + 0.5 < t < b.drag:
@@ -429,6 +431,38 @@ def _paste(acc, covered, count, alpha, mcx, mcy, ox, oy, rgb, vis: float) -> Non
     view_n[mask] += 1
 
 
+def _grid_pop(t: float) -> float:
+    """A short brightening of the pole grid at 10.4 s. It fades back."""
+    if t < 10.25 or t > 10.7:
+        return 0.0
+    if t < 10.45:
+        u = (t - 10.25) / 0.20
+    else:
+        u = 1.0 - (t - 10.45) / 0.25
+    u = _clamp(u)
+    return u * u * (3.0 - 2.0 * u)
+
+
+def _bubble_tail(canvas, box, tip) -> None:
+    """A filled tail from the pill edge toward Algeria's mouth."""
+    left, top, right, bottom = box
+    # The bubble sits above Algeria, so the tail leaves the bottom edge
+    # and stops just short of the mouth.
+    x = min(max(tip[0], left + 28), right - 28)
+    a, b = (x - 16, bottom - 1), (x + 16, bottom - 1)
+    dx, dy = tip[0] - x, tip[1] - bottom
+    length = max(1.0, (dx * dx + dy * dy) ** 0.5)
+    end = (x + dx * (length - 22.0) / length, bottom + dy * (length - 22.0) / length)
+    path = skia.Path()
+    path.moveTo(a[0], a[1])
+    path.lineTo(end[0], end[1])
+    path.lineTo(b[0], b[1])
+    path.close()
+    paint = skia.Paint(AntiAlias=True)
+    paint.setColor(skia.ColorSetARGB(235, 244, 244, 246))
+    canvas.drawPath(path, paint)
+
+
 def _wave_speed() -> float:
     """An integer number of cycles over the picture, so the loop continues."""
     cycles = max(8, round(2.8 * DURATION / (2 * math.pi)))
@@ -445,7 +479,8 @@ def _living(img: np.ndarray, t: float) -> np.ndarray:
     y = np.arange(h, dtype=np.float32)[:, None]
     x = np.arange(w, dtype=np.float32)[None, :]
     phase = t * _wave_speed()
-    band = np.sin(y * 0.010 + phase) * 44.0 + np.sin(x * 0.014 + phase) * 26.0
+    # Half the earlier amplitude. The slow shading was reading as dirty patches.
+    band = np.sin(y * 0.010 + phase) * 22.0 + np.sin(x * 0.014 + phase) * 13.0
     return np.clip(img.astype(np.float32) + band[..., None], 0, 255).astype(np.uint8)
 
 
@@ -608,7 +643,7 @@ class Greenland:
             rim.setColor(skia.ColorSetARGB(140, 186, 220, 228))
             canvas.drawCircle(view.cx, view.cy, view.r - 2, rim)
         if st["stretch"] > 0.2:
-            graticule(canvas, cam, w, h, st["stretch"])
+            graticule(canvas, cam, w, h, st["stretch"], pop=_grid_pop(st["t"]))
         fill_union(canvas, self.earth, cam, AFRICA, (255, 170, 24), 128, outline=6, w=w, h=h)
         if st["algeria"] > 0.05:
             fill_iso(canvas, self.earth, cam, "DZA", (24, 168, 86), int(200 * st["algeria"]),
@@ -870,9 +905,18 @@ class Greenland:
         cam = Cam("ortho", -25, 42, 130)
         tile = paint_plate(self.plates["satellite"], cam, side, side)
         rgba = np.dstack([tile, np.full((side, side), 255, np.uint8)])
+        # The circle stays small, then draws in across 6.78–6.96 s.
+        if st["t"] < 6.78:
+            pop = 0.12
+        elif st["t"] < 6.96:
+            u = (st["t"] - 6.78) / 0.18
+            pop = 0.12 + 0.88 * (u * u * (3.0 - 2.0 * u))
+        else:
+            pop = 1.0
         canvas.save()
         cx, cy = w * 0.78, h * 0.52
         canvas.translate(cx, cy)
+        canvas.scale(pop, pop)
         canvas.translate(-side / 2, -side / 2)
         clip = skia.Path()
         clip.addCircle(side / 2, side / 2, side * 0.46)
@@ -935,11 +979,15 @@ class Greenland:
             box = self._box_of(cam, self.earth.rings.get("DZA") or [], w, h)
             if box:
                 m, bob = gag_pose(st["t"], CLOCK.hi0, CLOCK.hi1, 2)
+                # ~60 px left and up, so the mouth clears Greenland.
+                fx = (box[0] + box[2]) / 2 - 60.0
+                fy = (box[1] + box[3]) / 2 - 60.0
                 draw_face(
-                    canvas, (box[0] + box[2]) / 2, (box[1] + box[3]) / 2,
+                    canvas, fx, fy,
                     box[2] - box[0], "smug", mouth=m, bob=bob, blink=blink,
                     squash=_squash(st["t"]) if st["t"] >= CLOCK.hi0 - 0.25 else 1.0,
                 )
+                self._algeria_mouth = (fx, fy + (box[2] - box[0]) * 0.156)
         packing = max(st["usa"], st["chn"], st["ind"], st["eur"])
         if (st["still"] > 0.35 or st["room"] > 0.2) and packing < 0.2:
             box = self._bbox(cam, w, h)
@@ -1018,7 +1066,14 @@ class Greenland:
                 leader_label(hud, canvas, "DR CONGO", "0.91M SQ MI", drc_box, avoid,
                              (36, 112, 210), prefer="left", size=44)
         if st["gag_hi"] > 0.15 and geo:
-            pill(hud, "HI, TINY.", w * 0.28, 310, PAPER, ink=INK, size=58, pop=1.0, kind="gag", nudge=False)
+            mouth = getattr(self, "_algeria_mouth", None)
+            if mouth is not None:
+                # Above Algeria's mouth, clear of Greenland underneath.
+                bx = min(w - 180, max(180, mouth[0] + 40))
+                by = max(130, mouth[1] - 150)
+                bubble = pill(hud, "HI, TINY.", bx, by, PAPER, ink=INK, size=58, pop=1.0, kind="gag", nudge=False)
+                if bubble is not None:
+                    _bubble_tail(canvas, bubble, mouth)
         # Labels sit off the shape centres so CHINA and EUROPE can share the middle.
         label_at = {
             "usa": lambda ox, oy: (ox, oy - 20),

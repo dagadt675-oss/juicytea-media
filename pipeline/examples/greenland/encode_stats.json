@@ -1,9 +1,18 @@
 {
   "frames": 1357,
   "duration": 45.233333333333334,
-  "loop_mean_abs": 6.00996897505144,
-  "motion_mean": 6.938540935818517,
-  "motion_min": 2.35458510159465,
-  "safe_or_band_hits": 0,
-  "safe_or_band_at": []
+  "loop_mean_abs": 5.538422550154321,
+  "motion_mean": 6.444982509790164,
+  "motion_min": 1.315056423611111,
+  "safe_or_band_hits": 1,
+  "safe_or_band_at": [
+    30.77,
+    30.8,
+    30.83,
+    30.87,
+    30.9,
+    30.93,
+    30.97,
+    31.0
+  ]
 }
