@@ -6,6 +6,7 @@ import math
 
 from mathutils import Euler, Vector
 
+from engine.city_layout import city_water_top
 from engine.meshkit import aim_z, clamp, lin, smoother
 
 
@@ -24,8 +25,8 @@ def water_surface(ch, kind):
         return 0.05 + ch["flood"] * 1.35 + ch["water"] * 3.1
     if kind == "farm":
         return 0.02 + ch["flood"] * 0.9 + ch["water"] * 0.8
-    # The park and cross street stay dry. Only the quay and subway flood.
-    return 0.18 + ch["flood"] * 0.42 + ch["water"] * 1.15
+    # Capped under the quay. The mesh itself is only the river polygon.
+    return city_water_top(ch["flood"], ch["water"])
 
 
 def _sink(item, ch, loc):
@@ -87,12 +88,17 @@ def _structures(kit, ch, frame, fps):
         obj = item.obj
         if role == "building_base":
             loc = _sink(item, ch, item.base_loc.copy())
-            # Late collapse removes the shaft. Squashing the mesh turns the windows into a cage.
-            ruin = smoother(0.62, 0.92, collapse)
+            # Shrink to a concrete stump. A few marked skeletons stay standing.
+            ruin = smoother(0.40, 0.92, collapse)
+            stump = 1.0 - ruin * (0.55 if item.extra.get("skeleton") else 0.78)
             bury = _bury_scale(item, ch)
             obj.location = loc
-            obj.scale = item.base_scale * bury
-            obj.hide_render = ruin > 0.9 or bury < 0.05
+            obj.scale = (
+                item.base_scale.x * bury,
+                item.base_scale.y * bury,
+                item.base_scale.z * max(0.18, stump) * bury,
+            )
+            obj.hide_render = bury < 0.05
         elif role == "building_top":
             loc = item.base_loc.copy()
             fall = item.extra.get("fall_at")
@@ -235,17 +241,22 @@ def _life(kit, ch, frame, fps, snow):
             obj.location = loc
             obj.scale = item.base_scale * max(s, 0.001)
         elif role == "car":
+            # People vanish. Cars roll to a stop and stay, then rust where they stopped.
             u = smoother(0.0, 1.0, clamp(ch["vanish"] / 0.55))
             a = Vector(item.extra["path_from"])
             b = Vector(item.extra["path_to"])
             pos = a.lerp(b, u)
-            fade = 1.0 - smoother(0.78, 1.0, ch["vanish"])
-            pos.z -= snow * 0.32
+            rust = ch["rust"]
+            pos.z -= snow * 0.32 + rust * 0.12
             pos.z += ch["gravity"] * item.extra.get("float", 0.0)
-            pos.z += math.sin(frame * 0.16 + pos.x) * ch["gravity"] * item.extra.get("bob", 0.0)
             obj.location = pos
-            obj.scale = item.base_scale * max(fade, 0.001)
-            obj.hide_render = fade < 0.03
+            obj.scale = item.base_scale
+            obj.hide_render = False
+            paint = Vector(item.extra.get("paint", (0.93, 0.93, 0.94))[:3])
+            grime = paint.lerp(Vector((0.28, 0.18, 0.12)), rust)
+            obj.color = (grime.x, grime.y, grime.z, 1.0)
+            yaw = item.base_rot.z + rust * (0.35 if item.extra.get("index", 0) % 2 == 0 else -0.28)
+            obj.rotation_euler = _euler(item.base_rot, dz=yaw - item.base_rot.z)
         elif role == "bird":
             gone = max(ch["fauna"], smoother(0.15, 0.45, ch["vanish"]))
             s = 1.0 - gone
@@ -263,8 +274,11 @@ def _life(kit, ch, frame, fps, snow):
             obj.hide_render = ch["vegetation"] > 0.65 or ch["ice"] > 0.2 or ch["geology"] > 0.15
         elif role == "prop":
             loc = item.base_loc.copy()
-            loc.z += ch["gravity"] * item.extra.get("float", 0.2)
+            loc.z += ch["gravity"] * item.extra.get("float", 0.0)
+            tilt = smoother(0.45, 0.9, ch["collapse"])
             obj.location = loc
+            obj.rotation_euler = _euler(item.base_rot, dx=tilt * (1.15 if "lamp" in obj.name else 0.0))
+            obj.hide_render = "lamp" in obj.name and ch["collapse"] > 0.93
     for mound, car in zip(mounds, cars):
         if snow < 0.18:
             mound.obj.hide_render = True
@@ -282,7 +296,7 @@ def _bridge(kit, ch):
     for item in bridge["decks"]:
         i = item.extra["i"]
         loc = item.base_loc.copy()
-        droop = (ch["sag"] * 0.55 + ch["gravity"] * 0.15) * (0.55 if i in (1, 2) else 0.12)
+        droop = ch["sag"] * (4.5 if i == 0 else 1.2) + ch["gravity"] * 0.15
         loc.z -= droop
         rot = _euler(item.base_rot)
         if i in (1, 2):
@@ -295,12 +309,25 @@ def _bridge(kit, ch):
             for child in item.obj.children:
                 child.hide_render = hidden
         elif i == 0:
-            u = smoother(0.9, 1.0, ch["collapse"])
-            rot.x += u * 0.06
-            loc.z -= u * 0.4
+            # The river span falls into the water. It does not stay a finished road.
+            u = smoother(0.70, 0.96, ch["collapse"])
+            rot.x += u * 0.55
+            loc.z -= u * 7.5
+            loc.y += u * 4.0
             item.obj.hide_render = False
+            for child in item.obj.children:
+                child.hide_render = ch["vegetation"] > 0.55 or u > 0.35
+        elif i == 4:
+            u = smoother(0.78, 0.98, ch["collapse"])
+            rot.x += u * 0.45
+            loc.z -= u * 4.0
+            item.obj.hide_render = False
+            for child in item.obj.children:
+                child.hide_render = ch["vegetation"] > 0.5 or u > 0.3
         else:
             item.obj.hide_render = False
+            for child in item.obj.children:
+                child.hide_render = ch["vegetation"] > 0.5 or ch["collapse"] > 0.7
         if item.extra.get("sink"):
             loc.z -= ch["geology"] * 180.0
         item.obj.location = loc
@@ -343,7 +370,7 @@ def _bridge(kit, ch):
     ya = bridge["towers"][0].base_loc.y
     yb = bridge["towers"][1].base_loc.y
     span = max(1.0, abs(yb - ya))
-    sag = span / 7.5
+    sag = span / 16.0
     snap = smoother(0.66, 0.9, ch["collapse"])
     half = float(bridge.get("half", 7.6))
     sides = []

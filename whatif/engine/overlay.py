@@ -136,7 +136,7 @@ def _alpha(color, a: float):
 
 def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Image.Image:
     img = image.convert("RGBA")
-    title_size = max(36, int(width * 0.046))
+    title_size = max(22, int(width * 0.026))
     title_font = _font(SERIF, title_size)
     label_font = _font(SANS, max(16, int(width * 0.020)))
     number_font = _font(SERIF, max(42, int(width * 0.052)))
@@ -148,20 +148,21 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
         a = state["title_alpha"]
         # Two centered lines in the sky, well above the caption band.
         lines = _wrap_title(state["title"])
+        # Left margin, so the lines end before the portal (the portal starts near x=0.55).
+        cx = int(width * 0.03)
         y = int(height * 0.07)
         gap = int(title_size * 1.05)
-        block_h = gap * (len(lines) - 1)
+        block_h = gap * max(0, len(lines) - 1)
         y -= block_h // 2
-        # Soft dark scrim so the title stays readable over the towers.
-        _title_scrim(img, width / 2, y + block_h / 2, width * 0.46, gap * len(lines) * 0.85, a)
+        _title_scrim(img, cx + width * 0.12, y + block_h / 2, width * 0.2, gap * len(lines) * 0.7, a)
         for line in lines:
             _shadow_text(
                 img,
-                (width / 2, y),
+                (cx, y),
                 line,
                 title_font,
                 fill=_alpha((255, 255, 255), 255 * a),
-                anchor="mm",
+                anchor="lm",
                 radius=14,
                 opacity=int(170 * a),
             )
@@ -171,8 +172,8 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
         _draw_hud(img, state["hud"], width, height)
     else:
         # Left counter. Sits on the open water/park edge, above y=0.64.
-        x = int(width * 0.055)
-        y = int(height * 0.42)
+        x = int(width * 0.05)
+        y = int(height * 0.50)
         _shadow_text(img, (x, y), state["label"], label_font, fill=_alpha((255, 255, 255), 230), anchor="lt", radius=4, opacity=120)
         num_y = y + int(height * 0.022)
         _shadow_text(img, (x, num_y), state["number"], number_font, fill=_alpha((255, 255, 255), 255), anchor="lt", radius=6, opacity=140)
@@ -183,25 +184,6 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
             unit_y = bbox[3] - int(height * 0.012)
             _shadow_text(img, (unit_x, unit_y), state["unit"], unit_font, fill=_alpha((255, 255, 255), 235), anchor="ls", radius=4, opacity=120)
 
-    if not state.get("hud") and state["ticker_alpha"] > 0.01 and state["ticker"]:
-        a = state["ticker_alpha"]
-        parts = state["ticker"].split()
-        number = parts[0] if parts else state["ticker"]
-        unit = " ".join(parts[1:]) if len(parts) > 1 else ""
-        cx = width / 2
-        cy = height * 0.335
-        _shadow_text(img, (cx, cy), number, tick_num, fill=_alpha((255, 255, 255), 255 * a), anchor="mm", radius=12, opacity=int(150 * a))
-        if unit:
-            _shadow_text(
-                img,
-                (cx, cy + tick_num.size * 0.62),
-                unit,
-                tick_unit,
-                fill=_alpha((255, 255, 255), 240 * a),
-                anchor="mm",
-                radius=6,
-                opacity=int(130 * a),
-            )
     return img
 
 
@@ -257,7 +239,7 @@ def _wrap_title(title: str) -> list[str]:
     if lowered.startswith("what if all humans disappeared"):
         return ["What if all humans", "disappeared?"]
     if "every human vanished" in lowered:
-        return ["What if every human", "vanished… right now?"]
+        return ["What if", "every human", "vanished…", "right now?"]
     words = title.split()
     if len(words) <= 4:
         return [title]

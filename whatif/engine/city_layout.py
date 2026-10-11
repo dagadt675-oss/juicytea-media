@@ -35,13 +35,54 @@ INDEX_PORTAL = 11
 TOWER_S = (32.0, 102.0)
 # Foreground road the approach must join. The road plane is centered at y=14
 # and is still asphalt here. y=22 sits in the lower part of the frame.
-CROSS_Y = 22.0
-CROSS_HALF_Y = 8.0
+CROSS_Y = 28.0
+CROSS_HALF_Y = 10.0
 CROSS_X0 = -80.0
 CROSS_X1 = 90.0
 LEVEL_S1 = 150.0
 FAR_S = 185.0
 FAR_Z = 1.8
+
+# The river is a polygon. Water is only allowed inside it, and its surface
+# stays below the quay and the park at every flood stage.
+RIVER_X0 = -520.0
+RIVER_X1 = 520.0
+RIVER_Y0 = 98.0
+RIVER_Y1 = 268.0
+QUAY_Z = 3.6
+PARK_LAND_Z = 0.72
+ROAD_Z = 0.58
+WATER_BED_Z = -1.6
+
+# East-west avenue at the bottom of the frame. Four lanes, sidewalks, curbs.
+AVE_Y = 28.0
+AVE_HALF = 8.0
+LANE_OFFSETS = (-4.8, -1.6, 1.6, 4.8)
+SIDEWALK_W = 3.2
+# A north-south street on the left, from the avenue up to the park paths.
+GRID_X = -58.0
+GRID_HALF = 5.0
+
+
+def river_contains(x, y):
+    return RIVER_X0 <= x <= RIVER_X1 and RIVER_Y0 <= y <= RIVER_Y1
+
+
+def city_water_top(flood=0.0, water=0.0):
+    """River surface. Capped under the quay so it cannot sheet over the city."""
+    raw = WATER_BED_Z + 1.05 + float(flood) * 1.2 + float(water) * 0.2
+    # Stay under every walkable surface, not only the top of the quay wall.
+    return min(raw, min(PARK_LAND_Z, ROAD_Z) - 0.08)
+
+
+def land_top(x, y):
+    """Walkable surface. Inside the river this is the bed, not the bank."""
+    if river_contains(x, y):
+        return WATER_BED_Z
+    if abs(y - AVE_Y) <= AVE_HALF + SIDEWALK_W:
+        return ROAD_Z
+    return PARK_LAND_Z
+
 
 # Grey, white, light blue, and salmon. The back row is lifted toward blue in the scene.
 SKYLINE_COLORS = (
@@ -56,36 +97,42 @@ SKYLINE_COLORS = (
     (0.86, 0.86, 0.88, 1),
     (0.58, 0.72, 0.84, 1),
 )
-# Front row base is the solved skyline line (world y=168). Back row is tall
-# enough to leave the top of the frame.
+# (y, hmin, hmax, x0, x1, (wmin, wmax)). Footprints are real towers:
+# 25–45 m on a side, height about 3–6 times the width. The last row is
+# haze at the horizon so the city does not end in a green field.
 SKYLINE_ROWS = (
-    (172.0, 22.0, 58.0, -150.0, 190.0, (4.2, 7.2)),
-    (198.0, 36.0, 82.0, -160.0, 200.0, (3.8, 6.4)),
-    (228.0, 64.0, 118.0, -140.0, 190.0, (3.4, 5.8)),
+    (176.0, 110.0, 150.0, -200.0, 240.0, (26.0, 36.0)),
+    (260.0, 120.0, 168.0, -230.0, 270.0, (28.0, 38.0)),
+    (360.0, 130.0, 168.0, -260.0, 300.0, (28.0, 40.0)),
+    (480.0, 108.0, 150.0, -280.0, 320.0, (26.0, 34.0)),
 )
 
 # Park paths. Cars must not sit on these.
+# Paths meet the north sidewalk of the avenue (y ≈ 26) so none of them dead-end.
 PATHS = (
-    ("v1", -42.0, 58.0, 1.4, 18.0),
-    ("v2", -26.0, 58.0, 1.4, 18.0),
-    ("v3", -10.0, 58.0, 1.4, 16.0),
-    ("h1", -26.0, 42.0, 20.0, 1.2),
-    ("h2", -26.0, 56.0, 20.0, 1.2),
-    ("h3", -26.0, 70.0, 20.0, 1.2),
+    ("v1", -42.0, 58.0, 1.5, 32.0),
+    ("v2", -26.0, 58.0, 1.5, 32.0),
+    ("v3", -10.0, 56.0, 1.5, 28.0),
+    ("h1", -26.0, 42.0, 22.0, 1.3),
+    ("h2", -26.0, 56.0, 22.0, 1.3),
+    ("h3", -26.0, 74.0, 22.0, 1.3),
+    ("link", -58.0, 36.0, 1.6, 14.0),
     ("plaza", -38.0, 60.0, 4.5, 4.5),
 )
 FOUNTAIN = (-38.0, 60.0)
 # One eastbound row on the near road, clear of the bridge slab and the park paths.
 # One eastbound row on the near road, clear of the bridge and the park.
+# Eastbound lane of the avenue, clear of the bridge landing near x≈2.
+# yaw 0 points the Kenney nose along +X, the driving direction.
 FOREGROUND_CARS = (
-    (-54.0, 12.4),
-    (-40.0, 12.7),
-    (-26.0, 12.3),
-    (-12.0, 12.6),
-    (20.0, 12.5),
-    (34.0, 12.8),
+    (-62.0, AVE_Y - 3.4),
+    (-46.0, AVE_Y - 3.4),
+    (-30.0, AVE_Y - 3.4),
+    (24.0, AVE_Y - 3.4),
+    (40.0, AVE_Y - 3.4),
+    (56.0, AVE_Y - 3.4),
 )
-DECK_LANES = (-4.8, -1.6, 1.6, 4.8)
+DECK_LANES = (-4.2, -1.4, 1.4, 4.2)
 
 
 def deck_direction():

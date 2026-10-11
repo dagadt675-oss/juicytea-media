@@ -255,7 +255,8 @@ def weather_color(nt, base, weights):
 
     color = base
     color = _mix(nt, _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", moss, weights.get("moss", 0.0)), low.outputs["Result"]), color, lin(0.28, 0.40, 0.16))
-    color = _mix(nt, _math(nt, "MULTIPLY", rust, weights.get("rust", 0.0)), color, lin(0.38, 0.16, 0.08))
+    rust_mix = _math(nt, "MINIMUM", _math(nt, "MULTIPLY", rust, weights.get("rust", 0.0) * 1.75), 1.0)
+    color = _mix(nt, rust_mix, color, lin(0.30, 0.13, 0.06))
     color = _mix(nt, _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", mud, weights.get("mud", 0.0)), low.outputs["Result"]), color, lin(0.28, 0.20, 0.12))
     color = _mix(nt, _math(nt, "MULTIPLY", scorch, weights.get("scorch", 0.0)), color, lin(0.10, 0.07, 0.05))
     color = _mix(nt, _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", snow, weights.get("snow", 0.0)), up), color, lin(0.93, 0.95, 0.97))
@@ -402,9 +403,10 @@ def make_facade_material():
         inside = _math(nt, "MULTIPLY", inside, _math(nt, "LESS_THAN", wrapped, period - margin))
         return inside
 
-    x_pane = pane(axes.outputs["X"], 1.45, 0.34)
-    y_pane = pane(axes.outputs["Y"], 1.45, 0.34)
-    z_pane = pane(axes.outputs["Z"], 1.55, 0.38)
+    # Floors are about 3.5 m, columns about 3.2 m. Margins are the mullions.
+    x_pane = pane(axes.outputs["X"], 3.2, 0.42)
+    y_pane = pane(axes.outputs["Y"], 3.2, 0.42)
+    z_pane = pane(axes.outputs["Z"], 3.5, 0.72)
     window = _math(
         nt,
         "MAXIMUM",
@@ -414,7 +416,7 @@ def make_facade_material():
     wall_color, rough = weather_color(
         nt,
         info.outputs["Color"],
-        {"moss": 0.55, "rust": 0.2, "mud": 0.3, "scorch": 0.4, "snow": 0.8, "wet": 0.45},
+        {"moss": 0.85, "rust": 0.9, "mud": 0.45, "scorch": 0.4, "snow": 0.8, "wet": 0.45},
     )
     glass = _const_rgb(nt, lin(0.05, 0.07, 0.09))
     color = _mix(nt, window, wall_color, glass)
@@ -426,6 +428,15 @@ def make_facade_material():
     nt.links.new(local.outputs["Vector"], ivy_noise.inputs["Vector"])
     ivy = _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", veg, ivy_noise.outputs["Fac"]), _math(nt, "SUBTRACT", 1.0, window))
     color = _mix(nt, ivy, color, lin(0.16, 0.32, 0.14))
+    # Collapse knocks panes out. Those read as dark holes, not a fresh grid.
+    collapse = channel_value(nt, ("collapse",), "collapse")
+    broken = _math(
+        nt,
+        "MULTIPLY",
+        window,
+        _math(nt, "MULTIPLY", collapse, _math(nt, "LESS_THAN", ivy_noise.outputs["Fac"], 0.48)),
+    )
+    color = _mix(nt, broken, color, lin(0.012, 0.012, 0.015))
     cam = nt.nodes.new("ShaderNodeCameraData")
     # Far towers go lighter and bluer. The close window-grid test stays under the start distance.
     # Fog only the far layer. Near towers keep their color; the window test is closer than this.
