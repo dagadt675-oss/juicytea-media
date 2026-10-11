@@ -1,8 +1,10 @@
 # Asset hub
 
-Standing owner rule. Wherever possible, use existing ready-made assets from this hub (`ASSET_HUB.json`) and from `asset_library/` for everything: icons, 3D pins, vehicles, characters, face parts, animations and Lottie FX, textures, and fonts.
+Standing owner rule, in this order, for icons, 3D pins, vehicles, characters, face parts, animations and Lottie FX, textures, and fonts:
 
-Build from scratch only when nothing suitable exists. When you do, say which hub entries you checked and why they did not fit.
+1. Use a ready-made asset from this hub (`ASSET_HUB.json`) or from `asset_library/`.
+2. If it is not there, search the web for a free ready-made asset that allows commercial use with no attribution (CC0, public domain, OFL for fonts). Download it into `asset_library/` and log the license and the source URL in `asset_library/LICENSES.md`.
+3. Build it yourself only when neither exists. Then say which hub entries and which web sources you checked, and why they did not fit.
 
 Re-fetch the catalog at the start of each episode. It is updated in place.
 

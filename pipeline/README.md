@@ -6,13 +6,15 @@ The default picture is the gold style kit in `pipeline/style/`: a full-bleed fla
 
 The seven old topics (Hans Island, London, France, Diomede, Ceuta/Melilla, Congo) are not specs here. `specs/alaska.yaml` is only a renderer test. Later videos should be more dramatic: danger, scandal, stories that are hard to believe. Copy the Alaska file and change the lines.
 
-### Standing owner rule: use the asset hub
+### Standing owner rule: assets, in this order
 
-Wherever possible, use existing ready-made assets from the asset hub (`ASSET_HUB.json`) and `asset_library/` for everything: icons, 3D pins, vehicles, characters, face parts, animations and Lottie FX, textures, and fonts. Re-fetch the hub at the start of each episode. The fetch commands are in `ASSET_HUB.md`.
+For icons, 3D pins, vehicles, characters, face parts, animations and Lottie FX, textures, and fonts:
 
-Build from scratch only when nothing suitable exists. When you do, say which hub entries you checked and why they did not fit.
+1. Use a ready-made asset from the asset hub (`ASSET_HUB.json`) or from `asset_library/`. Re-fetch the hub at the start of each episode. The fetch commands are in `ASSET_HUB.md`.
+2. If it is not there, search the web for a free ready-made asset that allows commercial use with no attribution. Allowed licenses: CC0, public domain, and OFL for fonts. Download it into `asset_library/` and log the license and the source URL in `asset_library/LICENSES.md`.
+3. Build it yourself only when neither exists. Then say which hub entries and which web sources you checked, and why they did not fit.
 
-Private packs (Sketchfab Free Standard and BlendKit) are for rendered video only. Never commit them.
+Private hub packs (Sketchfab Free Standard and BlendKit) are for rendered video only. Never commit them, and never commit a downloaded pack.
 
 ---
 
@@ -108,13 +110,15 @@ Az alap kép lapos politikai térkép: sötétkék háttér, egy ország neonpir
 
 A régi hét téma (Hans-sziget, London, Franciaország, Diomede, Ceuta, Kongó) nincs benne. Az `specs/alaska.yaml` csak teszt. A következő témák legyenek erősebbek: veszély, botrány, hihetetlen történet. Másoláshoz az Alaska fájl a minta.
 
-### Állandó szabály: kész assetek
+### Állandó szabály: assetek, ebben a sorrendben
 
-Ahol lehet, kész assetet használj az asset hubból (`ASSET_HUB.json`) és az `asset_library/` mappából: ikon, 3D tű, jármű, karakter, arcrész, animáció és Lottie, textúra, betű. Epizódonként újra le kell tölteni a hubot. A parancsok az `ASSET_HUB.md` fájlban vannak.
+Ikon, 3D tű, jármű, karakter, arcrész, animáció és Lottie, textúra, betű:
 
-Nulláról csak akkor építs, ha nincs megfelelő. Akkor írd le, melyik hub-bejegyzéseket nézted meg, és miért nem illettek.
+1. Kész asset az asset hubból (`ASSET_HUB.json`) vagy az `asset_library/` mappából. Epizódonként újra le kell tölteni a hubot. A parancsok az `ASSET_HUB.md` fájlban vannak.
+2. Ha nincs ott, keress a weben ingyenes, kereskedelmi használatra alkalmas, név feltüntetése nélküli kész assetet (CC0, public domain, betűknél OFL). Töltsd le az `asset_library/` mappába, és írd be a licencet és a forrás URL-t az `asset_library/LICENSES.md` fájlba.
+3. Csak akkor építsd magad, ha egyik sincs meg. Akkor írd le, melyik hub-bejegyzéseket és webes forrásokat nézted meg, és miért nem illettek.
 
-A privát csomagok (Sketchfab Free Standard, BlendKit) csak a kész videóba kerülhetnek. Soha ne commitold őket.
+A privát hub-csomagok (Sketchfab Free Standard, BlendKit) csak a kész videóba kerülhetnek. Soha ne commitold őket, és letöltött csomagot se.
 
 ### Mit ír a YAML
 
