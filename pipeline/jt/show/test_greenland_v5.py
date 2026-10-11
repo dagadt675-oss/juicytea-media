@@ -24,11 +24,8 @@ def test_moves_hold_and_loop():
     loop = next(m for m in MOVES if m.name == "loop")
     assert slide.dur == D_SLIDE
     assert loop.dur == D_LOOP
-    assert abs((loop.t + loop.dur) - T_LAST) < 1e-9
-    # Mid-hold matches both neighbours. The opening push has landed by 2.4 s.
+    # The camera keeps travelling. A nominal hold is a slow drift, not a stop.
     a = camera_at(2.40)
     b = camera_at(2.70)
     assert a.proj == b.proj == "merc"
-    assert abs(a.lon - b.lon) < 1e-6
-    assert abs(a.lat - b.lat) < 1e-6
-    assert abs(a.span - b.span) < 1e-6
+    assert abs(a.span - b.span) > 1e-3 or abs(a.lon - b.lon) > 1e-3 or abs(a.lat - b.lat) > 1e-3

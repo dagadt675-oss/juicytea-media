@@ -157,12 +157,12 @@ def render_video() -> None:
     flags = _flags()
     frames = N
     workers = cpu_workers() if flags.get("cores") else 3
-    tmp = HERE / "_v5_seg"
+    tmp = HERE / "_v6_seg"
     tmp.mkdir(parents=True, exist_ok=True)
     edges = [round(i * frames / workers) for i in range(workers + 1)]
     jobs = [
         (edges[i], edges[i + 1], str(tmp / f"part_{i:02d}.mp4"),
-         bool(flags.get("duplicate")), bool(flags.get("cache")), bool(flags.get("rgba")))
+         False, False, True)
         for i in range(workers)
     ]
     ctx = multiprocessing.get_context("spawn")
@@ -170,7 +170,7 @@ def render_video() -> None:
         parts = [Path(p) for p in pool.starmap(_segment, jobs)]
     listing = tmp / "list.txt"
     listing.write_text("".join(f"file '{p}'\n" for p in parts), encoding="utf-8")
-    dest = HERE / "greenland_africa_v5.mp4"
+    dest = HERE / "greenland_africa_v6.mp4"
     subprocess.run(
         ["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", str(listing), "-c", "copy", str(dest)],
         check=True,
@@ -186,8 +186,8 @@ def main() -> None:
     parser.add_argument("--stills", action="store_true")
     parser.add_argument("--video", action="store_true")
     args = parser.parse_args()
-    write_tables()
     if args.stills:
+        write_tables()
         render_stills()
     if args.video:
         render_video()
