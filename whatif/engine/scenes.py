@@ -1110,10 +1110,13 @@ def build_river_city(kit, mats, rng, pieces):
     for x in (-40, -24, -8, 16, 32):
         _person(kit, col_v, mats, x, walk_y, ROAD_Z + 0.06, rng, clip="Walk")
     if cc0_city.ready():
-        # Two quiet gags: a mannequin dancing on the far bank, and a deer grazing.
-        dancer = cc0_city.place_dancer(col_v, -48.0, 158.0, FAR_Z)
+        # Two quiet gags: someone flossing on the far bank, and a deer grazing.
+        dancer = cc0_city.place_dancer(col_v, -30.0, 156.0, FAR_Z)
         if dancer is not None:
             kit.add(dancer, "person", float=0.2, bob=0.0, sink=False)
+        phone = cc0_city.place_phone_walker(col_v, -34.0, walk_y, ROAD_Z + 0.06, yaw=0.2)
+        if phone is not None:
+            kit.add(phone, "person", float=0.2, bob=0.0, sink=False)
         deer = cc0_city.place_deer(col_v, -36.0, 70.0, PARK_Z)
         if deer is not None:
             kit.add(deer, "animal", sink=False)

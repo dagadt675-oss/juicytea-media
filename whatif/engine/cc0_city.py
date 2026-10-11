@@ -16,6 +16,8 @@ from mathutils import Vector
 from engine.meshkit import link_obj
 
 CACHE = Path(os.environ.get("CC0_CACHE", "/opt/cursor/asset-cache/cc0")) / "extracted"
+# Sketchfab Free Standard lives here. Rendered videos only. Never commit it.
+PRIVATE = Path(os.environ.get("PRIVATE_CACHE", "/opt/cursor/asset-cache/private"))
 
 _MESHES = {}
 _ACTORS = {}
@@ -244,6 +246,26 @@ def place_side_street(coll, x, y0, y1, z, width=9.0):
     return _tile(coll, mesh, (y0, y1), "y", x, z, scale, step, math.pi / 2.0)
 
 
+def _skinned_meshes(arm, objs):
+    found = []
+
+    def walk(obj):
+        if obj.type == "MESH":
+            found.append(obj)
+        for child in obj.children:
+            walk(child)
+
+    walk(arm)
+    for obj in objs:
+        if obj.type != "MESH" or obj in found:
+            continue
+        for mod in obj.modifiers:
+            if mod.type == "ARMATURE" and getattr(mod, "object", None) == arm:
+                found.append(obj)
+                break
+    return found
+
+
 def _hide(obj):
     obj.hide_render = True
     obj.hide_viewport = True
@@ -283,15 +305,30 @@ def _actor(path: Path):
     key = str(path)
     if key in _ACTORS:
         return _ACTORS[key]
+    before_actions = set(bpy.data.actions)
     new = _import_objects(path)
     arm = next((obj for obj in new if obj.type == "ARMATURE"), None)
     if arm is None:
         _ACTORS[key] = None
         return None
-    bounds = _bounds(new)
+    # Only pull in meshes that are actually skinned to this armature.
+    # Sketchfab files also ship a loose preview sphere that must stay out.
+    skinned = _skinned_meshes(arm, new)
+    for mesh in skinned:
+        if mesh.parent is None:
+            mesh.parent = arm
+    bounds = _bounds(skinned)
     height = 1.0 if bounds is None else max(0.2, bounds[5] - bounds[4])
-    actions = {action.name.split("|")[-1]: action for action in bpy.data.actions}
-    _hide(arm)
+    actions = {}
+    for action in bpy.data.actions:
+        if action in before_actions:
+            continue
+        actions[action.name] = action
+        actions[action.name.split("|")[-1]] = action
+        stem = action.name.rsplit(".", 1)[0] if action.name.rsplit(".", 1)[-1].isdigit() else action.name
+        actions.setdefault(stem, action)
+    for obj in new:
+        _hide(obj)
     _ACTORS[key] = {"arm": arm, "height": height, "actions": actions}
     return _ACTORS[key]
 
@@ -311,20 +348,23 @@ def _play(arm, action, offset):
 
 def place_actor(coll, path: Path, loc, yaw, target_height, clip, offset=0):
     proto = _actor(path)
-    if proto is None or clip not in proto["actions"]:
-        # Fall back to any idle-like clip.
-        if proto is None:
-            return None
-        clip = next((name for name in ("Idle", "Idle_Loop", "Idle_Neutral", "Eating") if name in proto["actions"]), None)
+    if proto is None or not proto["actions"]:
+        return None
+    if clip not in proto["actions"]:
+        clip = next((name for name in ("Idle", "Idle_Loop", "Idle_Neutral", "Eating", "Take 001") if name in proto["actions"]), None)
         if clip is None:
-            return None
+            clip = next(iter(proto["actions"]))
     root = _clone(proto["arm"], coll)
     # Scale an empty parent. Scaling the armature alone stretches the skin
     # into spikes because the mesh is bound to the bones.
+    # Keep the imported world matrix. Sketchfab clips store the centimeter
+    # scale on an ancestor empty; dropping it inflates the mesh ~100x.
     empty = bpy.data.objects.new("actor", None)
     coll.objects.link(empty)
+    bpy.context.view_layer.update()
+    world = root.matrix_world.copy()
     root.parent = empty
-    root.matrix_parent_inverse.identity()
+    root.matrix_world = world
     scale = float(target_height) / proto["height"]
     empty.scale = (scale, scale, scale)
     empty.location = loc
@@ -367,11 +407,31 @@ def place_person(coll, x, y, z, yaw, clip="Idle", offset=0):
     return place_actor(coll, path, (x, y, z), yaw, 1.75, clip, offset)
 
 
-def place_dancer(coll, x, y, z):
-    path = CACHE / "animations" / "quaternius_universal_animation_library" / "Universal Animation Library[Standard]" / "Unreal-Godot" / "UAL1_Standard.glb"
-    if not path.exists():
+def _private_glb(token: str):
+    if not PRIVATE.is_dir():
         return None
-    return place_actor(coll, path, (x, y, z), 0.4, 1.75, "Dance_Loop", offset=3)
+    hits = [path for path in PRIVATE.rglob("*.glb") if token.lower() in path.name.lower()]
+    return hits[0] if hits else None
+
+
+def place_dancer(coll, x, y, z):
+    """Far-bank gag. The floss clip replaces the mannequin when the private cache is present."""
+    path = _private_glb("Dance_Male_Flossing")
+    clip = "Take 001"
+    if path is None:
+        path = CACHE / "animations" / "quaternius_universal_animation_library" / "Universal Animation Library[Standard]" / "Unreal-Godot" / "UAL1_Standard.glb"
+        clip = "Dance_Loop"
+    if path is None or not path.exists():
+        return None
+    return place_actor(coll, path, (x, y, z), 0.6, 1.75, clip, offset=3)
+
+
+def place_phone_walker(coll, x, y, z, yaw=0.0):
+    """One promenade pedestrian looking at a phone. Vanishes with the crowd."""
+    path = _private_glb("Female_Phone-Walking")
+    if path is None:
+        return None
+    return place_actor(coll, path, (x, y, z), yaw, 1.75, "Take 001", offset=11)
 
 
 def place_deer(coll, x, y, z):

@@ -6,3 +6,6 @@ BlendKit royalty-free and Sketchfab Free Standard files go here, or in
 Do not commit the raw `.blend`, `.glb`, `.fbx`, or zip files. Do not publish
 them. `*.blend` is already ignored; everything else in this folder is ignored
 except this note.
+
+The Sketchfab Free Standard set is unpacked at `/opt/cursor/asset-cache/private`
+(also gitignored). The scene reads it from there for the rendered short only.
