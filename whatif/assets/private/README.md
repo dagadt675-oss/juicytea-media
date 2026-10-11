@@ -3,9 +3,11 @@
 BlendKit royalty-free and Sketchfab Free Standard files go here, or in
 `/opt/cursor/asset-cache/private`. They are for rendered videos only.
 
-One shared hub lists every pack (CC0 and private). Re-fetch it at the start
-of each episode, and check it before building a prop from scratch. The copy
-on disk is gitignored because the JSON includes private download commands.
+One shared hub lists every pack (CC0 and private). The standing rule is to
+use those ready-made models for everything, and to build geometry only when
+no hub entry fits (then name the entries that were checked). Re-fetch the hub
+at the start of each episode. The copy on disk is gitignored because the JSON
+includes private download commands. See `docs/whatif_engine.md`.
 
 ```bash
 curl -L 'https://drive.usercontent.google.com/download?id=1KamSsZFG8L8ZJviGNzjLQM-jNg8g9idV&export=download&confirm=t' -o ASSET_HUB.json

@@ -1,5 +1,19 @@
 # What-if engine
 
+## Standing owner rule: use the asset hub
+
+Wherever possible, use existing ready-made models from the asset hub for everything: animations, people, buildings, whole scenes and city blocks, vehicles, props, nature, and effects. Procedural or hand-built geometry is allowed only when no suitable hub asset exists. When that happens, say which hub entries were checked and why they did not fit.
+
+Prefer a complete pre-built scene (the Procedural City blocks, and a ruined-city pack when it is added for the late decay years) over assembling the same thing from primitives. Rigged and animated people come from the hub's people and animation packs.
+
+Re-fetch the hub at the start of each episode. It is updated.
+
+```bash
+curl -L 'https://drive.usercontent.google.com/download?id=1KamSsZFG8L8ZJviGNzjLQM-jNg8g9idV&export=download&confirm=t' -o ASSET_HUB.json
+```
+
+The human-readable twin is Drive id `1ICoBrOKT-tJa_PqtI--LoJ59TiGsOk2T` (`ASSET_HUB.md`). Keep the fetched files in the gitignored cache (`/opt/cursor/asset-cache/hub/`). Do not commit `ASSET_HUB.json`: it lists private download commands. Private Free Standard and BlendKit packs are for rendered video only. Never commit those raw files.
+
 A Blender episode is a YAML spec. The same city, coast, and farm scenes, and the same effect channels, render every short.
 
 ```bash
