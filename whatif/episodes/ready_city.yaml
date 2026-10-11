@@ -14,13 +14,14 @@ scene:
 mascot: false
 format: A
 camera:
-  # Outside the downloaded block, looking across the streets into the towers.
-  location: [-145.0, -150.0, 52.0]
-  target: [8.0, 10.0, 36.0]
-  lens: 28
+  # Same locked wide shot as the handmade episode. The downloaded blocks
+  # fill this frame; the camera is not pulled back to show the whole model.
+  location: [-85.0, -90.0, 80.0]
+  target: [12.0, 130.0, 4.0]
+  lens: 57.2
   sensor_fit: HORIZONTAL
   sensor_width: 36
-  clip_end: 8000
+  clip_end: 14000
 ui:
   counter_y: 0.46
   # Zenith style: the title, and one counter (population, then the year).

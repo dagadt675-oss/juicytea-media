@@ -42,6 +42,7 @@ def _args(argv):
     out["scale"] = 1.0
     out["format"] = "png"
     out["motion_blur"] = False
+    out["denoise"] = True
     i = 1
     while i < len(argv):
         key = argv[i]
@@ -62,6 +63,9 @@ def _args(argv):
             i += 2
         elif key == "--motion-blur":
             out["motion_blur"] = True
+            i += 1
+        elif key == "--no-denoise":
+            out["denoise"] = False
             i += 1
         else:
             raise SystemExit(f"unknown arg {key}")
@@ -145,23 +149,46 @@ def _frame_float(scene):
     return float(scene.frame_current) + float(getattr(scene, "frame_subframe", 0.0))
 
 
-def _render_settings(scene, resolved, samples, scale, image_format="png", motion_blur=False):
+def _render_settings(scene, resolved, samples, scale, image_format="png", motion_blur=False, denoise=True):
     scene.render.engine = "CYCLES"
     scene.cycles.device = "CPU"
     scene.cycles.samples = int(samples)
-    scene.cycles.use_denoising = True
+    scene.cycles.use_denoising = bool(denoise)
+    denoiser = "OPENIMAGEDENOISE"
     try:
-        scene.cycles.denoiser = "OPENIMAGEDENOISE"
+        prefs = bpy.context.preferences.addons["cycles"].preferences
+        prefs.get_devices()
+        if any(device.type == "OPTIX" and device.use for device in prefs.devices):
+            denoiser = "OPTIX"
+    except Exception as exc:
+        print("denoiser probe", exc)
+    try:
+        scene.cycles.denoiser = denoiser
     except Exception as exc:
         print("denoiser", exc)
+        try:
+            scene.cycles.denoiser = "OPENIMAGEDENOISE"
+        except Exception as fallback:
+            print("denoiser", fallback)
     scene.cycles.use_adaptive_sampling = True
-    scene.cycles.adaptive_threshold = 0.08
-    scene.cycles.adaptive_min_samples = max(1, min(4, int(samples)))
-    scene.cycles.max_bounces = 4
-    scene.cycles.diffuse_bounces = 2
-    scene.cycles.glossy_bounces = 1
-    scene.cycles.transmission_bounces = 2
-    scene.cycles.volume_bounces = 0
+    if int(samples) >= 64:
+        scene.cycles.adaptive_threshold = 0.01
+        scene.cycles.adaptive_min_samples = min(16, int(samples))
+        scene.cycles.max_bounces = 6
+        scene.cycles.diffuse_bounces = 4
+        scene.cycles.glossy_bounces = 4
+        scene.cycles.transmission_bounces = 4
+        scene.cycles.volume_bounces = 1
+        scene.cycles.volume_max_steps = 64
+        scene.cycles.volume_step_rate = 1.6
+    else:
+        scene.cycles.adaptive_threshold = 0.08
+        scene.cycles.adaptive_min_samples = max(1, min(4, int(samples)))
+        scene.cycles.max_bounces = 4
+        scene.cycles.diffuse_bounces = 2
+        scene.cycles.glossy_bounces = 1
+        scene.cycles.transmission_bounces = 2
+        scene.cycles.volume_bounces = 0
     scene.cycles.transparent_max_bounces = 4
     scene.cycles.sample_clamp_indirect = 3.0
     scene.cycles.caustics_reflective = False
@@ -330,7 +357,9 @@ def main():
     if skin is not None:
         attach_pov(scene, KIT, RESOLVED, skin)
     image_format = opts["format"]
-    _render_settings(scene, RESOLVED, opts["samples"], opts["scale"], image_format, opts["motion_blur"])
+    _render_settings(
+        scene, RESOLVED, opts["samples"], opts["scale"], image_format, opts["motion_blur"], opts["denoise"],
+    )
     bpy.app.handlers.frame_change_post.append(_on_frame)
     frames = _parse_frames(opts["frames"], RESOLVED["frame_count"])
     suffix = "exr" if image_format == "exr" else "png"

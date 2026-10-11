@@ -67,6 +67,20 @@ Clean unpack, Blender 4.2.3, `render.py`, frames 1 and 871: both PNGs are 1080×
 
 No 1800-frame encode was started. The speedup A/B stays paused.
 
+### 2026-10-11 — stills for approval, bundle held
+
+Kristóf reviewed `verify/0001.png` and `verify/0871.png` and rejected them. The downloaded block read as a diorama on an empty plane. The episode is back on the locked camera from `humans_disappeared.yaml` (`[-85, -90, 80]` to `[12, 130, 4]`, 57.2 mm). The river, bridge, park, and far-bank streets are the same shot. The buildings are hub blocks tiled past the frame edges. Year 100 keeps the front skyline and breaks it. Year 500 adds ruin shells and forest. Street fog is a 14 m mist (a 36 m box at density 0.02 hid the city).
+
+Stills, 1080×1920, 64 samples, adaptive threshold 0.01. Day 1 and the vanish used OIDN inside Cycles. Year 100 and 500 were denoised in a second pass because the in-render denoise ran out of memory. OptiX was not available on this machine.
+
+- `whatif/review/ready_city/day1.png` (frame 1)
+- `whatif/review/ready_city/vanish.png` (frame 90)
+- `whatif/review/ready_city/year100.png` (frame 871)
+- `whatif/review/ready_city/year500.png` (frame 1096)
+- Strip: `whatif/review/ready_city/four_stills.jpg`
+
+Do not upload or render the Colab zip from the previous commit. It is the rejected diorama. Rebuild that bundle only after these stills are approved.
+
 ---
 
 ## 2. Kristóf's rules (numbered)
@@ -463,6 +477,8 @@ Joined zip: 296657654 bytes, SHA-256 `8ef8dc15712f2cb2af15e8115fd42f271b62fb08ce
 `manifest.json`: blender 4.2.3, frames 1–1800, fps 30, 1080×1920, samples 32, `est_sec_per_frame_cpu` 63, `est_sec_per_frame_t4` 16 (guess: CPU mean / 4). Overlay notes: beauty only; title `What if every human vanished… right now?`; counter is population 8.2 billion then the year, composited later by `whatif/engine/overlay.py`. No narration, no music. SFX stays in `sfx.json`.
 
 Do not upload loose Free Standard GLBs. They are already packed inside the blend. Do not start the 1800-frame encode on this VM.
+
+That zip is the rejected diorama (one block on an empty plane). Do not render it on Colab. The replacement stills are in section 1. A new bundle waits until Kristóf approves them.
 
 ---
 
