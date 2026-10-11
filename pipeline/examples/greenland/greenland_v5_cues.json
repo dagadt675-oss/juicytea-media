@@ -1,0 +1,163 @@
+{
+  "id": "greenland_africa_v5",
+  "picture_duration": 52.433,
+  "fps": 60,
+  "frames": 3146,
+  "cues": [
+    {
+      "t": 1.098,
+      "kind": "whoosh",
+      "name": "push-greenland"
+    },
+    {
+      "t": 2.085,
+      "kind": "pop",
+      "name": "same-size"
+    },
+    {
+      "t": 3.738,
+      "kind": "whoosh",
+      "name": "globe"
+    },
+    {
+      "t": 4.639,
+      "kind": "whoosh",
+      "name": "excuse-push"
+    },
+    {
+      "t": 5.63,
+      "kind": "boing",
+      "name": "excuse-me"
+    },
+    {
+      "t": 6.897,
+      "kind": "whoosh",
+      "name": "back-to-map"
+    },
+    {
+      "t": 8.932,
+      "kind": "whoosh",
+      "name": "round"
+    },
+    {
+      "t": 10.412,
+      "kind": "whoosh",
+      "name": "stretches"
+    },
+    {
+      "t": 12.188,
+      "kind": "pop",
+      "name": "three-by-nine"
+    },
+    {
+      "t": 15.294,
+      "kind": "whoosh",
+      "name": "sixteen"
+    },
+    {
+      "t": 17.718,
+      "kind": "whoosh",
+      "name": "slide"
+    },
+    {
+      "t": 22.118,
+      "kind": "tick",
+      "name": "true-size"
+    },
+    {
+      "t": 25.498,
+      "kind": "boing",
+      "name": "wait-what"
+    },
+    {
+      "t": 27.479,
+      "kind": "thud",
+      "name": "drop"
+    },
+    {
+      "t": 28.977,
+      "kind": "whoosh",
+      "name": "africa"
+    },
+    {
+      "t": 29.84,
+      "kind": "pop",
+      "name": "fourteen"
+    },
+    {
+      "t": 31.9,
+      "kind": "pop",
+      "name": "algeria"
+    },
+    {
+      "t": 34.701,
+      "kind": "pop",
+      "name": "dr-congo"
+    },
+    {
+      "t": 35.53,
+      "kind": "boing",
+      "name": "hi-tiny"
+    },
+    {
+      "t": 38.256,
+      "kind": "whoosh",
+      "name": "usa"
+    },
+    {
+      "t": 39.057,
+      "kind": "pop",
+      "name": "china"
+    },
+    {
+      "t": 39.697,
+      "kind": "pop",
+      "name": "india"
+    },
+    {
+      "t": 40.917,
+      "kind": "pop",
+      "name": "europe"
+    },
+    {
+      "t": 41.945,
+      "kind": "pop",
+      "name": "all-four-fit"
+    },
+    {
+      "t": 43.778,
+      "kind": "pop",
+      "name": "still-bigger"
+    },
+    {
+      "t": 45.098,
+      "kind": "pop",
+      "name": "room-to-spare"
+    },
+    {
+      "t": 46.639,
+      "kind": "whoosh",
+      "name": "return"
+    },
+    {
+      "t": 48.645,
+      "kind": "whoosh",
+      "name": "remember"
+    },
+    {
+      "t": 50.42,
+      "kind": "whoosh",
+      "name": "inflate"
+    },
+    {
+      "t": 51.84,
+      "kind": "pop",
+      "name": "lying"
+    },
+    {
+      "t": 51.917,
+      "kind": "whoosh",
+      "name": "loop"
+    }
+  ]
+}
