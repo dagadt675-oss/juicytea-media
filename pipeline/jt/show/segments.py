@@ -1,8 +1,7 @@
 """Splice a few rendered stretches into an existing silent master.
 
 Unchanged frames are decoded from the master. Changed frames are rendered
-here, including the 60 fps sample the drag motion-blur needs. The result
-is one H.264, same length as the master.
+sharp, with no motion blur. The result is one H.264, same length as the master.
 """
 
 from __future__ import annotations
@@ -12,25 +11,18 @@ from pathlib import Path
 
 import numpy as np
 
-from jt.show.greenland import CLOCK, FPS
+from jt.show.greenland import FPS
 
 W, H = 1080, 1920
 
 
-def _blur_window(t: float) -> bool:
-    return CLOCK.drag - 0.02 <= t <= CLOCK.drop + 0.5
-
-
 def render_range(show, i0: int, i1: int) -> np.ndarray:
-    """Frames [i0, i1). Motion blur matches the full-show encoder."""
+    """Frames [i0, i1). Sharp: no frame blend and no motion blur."""
     n = i1 - i0
     out = np.empty((n, H, W, 3), np.uint8)
     for k, i in enumerate(range(i0, i1)):
         t = i / FPS
         img, _hits = show.render(t)
-        if _blur_window(t):
-            earlier, _ = show.render(max(0.0, t - (1.0 / 60.0)))
-            img = ((img.astype(np.uint16) + earlier.astype(np.uint16)) // 2).astype(np.uint8)
         out[k] = img
         if k % 15 == 0:
             print(f"segment frame {i}", flush=True)
