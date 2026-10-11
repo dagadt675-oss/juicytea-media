@@ -9,6 +9,9 @@ barrel: true
 grain: true
 # 1/d^2 spill around extruded countries. The impact beat pulses it. No camera shake.
 spill: true
+# Radial focus opens while travelling. Background blur follows speed. Captions stay sharp.
+focus: true
+dof: true
 camera:
   - {t: 0.0, proj: ortho, lon: 18, lat: 63, span: 100, ease: out, exp: true}
   - {t: 1.6, proj: ortho, lon: 10, lat: 58, span: 62, ease: out, exp: true}
@@ -30,14 +33,16 @@ beats:
   - {t: 1.70, type: extrude, name: sweden, iso: SWE, color: [0, 82, 147]}
   - {t: 3.30, type: shadow, name: sun-shadow, iso: SWE}
   - {t: 4.40, type: multiply, name: paper, tint: [214, 186, 140], amount: 0.28}
-  - {t: 5.10, type: laser, name: laser-border, dur: 2.4}
+  - {t: 5.10, type: laser, name: laser-border, dur: 2.4, ink: true, origins: 4}
   - {t: 6.30, type: extrude, name: finland, iso: FIN, color: [186, 220, 236]}
   - {t: 7.20, type: badge, name: badge-market, text: "MÄRKET", x: 540, y: 420}
   - {t: 8.50, type: overshoot, name: overshoot-mark, text: "!", x: 540, y: 620}
   - {t: 8.70, type: badge, name: badge-finland, text: "FINLAND", x: 540, y: 420}
+  # Three frames. Map only, so the badge does not tear.
+  - {t: 9.10, type: glitch, name: glitch-hit, frames: 3}
   - {t: 10.40, type: stress, name: stress-huge, word: HUGE, dur: 0.7}
   # Light pulse only. The camera does not shake.
   - {t: 12.40, type: impact, name: impact, dur: 0.25, amp: 0}
-  - {t: 14.20, type: laser, name: laser-second, dur: 1.6}
+  - {t: 14.20, type: laser, name: laser-second, dur: 1.6, ink: true, origins: 3}
   - {t: 15.80, type: clouds, name: cloud-return}
   - {t: 16.90, type: overshoot, name: overshoot-return, text: "!", x: 780, y: 500}

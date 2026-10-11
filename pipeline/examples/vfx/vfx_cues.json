@@ -51,6 +51,11 @@
       "name": "badge-finland"
     },
     {
+      "t": 9.1,
+      "kind": "tick",
+      "name": "glitch-hit"
+    },
+    {
       "t": 10.4,
       "kind": "tick",
       "name": "stress-huge"

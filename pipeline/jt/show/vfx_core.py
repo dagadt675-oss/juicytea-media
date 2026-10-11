@@ -345,6 +345,230 @@ def stress_glow(t: float, marks: list[tuple[float, float]]) -> float:
     return hot
 
 
+def camera_micro_offset(t: float) -> tuple[float, float]:
+    """Constant sub-pixel sway. Banned. A hold stays still."""
+    return 0.0, 0.0
+
+
+def travel_blur_sigma(speed: float, zoom: float = 1.0, max_sigma: float = 2.0) -> float:
+    """Background blur from camera speed. Zero at rest, softer when zoomed in.
+
+    speed is a per-second mix of zoom rate and pan. max_sigma stays small so
+    a phone frame does not turn to mush.
+    """
+    if speed <= 0.02:
+        return 0.0
+    amount = _clamp(float(speed) / 0.85)
+    zoom_cut = 1.0 / math.sqrt(max(1.0, float(zoom)))
+    return max_sigma * amount * zoom_cut
+
+
+def adaptive_blur(img: np.ndarray, sigma: float, protect: np.ndarray | None = None) -> np.ndarray:
+    """Blur the map. Pixels marked in `protect` (the focus country) stay sharp."""
+    if sigma < 0.35:
+        return img
+    from scipy.ndimage import gaussian_filter
+    small = img[::2, ::2].astype(np.float32)
+    blurred = gaussian_filter(small, sigma=(max(0.4, sigma * 0.5), max(0.4, sigma * 0.5), 0))
+    up = np.repeat(np.repeat(blurred, 2, axis=0), 2, axis=1)
+    up = up[:img.shape[0], :img.shape[1]]
+    out = np.clip(up, 0, 255).astype(np.uint8)
+    if protect is not None and protect.any():
+        mask = protect[:out.shape[0], :out.shape[1]]
+        out[mask] = img[:out.shape[0], :out.shape[1]][mask]
+    return out
+
+
+def apply_focus_mask(img: np.ndarray, cx: float, cy: float, travel: float, arrive: float) -> np.ndarray:
+    """Radial darkening that opens while the camera travels, then a small centre lift on arrival."""
+    h, w = img.shape[:2]
+    ys = np.linspace(0.0, h - 1, h, dtype=np.float32)[:, None]
+    xs = np.linspace(0.0, w - 1, w, dtype=np.float32)[None, :]
+    radius = np.sqrt((xs - cx) ** 2 + (ys - cy) ** 2)
+    hole = 160.0 + 460.0 * _clamp(travel)
+    edge = np.clip((radius - hole) / 320.0, 0.0, 1.0)
+    dark = 1.0 - 0.22 * edge * (0.25 + 0.75 * _clamp(travel))
+    out = img.astype(np.float32) * dark[..., None]
+    lift = np.clip(1.0 - radius / 240.0, 0.0, 1.0) ** 2
+    out += float(arrive) * lift[..., None] * 16.0
+    return np.clip(out, 0, 255).astype(np.uint8)
+
+
+def glow_hillshade(img: np.ndarray, glow: float) -> np.ndarray:
+    """Directional relief from the plate, visible only while something is glowing."""
+    if glow < 0.12:
+        return img
+    luma = 0.2126 * img[:, :, 0] + 0.7152 * img[:, :, 1] + 0.0722 * img[:, :, 2]
+    small = luma[::4, ::4].astype(np.float32)
+    from scipy.ndimage import gaussian_filter
+    relief = gaussian_filter(small, 1.1)
+    gy, gx = np.gradient(relief)
+    shade = gx * 0.72 + gy * 0.48
+    scale = float(np.percentile(np.abs(shade), 96)) + 1e-3
+    shade = np.clip(shade / scale, -1.0, 1.0)
+    up = np.repeat(np.repeat(shade, 4, axis=0), 4, axis=1)
+    up = up[:img.shape[0], :img.shape[1]]
+    factor = 1.0 + up * (0.14 * float(glow))
+    return np.clip(img.astype(np.float32) * factor[..., None], 0, 255).astype(np.uint8)
+
+
+def anamorphic_alpha(glow: float) -> float:
+    """About 5% at full glow. Nothing until the glow is actually strong."""
+    if glow < 0.55:
+        return 0.0
+    return 0.05 * min(1.0, (float(glow) - 0.40) / 0.60)
+
+
+def draw_anamorphic(canvas, cx: float, cy: float, glow: float, drift: float = 0.0, width: int = 1080) -> None:
+    alpha = anamorphic_alpha(glow)
+    if alpha <= 0.0:
+        return
+    paint = skia.Paint(AntiAlias=True)
+    paint.setColor(skia.ColorSetARGB(int(255 * alpha), 90, 170, 255))
+    paint.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 7))
+    y = cy - drift
+    canvas.drawRect(skia.Rect.MakeXYWH(0, y - 5, width, 10), paint)
+
+
+def glitch_active(t: float, t0: float, fps: float = 30.0, frames: int = 3) -> bool:
+    """True for 2–3 frames after a dramatic beat. Not a hold and not a sway."""
+    frames = 2 if frames < 2 else 3 if frames > 3 else int(frames)
+    age = (float(t) - float(t0)) * float(fps)
+    return 0.0 <= age < frames
+
+
+def apply_glitch(img: np.ndarray, salt: int = 0) -> np.ndarray:
+    """RGB shift on the top band, plus a few scanlines. The rest of the frame stays."""
+    out = img.copy()
+    band = max(8, int(out.shape[0] * 0.16))
+    shift = 5 + (salt % 3)
+    out[:band, :, 0] = np.roll(out[:band, :, 0], shift, axis=1)
+    out[:band, :, 2] = np.roll(out[:band, :, 2], -shift, axis=1)
+    faded = (out[:band:3].astype(np.float32) * 0.88).astype(np.uint8)
+    out[:band:3] = faded
+    return out
+
+
+def dust_opacity(glow: float) -> float:
+    """Invisible in the dark. A few percent on a big flash."""
+    if glow < 0.35:
+        return 0.0
+    return min(0.04, (float(glow) - 0.35) * 0.05)
+
+
+_DUST = None
+
+
+def _dust_field(h: int, w: int) -> np.ndarray:
+    global _DUST
+    if _DUST is not None and _DUST.shape == (h, w):
+        return _DUST
+    rng = np.random.default_rng(1998)
+    field = np.zeros((h // 4, w // 4), np.float32)
+    ys = rng.integers(0, field.shape[0], 18)
+    xs = rng.integers(0, field.shape[1], 18)
+    field[ys, xs] = rng.uniform(0.4, 1.0, len(xs))
+    from scipy.ndimage import gaussian_filter
+    field = gaussian_filter(field, 1.4)
+    field /= max(1e-6, float(field.max()))
+    _DUST = np.repeat(np.repeat(field, 4, axis=0), 4, axis=1)[:h, :w]
+    return _DUST
+
+
+def apply_lens_dust(img: np.ndarray, glow: float) -> np.ndarray:
+    opacity = dust_opacity(glow)
+    if opacity <= 0.0:
+        return img
+    dust = _dust_field(img.shape[0], img.shape[1]).astype(np.float32)
+    out = img.astype(np.float32) + dust[..., None] * (255.0 * opacity)
+    return np.clip(out, 0, 255).astype(np.uint8)
+
+
+def ink_color(color: tuple[int, int, int], paper: tuple[int, int, int] = (214, 186, 140), mix: float = 0.22) -> tuple[int, int, int]:
+    """Pull the ink a little toward the paper so it looks soaked, not neon-pure."""
+    mix = _clamp(mix)
+    return tuple(int(round(color[i] * (1.0 - mix) + paper[i] * mix)) for i in range(3))
+
+
+def ink_widths(count: int, base: float = 5.0, salt: int = 1) -> np.ndarray:
+    """Noise-modulated stroke widths. Deterministic for a given salt."""
+    if count <= 0:
+        return np.zeros(0, np.float32)
+    noise = np.random.default_rng(20261011 + int(salt)).random(count)
+    return (base * (0.55 + 0.9 * noise)).astype(np.float32)
+
+
+def _cumlen(pts: list[tuple[float, float]]) -> list[float]:
+    cum = [0.0]
+    for a, b in zip(pts, pts[1:]):
+        cum.append(cum[-1] + math.hypot(b[0] - a[0], b[1] - a[1]))
+    return cum
+
+
+def _slice_by_length(pts, cum, start: float, end: float) -> list[tuple[float, float]]:
+    if end <= start or len(pts) < 2:
+        return []
+    out = []
+    for i in range(len(pts) - 1):
+        a0, a1 = cum[i], cum[i + 1]
+        if a1 <= start or a0 >= end:
+            continue
+        span = max(1e-6, a1 - a0)
+        u0 = max(0.0, (start - a0) / span)
+        u1 = min(1.0, (end - a0) / span)
+        p0 = (pts[i][0] + (pts[i + 1][0] - pts[i][0]) * u0, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * u0)
+        p1 = (pts[i][0] + (pts[i + 1][0] - pts[i][0]) * u1, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * u1)
+        if not out:
+            out.append(p0)
+        out.append(p1)
+    return out
+
+
+def border_strands(pts: list[tuple[float, float]], origins: int = 4, progress: float = 1.0) -> list[list[tuple[float, float]]]:
+    """Grow a border from several seeds at once until the strands meet."""
+    if len(pts) < 2 or progress <= 0.0:
+        return []
+    origins = max(2, min(int(origins), len(pts)))
+    seeds = sorted({int(round(i * (len(pts) - 1) / (origins - 1))) for i in range(origins)})
+    if len(seeds) < 2:
+        return [list(pts)] if progress >= 1 else []
+    cum = _cumlen(pts)
+    strands = []
+    speeds = [0.75 + 0.45 * ((i * 3) % 5) / 5.0 for i in range(len(seeds))]
+    for i in range(len(seeds) - 1):
+        a, b = seeds[i], seeds[i + 1]
+        span = cum[b] - cum[a]
+        if span <= 1e-6:
+            continue
+        grow_a = speeds[i] * progress * span * 1.2
+        grow_b = speeds[i + 1] * progress * span * 1.2
+        if grow_a + grow_b >= span:
+            strands.append(pts[a:b + 1])
+            continue
+        left = _slice_by_length(pts, cum, cum[a], cum[a] + grow_a)
+        right = _slice_by_length(pts, cum, cum[b] - grow_b, cum[b])
+        if len(left) >= 2:
+            strands.append(left)
+        if len(right) >= 2:
+            strands.append(right)
+    return strands
+
+
+def draw_ink_bleed(canvas, strands: list[list[tuple[float, float]]], color: tuple[int, int, int], salt: int = 1) -> None:
+    """Variable-width ink, plus a wider faint pass that soaks into the paper."""
+    ink = ink_color(color)
+    for index, strand in enumerate(strands):
+        if len(strand) < 2:
+            continue
+        widths = ink_widths(len(strand) - 1, base=4.5, salt=salt + index * 17)
+        soak = round_pen(9.0, ink, 36)
+        core_color = ink
+        for i, (a, b) in enumerate(zip(strand, strand[1:])):
+            canvas.drawLine(a[0], a[1], b[0], b[1], soak)
+            pen = round_pen(float(widths[i]), core_color, 230)
+            canvas.drawLine(a[0], a[1], b[0], b[1], pen)
+
+
 def grade(img: np.ndarray, t: float) -> np.ndarray:
     """Subtle vignette, a touch more contrast, edge-only chroma, 1-LSB dither.
 
@@ -365,6 +589,10 @@ def grade(img: np.ndarray, t: float) -> np.ndarray:
     red = out[:, :, 0]
     shifted = np.roll(red, 1, axis=1)
     out[:, :, 0] = red * (1.0 - edge * 0.45) + shifted * (edge * 0.45)
+    # Saturation falls off with the vignette. The centre stays vivid.
+    luma = 0.2126 * out[:, :, 0] + 0.7152 * out[:, :, 1] + 0.0722 * out[:, :, 2]
+    fade = (np.clip((r - 0.62) / 0.55, 0.0, 1.0) ** 1.3) * 0.34
+    out = out * (1.0 - fade[..., None]) + luma[..., None] * fade[..., None]
     rng = np.random.default_rng(int(t * 1000.0) & 0xFFFFFFFF)
     noise = rng.integers(-1, 2, size=out.shape, dtype=np.int16)
     return np.clip(out + noise, 0, 255).astype(np.uint8)

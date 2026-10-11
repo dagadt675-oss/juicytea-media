@@ -15,6 +15,17 @@ from jt.show.vfx_core import (  # noqa: E402
     box_luminance,
     cloud_alpha,
     _spring,
+    adaptive_blur,
+    anamorphic_alpha,
+    apply_focus_mask,
+    apply_glitch,
+    border_strands,
+    camera_micro_offset,
+    dust_opacity,
+    glitch_active,
+    ink_color,
+    ink_widths,
+    travel_blur_sigma,
     apply_light_spill,
     ease_in_out_cubic,
     ease_in_out_quintic,
@@ -88,6 +99,34 @@ def main() -> None:
     dist[8:16, 8:16] = 0
     lit = apply_light_spill(black[:24, :24], dist, (0, 180, 255), radius=8, gain=0.8)
     assert lit[12, 12, 2] > lit[0, 0, 2]
+    # Part 6 and 7. No constant sway. Effects stay small.
+    assert camera_micro_offset(1.5) == (0.0, 0.0)
+    assert travel_blur_sigma(0.0) == 0.0
+    assert travel_blur_sigma(2.0, zoom=1.0) > travel_blur_sigma(2.0, zoom=6.0) > 0.0
+    assert travel_blur_sigma(2.0) <= 2.0
+    assert anamorphic_alpha(0.2) == 0.0
+    assert abs(anamorphic_alpha(1.0) - 0.05) < 1e-6
+    assert dust_opacity(0.0) == 0.0 and dust_opacity(1.0) <= 0.04
+    assert glitch_active(1.0, 1.0, 30, 3) and not glitch_active(1.2, 1.0, 30, 3)
+    torn = apply_glitch(np.full((40, 40, 3), 80, np.uint8))
+    assert not np.array_equal(torn[:6], np.full((6, 40, 3), 80, np.uint8))
+    line = [(float(i * 10), 0.0) for i in range(13)]
+    early = border_strands(line, origins=4, progress=0.15)
+    done = border_strands(line, origins=4, progress=1.0)
+    assert len(early) >= 2 and len(done) >= 1
+    widths = ink_widths(8, base=5.0, salt=3)
+    assert widths.std() > 0.2
+    soaked = ink_color((0, 0, 255))
+    assert soaked[2] < 255 and soaked[0] > 0
+    gray = np.full((360, 360, 3), 140, np.uint8)
+    focused = apply_focus_mask(gray, 180, 180, travel=0.0, arrive=1.0)
+    assert focused[180, 180, 0] > gray[180, 180, 0]
+    assert focused[0, 0, 0] < gray[0, 0, 0]
+    sharp = np.arange(16 * 16 * 3, dtype=np.uint8).reshape(16, 16, 3)
+    mask = np.zeros((16, 16), np.bool_)
+    mask[4:8, 4:8] = True
+    blurred = adaptive_blur(sharp, 1.6, mask)
+    assert np.array_equal(blurred[4:8, 4:8], sharp[4:8, 4:8])
     print("vfx_core tests ok")
 
 

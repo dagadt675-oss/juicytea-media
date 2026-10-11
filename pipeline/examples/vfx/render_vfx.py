@@ -29,17 +29,24 @@ from jt.show.cues import lint_gaps, pack  # noqa: E402
 from jt.show.polys import fill_iso  # noqa: E402
 from jt.show.vfx_core import (  # noqa: E402
     BADGE_TEXT_S,
-    accumulate,
+    adaptive_blur,
+    apply_focus_mask,
+    apply_glitch,
+    apply_lens_dust,
     apply_light_spill,
     badge_state,
     barrel_distort,
+    border_strands,
     box_luminance,
     cloud_alpha,
+    draw_anamorphic,
     draw_atmosphere,
     draw_badge,
     draw_clouds,
-    draw_neon_path,
+    draw_ink_bleed,
     exp_zoom,
+    glitch_active,
+    glow_hillshade,
     grade,
     label_style,
     multiply_rgb,
@@ -50,7 +57,7 @@ from jt.show.vfx_core import (  # noqa: E402
     spring_approach,
     stress_glow,
     stroke_for_zoom,
-    trim_polyline,
+    travel_blur_sigma,
     ease_in_out_cubic,
     ease_in_out_quintic,
 )
@@ -126,10 +133,30 @@ class Proof:
         return abs(math.log(a.span) - math.log(b.span)) > 0.035
 
     def render(self, t: float) -> np.ndarray:
-        # Sub-frame accumulation only while the camera is actually moving fast.
-        if self._moving(t):
-            return accumulate([self._draw(t + dt) for dt in (-1.0 / 90.0, 0.0, 1.0 / 90.0)])
+        # Travel blur is applied to the map inside _draw. The composited frame
+        # is not averaged, so captions and the focus country stay sharp.
         return self._draw(t)
+
+    def _speed(self, t: float) -> float:
+        a = self.cam(max(0.0, t - (1.0 / self.fps)))
+        b = self.cam(t)
+        dspan = abs(math.log(max(b.span, 1e-3)) - math.log(max(a.span, 1e-3))) * self.fps
+        dpos = math.hypot(b.lon - a.lon, b.lat - a.lat) * self.fps
+        return dspan * 3.0 + dpos * 0.12
+
+    def _glow_level(self, t: float) -> float:
+        level = 0.0
+        for beat in self.spec["beats"]:
+            if beat["type"] == "extrude" and t >= float(beat["t"]):
+                level = max(level, 0.42)
+            if beat["type"] == "stress":
+                level = max(level, stress_glow(t, [(float(beat["t"]), float(beat.get("dur", 0.6)))]))
+            if beat["type"] == "impact":
+                dur = float(beat.get("dur", 0.25))
+                age = t - float(beat["t"])
+                if dur > 0 and 0.0 <= age <= dur:
+                    level = max(level, math.sin(math.pi * age / dur))
+        return level
 
     def _glow_gain(self, t: float) -> float:
         gain = 0.55 if self.spec.get("spill", True) else 0.0
@@ -143,10 +170,11 @@ class Proof:
                 gain += 0.45 * math.sin(math.pi * age / dur)
         return gain
 
-    def _spill(self, img: np.ndarray, cam: Cam, t: float) -> np.ndarray:
+    def _spill(self, img: np.ndarray, cam: Cam, t: float) -> tuple[np.ndarray, np.ndarray]:
+        protect = np.zeros(img.shape[:2], np.bool_)
         gain = self._glow_gain(t)
         if gain <= 0.02:
-            return img
+            return img, protect
         from scipy.ndimage import distance_transform_edt, zoom
         for beat in self.spec["beats"]:
             if beat["type"] != "extrude" or t < float(beat["t"]):
@@ -161,10 +189,12 @@ class Proof:
             alpha = surf.makeImageSnapshot().toarray()[:, :, 3] > 24
             if int(alpha.sum()) < 8:
                 continue
+            mask = np.repeat(np.repeat(alpha, 2, axis=0), 2, axis=1)[:H, :W]
+            protect |= mask
             dist = distance_transform_edt(~alpha) * 2.0
             dist = zoom(dist, (H / sh, W / sw), order=1)[:H, :W]
             img = apply_light_spill(img, dist, color, radius=110.0, gain=gain)
-        return img
+        return img, protect
 
     def _draw(self, t: float) -> np.ndarray:
         t = min(self.duration, max(0.0, t))
@@ -176,7 +206,20 @@ class Proof:
                 paper = max(paper, float(beat.get("amount", 0.25)))
         if paper:
             img = multiply_rgb(img, (214, 186, 140), paper)
-        img = self._spill(img, cam, t)
+        glow = self._glow_level(t)
+        img = glow_hillshade(img, glow)
+        img, protect = self._spill(img, cam, t)
+        speed = self._speed(t)
+        zoom = self.open_span / max(1e-3, cam.span)
+        travel = _clamp(speed / 0.55)
+        arrive = 1.0 - travel
+        focus = project_one(15.0, 62.5, view_for(cam, W, H)) if cam.proj else None
+        fx, fy = (focus if focus is not None else (W * 0.5, H * 0.46))
+        if self.spec.get("focus", True):
+            img = apply_focus_mask(img, fx, fy, travel, arrive * (1.0 if glow > 0.2 else 0.35))
+        sigma = travel_blur_sigma(speed, zoom)
+        if self.spec.get("dof", True):
+            img = adaptive_blur(img, sigma, protect if protect.any() else None)
         rgba = np.dstack([img, np.full((H, W), 255, np.uint8)])
         surface = skia.Surface(W, H)
         canvas = surface.getCanvas()
@@ -190,10 +233,20 @@ class Proof:
             draw_clouds(canvas, t, zoom)
         self._country(canvas, cam, t, zoom)
         self._laser(canvas, cam, t, zoom)
+        if glow >= 0.55:
+            prev = self.cam(max(0.0, t - 0.05))
+            drift = (cam.lon - prev.lon) * -18.0
+            draw_anamorphic(canvas, fx, fy, glow, drift=drift, width=W)
         bgra = surface.makeImageSnapshot().toarray()
         map_rgb = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
         if self.spec.get("barrel", True):
             map_rgb = barrel_distort(map_rgb)
+        map_rgb = apply_lens_dust(map_rgb, glow)
+        for beat in self.spec["beats"]:
+            if beat["type"] != "glitch":
+                continue
+            if glitch_active(t, float(beat["t"]), self.fps, int(beat.get("frames", 3))):
+                map_rgb = apply_glitch(map_rgb, salt=int(beat["t"] * 10))
         plate = np.dstack([map_rgb, np.full((H, W), 255, np.uint8)])
         surface = skia.Surface(W, H)
         canvas = surface.getCanvas()
@@ -243,9 +296,16 @@ class Proof:
                 p = project_one(lon, lat, view)
                 if p is not None:
                     screen.append(p)
-            shown = trim_polyline(screen, u)
-            core = stroke_for_zoom(2.4 + 1.6 * hot, zoom)
-            draw_neon_path(canvas, shown, (80, 220, 255) if hot < 0.4 else (255, 220, 80), core=core, dash=28)
+            origins = int(beat.get("origins", 4))
+            strands = border_strands(screen, origins=origins, progress=u)
+            color = (80, 220, 255) if hot < 0.4 else (255, 220, 80)
+            if beat.get("ink", True):
+                draw_ink_bleed(canvas, strands, color, salt=int(beat["t"] * 10))
+            else:
+                from jt.show.vfx_core import draw_neon_path, trim_polyline
+                shown = trim_polyline(screen, u)
+                core = stroke_for_zoom(2.4 + 1.6 * hot, zoom)
+                draw_neon_path(canvas, shown, color, core=core, dash=28)
 
     def _badges(self, canvas, t: float, background: np.ndarray) -> None:
         pending = []
