@@ -608,6 +608,7 @@ class Episode:
         self._merc = OPEN
         self._ortho = Cam("ortho", OPEN.lon, OPEN.lat, OPEN.span)
         self._pw = 0.0
+        self._sil_path = None
         self._shaders = {}
 
     def _graded(self, cam) -> np.ndarray:
@@ -621,6 +622,73 @@ class Episode:
         regional = paint_named("regional", self.plates, cam, W, H)
         pull = 1.0 - abs(2.0 * mix - 1.0)
         return crossfade(_pull_color(regional, globe, 0.9 * pull), _pull_color(globe, regional, 0.9 * pull), mix)
+
+    def _silhouette(self, s: float) -> tuple[skia.Path, float]:
+        """Convex outline. A tall frame eases into the globe disk, with no flat skirt."""
+        view = view_for(self._ortho, W, H)
+        # The outline runs ahead of the texture blend so the mesh edge is clipped
+        # away before it reads as a skirt or a bulge.
+        edge = 1.0 - (1.0 - s) ** 1.45
+        x0 = (view.cx - view.r) * edge
+        y0 = (view.cy - view.r) * edge
+        x1 = W + (view.cx + view.r - W) * edge
+        y1 = H + (view.cy + view.r - H) * edge
+        cx = (x0 + x1) * 0.5
+        cy = (y0 + y1) * 0.5
+        a = max(1.0, (x1 - x0) * 0.5)
+        b = max(1.0, (y1 - y0) * 0.5)
+        # 2 is the ellipse (a circle once a == b). Higher stays nearer the rectangle.
+        n = 2.0 + ((1.0 - edge) ** 2) * 16.0
+        exp = 2.0 / n
+        path = skia.Path()
+        steps = 180
+        for i in range(steps):
+            th = (2.0 * math.pi * i) / steps
+            ct = math.cos(th)
+            st = math.sin(th)
+            x = cx + a * math.copysign(abs(ct) ** exp, ct)
+            y = cy + b * math.copysign(abs(st) ** exp, st)
+            if i == 0:
+                path.moveTo(x, y)
+            else:
+                path.lineTo(x, y)
+        path.close()
+        return path, s
+
+    def _mask_to_silhouette(self, plate: np.ndarray, s: float) -> np.ndarray:
+        """Keep the map inside the convex outline. Outside is the star field."""
+        path, _roundness = self._silhouette(s)
+        surf = skia.Surface(W, H)
+        canvas = surf.getCanvas()
+        canvas.clear(skia.Color4f(0, 0, 0, 0))
+        paint = skia.Paint(AntiAlias=True)
+        paint.setColor(skia.ColorWHITE)
+        canvas.drawPath(path, paint)
+        alpha = surf.makeImageSnapshot().toarray()[:, :, 3].astype(np.float32) * (1.0 / 255.0)
+        stars = np.clip(_stars(H, W), 0, 255).astype(np.float32)
+        out = plate.astype(np.float32) * alpha[..., None] + stars * (1.0 - alpha[..., None])
+        return np.clip(out, 0, 255).astype(np.uint8)
+
+    def _stroke_silhouette(self, canvas, s: float) -> None:
+        """Atmosphere on the outline itself, and only once that outline is rounding into a circle."""
+        strength = _smooth(min(1.0, max(0.0, (s - 0.55) / 0.38))) * 0.85
+        if strength <= 0.03:
+            return
+        path, _roundness = self._silhouette(s)
+        view = view_for(self._ortho, W, H)
+        cx = (1.0 - s) * (W * 0.5) + s * view.cx
+        cy = (1.0 - s) * (H * 0.5) + s * view.cy
+        canvas.save()
+        canvas.translate(cx, cy)
+        canvas.scale(1.018, 1.018)
+        canvas.translate(-cx, -cy)
+        for _grow, alpha, width in ((0.015, 70, 10), (0.035, 40, 16), (0.05, 22, 22)):
+            pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=width)
+            pen.setStrokeCap(skia.Paint.kRound_Cap)
+            pen.setStrokeJoin(skia.Paint.kRound_Join)
+            pen.setColor(skia.ColorSetARGB(int(alpha * strength), 150, 210, 255))
+            canvas.drawPath(path, pen)
+        canvas.restore()
 
     def _morph_plate(self, s: float) -> np.ndarray:
         """One basemap. Both LoD textures are sampled on this same mesh."""
@@ -664,7 +732,7 @@ class Episode:
         # frame corners. A screen grid of the disk, run through the same blend,
         # fills those corners with the same geometry.
         rgb = self._raster_ortho_screen(s, plate, rgb)
-        if s > 0.82:
+        if s > 0.97:
             rgb = np.clip(rgb.astype(np.float32) * self._limb_shade(s)[..., None], 0, 255).astype(np.uint8)
         return rgb
 
@@ -781,17 +849,27 @@ class Episode:
         merc, ortho, w = camera_blend(t)
         self._merc, self._ortho, self._pw = merc, ortho, w
         cam = ortho if w >= 0.5 else merc
+        self._sil_path = None
+        morph_s = 0.0
         if w <= 0.004:
             plate = self._graded(merc)
         elif w >= 0.996:
             plate = self._graded(ortho)
         else:
-            plate = self._morph_plate(_smooth(w))
+            morph_s = _smooth(w)
+            plate = self._mask_to_silhouette(self._morph_plate(morph_s), morph_s)
+            self._sil_path, _roundness = self._silhouette(morph_s)
         rgba = np.dstack([plate, np.full((H, W), 255, np.uint8)])
         surface = skia.Surface(W, H)
         canvas = surface.getCanvas()
         canvas.drawImage(skia.Image.fromarray(rgba), 0, 0)
+        if self._sil_path is not None:
+            canvas.save()
+            canvas.clipPath(self._sil_path, doAntiAlias=True)
         self._world(canvas, cam, t)
+        if self._sil_path is not None:
+            canvas.restore()
+            self._stroke_silhouette(canvas, morph_s)
         self._lettering(canvas, cam, t)
         bgra = surface.makeImageSnapshot().toarray()
         rgb = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
@@ -1039,16 +1117,10 @@ class Episode:
         return float(x.min()), float(y.min()), float(x.max()), float(y.max())
 
     def _world(self, canvas, cam, t: float) -> None:
-        # The rim belongs to the globe silhouette. It fades before the flat map
-        # has left that disk, so it never reads as a second outline.
-        if self._pw >= 0.996:
+        # During the morph the ring is the silhouette stroke, drawn after the clip.
+        if self._sil_path is None and self._pw >= 0.996:
             view = view_for(self._ortho, W, H)
             draw_atmosphere(canvas, view.cx, view.cy, view.r, 0.85)
-        elif self._pw > 0.004:
-            rim = _smooth(min(1.0, max(0.0, (_smooth(self._pw) - 0.72) / 0.28)))
-            if rim > 0.04:
-                view = view_for(self._ortho, W, H)
-                draw_atmosphere(canvas, view.cx, view.cy, view.r, 0.85 * rim)
 
         breath = 1.0 + 0.07 * math.sin(t * 1.35)
         base_tint = 96.0 if t < CLOCK.algeria - 0.2 or t >= CLOCK.outro else 78.0
