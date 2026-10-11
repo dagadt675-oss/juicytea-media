@@ -10,14 +10,14 @@ grain: true
 # 1/d^2 spill around extruded countries. The impact beat pulses it. No camera shake.
 spill: true
 # Colourful satellite is the default. Focus mode is one dramatic beat below.
-# Travel blur follows speed. Captions are drawn after it.
-dof: true
+# No depth-of-field blur. The picture stays sharp.
+dof: false
 words: words.json
 camera:
-  - {t: 0.0, proj: ortho, lon: 18, lat: 63, span: 100, ease: out, exp: true}
-  - {t: 1.6, proj: ortho, lon: 10, lat: 58, span: 62, ease: out, exp: true}
+  - {t: 0.0, proj: ortho, lon: 18, lat: 63, span: 100, ease: expo, exp: true}
+  - {t: 1.6, proj: ortho, lon: 10, lat: 58, span: 62, ease: expo, exp: true}
   - {t: 3.2, proj: ortho, lon: 22, lat: 66, span: 40, ease: cubic, exp: true}
-  - {t: 4.50, proj: merc, lon: 16, lat: 60, span: 24, ease: out, exp: true}
+  - {t: 4.50, proj: merc, lon: 16, lat: 60, span: 24, ease: expo, exp: true}
   # Short snap: spring integrates toward this key, then settles. The next move is a dive.
   - {t: 5.20, proj: merc, lon: 8, lat: 55, span: 14, ease: spring}
   - {t: 6.4, proj: merc, lon: 26, lat: 64, span: 16, ease: cubic, exp: true}
@@ -37,6 +37,7 @@ beats:
   - {t: 5.10, type: laser, name: laser-border, dur: 2.4, ink: true, origins: 4}
   - {t: 6.30, type: extrude, name: finland, iso: FIN, color: [186, 220, 236]}
   - {t: 7.20, type: badge, name: badge-market, text: "MÄRKET", x: 540, y: 420}
+  - {t: 7.55, type: svg, name: svg-icon, dur: 0.64}
   - {t: 8.50, type: overshoot, name: overshoot-mark, text: "!", x: 540, y: 620}
   - {t: 8.70, type: badge, name: badge-finland, text: "FINLAND", x: 540, y: 420}
   # Three frames. Map only, so the badge does not tear.

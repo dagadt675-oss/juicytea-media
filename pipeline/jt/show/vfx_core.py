@@ -50,6 +50,16 @@ def ease_in_out_quintic(t: float) -> float:
     return 1.0 - ((-2.0 * t + 2.0) ** 5) / 2.0
 
 
+def ease_in_out_expo(t: float) -> float:
+    """Zoom ease. Flat at both ends, fastest in the middle. Not linear."""
+    t = _clamp(t)
+    if t <= 0.0 or t >= 1.0:
+        return t
+    if t < 0.5:
+        return 2.0 ** (20.0 * t - 10.0) / 2.0
+    return (2.0 - 2.0 ** (-20.0 * t + 10.0)) / 2.0
+
+
 def _spring(t: float) -> float:
     """Old spring curve. Kept so a test can see it. The default path does not call it."""
     t = _clamp(t)
@@ -163,6 +173,60 @@ def stroke_for_zoom(base: float, zoom: float) -> float:
     return float(base) / math.sqrt(max(0.25, float(zoom)))
 
 
+def icon_pop(frame: float, frames: float = 18.0) -> float:
+    """Soft scale 0 → about 115% → 100% across 15–20 frames."""
+    frames = 18.0 if frames < 15.0 or frames > 20.0 else float(frames)
+    u = _clamp(float(frame) / frames)
+    if u <= 0.0:
+        return 0.0
+    if u < 0.62:
+        return 1.15 * (u / 0.62)
+    e = _clamp((u - 0.62) / 0.38)
+    e = e * e * (3.0 - 2.0 * e)
+    return 1.15 + (1.0 - 1.15) * e
+
+
+def bezier_ease_out(u: float, p0, p1, p2, p3) -> tuple[float, float]:
+    """Cubic Bezier. The parameter is ease-out, so the hand arrives gently."""
+    t = 1.0 - (1.0 - _clamp(u)) ** 3
+    o = 1.0 - t
+    x = o ** 3 * p0[0] + 3 * o ** 2 * t * p1[0] + 3 * o * t ** 2 * p2[0] + t ** 3 * p3[0]
+    y = o ** 3 * p0[1] + 3 * o ** 2 * t * p1[1] + 3 * o * t ** 2 * p2[1] + t ** 3 * p3[1]
+    return x, y
+
+
+def click_squash(age: float, dur: float = 0.18) -> float:
+    """100% → 90% → 100% once, on the click."""
+    if age < 0.0 or age > dur or dur <= 0.0:
+        return 1.0
+    return 1.0 - 0.10 * math.sin(math.pi * age / dur)
+
+
+def icon_parallax(dx: float, dy: float, amount: float = 0.015) -> tuple[float, float]:
+    """1–2% of the camera shift. Icons lag the map by a hair."""
+    amount = min(0.02, max(0.01, float(amount)))
+    return dx * amount, dy * amount
+
+
+def draw_svg(canvas, path, x: float, y: float, size: float, scale: float = 1.0) -> None:
+    """Rasterise an SVG through Skia SVGDOM so it stays crisp at any zoom."""
+    from pathlib import Path
+    data = Path(path).read_bytes()
+    dom = skia.SVGDOM.MakeFromStream(skia.MemoryStream(data))
+    if dom is None:
+        return
+    box = dom.containerSize()
+    cw = float(box.width()) or 64.0
+    ch = float(box.height()) or 64.0
+    s = (float(size) * float(scale)) / cw
+    canvas.save()
+    canvas.translate(x, y)
+    canvas.scale(s, s)
+    canvas.translate(-cw * 0.5, -ch * 0.5)
+    dom.render(canvas)
+    canvas.restore()
+
+
 def displace_line(pts: list[tuple[float, float]], t: float, amp: float = 1.2) -> list[tuple[float, float]]:
     """A slow, tiny offset along the normal. Enough to feel alive, not a shake."""
     if len(pts) < 2 or amp <= 0.0:
@@ -238,10 +302,14 @@ def draw_neon_path(canvas, pts: list[tuple[float, float]], color: tuple[int, int
     path.moveTo(pts[0][0], pts[0][1])
     for x, y in pts[1:]:
         path.lineTo(x, y)
-    for width, alpha in neon_passes(core):
+    passes = neon_passes(core)
+    for index, (width, alpha) in enumerate(passes):
         pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=width)
         pen.setStrokeCap(skia.Paint.kRound_Cap)
         pen.setStrokeJoin(skia.Paint.kRound_Join)
+        # Wide passes are the blurred underlay. The last pass is the crisp line.
+        if index < len(passes) - 1:
+            pen.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, max(1.0, width * 0.28)))
         pen.setColor(skia.ColorSetARGB(int(255 * alpha), color[0], color[1], color[2]))
         if dash > 1.0:
             pen.setPathEffect(skia.DashPathEffect.Make([dash, dash * 0.45], 0))
@@ -327,6 +395,15 @@ def place_labels(boxes: list[tuple[float, float, float, float]], gap: float = 12
     return out
 
 
+def cloud_alpha_for_span(span: float, globe: float = 72.0, regional: float = 40.0) -> float:
+    """Full on the globe, gone once the view is regional."""
+    if span <= regional:
+        return 0.0
+    if span >= globe:
+        return 0.85
+    return 0.85 * (span - regional) / (globe - regional)
+
+
 def cloud_alpha(zoom_ratio: float) -> float:
     """zoom_ratio is start_span / span. Clouds die once the camera is inside them."""
     if zoom_ratio >= 3.2:
@@ -341,8 +418,9 @@ def cloud_scale(zoom_ratio: float) -> float:
     return max(0.2, float(zoom_ratio)) ** 2
 
 
-def draw_clouds(canvas, t: float, zoom_ratio: float, w: int = 1080, h: int = 1920) -> None:
-    alpha = cloud_alpha(zoom_ratio)
+def draw_clouds(canvas, t: float, zoom_ratio: float, w: int = 1080, h: int = 1920, alpha: float | None = None) -> None:
+    if alpha is None:
+        alpha = cloud_alpha(zoom_ratio)
     if alpha <= 0.02:
         return
     scale = cloud_scale(zoom_ratio)
@@ -668,7 +746,10 @@ def grade(img: np.ndarray, t: float) -> np.ndarray:
     vig = np.clip(1.0 - 0.14 * np.clip(r - 0.55, 0, 1) ** 1.4, 0.82, 1.0)
     out = img.astype(np.float32)
     out *= vig[..., None]
-    out = (out - 8.0) * 1.04 + 8.0
+    # eq-style grade: contrast about 1.08, saturation about 1.15. Both stay in the asked band.
+    out = (out - 128.0) * 1.08 + 128.0
+    luma_c = 0.2126 * out[:, :, 0] + 0.7152 * out[:, :, 1] + 0.0722 * out[:, :, 2]
+    out = luma_c[..., None] + (out - luma_c[..., None]) * 1.15
     # Saturation falls off with the vignette. The centre stays vivid.
     luma = 0.2126 * out[:, :, 0] + 0.7152 * out[:, :, 1] + 0.0722 * out[:, :, 2]
     fade = (np.clip((r - 0.62) / 0.55, 0.0, 1.0) ** 1.3) * 0.34

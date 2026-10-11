@@ -37,9 +37,12 @@ from jt.show.vfx_core import (  # noqa: E402
     badge_state,
     barrel_distort,
     border_strands,
+    bezier_ease_out,
     box_luminance,
-    cloud_alpha,
+    click_squash,
+    cloud_alpha_for_span,
     draw_anamorphic,
+    draw_svg,
     draw_atmosphere,
     draw_badge,
     draw_clouds,
@@ -51,6 +54,8 @@ from jt.show.vfx_core import (  # noqa: E402
     focus_amount,
     glow_hillshade,
     grade,
+    icon_parallax,
+    icon_pop,
     label_style,
     lens_atmosphere,
     multiply_rgb,
@@ -71,6 +76,7 @@ HERE = Path(__file__).resolve().parent
 SPEC = HERE / "vfx_test.yaml"
 
 LASER = [(14.0, 66.0), (16.5, 64.5), (18.0, 63.2), (20.5, 62.4), (23.0, 61.2), (24.5, 59.8)]
+SVG_ICON = Path("/workspace/asset_library/extra/kenney/crosshair-pack/Vector/Light/crosshair-037.svg")
 
 
 def load_spec(path: Path) -> dict:
@@ -86,6 +92,9 @@ def _ease(name: str, u: float) -> float:
         return 1.0 - (1.0 - u) ** 3
     if name == "cubic":
         return ease_in_out_cubic(u)
+    if name == "expo":
+        from jt.show.vfx_core import ease_in_out_expo
+        return ease_in_out_expo(u)
     return ease_in_out_quintic(u)
 
 
@@ -138,6 +147,24 @@ class Proof:
         else:
             span = float(a["span"]) + (float(b["span"]) - float(a["span"])) * eased
         return Cam(b["proj"] if eased > 0.55 else a["proj"], lon, lat, max(4.0, span))
+
+    def _segment(self, t: float) -> tuple[float, float, float]:
+        """Linear time through the current zoom, plus the start and end spans."""
+        keys = self.spec["camera"]
+        if t <= float(keys[0]["t"]):
+            span = float(keys[0]["span"])
+            return 0.0, span, span
+        if t >= float(keys[-1]["t"]):
+            span = float(keys[-1]["span"])
+            return 1.0, span, span
+        a, b = keys[0], keys[1]
+        for left, right in zip(keys, keys[1:]):
+            if float(left["t"]) <= t <= float(right["t"]):
+                a, b = left, right
+                break
+        span_t = float(b["t"]) - float(a["t"])
+        u = 0.0 if span_t <= 1e-6 else (t - float(a["t"])) / span_t
+        return u, float(a["span"]), float(b["span"])
 
     def _moving(self, t: float) -> bool:
         a = self.cam(max(0.0, t - 0.03))
@@ -213,7 +240,16 @@ class Proof:
     def _draw(self, t: float) -> np.ndarray:
         t = min(self.duration, max(0.0, t))
         cam = self.cam(t)
-        img = paint_plate(self.plates["satellite"], cam, W, H)
+        seg = self._segment(t)
+        from jt.show.lod import load_local, load_regional, paint_lod
+        if not hasattr(self, "_lod_plates"):
+            globe = self.plates["satellite"]
+            regional = load_regional()
+            self._lod_plates = {"globe": globe, "regional": regional if regional is not None else globe, "local": load_local()}
+        img = paint_lod(
+            cam, W, H, self._lod_plates,
+            time_u=seg[0], span_a=seg[1], span_b=seg[2],
+        )
         paper = 0.0
         for beat in self.spec["beats"]:
             if beat["type"] == "multiply" and t >= float(beat["t"]):
@@ -231,7 +267,8 @@ class Proof:
         fx, fy = (focus_pt if focus_pt is not None else (W * 0.5, H * 0.46))
         # Dark focus is a dramatic beat, not the default colourful plate.
         drama = focus_amount(t, self.spec["beats"])
-        sigma = travel_blur_sigma(speed, zoom) if self.spec.get("dof", True) else 0.0
+        # Edge blur stays off. The owner rejected blurry frames.
+        sigma = travel_blur_sigma(speed, zoom) if self.spec.get("dof", False) else 0.0
         img = lens_atmosphere(
             img, sigma, glow, protect if protect.any() else None,
             focus=drama, cx=fx, cy=fy, travel=travel, arrive=arrive,
@@ -246,7 +283,7 @@ class Proof:
             strength = max(0.0, 1.0 - (3.0 - min(zoom, 3.0)) / 3.0)
             strength = max(0.0, 1.0 - _clamp((zoom - 1.2) / 1.6))
             draw_atmosphere(canvas, view.cx, view.cy, view.r, strength)
-            draw_clouds(canvas, t, zoom)
+            draw_clouds(canvas, t, zoom, alpha=cloud_alpha_for_span(cam.span))
         self._country(canvas, cam, t, zoom)
         self._laser(canvas, cam, t, zoom)
         if glow >= 0.55:
@@ -268,6 +305,7 @@ class Proof:
         canvas = surface.getCanvas()
         canvas.drawImage(skia.Image.fromarray(plate), 0, 0)
         self._badges(canvas, t, map_rgb)
+        self._svg(canvas, t, cam)
         bgra = surface.makeImageSnapshot().toarray()
         rgb = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
         if self.spec.get("grade", True):
@@ -369,6 +407,25 @@ class Proof:
                 canvas.drawString(text, -font.measureText(text) / 2, 22, font, ink)
                 canvas.restore()
 
+    def _svg(self, canvas, t: float, cam: Cam) -> None:
+        if not SVG_ICON.exists():
+            return
+        for beat in self.spec["beats"]:
+            if beat["type"] != "svg" or t < float(beat["t"]):
+                continue
+            dur = float(beat.get("dur", 0.64))
+            age = t - float(beat["t"])
+            if age > dur:
+                continue
+            pop = icon_pop(age * self.fps, 18)
+            u = 0.0 if dur <= 0 else age / dur
+            x, y = bezier_ease_out(
+                u, (220.0, 1500.0), (380.0, 980.0), (760.0, 760.0), (560.0, 620.0),
+            )
+            squash = click_squash(age - (dur - 0.18))
+            px, py = icon_parallax((cam.lon - 18.0) * 80.0, (cam.lat - 62.0) * 80.0, 0.015)
+            draw_svg(canvas, SVG_ICON, x + px, y + py, 160.0, scale=pop * squash)
+
 
 def cues_for(spec: dict) -> list[dict]:
     rows = []
@@ -399,11 +456,20 @@ def _encode(show: Proof, i0: int, i1: int, path: Path) -> None:
         raise SystemExit(f"ffmpeg failed {code}")
 
 
-def _encode_job(spec_path: str, i0: int, i1: int, path: str) -> str:
+def _encode_interleaved(spec_path: str, offset: int, step: int, n: int, raw_path: str) -> str:
+    """Worker `offset` renders frames offset, offset+step, offset+2step, ..."""
     spec = load_spec(Path(spec_path))
     show = Proof(spec)
-    _encode(show, i0, i1, Path(path))
-    return path
+    frame_bytes = W * H * 3
+    with open(raw_path, "wb") as handle:
+        for i in range(offset, n, step):
+            frame = show.render(i / show.fps)
+            if frame.nbytes != frame_bytes:
+                raise RuntimeError(f"frame {i} is {frame.shape}")
+            handle.write(frame.tobytes())
+            if i % 30 == 0:
+                print(f"frame {i}/{n}", flush=True)
+    return raw_path
 
 
 def _concat(parts: list[Path], dest: Path) -> None:
@@ -443,15 +509,40 @@ def main() -> None:
         raise SystemExit(f"cue gaps {bad}")
     (HERE / "vfx_cues.json").write_text(json.dumps({"cues": cues, "duration": spec["duration"]}, indent=2) + "\n")
     frames = int(round(spec["duration"] * spec["fps"]))
-    ranges = [(0, 180), (180, 360), (360, frames)]
-    jobs = [(str(SPEC), i0, i1, str(HERE / f"_part_{i0}_{i1}.mp4")) for i0, i1 in ranges]
+    workers = 3
+    tmp = HERE / "_interleaved"
+    tmp.mkdir(parents=True, exist_ok=True)
+    jobs = [(str(SPEC), offset, workers, frames, str(tmp / f"part_{offset}.raw")) for offset in range(workers)]
     ctx = multiprocessing.get_context("spawn")
-    with ctx.Pool(len(jobs)) as pool:
-        parts = [Path(p) for p in pool.starmap(_encode_job, jobs)]
+    with ctx.Pool(workers) as pool:
+        raws = [Path(p) for p in pool.starmap(_encode_interleaved, jobs)]
     dest = HERE / "vfx_proof.mp4"
-    _concat(parts, dest)
-    for part in parts:
-        part.unlink(missing_ok=True)
+    frame_bytes = W * H * 3
+    cmd = [
+        "ffmpeg", "-y", "-v", "error",
+        "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
+        "-r", str(spec["fps"]), "-i", "-",
+        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "16", "-preset", "veryfast",
+        "-movflags", "+faststart", str(dest),
+    ]
+    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+    handles = [path.open("rb") for path in raws]
+    try:
+        for i in range(frames):
+            handle = handles[i % workers]
+            chunk = handle.read(frame_bytes)
+            if len(chunk) != frame_bytes:
+                raise RuntimeError(f"short frame {i}")
+            proc.stdin.write(chunk)
+    finally:
+        proc.stdin.close()
+        for handle in handles:
+            handle.close()
+        code = proc.wait()
+    for path in raws:
+        path.unlink(missing_ok=True)
+    if code != 0:
+        raise SystemExit(f"ffmpeg failed {code}")
     from jt.show.qa import motion_per_second, report, write_report
     qa = report(dest, cues)
     write_report(HERE / "qa.json", qa)
@@ -467,8 +558,8 @@ def main() -> None:
         ),
         "seconds_under_1": motion.get("seconds_under_1"),
         "cue_gap": worst,
-        "clouds_wide": round(cloud_alpha(1.0), 2),
-        "clouds_close": round(cloud_alpha(4.0), 2),
+        "clouds_wide": round(cloud_alpha_for_span(90), 2),
+        "clouds_close": round(cloud_alpha_for_span(20), 2),
     }
     print(json.dumps(summary, indent=2))
     if not summary["structural_pass"]:

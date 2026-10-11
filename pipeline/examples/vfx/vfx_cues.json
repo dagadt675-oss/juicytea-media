@@ -41,6 +41,11 @@
       "name": "badge-market"
     },
     {
+      "t": 7.55,
+      "kind": "tick",
+      "name": "svg-icon"
+    },
+    {
       "t": 8.5,
       "kind": "pop",
       "name": "overshoot-mark"

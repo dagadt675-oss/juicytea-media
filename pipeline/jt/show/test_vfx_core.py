@@ -31,6 +31,9 @@ from jt.show.vfx_core import (  # noqa: E402
     travel_blur_sigma,
     apply_light_spill,
     ease_in_out_cubic,
+    ease_in_out_expo,
+    icon_pop,
+    cloud_alpha_for_span,
     ease_in_out_quintic,
     exp_zoom,
     impact_shake,
@@ -49,6 +52,11 @@ from jt.show.vfx_core import (  # noqa: E402
 
 def main() -> None:
     assert ease_in_out_cubic(0) == 0 and ease_in_out_cubic(1) == 1
+    assert ease_in_out_expo(0) == 0 and ease_in_out_expo(1) == 1
+    assert abs(ease_in_out_expo(0.5) - 0.5) < 1e-9
+    assert icon_pop(0, 18) == 0.0 and abs(icon_pop(18, 18) - 1.0) < 1e-6
+    assert 1.10 <= icon_pop(11, 18) <= 1.20
+    assert cloud_alpha_for_span(90) > 0.8 and cloud_alpha_for_span(20) == 0.0
     assert ease_in_out_quintic(0) == 0 and abs(ease_in_out_quintic(1) - 1) < 1e-9
     assert ease_in_out_cubic(0.5) == 0.5
     assert abs(exp_zoom(80, 20, 0.5) - (80 * 20) ** 0.5) < 1e-6
@@ -138,6 +146,14 @@ def main() -> None:
     mask[4:8, 4:8] = True
     blurred = adaptive_blur(sharp, 1.6, mask)
     assert np.array_equal(blurred[4:8, 4:8], sharp[4:8, 4:8])
+    from jt.show.lod import lod_swap, level_for
+    assert lod_swap(0.1) == 0.0 and lod_swap(0.9) == 1.0
+    assert abs(lod_swap(0.5) - 0.5) < 1e-6
+    assert level_for(80) == "globe" and level_for(20) == "regional" and level_for(4) == "local"
+    from jt.show.admin_index import countries_in_bbox
+    sweden = countries_in_bbox(10, 55, 25, 70)
+    assert "SWE" in sweden and "BRA" not in sweden
+    assert len(sweden) < 40
     print("vfx_core tests ok")
 
 
