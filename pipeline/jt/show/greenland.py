@@ -21,7 +21,14 @@ from jt.show.camera import Cam, CameraTrack, Key
 from jt.show.clock import load_clock
 from jt.captions import active_index, groups_for
 from jt.show.cues import pack as pack_cues
-from jt.show.moves import ease_out_back
+from jt.show.moves import (
+    apply_zoom_blur,
+    border_glow,
+    country_extrude_flag,
+    drop_in,
+    ease_out_back,
+    landmark_pop,
+)
 from jt.show.faces import draw_face, gag_pose
 from jt.show.labels import Hud, big_number, comparison_card, faces, leader_label, pill, strike
 from jt.show.pack import layout
@@ -99,17 +106,18 @@ def _cues() -> list:
         (w("BIG"), "pop", "same-size"),
         (w("AFRICA"), "pop", "africa"),
         (w("NOT"), "stamp", "not"),
-        (2.50, "whoosh", "globe-snap"),
+        (w("NOT"), "whoosh", "globe-snap"),
         (w("EVEN"), "draw", "algeria-outline"),
         (w("ALGERIA"), "pop", "algeria"),
         (b.excuse0, "boing", "excuse-me"),
         (b.heres, "whoosh", "heres-the-trick"),
+        (w("FLATTEN"), "draw", "flatten"),
         (w("ROUND"), "draw", "round-earth"),
         (w("STRETCHES"), "draw", "stretches"),
         (w("MORE"), "tick", "more"),
         (w("POLES"), "pop", "poles"),
         (w("SITS", after=10), "pop", "greenland-sits"),
-        (11.46, "tick", "snap-punch"),
+        (w("TOWARD"), "tick", "snap-punch"),
         (b.sixteen, "impact", "sixteen"),
         (w("TOO", after=b.sixteen), "tick", "too-big"),
         (w("BIG", after=b.sixteen), "tick", "too-big-land"),
@@ -131,6 +139,7 @@ def _cues() -> list:
         (w("SO", after=28), "tick", "so-is-congo"),
         (w("CONGO", after=10), "pop", "dr-congo"),
         (b.hi0, "boing", "hi-tiny"),
+        (w("FACT", after=30), "tick", "in-fact"),
         (b.usa, "pop", "usa"),
         (b.china, "pop", "china"),
         (b.india, "pop", "india"),
@@ -139,6 +148,7 @@ def _cues() -> list:
         (b.still, "pop", "still-bigger"),
         (b.room, "pop", "room-to-spare"),
         (b.outro, "whoosh", "outro"),
+        (w("SHOWS", after=b.outro), "whoosh", "shows-you"),
         (w("REMEMBER", after=b.outro), "tick", "this-map"),
         (w("HUGE", after=b.outro), "whoosh", "not-huge"),
         (w("ISN", after=b.outro), "tick", "inflate"),
@@ -273,6 +283,8 @@ def apply_motion(cam: Cam, t: float) -> Cam:
         (b.europe, 0.10, -1.0, 0.42),
         (b.t("TOGETHER", after=b.europe - 1), -0.10, 0.0, 0.42),
         (b.t("TOGETHER", after=b.europe - 1) + 0.7, 0.12, 2.2, 0.45),
+        (b.t("FACT", after=30), 0.10, 1.6, 0.40),
+        (b.t("SHOWS", after=b.outro), 0.08, -1.4, 0.40),
         (b.t("HUGE", after=b.outro), 0.09, -0.8, 0.55),
     ):
         p = _punch(t, t0, dur)
@@ -385,9 +397,8 @@ def _piece_fly(t: float, t0: float, t_end: float) -> float:
     if t < t0:
         return 0.0
     if t < t0 + 0.70:
-        u = (t - t0) / 0.70
-        e = u * u * (3.0 - 2.0 * u)
-        return 0.62 + 0.38 * e
+        # Country names pop on the word, 0.7 s, with the landmark overshoot.
+        return 0.62 + 0.45 * landmark_pop(t, t0, 0.70)
     if t > t_end:
         u = _clamp((t - t_end) / 0.6)
         return 1.0 - u * u * (3.0 - 2.0 * u)
@@ -582,7 +593,7 @@ def _blink(t: float) -> float:
 
 def _squash(t: float) -> float:
     b = CLOCK
-    for start in (b.excuse0, b.t("STRETCHES"), b.drag, b.shrinks[0], b.shrinks[1], b.shrinks[2], b.drop, b.hi0, b.still):
+    for start in (b.excuse0, b.t("ROUND"), b.t("STRETCHES"), b.drag, b.shrinks[0], b.shrinks[1], b.shrinks[2], b.drop, b.hi0, b.still):
         age = t - start
         if 0.0 <= age <= 0.24:
             u = age / 0.24
@@ -928,6 +939,12 @@ class Greenland:
         hud_hits = self._draw(canvas, cam, t, w, h, blend)
         bgra = surface.makeImageSnapshot().toarray()
         rgb = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
+        # Blur only while a drop is still fast, then the plate is sharp.
+        intro = drop_in(t, 0.15, CLOCK.t("NOT"))
+        back = drop_in(t, CLOCK.outro, CLOCK.t("REMEMBER", after=CLOCK.outro))
+        blur = max(intro["blur"], back["blur"])
+        if blur >= 0.22:
+            rgb = apply_zoom_blur(rgb, min(1.0, blur), radial=back["blur"] > intro["blur"])
         return rgb, hud_hits
 
     def _land(self, cam: Cam, t: float, w: int, h: int) -> np.ndarray:
@@ -959,8 +976,9 @@ class Greenland:
         else:
             inplace = 0.0
         if inplace > 0.04:
+            glow = border_glow(st["t"], CLOCK.t("STRETCHES"), 0.85)
             fill_iso(canvas, self.earth, cam, "GRL", (232, 28, 58), int(188 * inplace),
-                     stroke=(255, 255, 255), stroke_w=6.5, w=w, h=h)
+                     stroke=(255, 255, 255), stroke_w=6.5 + 10.0 * glow, w=w, h=h)
         packing = st["usa"] > 0.15 or st["chn"] > 0.15
         if st["detached"] > 0.04 and st["compare"] < 0.45 and st["tiles"] < 0.15 and not packing:
             # The dashed path is the trail. A filled ghost reads as a white smear
@@ -988,6 +1006,8 @@ class Greenland:
             canvas.save()
             back = 0.78 + 0.28 * st["pop_back"] if st["pop_back"] else 1.0
             grown = 1.0 + 0.42 * st["inflate"]
+            extrude = country_extrude_flag(st["t"], CLOCK.drag, 0.55)["height"]
+            grown *= 1.0 + 0.18 * extrude
             if anchor is not None and (sx != 1.0 or sy != 1.0 or pop_s != 1.0 or pop_dy != 0.0 or back != 1.0 or grown != 1.0):
                 canvas.translate(anchor[0], anchor[1] + pop_dy)
                 canvas.scale(sx * pop_s * back * grown, sy * pop_s * back * grown)
