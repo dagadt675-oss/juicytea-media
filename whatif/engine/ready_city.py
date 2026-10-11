@@ -11,6 +11,7 @@ edited by this module.
 from __future__ import annotations
 
 import random
+from pathlib import Path
 
 import bmesh
 import bpy
@@ -72,24 +73,72 @@ def _clone(src, name, dx):
     return copy
 
 
-def _continuous_range(kit):
-    """Overlap the hub peaks into one range and sit every base in the plain."""
-    peaks = [obj for obj in bpy.data.objects if obj.name.split(".")[0] in {"snow_peak", "three_peaks"}]
-    clones = []
-    for src in list(peaks):
-        width = _span_x(src)
-        if width < 50.0:
-            continue
-        step = width * 0.62
-        for index, sign in enumerate((-1.0, 1.0)):
-            clones.append(_clone(src, src.name.split(".")[0] + "_span", sign * step * (1.0 + 0.15 * index)))
-    for obj in peaks + clones:
-        _bury(obj, FAR_Z, 80.0)
-    for obj in clones:
-        kit.add(obj, "mountain", sink=False)
+def _hide_old_peaks():
+    """The low-poly cone and the puff of snow stay out of this shot."""
+    tokens = {"snow_peak", "three_peaks", "gaea_range", "snow_peak_span", "three_peaks_span"}
     for obj in bpy.data.objects:
-        if obj.name.split(".")[0] == "gaea_range":
-            _bury(obj, FAR_Z, 120.0)
+        if obj.name.split(".")[0] in tokens:
+            obj.hide_render = True
+            for child in obj.children_recursive:
+                child.hide_render = True
+
+
+def _import_gltf(path):
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(path))
+    return [obj for obj in bpy.data.objects if obj not in before]
+
+
+def _decimate(obj, ratio):
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    mod = obj.modifiers.new("Decimate", "DECIMATE")
+    mod.ratio = ratio
+    bpy.ops.object.modifier_apply(modifier=mod.name)
+
+
+def _photoreal_range(kit):
+    """Poly Haven mountainside, repeated into one hazy range behind the skyline."""
+    _hide_old_peaks()
+    path = Path("/opt/cursor/asset-cache/private/found_plane/mountainside/mountainside_2k.gltf")
+    if not path.exists():
+        return 0
+    fresh = _import_gltf(path)
+    meshes = [obj for obj in fresh if obj.type == "MESH"]
+    if not meshes:
+        return 0
+    bpy.ops.object.select_all(action="DESELECT")
+    for obj in meshes:
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
+    if len(meshes) > 1:
+        bpy.ops.object.join()
+    src = bpy.context.view_layer.objects.active
+    coll = kit.collection("Horizon")
+    for holder in list(src.users_collection):
+        holder.objects.unlink(src)
+    coll.objects.link(src)
+    # The scan imports about 10 m across. Scale it into a kilometre-wide range.
+    # About 10 m native. This scale makes a ridge a few hundred metres tall,
+    # sitting just behind the far bank instead of a cliff in the sky.
+    src.scale = (42.0, 70.0, 36.0)
+    bpy.context.view_layer.update()
+    width = _span_x(src) or 1.0
+    placed = 0
+    for index, x in enumerate((-1.3, -0.55, 0.15, 0.85, 1.55)):
+        obj = src if index == 0 else src.copy()
+        if obj is not src:
+            obj.data = src.data
+            obj.scale = src.scale
+            coll.objects.link(obj)
+        obj.name = "range_side"
+        obj.location = (480.0 + x * width * 0.62, 860.0 + (index % 2) * 70.0, FAR_Z)
+        obj.rotation_euler.z = 0.15 + index * 0.35
+        _bury(obj, FAR_Z, 50.0)
+        kit.add(obj, "mountain", sink=False)
+        placed += 1
+    return placed
 
 
 def _retint_horizon(mats):
@@ -208,7 +257,7 @@ def _forest(kit):
             continue
         kit.add(tree, "tree_canopy", future=True, delay=0.42, sink=False)
         placed += 1
-    for i in range(320):
+    for i in range(40):
         x = rng.uniform(-220.0, 260.0)
         y = rng.uniform(155.0, 520.0)
         if _on_water_or_deck(x, y):
@@ -266,6 +315,226 @@ def _fog(coll):
     return obj, density
 
 
+def _murky_river(kit):
+    """Keep a dark river. The pale foreground slab was covering its near edge."""
+    floor = bpy.data.objects.get("city_floor")
+    if floor is not None:
+        floor.location.y = -78.0
+    if kit.water is None:
+        return
+    mat = bpy.data.materials.new("MurkyRiver")
+    mat.use_nodes = True
+    bsdf = next(node for node in mat.node_tree.nodes if node.type == "BSDF_PRINCIPLED")
+    bsdf.inputs["Base Color"].default_value = (0.015, 0.045, 0.038, 1.0)
+    bsdf.inputs["Roughness"].default_value = 0.22
+    for name in ("Transmission Weight", "Transmission"):
+        if name in bsdf.inputs:
+            bsdf.inputs[name].default_value = 0.25
+            break
+    obj = kit.water.obj
+    obj.data.materials.clear()
+    obj.data.materials.append(mat)
+
+
+def _overgrowth(kit, mats):
+    """Earthy cover on the land only. The river polygon stays open."""
+    from engine.scenes import _ground_sheet, _plant
+
+    grass = found_assets.pbr_material("AgeGrass", "grass_ground", uv=0.18) or mats.get("park")
+    mud = found_assets.pbr_material("AgeMud", "leaves_forest_ground", uv=0.22) or mats.get("dirt")
+    coll = kit.collection("Terrain")
+    south = _ground_sheet("south_earth", coll, (-10.0, -76.0, ROAD_Z + 0.12), (460.0, 160.0), mud, tile=6.0)
+    north = _ground_sheet("north_earth", coll, (20.0, 280.0, FAR_Z + 0.08), (520.0, 240.0), grass, tile=7.0)
+    kit.add(south, "year_green", sink=False)
+    kit.add(north, "year_green", sink=False)
+    plants = kit.collection("Plants")
+    rng = random.Random(41)
+    for i in range(180):
+        x = rng.uniform(-160.0, 180.0)
+        y = rng.choice((
+            rng.uniform(-90.0, 70.0),
+            rng.uniform(160.0, 420.0),
+        ))
+        if river_contains(x, y):
+            continue
+        _plant(
+            kit, plants,
+            ("grass_medium_01", "shrub_01", "fern_02", "moss_01", "weed_plant_02")[i % 5],
+            x, y, ROAD_Z if y < 80.0 else FAR_Z,
+            rng.uniform(0.6, 1.4), delay=0.36, yaw=rng.random() * 6.0,
+        )
+
+
+def _river_debris(kit):
+    """Logs and reeds in the water, from year 100 on."""
+    plants = kit.collection("Plants")
+    if not cc0_city.ready():
+        return
+    rng = random.Random(17)
+    for i, (x, y) in enumerate(((-30, 100), (-8, 118), (18, 108), (36, 132), (-18, 140), (6, 96))):
+        tree = cc0_city.place_tree(plants, x, y, 0.15, rng.uniform(6.0, 11.0), "dead" if i % 2 == 0 else "pine")
+        if tree is None:
+            continue
+        tree.rotation_euler.x = 1.35
+        kit.add(tree, "river_age", sink=False)
+    from engine.scenes import _plant
+    for i, (x, y) in enumerate(((-22, 104), (-4, 112), (14, 124), (28, 136), (2, 148), (-36, 128))):
+        _plant(
+            kit, plants, "grass_medium_02" if i % 2 == 0 else "fern_02",
+            x, y, 0.2, 1.3, delay=0.0, yaw=i, role="river_age",
+        )
+
+
+def _place_suspension(kit):
+    """Hub suspension bridge: towers, cables, hangers, deck. Replaces the red gate."""
+    import math
+
+    from engine.city_layout import BRIDGE_YAW, FAR_BANK_S, NEAR_BANK_S, deck_point, deck_z
+
+    path = Path(
+        "/opt/cursor/asset-cache/private/blendkit/blendkit_private/"
+        "ep_humans_disappeared/Bridge_4cd69f5a/Bridge_4cd69f5a.blend"
+    )
+    if not path.exists():
+        return
+    with bpy.data.libraries.load(str(path), link=False) as (src, dst):
+        dst.objects = list(src.objects)
+    fresh = [obj for obj in dst.objects if obj is not None]
+    coll = kit.collection("Bridge")
+    for obj in fresh:
+        for holder in list(obj.users_collection):
+            holder.objects.unlink(obj)
+        coll.objects.link(obj)
+    root = next((obj for obj in fresh if obj.name == "Bridge" and obj.type == "EMPTY"), None)
+    deck = next((obj for obj in fresh if obj.type == "MESH" and obj.name.startswith("Plane")), None)
+    towers = [obj for obj in fresh if obj.type == "MESH" and obj.name.startswith("Cube")]
+    if root is None or deck is None:
+        return
+    holder = bpy.data.objects.new("suspension", None)
+    coll.objects.link(holder)
+    bpy.context.view_layer.update()
+    world = root.matrix_world.copy()
+    root.parent = holder
+    root.matrix_world = world
+    near = deck_point(NEAR_BANK_S - 4.0)
+    far = deck_point(FAR_BANK_S + 8.0)
+    span = math.hypot(far[0] - near[0], far[1] - near[1])
+    holder.scale = (span / 38.6, 16.0 / 0.9, 36.0 / 6.45)
+    holder.rotation_euler.z = math.pi / 2.0 - BRIDGE_YAW
+    bpy.context.view_layer.update()
+    xs, ys, zs = [], [], []
+    for corner in deck.bound_box:
+        point = deck.matrix_world @ Vector(corner)
+        xs.append(point.x)
+        ys.append(point.y)
+        zs.append(point.z)
+    mid = ((near[0] + far[0]) * 0.5, (near[1] + far[1]) * 0.5)
+    holder.location.x += mid[0] - (min(xs) + max(xs)) * 0.5
+    holder.location.y += mid[1] - (min(ys) + max(ys)) * 0.5
+    holder.location.z += deck_z((NEAR_BANK_S + FAR_BANK_S) * 0.5) - min(zs)
+    bpy.context.view_layer.update()
+    kit.suspension = {
+        "holder": holder,
+        "deck": deck,
+        "towers": towers,
+        "deck_loc": deck.location.copy(),
+        "deck_rot": deck.rotation_euler.copy(),
+        "holder_loc": holder.location.copy(),
+        "holder_rot": holder.rotation_euler.copy(),
+        "tower_rot": [obj.rotation_euler.copy() for obj in towers],
+    }
+    print("suspension span", round(span, 1), flush=True)
+
+
+def _hide_gate(kit):
+    bridge = getattr(kit, "bridge", None)
+    if not bridge:
+        return
+    for key in ("decks", "towers", "cables", "suspenders"):
+        for item in bridge.get(key) or []:
+            obj = item.obj if hasattr(item, "obj") else item
+            obj.hide_render = True
+            for child in getattr(obj, "children_recursive", []):
+                child.hide_render = True
+    for obj in bpy.data.objects:
+        if obj.name.split(".")[0] == "pier":
+            obj.hide_render = True
+
+
+def _vanish_traffic(kit):
+    """Cars in the travel lanes, and bikes that fall when the riders vanish."""
+    from engine.city_layout import AVE_Y, LANE_OFFSETS, ROAD_Z
+    from engine.scenes import _bike, _traffic
+
+    life = kit.collection("Life")
+    z = ROAD_Z + 0.02
+    lanes = (LANE_OFFSETS[1], LANE_OFFSETS[2])
+    for index, (x0, x1, lane) in enumerate((
+        (-55.0, 28.0, lanes[0]),
+        (40.0, -36.0, lanes[1]),
+        (-20.0, 48.0, LANE_OFFSETS[0]),
+    )):
+        _traffic(kit, life, [(x0, AVE_Y + lane, z), (x1, AVE_Y + lane, z)], index + 2, 7.0, index * 4.0)
+    for index, x in enumerate((-18.0, 4.0, 22.0)):
+        _bike(kit, life, [(x, AVE_Y - 6.5, z), (x + 12.0, AVE_Y - 6.5, z)], index * 2.0)
+
+
+def _fir_mesh():
+    path = Path("/opt/cursor/asset-cache/private/found_plane/fir_sapling_medium/fir_sapling_medium_1k.gltf")
+    if not path.exists():
+        return None
+    fresh = _import_gltf(path)
+    meshes = [obj for obj in fresh if obj.type == "MESH"]
+    if not meshes:
+        return None
+    src = meshes[0]
+    for extra in meshes[1:]:
+        bpy.data.objects.remove(extra, do_unlink=True)
+    count = len(src.data.vertices)
+    if count > 40000:
+        _decimate(src, 40000 / count)
+    src.hide_render = True
+    return src.data
+
+
+def _forest_patches(kit):
+    """Irregular green firs. The straight autumn row behind the skyline goes away."""
+    for item in kit.items:
+        if item.role == "tree_canopy" and item.base_loc.y > 420.0:
+            item.extra["backdrop"] = True
+            item.obj.hide_render = True
+    mesh = _fir_mesh()
+    if mesh is None:
+        return 0
+    coll = kit.collection("Plants")
+    rng = random.Random(53)
+    placed = 0
+    # Native firs are already about 8 m. A small clump at the foot of the range.
+    clumps = ((-220, 980), (80, 1120), (420, 1040), (-40, 860))
+    for cx, cy in clumps:
+        for i in range(7):
+            obj = bpy.data.objects.new("fir_patch", mesh)
+            coll.objects.link(obj)
+            obj.location = (cx + rng.uniform(-55.0, 55.0), cy + rng.uniform(-40.0, 40.0), FAR_Z)
+            obj.rotation_euler.z = rng.random() * 6.2
+            height = rng.uniform(1.1, 2.2)
+            obj.scale = (height, height, height)
+            kit.add(obj, "tree_canopy", future=False, sink=False, leaf=(0.08, 0.32, 0.12, 1), autumn=(0.1, 0.32, 0.12, 1))
+            placed += 1
+    if cc0_city.ready():
+        for i in range(220):
+            x = rng.uniform(-200.0, 240.0)
+            y = rng.uniform(170.0, 480.0)
+            if river_contains(x, y) or abs(x - (y * 0.02)) < 8.0 and y < 220.0:
+                continue
+            tree = cc0_city.place_tree(coll, x, y, FAR_Z, rng.uniform(8.0, 16.0), "pine" if i % 4 else "round")
+            if tree is None:
+                continue
+            kit.add(tree, "swallow", sink=False, leaf=(0.1, 0.36, 0.14, 1), autumn=(0.2, 0.38, 0.12, 1))
+            placed += 1
+    return placed
+
+
 def _prune(kit):
     """Drop off-camera fracture shards. The cache is large enough to OOM a still."""
     removed = 0
@@ -301,8 +570,15 @@ def build(kit, mats, rng):
     wings = _extend_blocks(kit)
     ruins = _ruin_skyline(kit)
     trees = _forest(kit)
-    _continuous_range(kit)
+    _photoreal_range(kit)
     _retint_horizon(mats)
+    _murky_river(kit)
+    _overgrowth(kit, mats)
+    _river_debris(kit)
+    _place_suspension(kit)
+    _vanish_traffic(kit)
+    patches = _forest_patches(kit)
+    print("fir patches", patches, flush=True)
     fog, density = _fog(kit.collection("Weather"))
     kit.street_fog = fog
     kit.fog_density = density
@@ -311,40 +587,75 @@ def build(kit, mats, rng):
     return kit
 
 
+def _pose_suspension(kit, collapse):
+    rig = getattr(kit, "suspension", None)
+    if not rig:
+        return
+    holder = rig["holder"]
+    deck = rig["deck"]
+    holder.location = rig["holder_loc"].copy()
+    holder.rotation_euler = rig["holder_rot"].copy()
+    deck.location = rig["deck_loc"].copy()
+    deck.rotation_euler = rig["deck_rot"].copy()
+    for obj, rot in zip(rig["towers"], rig["tower_rot"]):
+        obj.rotation_euler = rot.copy()
+    if collapse < 0.45:
+        return
+    if collapse < 0.85:
+        # Deck sags. Towers stay up.
+        deck.location.z = rig["deck_loc"].z - 0.35
+        deck.rotation_euler.y = rig["deck_rot"].y + 0.08
+        return
+    # Centre span drops into the river. Towers lean.
+    deck.location.z = rig["deck_loc"].z - 1.1
+    deck.rotation_euler.y = rig["deck_rot"].y + 1.15
+    for obj, rot in zip(rig["towers"], rig["tower_rot"]):
+        obj.rotation_euler = Euler((rot.x + 0.55, rot.y, rot.z + 0.25))
+
+
 def drive(kit, ch):
-    """Keep a ruined skyline in frame, and hold a thin street fog with a low sun."""
+    """100 years keeps a broken skyline. 500 years knocks it down."""
     collapse = float(ch.get("collapse", 0.0))
-    if 0.45 <= collapse < 0.85:
-        # The front skyline stays up as a broken city. Deeper blocks stay
-        # hidden so the ruin shells read, and so the still fits in memory.
-        for item in kit.items:
-            if item.role != "building_base":
-                continue
-            if item.base_loc.y > 230.0:
-                continue
+    heavy = 0.45 <= collapse < 0.85
+    fallen = collapse >= 0.85
+    _hide_gate(kit)
+    _hide_old_peaks()
+    _pose_suspension(kit, collapse)
+    if kit.water is not None:
+        kit.water.obj.hide_render = False
+    for item in kit.items:
+        if item.extra.get("backdrop"):
+            item.obj.hide_render = True
+        if item.role == "river_age":
+            _hide_tree(item.obj, collapse < 0.4)
+        elif item.role == "building_base" and heavy and item.base_loc.y < 420.0:
             _hide_tree(item.obj, False)
-    elif collapse >= 0.85:
-        for item in kit.items:
-            if item.role != "building_base":
-                continue
-            near = item.base_loc.y < 120.0
+        elif item.role == "building_base" and fallen:
             topple = bool(item.extra.get("topple"))
-            if not near and not topple:
-                continue
-            _hide_tree(item.obj, False)
-            if near and not topple:
-                item.obj.scale = (
-                    item.base_scale.x,
-                    item.base_scale.y,
-                    item.base_scale.z * 0.32,
-                )
+            stump = item.base_loc.y < 80.0 and (int(item.base_loc.x) // 17) % 3 == 0
+            if topple:
+                _hide_tree(item.obj, False)
+                item.obj.rotation_euler = Euler((1.25, 0.1, item.base_rot.z))
+            elif stump:
+                _hide_tree(item.obj, False)
+                item.obj.scale = (item.base_scale.x, item.base_scale.y, item.base_scale.z * 0.22)
+            else:
+                _hide_tree(item.obj, True)
+        elif item.role in {"shell", "fallen", "rubble_hill"} and heavy:
+            _hide_tree(item.obj, True)
+        elif item.role == "shell" and fallen:
+            # The ruin meshes are full towers. At 500 years they are stumps or they lie down.
+            if (int(item.base_loc.x) // 19) % 4 == 0:
+                item.obj.rotation_euler = Euler((1.2, 0.15, item.base_rot.z))
+                item.obj.location.z = max(0.2, item.base_loc.z)
+            else:
+                item.obj.scale = (item.base_scale.x, item.base_scale.y, item.base_scale.z * 0.26)
+        elif item.role == "swallow" and heavy:
+            item.obj.hide_render = True
     node = getattr(kit, "fog_density", None)
     if node is not None:
-        # Street coefficient. 0.02 through the long view along the avenue was an
-        # opaque wall. 0.012 over this 14 m mist is enough for shafts and still
-        # leaves the towers readable.
-        amount = 0.2 + 0.8 * smoother(0.30, 0.70, collapse)
-        node.outputs[0].default_value = 0.012 * amount
+        amount = 0.15 + 0.85 * smoother(0.30, 0.70, collapse)
+        node.outputs[0].default_value = 0.005 * amount
     scene = bpy.context.scene
     scene.cycles.volume_bounces = 1
     scene.cycles.volume_max_steps = 64
