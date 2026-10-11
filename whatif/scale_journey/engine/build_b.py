@@ -414,7 +414,7 @@ def _air_gap(t):
         u = (t - 3.4) / 1.6
     elif t > 31.2:
         u = max(0.0, (33.0 - t) / 1.8)
-    return 2.4 * u, 1.8 * u
+    return 4.8 * u, 3.6 * u
 
 
 def _blur(scene, cam, penny, fr):
@@ -480,18 +480,22 @@ def main():
             "prev_cam": fr.get("prev_cam") or fr["cam"],
             "prev_penny": fr.get("prev_penny") or fr["penny"],
         }
-        prev["cam"] = fr.get("prev_cam") or fr["cam"]
-        prev["penny"] = list(fr.get("prev_penny") or fr["penny"])
         t = float(fr["t"])
         gx, gy = _air_gap(t)
         pgx, pgy = _air_gap(max(0.0, t - 1.0 / 30.0))
-        prev["penny"][0] += pgx
-        prev["penny"][1] += pgy
-        prev["penny"][2] = prev["penny"][2] + 0.02
+        prev_cam = list(fr.get("prev_cam") or fr["cam"])
+        prev_penny = list(fr.get("prev_penny") or fr["penny"])
+        prev_cam[0] += pgx
+        prev_cam[1] += pgy
+        prev_penny[0] += pgx
+        prev_penny[1] += pgy
+        prev_penny[2] += 0.02
+        curr_cam = (fr["cam"][0] + gx, fr["cam"][1] + gy, fr["cam"][2])
         curr_penny = (fr["penny"][0] + gx, fr["penny"][1] + gy, fr["penny"][2] + 0.02)
-        _blur(scene, cam, penny, {"cam": fr["cam"], "penny": curr_penny, "prev_cam": prev["cam"], "prev_penny": prev["penny"]})
+        target = (fr["target"][0] + gx, fr["target"][1] + gy, fr["target"][2])
+        _blur(scene, cam, penny, {"cam": curr_cam, "penny": curr_penny, "prev_cam": prev_cam, "prev_penny": prev_penny})
         cam.data.lens = float(fr.get("lens") or job.get("lens_mm") or 14)
-        _look(cam, fr["target"])
+        _look(cam, target)
         penny.rotation_euler = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
         _head(arm, float(fr["t"]))
         bpy.context.view_layer.update()
