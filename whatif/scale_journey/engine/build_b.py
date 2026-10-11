@@ -1040,6 +1040,14 @@ def main():
         scene.cycles.denoiser = "OPENIMAGEDENOISE"
     except Exception:
         pass
+    scene.cycles.use_adaptive_sampling = True
+    scene.cycles.adaptive_threshold = 0.04
+    scene.cycles.adaptive_min_samples = 1
+    try:
+        scene.cycles.use_light_tree = False
+    except Exception:
+        pass
+    scene.render.use_persistent_data = True
     scene.cycles.max_bounces = 2
     scene.cycles.diffuse_bounces = 1
     scene.cycles.glossy_bounces = 1

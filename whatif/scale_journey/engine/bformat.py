@@ -335,8 +335,10 @@ def _penny(raw: dict) -> BEpisode:
             mph_from = prev_mph or mph_s
             mph_change = t
             prev_mph = mph_s
-        feet_roll = 1.0 if feet_from == feet_s else _fade(t, feet_change, feet_change + 0.22)
-        mph_roll = 1.0 if mph_from == mph_s else _fade(t, mph_change, mph_change + 0.22)
+        # The slot shows the new digit once the roll crosses halfway. Center
+        # that crossing on the spoken word so the counter matches the line.
+        feet_roll = 1.0 if feet_from == feet_s else _fade(t, feet_change - 0.11, feet_change + 0.11)
+        mph_roll = 1.0 if mph_from == mph_s else _fade(t, mph_change - 0.11, mph_change + 0.11)
         title_alpha = 1.0 - _fade(t, 1.85, 2.35)
         if t >= 33.15:
             title_alpha = _fade(t, 33.15, 33.30)

@@ -158,7 +158,7 @@ def _scene_key(ep, args) -> str:
         [ROOT / "engine" / "build_b.py", ROOT / "engine" / "manhattan.py", ROOT / "engine" / "gen_textures.py"],
         assets,
         {
-            "samples": max(16, int(args.samples)),
+            "samples": max(4, int(args.samples)),
             "scale": int(args.scale),
             "width": ep.width,
             "height": ep.height,
