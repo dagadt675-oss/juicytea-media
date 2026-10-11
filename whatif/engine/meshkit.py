@@ -319,6 +319,48 @@ def make_surface(name, base, weights, roughness=0.55):
     return mat
 
 
+def make_canopy_material():
+    """Object color times a vertex-color gradient, so crowns are lighter on top."""
+    mat, nt = new_material("Canopy")
+    info = nt.nodes.new("ShaderNodeObjectInfo")
+    vcol = nt.nodes.new("ShaderNodeVertexColor")
+    vcol.layer_name = "Col"
+    tint = nt.nodes.new("ShaderNodeMixRGB")
+    tint.blend_type = "MULTIPLY"
+    tint.inputs["Fac"].default_value = 1.0
+    nt.links.new(info.outputs["Color"], tint.inputs["Color1"])
+    nt.links.new(vcol.outputs["Color"], tint.inputs["Color2"])
+    color, rough = weather_color(
+        nt,
+        tint.outputs["Color"],
+        {"moss": 0.1, "rust": 0.0, "mud": 0.15, "scorch": 0.8, "snow": 1.0, "wet": 0.25},
+    )
+    bsdf = principled(nt, color, rough)
+    finish(nt, bsdf)
+    return mat
+
+
+def make_block_material():
+    """Tower wall: object color, broken into blocks by vertex color. No window grid."""
+    mat, nt = new_material("Block")
+    info = nt.nodes.new("ShaderNodeObjectInfo")
+    vcol = nt.nodes.new("ShaderNodeVertexColor")
+    vcol.layer_name = "Col"
+    tint = nt.nodes.new("ShaderNodeMixRGB")
+    tint.blend_type = "MULTIPLY"
+    tint.inputs["Fac"].default_value = 1.0
+    nt.links.new(info.outputs["Color"], tint.inputs["Color1"])
+    nt.links.new(vcol.outputs["Color"], tint.inputs["Color2"])
+    color, rough = weather_color(
+        nt,
+        tint.outputs["Color"],
+        {"moss": 0.45, "rust": 0.15, "mud": 0.25, "scorch": 0.35, "snow": 0.75, "wet": 0.4},
+    )
+    bsdf = principled(nt, color, 0.58)
+    finish(nt, bsdf)
+    return mat
+
+
 def make_object_color_surface(name, weights):
     mat, nt = new_material(name)
     info = nt.nodes.new("ShaderNodeObjectInfo")
@@ -455,8 +497,8 @@ def make_water_material():
     nt.links.new(noise.outputs["Fac"], bump.inputs["Height"])
     drive(bump.inputs["Strength"], "default_value", None, "0.12 + gravity * 0.55", ("gravity",))
     water_shift = channel_value(nt, ("water", "dust", "heat"), "clamp(-water, 0, 1) * 0.0 + dust * 0.35 + heat * 0.15")
-    deep = lin(0.07, 0.40, 0.68)
-    shallow = lin(0.20, 0.55, 0.72)
+    deep = lin(0.24, 0.64, 0.94)
+    shallow = lin(0.38, 0.78, 1.0)
     muddy = lin(0.30, 0.26, 0.16)
     color = _mix(nt, water_shift, deep, muddy)
     bsdf = principled(nt, color, 0.08)

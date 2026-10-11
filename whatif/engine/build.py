@@ -154,8 +154,8 @@ def _render_settings(scene, resolved, samples, scale):
     scene.cycles.use_light_tree = False
     try:
         scene.cycles.use_fast_gi = True
-        scene.world.light_settings.ao_factor = 1.0
-        scene.world.light_settings.distance = 1.6
+        scene.world.light_settings.ao_factor = 0.65
+        scene.world.light_settings.distance = 3.2
     except Exception as exc:
         print("ao", exc)
     scene.render.use_motion_blur = False
@@ -168,9 +168,12 @@ def _render_settings(scene, resolved, samples, scale):
     scene.render.image_settings.color_mode = "RGB"
     scene.render.image_settings.color_depth = "8"
     scene.render.image_settings.compression = 15
-    scene.view_settings.view_transform = "Standard"
-    scene.view_settings.look = "None"
-    scene.view_settings.exposure = 0.22
+    scene.view_settings.view_transform = "AgX"
+    try:
+        scene.view_settings.look = "AgX - Base Contrast"
+    except TypeError:
+        scene.view_settings.look = "None"
+    scene.view_settings.exposure = 0.05
     scene.view_settings.gamma = 1.0
     try:
         scene.use_nodes = True

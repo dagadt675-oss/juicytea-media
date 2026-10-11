@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import math
 import random
+from pathlib import Path
 
 import bmesh
 import bpy
@@ -47,6 +48,8 @@ from engine.meshkit import (
     link_obj,
     make_emission,
     make_facade_material,
+    make_block_material,
+    make_canopy_material,
     make_object_color_surface,
     make_surface,
     make_volume,
@@ -109,13 +112,13 @@ def _materials():
     # against zenith's deck sample, about sRGB (33, 44, 66).
     deck_asphalt = make_surface(
         "Deck",
-        lin(0.012, 0.034, 0.140),
+        lin(0.09, 0.16, 0.36),
         {"moss": 0.15, "rust": 0.02, "mud": 0.25, "scorch": 0.15, "snow": 0.7, "wet": 0.45},
         roughness=0.92,
     )
     park = make_surface(
         "Park",
-        lin(0.32, 0.50, 0.26),
+        lin(0.28, 0.78, 0.34),
         {"moss": 0.2, "rust": 0.0, "mud": 0.45, "scorch": 0.65, "snow": 1.0, "wet": 0.35},
     )
     dirt = make_surface(
@@ -136,6 +139,8 @@ def _materials():
         "Leaf",
         {"moss": 0.1, "rust": 0.0, "mud": 0.15, "scorch": 0.8, "snow": 1.0, "wet": 0.25},
     )
+    canopy = make_canopy_material()
+    block = make_block_material()
     trunk = make_surface(
         "Trunk",
         lin(0.34, 0.22, 0.12),
@@ -185,6 +190,8 @@ def _materials():
         "concrete": concrete,
         "yellow": yellow,
         "leaf": leaf,
+        "canopy": canopy,
+        "block": block,
         "trunk": trunk,
         "wood": wood,
         "roof": roof,
@@ -346,10 +353,8 @@ _PERSON_FILES = (
 
 
 def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None, kind="round", leaf=None):
-    """Round canopy: a trunk plus 3–6 smooth icospheres, like the reference park."""
+    """Low-poly crown: a trunk plus 5–8 beveled lobes, lighter toward the top."""
     rng = rng or random
-    from mathutils import Vector
-    from mathutils.noise import noise as bl_noise
 
     autumns = (
         (0.72, 0.42, 0.12, 1),
@@ -373,35 +378,49 @@ def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None, ki
     trunk.scale = (1.0, 1.0, trunk_h)
     kit.add(trunk, "tree_trunk", future=future, delay=delay, sink=False)
 
+    # A designed crown: overlapping low-poly lobes, not a sphere. The outer
+    # radius stays near the measured 5–6% canopy so the metric still holds.
     bm = bmesh.new()
-    # One round crown plus four tight lobes, so the silhouette stays a ball.
-    blobs = [(0.0, 0.0, trunk_h + height * 0.22, height * 0.36)]
-    for i in range(4):
-        ang = (i / 4.0) * math.tau + 0.4
-        blobs.append(
+    crown = height * 0.40
+    lobes = [(0.0, 0.0, trunk_h + crown * 0.85, crown * 1.05, crown * 0.82, crown * 0.78)]
+    count = 5 if kind == "pine" else rng.randint(5, 8)
+    for i in range(count - 1):
+        ang = (i / max(1, count - 1)) * math.tau + rng.uniform(-0.2, 0.2)
+        reach = crown * rng.uniform(0.28, 0.55)
+        rad = crown * rng.uniform(0.42, 0.72)
+        lobes.append(
             (
-                math.cos(ang) * height * 0.08,
-                math.sin(ang) * height * 0.08,
-                trunk_h + height * 0.18,
-                height * 0.24,
+                math.cos(ang) * reach,
+                math.sin(ang) * reach,
+                trunk_h + crown * rng.uniform(0.35, 0.95),
+                rad * rng.uniform(0.75, 1.15),
+                rad * rng.uniform(0.6, 0.95),
+                rad * rng.uniform(0.55, 0.9),
             )
         )
-    seed = Vector((rng.uniform(0, 20), rng.uniform(0, 20), rng.uniform(0, 20)))
-    for bx, by, bz, br in blobs:
+    for bx, by, bz, rx, ry, rz in lobes:
         nverts = len(bm.verts)
-        bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1.0)
+        bmesh.ops.create_icosphere(bm, subdivisions=1, radius=1.0)
         bm.verts.ensure_lookup_table()
-        squash = 0.82 if kind == "pine" else rng.uniform(0.94, 1.04)
         for vert in bm.verts[nverts:]:
-            push = bl_noise(vert.co * 1.4 + seed) * 0.04
-            vert.co += vert.co.normalized() * push
-            vert.co.x = vert.co.x * br + bx
-            vert.co.y = vert.co.y * br + by
-            vert.co.z = vert.co.z * br * squash + bz
+            vert.co.x = vert.co.x * rx + bx
+            vert.co.y = vert.co.y * ry + by
+            vert.co.z = vert.co.z * rz + bz
+    try:
+        bmesh.ops.bevel(bm, geom=list(bm.edges), offset=crown * 0.045, segments=1, affect="EDGES", profile=0.4)
+    except TypeError:
+        bmesh.ops.bevel(bm, geom=list(bm.edges), offset=crown * 0.045, segments=1, profile=0.4)
+    zs = [vert.co.z for vert in bm.verts]
+    z0, z1 = min(zs), max(zs)
+    span = max(1e-4, z1 - z0)
+    layer = bm.loops.layers.color.new("Col")
+    for face in bm.faces:
+        for loop in face.loops:
+            t = (loop.vert.co.z - z0) / span
+            shade = 0.42 + 0.72 * t
+            loop[layer] = (shade, shade * 1.02, shade * 0.9, 1.0)
     me = mesh_from_bm("canopy", bm)
-    for poly in me.polygons:
-        poly.use_smooth = True
-    canopy = link_obj("canopy", me, coll, (mats["leaf"],))
+    canopy = link_obj("canopy", me, coll, (mats["canopy"],))
     canopy.location = (x, y, z)
     canopy.pass_index = INDEX_CANOPY
     canopy.color = leaf
@@ -577,6 +596,73 @@ def _lamp(kit, coll, mats, x, y, z):
         kit.add(pole, "prop", sink=False, float=0.1)
 
 
+def _designed_tower(name, w, d, h, kind, podium=True, crown=True):
+    """One of ten tower bodies: lobby, shaft, setback, mullion, window bands, roof kit."""
+    bm = bmesh.new()
+    kind = int(kind) % 10
+    lobby_h = max(2.4, min(5.5, h * 0.08)) if podium else 0.0
+    if podium:
+        # Some archetypes step the lobby in, some give it a wider plinth.
+        foot = 0.9 if kind in (1, 4, 7) else 1.06
+        add_box(bm, (0, 0, lobby_h * 0.5), (w * foot, d * foot, lobby_h), 2)
+    crown_h = max(2.2, h * (0.14 + (kind % 5) * 0.025)) if crown else 0.0
+    shaft_h = max(3.0, h - lobby_h - crown_h)
+    add_box(bm, (0, 0, lobby_h + shaft_h * 0.5), (w, d, shaft_h), 0)
+    if crown:
+        sw = w * (0.52 + (kind % 4) * 0.09)
+        sd = d * (0.52 + (kind % 3) * 0.1)
+        ox = w * 0.1 if kind in (2, 6) else 0.0
+        add_box(bm, (ox, 0, lobby_h + shaft_h + crown_h * 0.5), (sw, sd, crown_h), 0)
+    else:
+        sw, sd, ox = w, d, 0.0
+    # Camera looks from the south, so the mullion and the bands sit on -Y.
+    mullion = max(0.22, w * (0.055 + (kind % 3) * 0.018))
+    mx = -w * 0.3 if kind % 2 == 0 else w * 0.16
+    add_box(bm, (mx, -d * 0.5 - 0.07, lobby_h + shaft_h * 0.5), (mullion, 0.16, shaft_h * 0.9), 2)
+    if kind in (3, 5, 9):
+        add_box(bm, (-mx * 0.4, -d * 0.5 - 0.06, lobby_h + shaft_h * 0.45), (mullion * 0.65, 0.14, shaft_h * 0.62), 2)
+    step = (2.3, 2.9, 3.5, 2.5, 4.1, 2.6, 3.1, 2.4, 3.7, 2.8)[kind]
+    band = 0.38 + (kind % 3) * 0.14
+    z = lobby_h + step * 0.7
+    limit = lobby_h + shaft_h - 0.6
+    guard = 0
+    while z < limit and guard < 36:
+        add_box(bm, (0, -d * 0.5 - 0.04, z), (w * 0.7, 0.1, band), 1)
+        if kind % 2 == 1:
+            add_box(bm, (w * 0.5 + 0.04, 0, z), (0.1, d * 0.55, band * 0.8), 1)
+        z += step
+        guard += 1
+    # A second color block, proud of the front face.
+    add_box(
+        bm,
+        (-w * 0.2, -d * 0.5 - 0.05, lobby_h + shaft_h * 0.58),
+        (w * 0.32, 0.14, shaft_h * 0.48),
+        0,
+    )
+    if crown:
+        roof = lobby_h + shaft_h + crown_h
+        for i in range(1 + kind % 3):
+            add_box(bm, (ox + sw * (-0.22 + 0.2 * i), sd * 0.12, roof + 0.32), (0.65, 0.5, 0.62), 2)
+        mast = 1.6 + (kind % 5) * 1.15
+        add_box(bm, (ox, 0, roof + mast * 0.5), (0.1, 0.1, mast), 2)
+        if kind in (2, 6, 9):
+            add_box(bm, (ox + 0.45, 0, roof + mast * 0.7), (1.05, 0.06, 0.06), 2)
+    layer = bm.loops.layers.color.new("Col")
+    for face in bm.faces:
+        for loop in face.loops:
+            vert = loop.vert.co
+            if vert.x < -w * 0.02:
+                shade = (0.74, 0.82, 0.93, 1.0)
+            elif vert.y < -d * 0.15:
+                shade = (1.0, 0.96, 0.9, 1.0)
+            else:
+                shade = (0.88, 0.9, 0.94, 1.0)
+            if crown and vert.z > lobby_h + shaft_h:
+                shade = (shade[0] * 0.8, shade[1] * 0.8, shade[2] * 0.84, 1.0)
+            loop[layer] = shade
+    return mesh_from_bm(name, bm)
+
+
 def _on_deck(x, y, pad=16.0):
     return abs(x - _deck_x(y)) < pad
 
@@ -608,6 +694,10 @@ def build_river_city(kit, mats, rng, pieces):
     ):
         _plane(name, col_g, (px, py, PARK_Z + 0.05), (hx, hy), mats["concrete"])
     _plane("sidewalk", col_g, (0, 30, 0.46), (1200, 3.6), mats["concrete"])
+    # Promenade along the near edge of the lawn, with a crossing on the road.
+    _plane("promenade", col_g, (-8, 36, 0.62), (90, 2.6), mats["concrete"])
+    for i in range(7):
+        box_object("road_cross", col_g, (-34.0 + i * 1.35, 15.2, 0.42), (0.5, 6.4, 0.04), mats["mark"])
     _plane("quay", col_g, (0, 80, LOW_Z), (1200, 3.2), mats["trim"])
     # City ground covers the far bank. No green meadow behind the towers.
     _plane("city_ground", col_g, (0, 420, FAR_Z), (2400, 540), mats["trim"])
@@ -664,20 +754,22 @@ def build_river_city(kit, mats, rng, pieces):
                 min(1.0, base_col[2] + hz[2]),
                 1,
             )
+            kind = (int(x) * 3 + int(y) + row * 5) % 10
+            tower_mats = (mats["block"], mats["window"], mats["trim"])
             falling = fall_i < 12 and h > (36 if row == 0 else 55)
             if falling:
                 split = h * 0.58
-                base = link_obj("tower", _tower_mesh("tower", w, d, split, windows=False), col_c, (mats["facade"],))
+                base = link_obj("tower", _designed_tower("tower", w, d, split, kind, podium=True, crown=False), col_c, tower_mats)
                 base.location = (x, y + (row % 2) * 2.0, FAR_Z)
                 base.color = color
-                top = link_obj("top", _tower_mesh("top", w * 0.96, d * 0.96, h - split, windows=False), col_c, (mats["facade"],))
+                top = link_obj("top", _designed_tower("top", w * 0.96, d * 0.96, h - split, kind, podium=False, crown=True), col_c, tower_mats)
                 top.location = (x, y + (row % 2) * 2.0, FAR_Z + split)
                 top.color = color
                 kit.add(base, "building_base", sink=True, fall_at=None)
                 kit.add(top, "building_top", sink=True, fall_at=0.36 + fall_i * 0.035, index=fall_i, top_h=h - split)
                 fall_i += 1
             else:
-                obj = link_obj("tower", _tower_mesh("tower", w, d, h, windows=False), col_c, (mats["facade"],))
+                obj = link_obj("tower", _designed_tower("tower", w, d, h, kind), col_c, tower_mats)
                 obj.location = (x, y + (row % 2) * 1.5, FAR_Z)
                 obj.color = color
                 kit.add(obj, "building_base", sink=True, fall_at=None)
@@ -717,6 +809,18 @@ def build_river_city(kit, mats, rng, pieces):
             planted += 1
     for x, y in ((-42, 42), (-42, 70), (-26, 48), (-26, 68), (fx - 5.5, fy), (fx + 5.5, fy)):
         _lamp(kit, col_g, mats, x, y, PARK_Z)
+    # Lamps and benches along the promenade, skipped where the bridge crosses.
+    for i, x in enumerate(range(-48, 42, 12)):
+        if abs(x - _deck_x(36)) < 12:
+            continue
+        _lamp(kit, col_g, mats, x, 34.2, 0.62)
+        if i % 2 == 0:
+            bench = _prop(
+                kit, col_g, "bench", _kenney("props/bench/bench.glb"),
+                (x + 2.4, 35.4, 0.62), 0.0, 0.85, "prop", float=0.15,
+            )
+            if bench is None:
+                box_object("bench", col_g, (x + 2.4, 35.4, 1.0), (1.6, 0.5, 0.42), mats["wood"])
     for i in range(4):
         ang = i / 4.0 * math.tau + 0.4
         bx = fx + math.cos(ang) * 6.4
@@ -793,7 +897,7 @@ def build_river_city(kit, mats, rng, pieces):
             white,
             drive=0.0,
             model="sedan",
-            scale=0.62,
+            scale=0.5,
             force_white=True,
         )
 
@@ -1468,20 +1572,20 @@ def build_scene(scene, spec, features):
 
 def _lights(kit):
     sun_data = bpy.data.lights.new("Sun", "SUN")
-    sun_data.energy = 5.4
-    sun_data.angle = 0.5
-    sun_data.color = (1.0, 0.82, 0.55)
+    sun_data.energy = 1.8
+    sun_data.angle = 0.36
+    sun_data.color = (0.92, 0.95, 1.0)
     sun = bpy.data.objects.new("Sun", sun_data)
     kit.collection("Lights").objects.link(sun)
-    sun.rotation_euler = (0.92, 0.05, -0.55)
+    sun.rotation_euler = (1.05, 0.08, -0.85)
     kit.sun = sun
     fill_data = bpy.data.lights.new("Fill", "SUN")
-    fill_data.energy = 0.22
-    fill_data.angle = 0.8
-    fill_data.color = (1.0, 0.86, 0.72)
+    fill_data.energy = 0.12
+    fill_data.angle = 1.1
+    fill_data.color = (0.75, 0.84, 1.0)
     fill = bpy.data.objects.new("Fill", fill_data)
     kit.collection("Lights").objects.link(fill)
-    fill.rotation_euler = (1.1, 0.2, 2.4)
+    fill.rotation_euler = (1.2, -0.4, 2.2)
     kit.fill = fill
     world = bpy.data.worlds.new("Sky")
     kit.scene.world = world
@@ -1490,28 +1594,57 @@ def _lights(kit):
     nt.nodes.clear()
     out = nt.nodes.new("ShaderNodeOutputWorld")
     bg = nt.nodes.new("ShaderNodeBackground")
-    mix = nt.nodes.new("ShaderNodeMixRGB")
+    gradient = nt.nodes.new("ShaderNodeMixRGB")
+    gradient.name = "SkyGradient"
     zenith = nt.nodes.new("ShaderNodeRGB")
     horizon = nt.nodes.new("ShaderNodeRGB")
     geo = nt.nodes.new("ShaderNodeNewGeometry")
     sep = nt.nodes.new("ShaderNodeSeparateXYZ")
     ramp = nt.nodes.new("ShaderNodeMapRange")
-    zenith.outputs[0].default_value = lin(0.45, 0.68, 0.92)
-    horizon.outputs[0].default_value = lin(0.97, 0.84, 0.66)
-    # Incoming Z runs from the ground up into the sky. Map it to a soft gradient.
-    ramp.inputs["From Min"].default_value = -0.15
-    ramp.inputs["From Max"].default_value = 0.55
+    # Sampled from the zenith frame's open sky, about sRGB (123, 148, 173).
+    zenith.outputs[0].default_value = lin(0.48, 0.58, 0.68)
+    horizon.outputs[0].default_value = lin(0.72, 0.78, 0.84)
+    ramp.inputs["From Min"].default_value = -0.05
+    ramp.inputs["From Max"].default_value = 0.45
     ramp.inputs["To Min"].default_value = 1.0
     ramp.inputs["To Max"].default_value = 0.0
     ramp.clamp = True
     nt.links.new(geo.outputs["Incoming"], sep.inputs["Vector"])
     nt.links.new(sep.outputs["Z"], ramp.inputs["Value"])
-    nt.links.new(ramp.outputs["Result"], mix.inputs["Fac"])
-    nt.links.new(horizon.outputs["Color"], mix.inputs["Color1"])
-    nt.links.new(zenith.outputs["Color"], mix.inputs["Color2"])
-    nt.links.new(mix.outputs["Color"], bg.inputs["Color"])
+    nt.links.new(ramp.outputs["Result"], gradient.inputs["Fac"])
+    nt.links.new(horizon.outputs["Color"], gradient.inputs["Color1"])
+    nt.links.new(zenith.outputs["Color"], gradient.inputs["Color2"])
+    sky_mix = nt.nodes.new("ShaderNodeMixRGB")
+    sky_mix.name = "SkyMix"
+    # 0 keeps the HDRI for lighting. 1 is the night gradient.
+    sky_mix.inputs["Fac"].default_value = 0.0
+    hdri_path = Path(__file__).resolve().parents[1] / "assets" / "cc0" / "hdri" / "kloofendal_48d_partly_cloudy_1k.hdr"
+    if hdri_path.exists():
+        env = nt.nodes.new("ShaderNodeTexEnvironment")
+        env.image = bpy.data.images.load(str(hdri_path), check_existing=True)
+        env.image.colorspace_settings.name = "Linear Rec.709"
+        mapping = nt.nodes.new("ShaderNodeMapping")
+        texcoord = nt.nodes.new("ShaderNodeTexCoord")
+        mapping.inputs["Rotation"].default_value = (0.0, 0.0, 1.15)
+        nt.links.new(texcoord.outputs["Reflection"], mapping.inputs["Vector"])
+        nt.links.new(mapping.outputs["Vector"], env.inputs["Vector"])
+        nt.links.new(env.outputs["Color"], sky_mix.inputs["Color1"])
+    else:
+        flat = nt.nodes.new("ShaderNodeRGB")
+        flat.outputs[0].default_value = lin(0.48, 0.58, 0.68)
+        nt.links.new(flat.outputs["Color"], sky_mix.inputs["Color1"])
+    nt.links.new(gradient.outputs["Color"], sky_mix.inputs["Color2"])
+    # The camera sees the flat zenith blue. Reflections and diffuse rays see the HDRI.
+    camera = nt.nodes.new("ShaderNodeLightPath")
+    shown = nt.nodes.new("ShaderNodeMixRGB")
+    shown.name = "SkyShown"
+    nt.links.new(camera.outputs["Is Camera Ray"], shown.inputs["Fac"])
+    nt.links.new(sky_mix.outputs["Color"], shown.inputs["Color1"])
+    nt.links.new(gradient.outputs["Color"], shown.inputs["Color2"])
+    nt.links.new(shown.outputs["Color"], bg.inputs["Color"])
     nt.links.new(bg.outputs["Background"], out.inputs["Surface"])
-    bg.inputs[1].default_value = 1.05
+    bg.inputs[1].default_value = 0.85
     kit.world_bg = bg
     kit.sky_zenith = zenith
     kit.sky_horizon = horizon
+    kit.sky_mix = sky_mix

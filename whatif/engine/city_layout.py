@@ -76,12 +76,14 @@ PATHS = (
 )
 FOUNTAIN = (-38.0, 60.0)
 # One eastbound row on the near road, clear of the bridge slab and the park paths.
+# One eastbound row on the near road, clear of the bridge and the park.
 FOREGROUND_CARS = (
-    (-46.0, 14.5),
-    (-32.0, 14.8),
-    (-22.0, 14.4),
-    (16.0, 14.6),
-    (28.0, 14.9),
+    (-54.0, 12.4),
+    (-40.0, 12.7),
+    (-26.0, 12.3),
+    (-12.0, 12.6),
+    (20.0, 12.5),
+    (34.0, 12.8),
 )
 DECK_LANES = (-4.8, -1.6, 1.6, 4.8)
 
