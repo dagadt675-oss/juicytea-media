@@ -39,9 +39,9 @@
       "name": "africa"
     },
     {
-      "t": 3.738,
+      "t": 3.388,
       "kind": "whoosh",
-      "name": "globe-snap"
+      "name": "globe"
     },
     {
       "t": 3.738,
@@ -69,11 +69,6 @@
       "name": "heres-the-trick"
     },
     {
-      "t": 8.452,
-      "kind": "draw",
-      "name": "flatten"
-    },
-    {
       "t": 8.932,
       "kind": "draw",
       "name": "round-earth"
@@ -87,11 +82,6 @@
       "t": 11.233,
       "kind": "tick",
       "name": "more"
-    },
-    {
-      "t": 11.828,
-      "kind": "tick",
-      "name": "snap-punch"
     },
     {
       "t": 12.188,
@@ -112,11 +102,6 @@
       "t": 16.225,
       "kind": "tick",
       "name": "too-big"
-    },
-    {
-      "t": 16.378,
-      "kind": "tick",
-      "name": "too-big-land"
     },
     {
       "t": 17.394,
@@ -269,11 +254,6 @@
       "name": "hi-tiny"
     },
     {
-      "t": 37.296,
-      "kind": "tick",
-      "name": "in-fact"
-    },
-    {
       "t": 38.256,
       "kind": "pop",
       "name": "usa"
@@ -312,11 +292,6 @@
       "t": 46.639,
       "kind": "whoosh",
       "name": "outro"
-    },
-    {
-      "t": 47.499,
-      "kind": "whoosh",
-      "name": "shows-you"
     },
     {
       "t": 48.645,

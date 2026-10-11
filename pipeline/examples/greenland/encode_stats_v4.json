@@ -1,0 +1,24 @@
+{
+  "frames": 1573,
+  "duration": 52.43333333333333,
+  "width": 1080,
+  "height": 1920,
+  "crf": 16,
+  "blur": false,
+  "loop_mean_abs": 1.5662069187242798,
+  "fourteen": {
+    "mode": "overlap",
+    "pieces": 14,
+    "painted_overlap": 0.0,
+    "painted_outside": 0.0,
+    "pass": true
+  },
+  "pack": {
+    "mode": "overlap",
+    "raw_overlap": 0.2521,
+    "raw_outside": 0.0146,
+    "painted_overlap": 0.0,
+    "painted_outside": 0.0,
+    "pass": true
+  }
+}

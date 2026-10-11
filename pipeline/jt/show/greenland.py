@@ -201,6 +201,40 @@ def lat_for_display(d: float) -> float:
     return math.degrees(math.acos(min(1.0, max(0.0, cos_lat))))
 
 
+def apply_motion(cam: Cam, t: float) -> Cam:
+    """The approved explainer and drag drifts, as ramps.
+
+    The old snaps, the one-frame landing jolt, and the idle hold-zoom are gone.
+    The ramp eases back out so a later shot does not inherit it as a pop.
+    """
+    if cam.proj != "merc":
+        return cam
+    b = CLOCK
+    span, lon, lat = cam.span, cam.lon, cam.lat
+    if b.heres <= t <= b.drag:
+        inn = _smooth(_clamp((t - b.heres) / max(0.4, b.sixteen - b.heres)))
+        back = _smooth(_clamp((t - (b.sixteen + 0.35)) / max(0.4, b.drag - (b.sixteen + 0.35))))
+        u = inn * (1.0 - back)
+        span *= 1.0 - 0.13 * u
+        lon -= 10.0 * u
+        lat += 4.0 * u
+    if b.drag <= t <= b.fourteen:
+        inn = _smooth(_clamp((t - b.drag) / max(0.4, b.drop - b.drag)))
+        back = _smooth(_clamp((t - (b.drop + 0.35)) / 1.2))
+        u = inn * (1.0 - back)
+        span *= 1.0 - 0.06 * u
+        lon += 5.0 * u
+    # The Algeria / Congo / Hi look. One ease in, a hold through the gag, one ease out.
+    if b.algeria - 0.4 <= t <= b.usa:
+        inn = _smooth(_clamp((t - (b.algeria - 0.4)) / 1.6))
+        back = _smooth(_clamp((t - (b.hi1 + 0.2)) / max(0.45, (b.usa - 0.2) - (b.hi1 + 0.2))))
+        u = inn * (1.0 - back)
+        span *= 1.0 - 0.16 * u
+        lon += 7.0 * u
+        lat -= 3.0 * u
+    return Cam(cam.proj, lon, lat, max(12.0, span))
+
+
 def _glide_seconds(a: Cam, b: Cam) -> float:
     """How long a glide needs so a big zoom does not rush."""
     dspan = abs(math.log(max(b.span, 1e-3) / max(a.span, 1e-3)))
@@ -599,16 +633,15 @@ def _keys() -> list[Key]:
     """
     b = CLOCK
     its = b.t("IT")
-    even = b.t("EVEN")
     stretches = b.t("STRETCHES")
     sits = b.t("SITS", after=10)
     rows = [
         (0.00, "merc", -12, 54, 152),
         (its + 0.043, "merc", 2.5, 49.6, 145.9),
-        # One globe glide: the approved wide ortho into the approved close-up.
-        # It starts on "even" and arrives as "Here's" begins.
-        (even + 0.05, "ortho", -22, 34, 120),
-        (b.heres - 0.05, "ortho", -40, 70, 44),
+        # Wide globe just after "It's", then one glide that arrives on
+        # "Excuse me?" and holds there until the flat map returns.
+        (its + 0.12, "ortho", -22, 34, 120),
+        (b.excuse0 - 0.08, "ortho", -40, 70, 44),
         (b.heres + 0.228, "merc", -14, 36, 90),
         (stretches + 0.497, "merc", -12, 46, 78),
         (sits - 0.279, "merc", -30, 56, 62),
@@ -697,20 +730,34 @@ class Greenland:
         follow = hold(st["t"], CLOCK.drag + 1.05, CLOCK.outro - 0.2, 0.35) * (1.0 - st["compare"]) * (1.0 - packing)
         # Look south of the shape so Greenland's tip rides above the caption band.
         lift = 8.0 if CLOCK.drag <= st["t"] <= CLOCK.fourteen else 0.0
-        # The 14 copies are laid out on one wide frame of the whole continent.
-        if st["tiles"] > 0.08 and st["compare"] < 0.15 and state.b is None:
-            cam = _fourteen_cam()
-            # After the 14th piece, pull out so the finished jigsaw reads as one shape.
-            if st["t"] > CLOCK.fourteen + 0.2:
-                u = _smooth((st["t"] - (CLOCK.fourteen + 0.2)) / 0.90)
-                cam = Cam(cam.proj, cam.lon, cam.lat - 1.2 * u, cam.span * (1.0 + 0.12 * u))
-            return type(state)(cam)
+        # The 14 copies need the wide frame. Glide there and glide back.
+        tile_in = CLOCK.drop + 0.45
+        tile_out = CLOCK.fourteen + 1.70
+        if state.b is None and st["compare"] < 0.2 and tile_in <= st["t"] <= tile_out:
+            inn = _smooth(_clamp((st["t"] - tile_in) / 1.20))
+            out = _smooth(_clamp((st["t"] - (CLOCK.fourteen + 0.85)) / 0.80))
+            blend = inn * (1.0 - out)
+            if blend > 0.001:
+                wide = _fourteen_cam()
+                if st["t"] > CLOCK.fourteen + 0.2:
+                    u = _smooth((st["t"] - (CLOCK.fourteen + 0.2)) / 0.90)
+                    wide = Cam(wide.proj, wide.lon, wide.lat - 1.2 * u, wide.span * (1.0 + 0.12 * u))
+                base = state.a
+                cam = Cam(
+                    "merc",
+                    base.lon + (wide.lon - base.lon) * blend,
+                    base.lat + (wide.lat - base.lat) * blend,
+                    base.span + (wide.span - base.span) * blend,
+                )
+                return type(state)(cam)
         if follow > 0.02 and state.b is None and state.a.proj == "merc":
             cam = state.a
             state = type(state)(Cam("merc",
                                     cam.lon + (st["lon"] - cam.lon) * follow,
                                     cam.lat + ((st["lat"] - lift) - cam.lat) * follow,
                                     cam.span))
+        if state.b is None:
+            return type(state)(apply_motion(state.a, t))
         return state
 
     def render(self, t: float, w: int = 1080, h: int = 1920) -> tuple[np.ndarray, int]:
