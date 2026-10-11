@@ -1,7 +1,8 @@
 """Frame renderer. Orthographic globe and flat Mercator / LAEA, with a whip
-between projections and motion on every frame.
+between projections.
 
-The last encoded frame is a byte copy of frame 0 so the loop closes.
+The camera holds, pushes in once at the open, or eases once into the next
+shot. It does not sway. A loop tail, when set, eases the ending into frame 0.
 """
 
 from __future__ import annotations
@@ -16,7 +17,16 @@ import skia
 from jt.captions import groups_for
 from jt.data import resolve_ids
 from jt.draw import Safe, clamp_nontext, overlay, text_pixel_mask
-from jt.project import ease_in_out, laea_inverse, lerp_camera, resolve
+from jt.loop_tail import (
+    blend_toward_open,
+    ease_span_toward_open,
+    last_frame_time,
+    opening_span,
+    split_shots,
+    tail_progress,
+    tail_start,
+)
+from jt.project import ease_in_out, ease_out, laea_inverse, lerp_camera, resolve
 from jt.themes import get_theme
 
 FPS = 30
@@ -57,47 +67,99 @@ class Studio:
         whip = 0.0
         if idx == 0:
             cam = cur.copy()
-            # A short ease-in, then the shot holds. Zero velocity at both ends.
-            beat_dur = self.spans[0][1] - self.spans[0][0]
-            intro = min(1.25, max(0.8, beat_dur * 0.45))
-            if t < intro:
-                e = ease_in_out(t / intro)
-                cam.lon = cur.lon + 8.0 * (1.0 - e)
-                cam.span = cur.span * (1.06 - 0.06 * e)
+            # One push-in, then a hold. Span only falls, so the shot never reverses.
+            if cur.push:
+                # Linear across the first second. The default ease finishes early,
+                # and the rest of that second barely moves.
+                intro = 1.0
+                start = float(cur.push)
+                if t < intro:
+                    u = t / intro
+                    cam.span = cur.span * (start - (start - 1.0) * u)
             else:
-                cam = cur.copy()
+                intro = 1.15
+                if t < intro:
+                    e = ease_out(t / intro)
+                    cam.span = cur.span * (1.85 - 0.85 * e)
+        elif cur.cut:
+            cam = cur.copy()
         else:
             prev = self.spec.lines[idx - 1].camera
             beat_dur = self.spans[idx][1] - self.spans[idx][0]
-            # Long enough to read as a flight, short enough to arrive before the line ends.
-            fly = min(1.55, max(1.05, beat_dur * 0.62))
-            if local < fly:
+            # fly is one ease into the shot. Span, lon, and lat each move one way.
+            fly = float(cur.fly) if cur.fly else min(1.35, max(0.7, beat_dur * 0.45))
+            if local < fly and (prev.proj != cur.proj or prev.lon != cur.lon or prev.lat != cur.lat or prev.span != cur.span):
                 u = local / fly
                 if prev.proj != cur.proj:
                     if u < 0.5:
                         cam = prev.copy()
-                        cam.span = prev.span * (1.0 + 0.08 * ease_in_out(u / 0.5))
                         whip = ease_in_out(u / 0.5)
                     else:
                         cam = cur.copy()
-                        cam.span = cur.span * (1.0 + 0.08 * (1.0 - ease_in_out((u - 0.5) / 0.5)))
                         whip = 1.0 - ease_in_out((u - 0.5) / 0.5)
                 else:
                     cam = lerp_camera(prev, cur, u)
             else:
                 cam = cur.copy()
-        # A triangle sway so a flat fill never sits still. Full cycles over the
-        # video, so the copied first frame matches the end. Speed stays high
-        # except for the single frame where the sway turns around.
-        dur = max(float(self.timeline["duration"]), 1.0)
-        cycles = max(8, round(dur / 1.7))
-        period = dur / cycles
-        phase = (t % period) / period
-        tri = 1.0 - abs(2.0 * phase - 1.0)
-        amp = min(9.5, 0.34 * cam.span)
-        cam.lon += amp * (2.0 * tri - 1.0)
+        # A slow tighten for the whole film. Span only falls, including across beats.
+        creep = float(getattr(cur, "creep", 0.0) or 0.0)
+        if creep > 0:
+            dur = float(self.timeline.get("duration") or 1.0)
+            u = min(1.0, max(0.0, t / dur))
+            cam.span = cam.span * (1.0 - creep * u)
+        # After the last word, span eases one way into the frame-0 framing.
+        start = tail_start(self.spec)
+        if start is not None and t > start:
+            dur = float(self.timeline.get("duration") or 0.0)
+            end = last_frame_time(dur, FPS)
+            u = tail_progress(t, start, end)
+            if u > 0:
+                cam.span = ease_span_toward_open(cam.span, opening_span(self.spec.lines[0].camera), u)
         view = resolve(cam.proj, cam.lon, cam.lat, max(4.0, cam.span), self.w, self.h, whip)
         return view, idx, local
+
+
+def _reversals(values, eps: float) -> int:
+    arr = np.asarray(values, np.float64)
+    if len(arr) < 3:
+        return 0
+    signs = []
+    for delta in np.diff(arr):
+        if abs(float(delta)) < eps:
+            continue
+        signs.append(1 if delta > 0 else -1)
+    changes = 0
+    for a, b in zip(signs, signs[1:]):
+        if a != b:
+            changes += 1
+    return changes
+
+
+def direction_changes(spec, timeline, w: int, h: int, fps: int = 30) -> int:
+    """Most reversals of lon, lat, or span inside any one shot.
+
+    A push-in and a single ease are monotonic. A sway reverses over and over.
+    """
+    studio = Studio(None, spec, timeline, w, h)
+    worst = 0
+    for a, b in split_shots(studio.spans, tail_start(spec)):
+        n = max(3, int(round((b - a) * fps)))
+        times = np.linspace(a, max(a, b - 1.0 / fps), n)
+        cols = [[], [], []]
+        for t in times:
+            view, _idx, _local = studio.camera_at(float(t), 0.0)
+            cols[0].append(view.lon)
+            cols[1].append(view.lat)
+            cols[2].append(view.span)
+        # Unwrap longitude so a dateline crossing is not a fake reversal.
+        lon = np.asarray(cols[0], np.float64)
+        if len(lon):
+            acc = np.empty_like(lon)
+            acc[0] = lon[0]
+            acc[1:] = (np.diff(lon) + 180.0) % 360.0 - 180.0
+            cols[0] = lon[0] + np.cumsum(np.r_[0.0, acc[1:]])
+        worst = max(worst, *(_reversals(col, 0.02) for col in cols))
+    return worst
 
 
 def _vignette(w, h):
@@ -133,11 +195,6 @@ def _shade_sample(earth, lon, lat, highlights, theme, pulse: float, t: float):
     lat_u = np.clip(np.cos(np.radians(lat)), 0, 1).astype(np.float32)
     ocean = (np.array(theme["ocean"], np.float32) * (1 - lat_u)[:, None]
              + np.array(theme["ocean2"], np.float32) * lat_u[:, None])
-    # Slow geographic tint. The frame-to-frame motion lives in _living_light.
-    w1 = np.sin(np.radians(lon) * 3.2 + t * 1.4)
-    w2 = np.cos(np.radians(lat) * 2.2 - t * 0.9)
-    wave = 0.72 * w1 + 0.28 * w2
-    ocean = ocean * (0.90 + 0.10 * wave.astype(np.float32)[:, None])
     col = np.empty((lon.shape[0], 3), np.float32)
     col[:] = np.array(theme["land"], np.float32)
     col *= shade[:, None]
@@ -151,22 +208,6 @@ def _shade_sample(earth, lon, lat, highlights, theme, pulse: float, t: float):
         col[m] = np.array(rgb, np.float32) * (shade[m] * boost * 1.35)[:, None]
     col = np.where(land[:, None], col, ocean)
     return col.reshape(shape + (3,))
-
-
-def _living_light(col, across, t):
-    """A broad wedge of light that keeps sliding, including on a held camera.
-
-    Added, not multiplied: the map fills are dark, so a percentage swing barely
-    moves the pixels and the frozen-frame gate fires on a hold. A triangle wave
-    has a steady slope, so the change does not die out at the top of a sine.
-    Blue-weighted so the lift cannot read as white, yellow, or orange text.
-    """
-    x = np.asarray(across, np.float32)
-    phase = np.mod(x * 0.40 + t * 1.15, 1.0)
-    tri = 1.0 - np.abs(2.0 * phase - 1.0)
-    add = tri * np.float32(50.0)
-    lift = np.stack((add * 0.22, add * 0.48, add * 0.82), axis=-1)
-    return col + lift
 
 
 def _paint_ortho(frame, earth, view, highlights, theme, phase, t):
@@ -203,7 +244,6 @@ def _paint_ortho(frame, earth, view, highlights, theme, phase, t):
     az = t * 3.1
     light = np.clip(nzm * 0.70 + nym * (0.22 * math.cos(az)) - nxm * (0.42 * math.sin(az)), 0, 1)
     col = col * (0.40 + 0.60 * light)[:, None]
-    col = _living_light(col, nxm, t)
     rim = np.clip(1.0 - nzm, 0, 1)[:, None] ** 1.5
     rim_c = np.array(theme["rim"], np.float32)
     col = col * (1 - 0.38 * rim) + rim_c * (rim * 0.42)
@@ -236,7 +276,6 @@ def _paint_flat(frame, earth, view, highlights, theme, phase, t):
         lon, lat = laea_inverse(xr, yr, view.lon, view.lat)
     pulse = 0.86 + 0.14 * math.sin(t * 4.6)
     col = _shade_sample(earth, lon, lat, highlights, theme, pulse, t)
-    col = _living_light(col, (xx - view.cx) / max(x1 - x0, 1.0) * 2.0, t)
     if view.whip_dark:
         col *= 1.0 - 0.62 * view.whip_dark
     # Soft edge so the flat map doesn't stamp a hard rectangle.
@@ -253,6 +292,8 @@ def _background(studio: Studio, t: float, phase: float) -> np.ndarray:
     if theme.get("flat"):
         frame = np.empty((h, w, 3), np.uint8)
         frame[:] = theme["bg0"]
+        from style.gold import drift_field
+        drift_field(frame, t, studio.star_x[::2], studio.star_y[::2])
         return frame
     ys = np.linspace(0, 1, h, dtype=np.float32)[:, None]
     top = np.array(theme["bg0"], np.float32)
@@ -271,8 +312,14 @@ def _background(studio: Studio, t: float, phase: float) -> np.ndarray:
     return frame
 
 
-def render_frame(studio: Studio, t: float, phase: float) -> tuple[np.ndarray, dict]:
+def render_frame(studio: Studio, t: float, phase: float, line_index: int | None = None,
+                 clock: float | None = None) -> tuple[np.ndarray, dict]:
     view, idx, local = studio.camera_at(t, phase)
+    draw_t = t
+    if line_index is not None:
+        idx = line_index
+        local = 0.0 if clock is None else float(clock)
+        draw_t = local
     line = studio.spec.lines[idx]
     highlights = resolve_ids(studio.earth, line.visuals)
     frame = _background(studio, t, phase)
@@ -288,10 +335,11 @@ def render_frame(studio: Studio, t: float, phase: float) -> tuple[np.ndarray, di
     canvas = surface.getCanvas()
     canvas.drawImage(skia.Image.fromarray(rgba), 0, 0)
     safe = Safe(canvas, studio.w, studio.h)
+    claim = "" if studio.spec.voice.get("draw_claims") is False else line.claim
     info = overlay(
         canvas, safe, studio.earth, view, line.visuals,
-        line.claim, line.sub, studio.words, studio.groups,
-        t, local, studio.theme, highlights,
+        claim, line.sub, studio.words, studio.groups,
+        draw_t, local, studio.theme, highlights, punch=(line.kind == "p"),
     )
     bgra = surface.makeImageSnapshot().toarray()
     rgb = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
@@ -341,27 +389,36 @@ def render_video(studio: Studio, path: Path, crf: int = 20) -> dict:
     frame0 = None
     contact = []
     contact_at = {int(round(i * (n - 1) / 11)) for i in range(12)}
+    tail = tail_start(studio.spec)
+    tail_end = last_frame_time(float(studio.timeline.get("duration") or 0.0), FPS)
+    tail_diffs = []
     try:
-        # A voiced Short copies frame 0 onto the last frame so the loop matches.
-        # A silent Short keeps the last beat, so the timeline and the picture agree.
-        copy_loop = not studio.timeline.get("silent")
         for i in range(n):
-            if i == n - 1 and copy_loop:
-                img = frame0
-            else:
-                t = i / FPS
-                phase = i / (n - 1)
-                img, info = render_frame(studio, t, phase)
-                spills += info["spills"]
-                if info["caption"]:
-                    cap_px.append(info["caption"]["px"])
-                    cap_center.append(info["caption"]["center_frac"])
-                if i % 4 == 0:
-                    unsafe_max = max(unsafe_max, _unsafe_count(img))
+            t = i / FPS
+            phase = i / (n - 1) if n > 1 else 0.0
+            img, info = render_frame(studio, t, phase)
+            spills += info["spills"]
+            if info["caption"]:
+                cap_px.append(info["caption"]["px"])
+                cap_center.append(info["caption"]["center_frac"])
+            if i % 4 == 0:
+                unsafe_max = max(unsafe_max, _unsafe_count(img))
             if i == 0:
                 frame0 = img.copy()
-            if prev is not None and i != n - 1:
-                diffs.append(float(np.mean(np.abs(_down(img) - prev)) / 255.0))
+            elif tail is not None and t > tail and frame0 is not None:
+                # Same camera on both layers, so the land does not ghost.
+                # Only the pills, the arc, and the plane trade places.
+                u = tail_progress(t, tail, tail_end)
+                if u >= 1.0:
+                    img = frame0.copy()
+                else:
+                    opened, _open_info = render_frame(studio, t, phase, line_index=0, clock=0.0)
+                    img = blend_toward_open(img, opened, u)
+            if prev is not None:
+                step = float(np.mean(np.abs(_down(img) - prev)) / 255.0)
+                diffs.append(step)
+                if i >= n - 15:
+                    tail_diffs.append(step)
             prev = _down(img)
             if i in contact_at:
                 contact.append((i / FPS, img))
@@ -391,6 +448,8 @@ def render_video(studio: Studio, path: Path, crf: int = 20) -> dict:
         "frame_diff_min": min(diffs) if diffs else 0,
         "frozen_raw": _frozen_spans(diffs, FPS),
         "loop_raw_max": 0,
+        "tail_step_max": max(tail_diffs) if tail_diffs else 0.0,
+        "tail_steps": tail_diffs,
         "contact": contact,
     }
 

@@ -1,0 +1,43 @@
+# Greenland vs Africa: true size. Silent picture locked to take chris_f0.
+# Voice: pipeline/examples/greenland/words.json (42.411 s).
+# Picture: 1273 frames at 30 fps. The container is 42.433 s so the take fits.
+# The loop tail eases the camera from 42.211 s onto frame 0 and lands on the
+# last frame (42.400 s). Square miles are primary. Kilometres are the line under.
+
+id: greenland_africa
+title: "Greenland vs Africa: true size"
+theme: satellite
+voice:
+  engine: silent
+  lead: 0.0
+  loop_tail: 42.211
+  words: examples/greenland/words.json
+facts:
+  africa_km2: 30370000
+  africa_sq_mi: 11726000
+  greenland_km2: 2166000
+  greenland_sq_mi: 836000
+  ratio: 14.0
+  algeria_km2: 2381741
+  dr_congo_km2: 2344858
+  usa_km2: 9833517
+  china_km2: 9596960
+  india_km2: 3287263
+  europe_ex_russia_km2: 6200000
+  mercator_70n: "~3x wider, ~9x area"
+  mercator_greenland: "16x area"
+beats:
+  - {id: hook, t0: 0.08, t1: 4.222, say: "This map says Greenland is as big as Africa. It's not even as big as Algeria."}
+  - {id: excuse, t0: 4.442, t1: 5.022, speaker: greenland, say: "Excuse me?"}
+  - {id: trick, t0: 5.322, t1: 14.087, say: "Here's the trick. Sixteen times too big."}
+  - {id: drag, t0: 14.691, t1: 17.919, say: "Drag Greenland down to the equator."}
+  - {id: shrink, t0: 18.070, t1: 20.763, say: "Watch it shrink. And shrink. And SHRINK."}
+  - {id: wait, t0: 21.013, t1: 21.803, speaker: greenland, say: "Wait... what?!"}
+  - {id: drop, t0: 22.303, t1: 23.244, say: "Now drop it on Africa."}
+  - {id: fourteen, t0: 23.864, t1: 25.397, say: "Africa is FOURTEEN times bigger."}
+  - {id: algeria, t0: 25.919, t1: 29.065, say: "Even Algeria is bigger. So is D.R. Congo."}
+  - {id: hitiny, t0: 29.245, t1: 29.800, speaker: algeria, say: "Hi, tiny."}
+  - {id: pack, t0: 30.160, t1: 33.933, say: "USA, China, India, and Europe outside Russia."}
+  - {id: still, t0: 34.270, t1: 35.361, say: "Africa is STILL bigger."}
+  - {id: room, t0: 35.861, t1: 36.755, say: "With room to spare."}
+  - {id: outro, t0: 37.278, t1: 42.211, say: "The map is lying."}

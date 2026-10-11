@@ -1,0 +1,3 @@
+# Fetched asset library (multi-GB rasters, models, private packs).
+# The fetch script, manifests, and catalog live here and stay out of git.
+/asset_library/

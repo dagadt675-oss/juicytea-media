@@ -1,114 +1,129 @@
-# Silent picture. No espeak and no ElevenLabs in this render.
-# The owner's bot fits the voice to timeline.json afterwards.
-# On-screen copy says "hundreds of kilometers" only. It does not say the
-# flight passes over Alaska. The arc bends north toward the Aleutians.
+# Silent picture timed to the US LA–Tokyo read.
+# Sentence starts: 0.03, 3.93, 7.24, 8.14, 10.81, 14.28, 20.25, 23.05. Picture ends at 24.20.
+# words.json: "three" 5.488, "hundred" 5.755, "miles" 6.022–6.277.
+# The pill springs in at 5.35 so it is up on that phrase.
+# "bends" 19.114–19.346, "north" 19.415–19.903. The path lifts across 18.80–19.75.
 id: lax_tokyo
 title: "Why LA→Tokyo curves toward Alaska"
 theme: midnight
-notes: "Silent 1080×1920 picture. Karaoke band y 0.64–0.72 is left empty."
+notes: "Eight sentences, 24.2 s. No camera sway. Karaoke band y 0.64–0.72 stays empty. The arc bends toward Alaska; the film does not say the flight flies over Alaska or flies exactly the great circle."
 voice:
   engine: silent
   enforce_pauses: false
+  draw_claims: false
+  lead: 0.03
+  # After "mistake." ends. The picture eases into frame 0. Earlier beats stay put.
+  loop_tail: 23.85
 tags: ["#shorts", "#maps", "#flights"]
 sources:
   - "LAX and Narita published airport positions, used only as the pin locations"
-  - "Spherical geometry: the great circle is the short arc; a Mercator rhumb is the straight line"
+  - "Spherical geometry: the great circle is about 480 km (about 300 mi) shorter than the Mercator rhumb"
 description: |
-  Why does a flight from LA to Tokyo curve toward Alaska?
+  Your flight from LA to Tokyo curves up toward Alaska.
 
-  Your flat map is lying. On a Mercator map the straight line looks shortest. Earth is a sphere, so the shortest path is a great-circle arc that bends north toward Alaska. That route is hundreds of kilometers shorter than the straight line the map shows. The curve on a flight tracker is not a mistake.
+  And that curve is about three hundred miles shorter. Why? Because your flat map is lying. On a Mercator map, the straight line looks shortest. But Earth is a sphere, and the real shortest path is a great circle that bends north. So next time your flight tracker curves north... it's not a mistake.
 
-  This file is a silent picture. There is no voice and no burned-in karaoke. Fit the ElevenLabs read to the beats in timeline.json, and keep captions inside y 0.64–0.72 of the frame.
+  Silent picture. No burned-in karaoke. The voice fits timeline.json. Keep captions inside y 0.64–0.72.
 
   #shorts #maps #flights
 lax: &lax [33.9425, -118.4081]
 nrt: &nrt [35.7720, 140.3929]
+cam: &cam {proj: merc, lon: -160, lat: 44, span: 150, push: 1.28, creep: 0.05}
+back: &back {proj: merc, lon: -160, lat: 44, span: 150, cut: true, creep: 0.05}
+wait: &wait {type: tag, text: "WAIT...", x: 0.50, y: 0.168, pill: white, band: top, size: 26, head: 0.55, until: 1.55, tight: true}
+lie: &lie {type: tag, text: "YOUR MAP IS LYING", x: 0.50, y: 0.20, pill: red, band: top, size: 42, head: 0.45, until: 1.55}
+lying: &lying {type: tag, text: "YOUR MAP IS LYING", x: 0.50, y: 0.20, pill: red, band: top, size: 42}
+lakes: &lakes {type: lakes}
+la: &la {type: marker, lat: 33.9425, lon: -118.4081, label: "LA", radar: steady, side: right}
+tyo: &tyo {type: marker, lat: 35.7720, lon: 140.3929, label: "TOKYO", radar: steady, side: left}
+arc: &arc {type: route, mode: great, style: solid, a: *lax, b: *nrt, from: 0.62, draw: 1.15}
+held: &held {type: route, mode: great, style: solid, a: *lax, b: *nrt, grow: false}
+glow: &glow {type: route, mode: great, style: solid, a: *lax, b: *nrt, grow: false, glow: true}
+plane: &plane {type: plane, a: *lax, b: *nrt, u0: 0.28, u1: 0.86, dur: 24.2, straight_from: 10.81, straight_until: 18.80, bend_end: 19.75}
 lines:
-  - text: "Why does a flight from LA to Tokyo curve toward Alaska?"
+  - text: "Your flight from LA to Tokyo curves up toward Alaska."
     kind: q
-    dur: 3.30
-    claim: "Why LA to Tokyo\ncurves toward *ALASKA?*"
-    sub: "Los Angeles to Tokyo"
-    camera: {proj: merc, lon: -157, lat: 42, span: 172}
-    visuals:
-      - {type: marker, lat: 33.9425, lon: -118.4081, label: "LA"}
-      - {type: marker, lat: 35.7720, lon: 140.3929, label: "TOKYO"}
-      - {type: route, mode: rhumb, style: solid, a: *lax, b: *nrt}
+    dur: 3.90
+    claim: "Your flight from LA to Tokyo curves up toward Alaska."
+    sub: ""
+    camera: *cam
+    visuals: [*lakes, *la, *tyo, *arc, *plane, *wait, *lie]
 
-  - text: "Your flat map is lying."
+  - text: "And that curve is about three hundred miles shorter."
     kind: s
-    dur: 1.85
-    claim: "Your flat map\nis *LYING*"
-    sub: "Longer than it looks"
-    camera: {proj: merc, lon: -157, lat: 42, span: 168}
+    dur: 3.31
+    claim: "And that curve is about three hundred miles shorter."
+    sub: ""
+    camera: *cam
     visuals:
-      - {type: marker, lat: 33.9425, lon: -118.4081, label: "LA"}
-      - {type: marker, lat: 35.7720, lon: 140.3929, label: "TOKYO"}
-      - {type: route, mode: rhumb, style: dashed, label: "LONGER", a: *lax, b: *nrt}
+      - *lakes
+      - *la
+      - *tyo
+      - *held
+      - *plane
+      - {type: callout, text: "≈300 MI SHORTER", count: 300, sub: "480 KM", note: "(LAX-NRT)", x: 0.50, y: 0.36, pill: yellow, size: 54, at: 5.35}
 
-  - text: "On a Mercator map the straight line looks shortest."
+  - text: "Why?"
     kind: s
-    dur: 2.70
-    claim: "The straight line\nlooks *SHORTEST*"
-    sub: "A rhumb stays straight"
-    camera: {proj: merc, lon: -156, lat: 40, span: 174}
-    visuals:
-      - {type: marker, lat: 33.9425, lon: -118.4081, label: "LA"}
-      - {type: marker, lat: 35.7720, lon: 140.3929, label: "TOKYO"}
-      - {type: route, mode: rhumb, style: solid, a: *lax, b: *nrt}
+    dur: 0.90
+    claim: "Why?"
+    sub: ""
+    camera: *cam
+    visuals: [*lakes, *la, *tyo, *held, *plane]
 
-  - text: "But Earth is a sphere —"
+  - text: "Because your flat map is lying."
     kind: s
-    dur: 1.85
-    claim: "Earth is a\n*SPHERE*"
-    sub: "A round Earth"
-    camera: {proj: merc, lon: -158, lat: 44, span: 170}
-    visuals:
-      - {type: marker, lat: 33.9425, lon: -118.4081, label: "LA"}
-      - {type: marker, lat: 35.7720, lon: 140.3929, label: "TOKYO"}
-      - {type: route, mode: great, style: solid, a: *lax, b: *nrt}
+    dur: 2.67
+    claim: "Because your flat map is lying."
+    sub: ""
+    camera: *cam
+    visuals: [*lakes, *la, *tyo, *held, *plane, *lying]
 
-  - text: "the shortest path is a great-circle arc"
+  - text: "On a Mercator map, the straight line looks shortest."
     kind: s
-    dur: 2.35
-    claim: "Shortest path:\na *GREAT CIRCLE*"
-    sub: "An arc, not that straight line"
-    camera: {proj: merc, lon: -159, lat: 46, span: 168}
+    dur: 3.47
+    claim: "On a Mercator map, the straight line looks shortest."
+    sub: ""
+    camera: *cam
     visuals:
-      - {type: marker, lat: 33.9425, lon: -118.4081, label: "LA"}
-      - {type: marker, lat: 35.7720, lon: 140.3929, label: "TOKYO"}
-      - {type: route, mode: great, style: solid, label: "ARC", a: *lax, b: *nrt}
+      - *lakes
+      - *la
+      - *tyo
+      - {type: route, mode: rhumb, style: dashed, a: *lax, b: *nrt, draw: 0.85}
+      - *plane
 
-  - text: "that bends north toward Alaska."
+  - text: "But Earth is a sphere, and the real shortest path is a great circle that bends north."
     kind: s
-    dur: 1.85
-    claim: "It bends *NORTH*\ntoward Alaska"
-    sub: "Toward the Aleutians"
-    camera: {proj: merc, lon: -160, lat: 48, span: 176}
+    dur: 5.97
+    claim: "But Earth is a sphere, and the real shortest path is a great circle that bends north."
+    sub: ""
+    camera: *cam
     visuals:
-      - {type: highlight, countries: [USA]}
-      - {type: marker, lat: 33.9425, lon: -118.4081, label: "LA"}
-      - {type: marker, lat: 35.7720, lon: 140.3929, label: "TOKYO"}
-      - {type: route, mode: great, style: solid, label: "TOWARD ALASKA", a: *lax, b: *nrt}
+      - *lakes
+      - *la
+      - *tyo
+      - {type: route, mode: rhumb, style: dashed, a: *lax, b: *nrt, grow: false}
+      - {type: route, mode: morph, style: solid, a: *lax, b: *nrt, grow: false, bend_at: 18.80, bend_end: 19.75}
+      - *plane
 
-  - text: "That route is hundreds of kilometers shorter than the straight line your map shows."
+  - text: "So next time your flight tracker curves north..."
     kind: s
-    dur: 4.20
-    claim: "*HUNDREDS* of kilometers\nshorter"
-    sub: "Shorter than that line"
-    camera: {proj: merc, lon: -158, lat: 44, span: 172}
-    visuals:
-      - {type: marker, lat: 33.9425, lon: -118.4081, label: "LA"}
-      - {type: marker, lat: 35.7720, lon: 140.3929, label: "TOKYO"}
-      - {type: route, mode: great, style: solid, a: *lax, b: *nrt}
+    dur: 2.80
+    claim: "So next time your flight tracker curves north..."
+    sub: ""
+    camera: *back
+    visuals: [*lakes, *la, *tyo, *glow, *plane]
 
-  - text: "So next time your flight tracker curves north… that's not a mistake."
+  - text: "it's not a mistake."
     kind: p
-    dur: 4.90
-    claim: "That curve is\nnot a *MISTAKE*"
-    sub: "The tracker has it right"
-    camera: {proj: merc, lon: -157, lat: 42, span: 172}
+    dur: 1.15
+    claim: "it's not a mistake."
+    sub: ""
+    camera: *back
     visuals:
-      - {type: marker, lat: 33.9425, lon: -118.4081, label: "LA"}
-      - {type: marker, lat: 35.7720, lon: 140.3929, label: "TOKYO"}
-      - {type: route, mode: great, style: solid, a: *lax, b: *nrt}
+      - *lakes
+      - *la
+      - *tyo
+      - *glow
+      - *plane
+      - {type: callout, text: "NOT A MISTAKE", x: 0.50, y: 0.255, pill: red, size: 48, at: 23.05, band: top}

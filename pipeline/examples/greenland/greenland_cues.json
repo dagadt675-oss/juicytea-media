@@ -1,0 +1,327 @@
+{
+  "id": "greenland_africa",
+  "take": "chris_f0+seg_a112",
+  "take_duration": 45.227,
+  "picture_duration": 45.233,
+  "fps": 30,
+  "frames": 1357,
+  "loop_tail": [
+    45.027,
+    45.2
+  ],
+  "audio_targets": {
+    "voice_wpm": 185,
+    "music_under_voice_db": 21,
+    "lufs": -14,
+    "lra": 2,
+    "true_peak_dbtp": -1,
+    "note": "Silent picture. These are the mix targets for the voice pass."
+  },
+  "cues": [
+    {
+      "t": 0.08,
+      "kind": "whoosh",
+      "name": "open"
+    },
+    {
+      "t": 0.937,
+      "kind": "draw",
+      "name": "greenland"
+    },
+    {
+      "t": 1.552,
+      "kind": "pop",
+      "name": "same-size"
+    },
+    {
+      "t": 1.842,
+      "kind": "pop",
+      "name": "africa"
+    },
+    {
+      "t": 2.5,
+      "kind": "whoosh",
+      "name": "globe-snap"
+    },
+    {
+      "t": 2.643,
+      "kind": "stamp",
+      "name": "not"
+    },
+    {
+      "t": 2.783,
+      "kind": "draw",
+      "name": "algeria-outline"
+    },
+    {
+      "t": 3.607,
+      "kind": "pop",
+      "name": "algeria"
+    },
+    {
+      "t": 4.442,
+      "kind": "boing",
+      "name": "excuse-me"
+    },
+    {
+      "t": 5.322,
+      "kind": "whoosh",
+      "name": "heres-the-trick"
+    },
+    {
+      "t": 6.877,
+      "kind": "draw",
+      "name": "round-earth"
+    },
+    {
+      "t": 8.003,
+      "kind": "draw",
+      "name": "stretches"
+    },
+    {
+      "t": 8.944,
+      "kind": "tick",
+      "name": "more"
+    },
+    {
+      "t": 9.815,
+      "kind": "pop",
+      "name": "poles"
+    },
+    {
+      "t": 11.46,
+      "kind": "tick",
+      "name": "snap-punch"
+    },
+    {
+      "t": 11.579,
+      "kind": "pop",
+      "name": "greenland-sits"
+    },
+    {
+      "t": 12.705,
+      "kind": "impact",
+      "name": "sixteen"
+    },
+    {
+      "t": 13.623,
+      "kind": "tick",
+      "name": "too-big"
+    },
+    {
+      "t": 14.83,
+      "kind": "whoosh",
+      "name": "drag"
+    },
+    {
+      "t": 15.945,
+      "kind": "draw",
+      "name": "equator"
+    },
+    {
+      "t": 17.477,
+      "kind": "tick",
+      "name": "truth"
+    },
+    {
+      "t": 18.395,
+      "kind": "tick",
+      "name": "shrink-1"
+    },
+    {
+      "t": 19.358,
+      "kind": "tick",
+      "name": "shrink-2"
+    },
+    {
+      "t": 20.252,
+      "kind": "tick",
+      "name": "shrink-3"
+    },
+    {
+      "t": 21.063,
+      "kind": "boing",
+      "name": "wait-what"
+    },
+    {
+      "t": 22.553,
+      "kind": "thud",
+      "name": "land-thud"
+    },
+    {
+      "t": 23.073,
+      "kind": "tick",
+      "name": "fourteen-1"
+    },
+    {
+      "t": 23.273,
+      "kind": "tick",
+      "name": "fourteen-2"
+    },
+    {
+      "t": 23.46,
+      "kind": "tick",
+      "name": "fourteen-3"
+    },
+    {
+      "t": 23.634,
+      "kind": "tick",
+      "name": "fourteen-4"
+    },
+    {
+      "t": 23.796,
+      "kind": "tick",
+      "name": "fourteen-5"
+    },
+    {
+      "t": 23.894,
+      "kind": "pop",
+      "name": "dust"
+    },
+    {
+      "t": 23.944,
+      "kind": "tick",
+      "name": "fourteen-6"
+    },
+    {
+      "t": 24.08,
+      "kind": "tick",
+      "name": "fourteen-7"
+    },
+    {
+      "t": 24.203,
+      "kind": "tick",
+      "name": "fourteen-8"
+    },
+    {
+      "t": 24.313,
+      "kind": "tick",
+      "name": "fourteen-9"
+    },
+    {
+      "t": 24.41,
+      "kind": "tick",
+      "name": "fourteen-10"
+    },
+    {
+      "t": 24.494,
+      "kind": "tick",
+      "name": "fourteen-11"
+    },
+    {
+      "t": 24.566,
+      "kind": "tick",
+      "name": "fourteen-12"
+    },
+    {
+      "t": 24.624,
+      "kind": "tick",
+      "name": "fourteen-13"
+    },
+    {
+      "t": 24.67,
+      "kind": "pop",
+      "name": "fourteen"
+    },
+    {
+      "t": 25.594,
+      "kind": "tick",
+      "name": "tiles"
+    },
+    {
+      "t": 26.816,
+      "kind": "pop",
+      "name": "algeria-again"
+    },
+    {
+      "t": 27.647,
+      "kind": "tick",
+      "name": "bigger-than"
+    },
+    {
+      "t": 27.838,
+      "kind": "tick",
+      "name": "than-greenland"
+    },
+    {
+      "t": 29.0,
+      "kind": "tick",
+      "name": "so-is-congo"
+    },
+    {
+      "t": 29.904,
+      "kind": "pop",
+      "name": "dr-congo"
+    },
+    {
+      "t": 30.784,
+      "kind": "boing",
+      "name": "hi-tiny"
+    },
+    {
+      "t": 32.419,
+      "kind": "pop",
+      "name": "usa"
+    },
+    {
+      "t": 33.079,
+      "kind": "pop",
+      "name": "china"
+    },
+    {
+      "t": 33.595,
+      "kind": "pop",
+      "name": "india"
+    },
+    {
+      "t": 34.733,
+      "kind": "pop",
+      "name": "europe"
+    },
+    {
+      "t": 35.767,
+      "kind": "tick",
+      "name": "together"
+    },
+    {
+      "t": 37.296,
+      "kind": "pop",
+      "name": "still-bigger"
+    },
+    {
+      "t": 38.763,
+      "kind": "pop",
+      "name": "room-to-spare"
+    },
+    {
+      "t": 40.043,
+      "kind": "whoosh",
+      "name": "outro"
+    },
+    {
+      "t": 41.923,
+      "kind": "tick",
+      "name": "this-map"
+    },
+    {
+      "t": 43.088,
+      "kind": "tick",
+      "name": "inflate"
+    },
+    {
+      "t": 43.32,
+      "kind": "whoosh",
+      "name": "not-huge"
+    },
+    {
+      "t": 44.697,
+      "kind": "pop",
+      "name": "lying"
+    },
+    {
+      "t": 45.027,
+      "kind": "whoosh",
+      "name": "loop-tail"
+    }
+  ]
+}

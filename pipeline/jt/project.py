@@ -53,8 +53,10 @@ def resolve(proj: str, lon: float, lat: float, span: float, w: int, h: int,
     if proj == "ortho":
         r = ortho_radius(span, w)
         return Resolved(proj, lon, lat, span, 0.47 * w, 0.46 * h, r, None, whip_dark)
-    x0, x1 = int(0.04 * w), int(0.96 * w)
-    y0, y1 = int(0.305 * h), int(0.615 * h)
+    # Full-bleed, matching the gold Short: land runs to the frame edges.
+    # Karaoke still owns y 0.64–0.72, but that is a label exclusion, not a hole.
+    x0, x1 = 0, int(w)
+    y0, y1 = 0, int(h)
     cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
     return Resolved(proj, lon, lat, span, cx, cy, 0.0, (x0, y0, x1, y1), whip_dark)
 
@@ -84,8 +86,8 @@ def project_points(lon, lat, view: Resolved):
     if view.proj == "merc":
         x0, y0, x1, y1 = view.rect
         scale = (x1 - x0) / max(view.span, 1.0)
-        lat_c = np.clip(lat, -80, 80)
-        lat0 = float(np.clip(view.lat, -80, 80))
+        lat_c = np.clip(lat, -89, 89)
+        lat0 = float(np.clip(view.lat, -89, 89))
         merc = np.degrees(np.log(np.tan(np.pi / 4 + np.radians(lat_c) / 2)))
         merc0 = math.degrees(math.log(math.tan(math.pi / 4 + math.radians(lat0) / 2)))
         # Shortest longitude offset, so a Pacific view can hold both 140°E and 118°W.
@@ -195,6 +197,20 @@ def _rhumb_lonlat(lat1: float, lon1: float, lat2: float, lon2: float, n: int):
         lam = lam1 + dlam * t
         lon = (math.degrees(lam) + 180.0) % 360.0 - 180.0
         pts.append((lon, math.degrees(phi)))
+    return pts
+
+
+def route_blend(lat1: float, lon1: float, lat2: float, lon2: float, u: float, n: int = 181):
+    """u=0 is the Mercator rhumb. u=1 is the great circle. Latitude rises as u grows."""
+    u = max(0.0, min(1.0, float(u)))
+    rhumb = route_lonlat("rhumb", lat1, lon1, lat2, lon2, n)
+    great = route_lonlat("great", lat1, lon1, lat2, lon2, n)
+    pts = []
+    for (lon_a, lat_a), (lon_b, lat_b) in zip(rhumb, great):
+        dlon = (lon_b - lon_a + 180.0) % 360.0 - 180.0
+        lon = (lon_a + u * dlon + 180.0) % 360.0 - 180.0
+        lat = (1.0 - u) * lat_a + u * lat_b
+        pts.append((lon, lat))
     return pts
 
 

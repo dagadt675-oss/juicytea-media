@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from jt.captions import active_index, groups_for, switch_error  # noqa: E402
 from jt.project import laea_forward, laea_inverse, project_one, project_points, resolve, route_lonlat  # noqa: E402
+from jt.render import _reversals, direction_changes  # noqa: E402
 from jt.spec import load_spec, pause_problems, silent_timeline  # noqa: E402
 
 
@@ -78,14 +79,66 @@ def main() -> int:
 
     route = load_spec(Path(__file__).resolve().parent / "specs" / "lax_tokyo.yaml")
     clock = silent_timeline(route)
+    starts = [ln["start"] for ln in clock["beats"]]
+    want_starts = [0.03, 3.93, 7.24, 8.14, 10.81, 14.28, 20.25, 23.05]
     ok &= check("eight silent beats", len(clock["beats"]) == 8 and clock["words"] == [], str(len(clock["beats"])))
-    ok &= check("silent length", 22.0 <= clock["duration"] <= 24.0, str(clock["duration"]))
+    ok &= check("voice length", abs(clock["duration"] - 24.2) < 0.02, str(clock["duration"]))
+    ok &= check("sentence starts", starts == want_starts, str(starts))
     joined = " ".join(ln["say"] for ln in clock["beats"])
+    low = joined.lower()
     ok &= check(
-        "script kept",
-        joined.startswith("Why does a flight from LA to Tokyo") and "hundreds of kilometers" in joined
-        and "over Alaska" not in joined,
-        joined[:80],
+        "us script",
+        joined.startswith("Your flight from LA to Tokyo curves up toward Alaska.")
+        and "three hundred miles shorter" in low
+        and "great circle that bends north" in low
+        and "it's not a mistake" in low
+        and "over alaska" not in low
+        and "exactly the great circle" not in low
+        and "hundreds of kilometers" not in low,
+        joined[:90],
+    )
+    pills = []
+    for ln in route.lines:
+        for vis in ln.visuals:
+            if vis.get("type") in ("tag", "callout"):
+                pills.append(f"{vis.get('text', '')} {vis.get('sub', '')}".strip())
+    blob = " | ".join(pills)
+    ok &= check("lie pill", "YOUR MAP IS LYING" in blob, blob)
+    ok &= check("payoff pill", "≈300 MI SHORTER" in blob and "480 KM" in blob, blob)
+    ok &= check("no alaska overclaim", "OVER ALASKA" not in blob.upper() and "TOWARD ALASKA" not in blob.upper(), blob)
+    reveal = next(ln for ln in route.lines if "bends north" in ln.say)
+    modes = [v.get("mode") for v in reveal.visuals if v.get("type") == "route"]
+    morph = next(v for v in reveal.visuals if v.get("mode") == "morph")
+    ok &= check("arc lifts off the rhumb", modes == ["rhumb", "morph"], str(modes))
+    ok &= check(
+        "bend covers bends-north",
+        float(morph["bend_at"]) <= 19.114 <= float(morph["bend_end"])
+        and float(morph["bend_at"]) <= 19.415 <= float(morph["bend_end"]),
+        f"{morph['bend_at']}–{morph['bend_end']}",
+    )
+    payoff = next(v for v in route.lines[1].visuals if v.get("type") == "callout")
+    # "three" starts at 5.488 in words.json. The spring begins just before that.
+    ok &= check("pill lands on the miles", 5.20 <= float(payoff["at"]) <= 5.488, str(payoff["at"]))
+    opening_route = next(v for v in route.lines[0].visuals if v.get("type") == "route")
+    ok &= check("opening arc is already drawing", float(opening_route.get("from", 0)) >= 0.4)
+    from jt.loop_tail import tail_progress
+    samples = [tail_progress(23.85 + i * 0.03, 23.85, 24.1667) for i in range(12)]
+    ok &= check(
+        "loop tail is one direction",
+        samples[0] == 0.0 and samples[-1] == 1.0 and all(b >= a for a, b in zip(samples, samples[1:])),
+        str([round(s, 3) for s in samples]),
+    )
+    turns = direction_changes(route, clock, 1080, 1920)
+    ok &= check("no camera sway", turns == 0, str(turns))
+    alaska_clock = {"duration": 2.0 * len(spec.lines), "words": [],
+                    "lines": [{"start": 2.0 * i} for i in range(len(spec.lines))]}
+    alaska_turns = direction_changes(spec, alaska_clock, 1080, 1920)
+    ok &= check("alaska camera does not sway", alaska_turns <= 1, str(alaska_turns))
+    ok &= check("one ease is not a sway", _reversals([0, 1, 2, 3, 3], 0.02) <= 1)
+    ok &= check(
+        "oscillation fails the gate",
+        _reversals([0, 1, 2, 1, 0, 1], 0.02) > 1,
+        str(_reversals([0, 1, 2, 1, 0, 1], 0.02)),
     )
 
     print("SELFTEST", "PASS" if ok else "FAIL")

@@ -1,0 +1,727 @@
+{
+  "duration": 23.0,
+  "silent": true,
+  "captions_burned_in": false,
+  "caption_band": {
+    "y0": 0.64,
+    "y1": 0.72
+  },
+  "lead_in": 0.0,
+  "lines": [
+    {
+      "index": 0,
+      "text": "Wait...",
+      "say": "Wait...",
+      "kind": "q",
+      "start": 0.0,
+      "end": 1.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Wait...",
+        "sub": ""
+      },
+      "claim": "Wait...",
+      "sub": ""
+    },
+    {
+      "index": 1,
+      "text": "Further south",
+      "say": "Further south",
+      "kind": "s",
+      "start": 1.0,
+      "end": 2.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Further south",
+        "sub": ""
+      },
+      "claim": "Further south",
+      "sub": ""
+    },
+    {
+      "index": 2,
+      "text": "Than Chicago?!",
+      "say": "Than Chicago?!",
+      "kind": "s",
+      "start": 2.0,
+      "end": 3.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Than Chicago?!",
+        "sub": ""
+      },
+      "claim": "Than Chicago?!",
+      "sub": ""
+    },
+    {
+      "index": 3,
+      "text": "Middle Island",
+      "say": "Middle Island",
+      "kind": "s",
+      "start": 3.0,
+      "end": 4.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Middle Island",
+        "sub": ""
+      },
+      "claim": "Middle Island",
+      "sub": ""
+    },
+    {
+      "index": 4,
+      "text": "A tiny dot",
+      "say": "A tiny dot",
+      "kind": "s",
+      "start": 4.0,
+      "end": 5.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "A tiny dot",
+        "sub": ""
+      },
+      "claim": "A tiny dot",
+      "sub": ""
+    },
+    {
+      "index": 5,
+      "text": "In Lake Erie",
+      "say": "In Lake Erie",
+      "kind": "s",
+      "start": 5.0,
+      "end": 6.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "In Lake Erie",
+        "sub": ""
+      },
+      "claim": "In Lake Erie",
+      "sub": ""
+    },
+    {
+      "index": 6,
+      "text": "Southernmost",
+      "say": "Southernmost",
+      "kind": "s",
+      "start": 6.0,
+      "end": 7.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Southernmost",
+        "sub": ""
+      },
+      "claim": "Southernmost",
+      "sub": ""
+    },
+    {
+      "index": 7,
+      "text": "Point of Canada",
+      "say": "Point of Canada",
+      "kind": "s",
+      "start": 7.0,
+      "end": 8.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Point of Canada",
+        "sub": ""
+      },
+      "claim": "Point of Canada",
+      "sub": ""
+    },
+    {
+      "index": 8,
+      "text": "A line west",
+      "say": "A line west",
+      "kind": "s",
+      "start": 8.0,
+      "end": 9.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "A line west",
+        "sub": ""
+      },
+      "claim": "A line west",
+      "sub": ""
+    },
+    {
+      "index": 9,
+      "text": "It's south",
+      "say": "It's south",
+      "kind": "s",
+      "start": 9.0,
+      "end": 10.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "It's south",
+        "sub": ""
+      },
+      "claim": "It's south",
+      "sub": ""
+    },
+    {
+      "index": 10,
+      "text": "Of Chicago",
+      "say": "Of Chicago",
+      "kind": "s",
+      "start": 10.0,
+      "end": 11.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Of Chicago",
+        "sub": ""
+      },
+      "claim": "Of Chicago",
+      "sub": ""
+    },
+    {
+      "index": 11,
+      "text": "California's",
+      "say": "California's",
+      "kind": "s",
+      "start": 11.0,
+      "end": 12.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "California's",
+        "sub": ""
+      },
+      "claim": "California's",
+      "sub": ""
+    },
+    {
+      "index": 12,
+      "text": "Northern border",
+      "say": "Northern border",
+      "kind": "s",
+      "start": 12.0,
+      "end": 13.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Northern border",
+        "sub": ""
+      },
+      "claim": "Northern border",
+      "sub": ""
+    },
+    {
+      "index": 13,
+      "text": "Now go east",
+      "say": "Now go east",
+      "kind": "s",
+      "start": 13.0,
+      "end": 14.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Now go east",
+        "sub": ""
+      },
+      "claim": "Now go east",
+      "sub": ""
+    },
+    {
+      "index": 14,
+      "text": "The Atlantic",
+      "say": "The Atlantic",
+      "kind": "s",
+      "start": 14.0,
+      "end": 16.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "The Atlantic",
+        "sub": ""
+      },
+      "claim": "The Atlantic",
+      "sub": ""
+    },
+    {
+      "index": 15,
+      "text": "Of Rome",
+      "say": "Of Rome",
+      "kind": "s",
+      "start": 16.0,
+      "end": 17.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Of Rome",
+        "sub": ""
+      },
+      "claim": "Of Rome",
+      "sub": ""
+    },
+    {
+      "index": 16,
+      "text": "Rome,",
+      "say": "Rome,",
+      "kind": "s",
+      "start": 17.0,
+      "end": 18.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Rome,",
+        "sub": ""
+      },
+      "claim": "Rome,",
+      "sub": ""
+    },
+    {
+      "index": 17,
+      "text": "Italy!",
+      "say": "Italy!",
+      "kind": "s",
+      "start": 18.0,
+      "end": 19.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Italy!",
+        "sub": ""
+      },
+      "claim": "Italy!",
+      "sub": ""
+    },
+    {
+      "index": 18,
+      "text": "Someone says",
+      "say": "Someone says",
+      "kind": "s",
+      "start": 19.0,
+      "end": 20.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Someone says",
+        "sub": ""
+      },
+      "claim": "Someone says",
+      "sub": ""
+    },
+    {
+      "index": 19,
+      "text": "All snow",
+      "say": "All snow",
+      "kind": "s",
+      "start": 20.0,
+      "end": 21.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "All snow",
+        "sub": ""
+      },
+      "claim": "All snow",
+      "sub": ""
+    },
+    {
+      "index": 20,
+      "text": "And polar bears",
+      "say": "And polar bears",
+      "kind": "p",
+      "start": 21.0,
+      "end": 22.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "And polar bears",
+        "sub": ""
+      },
+      "claim": "And polar bears",
+      "sub": ""
+    },
+    {
+      "index": 21,
+      "text": "Just say...",
+      "say": "Just say...",
+      "kind": "p",
+      "start": 22.0,
+      "end": 23.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Just say...",
+        "sub": ""
+      },
+      "claim": "Just say...",
+      "sub": ""
+    }
+  ],
+  "beats": [
+    {
+      "index": 0,
+      "text": "Wait...",
+      "say": "Wait...",
+      "kind": "q",
+      "start": 0.0,
+      "end": 1.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Wait...",
+        "sub": ""
+      },
+      "claim": "Wait...",
+      "sub": ""
+    },
+    {
+      "index": 1,
+      "text": "Further south",
+      "say": "Further south",
+      "kind": "s",
+      "start": 1.0,
+      "end": 2.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Further south",
+        "sub": ""
+      },
+      "claim": "Further south",
+      "sub": ""
+    },
+    {
+      "index": 2,
+      "text": "Than Chicago?!",
+      "say": "Than Chicago?!",
+      "kind": "s",
+      "start": 2.0,
+      "end": 3.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Than Chicago?!",
+        "sub": ""
+      },
+      "claim": "Than Chicago?!",
+      "sub": ""
+    },
+    {
+      "index": 3,
+      "text": "Middle Island",
+      "say": "Middle Island",
+      "kind": "s",
+      "start": 3.0,
+      "end": 4.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Middle Island",
+        "sub": ""
+      },
+      "claim": "Middle Island",
+      "sub": ""
+    },
+    {
+      "index": 4,
+      "text": "A tiny dot",
+      "say": "A tiny dot",
+      "kind": "s",
+      "start": 4.0,
+      "end": 5.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "A tiny dot",
+        "sub": ""
+      },
+      "claim": "A tiny dot",
+      "sub": ""
+    },
+    {
+      "index": 5,
+      "text": "In Lake Erie",
+      "say": "In Lake Erie",
+      "kind": "s",
+      "start": 5.0,
+      "end": 6.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "In Lake Erie",
+        "sub": ""
+      },
+      "claim": "In Lake Erie",
+      "sub": ""
+    },
+    {
+      "index": 6,
+      "text": "Southernmost",
+      "say": "Southernmost",
+      "kind": "s",
+      "start": 6.0,
+      "end": 7.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Southernmost",
+        "sub": ""
+      },
+      "claim": "Southernmost",
+      "sub": ""
+    },
+    {
+      "index": 7,
+      "text": "Point of Canada",
+      "say": "Point of Canada",
+      "kind": "s",
+      "start": 7.0,
+      "end": 8.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Point of Canada",
+        "sub": ""
+      },
+      "claim": "Point of Canada",
+      "sub": ""
+    },
+    {
+      "index": 8,
+      "text": "A line west",
+      "say": "A line west",
+      "kind": "s",
+      "start": 8.0,
+      "end": 9.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "A line west",
+        "sub": ""
+      },
+      "claim": "A line west",
+      "sub": ""
+    },
+    {
+      "index": 9,
+      "text": "It's south",
+      "say": "It's south",
+      "kind": "s",
+      "start": 9.0,
+      "end": 10.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "It's south",
+        "sub": ""
+      },
+      "claim": "It's south",
+      "sub": ""
+    },
+    {
+      "index": 10,
+      "text": "Of Chicago",
+      "say": "Of Chicago",
+      "kind": "s",
+      "start": 10.0,
+      "end": 11.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Of Chicago",
+        "sub": ""
+      },
+      "claim": "Of Chicago",
+      "sub": ""
+    },
+    {
+      "index": 11,
+      "text": "California's",
+      "say": "California's",
+      "kind": "s",
+      "start": 11.0,
+      "end": 12.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "California's",
+        "sub": ""
+      },
+      "claim": "California's",
+      "sub": ""
+    },
+    {
+      "index": 12,
+      "text": "Northern border",
+      "say": "Northern border",
+      "kind": "s",
+      "start": 12.0,
+      "end": 13.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Northern border",
+        "sub": ""
+      },
+      "claim": "Northern border",
+      "sub": ""
+    },
+    {
+      "index": 13,
+      "text": "Now go east",
+      "say": "Now go east",
+      "kind": "s",
+      "start": 13.0,
+      "end": 14.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Now go east",
+        "sub": ""
+      },
+      "claim": "Now go east",
+      "sub": ""
+    },
+    {
+      "index": 14,
+      "text": "The Atlantic",
+      "say": "The Atlantic",
+      "kind": "s",
+      "start": 14.0,
+      "end": 16.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "The Atlantic",
+        "sub": ""
+      },
+      "claim": "The Atlantic",
+      "sub": ""
+    },
+    {
+      "index": 15,
+      "text": "Of Rome",
+      "say": "Of Rome",
+      "kind": "s",
+      "start": 16.0,
+      "end": 17.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Of Rome",
+        "sub": ""
+      },
+      "claim": "Of Rome",
+      "sub": ""
+    },
+    {
+      "index": 16,
+      "text": "Rome,",
+      "say": "Rome,",
+      "kind": "s",
+      "start": 17.0,
+      "end": 18.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Rome,",
+        "sub": ""
+      },
+      "claim": "Rome,",
+      "sub": ""
+    },
+    {
+      "index": 17,
+      "text": "Italy!",
+      "say": "Italy!",
+      "kind": "s",
+      "start": 18.0,
+      "end": 19.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Italy!",
+        "sub": ""
+      },
+      "claim": "Italy!",
+      "sub": ""
+    },
+    {
+      "index": 18,
+      "text": "Someone says",
+      "say": "Someone says",
+      "kind": "s",
+      "start": 19.0,
+      "end": 20.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Someone says",
+        "sub": ""
+      },
+      "claim": "Someone says",
+      "sub": ""
+    },
+    {
+      "index": 19,
+      "text": "All snow",
+      "say": "All snow",
+      "kind": "s",
+      "start": 20.0,
+      "end": 21.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "All snow",
+        "sub": ""
+      },
+      "claim": "All snow",
+      "sub": ""
+    },
+    {
+      "index": 20,
+      "text": "And polar bears",
+      "say": "And polar bears",
+      "kind": "p",
+      "start": 21.0,
+      "end": 22.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "And polar bears",
+        "sub": ""
+      },
+      "claim": "And polar bears",
+      "sub": ""
+    },
+    {
+      "index": 21,
+      "text": "Just say...",
+      "say": "Just say...",
+      "kind": "p",
+      "start": 22.0,
+      "end": 23.0,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Just say...",
+        "sub": ""
+      },
+      "claim": "Just say...",
+      "sub": ""
+    }
+  ],
+  "words": [],
+  "sample_rate": null,
+  "voice": "none",
+  "id": "canada_rome",
+  "title": "Part of Canada Is Further South Than Chicago?",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "note": "No audio and no burned-in karaoke. Fit an ElevenLabs read to beats[].say locally. Leave y 0.64\u20130.72 of the height empty for captions."
+}

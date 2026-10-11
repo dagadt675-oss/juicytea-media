@@ -3,30 +3,30 @@
 from __future__ import annotations
 
 # Text colours. Anything else drawn on the map must not look like these.
-YELLOW = (255, 214, 10, 255)
-WHITE = (244, 247, 251, 255)
+YELLOW = (254, 212, 10, 255)
+WHITE = (255, 255, 255, 255)
 SUB = (186, 198, 214, 255)
-# Title accent. Matches the flat-map Shorts: the stressed word is neon red.
-NEON = (228, 32, 72, 255)
+# Title accent. Canada on the gold Short is this red.
+NEON = (232, 34, 71, 255)
 
 # Default is the flat political map: navy field, muted land, one neon country.
 # No relief. "flat" tells the renderer to skip shade, lighting and the globe limb.
 THEMES = {
     "midnight": {
         "flat": True,
-        "bg0": (7, 16, 42),
-        "bg1": (7, 16, 42),
-        "ocean": (7, 16, 42),
-        "ocean2": (7, 16, 42),
-        "land": (46, 70, 114),
-        "hi": (228, 32, 72),
+        "bg0": (8, 8, 24),
+        "bg1": (8, 8, 24),
+        "ocean": (8, 8, 24),
+        "ocean2": (8, 8, 24),
+        "land": (40, 48, 72),
+        "hi": (232, 34, 71),
         "hi2": (186, 36, 96),
-        "rim": (228, 32, 72),
-        "line": (228, 32, 72),
-        "marker": (228, 32, 72),
-        "coast": (6, 12, 32),
-        "paper": (248, 248, 252),
-        "ink": (196, 22, 58),
+        "rim": (232, 34, 71),
+        "line": (232, 34, 71),
+        "marker": (255, 255, 255),
+        "coast": (168, 184, 204),
+        "paper": (248, 248, 248),
+        "ink": (18, 18, 22),
     },
     "dusk": {
         "flat": True,
