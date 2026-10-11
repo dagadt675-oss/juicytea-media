@@ -158,7 +158,13 @@ class Episode:
             mode = b.get("mode", "map")
         if a.get("mode") != b.get("mode") and 0.42 < span_t <= 0.72:
             mode = "mix"
-        return Cam(a.get("proj", "merc"), lon, lat, max(4.0, span)), mode
+        cam = Cam(a.get("proj", "merc"), lon, lat, max(4.0, span))
+        for t0, dlon in ((1.70, 3.2), (9.00, -2.6)):
+            age = t - t0
+            if 0.0 <= age <= 0.28:
+                s = math.sin(math.pi * age / 0.28)
+                cam = Cam(cam.proj, cam.lon + dlon * s, cam.lat + 1.4 * s, cam.span * (1.0 - 0.14 * s))
+        return cam, mode
 
     def cam_at(self, t: float) -> tuple[Cam, str]:
         """Camera and a mode: map, island, or mix. The tail leads into frame 0."""
@@ -289,8 +295,8 @@ class Episode:
             if 0.0 <= age <= 0.22:
                 kick = max(kick, math.sin(math.pi * age / 0.22))
         s = 4.05 + 0.7 * kick
-        ox = 540.0 + 220.0 * math.sin(t * 2.2)
-        oy = 1000.0 + 150.0 * math.sin(t * 1.8)
+        ox = 540.0 + 260.0 * math.sin(t * 2.6)
+        oy = 1000.0 + 180.0 * math.sin(t * 2.1)
 
         def pt(x, y):
             return ox + x * s, oy - y * s
