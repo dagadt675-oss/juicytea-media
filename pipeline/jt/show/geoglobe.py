@@ -279,8 +279,16 @@ class Episode:
         canvas = surface.getCanvas()
         canvas.clear(skia.ColorSetARGB(255, 14, 48, 92))
         # A flat sea so the snap does not swap in a blurry satellite texture.
-        s = 1.55 + 0.04 * math.sin(t * 1.3)
-        ox, oy = 500.0, 980.0
+        # The island fills the frame, and each beat kicks the scale so the
+        # close-up is not a still life on a flat field.
+        kick = 0.0
+        for hit in (10.2, 11.0, 12.25, 13.35, 14.85, 16.05, 17.7, 19.15):
+            age = t - hit
+            if 0.0 <= age <= 0.22:
+                kick = max(kick, math.sin(math.pi * age / 0.22))
+        s = 2.85 + 0.22 * kick + 0.08 * math.sin(t * 1.6)
+        ox = 520.0 + 36.0 * math.sin(t * 0.9)
+        oy = 960.0 + 28.0 * math.sin(t * 0.7)
 
         def pt(x, y):
             return ox + x * s, oy - y * s
@@ -365,7 +373,7 @@ class Episode:
             pop = landmark_pop(t, 10.85 + i * 0.18, 0.45)
             if pop <= 0.02:
                 continue
-            _question(canvas, x, y - 20 * (1 - pop), 54 * (0.4 + 0.6 * pop))
+            _question(canvas, x, y - 20 * (1 - pop), 92 * (0.45 + 0.55 * pop))
 
     def _pencil(self, canvas, pt, u: float) -> None:
         if u <= 0.01:
