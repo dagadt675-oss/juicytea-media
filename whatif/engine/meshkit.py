@@ -360,9 +360,9 @@ def make_facade_material():
         inside = _math(nt, "MULTIPLY", inside, _math(nt, "LESS_THAN", wrapped, period - margin))
         return inside
 
-    x_pane = pane(axes.outputs["X"], 2.05, 0.22)
-    y_pane = pane(axes.outputs["Y"], 2.05, 0.22)
-    z_pane = pane(axes.outputs["Z"], 2.35, 0.28)
+    x_pane = pane(axes.outputs["X"], 1.45, 0.34)
+    y_pane = pane(axes.outputs["Y"], 1.45, 0.34)
+    z_pane = pane(axes.outputs["Z"], 1.55, 0.38)
     window = _math(
         nt,
         "MAXIMUM",
@@ -386,9 +386,10 @@ def make_facade_material():
     color = _mix(nt, ivy, color, lin(0.16, 0.32, 0.14))
     cam = nt.nodes.new("ShaderNodeCameraData")
     # Far towers go lighter and bluer. The close window-grid test stays under the start distance.
-    haze = _math(nt, "DIVIDE", _math(nt, "SUBTRACT", cam.outputs["View Distance"], 170.0), 420.0)
-    haze = _math(nt, "MINIMUM", _math(nt, "MAXIMUM", haze, 0.0), 0.16)
-    color = _mix(nt, haze, color, lin(0.74, 0.80, 0.86))
+    # Strong distance fog so the back skyline goes light blue-grey and the title can sit on it.
+    haze = _math(nt, "DIVIDE", _math(nt, "SUBTRACT", cam.outputs["View Distance"], 90.0), 220.0)
+    haze = _math(nt, "MINIMUM", _math(nt, "MAXIMUM", haze, 0.0), 0.72)
+    color = _mix(nt, haze, color, lin(0.78, 0.84, 0.90))
     night = channel_value(nt, ("day_night",), "clamp((day_night - 0.48) / 0.2, 0, 1)")
     power = channel_value(nt, ("power",), "power")
     lit = _math(nt, "GREATER_THAN", ivy_noise.outputs["Fac"], 0.42)

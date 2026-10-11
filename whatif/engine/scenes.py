@@ -351,12 +351,12 @@ def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None, ki
         (0.55, 0.28, 0.12, 1),
     )
     greens = (
-        (0.30, 0.58, 0.20, 1),
-        (0.42, 0.66, 0.24, 1),
-        (0.22, 0.48, 0.16, 1),
+        (0.10, 0.40, 0.12, 1),
+        (0.13, 0.46, 0.13, 1),
+        (0.17, 0.42, 0.11, 1),
     )
-    if rng.random() < 0.22:
-        leaf = (0.76, 0.78, 0.26, 1)
+    if rng.random() < 0.15:
+        leaf = (0.34, 0.46, 0.12, 1)
     else:
         leaf = greens[rng.randrange(len(greens))]
     height = max(8.5, scale * 2.9) * rng.uniform(0.85, 1.2)
@@ -370,17 +370,17 @@ def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None, ki
     kit.add(trunk, "tree_trunk", future=future, delay=delay, sink=False)
 
     bm = bmesh.new()
-    count = 4 if kind == "pine" else rng.randint(3, 6)
-    blobs = [(0.0, 0.0, trunk_h + height * 0.16, height * (0.22 if kind == "pine" else 0.30))]
+    count = 5 if kind == "pine" else rng.randint(4, 5)
+    blobs = [(0.0, 0.0, trunk_h + height * 0.28, height * 0.22)]
     for i in range(count - 1):
-        ang = rng.uniform(0.0, math.tau)
-        rad = height * rng.uniform(0.05, 0.18)
+        ang = (i / (count - 1)) * math.tau + rng.uniform(-0.25, 0.25)
+        rad = height * rng.uniform(0.16, 0.26)
         blobs.append(
             (
                 math.cos(ang) * rad,
                 math.sin(ang) * rad,
-                trunk_h + height * rng.uniform(0.02, 0.34),
-                height * rng.uniform(0.14, 0.26),
+                trunk_h + height * rng.uniform(0.10, 0.32),
+                height * rng.uniform(0.13, 0.20),
             )
         )
     seed = Vector((rng.uniform(0, 20), rng.uniform(0, 20), rng.uniform(0, 20)))
@@ -623,7 +623,7 @@ def build_river_city(kit, mats, rng, pieces):
     # Colors and heights live in city_layout so a pass cannot quietly drop them.
     colors = SKYLINE_COLORS
     # Back rows read lighter and bluer, the way distance washes the reference skyline.
-    haze = ((0.0, 0.0, 0.02), (0.05, 0.06, 0.09), (0.10, 0.12, 0.16))
+    haze = ((0.04, 0.06, 0.08), (0.12, 0.14, 0.18), (0.22, 0.24, 0.26))
     fall_i = 0
     rows = SKYLINE_ROWS
     for row, (y, hmin, hmax, x0, x1, wr) in enumerate(rows):
@@ -664,7 +664,7 @@ def build_river_city(kit, mats, rng, pieces):
                 obj.location = (x, y + (row % 2) * 1.5, FAR_Z)
                 obj.color = color
                 kit.add(obj, "building_base", sink=True, fall_at=None)
-            x += w + rng.uniform(0.4, 1.8)
+            x += w + rng.uniform(4.5, 9.5)
 
     if "power" in pieces:
         _power_plant(kit, col_c, mats, -70.0, 280.0, FAR_Z)
@@ -991,8 +991,8 @@ def _bridge(kit, col, cars, mats, rng):
 
 
 def _tower_portal(coll, mats, pivot, height, width):
-    leg_w = max(1.8, width * 0.075)
-    leg_d = leg_w * 1.2
+    leg_w = max(3.1, width * 0.26)
+    leg_d = leg_w * 1.15
 
     def leg(side):
         obj = box_object("leg", coll, (0, 0, 0), (leg_w, leg_d, height), mats["bridge"])
@@ -1001,20 +1001,21 @@ def _tower_portal(coll, mats, pivot, height, width):
         obj.location = (side * width / 2, 0, height / 2)
     leg(-1)
     leg(1)
-    beam_h = max(1.2, height * 0.018)
-    # One cross-beam. No diagonal bracing.
-    beam = box_object("beam", coll, (0, 0, 0), (width, leg_d * 0.75, beam_h), mats["bridge"])
-    beam.parent = pivot
-    beam.matrix_parent_inverse = Matrix.Identity(4)
-    beam.location = (0, 0, height * 0.55)
-    cap = box_object("cap", coll, (0, 0, 0), (width + leg_w, leg_d * 1.3, beam_h * 1.2), mats["bridge"])
+    beam_h = max(1.35, height * 0.028)
+    # Three cross-beams. The cap stays at the solved tower-top height.
+    for frac in (0.40, 0.68):
+        beam = box_object("beam", coll, (0, 0, 0), (width + leg_w * 0.2, leg_d * 0.85, beam_h), mats["bridge"])
+        beam.parent = pivot
+        beam.matrix_parent_inverse = Matrix.Identity(4)
+        beam.location = (0, 0, height * frac)
+    cap = box_object("cap", coll, (0, 0, 0), (width + leg_w, leg_d * 1.35, beam_h * 1.35), mats["bridge"])
     cap.parent = pivot
     cap.matrix_parent_inverse = Matrix.Identity(4)
-    cap.location = (0, 0, height + beam_h)
-    saddle = box_object("saddle", coll, (0, 0, 0), (width * 0.7, leg_d * 0.6, beam_h), mats["bridge"])
+    cap.location = (0, 0, height + beam_h * 0.2)
+    saddle = box_object("saddle", coll, (0, 0, 0), (width * 0.72, leg_d * 0.7, beam_h * 0.7), mats["bridge"])
     saddle.parent = pivot
     saddle.matrix_parent_inverse = Matrix.Identity(4)
-    saddle.location = (0, 0, height + beam_h * 2.2)
+    saddle.location = (0, 0, height + beam_h * 0.9)
 
 
 def build_coast(kit, mats, rng, with_city):

@@ -50,9 +50,9 @@ SKYLINE_COLORS = (
 # Front row base is the solved skyline line (world y=168). Back row is tall
 # enough to leave the top of the frame.
 SKYLINE_ROWS = (
-    (172.0, 22.0, 62.0, -150.0, 190.0, (6.0, 11.0)),
-    (198.0, 40.0, 88.0, -160.0, 200.0, (5.5, 10.0)),
-    (228.0, 70.0, 120.0, -140.0, 190.0, (5.0, 9.0)),
+    (172.0, 22.0, 58.0, -150.0, 190.0, (4.2, 7.2)),
+    (198.0, 36.0, 82.0, -160.0, 200.0, (3.8, 6.4)),
+    (228.0, 64.0, 118.0, -140.0, 190.0, (3.4, 5.8)),
 )
 
 # Park paths. Cars must not sit on these.

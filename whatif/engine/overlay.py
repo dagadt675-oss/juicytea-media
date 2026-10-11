@@ -152,6 +152,8 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
         gap = int(title_size * 1.05)
         block_h = gap * (len(lines) - 1)
         y -= block_h // 2
+        # Soft dark scrim so the title stays readable over the towers.
+        _title_scrim(img, width / 2, y + block_h / 2, width * 0.46, gap * len(lines) * 0.85, a)
         for line in lines:
             _shadow_text(
                 img,
@@ -237,6 +239,16 @@ def _draw_hud(img, hud, width, height):
             radius=8,
             opacity=40,
         )
+
+
+def _title_scrim(img: Image.Image, cx: float, cy: float, rx: float, ry: float, alpha: float) -> None:
+    layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(layer)
+    draw.ellipse(
+        (cx - rx, cy - ry, cx + rx, cy + ry),
+        fill=(6, 10, 18, int(150 * alpha)),
+    )
+    img.alpha_composite(layer.filter(ImageFilter.GaussianBlur(radius=max(18, int(img.size[0] * 0.028)))))
 
 
 def _wrap_title(title: str) -> list[str]:
