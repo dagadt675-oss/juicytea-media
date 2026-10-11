@@ -165,10 +165,12 @@ class Episode:
         if t >= self.tail0:
             opening, _mode = self._keyed(0.0)
             nxt, _nmode = self._keyed(1.0 / self.fps)
-            u = _smooth(_window(t, self.tail0, self.duration - 1.0 / self.fps))
-            # At the last frame, u is 1 and the span is one opening step short of frame 0.
-            span = opening.span + (opening.span - nxt.span) * (2.0 - u)
-            return Cam(opening.proj, opening.lon, opening.lat, max(4.0, span)), "map"
+            u = ease_out(_window(t, self.tail0, self.duration - 1.0 / self.fps))
+            # A real pull-in from a wider globe. The last frame is one opening step short.
+            end_span = opening.span + (opening.span - nxt.span)
+            span = opening.span * 1.45 + (end_span - opening.span * 1.45) * u
+            lon = opening.lon + 8.0 * (1.0 - u)
+            return Cam(opening.proj, lon, opening.lat, max(4.0, span)), "map"
         return self._keyed(min(t, self.tail0))
 
     def blur_at(self, t: float) -> float:
@@ -286,9 +288,9 @@ class Episode:
             age = t - hit
             if 0.0 <= age <= 0.22:
                 kick = max(kick, math.sin(math.pi * age / 0.22))
-        s = 2.85 + 0.22 * kick + 0.08 * math.sin(t * 1.6)
-        ox = 520.0 + 36.0 * math.sin(t * 0.9)
-        oy = 960.0 + 28.0 * math.sin(t * 0.7)
+        s = 4.05 + 0.7 * kick
+        ox = 540.0 + 170.0 * math.sin(t * 1.5)
+        oy = 1020.0 + 110.0 * math.sin(t * 1.15)
 
         def pt(x, y):
             return ox + x * s, oy - y * s
