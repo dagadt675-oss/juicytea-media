@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 
 import yaml
 
+from engine.landmarks import MAN
 from ui.outlines import OUTLINES, outline
 from ui.words import voice_clock
 
@@ -180,8 +181,9 @@ _ESB_CORNERS = (
     (250.0, 36.0, 32.0),
     (180.0, 40.0, 34.0),
     (110.0, 48.0, 36.0),
-    (60.0, 56.0, 38.0),
-    (0.0, 62.0, 46.0),
+    (80.0, 30.0, 62.0),
+    (20.0, 32.0, 65.0),
+    (0.0, 33.2, 67.0),
 )
 
 # Solid shaft the camera is not allowed to enter. Slightly inside the
@@ -193,7 +195,7 @@ _SHAFT_BANDS = (
     (330.0, 280.0, -34.0, 34.0, -32.0, 33.0),
     (280.0, 160.0, -40.0, 40.0, -36.0, 35.0),
     (160.0, 90.0, -48.0, 50.0, -38.0, 37.0),
-    (90.0, 0.0, -76.0, 54.0, -36.0, 36.0),
+    (90.0, 0.0, -28.5, 28.5, -64.5, 64.5),
 )
 
 
@@ -255,10 +257,11 @@ def _penny(raw: dict) -> BEpisode:
         (21.0, 240.0),
         (26.0, 90.0),
         (31.0, 18.0),
-        (33.4, 4.0),
-        (34.3, 0.2),
-        (34.7, 1.15),
-        (35.3, 0.15),
+        (33.05, 8.0),
+        (33.42, 5.6),
+        (33.75, 8.4),
+        (34.35, 3.2),
+        (34.9, 0.4),
         (36.1, 0.15),
         (36.25, 1250.0),
         (40.0, 1250.0),
@@ -336,8 +339,22 @@ def _penny(raw: dict) -> BEpisode:
         else:
             xy = _penny_xy(z_vis)
             penny = (xy[0], xy[1], z_vis + 0.08)
-        hook_cam = (ledge_penny[0] + 2.4, ledge_penny[1] + 2.6, ledge_penny[2] + 1.8)
-        hook_tgt = (ledge_penny[0] - 16.0, ledge_penny[1] - 12.0, ledge_penny[2] - 48.0)
+            if 33.05 <= t < 36.15:
+                # Steer onto the man's head, then hop off to the side.
+                if t < 33.42:
+                    u = _fade(t, 33.05, 33.42)
+                    penny = (
+                        penny[0] + (MAN[0] - penny[0]) * u,
+                        penny[1] + (MAN[1] - penny[1]) * u,
+                        penny[2],
+                    )
+                else:
+                    hop = _fade(t, 33.42, 34.05)
+                    penny = (MAN[0] + 0.85 * hop, MAN[1] - 0.55 * hop, penny[2])
+        # On the ledge with the coin, looking past it to the street.
+        # Longer lens and a milder downward angle so the shaft reads vertical.
+        hook_cam = (ledge_penny[0] + 7.5, ledge_penny[1] + 5.5, ledge_penny[2] + 3.4)
+        hook_tgt = (ledge_penny[0] - 2.0, ledge_penny[1] - 1.5, ledge_penny[2] - 36.0)
         # Just south of the coin, looking north down the street.
         chase_cam = (penny[0] + 0.05, penny[1] - 0.78, penny[2] + 0.62)
         chase_tgt = (penny[0] - 1.2, penny[1] + 34.0, penny[2] - 20.0)
@@ -345,14 +362,14 @@ def _penny(raw: dict) -> BEpisode:
         tight_tgt = (penny[0] - 1.6, penny[1] + 42.0, max(1.2, penny[2] - 24.0))
         # Wide and a little behind the coin so the brick walls stay in frame
         # while the avenue still runs toward the lens.
-        rush_cam = (penny[0] + 0.15, penny[1] - 1.45, penny[2] + 1.35)
-        rush_tgt = (penny[0] - 2.2, penny[1] + 11.0, max(1.6, penny[2] - 0.6))
-        # Low, on the sidewalk, looking at the walkers with the storefronts behind them.
-        # Along the sidewalk, so the walkers, hydrant and storefronts share the frame.
-        hit_cam = (penny[0] + 5.2, penny[1] + 0.35, 1.62)
-        hit_tgt = (penny[0] - 1.4, penny[1] + 0.7, 0.95)
+        # Higher and further back so the canyon walls, not the asphalt, fill the frame.
+        rush_cam = (penny[0] - 1.8, penny[1] - 7.5, penny[2] + 6.2)
+        rush_tgt = (penny[0] + 2.0, penny[1] + 18.0, max(3.0, penny[2] - 1.2))
+        # Beside the hop, at chest height, so the flinch and the coin share the frame.
+        hit_cam = (penny[0] + 2.6, penny[1] - 2.4, 1.85)
+        hit_tgt = (penny[0] - 0.15, penny[1] + 0.55, penny[2] + 0.35)
         if t < 3.0 or t >= 36.2:
-            cam, target, lens = hook_cam, hook_tgt, 16.0
+            cam, target, lens = hook_cam, hook_tgt, 50.0
         elif t < 4.4:
             u = _fade(t, 3.0, 4.4)
             cam = _lerp(hook_cam, chase_cam, u)
@@ -365,27 +382,34 @@ def _penny(raw: dict) -> BEpisode:
             cam = _lerp(chase_cam, tight_cam, u)
             target = _lerp(chase_tgt, tight_tgt, u)
             lens = 24.0 + (28.0 - 24.0) * u
-        elif t < 33.6:
+        elif t < 32.7:
             u = _fade(t, 29.2, 30.4)
             cam = _lerp(tight_cam, rush_cam, u)
             target = _lerp(tight_tgt, rush_tgt, u)
-            lens = 28.0 + (18.0 - 28.0) * u
-        elif t < 34.3:
-            u = _fade(t, 33.6, 34.3)
-            cam = _lerp(rush_cam, hit_cam, u)
-            target = _lerp(rush_tgt, hit_tgt, u)
-            lens = 18.0 + (26.0 - 18.0) * u
+            lens = 26.0 + (22.0 - 26.0) * u
+        elif t < 33.2:
+            u = _fade(t, 32.7, 33.2)
+            man_x, man_y = MAN
+            punch_cam = (man_x + 0.18, man_y + 1.58, 1.62)
+            punch_tgt = (man_x - 0.02, man_y - 0.05, 1.52)
+            cam = _lerp(rush_cam, punch_cam, u)
+            target = _lerp(rush_tgt, punch_tgt, u)
+            lens = 22.0 + (58.0 - 22.0) * u
         else:
-            cam, target, lens = hit_cam, hit_tgt, 28.0
+            step = max(0.0, t - 35.75) * 1.15
+            man_x, man_y = MAN[0] + step, MAN[1]
+            cam = (man_x + 0.18, man_y + 1.58, 1.62)
+            target = (man_x - 0.02, man_y - 0.05, 1.52)
+            lens = 58.0
         cam = clear_of_shaft(cam, 1.2)
         penny = clear_of_shaft(penny, 0.8)
-        if 33.2 <= t < 35.4:
-            spin = (t - 33.2) * 16.0
-            tilt = 0.35
+        if 34.1 <= t < 35.7:
+            spin = (t - 34.1) * 22.0
+            tilt = 0.72
         elif t < 3.0 or t >= 36.2:
-            spin, tilt = 1.15, 0.25
+            spin, tilt = 0.45, 0.62
         else:
-            spin, tilt = 0.35 + t * 0.12, 1.05
+            spin, tilt = t * 14.0, 0.95
         frames.append(
             BFrame(
                 frame=i,

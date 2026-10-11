@@ -24,6 +24,8 @@ for path in (str(WHATIF), str(ROOT)):
     if path not in sys.path:
         sys.path.insert(0, path)
 
+from engine.landmarks import ESB_LOT
+
 CACHE = ROOT / "cache" / "library" / "extracted"
 PRIVATE = ROOT / "cache" / "private"
 # Sketchfab Free Standard. Not redistributed; the fetch/cache holds the files.
@@ -249,7 +251,17 @@ def _clip_low(meshes, zcut):
             for a, b in zip(verts, verts[1:] + verts[:1]):
                 edge = max(edge, (a - b).length)
             outside = center.z < 180.0 and (center.x < -80.0 or center.x > 60.0 or center.y < -42.0 or center.y > 40.0)
-            if edge > 16.0 or center.z < zcut or outside:
+            # The scan's crown is a hollow faceted shell. Cut it off and
+            # replace it; only kill giant edges on the lower junk.
+            x0, x1, y0, y1 = ESB_LOT
+            off_lot = center.z < 80.0 and (center.x < x0 or center.x > x1 or center.y < y0 or center.y > y1)
+            far = max(math.hypot(v.x, v.y) for v in verts)
+            high = min(v.z for v in verts)
+            # Drop the hollow mast and any face that reaches into the air
+            # beside the crown, even if its center sits inside the shaft.
+            sprawl = (high > 300.0 and far > 11.0) or (80.0 <= center.z <= 300.0 and far > 30.0)
+            hollow_crown = high > 352.0
+            if hollow_crown or sprawl or off_lot or center.z < zcut or edge > 22.0 or outside:
                 dead.append(face)
         if dead:
             bmesh.ops.delete(bm, geom=dead, context="FACES")
@@ -301,11 +313,12 @@ def _podium():
     # this mesh (the city blocks are whole streets and would bury the tower).
     stone = _mat("Podium", (0.73, 0.67, 0.58), 0.72, 0.04)
     glass = _mat("Storefront", (0.12, 0.14, 0.16), 0.15, 0.35)
-    _assign(_box("Podium", 130, 72, 46.0, (-11.0, 0.0, 23.0)), stone)
-    for index, x in enumerate(range(-60, 50, 9)):
-        _assign(_box(f"ShopN{index}", 6.2, 0.35, 3.4, (x, 36.2, 2.2)), glass)
-    for index, y in enumerate(range(-28, 30, 9)):
-        _assign(_box(f"ShopE{index}", 0.35, 6.2, 3.4, (54.2, y, 2.2)), glass)
+    x0, x1, y0, y1 = ESB_LOT
+    _assign(_box("Podium", x1 - x0, y1 - y0, 40.0, ((x0 + x1) * 0.5, (y0 + y1) * 0.5, 20.0)), stone)
+    for index, x in enumerate(range(-24, 25, 8)):
+        _assign(_box(f"ShopN{index}", 5.4, 0.28, 3.2, (x, y1 + 0.15, 2.0)), glass)
+    for index, y in enumerate(range(-56, 57, 12)):
+        _assign(_box(f"ShopE{index}", 0.28, 6.0, 3.2, (x1 + 0.15, y, 2.0)), glass)
 
 
 def _empire():
@@ -320,14 +333,82 @@ def _empire():
     roots = [obj for obj in objs if obj.parent is None or obj.parent not in objs]
     _parent_keep(roots, empty)
     empty.scale = (scale, scale, scale)
+    empty.rotation_euler = (0.0, 0.0, 0.0)
     empty.location = (0.0, 0.0, -mn.z * scale)
     bpy.context.view_layer.update()
+    _align_to_lot(empty, meshes)
+    bpy.context.view_layer.update()
     mn2, mx2 = _bounds(meshes)
-    print(f"ESB tip {mx2.z:.1f} m base {mn2.z:.1f} m footprint {mx2.x - mn2.x:.0f} x {mx2.y - mn2.y:.0f}", flush=True)
+    print(
+        f"ESB tip {mx2.z:.1f} m base {mn2.z:.1f} m footprint {mx2.x - mn2.x:.0f} x {mx2.y - mn2.y:.0f} yaw {empty.rotation_euler.z:.2f}",
+        flush=True,
+    )
     _clip_low(meshes, 44.0)
-    _sharpen_textures()
+    # The 2x unsharp pass turned the scan's photo into blotches on the crown.
+    # The hook uses the solid cap below instead.
+    _crown()
     _podium()
     return empty
+
+
+def _align_to_lot(empty, meshes):
+    """Stand the scan on Z, turn its long side north, and center that footprint on the lot."""
+    pts = []
+    for obj in meshes:
+        if obj.type != "MESH":
+            continue
+        mw = obj.matrix_world
+        step = max(1, len(obj.data.vertices) // 2500)
+        for index in range(0, len(obj.data.vertices), step):
+            world = mw @ obj.data.vertices[index].co
+            if 30.0 < world.z < 220.0:
+                pts.append((world.x, world.y))
+    if len(pts) > 30:
+        mean_x = sum(p[0] for p in pts) / len(pts)
+        mean_y = sum(p[1] for p in pts) / len(pts)
+        sxx = sum((p[0] - mean_x) ** 2 for p in pts)
+        syy = sum((p[1] - mean_y) ** 2 for p in pts)
+        sxy = sum((p[0] - mean_x) * (p[1] - mean_y) for p in pts)
+        angle = 0.5 * math.atan2(2.0 * sxy, sxx - syy)
+        empty.rotation_euler.z += math.pi * 0.5 - angle
+        bpy.context.view_layer.update()
+    mn, mx = _bounds(meshes)
+    empty.location.x -= (mn.x + mx.x) * 0.5
+    empty.location.y -= (mn.y + mx.y) * 0.5
+    empty.location.z -= mn.z
+    bpy.context.view_layer.update()
+
+
+def _crown():
+    """Solid observation ledge and a sharp spire over the cut scan.
+
+    The hub mesh is PeeJaa 47187daf. Its mast is an open photogrammetry
+    shell, so the first shot was the inside of that shell. No other hub
+    Empire State exists. This cap is the deck the penny sits on.
+    """
+    stone = _mat("CrownStone", (0.74, 0.71, 0.66), 0.48, 0.03)
+    metal = _mat("SpireMetal", (0.78, 0.79, 0.82), 0.22, 0.04)
+    metal_bsdf = metal.node_tree.nodes["Principled BSDF"]
+    if "Metallic" in metal_bsdf.inputs:
+        metal_bsdf.inputs["Metallic"].default_value = 0.9
+    glass = _mat("CrownWin", (0.07, 0.08, 0.1), 0.18, 0.0)
+    deck = 381.0
+    # Shaft under the deck, closing the cut at 358 m. Centered on the lot.
+    _assign(_box("CrownShaft", 8.0, 7.0, 22.0, (0.0, 0.0, deck - 16.0)), stone)
+    _assign(_box("Deck", 8.0, 8.0, 0.7, (5.0, 5.0, deck - 0.2)), stone)
+    _assign(_box("CrownNeck", 7.2, 6.2, 7.0, (0.0, 0.0, deck + 3.6)), stone)
+    for index, x in enumerate((-2.4, 0.0, 2.4)):
+        _assign(_box(f"CrownWin{index}", 1.15, 0.12, 2.4, (x, 3.15, deck + 3.5)), glass)
+    bpy.ops.mesh.primitive_cone_add(
+        vertices=8,
+        radius1=1.05,
+        radius2=0.015,
+        depth=55.2,
+        location=(0.0, 0.0, deck + 7.0 + 27.6),
+    )
+    spire = bpy.context.object
+    spire.name = "Spire"
+    _assign(spire, metal)
 
 
 def _liberty():
@@ -651,17 +732,55 @@ def _look(cam, target):
     cam.rotation_euler = mathutils.Matrix((x_axis, y_axis, z_axis)).transposed().to_euler()
 
 
+def _copper(name, roughness):
+    mat = _mat(name, (0.86, 0.46, 0.26), roughness, 0.0)
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+    if "Metallic" in bsdf.inputs:
+        bsdf.inputs["Metallic"].default_value = 1.0
+    nt = mat.node_tree
+    coord = nt.nodes.new("ShaderNodeTexCoord")
+    rings = nt.nodes.new("ShaderNodeTexWave")
+    rings.wave_type = "RINGS"
+    rings.inputs["Scale"].default_value = 18.0
+    rings.inputs["Distortion"].default_value = 1.4
+    nt.links.new(coord.outputs["Object"], rings.inputs["Vector"])
+    grain = nt.nodes.new("ShaderNodeTexNoise")
+    grain.inputs["Scale"].default_value = 42.0
+    grain.inputs["Detail"].default_value = 6.0
+    nt.links.new(coord.outputs["Object"], grain.inputs["Vector"])
+    mix = nt.nodes.new("ShaderNodeMix")
+    mix.data_type = "FLOAT"
+    mix.inputs[0].default_value = 0.45
+    nt.links.new(rings.outputs["Fac"], mix.inputs[2])
+    nt.links.new(grain.outputs["Fac"], mix.inputs[3])
+    bump = nt.nodes.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value = 0.42
+    bump.inputs["Distance"].default_value = 0.004
+    nt.links.new(mix.outputs[0], bump.inputs["Height"])
+    nt.links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
+    return mat
+
+
 def _penny():
-    mat = _mat("Penny", (0.86, 0.42, 0.2), 1.0, 0.08)
-    rim = _mat("Rim", (0.55, 0.28, 0.12), 1.0, 0.02)
+    face = _copper("Penny", 0.34)
+    rim = _copper("Rim", 0.22)
     show = 9.0
     radius = 0.009525 * show
-    depth = 0.0018 * show
-    bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=radius, depth=depth, location=(0, 0, 0))
+    depth = 0.0042 * show
+    bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=radius, depth=depth, location=(0, 0, 0))
     obj = bpy.context.object
     obj.name = "Penny"
-    _assign(obj, mat)
-    bpy.ops.mesh.primitive_torus_add(major_radius=radius, minor_radius=depth * 0.7, major_segments=40, minor_segments=8)
+    bevel = obj.modifiers.new("Edge", "BEVEL")
+    bevel.width = depth * 0.22
+    bevel.segments = 2
+    bpy.ops.object.modifier_apply(modifier=bevel.name)
+    _assign(obj, face)
+    bpy.ops.mesh.primitive_torus_add(
+        major_radius=radius * 0.98,
+        minor_radius=depth * 0.42,
+        major_segments=48,
+        minor_segments=8,
+    )
     ring = bpy.context.object
     ring.name = "Rim"
     ring.parent = obj
@@ -704,14 +823,104 @@ def _head(arm, t):
     action = arm.animation_data.action if arm.animation_data else None
     if action is not None:
         for curve in action.fcurves:
-            if "Head" in curve.data_path or "Neck" in curve.data_path:
+            if any(token in curve.data_path for token in ("Head", "Neck", "Spine", "Chest")):
                 curve.mute = True
     for suffix, scale in (("Head", 1.0), ("Neck", 0.45)):
         pose = _bone(arm, suffix)
         if pose is None:
             continue
         pose.rotation_mode = "XYZ"
-        pose.rotation_euler = (down * scale, 0.0, 0.0)
+        pose.rotation_euler = (down * scale, 0.15, 0.0)
+    for suffix, scale in (("Spine", 1.0), ("Spine1", 0.65), ("Chest", 0.45)):
+        pose = _bone(arm, suffix)
+        if pose is None:
+            continue
+        pose.rotation_mode = "XYZ"
+        pose.rotation_euler = (-0.55 * min(1.0, down), 0.0, 0.0)
+
+
+def _punchline(arm, t):
+    """Four beats after the coin taps his head. No scratch/shrug clip in the hub, so these are keyed on the idle rig.
+
+    33.40 flinch, 33.75 look up and around, 34.45 scratch, 35.25 shrug, then he walks.
+    """
+    if arm is None or t < 33.25 or t >= 36.2:
+        return
+    action = arm.animation_data.action if arm.animation_data else None
+    if action is not None and not arm.get("punch_muted"):
+        for curve in action.fcurves:
+            if any(token in curve.data_path for token in ("Neck", "Head", "Spine", "Clavicle", "UpperArm", "Forearm", "Thigh")):
+                curve.mute = True
+        arm["punch_muted"] = 1
+
+    def put(suffix, rot):
+        pose = _bone(arm, suffix)
+        if pose is None:
+            return
+        pose.rotation_mode = "XYZ"
+        pose.rotation_euler = rot
+
+    neck = (0.0, 0.0, 0.0)
+    spine = (0.0, 0.0, 0.0)
+    uarm = (0.0, 0.0, 0.0)
+    fore = (0.0, 0.0, 0.0)
+    clav_l = (0.0, 0.0, 0.0)
+    clav_r = (0.0, 0.0, 0.0)
+    thigh_l = (0.0, 0.0, 0.0)
+    thigh_r = (0.0, 0.0, 0.0)
+    if t < 33.75:
+        u = _fade_u(t, 33.32, 33.48)
+        neck = (0.15 * u, 0.0, 0.35 * u)
+        spine = (-0.28 * u, 0.0, 0.0)
+    elif t < 34.45:
+        u = (t - 33.75) / 0.7
+        yaw = math.sin(u * math.pi * 2.0) * 0.65
+        neck = (0.0, yaw, -0.45)
+        spine = (0.0, yaw * 0.25, -0.08)
+    elif t < 35.25:
+        u = min(1.0, (t - 34.45) / 0.22)
+        uarm = (-1.0 * u, 0.0, -2.0 * u)
+        fore = (-1.5 * u, 0.0, -1.2 * u)
+        neck = (0.0, 0.15 * u, 0.2 * u)
+    else:
+        u = min(1.0, (t - 35.25) / 0.28)
+        down = 1.0
+        if t > 35.7:
+            down = max(0.0, 1.0 - (t - 35.7) / 0.4)
+            swing = math.sin((t - 35.7) * 8.0) * 0.55
+            thigh_l = (swing, 0.0, 0.0)
+            thigh_r = (-swing, 0.0, 0.0)
+        clav_l = (0.0, 0.0, 0.5 * u * down)
+        clav_r = (0.0, 0.0, -0.5 * u * down)
+        uarm = (0.35 * u * down, 0.0, -0.45 * u * down)
+        neck = (0.0, 0.2 * math.sin((t - 35.25) * 3.0) * down, 0.05)
+    put("Neck_05", neck)
+    put("Spine_03", spine)
+    put("L UpperArm_08", uarm)
+    put("L Forearm_09", fore)
+    put("L Clavicle_07", clav_l)
+    put("R Clavicle_015", clav_r)
+    if t >= 35.7:
+        put("L Thigh_023", thigh_l)
+        put("R Thigh_027", thigh_r)
+    host = arm.parent or arm
+    if "home_x" not in host:
+        host["home_x"] = host.location.x
+        host["home_y"] = host.location.y
+    if t > 35.75:
+        host.location.x = float(host["home_x"]) + (t - 35.75) * 1.15
+    elif "home_x" in host:
+        host.location.x = float(host["home_x"])
+        host.location.y = float(host["home_y"])
+
+
+def _fade_u(t, t0, t1):
+    if t <= t0:
+        return 0.0
+    if t >= t1:
+        return 1.0
+    u = (t - t0) / (t1 - t0)
+    return u * u * (3.0 - 2.0 * u)
 
 
 def _clear_camera(cam, protect):
@@ -759,6 +968,12 @@ def _blur(scene, cam, penny, fr, frame):
         obj.keyframe_insert("location", frame=frame)
         obj.location = curr
         obj.keyframe_insert("location", frame=frame + 1)
+    prev_rot = fr.get("prev_rot") or fr.get("rot") or (0.2, 0.4, 0.0)
+    curr_rot = fr.get("rot") or (0.2, 0.4, 0.0)
+    penny.rotation_euler = prev_rot
+    penny.keyframe_insert("rotation_euler", frame=frame)
+    penny.rotation_euler = curr_rot
+    penny.keyframe_insert("rotation_euler", frame=frame + 1)
     scene.frame_set(frame + 1)
 
 
@@ -781,7 +996,7 @@ def main():
     scene.cycles.transparent_max_bounces = 0
     scene.cycles.sample_clamp_indirect = 0.0
     scene.render.use_motion_blur = True
-    scene.render.motion_blur_shutter = 0.5
+    scene.render.motion_blur_shutter = 0.72
     scene.cycles.motion_blur_position = "END"
     scene.render.resolution_x = int(job["width"])
     scene.render.resolution_y = int(job["height"])
@@ -831,7 +1046,10 @@ def main():
         _look(cam, target)
         penny.rotation_euler = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
         for arm in arms:
-            _head(arm, float(fr["t"]))
+            if arm.get("punchline"):
+                _punchline(arm, float(fr["t"]))
+            else:
+                _head(arm, float(fr["t"]))
         tick_city(t)
         bpy.context.view_layer.update()
         _clear_camera(cam, {penny, bpy.data.objects.get("Rim") or penny})

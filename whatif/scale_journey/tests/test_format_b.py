@@ -79,12 +79,18 @@ class PennyTest(unittest.TestCase):
         self.assertGreaterEqual(self._at(2.0).t, 0.0)
         self.assertEqual(self._at(2.0).primary, "1,250")
 
+    def test_empire_lot_does_not_meet_the_road(self):
+        from engine.landmarks import ESB_LOT, footprint_clears_roads, road_rects
+
+        self.assertTrue(footprint_clears_roads(ESB_LOT))
+        self.assertEqual(len(road_rects()), 3)
+
     def test_camera_stays_outside_the_shaft(self):
         from engine.bformat import clear_of_shaft
 
         pushed = clear_of_shaft((0.0, 0.0, 30.0), 1.0)
-        self.assertGreater(pushed[0], 50.0)
-        self.assertGreater(pushed[1], 30.0)
+        self.assertGreater(pushed[0], 28.5)
+        self.assertGreater(pushed[1], 64.5)
         for fr in self.ep.frames:
             again = clear_of_shaft(fr.cam, 0.8)
             self.assertAlmostEqual(again[0], fr.cam[0], delta=0.05)

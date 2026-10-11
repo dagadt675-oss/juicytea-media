@@ -122,6 +122,7 @@ def _geom(ep, fr) -> dict:
         "target": _round_vec(fr.target),
         "penny": _round_vec(fr.penny),
         "rot": _round_vec(fr.rot),
+        "prev_rot": _round_vec(prev.rot),
         "lens": round(float(fr.lens), 4),
         "prev_cam": _round_vec(prev.cam),
         "prev_penny": _round_vec(prev.penny),

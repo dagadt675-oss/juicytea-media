@@ -28,6 +28,8 @@ from pathlib import Path
 import bpy
 import mathutils
 
+from engine.landmarks import ESB_LOT, MAN, road_rects
+
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / "cache" / "library" / "extracted"
 PRIVATE = ROOT / "cache" / "private"
@@ -35,6 +37,13 @@ HUB = PRIVATE / "hub"
 PEOPLE = PRIVATE / "city_people"
 PROPS = PEOPLE / "sketchfab_free_standard" / "city_props_vol1" / "city_props_vol1.glb"
 CROSSWALK = PEOPLE / "sketchfab" / "simple_crosswalk" / "simple_crosswalk.glb"
+IDLE = (
+    PEOPLE
+    / "animations"
+    / "sketchfab_free_standard"
+    / "Idle_1_Male_Free_Animation_200_frames_loop_4add87eb"
+    / "Idle_1_Male_Free_Animation_200_frames_loop_4add87eb.glb"
+)
 WALKS = (
     PEOPLE / "animations" / "sketchfab_free_standard" / "Male_Basic_Walk_30_frames_loop_2e17b141" / "Male_Basic_Walk_30_frames_loop_2e17b141.glb",
     PEOPLE / "animations" / "sketchfab_free_standard" / "Basic_Walk_Free_Animation_30_frames_loop_7355f061" / "Basic_Walk_Free_Animation_30_frames_loop_7355f061.glb",
@@ -363,10 +372,9 @@ def _props():
     # Landing sidewalk: hydrant, lamps, and a bench in front of the storefronts.
     spots.extend(
         (
-            (63.2, 44.6, chosen[0], 0.6),
-            (56.0, 47.4, chosen[3] if len(chosen) > 3 else chosen[0], 0.2),
-            (71.0, 47.2, chosen[3] if len(chosen) > 3 else chosen[0], 3.0),
-            (59.0, 46.6, chosen[2] if len(chosen) > 2 else chosen[0], 1.0),
+            (MAN[0] + 1.15, MAN[1] - 0.35, chosen[0], 0.4),
+            (MAN[0] - 2.2, MAN[1] + 0.2, chosen[3] if len(chosen) > 3 else chosen[0], 0.1),
+            (MAN[0] + 2.4, MAN[1] + 0.35, chosen[3] if len(chosen) > 3 else chosen[0], 3.1),
         )
     )
     for x, y, proto, yaw in spots:
@@ -427,9 +435,21 @@ def _roads_and_cars():
         empty.location = (0.0, 0.0, -800.0)
         # The tiled blocks start ~50 m out. Pave that gap so the chase
         # is not looking at the bare underlay.
-        # Stop at the landing sidewalk. The brick canyon owns everything north of y=49.
-        spots = [(x, y) for y in (30.0, 40.0) for x in range(-40, 160, 14)]
-        spots += [(x, y) for x in (78.0,) for y in range(-20, 46, 14)]
+        # Tile only the road rectangles. They sit outside the lot and its sidewalk.
+        spots = []
+        for x0, x1, y0, y1 in road_rects():
+            cx, cy = (x0 + x1) * 0.5, (y0 + y1) * 0.5
+            long_x = (x1 - x0) >= (y1 - y0)
+            if long_x:
+                x = x0 + 7.0
+                while x < x1:
+                    spots.append((x, cy))
+                    x += 14.0
+            else:
+                y = y0 + 7.0
+                while y < y1:
+                    spots.append((cx, y))
+                    y += 14.0
         for x, y in spots:
             bpy.ops.object.select_all(action="DESELECT")
             empty.select_set(True)
@@ -521,22 +541,27 @@ def _pose_proto(path: Path, name: str, frame: int):
 def _people():
     hero_arm = None
     protos = []
+    hero_empty, hero_arm = _pose_proto(IDLE, "Star", 40)
+    if hero_empty is not None:
+        hero_empty.location = (MAN[0], MAN[1], hero_empty.location.z)
+        hero_empty.rotation_euler = (0.0, 0.0, math.pi)
+        if hero_arm is not None:
+            hero_arm["punchline"] = 1
     for index, path in enumerate(WALKS):
         empty, arm = _pose_proto(path, f"Walker{index}", 8 + index * 6)
         if empty is None:
             continue
         protos.append(empty)
-        if hero_arm is None and arm is not None:
-            hero_arm = arm
-            empty.location = (60.2, 45.6, empty.location.z)
-            empty.rotation_euler = (0.0, 0.0, 2.6)
     if not protos:
         return []
     spots = [(x, 37.2, 1.4) for x in range(-40, 150, 22)]
     # The impact group, on the sidewalk, facing back toward the coin and the lens.
     # On the sidewalk the 32.5 s lens sees, and clustered at the landing.
-    spots += [(52.0, 54.0, 1.2), (70.0, 55.0, 2.0), (60.0, 58.0, 0.4)]
-    spots += [(58.2, 46.2, 2.5), (62.4, 46.8, 2.2), (66.2, 46.0, 1.8), (60.8, 44.8, 1.3)]
+    spots += [
+        (MAN[0] - 1.8, MAN[1] + 0.15, 1.4),
+        (MAN[0] + 1.7, MAN[1] - 0.1, 1.8),
+        (MAN[0] + 0.4, MAN[1] + 0.7, 0.6),
+    ]
     crowd = [proto for proto in protos if proto.location.x < 40.0] or protos
     for index, (x, y, yaw) in enumerate(spots):
         proto = crowd[index % len(crowd)]
@@ -585,7 +610,7 @@ def _place_canyon(hero_pack):
     if not hero_pack:
         return
     col, size = hero_pack
-    south = 49.0
+    south = ESB_LOT[3] + 4.5 + 18.0 + 2.0
     center = (72.0, south + size[1] * 0.5, 0.0)
     _instance(col, center, 0.0, 1.0)
     HERO_KEEP.append(
