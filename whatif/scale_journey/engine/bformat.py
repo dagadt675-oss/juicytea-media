@@ -181,7 +181,7 @@ _ESB_CORNERS = (
     (180.0, 40.0, 34.0),
     (110.0, 48.0, 36.0),
     (60.0, 56.0, 38.0),
-    (0.0, 58.0, 40.0),
+    (0.0, 62.0, 46.0),
 )
 
 # Solid shaft the camera is not allowed to enter. Slightly inside the
@@ -343,8 +343,14 @@ def _penny(raw: dict) -> BEpisode:
         chase_tgt = (penny[0] - 1.2, penny[1] + 34.0, penny[2] - 20.0)
         tight_cam = (penny[0] + 0.04, penny[1] - 0.62, penny[2] + 0.52)
         tight_tgt = (penny[0] - 1.6, penny[1] + 42.0, max(1.2, penny[2] - 24.0))
-        hit_cam = (penny[0] + 2.2, penny[1] + 1.6, max(1.55, penny[2] + 1.15))
-        hit_tgt = (penny[0] - 0.35, penny[1] + 0.15, max(0.85, penny[2] + 0.35))
+        # Wide and a little behind the coin so the brick walls stay in frame
+        # while the avenue still runs toward the lens.
+        rush_cam = (penny[0] + 0.15, penny[1] - 1.45, penny[2] + 1.35)
+        rush_tgt = (penny[0] - 2.2, penny[1] + 11.0, max(1.6, penny[2] - 0.6))
+        # Low, on the sidewalk, looking at the walkers with the storefronts behind them.
+        # Along the sidewalk, so the walkers, hydrant and storefronts share the frame.
+        hit_cam = (penny[0] + 5.2, penny[1] + 0.35, 1.62)
+        hit_tgt = (penny[0] - 1.4, penny[1] + 0.7, 0.95)
         if t < 3.0 or t >= 36.2:
             cam, target, lens = hook_cam, hook_tgt, 16.0
         elif t < 4.4:
@@ -354,16 +360,21 @@ def _penny(raw: dict) -> BEpisode:
             lens = 16.0 + (24.0 - 16.0) * u
         elif t < 18.0:
             cam, target, lens = chase_cam, chase_tgt, 24.0
-        elif t < 31.0:
+        elif t < 29.2:
             u = _fade(t, 18.0, 22.0)
             cam = _lerp(chase_cam, tight_cam, u)
             target = _lerp(chase_tgt, tight_tgt, u)
-            lens = 24.0 + (32.0 - 24.0) * u
-        elif t < 33.2:
-            u = _fade(t, 31.0, 33.2)
-            cam = _lerp(tight_cam, hit_cam, u)
-            target = _lerp(tight_tgt, hit_tgt, u)
-            lens = 32.0 + (28.0 - 32.0) * u
+            lens = 24.0 + (28.0 - 24.0) * u
+        elif t < 33.6:
+            u = _fade(t, 29.2, 30.4)
+            cam = _lerp(tight_cam, rush_cam, u)
+            target = _lerp(tight_tgt, rush_tgt, u)
+            lens = 28.0 + (18.0 - 28.0) * u
+        elif t < 34.3:
+            u = _fade(t, 33.6, 34.3)
+            cam = _lerp(rush_cam, hit_cam, u)
+            target = _lerp(rush_tgt, hit_tgt, u)
+            lens = 18.0 + (26.0 - 18.0) * u
         else:
             cam, target, lens = hit_cam, hit_tgt, 28.0
         cam = clear_of_shaft(cam, 1.2)

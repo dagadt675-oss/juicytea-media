@@ -132,22 +132,25 @@ def _join_meshes(meshes):
     return joined
 
 
-def _seat(obj):
-    """Footprint centered on the origin, base on z=0, scaled to one cell."""
+def _center_on_ground(obj):
+    """Footprint centered on the origin, base on z=0. Returns the unscaled size."""
     bpy.context.view_layer.update()
     mn, mx = _bounds([obj])
-    span_x = max(0.01, mx.x - mn.x)
-    span_y = max(0.01, mx.y - mn.y)
-    span_z = max(0.01, mx.z - mn.z)
+    span = (max(0.01, mx.x - mn.x), max(0.01, mx.y - mn.y), max(0.01, mx.z - mn.z))
     obj.location = (-(mn.x + mx.x) * 0.5, -(mn.y + mx.y) * 0.5, -mn.z)
     bpy.ops.object.select_all(action="DESELECT")
     obj.select_set(True)
     bpy.context.view_layer.objects.active = obj
     bpy.ops.object.transform_apply(location=True, rotation=False, scale=False)
-    obj.scale = (CELL / span_x, CELL / span_y, ((CELL / span_x) + (CELL / span_y)) * 0.5)
+    return span
+
+
+def _apply_scale(obj, scale):
+    obj.scale = scale
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    print(f"BLOCK {obj.name} was {span_x:.0f}x{span_y:.0f}x{span_z:.0f} m", flush=True)
-    return obj
 
 
 def _decimate(obj, ratio, name):
@@ -163,7 +166,7 @@ def _decimate(obj, ratio, name):
     return copy
 
 
-def _block(path: Path, name: str):
+def _block(path: Path, name: str, hero: bool = False):
     if not path.exists():
         print(f"MISSING BLOCK {path}", flush=True)
         return None
@@ -172,15 +175,42 @@ def _block(path: Path, name: str):
     meshes = [obj for obj in objs if obj.type == "MESH" and len(obj.data.polygons) > 0]
     if not meshes:
         return None
-    joined = _seat(_join_meshes(meshes))
+    joined = _join_meshes(meshes)
+    span = _center_on_ground(joined)
+    hero_pack = None
+    if hero:
+        # Keep a true-proportion copy for the sidewalk the penny lands on.
+        # Height about 28 m, an 8-story brick canyon, not stretched to the cell.
+        hero_obj = joined.copy()
+        hero_obj.data = joined.data.copy()
+        hero_obj.name = name + "Hero"
+        _link(hero_obj)
+        uniform = min(28.0 / span[2], 110.0 / max(span[0], span[1]))
+        _apply_scale(hero_obj, (uniform, uniform, uniform))
+        bpy.context.view_layer.update()
+        hmn, hmx = _bounds([hero_obj])
+        hero_pack = (_pack(name + "Hero", hero_obj), (hmx.x - hmn.x, hmx.y - hmn.y, hmx.z - hmn.z))
+        print(f"HERO {name} {hero_pack[1][0]:.0f}x{hero_pack[1][1]:.0f}x{hero_pack[1][2]:.0f}", flush=True)
+    _apply_scale(joined, (CELL / span[0], CELL / span[1], ((CELL / span[0]) + (CELL / span[1])) * 0.5))
+    print(f"BLOCK {joined.name} was {span[0]:.0f}x{span[1]:.0f}x{span[2]:.0f} m", flush=True)
     far = _decimate(joined, 0.07, name + "Far")
-    return _pack(name, joined), _pack(name + "Far", far)
+    return _pack(name, joined), _pack(name + "Far", far), hero_pack
+
+
+# Brick canyon pulled up to the landing sidewalk. Filled when that block is placed.
+HERO_KEEP: list[tuple[float, float, float, float]] = []
+
+
+def _box_hits(x0, x1, y0, y1, box):
+    return x0 < box[1] and x1 > box[0] and y0 < box[3] and y1 > box[2]
 
 
 def _overlaps_plaza(cx, cy):
     x0, x1 = cx - CELL * 0.5, cx + CELL * 0.5
     y0, y1 = cy - CELL * 0.5, cy + CELL * 0.5
-    return x0 < PLAZA[1] and x1 > PLAZA[0] and y0 < PLAZA[3] and y1 > PLAZA[2]
+    if _box_hits(x0, x1, y0, y1, PLAZA):
+        return True
+    return any(_box_hits(x0, x1, y0, y1, box) for box in HERO_KEEP)
 
 
 def _tile(blocks):
@@ -191,7 +221,7 @@ def _tile(blocks):
             cx, cy = i * CELL, j * CELL
             if _overlaps_plaza(cx, cy):
                 continue
-            near, far = blocks[(i * 3 + j * 5) % len(blocks)]
+            near, far, _hero = blocks[(i * 3 + j * 5) % len(blocks)]
             dist = math.hypot(cx, cy)
             col = near if dist < 320.0 else far
             yaw = ((i * 2 + j) % 4) * (math.pi / 2.0)
@@ -330,6 +360,15 @@ def _props():
     for i, x in enumerate(range(-60, 240, 34)):
         spots.append((x, 37.4, chosen[i % len(chosen)], 0.2))
         spots.append((x + 12.0, 57.5, chosen[(i + 1) % len(chosen)], 3.1))
+    # Landing sidewalk: hydrant, lamps, and a bench in front of the storefronts.
+    spots.extend(
+        (
+            (63.2, 44.6, chosen[0], 0.6),
+            (56.0, 47.4, chosen[3] if len(chosen) > 3 else chosen[0], 0.2),
+            (71.0, 47.2, chosen[3] if len(chosen) > 3 else chosen[0], 3.0),
+            (59.0, 46.6, chosen[2] if len(chosen) > 2 else chosen[0], 1.0),
+        )
+    )
     for x, y, proto, yaw in spots:
         bpy.ops.object.select_all(action="DESELECT")
         proto.select_set(True)
@@ -388,8 +427,9 @@ def _roads_and_cars():
         empty.location = (0.0, 0.0, -800.0)
         # The tiled blocks start ~50 m out. Pave that gap so the chase
         # is not looking at the bare underlay.
-        spots = [(x, y) for y in (34.0, 48.0, 62.0, 76.0, 90.0) for x in range(-70, 210, 14)]
-        spots += [(x, y) for x in (68.0, 82.0) for y in range(-40, 100, 14)]
+        # Stop at the landing sidewalk. The brick canyon owns everything north of y=49.
+        spots = [(x, y) for y in (30.0, 40.0) for x in range(-40, 160, 14)]
+        spots += [(x, y) for x in (78.0,) for y in range(-20, 46, 14)]
         for x, y in spots:
             bpy.ops.object.select_all(action="DESELECT")
             empty.select_set(True)
@@ -488,12 +528,15 @@ def _people():
         protos.append(empty)
         if hero_arm is None and arm is not None:
             hero_arm = arm
-            empty.location = (56.2, 39.6, empty.location.z)
-            empty.rotation_euler = (0.0, 0.0, 2.4)
+            empty.location = (60.2, 45.6, empty.location.z)
+            empty.rotation_euler = (0.0, 0.0, 2.6)
     if not protos:
-        return None
-    spots = [(x, 37.6, 1.4) for x in range(-50, 200, 18)]
-    spots += [(62.5, y, 0.2) for y in range(-30, 36, 16)]
+        return []
+    spots = [(x, 37.2, 1.4) for x in range(-40, 150, 22)]
+    # The impact group, on the sidewalk, facing back toward the coin and the lens.
+    # On the sidewalk the 32.5 s lens sees, and clustered at the landing.
+    spots += [(52.0, 54.0, 1.2), (70.0, 55.0, 2.0), (60.0, 58.0, 0.4)]
+    spots += [(58.2, 46.2, 2.5), (62.4, 46.8, 2.2), (66.2, 46.0, 1.8), (60.8, 44.8, 1.3)]
     crowd = [proto for proto in protos if proto.location.x < 40.0] or protos
     for index, (x, y, yaw) in enumerate(spots):
         proto = crowd[index % len(crowd)]
@@ -516,10 +559,16 @@ def _people():
     lamp_data.size = 2.2
     lamp_data.use_shadow = False
     lamp = _link(bpy.data.objects.new("FaceLamp", lamp_data))
-    lamp.location = (59.4, 40.6, 2.4)
-    lamp.rotation_euler = mathutils.Vector((56.6 - 59.4, 38.4 - 40.6, 1.4 - 2.4)).to_track_quat("-Z", "Y").to_euler()
-    print(f"PEOPLE hero {hero_arm is not None}", flush=True)
-    return hero_arm
+    lamp.location = (64.8, 43.2, 2.2)
+    lamp.rotation_euler = mathutils.Vector((60.2 - 64.8, 45.6 - 43.2, 1.4 - 2.2)).to_track_quat("-Z", "Y").to_euler()
+    bpy.context.view_layer.update()
+    arms = [hero_arm] if hero_arm is not None else []
+    for obj in bpy.data.objects:
+        if obj.type == "ARMATURE" and 54.0 < obj.matrix_world.translation.x < 72.0 and 42.0 < obj.matrix_world.translation.y < 49.0:
+            if obj not in arms:
+                arms.append(obj)
+    print(f"PEOPLE arms {len(arms)}", flush=True)
+    return arms
 
 
 def tick_city(t: float):
@@ -532,15 +581,34 @@ def tick_city(t: float):
             empty.location.y = coord
 
 
+def _place_canyon(hero_pack):
+    if not hero_pack:
+        return
+    col, size = hero_pack
+    south = 49.0
+    center = (72.0, south + size[1] * 0.5, 0.0)
+    _instance(col, center, 0.0, 1.0)
+    HERO_KEEP.append(
+        (center[0] - size[0] * 0.5 - 2.0, center[0] + size[0] * 0.5 + 2.0, south - 1.0, south + size[1] + 2.0)
+    )
+    print(f"CANYON center {center} size {tuple(round(v, 1) for v in size)}", flush=True)
+
+
 def dress_city():
     """Tile the NYC blocks, then the tower streets, sidewalk life, and One WTC."""
     MOVERS.clear()
+    HERO_KEEP.clear()
     _ground()
     blocks = []
+    canyon = None
     for name in ("procedural_city_6", "procedural_city_3", "procedural_city_4"):
-        loaded = _block(HUB / f"{name}.glb", name)
-        if loaded is not None:
-            blocks.append(loaded)
+        loaded = _block(HUB / f"{name}.glb", name, hero=(name == "procedural_city_3"))
+        if loaded is None:
+            continue
+        blocks.append(loaded)
+        if loaded[2] is not None:
+            canyon = loaded[2]
+    _place_canyon(canyon)
     if blocks:
         _tile(blocks)
     else:

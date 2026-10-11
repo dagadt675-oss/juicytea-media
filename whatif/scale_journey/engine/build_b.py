@@ -800,7 +800,7 @@ def main():
 
     _empire()
     _liberty()
-    arm = dress_city()
+    arms = dress_city() or []
     penny = _penny()
     cam = _camera()
     out = Path(job["out"])
@@ -830,7 +830,8 @@ def main():
         cam.data.lens = float(fr.get("lens") or job.get("lens_mm") or 14)
         _look(cam, target)
         penny.rotation_euler = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
-        _head(arm, float(fr["t"]))
+        for arm in arms:
+            _head(arm, float(fr["t"]))
         tick_city(t)
         bpy.context.view_layer.update()
         _clear_camera(cam, {penny, bpy.data.objects.get("Rim") or penny})
