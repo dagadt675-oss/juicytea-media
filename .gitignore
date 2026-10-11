@@ -1,4 +1,6 @@
 whatif/out/
+/opt/cursor/asset-cache/
+whatif/assets/cc0_cache/
 *.blend
 *.blend1
 __pycache__/

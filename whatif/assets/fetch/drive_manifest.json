@@ -1,0 +1,779 @@
+{
+  "generated": "2026-10-11",
+  "drive_owner": "dagadt675@gmail.com",
+  "folders": {
+    "JuicyTea_assets": {
+      "id": "1Sd1dFKDDifLNr4cSUZXLxwMJhYwedIDl",
+      "link": "https://drive.google.com/drive/folders/1Sd1dFKDDifLNr4cSUZXLxwMJhYwedIDl",
+      "sharing": "private (owner only)"
+    },
+    "JuicyTea_assets/PRIVATE": {
+      "id": "1Wo8pbim5geqfTgl_G-8Re_FnDBlgXePF",
+      "link": "https://drive.google.com/drive/folders/1Wo8pbim5geqfTgl_G-8Re_FnDBlgXePF",
+      "sharing": "private (owner only)"
+    }
+  },
+  "notes": [
+    "UploadFile has a 100 MB per-file limit; files larger than that were split with `split -b 95000000 -d -a 3` into .partNNN pieces. Reassemble with `cat NAME.zip.part* > NAME.zip` and check the whole-file sha256.",
+    "Link sharing NOT applied: the Drive connector share_file tool deliberately does not offer anyone-with-the-link grants. All files are currently owner-only."
+  ],
+  "download": {
+    "url_pattern": "https://drive.usercontent.google.com/download?id=<ID>&export=download&confirm=t",
+    "tested": "2026-10-11 on assets_cc0_hdri.zip (1dnvwI6JoeWeolmgZXnlwrBiCgX0-blOn): FAILED - unauthenticated curl returned HTTP 200 text/html (Google sign-in page, ~919 KB), not the zip, because the file is not link-shared. Pattern is expected to work once the CC0 files are set to anyone-with-link-can-view; re-test then.",
+    "working": false
+  },
+  "files": [
+    {
+      "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip",
+      "size": 2936763707,
+      "sha256": "9c4631eb0d9246ef100c0cf435126c73be939d26de32ae95f9457ee6e00fd92d",
+      "drive_folder": "JuicyTea_assets/PRIVATE",
+      "license": "restricted - DO NOT REDISTRIBUTE",
+      "sharing": "private (owner only)",
+      "split": true,
+      "reassemble": "cat PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part* > PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip",
+      "parts": [
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part000",
+          "drive_file_id": "1rP9XvfkHl2H_N1tWy-3tOQHFu0iStZ1l",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "446f83a3bbacff81aa857d9619ab4653ce2ef813615359dd9283ebaa22d195a5"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part001",
+          "drive_file_id": "18ynDfSpvD5_TvahtHyHnGkJ-XVuNKfEM",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "3adab7c6a5a65290401a4e6bd6ae55ae441d5cf0a5ca8eaad7cd7596afaddcf9"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part002",
+          "drive_file_id": "1F54gxY1PKpfzoMrYPUMT6SI9MMdpo7KX",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "908e23e618417e0e7a8fa7fb79140366f648ab0b8320d4152a1775d57a9d56d3"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part003",
+          "drive_file_id": "14lmOcnnCqxdav4Z0RikmSuteDYuyXwZ6",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "0a0972e09a8dadb2b82bf43e2cf0b64e1c7752c11f03569d99d60760a7837053"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part004",
+          "drive_file_id": "1CfElFoxq4eW9RY2bFgxGNi-mU7PlPWHa",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "5d890f61547d4a6afa4c59a7f97b643bfc87713a8fc5143c278ab24720f43407"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part005",
+          "drive_file_id": "1dcWkxvYUi3sxCMC2my3wdndu6cFvbKXW",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "087c5c49e989ba47bf3d4a9402dd136705df9bcb87f7150a4b099fe7ae9b0744"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part006",
+          "drive_file_id": "18ue_W_TMfMJDPxQmRwi-K1nc72Lq39ia",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "d4f446d2bdcb317f365662d92822996e8c31041fccf57940c4c3578e9fa677af"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part007",
+          "drive_file_id": "1AWnJYgJNU5TdgZIin-RF2O84JJy0BUKT",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "fbef6f40c48b2f47bc3fe964d67cf629815efde7dcb5d09f3ee1919ccf4df45e"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part008",
+          "drive_file_id": "1yZU3PAaf9VVwoSnO0sbT7WqAQSgrOIxq",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "d53b754e17d50bcb8c9ca15867a47f8f06da81610bffdca0cf8a7a6eaf332000"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part009",
+          "drive_file_id": "1pr0dYWAsTqXU3KdH02jrd9eJ5VJLqOmI",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "d97339f811c5fa6cc89bf8a079f600b3115ce51b54827346c8265f7b27d50ae2"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part010",
+          "drive_file_id": "1L0jAqR1aMvHSGBm6ZmUFfkv0_Mm7Fjec",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "7bcd05345b9b33c968ed8906b81b52011578e18ae0598814aa5f619c78787f3f"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part011",
+          "drive_file_id": "1LZvibsfNcTu2uJXP9gRyDcNvEBrk2B41",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "b6d3419043660d89c08c8141b690eba69bd30a4fa772f90d59eff8d407c1ade1"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part012",
+          "drive_file_id": "16Um_PUs1vYAm_EXre1DShWvDOjxClIN7",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "d26c07ad530aff86b73ad83cbf66c937eadacc0facf8823d4768f2ab944e7446"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part013",
+          "drive_file_id": "18rSxjElBI-F_SGS5nv3JjsHa1rOgvotS",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "8704d01aa7e5a83b698ff3de9865be609e96d3e7c2eddcf645fddbecad96c248"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part014",
+          "drive_file_id": "1l0wGOWiW1oV6hczfa1v0y3Hto2dVimdF",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "d79dd1d0d5fcf932e322d782ffc0066b7407fdfe9a3a7fa078c76f24f8ad9451"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part015",
+          "drive_file_id": "1o36ZrHbFkkdXNEEaYiFIPf7cFGMLvI3k",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "86cee657a234cecdd54562521be08853abe664c86ec6beda58c67cf5ab05de2d"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part016",
+          "drive_file_id": "1vu5AKvyDI3i8YcOiZlACCtFttZl61KM7",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "4f5aabc5f343b0b418c03983a2bfc5696340dd3674402a5e1634d4183a78b775"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part017",
+          "drive_file_id": "1tfis6yLJnjNZ_hspXv_69xNJs_rxGTs2",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "e02e146fb1aca931c243390c454eabba4dca56f079f6bcbb2feb33279910be10"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part018",
+          "drive_file_id": "1bM-b72tNAhD1SIUxfi18GMJnOdxdC1Om",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "7d4f2e0c3a6e19f3301e4218884c981cf78e5060663f65eaaadea07a3fb05ad2"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part019",
+          "drive_file_id": "1UQ_fkxVxCvGwmm9iFz2wWOttPIbzcDqk",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "38e99f3773fbe6121fd314fd2f61ee91a0cebc7f1d9e650fef93204736a934a6"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part020",
+          "drive_file_id": "1arHOYtaJucCmuFyEbfFqgZGI8ihv53Rr",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "62c6c26783f69b174e47cf3763a566e337749f46b34242e673c64ca0dd26c5e5"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part021",
+          "drive_file_id": "116SH3qMHtY6DiGhoqjfeNw7KVeupj0A2",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "75c1dacfe8feeb02be7469a5216a3d47a0dca577df18b2fdcfb505554746db78"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part022",
+          "drive_file_id": "1TnMnBlnJl24FvRv-aLvP2oJswQAQ9m7a",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "81d634345045404bebacdd174584f164d399428018b7292970586cc9493c750e"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part023",
+          "drive_file_id": "1MmrE1nNmpJZD6Bwyb2v_CuOLC4u-MgVi",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "ee90c1f0f3e3aa1993a3e692b6ab5cf20d056f7d1010c4fc208499b1bd5bed79"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part024",
+          "drive_file_id": "1kw3a5YUznCFB7fbbfB4sTBWvu70WE8fb",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "ead6b3a0ab5ef41c6b56df05aa0ec54209a0fa909ab0eba873465a5eb39d37cd"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part025",
+          "drive_file_id": "1RoqzEDpSgZcG3i4rXgUCzbjuFNUiFIqv",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "7d844f8055db3c90d6b848713694a145b746fc0ff6af23d655afb8c138ae2e48"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part026",
+          "drive_file_id": "1AT28FczPzu8rn27eEyec6LXo9yZCbU7m",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "f9312b829350207037b2230d989dc6eeb869f09b69fb1f2b6332ed65f05ffbb0"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part027",
+          "drive_file_id": "1K_cXtbMo0IbCSMkQcHmTwv6eA2qZsbqb",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "dc6facbeba6cc0c4e3857377901d50d2ee0aef34a357be13cc1cea4dd6191b41"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part028",
+          "drive_file_id": "1yRPNg9fvbsXb7fSmbXfV_1MrPstZKzkz",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "2fbe31d4a552d56723ad356dade98572cbe4631ca1b020d0988042a319b07d25"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part029",
+          "drive_file_id": "1HZdKM2-5WXByVHZvufGpEqpZpQaaIs7k",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "e7f48ad8cacc3866bcc10d0261faa1d512f780fe32ed6052040689a6ffda8fdd"
+        },
+        {
+          "name": "PRIVATE_blendkit_royalty_free_DO_NOT_REDISTRIBUTE.zip.part030",
+          "drive_file_id": "18wRBRTyfwKVy_xSz-nVEW4cS1r9GFvVG",
+          "size": 86763707,
+          "drive_size": 86763707,
+          "sha256": "607d6317af57a63d5b72a3018f80d0c20435ae0eca4edbf19fd05f2d6e58da76"
+        }
+      ],
+      "size_verified": true
+    },
+    {
+      "name": "PRIVATE_sketchfab_free_standard_animations_DO_NOT_REDISTRIBUTE.zip",
+      "size": 8417548,
+      "sha256": "704450a4debf5d88f97feb10a94bddf6a7243f944e9d889174139182402b197e",
+      "drive_folder": "JuicyTea_assets/PRIVATE",
+      "license": "restricted - DO NOT REDISTRIBUTE",
+      "sharing": "private (owner only)",
+      "drive_file_id": "1-6pbQ_0LViv_3WO9mE03Ib1wPOFers-Y",
+      "drive_size": 8417548,
+      "size_verified": true,
+      "split": false
+    },
+    {
+      "name": "assets_cc0_animals.zip",
+      "size": 150178236,
+      "sha256": "66ea096745683418ddccdbd3a1454907571f23135d33439a04983343e296c27b",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "split": true,
+      "reassemble": "cat assets_cc0_animals.zip.part* > assets_cc0_animals.zip",
+      "parts": [
+        {
+          "name": "assets_cc0_animals.zip.part000",
+          "drive_file_id": "1ndi5L62cLYq7rynzxe1pCRJkr9WjcDaq",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "d6a040038840b57b987b86a7e7d28fdc461e7a671a3c042091a99cfb841dc01d"
+        },
+        {
+          "name": "assets_cc0_animals.zip.part001",
+          "drive_file_id": "1GL88t3XBkBCmm2ttiNemZdhUs3OsOlrC",
+          "size": 55178236,
+          "drive_size": 55178236,
+          "sha256": "b5dbaf06475d5cbfabb3c9ca10b51890342c5764f50cc38c6d22f9db43b054fd"
+        }
+      ],
+      "size_verified": true
+    },
+    {
+      "name": "assets_cc0_animations.zip",
+      "size": 79830646,
+      "sha256": "3c77ec51c1220d81d8dedfc9ae2358eb7c4c97d217f89c3ecc0be350386b8ee6",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "drive_file_id": "1LAZfTk94jDVvVGhKXaIdBRGlL7Tuyesb",
+      "drive_size": 79830646,
+      "size_verified": true,
+      "split": false
+    },
+    {
+      "name": "assets_cc0_characters.zip",
+      "size": 175901155,
+      "sha256": "6820c44d5ad75c59238dd0b534e31b6481688c0935f4c92f4ea6de352c5921b5",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "split": true,
+      "reassemble": "cat assets_cc0_characters.zip.part* > assets_cc0_characters.zip",
+      "parts": [
+        {
+          "name": "assets_cc0_characters.zip.part000",
+          "drive_file_id": "1sJ2GjAvIljOWuxjuYAUdg0qv9twBqtkQ",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "17cc8a9a5c4a31008516a793405af236965f7935d8862a78e4f6fcc9a842c201"
+        },
+        {
+          "name": "assets_cc0_characters.zip.part001",
+          "drive_file_id": "1w5EEgPJnmKhSYrl2qFCgVfJbpzTe4OQz",
+          "size": 80901155,
+          "drive_size": 80901155,
+          "sha256": "ecb8ec82b700db8e03a576f3b0aee011d68dff6cb5158fb21b5d41fdef618a6f"
+        }
+      ],
+      "size_verified": true
+    },
+    {
+      "name": "assets_cc0_city_buildings.zip",
+      "size": 208676895,
+      "sha256": "660e92db07ec64b9f3996682dd266a882f176d5b19f16fc4716ac734a9e3e28a",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "split": true,
+      "reassemble": "cat assets_cc0_city_buildings.zip.part* > assets_cc0_city_buildings.zip",
+      "parts": [
+        {
+          "name": "assets_cc0_city_buildings.zip.part000",
+          "drive_file_id": "18UUnl5z1_keeTnnc0efFAawfNV6cikWJ",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "4c5d1d827eff0de14da052f15337f4bc4d81e0e7bae65389c0d6bfd5d44d310c"
+        },
+        {
+          "name": "assets_cc0_city_buildings.zip.part001",
+          "drive_file_id": "1uByKxzjDwfWIZG7T1xeii-HYF-I_nsQj",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "e061ab5d810b67053381c7df71da03b4833f864e96cf8693c2c69ebae6f21441"
+        },
+        {
+          "name": "assets_cc0_city_buildings.zip.part002",
+          "drive_file_id": "1OKN9lydX__Ipg1Tm_9Mo6eUXNNTC3y3-",
+          "size": 18676895,
+          "drive_size": 18676895,
+          "sha256": "50bdbdb2a0ff07dba2ca4d05d4472001c9cf0d60af8f6045fe33f0c4eaa4c746"
+        }
+      ],
+      "size_verified": true
+    },
+    {
+      "name": "assets_cc0_farm.zip",
+      "size": 13394255,
+      "sha256": "2721513a17e74914202906f24acda874c9644d6dbf9347b46f9cbd95b85ccab8",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "drive_file_id": "1Hf4c9NnqJdsawZkFGGCzXGIa_EYDLdmS",
+      "drive_size": 13394255,
+      "size_verified": true,
+      "split": false
+    },
+    {
+      "name": "assets_cc0_food.zip",
+      "size": 38988543,
+      "sha256": "81a977474d95de1750e10123351ec816ecda1e19e89cd4aa5d872a2dca922103",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "drive_file_id": "1r_lgNL70jdRh0yNLmO3GYRW1r6fMmgt-",
+      "drive_size": 38988543,
+      "size_verified": true,
+      "split": false
+    },
+    {
+      "name": "assets_cc0_hdri.zip",
+      "size": 54197107,
+      "sha256": "8728a79a22261b5c5eb2162b912cdb597644322f36dafdd8e1a9140228c527a1",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "drive_file_id": "1dnvwI6JoeWeolmgZXnlwrBiCgX0-blOn",
+      "drive_size": 54197107,
+      "size_verified": true,
+      "split": false
+    },
+    {
+      "name": "assets_cc0_interiors.zip",
+      "size": 78824271,
+      "sha256": "6abc57d7ce067dc009a430157f24d24335bef06d34817fa4d8d4c5a1bdda9f25",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "drive_file_id": "1Sj9mrNl2G9uPoXPmYHMz4MBY9mab_Ifv",
+      "drive_size": 78824271,
+      "size_verified": true,
+      "split": false
+    },
+    {
+      "name": "assets_cc0_materials.zip",
+      "size": 1149389231,
+      "sha256": "a342eb57dd2aacdb300d5ef7c6c81b551c4f3c93c704494f9b790efcdbd4f089",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "split": true,
+      "reassemble": "cat assets_cc0_materials.zip.part* > assets_cc0_materials.zip",
+      "parts": [
+        {
+          "name": "assets_cc0_materials.zip.part000",
+          "drive_file_id": "1fTOoClK0o6MGzXDDHfmfqrxslCyl7OeP",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "33a3740b903e06065a88e7dff351681c19c23ae6bc90a7448f8abc03be156d6f"
+        },
+        {
+          "name": "assets_cc0_materials.zip.part001",
+          "drive_file_id": "1WzEGuwJg-CmSTTiErgF5hEBFEBpzPdY4",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "3dde5b71063b5b9773b130486e51480f3382210f7f451dcd51a6098d5c77ab02"
+        },
+        {
+          "name": "assets_cc0_materials.zip.part002",
+          "drive_file_id": "1ACJIhaESiIjPtjJqzS15mr3Z0oHMQy7s",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "a8ce9a9ad5eda883ecc4185b7c01e32f7992a46fac268f31f8a2c0d86a680dc5"
+        },
+        {
+          "name": "assets_cc0_materials.zip.part003",
+          "drive_file_id": "1NCV8SIc7cFXlVY57-8dQ3cwPBFDD-Qk_",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "2cae9cadec0abc644a283b5bc7ac43ac8f002427f71967de25a74167f9d32626"
+        },
+        {
+          "name": "assets_cc0_materials.zip.part004",
+          "drive_file_id": "1WU7kowKkrKMVXiUpaTNC1kRdlyj2F_Qx",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "e5f1066fd1d1f5f504fe360e8f6c793ebb2361e1d655693160a3b08813102f63"
+        },
+        {
+          "name": "assets_cc0_materials.zip.part005",
+          "drive_file_id": "1INmYQH5nLbF-vAd95PCHYWVaOnfruRLw",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "413775acc81339092cf4d67e4a9028db1e22cbdabbcdbc844bb2323c9e6bb78f"
+        },
+        {
+          "name": "assets_cc0_materials.zip.part006",
+          "drive_file_id": "1ch6ONKfPRnBjuEl33oL0U7qyaAfgJnT_",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "20d7ebe212d30a837b1b72b0229bc834b5efb9b70ac19b12ad510aa2488e5ba8"
+        },
+        {
+          "name": "assets_cc0_materials.zip.part007",
+          "drive_file_id": "1i4qM1FR_yEODbgHwM55FO8gA6W4IU1Up",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "99a02d83189ecbb535b10ca016c2e207bf9afa02f7e6878b851dd52493c165e6"
+        },
+        {
+          "name": "assets_cc0_materials.zip.part008",
+          "drive_file_id": "1SLJttQjtpVpsBc1-Na6ijh_lqKANJWFK",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "5cf72c6b0635910ba08fe328ca2caf3949a97124956993be82a78193cef89e8f"
+        },
+        {
+          "name": "assets_cc0_materials.zip.part009",
+          "drive_file_id": "1xwV54xWJWiTORzn8GwuMcCDovKqP2J9S",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "fcdf39b349176a075202b95352e33dab4d367d372e457ce98dfce8c5ce65c0c5"
+        },
+        {
+          "name": "assets_cc0_materials.zip.part010",
+          "drive_file_id": "110cPBgtDoSY5D3VIHuSATz8--j1cv_b1",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "62169e24de4f27db5b1b0494f10cfa0c11c04018a3ec88d202d40927470b85b9"
+        },
+        {
+          "name": "assets_cc0_materials.zip.part011",
+          "drive_file_id": "1qDctMrfDrZyZ7ut1kf8QKPH3Q7SLTwLQ",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "086b77ca1d40692946b1ef1738d0f0958a85140ed4931b04000262e3cb6b84a5"
+        },
+        {
+          "name": "assets_cc0_materials.zip.part012",
+          "drive_file_id": "1vTLq_sKhqROno8H0YGkevOpidNtQzq_z",
+          "size": 9389231,
+          "drive_size": 9389231,
+          "sha256": "2256297365f91c0cc9737fcc93c3dab0633f43bc4ac9cec3914af2a995fd35d3"
+        }
+      ],
+      "size_verified": true
+    },
+    {
+      "name": "assets_cc0_medieval_historical.zip",
+      "size": 384648280,
+      "sha256": "c2f431d32606b8401654bfd806b0cd2fe1822ddc85e43aed36465eb76b025c13",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "split": true,
+      "reassemble": "cat assets_cc0_medieval_historical.zip.part* > assets_cc0_medieval_historical.zip",
+      "parts": [
+        {
+          "name": "assets_cc0_medieval_historical.zip.part000",
+          "drive_file_id": "1Zwfz_NPA_IKAiSbV78Gqosd1kFLvsdTg",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "d58638a63c5b833f81f38b659dcb07265aa195a9f284e73913507244cb772943"
+        },
+        {
+          "name": "assets_cc0_medieval_historical.zip.part001",
+          "drive_file_id": "1zTOQhwu1CQfsIRryCdBPXJD09245EzTk",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "e8136df6de074ab3913b305ce08146c42ef498d98dd9d8b7a2eb33710d9a279f"
+        },
+        {
+          "name": "assets_cc0_medieval_historical.zip.part002",
+          "drive_file_id": "1e5mK5DucZOyx9zHj-gQ1zIkIYXiPATXG",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "74275d31d7323fe94a03929fba39cee56d4b298106ba364c69ea4b94269c3973"
+        },
+        {
+          "name": "assets_cc0_medieval_historical.zip.part003",
+          "drive_file_id": "1TuNvF2RHE1nVl0aUgqYE4Q0hvpC8_d6B",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "d58799089e748e6f61084bc1cfd2b6a1d79b50e9f078ddde3179eadb252d679a"
+        },
+        {
+          "name": "assets_cc0_medieval_historical.zip.part004",
+          "drive_file_id": "1NV2owAyMTU8NhVz5FjxQIbTjKSR6y8CA",
+          "size": 4648280,
+          "drive_size": 4648280,
+          "sha256": "e098dbd28f1b1d387813354d6ae678d18cc304380206460753492eb3dece5d60"
+        }
+      ],
+      "size_verified": true
+    },
+    {
+      "name": "assets_cc0_nature.zip",
+      "size": 341068218,
+      "sha256": "acea712968f049c94d8ee469e850e7148fbcf5569b51b6c002d4b851de481d1f",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "split": true,
+      "reassemble": "cat assets_cc0_nature.zip.part* > assets_cc0_nature.zip",
+      "parts": [
+        {
+          "name": "assets_cc0_nature.zip.part000",
+          "drive_file_id": "1jVH_oH1Oj4IQMtmWKZMAcHLe835WnmxH",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "923aafed6d39e50fc934e58e8f81aa83b297fd61e980f7d0a405669cad4ce50b"
+        },
+        {
+          "name": "assets_cc0_nature.zip.part001",
+          "drive_file_id": "1uiaMUgwO7xVszJMLtVKMMH6PriSscPw3",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "7b13a1fab86578cc4f3d37fb82b07146c1424e95df1c3ac5b83f5ac52d708d63"
+        },
+        {
+          "name": "assets_cc0_nature.zip.part002",
+          "drive_file_id": "1CobKVdtUXje_mq9AWonMU2bydfHJdwSL",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "7239687c3e812637b9abe88546f7daa20c7de1f6addac7dd04f7cd89945c7e8b"
+        },
+        {
+          "name": "assets_cc0_nature.zip.part003",
+          "drive_file_id": "1FLzFXiD_h_1V4bZKpeva2fPvuBMdm64c",
+          "size": 56068218,
+          "drive_size": 56068218,
+          "sha256": "ac63e4edf7c6e70b2f9fadd3210d02d7094f804e40d265b816bbb276a0307736"
+        }
+      ],
+      "size_verified": true
+    },
+    {
+      "name": "assets_cc0_ocean_boats.zip",
+      "size": 41569673,
+      "sha256": "bf6ed67de7fed871ae2f095d19e33cc927d08ce95f213cd6ba1a86c174dac106",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "drive_file_id": "1FpjhtI_jp5OaG-Ss1JkE-79nmJGnPM--",
+      "drive_size": 41569673,
+      "size_verified": true,
+      "split": false
+    },
+    {
+      "name": "assets_cc0_roads_props.zip",
+      "size": 52055342,
+      "sha256": "0e9d3a6f0e68361ace34063e6df7048c9005e19e6072974fb9ea0010f8acf32e",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "drive_file_id": "1LeoOqDWMlGijTuOTL6ecq8A9VMQnnRSm",
+      "drive_size": 52055342,
+      "size_verified": true,
+      "split": false
+    },
+    {
+      "name": "assets_cc0_ruins_decay.zip",
+      "size": 141347998,
+      "sha256": "e1b53a190b6f1d6e6067def3865c8bd8d840b8cb2ad6ccd4e1f7ddfc3f7137d7",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "split": true,
+      "reassemble": "cat assets_cc0_ruins_decay.zip.part* > assets_cc0_ruins_decay.zip",
+      "parts": [
+        {
+          "name": "assets_cc0_ruins_decay.zip.part000",
+          "drive_file_id": "1Tco_Fh-fLkvFlQmvK4LceedldtUS155O",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "fb69a9f305bb99585a8ea6d4be8f45563c581c621069932d8ca14c370bac08a6"
+        },
+        {
+          "name": "assets_cc0_ruins_decay.zip.part001",
+          "drive_file_id": "19Q1RC8s8-wpgkPDyjSjnAwGQjtNPrHRC",
+          "size": 46347998,
+          "drive_size": 46347998,
+          "sha256": "338eb3e54cbd301b46b88069cafca88d9b4102688035a82dab55e00aa6d6667f"
+        }
+      ],
+      "size_verified": true
+    },
+    {
+      "name": "assets_cc0_space.zip",
+      "size": 196502844,
+      "sha256": "92bf5262d8fc76e937fe2ee46166a7428d05886fba5a9ed4fad988ee35a513c4",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "split": true,
+      "reassemble": "cat assets_cc0_space.zip.part* > assets_cc0_space.zip",
+      "parts": [
+        {
+          "name": "assets_cc0_space.zip.part000",
+          "drive_file_id": "1IjCEBLWA4mjlLXsvpK1m95295MKN-YcY",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "1a4a7af11302c5cb3a6b4565be074dadb5f480dc399a03b6c272d5a913904010"
+        },
+        {
+          "name": "assets_cc0_space.zip.part001",
+          "drive_file_id": "18IXfmfw6_16zewMSFUrH4-22cW12Z0Yk",
+          "size": 95000000,
+          "drive_size": 95000000,
+          "sha256": "2dc1b8b2f8c69858b563c6595f5cb9a1857b8f51a1c14fba677b51db56ee5099"
+        },
+        {
+          "name": "assets_cc0_space.zip.part002",
+          "drive_file_id": "1JPI5jU3b95Xp7n_nB4Fqf46jOdYifOmg",
+          "size": 6502844,
+          "drive_size": 6502844,
+          "sha256": "f5c4ffce4332e807ffcb86a7d9583dc280a9997d52f7849aa5e082b6b63cd0a9"
+        }
+      ],
+      "size_verified": true
+    },
+    {
+      "name": "assets_cc0_sports.zip",
+      "size": 774327,
+      "sha256": "409eaf2034feb3c027c13b93fe12ba1da9e0b5f3751874e83eb1d0cf2ef4b11c",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "drive_file_id": "1L1T1dsQEhWXTjEhryN3EP8rlHGknh8fo",
+      "drive_size": 774327,
+      "size_verified": true,
+      "split": false
+    },
+    {
+      "name": "assets_cc0_toys.zip",
+      "size": 25603242,
+      "sha256": "b82c186be4e5a58b8a21c43cf4c0e9a816aef7861727c9dae567a2e0156468c2",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "drive_file_id": "1ZSOM24MYD2AoWgjZd-KVd0z_6fUaqEw9",
+      "drive_size": 25603242,
+      "size_verified": true,
+      "split": false
+    },
+    {
+      "name": "assets_cc0_vehicles.zip",
+      "size": 34246426,
+      "sha256": "aadeeb5aa602ce3f33bc502132e610207b25955e8f2a4128696ef5aabb563e76",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "drive_file_id": "1DoANsfZT18auEeg5sjj6ww8lpfp1Ugvb",
+      "drive_size": 34246426,
+      "size_verified": true,
+      "split": false
+    },
+    {
+      "name": "assets_cc0_weather_fx.zip",
+      "size": 16153114,
+      "sha256": "2e9314955cbd83770f4f5c364d950514596d7af17c58b6229f15f4e193d11389",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "drive_file_id": "1GIbO45KcQJUqjrAgPGAUR_mFhoGKbdjK",
+      "drive_size": 16153114,
+      "size_verified": true,
+      "split": false
+    },
+    {
+      "name": "assets_cc0_winter.zip",
+      "size": 4503716,
+      "sha256": "5c53fa80475b08b010e2e794b83973f46c62ce16c0813b63488e6adfbc2e2f5f",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "drive_file_id": "12Q4PLBcppQxBGAwagTzG39Imo-juwnc9",
+      "drive_size": 4503716,
+      "size_verified": true,
+      "split": false
+    },
+    {
+      "name": "CATALOG.md",
+      "size": 31831,
+      "sha256": "2ea3e82056434cd0b391594099e4ed8c73a083e35a1429de0ca3e5abf5e17f63",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "drive_file_id": "1F40xrpMXSVJ44Xl0-ZfIHquVMgFz5ZEj",
+      "drive_size": 31831,
+      "size_verified": true,
+      "split": false
+    },
+    {
+      "name": "ANIMATIONS_INDEX.md",
+      "size": 7575,
+      "sha256": "34eab431a749dab43fefc5bb202e983532068d45bafadf8ce7b1ab518e268847",
+      "drive_folder": "JuicyTea_assets",
+      "license": "CC0",
+      "sharing": "private (owner only) - anyone-with-link NOT set: Drive connector does not offer link sharing; owner must enable manually",
+      "drive_file_id": "1iSzWNEOT3oBFCC_HzpXdtqOAJl6Wg5ND",
+      "drive_size": 7575,
+      "size_verified": true,
+      "split": false
+    }
+  ]
+}

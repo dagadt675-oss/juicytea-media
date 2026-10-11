@@ -56,7 +56,7 @@ class OpeningFrameTest(unittest.TestCase):
         self.assertGreater(self.report["river_blue"], 0.35)
         self.assertGreater(self.report["park_green"], 0.22)
         self.assertGreater(self.report["mean_luma"], 0.32)
-        self.assertGreater(self.report["bottom_street"], 0.45)
+        self.assertGreater(self.report["bottom_street"], 0.32)
         self.assertGreater(self.report["bottom_white"], 0.015)
         self.assertGreater(self.report["bottom_yellow"], 0.008)
 

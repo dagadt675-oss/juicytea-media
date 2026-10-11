@@ -14,6 +14,7 @@ import bpy
 from mathutils import Matrix
 
 from engine import assets as assetlib
+from engine import cc0_city
 from engine.city_layout import (
     AVE_HALF,
     AVE_Y,
@@ -401,6 +402,16 @@ def _library_tower(kit, coll, x, y, z, height, color):
 def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None, kind="round", leaf=None):
     """A registry tree when a pack is enabled, otherwise the lobed crown."""
     rng = rng or random
+    if cc0_city.ready():
+        height = float(scale) * 2.9 * (1.15 if kind == "pine" else 1.0)
+        tree_kind = "dead" if future and rng.random() < 0.28 else kind
+        built = cc0_city.place_tree(coll, x, y, z, height, tree_kind)
+        if built is not None:
+            built.pass_index = INDEX_CANOPY
+            return kit.add(
+                built, "tree_canopy", future=future, delay=delay, sink=False,
+                leaf=leaf or (0.16, 0.52, 0.18, 1), autumn=(0.55, 0.32, 0.12, 1),
+            )
     found = _library_file("tree", kind, rng)
     if found is not None:
         record, path = found
@@ -540,6 +551,15 @@ def _kenney_car_mesh(model):
 
 
 def _car(kit, coll, mats, loc, yaw, color, parent=None, local=None, drive=0.0, model="sedan", scale=1.0, force_white=False, **extra):
+    if parent is None and cc0_city.ready():
+        built = cc0_city.place_car(coll, loc[0], loc[1], loc[2], yaw)
+        if built is not None:
+            kit.add(
+                built, "car", path_from=(loc[0] + drive, loc[1], loc[2]), path_to=loc,
+                parented=False, float=1.1, bob=0.18, sink=False,
+                **{"paint": color, **extra},
+            )
+            return
     found = _library_file("car", model)
     fitted = None
     if found is not None and not found[0]["id"].startswith("kenney_"):
@@ -599,7 +619,11 @@ def _person_mesh():
     return _PERSON_MESH
 
 
-def _person(kit, coll, mats, x, y, z, rng):
+def _person(kit, coll, mats, x, y, z, rng, clip="Idle"):
+    if cc0_city.ready():
+        built = cc0_city.place_person(coll, x, y, z, rng.uniform(0, 6.28), clip, offset=int(abs(x + y)) % 36)
+        if built is not None:
+            return kit.add(built, "person", float=0.4, bob=0.08, sink=False)
     found = _library_file("person", "person", rng)
     if found is not None:
         record, path = found
@@ -779,6 +803,9 @@ def _build_streets(kit, coll, mats):
             continue
         _lamp(kit, coll, mats, x, 9.2, road_z + 0.06)
         _lamp(kit, coll, mats, x, 35.2, road_z + 0.06)
+    if cc0_city.ready() and cc0_city.place_avenue(coll, y, road_z + 0.1):
+        cc0_city.place_side_street(coll, GRID_X, 40.0, RIVER_Y0 - 4.0, PARK_Z + 0.1, width=9.0)
+        paint_z = road_z + 0.2
     # Four lanes. Dashes are wide enough to read in the full frame.
     for offset in LANE_OFFSETS:
         step = -52.0
@@ -823,6 +850,10 @@ def _build_streets(kit, coll, mats):
 
 def _block_streets(kit, coll, mats):
     """Asphalt gaps between the tower blocks, from the far bank inland."""
+    if cc0_city.ready():
+        for sx in CITY_STREETS:
+            cc0_city.place_side_street(coll, sx, RIVER_Y1 + 4.0, 260.0, FAR_Z + 0.14, width=9.0)
+        return
     road_z = FAR_Z + 0.08
     y0 = RIVER_Y1 + 2.0
     y1 = 340.0
@@ -932,6 +963,12 @@ def build_river_city(kit, mats, rng, pieces):
                 1,
             )
             # A packed tower replaces the box when that record is enabled and on disk.
+            if cc0_city.ready():
+                built = cc0_city.place_tower(col_c, x, y, FAR_Z, h)
+                if built is not None:
+                    kit.add(built, "building_base", sink=True, skeleton=(row == 3 and int(x) % 80 < 40))
+                    x += w + rng.uniform(10.0, 16.0)
+                    continue
             if _library_tower(kit, col_c, x, y, FAR_Z, h, color):
                 x += w + rng.uniform(10.0, 16.0)
                 continue
@@ -1071,7 +1108,15 @@ def build_river_city(kit, mats, rng, pieces):
         _person(kit, col_v, mats, fx + math.cos(ang) * 5.2, fy + math.sin(ang) * 5.2, PARK_Z, rng)
     walk_y = AVE_Y + AVE_HALF + SIDEWALK_W * 0.5
     for x in (-40, -24, -8, 16, 32):
-        _person(kit, col_v, mats, x, walk_y, ROAD_Z + 0.06, rng)
+        _person(kit, col_v, mats, x, walk_y, ROAD_Z + 0.06, rng, clip="Walk")
+    if cc0_city.ready():
+        # Two quiet gags: a mannequin dancing on the far bank, and a deer grazing.
+        dancer = cc0_city.place_dancer(col_v, -48.0, 158.0, FAR_Z)
+        if dancer is not None:
+            kit.add(dancer, "person", float=0.2, bob=0.0, sink=False)
+        deer = cc0_city.place_deer(col_v, -36.0, 70.0, PARK_Z)
+        if deer is not None:
+            kit.add(deer, "animal", sink=False)
     for i in range(16):
         x = rng.uniform(-50, 10)
         y = rng.uniform(42, 76)
@@ -1823,7 +1868,9 @@ def _lights(kit):
     sky_mix.name = "SkyMix"
     # 0 keeps the HDRI for lighting. 1 is the night gradient.
     sky_mix.inputs["Fac"].default_value = 0.0
-    hdri_path = Path(__file__).resolve().parents[1] / "assets" / "cc0" / "hdri" / "kloofendal_48d_partly_cloudy_1k.hdr"
+    hdri_path = cc0_city.sunny_hdri() or (
+        Path(__file__).resolve().parents[1] / "assets" / "cc0" / "hdri" / "kloofendal_48d_partly_cloudy_1k.hdr"
+    )
     if hdri_path.exists():
         env = nt.nodes.new("ShaderNodeTexEnvironment")
         env.image = bpy.data.images.load(str(hdri_path), check_existing=True)

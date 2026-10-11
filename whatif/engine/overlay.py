@@ -138,7 +138,7 @@ def _alpha(color, a: float):
 
 def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Image.Image:
     img = image.convert("RGBA")
-    title_size = max(36, int(width * 0.042))
+    title_size = max(34, int(width * 0.040))
     title_font = _font(SERIF, title_size)
     label_font = _font(SANS, max(16, int(width * 0.020)))
     number_font = _font(SERIF, max(42, int(width * 0.052)))
@@ -153,7 +153,7 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
         # Large, in the open sky left of the portal. The portal's left leg
         # is near x=0.49, so the block is centered in the sky pocket, not
         # on the frame center and not jammed into the corner.
-        cx = int(width * 0.24)
+        cx = int(width * 0.255)
         y = int(height * 0.068)
         gap = int(title_size * 1.08)
         block_h = gap * max(0, len(lines) - 1)
