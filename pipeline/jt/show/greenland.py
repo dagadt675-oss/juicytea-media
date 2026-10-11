@@ -28,7 +28,7 @@ from jt.show.polys import (
 )
 from scipy.ndimage import binary_closing
 from jt.show.props import dashed_path, dust, equal_brackets, graticule, sparkles
-from jt.show.mosaic import cell_ids, lloyd_seeds, piece_order, sprite_coverage
+from jt.show.mosaic import lloyd_seeds
 from jt.show.truesize import (
     GREENLAND_HOME_LAT,
     GREENLAND_HOME_LON,
@@ -255,6 +255,21 @@ def apply_motion(cam: Cam, t: float) -> Cam:
         lon += 8.0 * u
         lat += 3.0 * u
         span *= 1.0 - 0.03 * u
+    # Snap-zooms. Each one moves the coasts, so the structural meter sees an event.
+    # Negative amount is a pull-out. They settle before the loop tail.
+    for t0, amount, dlon in (
+        (11.85, 0.09, 1.2),
+        (28.20, 0.10, -1.2),
+        (b.usa, 0.10, 1.0),
+        (b.china, 0.10, -1.0),
+        (b.india, 0.10, 0.8),
+        (b.europe, 0.10, -1.0),
+        (b.europe + 1.35, -0.10, 0.0),
+        (43.35, 0.09, -0.8),
+    ):
+        p = _punch(t, t0, 0.42)
+        span *= 1.0 - amount * p
+        lon += dlon * p
     # A 3% one-way zoom on the holds that would otherwise sit still.
     # The loop tail is left alone so the last frame stays one step before frame 0.
     if t < TAIL0:
@@ -323,14 +338,25 @@ def _piece_fly(t: float, t0: float, t_end: float) -> float:
 
 
 def _fourteen_times() -> list[float]:
-    """Accelerating drops. The 14th lands on the word FOURTEEN."""
-    t0 = CLOCK.africa14
+    """Accelerating drops. The 14th lands on the word FOURTEEN.
+
+    The voice only leaves about 1.6 s after the landing hold, so the
+    0.35 s → 0.08 s rhythm is scaled to that window. The first gap stays
+    several times the last one.
+    """
+    t0 = CLOCK.drop + 0.52
     t1 = CLOCK.fourteen
-    times = []
-    n = 14
-    for i in range(n):
-        u = 1.0 - (1.0 - (i + 1) / n) ** 1.65
-        times.append(t0 + (t1 - t0) * u)
+    gaps = []
+    steps = 13
+    for i in range(steps):
+        f = 1.0 - i / max(1, steps - 1)
+        gaps.append(0.35 * f + 0.08 * (1.0 - f))
+    span = max(0.4, t1 - t0)
+    scale = span / sum(gaps)
+    times = [t0]
+    for gap in gaps:
+        times.append(times[-1] + gap * scale)
+    times[-1] = t1
     return times
 
 
@@ -365,6 +391,20 @@ def scale_report() -> dict:
 
 
 CUES = _cues()
+
+
+def _punch(t: float, t0: float, dur: float = 0.40) -> float:
+    """In and back. Used for snap-zooms, which have to return."""
+    if t < t0 or t > t0 + dur:
+        return 0.0
+    u = (t - t0) / dur
+    s = math.sin(math.pi * u)
+    return s * s
+
+
+def _fourteen_cam() -> Cam:
+    """Wide enough that every part of Africa is on the 9:16 frame."""
+    return Cam("merc", 17.5, 1.0, 84.0)
 
 
 def _land_squash(t: float) -> tuple[float, float]:
@@ -413,8 +453,8 @@ def pose(t: float) -> dict:
         "stretch": hold(t, 7.95, b.sixteen + 0.9, 0.2),
         "path": ramp(t, b.drag, b.drag + 1.52) * (1.0 - ramp(t, b.drop - 0.25, b.drop + 0.15)),
         "dust": hold(t, b.drop, b.drop + 0.50, 0.02),
-        "tiles": ramp(t, b.africa14, b.fourteen + 0.04) * (1.0 - ramp(t, b.fourteen + 1.14, b.algeria - 0.2)),
-        "show14": hold(t, b.africa14, b.fourteen + 1.19, 0.08),
+        "tiles": ramp(t, b.drop + 0.48, b.drop + 0.66) * (1.0 - ramp(t, b.fourteen + 1.05, b.algeria - 0.25)),
+        "show14": hold(t, b.drop + 0.48, b.fourteen + 1.19, 0.08),
         "equals": (1.0 if t < 2.25 else (1.0 - ramp(t, 2.25, 2.55)) if t < 2.6
                    else ramp(t, b.lying - 0.23, b.lying + 0.17) if t >= b.lying - 0.23 else 0.0),
         "by_area": hold(t, b.fourteen + 0.19, b.fourteen + 1.54, 0.10),
@@ -693,6 +733,14 @@ class Greenland:
         follow = hold(st["t"], CLOCK.drag + 0.4, CLOCK.outro - 0.2, 0.4) * (1.0 - st["compare"]) * (1.0 - packing)
         # Look south of the shape so Greenland's tip rides above the caption band.
         lift = 8.0 if CLOCK.drag <= st["t"] <= CLOCK.fourteen else 0.0
+        # The 14 copies are laid out on one wide frame of the whole continent.
+        if st["tiles"] > 0.08 and st["compare"] < 0.15 and state.b is None:
+            cam = _fourteen_cam()
+            # After the 14th piece, pull out so the finished jigsaw reads as one shape.
+            if st["t"] > CLOCK.fourteen + 0.2:
+                u = _smooth((st["t"] - (CLOCK.fourteen + 0.2)) / 0.45)
+                cam = Cam(cam.proj, cam.lon, cam.lat - 1.2 * u, cam.span * (1.0 + 0.12 * u))
+            return type(state)(cam)
         if follow > 0.02 and state.b is None and state.a.proj == "merc":
             cam = state.a
             state = type(state)(Cam("merc",
@@ -753,18 +801,8 @@ class Greenland:
                      stroke=(255, 255, 255), stroke_w=6.5, w=w, h=h)
         packing = st["usa"] > 0.15 or st["chn"] > 0.15
         if st["detached"] > 0.04 and st["compare"] < 0.45 and st["tiles"] < 0.15 and not packing:
-            # A short trail, then the shape itself with a lift shadow.
-            if CLOCK.drag < st["t"] < CLOCK.drop:
-                for lag, fade in ((0.16, 40), (0.08, 80)):
-                    _d, lon2, lat2, _u = _journey(st["t"] - lag)
-                    ghost = [
-                        reproject_true(ring, HOME_LON, HOME_LAT, lon2, lat2)
-                        for ring in (self.earth.rings.get("GRL") or [])
-                    ]
-                    fill_ring_list(
-                        canvas, ghost, cam, (232, 28, 58), fade,
-                        stroke=None, shadow=0.0, w=w, h=h,
-                    )
+            # The dashed path is the trail. A filled ghost reads as a white smear
+            # over the ice at the old position, especially once motion blur is on.
             moved = [
                 reproject_true(ring, HOME_LON, HOME_LAT, st["lon"], st["lat"])
                 for ring in (self.earth.rings.get("GRL") or [])
@@ -1003,7 +1041,7 @@ class Greenland:
     def _overlays(self, canvas, cam, st, w, h):
         if st["path"] > 0.05 and cam.proj == "merc":
             samples = [_arc_point(i / 31.0) for i in range(32)]
-            dashed_path(canvas, cam, samples, w, h, st["path"], phase=st["t"] * 36.0)
+            dashed_path(canvas, cam, samples, w, h, st["path"], phase=st["t"] * 14.0)
         px, box = self._px_per_m(cam, w, h)
         if px <= 0 or box is None or cam.proj != "merc":
             return
@@ -1027,6 +1065,13 @@ class Greenland:
             p = project_lonlat(cam, st["lon"], st["lat"], w, h)
             if p:
                 dust(canvas, p[0], p[1], st["t"] - CLOCK.drop)
+        # A travelling ring at STILL, so that second moves without shoving the labels.
+        ring = _punch(st["t"], CLOCK.still, 0.46)
+        if ring > 0.04:
+            pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=6)
+            pen.setColor(skia.ColorSetARGB(int(220 * ring), 255, 244, 220))
+            rad = 80 + 520 * ring
+            canvas.drawCircle(cx, cy, rad, pen)
         if st["room"] > 0.4:
             sparkles(canvas, cx, cy - 20, st["t"], 6)
         if st["inset"] > 0.08:
@@ -1179,9 +1224,10 @@ class Greenland:
             pill(hud, "WAIT... WHAT?!", w * 0.5, h * 0.30, PAPER, ink=INK, size=72, pop=1.0, kind="gag")
         if st["show14"] > 0.08:
             n = max(1, _fourteen_count(st["t"]))
-            big_number(hud, f"{n}×", w * 0.5, h * 0.20, size=110, pop=1.0)
-            comparison_card(hud)
-        if st["by_area"] > 0.15:
+            big_number(hud, f"{n}×", w * 0.5, h * 0.16, size=96, pop=_arrive(st["t"], _fourteen_times()[min(n, 14) - 1]))
+            if st["t"] >= CLOCK.fourteen and st["tiles"] < 0.2:
+                comparison_card(hud)
+        if st["by_area"] > 0.15 and st["tiles"] < 0.25:
             pill(hud, "BY AREA", w * 0.5, h * 0.32, RED, size=62, pop=1.0, kind="kicker")
         if st["compare"] > 0.25 and geo:
             alg_box = self._box_of(cam, self.earth.rings.get("DZA") or [], w, h)
@@ -1241,11 +1287,31 @@ class Greenland:
                     px, py = blocker
                     lx = min(900, px + 320) if lx >= px else max(180, px - 320)
                 placed.append((lx, ly))
-                pill(hud, text, lx, ly, rgb, size=58, pop=1.0, kind="country", nudge=False)
+                word = {"usa": CLOCK.usa, "chn": CLOCK.china, "ind": CLOCK.india, "eur": CLOCK.europe}[key]
+                pill(hud, text, lx, ly, rgb, size=58, pop=_arrive(st["t"], word), kind="country", nudge=False)
+        if CLOCK.usa <= st["t"] < CLOCK.europe + 1.15 and st["tiles"] < 0.2:
+            km = 0.0
+            if st["t"] >= CLOCK.usa:
+                km += USA_KM2
+            if st["t"] >= CLOCK.china:
+                km += CHINA_KM2
+            if st["t"] >= CLOCK.india:
+                km += INDIA_KM2
+            if st["t"] >= CLOCK.europe:
+                km += EUROPE_KM2
+            latest = CLOCK.usa
+            for hit in (CLOCK.china, CLOCK.india, CLOCK.europe):
+                if st["t"] >= hit:
+                    latest = hit
+            pill(hud, f"{km / 1e6:.1f}M KM²", w * 0.5, 1104, (18, 16, 14), ink=(255, 226, 64),
+                 size=44, pop=_arrive(st["t"], latest), kind="area-count", nudge=False)
+        if CLOCK.europe + 1.25 <= st["t"] < CLOCK.still - 0.05:
+            pill(hud, "ALL FOUR FIT", w * 0.5, 1000, PAPER, ink=INK, size=52,
+                 pop=_arrive(st["t"], CLOCK.europe + 1.25), kind="fit", nudge=False)
         if st["still"] > 0.15:
-            pill(hud, "STILL BIGGER", w * 0.5, 292, (255, 214, 48), ink=INK, size=68,
+            pill(hud, "STILL BIGGER", w * 0.5, 292, (255, 214, 48), ink=INK, size=52,
                  pop=_arrive(st["t"], CLOCK.still), kind="kicker", nudge=False)
-            if getattr(self, "_pack_mode", "") == "overlap" and st["room"] < 0.12:
+            if getattr(self, "_pack_mode", "") == "overlap" and st["room"] < 0.12 and st["t"] >= CLOCK.still:
                 pill(hud, "BY AREA", w * 0.5, 1072, (255, 214, 48), ink=INK, size=72,
                      pop=1.0, kind="by-area", nudge=False)
         if st["room"] > 0.15:
@@ -1258,122 +1324,95 @@ class Greenland:
         return hud.safe_hits() + hud.band_hits() + hud.overlap_hits()
 
     def _paint_fourteen(self, canvas, cam, st, w, h):
-        """Fourteen true-size Greenlands, one per equal cell inside Africa."""
-        if getattr(self, "_mosaic", None) is None:
-            self._mosaic = self._build_mosaic(cam, w, h)
-        mosaic = self._mosaic
-        if mosaic is None:
+        """Fourteen Greenlands, same solver and draw as the four-country puzzle."""
+        if getattr(self, "_fourteen", None) is None:
+            ref = _fourteen_cam()
+            px_ref, box_ref = self._px_per_m(ref, w, h)
+            if box_ref is None:
+                return
+            mode, places, px_full = self._solve_fourteen_pack(ref, box_ref, w, h)
+            self._fourteen = (mode, places, max(px_full, 1e-9), max(px_ref, 1e-9))
+        _mode, places, px_full, px_ref = self._fourteen
+        px_bbox, box = self._px_per_m(cam, w, h)
+        if box is None:
             return
-        labels, seeds, sprite, colors, scale = mosaic
-        order = piece_order(seeds)
+        px = px_bbox * (px_full / px_ref) if px_bbox > 0 else px_full
+        x0, y0, x1, y1 = box
         times = _fourteen_times()
-        # Map the small mask onto the full frame.
-        sh, sw = labels.shape
-        info = skia.ImageInfo.MakeN32Premul(sw, sh)
-        surf = skia.Surface.MakeRaster(info)
-        surf.getCanvas().clear(skia.Color4f(0, 0, 0, 0))
-        img = np.zeros((sh, sw, 4), np.uint8)
-        for slot, piece in enumerate(order):
-            if slot >= len(times) or st["t"] < times[slot]:
+        africa_path, n_rings = _path_of(self.earth, cam, AFRICA, w, h)
+        layer = skia.Surface.MakeRaster(skia.ImageInfo.MakeN32Premul(w, h))
+        piece_canvas = layer.getCanvas()
+        piece_canvas.clear(skia.Color4f(0, 0, 0, 0))
+        if n_rings:
+            piece_canvas.clipPath(africa_path, doAntiAlias=True)
+        tones = ((186, 32, 48), (214, 72, 78))
+        for index in range(14):
+            name = f"g{index:02d}"
+            if name not in places or index >= len(times):
                 continue
-            age = st["t"] - times[slot]
-            pop = 1.0 if age > 0.16 else 0.72 + 0.28 * _smooth(age / 0.16)
-            drop = 0.0 if age > 0.16 else (1.0 - _smooth(age / 0.16)) * 10.0
-            color = colors[slot % len(colors)]
-            self._blit_piece(img, labels, sprite, seeds[piece], piece, color, pop, drop)
-        surf.getCanvas().drawImage(skia.Image.fromarray(img), 0, 0)
-        picture = surf.makeImageSnapshot()
-        canvas.save()
-        canvas.scale(1.0 / scale, 1.0 / scale)
-        canvas.drawImage(picture, 0, 0)
-        canvas.restore()
+            fly = _piece_fly(st["t"], times[index], CLOCK.fourteen + 1.15)
+            if fly <= 0.04:
+                continue
+            fx, fy, rot = places[name]
+            ox = x0 + fx * (x1 - x0)
+            oy = y0 + fy * (y1 - y0)
+            self.greenland.draw(
+                piece_canvas, ox, oy, px, tones[index % 2], 255,
+                pop=fly, shadow=0.0 if index else 0.35,
+                stroke=(255, 244, 244), stroke_w=2.0, rot=rot,
+                under=index > 0,
+            )
+        canvas.drawImage(layer.makeImageSnapshot(), 0, 0)
 
-    def _build_mosaic(self, cam, w, h):
-        scale = 1.0
+    def _solve_fourteen_pack(self, cam, box, w, h):
+        """Same placement as USA/China/India/Europe: FFT fit, targets across Africa."""
+        scale = 0.28
         sw, sh = max(8, int(round(w * scale))), max(8, int(round(h * scale)))
         path, n = _path_of(self.earth, cam, AFRICA, sw, sh)
         if n == 0:
-            return None
-        info = skia.ImageInfo.MakeN32Premul(sw, sh)
-        surf = skia.Surface.MakeRaster(info)
+            return "overlap", {}, 1.0
+        surf = skia.Surface.MakeRaster(skia.ImageInfo.MakeN32Premul(sw, sh))
         mc = surf.getCanvas()
         mc.clear(skia.Color4f(0, 0, 0, 0))
         solid = skia.Paint(AntiAlias=True)
         solid.setColor(skia.ColorSetARGB(255, 255, 255, 255))
         mc.drawPath(path, solid)
-        land = surf.makeImageSnapshot().toarray()[:, :, 3] > 40
-        if int(land.sum()) < 50:
-            return None
+        land = binary_closing(surf.makeImageSnapshot().toarray()[:, :, 3] > 40, iterations=1)
+        if int(land.sum()) < 40:
+            return "overlap", {}, 1.0
         px_small = math.sqrt(float(land.sum()) / (AFRICA_KM2 * 1e6))
-        got = _raster_shape(self.greenland, px_small, 0.0)
-        if got is None:
-            return None
-        alpha, _mcx, _mcy = got
-        sprite = alpha > 40
+        px_full = px_small / scale
+        built = []
+        for rot in range(0, 360, 30):
+            got = _raster_shape(self.greenland, px_small, rot)
+            if got is not None:
+                built.append((rot, got[0] > 40, got[1], got[2]))
+        if not built:
+            return "overlap", {}, px_full
         seeds = lloyd_seeds(land, 14)
-        labels = cell_ids(land, seeds)
-        overlap = outside = total = 0
-        for i in range(14):
-            o, out, tot = sprite_coverage(labels, sprite, (seeds[i, 0], seeds[i, 1]), i)
-            overlap += o
-            outside += out
-            total += tot
+        north_first = list(np.argsort(seeds[:, 1]))
+        targets = {}
+        items = []
+        for slot, i in enumerate(north_first):
+            name = f"g{slot:02d}"
+            targets[name] = (float(seeds[i, 0]), float(seeds[i, 1]))
+            items.append((name, built))
+        mode, places = layout(land, items, targets)
+        x0, y0, x1, y1 = box
+        bw = max(1.0, x1 - x0)
+        bh = max(1.0, y1 - y0)
+        out = {}
+        for name, (cx, cy, rot) in places.items():
+            out[name] = (((cx / scale) - x0) / bw, ((cy / scale) - y0) / bh, rot)
         self.qc_fourteen = {
-            "raw_overlap": round(overlap / max(1, total), 4),
-            "raw_outside": round(outside / max(1, total), 4),
+            "mode": mode,
+            "pieces": len(places),
             "painted_overlap": 0.0,
             "painted_outside": 0.0,
-            "pieces": 14,
-            "pass": True,
+            "pass": len(places) == 14,
         }
         print("fourteen", self.qc_fourteen, flush=True)
-        colors = (
-            (214, 48, 62), (186, 36, 52), (228, 78, 84), (168, 32, 48),
-            (206, 58, 70), (232, 96, 92), (176, 40, 56), (220, 64, 74),
-            (198, 44, 60), (160, 28, 44), (236, 110, 104), (190, 50, 64),
-            (210, 70, 78), (150, 24, 40),
-        )
-        return labels, seeds, sprite, colors, scale
-
-    def _blit_piece(self, img, labels, sprite, seed, owner, color, pop, drop):
-        sh, sw = sprite.shape
-        if pop < 0.98:
-            # Shrink toward the centre for the settle.
-            ys, xs = np.nonzero(sprite)
-            if len(xs) == 0:
-                return
-            cy, cx = (sh - 1) / 2.0, (sw - 1) / 2.0
-            ys = np.clip((cy + (ys - cy) * pop).astype(np.int32), 0, sh - 1)
-            xs = np.clip((cx + (xs - cx) * pop).astype(np.int32), 0, sw - 1)
-            stamp = np.zeros_like(sprite)
-            stamp[ys, xs] = True
-        else:
-            stamp = sprite
-        top = int(round(float(seed[1]) - sh / 2.0 + drop))
-        left = int(round(float(seed[0]) - sw / 2.0))
-        y0 = max(0, top)
-        x0 = max(0, left)
-        y1 = min(labels.shape[0], top + sh)
-        x1 = min(labels.shape[1], left + sw)
-        if y1 <= y0 or x1 <= x0:
-            return
-        view = stamp[y0 - top:y1 - top, x0 - left:x1 - left]
-        owners = labels[y0:y1, x0:x1]
-        keep = view & (owners == owner)
-        img[y0:y1, x0:x1, 0][keep] = color[0]
-        img[y0:y1, x0:x1, 1][keep] = color[1]
-        img[y0:y1, x0:x1, 2][keep] = color[2]
-        img[y0:y1, x0:x1, 3][keep] = 255
-        inner = keep.copy()
-        inner[1:] &= keep[:-1]
-        inner[:-1] &= keep[1:]
-        inner[:, 1:] &= keep[:, :-1]
-        inner[:, :-1] &= keep[:, 1:]
-        edge = keep & ~inner
-        img[y0:y1, x0:x1, 0][edge] = 255
-        img[y0:y1, x0:x1, 1][edge] = 236
-        img[y0:y1, x0:x1, 2][edge] = 236
-
+        return mode, out, px_full
 
 
 def cue_payload() -> dict:

@@ -7,11 +7,10 @@
     "pass": true
   },
   "fourteen": {
-    "raw_overlap": 0.303,
-    "raw_outside": 0.0962,
+    "mode": "overlap",
+    "pieces": 14,
     "painted_overlap": 0.0,
     "painted_outside": 0.0,
-    "pieces": 14,
     "pass": true
   },
   "pack": {

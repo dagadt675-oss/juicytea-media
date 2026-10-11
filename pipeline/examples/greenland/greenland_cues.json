@@ -144,72 +144,72 @@
       "name": "drop"
     },
     {
+      "t": 23.073,
+      "kind": "tick",
+      "name": "fourteen-1"
+    },
+    {
+      "t": 23.273,
+      "kind": "tick",
+      "name": "fourteen-2"
+    },
+    {
+      "t": 23.46,
+      "kind": "tick",
+      "name": "fourteen-3"
+    },
+    {
+      "t": 23.634,
+      "kind": "tick",
+      "name": "fourteen-4"
+    },
+    {
+      "t": 23.796,
+      "kind": "tick",
+      "name": "fourteen-5"
+    },
+    {
       "t": 23.894,
       "kind": "pop",
       "name": "dust"
     },
     {
-      "t": 23.983,
-      "kind": "tick",
-      "name": "fourteen-1"
-    },
-    {
-      "t": 24.068,
-      "kind": "tick",
-      "name": "fourteen-2"
-    },
-    {
-      "t": 24.149,
-      "kind": "tick",
-      "name": "fourteen-3"
-    },
-    {
-      "t": 24.225,
-      "kind": "tick",
-      "name": "fourteen-4"
-    },
-    {
-      "t": 24.296,
-      "kind": "tick",
-      "name": "fourteen-5"
-    },
-    {
-      "t": 24.362,
+      "t": 23.944,
       "kind": "tick",
       "name": "fourteen-6"
     },
     {
-      "t": 24.423,
+      "t": 24.08,
       "kind": "tick",
       "name": "fourteen-7"
     },
     {
-      "t": 24.478,
+      "t": 24.203,
       "kind": "tick",
       "name": "fourteen-8"
     },
     {
-      "t": 24.528,
+      "t": 24.313,
       "kind": "tick",
       "name": "fourteen-9"
     },
     {
-      "t": 24.572,
+      "t": 24.41,
       "kind": "tick",
       "name": "fourteen-10"
     },
     {
-      "t": 24.609,
+      "t": 24.494,
       "kind": "tick",
       "name": "fourteen-11"
     },
     {
-      "t": 24.639,
+      "t": 24.566,
       "kind": "tick",
       "name": "fourteen-12"
     },
     {
-      "t": 24.66,
+      "t": 24.624,
       "kind": "tick",
       "name": "fourteen-13"
     },

@@ -123,9 +123,9 @@ def dashed_path(canvas, cam, lonlat, w: int, h: int, grow: float, phase: float =
     path.moveTo(kept[0][0], kept[0][1])
     for x, y in kept[1:]:
         path.lineTo(x, y)
-    pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=5)
-    pen.setColor(skia.ColorSetARGB(220, 255, 244, 220))
-    pen.setPathEffect(skia.DashPathEffect.Make([14, 12], float(phase)))
+    pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=3.2)
+    pen.setColor(skia.ColorSetARGB(230, 255, 248, 236))
+    pen.setPathEffect(skia.DashPathEffect.Make([11, 16], float(phase)))
     canvas.drawPath(path, pen)
 
 
