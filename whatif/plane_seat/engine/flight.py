@@ -252,6 +252,13 @@ def pose_at(t: float) -> dict:
 
     cover = cloud_cover(t)
     inside = _inside(eye)
+    # X-ray is a short beat on each third, not the whole flight.
+    xray = max(
+        _gauss(t, word_time(26), 1.05),
+        _gauss(t, word_time(31), 1.05),
+        _gauss(t, word_time(34), 1.15),
+    )
+    interior = _smooth(22.45, 22.75, t) * (1.0 - _smooth(27.45, 27.85, t))
     scatter = _smooth(word_time(59), word_time(59) + 0.10, t) * (1.0 - _smooth(word_time(63), word_time(63) + 0.05, t))
     colors = _zone_colors(t)
     distance = TRAVEL * (t / DURATION)
@@ -275,7 +282,9 @@ def pose_at(t: float) -> dict:
         "lens": lens,
         "biome": biome_at(t),
         "cloud": cover,
-        "inside": inside,
+        "inside": inside or interior > 0.5,
+        "xray": 0.0 if interior > 0.4 else xray,
+        "interior": interior > 0.5,
         "scroll": distance % TILE,
         "distance": distance,
         "explode": 0.50 * _smooth(10.55, 11.20, t) * (1.0 - _smooth(17.20, 17.80, t)),

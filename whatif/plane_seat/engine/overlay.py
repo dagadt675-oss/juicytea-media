@@ -250,13 +250,13 @@ def _screen(base: Image.Image, color: tuple[int, int, int], mask: Image.Image) -
     base.alpha_composite(tint)
 
 
-def composite(base: Image.Image, t: float) -> Image.Image:
+def composite(base: Image.Image, t: float, atmosphere: bool = True, pills: bool = True) -> Image.Image:
     pose = pose_at(t)
     img = base.convert("RGBA")
     if img.size != (WIDTH, HEIGHT):
         img = img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
 
-    flare = pose["flare"]
+    flare = pose["flare"] if atmosphere else 0.0
     if flare > 0.04:
         mask = _flare().resize((720, 720))
         mask = mask.point(lambda p, f=flare: int(p * min(1.0, f) * 0.85))
@@ -264,7 +264,7 @@ def composite(base: Image.Image, t: float) -> Image.Image:
         layer.paste(mask, (520, -40))
         _screen(img, (255, 214, 150), layer)
 
-    cover = pose["cloud"]
+    cover = pose["cloud"] if atmosphere else 0.0
     if cover > 0.02:
         wisp = _wisps()
         shift = int((t * 70) % HEIGHT)
@@ -278,8 +278,9 @@ def composite(base: Image.Image, t: float) -> Image.Image:
             veil = Image.new("RGBA", img.size, (255, 236, 206, int(235 * white)))
             img.alpha_composite(veil)
 
-    for spec in pill_specs(pose):
-        _draw_pill(img, spec)
+    if pills:
+        for spec in pill_specs(pose):
+            _draw_pill(img, spec)
     _draw_x(img, pose["show_x"])
 
     layout = caption_layout(t)
