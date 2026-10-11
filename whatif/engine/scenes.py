@@ -1465,7 +1465,8 @@ def _mountains(kit, coll):
     placed = 0
     # The locked camera looks up this axis, so the range is centered on it
     # rather than on world x=0. Scale 2000 turns the 2 m Gaea mesh into a 4 km range.
-    span = _mesh_prop(coll, cache / "gaea_range.glb", (2100.0, 5600.0, FAR_Z - 30.0), 0.15, 0.23 * 2000.0, "gaea_range")
+    # Buried and further back. Upright, the range's cliff reads as a wall in this camera.
+    span = _mesh_prop(coll, cache / "gaea_range.glb", (2200.0, 7800.0, FAR_Z - 200.0), 1.2, 0.23 * 1600.0, "gaea_range")
     if span is not None:
         kit.add(span, "mountain", sink=False)
         placed += 1
