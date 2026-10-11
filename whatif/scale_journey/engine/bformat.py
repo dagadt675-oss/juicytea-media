@@ -336,14 +336,13 @@ def _penny(raw: dict) -> BEpisode:
         else:
             xy = _penny_xy(z_vis)
             penny = (xy[0], xy[1], z_vis + 0.08)
-        hook_cam = (ledge_penny[0] + 6.5, ledge_penny[1] + 8.0, ledge_penny[2] + 8.0)
-        hook_tgt = (ledge_penny[0] - 22.0, ledge_penny[1] - 18.0, ledge_penny[2] - 55.0)
-        # Close chase. The coin stays large. The lens looks back at the
-        # facade and down the street so the roadway rushes up under it.
-        chase_cam = (penny[0] + 0.95, penny[1] + 0.22, penny[2] + 0.62)
-        chase_tgt = (penny[0] - 3.4, penny[1] + 6.0, penny[2] - 12.0)
-        tight_cam = (penny[0] + 0.78, penny[1] + 0.16, penny[2] + 0.55)
-        tight_tgt = (penny[0] - 2.2, penny[1] + 7.5, penny[2] - 16.0)
+        hook_cam = (ledge_penny[0] + 2.4, ledge_penny[1] + 2.6, ledge_penny[2] + 1.8)
+        hook_tgt = (ledge_penny[0] - 16.0, ledge_penny[1] - 12.0, ledge_penny[2] - 48.0)
+        # Just south of the coin, looking north down the street.
+        chase_cam = (penny[0] + 0.05, penny[1] - 0.78, penny[2] + 0.62)
+        chase_tgt = (penny[0] - 1.2, penny[1] + 34.0, penny[2] - 20.0)
+        tight_cam = (penny[0] + 0.04, penny[1] - 0.62, penny[2] + 0.52)
+        tight_tgt = (penny[0] - 1.6, penny[1] + 42.0, max(1.2, penny[2] - 24.0))
         hit_cam = (penny[0] + 2.2, penny[1] + 1.6, max(1.55, penny[2] + 1.15))
         hit_tgt = (penny[0] - 0.35, penny[1] + 0.15, max(0.85, penny[2] + 0.35))
         if t < 3.0 or t >= 36.2:
@@ -375,7 +374,7 @@ def _penny(raw: dict) -> BEpisode:
         elif t < 3.0 or t >= 36.2:
             spin, tilt = 1.15, 0.25
         else:
-            spin, tilt = 0.4 + t * 0.35, 0.45 + 0.25 * math.sin(t * 1.3)
+            spin, tilt = 0.35 + t * 0.12, 1.05
         frames.append(
             BFrame(
                 frame=i,

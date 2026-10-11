@@ -116,14 +116,20 @@ def _clear_parent(obj):
 
 
 def _join_meshes(meshes):
-    bpy.ops.object.select_all(action="DESELECT")
+    # Clear parents first. _clear_parent deselects, so the join selection
+    # has to happen after every mesh has been baked.
     for obj in meshes:
         _clear_parent(obj)
+    bpy.ops.object.select_all(action="DESELECT")
+    alive = [obj for obj in meshes if obj.name in bpy.data.objects]
+    for obj in alive:
         obj.select_set(True)
-    bpy.context.view_layer.objects.active = meshes[0]
-    if len(meshes) > 1:
+    bpy.context.view_layer.objects.active = alive[0]
+    if len(alive) > 1:
         bpy.ops.object.join()
-    return bpy.context.view_layer.objects.active
+    joined = bpy.context.view_layer.objects.active
+    print(f"JOIN {joined.name} faces {len(joined.data.polygons)}", flush=True)
+    return joined
 
 
 def _seat(obj):
@@ -380,7 +386,11 @@ def _roads_and_cars():
         length = max(0.01, mx.x - mn.x)
         empty.scale = (14.0 / length,) * 3
         empty.location = (0.0, 0.0, -800.0)
-        for i, x in enumerate(range(-90, 250, 14)):
+        # The tiled blocks start ~50 m out. Pave that gap so the chase
+        # is not looking at the bare underlay.
+        spots = [(x, y) for y in (34.0, 48.0, 62.0, 76.0, 90.0) for x in range(-70, 210, 14)]
+        spots += [(x, y) for x in (68.0, 82.0) for y in range(-40, 100, 14)]
+        for x, y in spots:
             bpy.ops.object.select_all(action="DESELECT")
             empty.select_set(True)
             for obj in meshes:
@@ -388,7 +398,7 @@ def _roads_and_cars():
             bpy.context.view_layer.objects.active = empty
             bpy.ops.object.duplicate(linked=True)
             copy = bpy.context.view_layer.objects.active
-            copy.location = (x, 52.0, 0.02)
+            copy.location = (x, y, 0.02)
             copy.rotation_euler = (0.0, 0.0, 0.0)
     # Kenney cars face +Y. Yaw 0 travels north. The tower street runs east-west,
     # so those cabs sit at ±90 degrees and slide along X.
@@ -478,8 +488,8 @@ def _people():
         protos.append(empty)
         if hero_arm is None and arm is not None:
             hero_arm = arm
-            empty.location = (56.6, 38.4, empty.location.z)
-            empty.rotation_euler = (0.0, 0.0, -0.4)
+            empty.location = (56.2, 39.6, empty.location.z)
+            empty.rotation_euler = (0.0, 0.0, 2.4)
     if not protos:
         return None
     spots = [(x, 37.6, 1.4) for x in range(-50, 200, 18)]

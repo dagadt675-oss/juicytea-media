@@ -715,29 +715,29 @@ def _head(arm, t):
 
 
 def _clear_camera(cam, protect):
-    """Raycast the real meshes and step the camera out of any solid."""
+    """Step the camera out only when several rays hit a solid from inside.
+
+    One backface is not enough: the scan has flipped normals, and following
+    a single one walks the camera into the tower.
+    """
     scene = bpy.context.scene
     deps = bpy.context.evaluated_depsgraph_get()
     origin = cam.location.copy()
-    dirs = []
-    for x in (-1.0, 0.0, 1.0):
-        for y in (-1.0, 0.0, 1.0):
-            for z in (-1.0, 0.0, 1.0):
-                if x == y == z == 0.0:
-                    continue
-                dirs.append(mathutils.Vector((x, y, z)).normalized())
-    for _ in range(6):
-        pushed = False
-        for direction in dirs:
-            hit, _loc, normal, _idx, obj, _mat = scene.ray_cast(deps, origin, direction, distance=24.0)
+    axes = [mathutils.Vector(v) for v in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))]
+    for _ in range(5):
+        inward = []
+        for direction in axes:
+            hit, loc, normal, _idx, obj, _mat = scene.ray_cast(deps, origin, direction, distance=12.0)
             if not hit or obj in protect:
                 continue
-            if direction.dot(normal) > 0.2:
-                origin = origin + normal.normalized() * 1.1
-                pushed = True
-                break
-        if not pushed:
+            if direction.dot(normal) > 0.25 and (loc - origin).length < 6.0:
+                inward.append(normal.normalized())
+        if len(inward) < 3:
             break
+        push = sum(inward, mathutils.Vector())
+        if push.length < 1e-4:
+            break
+        origin = origin + push.normalized() * 1.4
     if (origin - cam.location).length > 0.05:
         print(f"CAM CLEAR {tuple(round(v, 2) for v in cam.location)} -> {tuple(round(v, 2) for v in origin)}", flush=True)
     cam.location = origin
