@@ -201,7 +201,7 @@ _SHAFT_BANDS = (
     (450.0, 410.0, -1.0, 1.0, -1.0, 1.0),
     (410.0, 374.0, -2.0, 2.0, -2.0, 2.0),
     (374.0, 352.0, -5.2, 5.2, -5.2, 5.2),
-    (352.0, 325.0, -12.0, 12.0, -18.0, 18.0),
+    (352.0, 325.0, -6.4, 6.4, -12.4, 12.4),
     (325.0, 295.0, -16.0, 16.0, -24.0, 24.0),
     (295.0, 90.0, -18.0, 18.0, -26.0, 26.0),
     (90.0, 0.0, -28.5, 28.5, -64.5, 64.5),
@@ -351,8 +351,10 @@ def _penny(raw: dict) -> BEpisode:
         ledge_xy = _penny_xy(drop)
         # North-east lip of the 86th-floor setback. Outside the shaft box
         # so the coin sits on the parapet instead of inside the crown.
-        lip = (13.6, 17.4)
-        parapet = 339.2
+        # On the scanned setback. The mesh only reaches about (10, 17) here,
+        # so the coin sits on that corner instead of in the air past it.
+        lip = (8.8, 15.2)
+        parapet = 338.85
         ledge_penny = (lip[0], lip[1], parapet)
         if t < 0.57 or t >= 33.15:
             penny = ledge_penny
@@ -391,19 +393,30 @@ def _penny(raw: dict) -> BEpisode:
                     penny = (MAN[0] + 0.7 * hop, MAN[1] - 0.4 * hop, penny[2])
         # Shot 1: macro on the parapet, just above the coin, looking out
         # over the curved rail at the city. 50 mm, shallow focus on the coin.
-        hook_cam = (12.15, 16.05, parapet + 0.95)
-        hook_tgt = (18.6, 22.2, parapet - 16.0)
+        # Outside the corner, looking back onto the parapet and down the drop.
+        hook_cam = (11.6, 18.6, parapet + 1.15)
+        # Through the coin on the parapet, with a small extra drop so the city
+        # sits under it and the coin stays inside a 50 mm frame.
+        _hx = lip[0] - hook_cam[0]
+        _hy = lip[1] - hook_cam[1]
+        _hz = parapet - hook_cam[2]
+        hook_tgt = (lip[0] + _hx * 2.4, lip[1] + _hy * 2.4, parapet + _hz * 2.4 - 0.55)
         # Shot 2: 24 mm, close enough that the coin is about a tenth of the
         # frame, with the window wall behind it and the street below.
-        z_follow = penny[2] + 0.72
-        drone_cam = (penny[0] + 1.15, penny[1] + 0.82, z_follow)
-        drone_tgt = (penny[0] - 2.2, penny[1] - 3.2, penny[2] - 22.0)
+        z_follow = penny[2] + 0.62
+        # Sit just outside the coin. The aim is rebuilt after the buffet so
+        # the coin stays near the middle of the 24 mm frame.
+        drone_cam = (penny[0] + 0.92, penny[1] + 0.64, z_follow)
         if 2.4 <= t < 19.07 and not (13.31 <= t < 15.10):
             drone_cam = (
                 drone_cam[0] + 0.16 * _wind(t, 8.2, 6.5),
                 drone_cam[1] + 0.12 * _wind(t, 3.4, 7.1),
                 drone_cam[2] + 0.10 * _wind(t, 5.5, 5.4),
             )
+        _dx = penny[0] - drone_cam[0]
+        _dy = penny[1] - drone_cam[1]
+        _dz = penny[2] - drone_cam[2]
+        drone_tgt = (penny[0] + _dx * 2.6, penny[1] + _dy * 2.6, penny[2] + _dz * 2.6 - 1.1)
         step = max(0.0, t - 23.9) * 0.9
         man_x, man_y = MAN[0] + step, MAN[1]
         # Street camera sits on the sidewalk, south of him, looking north
@@ -473,9 +486,12 @@ def _penny(raw: dict) -> BEpisode:
                 damp = 1.0 - _fade(t, 21.07, 22.0)
             # Broadside near the drone still (t = 6.67) so the coin reads large,
             # still tumbling the rest of the way down.
-            spin = (t - 6.67) * 6.2 + damp * 1.4 * _wind(t, 0.4, 2.5)
-            tilt = 0.35 + damp * 1.15 * _wind(t, 1.8, 2.9)
-            roll = (t - 6.67) * 4.4 + damp * 1.1 * _wind(t, 3.2, 2.2)
+            # Stand the disc toward the drone through the facade follow, then
+            # let it tumble as it nears the street.
+            upright = 1.0 - _fade(t, 17.2, 19.4)
+            spin = (t - 6.67) * 5.4 + damp * 0.8 * _wind(t, 0.4, 2.5)
+            tilt = upright * 1.35 + (1.0 - upright) * (0.45 + damp * 1.3 * _wind(t, 1.8, 2.9))
+            roll = (t - 6.67) * 3.6 * upright + damp * 0.9 * _wind(t, 3.2, 2.2)
         frame = BFrame(
             frame=i,
             t=t,

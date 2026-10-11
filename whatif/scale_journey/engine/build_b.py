@@ -268,6 +268,7 @@ def _clip_low(meshes, zcut):
     kept_min = mathutils.Vector((1e9, 1e9, 1e9))
     kept_max = mathutils.Vector((-1e9, -1e9, -1e9))
     kept_n = 0
+    deck_x = deck_y = -1e9
     for obj in meshes:
         if obj.data.users > 1:
             obj.data = obj.data.copy()
@@ -290,10 +291,16 @@ def _clip_low(meshes, zcut):
             # Long edges are the ribbon. Low flat lids are the scan's ground sheet.
             # The setback roofs stay so the deck is still there.
             flat_lid = abs(normal.z) > 0.84 and area > 14.0 and center.z < 80.0
-            if outside or stray or edge > 9.0 or flat_lid or center.z < zcut:
+            # Loose triangles around the mast read as white shards above the crown.
+            crown_junk = center.z > 408.0 and (edge > 5.0 or area > 3.0)
+            # Ribbons span hundreds of metres. A real facade triangle is shorter than that.
+            if outside or stray or edge > 48.0 or flat_lid or crown_junk or center.z < zcut:
                 dead.append(face)
             else:
                 kept_n += 1
+                if 330.0 < center.z < 348.0:
+                    deck_x = max(deck_x, center.x)
+                    deck_y = max(deck_y, center.y)
                 for v in verts:
                     kept_min = mathutils.Vector((min(kept_min.x, v.x), min(kept_min.y, v.y), min(kept_min.z, v.z)))
                     kept_max = mathutils.Vector((max(kept_max.x, v.x), max(kept_max.y, v.y), max(kept_max.z, v.z)))
@@ -305,7 +312,7 @@ def _clip_low(meshes, zcut):
         bm.free()
     if kept_n:
         print(
-            f"SHAFT faces {kept_n} bbox x[{kept_min.x:.1f},{kept_max.x:.1f}] y[{kept_min.y:.1f},{kept_max.y:.1f}] z[{kept_min.z:.1f},{kept_max.z:.1f}]",
+            f"SHAFT faces {kept_n} bbox x[{kept_min.x:.1f},{kept_max.x:.1f}] y[{kept_min.y:.1f},{kept_max.y:.1f}] z[{kept_min.z:.1f},{kept_max.z:.1f}] deckNE ({deck_x:.1f},{deck_y:.1f})",
             flush=True,
         )
 
@@ -449,7 +456,7 @@ def _triplanar_facade():
     tint.blend_type = "MULTIPLY"
     tint.inputs[0].default_value = 1.0
     nt.links.new(color.outputs[2], tint.inputs[6])
-    tint.inputs[7].default_value = (1.08, 0.98, 0.88, 1.0)
+    tint.inputs[7].default_value = (1.42, 1.24, 1.06, 1.0)
     nt.links.new(tint.outputs[2], bsdf.inputs["Base Color"])
     return mat
 
@@ -949,14 +956,14 @@ def _penny():
     bpy.context.view_layer.update()
     mn, mx = _bounds(meshes)
     span = max(mx.x - mn.x, mx.y - mn.y, 1e-4)
-    empty.scale = (0.09 / span,) * 3
+    empty.scale = (0.13 / span,) * 3
     bpy.context.view_layer.update()
     mn, mx = _bounds(meshes)
     mid = (mn + mx) * 0.5
     for obj in roots:
         obj.matrix_world.translation -= mid
     bpy.context.view_layer.update()
-    print(f"COIN kenney bronze span {span:.3f} -> 0.09 m", flush=True)
+    print(f"COIN kenney bronze span {span:.3f} -> 0.13 m", flush=True)
     return empty
 
 
@@ -1316,13 +1323,13 @@ def _deck_rail():
         return
     height = max(span[2], 0.2)
     scale = 1.85 / height
-    # Just outside the north-east parapet the coin sits on.
-    cx, cy, z = 12.4, 15.8, 339.15
+    # Just past the coin, so the rail crosses the macro as the camera looks out.
+    cx, cy, z = 9.6, 16.0, 339.05
     count = 0
-    for index in range(12):
-        ang = -0.85 + index * 0.20
-        x = cx + math.cos(ang) * 2.55
-        y = cy + math.sin(ang) * 2.55
+    for index in range(10):
+        ang = -0.35 + index * 0.22
+        x = cx + math.cos(ang) * 1.15
+        y = cy + math.sin(ang) * 1.15
         _stamp(proto, (x, y, z), ang + math.pi * 0.5, scale)
         count += 1
     proto.location.z = -400.0
@@ -1397,9 +1404,19 @@ def pose_frame(scene, cam, penny, arms, fr, speed=None):
     cam.data.dof.use_dof = hook
     if hook:
         cam.data.dof.focus_distance = max(0.2, (mathutils.Vector(curr_penny) - mathutils.Vector(curr_cam)).length)
-        cam.data.dof.aperture_fstop = 2.2
+        cam.data.dof.aperture_fstop = 5.6
     _look(cam, target)
-    penny.rotation_euler = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
+    rot = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
+    # Motion blur reads the keyframes, so the face-on disc has to be keyed.
+    if 2.5 < t < 17.5:
+        aim = mathutils.Vector(curr_cam) - mathutils.Vector(curr_penny)
+        if aim.length > 0.2:
+            face = aim.to_track_quat("Y", "Z").to_euler()
+            rot = (face.x + (t - 6.67) * 0.35, face.y, face.z + (t - 6.67) * 0.8)
+    penny.rotation_euler = rot
+    penny.keyframe_insert("rotation_euler", frame=walk_frame)
+    penny.keyframe_insert("rotation_euler", frame=walk_frame + 1)
+    scene.frame_set(walk_frame + 1)
     for arm in arms:
         if arm.get("punchline"):
             _punchline(arm, t)
