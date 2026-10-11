@@ -248,8 +248,10 @@ def _structures(kit, ch, frame, fps):
             near = bool(item.extra.get("near_bank")) or item.base_loc.y < 800.0
             bury = _bury_scale(item, ch)
             obj.location = loc
-            # Year 500 removes the intact towers. Shells, stumps, and fallen copies stay.
-            gone = spectacular > 0.62 and not topple
+            # Year 500 removes the intact towers. City blocks also go at year 100,
+            # because scaling the empty does not shrink the meshes inside them.
+            block = obj.name.startswith("far_block") or obj.name.startswith("nyc") or obj.name.startswith("wtc")
+            gone = (not topple) and (spectacular > 0.62 or (ruin > 0.8 and block))
             obj.hide_render = bury < 0.05 or gone
             if topple:
                 ang = min(1.45, ruin * 0.85 + spectacular * 0.7)
@@ -624,7 +626,7 @@ def _life(kit, ch, frame, fps, snow):
             _kill_emission(obj, u)
         elif role == "forest_floor":
             # A full green sheet at year 1 repaints the bank. Trees and cracks come first.
-            obj.hide_render = ch["vegetation"] < 0.92
+            obj.hide_render = True
         elif role == "shell":
             s = smoother(0.38, 0.6, ch["collapse"])
             obj.hide_render = s < 0.12
