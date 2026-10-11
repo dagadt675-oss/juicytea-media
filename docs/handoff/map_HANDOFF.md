@@ -758,7 +758,9 @@ All of these were open drafts on 2026-10-11 unless noted. The map-Shorts camera 
 
 | PR | Head | Base | Title | Role |
 | --- | --- | --- | --- | --- |
-| v10 PR | `cursor/greenland-africa-v10-7e9d` | `cursor/greenland-africa-v9-7e9d` | Convex outline during the projection morph | **Current.** v10 picture plus this handoff. |
+| #24 | `cursor/greenland-africa-v10-7e9d` | `cursor/greenland-africa-v9-7e9d` | Convex outline during the projection morph | **Current.** v10 picture plus this handoff. |
+
+https://github.com/dagadt675-oss/juicytea-media/pull/24
 
 ### Map stack under it (ancestors, still open, not the place to edit)
 
@@ -778,7 +780,7 @@ All of these were open drafts on 2026-10-11 unless noted. The map-Shorts camera 
 | #3 | `cursor/gold-style-kit-7e9d` | `cursor/map-shorts-pipeline-7e9d` | Gold style kit. Camera sway removed. |
 | #1 | `cursor/map-shorts-pipeline-7e9d` | `cursor/post-dropbox-shorts-9137` | YAML map-Shorts pipeline. |
 
-The handoff belongs on the v10 pull request. Do not open a second PR for the document alone.
+The handoff belongs on #24. Do not open a second PR for the document alone.
 
 ### Other product lines (not this camera)
 
