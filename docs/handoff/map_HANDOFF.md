@@ -4,7 +4,7 @@ Last updated: 2026-10-11.
 
 This file is the only briefing a new agent gets, plus the git repo. Read it before editing. Update it at the end of every future run that changes the picture, the rules, the branches, or the next step, then commit it on the branch you are actually working on and copy it to `/opt/cursor/artifacts/handoff/map_HANDOFF.md`.
 
-Picture this document describes: commit `0cc786a` on `cursor/greenland-africa-v7-7e9d` (`Fix clipped coasts, ocean ovals, and the white Greenland.`). The commit that adds this file sits on top of that.
+Picture this document describes: `greenland_africa_v8.mp4` on `cursor/greenland-africa-v8-7e9d`. v7 is the parent (`0cc786a` on `cursor/greenland-africa-v7-7e9d`).
 
 ## Where the code actually is
 
@@ -12,14 +12,14 @@ Two checkouts exist on this machine. They are not the same branch.
 
 | Path | Branch at the time of this handoff | What it is |
 | --- | --- | --- |
-| `/tmp/vfx-smooth` | `cursor/greenland-africa-v7-7e9d` | The live map engine. Greenland v5, v6, and v7 live here. Edit this tree, or a fresh checkout of this branch. |
+| `/tmp/vfx-smooth` | `cursor/greenland-africa-v8-7e9d` | The live map engine. Greenland v5 through v8 live here. Edit this tree, or a fresh checkout of this branch. |
 | `/workspace` | `cursor/greenland-vo-retime-7e9d` at `7ec07b0` | The rejected retime. Do not edit it thinking it is current. |
 
-Before every edit, run `git -C <dir> branch --show-current`. If you are not on `cursor/greenland-africa-v7-7e9d` or a new branch cut from it, you are in the wrong tree.
+Before every edit, run `git -C <dir> branch --show-current`. If you are not on `cursor/greenland-africa-v8-7e9d` or a new branch cut from it, you are in the wrong tree.
 
 Repo: `dagadt675-oss/juicytea-media`. New branches must match `cursor/<descriptive-name>-7e9d`, all lowercase. Open and update pull requests with the Cursor `ManagePullRequest` tool. Do not use `gh` to create or edit a PR. `gh` is read-only. `pipeline/.gitignore` ignores `*.mp4`; force-add a delivery with `git add -f`. GitHub rejects files over 100.00 MB (decimal). Warn above 50 MB. Do not commit `pipeline/examples/market/market_proof.txt`. Do not commit the hypso zip, the hypso tif, Blue Marble `.npy`, the Natural Earth shapefile, or anything under `pipeline/data/cache/`.
 
-Do not start a new episode, a Märket rebuild, or another Greenland render until Kristóf reviews v7. v7 passed the mechanical gate. He has not approved it.
+Do not start a new episode, a Märket rebuild, or another Greenland render until Kristóf reviews v8. v8 passed both gates. He has not approved it.
 
 ---
 
@@ -27,7 +27,7 @@ Do not start a new episode, a Märket rebuild, or another Greenland render until
 
 Juicy Tea map Shorts. Vertical 1080×1920 pictures of unbelievable geography, built from ready-made public-domain or CC0 imagery, timed to a recorded voice. The look Kristóf calls perfect is the GeoGlobeTales colourful satellite globe and flat maps. A dark single-accent focus mode is optional per beat. It is not the default.
 
-The active job is **Greenland vs Africa**, silent picture, timed to Kristóf's Brian voiceover (52.428 s). The delivered file waiting on his review is `pipeline/examples/greenland/greenland_africa_v7.mp4`.
+The active job is **Greenland vs Africa**, silent picture, timed to Kristóf's Brian voiceover (52.428 s). The delivered file waiting on his review is `pipeline/examples/greenland/greenland_africa_v8.mp4`.
 
 ### Greenland versions
 
@@ -38,7 +38,12 @@ The active job is **Greenland vs Africa**, silent picture, timed to Kristóf's B
 | v4 retime | On branch `cursor/greenland-vo-retime-7e9d`, PR #15. The stretch lives in `/workspace/pipeline/jt/show/greenland.py` as `_glide_keys`. | Rejected twice. First: snaps, fidget, blur, stacked text from chasing a structural-motion score. Second, verbatim: "still not right, the whole thing feels unnatural." Cause: every move was stretched across 52 s, so the easing became a slow drift. A follow-up called retime2 was started and then cancelled. Do not implement retime2. Do not call `_glide_keys`. |
 | v5 | `greenland_africa_v5.mp4` | Rebuilt from scratch in the current engine against `words.json`. 60 fps, 3146 frames, 52.433 s, 46,873,318 bytes. Commit `2721d6c` on `cursor/greenland-africa-v5-7e9d`, PR #17. | Rejected as lame. Discrete moves, projection cuts, and dead holds. Do not extend this camera. |
 | v6 | `greenland_africa_v6.mp4` | One continuous Catmull-Rom camera. 60 fps, 3146 frames, 92,584,857 bytes after a veryslow CRF 16 encode (the first veryfast encode was 102,200,383 bytes and would be rejected by GitHub; a medium CRF 16 re-encode grew to about 105 MB). Commit `6130e7a`, PR #18. Gate passed: max diff 15.041, 0 spikes, 0 dead holds. | Blocked by Kristóf's frame review. Four visual bugs, listed in section 2. The v7 splice copies the untouched keyframe spans from this file, so keep the file. |
-| v7 | `greenland_africa_v7.mp4` | Same moves and timing as v6. Only the broken stretches were re-rendered. 60 fps, 3146 frames, 97,747,960 bytes. Commit `0cc786a`, PR #19. Gate: frames 3146, max diff 8.671, spikes 0, dead 0, pass. | **Current delivery. Waiting on Kristóf. Do not re-render unless he asks.** |
+| v7 | `greenland_africa_v7.mp4` | Same moves and timing as v6. Only the broken stretches were re-rendered. 60 fps, 3146 frames, 97,747,960 bytes. Commit `0cc786a`, PR #19. Gate: frames 3146, max diff 8.671, spikes 0, dead 0, pass. | The four visual bugs are gone. He then blocked it on a double exposure at 6.8–7.7 s. Keep the file; v8 copies every span except that zoom. |
+| v8 | `greenland_africa_v8.mp4` | v7 with frames 397–483 re-rendered as one projection. 60 fps, 3146 frames, 52.433 s, 95,523,515 bytes. No-cut gate: max diff 13.236, spikes 0, dead 0, pass. Ghost-coast gate: 14 samples, 0 fails. | **Current delivery. Waiting on Kristóf.** |
+
+Raw v8:
+
+https://raw.githubusercontent.com/dagadt675-oss/juicytea-media/cursor/greenland-africa-v8-7e9d/pipeline/examples/greenland/greenland_africa_v8.mp4
 
 Raw v7:
 
@@ -72,7 +77,7 @@ Eight v5 stills are in `pipeline/examples/greenland/stills_v5/` (`00_lie` throug
 | Football Earth v5 | PR #2, branch `cursor/football-earth-v5-6cd0` | A different product line. Not this camera. |
 | What-if humans, scale journey, plane seat, penny, skyline | PRs #5, #6, #8, #9, #10, #11, #14 | Other product lines. Not the map-Shorts camera. |
 
-What was in progress when this handoff was written: v7 had just been spliced, gated, committed, and pushed. The next action is Kristóf's review of that file. Nothing else was mid-render.
+What was in progress when this handoff was written: v8 had just been spliced, both gates passed, and the file was committed. The next action is Kristóf's review of `greenland_africa_v8.mp4`. Do not start another episode.
 
 ---
 
@@ -120,7 +125,8 @@ Numbered so a later run can cite them. When two rules conflict, the later Greenl
 - **Upscaling `red_hand_point.png` (68×72).** Use the Kenney SVG.
 - **`tmix`, DoF, motion blur, CRF above 16** on a Greenland delivery.
 - **Frame duplication and basemap cache on the v6/v7 full render.** Pixel-identical on a short test with real holds, but they freeze a frame when the state hash misses a blink or a drift. Forced off for the continuous picture.
-- **First v7 splice.** Gate failed at frame 250 (t = 4.167, diff 12.749, an old-v6 / new-render join), frame 285 (t = 4.75, diff 16.563), and frame 397 (t = 6.617, diff 72.416, a one-frame switch when globe blend crossed 0.996 and the fill flipped from ortho paths to mercator paths). Fixed by crossfading both coast-correct layers and re-rendering frames 0–500.
+- **First v7 splice.** Gate failed at frame 250 (t = 4.167, diff 12.749, an old-v6 / new-render join), frame 285 (t = 4.75, diff 16.563), and frame 397 (t = 6.617, diff 72.416, a one-frame switch when globe blend crossed 0.996 and the fill flipped from ortho paths to mercator paths). Fixed by crossfading both coast-correct layers and re-rendering frames 0–500. That crossfade is what v8 then removed.
+- **v7 projection crossfade (the double exposure).** From about 6.6 s to 8.1 s the renderer drew the Mercator plate and the orthographic plate at the same time, with complementary alpha, and did the same for every fill. Kristóf: a small Greenland and a big pink Greenland, two coastlines, two Africas, two Icelands. It reads as a dissolve, which is a disguised cut. Do not crossfade two framings. LoD may crossfade only textures that share one geometry.
 - **Veryfast CRF 16 of the full v6 film** at 102.2 MB. GitHub's hard limit is 100.00 MB. Medium CRF 16 from that file got bigger. Veryslow CRF 16 from the mp4 landed at 92,584,857 bytes and still passed the gate.
 - **Multiprocessing spawn from `python3 - <<'PY'`.** `FileNotFoundError` on `<stdin>`. Workers need a real `.py` file.
 - **A false gate spike** from concatenating two non-contiguous frame ranges in one diff loop (diff 148 at t = 6.400 was t = 4.98 compared with t = 6.40). Reset the previous frame between runs.
@@ -256,7 +262,7 @@ Anchor rows are `(t, w, lon, lat, span)`:
 
 `_globe_mix(span)` is 0 at span ≤ 40, 1 at span ≥ 82, smoothstep between. Regional hypso and Blue Marble are pulled toward each other's mean colour by `pull = 1 - |2*mix - 1|` (strongest in the middle, zero at the ends), then crossfaded. The basemap `_curl` pinches the mercator image and crossfades to the ortho plate with `_smooth(w)`.
 
-`_draw_fill`: if `w ≤ 0.004`, draw the mercator coast only. If `w ≥ 0.996`, draw the ortho coast only and skip a chopped limb (`len(piece) < max(8, int(len(arr) * 0.82))`). Otherwise draw both, weighted by `1 - _smooth(w)` and `_smooth(w)`. `_path` delegates to `_path_on(..., full_only=False)` for labels and clips.
+`_draw_fill`: if `w ≤ 0.004`, draw the mercator coast only. If `w ≥ 0.996`, draw the ortho coast only and skip a chopped limb (`len(piece) < max(8, int(len(arr) * 0.82))`). Otherwise there is one path. Each vertex is `_blend_xy`: `(1-s) * mercator + s * ortho`, with `s = _smooth(w)`. A point on the back of the globe is parked just outside the limb so it is not folded into a second copy. The basemap is the same blend. `_morph_plate` builds one geographic mesh, samples regional and Blue Marble at those lon/lats (one framing), and also draws a screen grid of the globe so the frame corners stay covered. Near the globe (`s > 0.80`) a gap in that mesh shows the ortho plate instead of stars. `_path` still delegates to `_path_on(..., full_only=False)` for single-camera callers.
 
 `_africa_box` on mercator keeps points past the frame so shapes parked on the box do not jump when a coast crosses y = 1920.
 
@@ -303,7 +309,7 @@ python3 examples/greenland/render_span.py 0 500 /tmp/open.mp4
 
 ### Render a full picture
 
-`python3 examples/greenland/render_v5.py --video` writes **`greenland_africa_v6.mp4`**, forces duplicate off, cache off, RGBA on, and workers = `cpu_count()`. It still requires `speedup_flags.json` because `_flags()` is read for the worker count. It will overwrite v6. It does not produce v7. v7 was a keyframe splice, not this script.
+`python3 examples/greenland/render_v5.py --video` writes **`greenland_africa_v6.mp4`**, forces duplicate off, cache off, RGBA on, and workers = `cpu_count()`. It still requires `speedup_flags.json` because `_flags()` is read for the worker count. It will overwrite v6. It does not produce v8. v8 is `python3 examples/greenland/render_v8.py`, which re-renders only the outbound morph (frames 397–483) and copies the rest of v7.
 
 `python3 examples/greenland/render_v5.py --stills` rewrites `beats_v5.md`, `beats_v5.json`, and `greenland_v5_cues.json` from the stale `MOVES` table, then writes the eight PNGs. Do not run it unless you mean to refresh those v5 artifacts.
 
@@ -558,9 +564,15 @@ v6 keyframes are every 250 frames (4.166667 s): 0, 4.166667, 8.333333, 12.5, 16.
 
 Sum is 3146. New encodes used `libx264` high, level 5.1, yuv420p, CRF 16, veryfast, timescale 15360.
 
+### v8 splice
+
+v7 keyframes used here: frame 250 (4.167 s) and frame 500 (8.333 s). `render_v8.py` copies frames 0–250 and 500–3146, and re-encodes 250–500 with only frames 397–483 newly rendered. Those are the frames where `t >= 6.5` and `0.004 < w < 0.996`. The way into the globe (about 3.52–4.73 s, frames 211–284) is still the v7 crossfade in this file. The renderer no longer produces that crossfade; a later render of those frames would use the same one-geometry morph.
+
 ### Open feedback
 
-Kristóf has not watched v7. v6's gate pass was not enough; he blocked it on the four bugs v7 tried to fix:
+Kristóf watched v7. The clipped polygon, the ovals, the white Greenland, and the dashed guides are gone. He blocked the double exposure at about 6.8–7.7 s. v8 is the answer to that note and is waiting on him.
+
+v6's four bugs, which v7 fixed and v8 kept:
 
 1. About 7.0–8.2 s, red Greenland cut by a straight diagonal, white ice above a ruler edge, and the Africa fill cut by a straight vertical edge.
 2. About 46.6–51.3 s, dark translucent ovals on the Atlantic.
@@ -591,9 +603,22 @@ Fail if either:
 
 Exit code 1 on failure. Default path if you omit the argument is `greenland_africa_v6.mp4`.
 
+v8 result: frames 3146, max 13.236, spikes 0, dead 0, pass.
+
 v7 result: frames 3146, max 8.671, spikes 0, dead 0, pass.
 
 v6 result after the veryslow encode: frames 3146, max 15.041, spikes 0, dead 0, pass.
+
+The first v8 splice, before the globe-corner mesh, failed at frame 397 (t = 6.617, diff 31.627, median 2.186) because the new mesh did not cover the ortho frame. That file was not committed.
+
+### Ghost-coast gate
+
+```bash
+cd pipeline
+python3 examples/greenland/gate_ghost.py
+```
+
+Two overlapping fills become one connected region, so this strokes each coastline ring on a 0.28-scale canvas with a 100 px margin. A ring fails when it has two coastlines that are each at least 30% of the longest one and at least 80 px. v8 run: 14 times from 6.7 s to 8.0 s, Greenland plus every African country, 0 fails. Drawing the old Mercator path and the old ortho path together fails this test (two large coastlines).
 
 `probe_gate.py` is a preflight on risky second-ranges via spawn workers. It must be a real file, not a stdin script. A probe before the fill crossfade passed except one spike near t = 31.40, which the unclipped Africa box fixed. A recheck of frames 1878–1905 then had no diff above 3.
 
@@ -630,7 +655,7 @@ Final settings that must not change when a speedup is added: `libx264`, `yuv420p
 
 ### Size gate
 
-Stay under 100.00 MB decimal or GitHub rejects the push. 50 MB warns. v7 is 97,747,960 bytes. If a new encode crosses 100 MB, a veryslow CRF 16 re-encode of the mp4 is what shrank v6. A medium re-encode made v6 larger. Re-run the frame-diff gate after any re-encode.
+Stay under 100.00 MB decimal or GitHub rejects the push. 50 MB warns. v8 is 95,523,515 bytes. v7 is 97,747,960 bytes. If a new encode crosses 100 MB, a veryslow CRF 16 re-encode of the mp4 is what shrank v6. A medium re-encode made v6 larger. Re-run the frame-diff gate after any re-encode.
 
 ---
 
@@ -648,9 +673,9 @@ A graded morph frame costs about 0.8–1.9 s. A single plate is about 0.3–0.5 
 
 `render_span.py` is the tool for a repair. Same encode flags as the v7 pieces, including timescale 15360.
 
-### v7 concat recipe
+### v8 concat recipe
 
-Cut copies with `-ss` before `-i`, on a keyframe, `-c copy -frames:v`. Concat with `-f concat -c copy`. The piece list is in section 5. After any splice, run the frame-diff gate on the **joined** file. The first splice failed exactly at the joins.
+`render_v8.py` decodes v7 frames 250–500, replaces 397–483, encodes that GOP at CRF 16, timescale 15360, and concatenates with `-c copy` onto frames 0–250 and 500–3146. After any splice, run `gate_v6.py` on the joined file and `gate_ghost.py` on the episode. The first v8 join failed at frame 397; the committed file does not.
 
 ### Caches that are safe
 
@@ -674,27 +699,28 @@ Cut copies with `-ss` before `-i`, on a keyframe, `-c copy -frames:v`. Concat wi
 
 ### Known bugs and traps
 
-1. v7 is not approved. The mechanical gate passing does not close the visual review.
-2. Mercator Greenland at the top edge can look like a clipped polygon because the island continues past y = 0. See section 5. Do not "fix" it by closing a shorter path.
-3. `greenland_v5.py` docstring, `MOVES`, and `beats_v5.md` describe the retired discrete camera.
-4. `render_v5.py --video` overwrites v6, not v7.
-5. `segments.py` is the old 30 fps splicer and blurs the drag.
-6. `speedup_flags.json` says cache and duplicate are on. The continuous-motion drivers turn them off in code. A future driver that trusts the JSON blindly will freeze frames.
-7. Four workers were slower than three on the 20-frame proof. They stay available because pixels matched.
-8. Decoded loop differs slightly from the renderer loop because of yuv420.
-9. `HAND_SVG` is an absolute path under `/workspace/asset_library/...`. A machine without that checkout cannot draw the hand until the SVG is there.
-10. Sentinel local is the wrong continent for Greenland.
-11. `/workspace` is a different branch. Editing it does not change v7.
-12. `pipeline/examples/market/market_proof.txt` is an untracked leftover. Do not commit it.
-13. Karaoke yellow versus cyan is unresolved. Greenland does not burn it.
-14. Module `greenland.py` still draws its own karaoke (`_draw_karaoke`) on the old episode. Leave that file's camera alone.
+1. v8 is not approved. Both gates passing does not close the visual review.
+2. The way into the globe, about 3.52–4.73 s (frames 211–284), is still the v7 two-framing crossfade in `greenland_africa_v8.mp4`. He did not flag that span. The code path for any `0 < w < 1` is now the single geometry, so re-rendering those frames would remove it. Do that only if he asks, or if you are already re-rendering a GOP that contains them.
+3. Mercator Greenland at the top edge can look like a clipped polygon because the island continues past y = 0. See section 5. Do not "fix" it by closing a shorter path.
+4. `greenland_v5.py` docstring, `MOVES`, and `beats_v5.md` describe the retired discrete camera.
+5. `render_v5.py --video` overwrites v6. It does not write v8.
+6. `segments.py` is the old 30 fps splicer and blurs the drag.
+7. `speedup_flags.json` says cache and duplicate are on. The continuous-motion drivers turn them off in code. A future driver that trusts the JSON blindly will freeze frames.
+8. Four workers were slower than three on the 20-frame proof. They stay available because pixels matched.
+9. Decoded loop differs slightly from the renderer loop because of yuv420.
+10. `HAND_SVG` is an absolute path under `/workspace/asset_library/...`. A machine without that checkout cannot draw the hand until the SVG is there.
+11. Sentinel local is the wrong continent for Greenland.
+12. `/workspace` is a different branch. Editing it does not change v8.
+13. `pipeline/examples/market/market_proof.txt` is an untracked leftover. Do not commit it.
+14. Karaoke yellow versus cyan is unresolved. Greenland does not burn it.
+15. Module `greenland.py` still draws its own karaoke (`_draw_karaoke`) on the old episode. Leave that file's camera alone.
 
 ### Next steps, in order
 
-1. Stop. Wait for Kristóf's review of `greenland_africa_v7.mp4`. Do not render v8, do not start Märket, do not start a new episode.
-2. If he still sees a ruler cut around 7–8 s, inspect the frame edge at y = 0 before changing `_draw_fill`. The globe coast is already clean (longest step about 27 px).
-3. If he names a new visual bug, re-render only the keyframe-aligned span that contains it, splice with `-c copy`, re-run the frame-diff gate, and re-check fills for a straight clipped edge. Keep CRF 16 and the timescale.
-4. If he approves v7, the next map Short is designed on this spline style from the first frame: one continuous camera, drift on holds, an element at least every 1.5 s, voice timed from a new `words.json`, public-domain plates, no clouds, no shadow ellipses, no stretched keyframes.
+1. Stop. Wait for Kristóf's review of `greenland_africa_v8.mp4`. Do not render v9, do not start Märket, do not start a new episode.
+2. If he flags the same double exposure on the way into the globe (about 3.5–4.8 s), re-render frames 211–284 with the current episode and splice them. Do not bring back a plate crossfade.
+3. If he names a new visual bug, re-render only the keyframe-aligned span that contains it, splice with `-c copy`, re-run `gate_v6.py` and `gate_ghost.py`. Keep CRF 16 and the timescale.
+4. If he approves v8, the next map Short is designed on this spline style from the first frame: one continuous camera, one geometry when the projection changes, drift on holds, an element at least every 1.5 s, voice timed from a new `words.json`, public-domain plates, no clouds, no shadow ellipses, no stretched keyframes.
 5. Märket, when he asks: replace the Poly Haven rock texture with a real orthophoto. Lantmäteriet was the candidate. Do not use Finnish NLS. The lighthouse should become a real asset from the hub or a CC0 download, not a drawn icon. Re-fetch the hub first.
 6. Countries-cut-in-two and a list/trivia format do not exist. Do not build them until he specifies the episode.
 7. Update this file before you finish, including the commit hash, the gate numbers, and which branch is live.
@@ -709,7 +735,7 @@ All of these were open drafts on 2026-10-11 unless noted. The map-Shorts camera 
 
 | PR | Head | Base | Title | Role |
 | --- | --- | --- | --- | --- |
-| #19 | `cursor/greenland-africa-v7-7e9d` | `cursor/greenland-africa-v6-7e9d` | Fix clipped coasts and the banned ocean ovals | **Current.** v7 picture plus this handoff. |
+| v8 PR | `cursor/greenland-africa-v8-7e9d` | `cursor/greenland-africa-v7-7e9d` | One geometry for the Greenland zoom | **Current.** v8 picture plus this handoff. |
 
 https://github.com/dagadt675-oss/juicytea-media/pull/19
 
@@ -717,7 +743,8 @@ https://github.com/dagadt675-oss/juicytea-media/pull/19
 
 | PR | Head | Base | What it holds |
 | --- | --- | --- | --- |
-| #18 | `cursor/greenland-africa-v6-7e9d` | `cursor/greenland-africa-v5-7e9d` | Continuous camera. Gate passed. Visual bugs. Keep the mp4 because v7 copies spans from it. |
+| #19 | `cursor/greenland-africa-v7-7e9d` | `cursor/greenland-africa-v6-7e9d` | v7. Four visual bugs fixed. Double exposure remains in this file. v8 copies it outside frames 397–483. |
+| #18 | `cursor/greenland-africa-v6-7e9d` | `cursor/greenland-africa-v5-7e9d` | Continuous camera. Gate passed. Visual bugs. Keep the mp4 because later versions copy spans from it. |
 | #17 | `cursor/greenland-africa-v5-7e9d` | `cursor/geoglobe-engine-7e9d` | From-scratch episode, then 60 fps and the speedup proof. Rejected as lame. |
 | #16 | `cursor/geoglobe-engine-7e9d` | `cursor/greenland-vo-retime-7e9d` | LoD plates, VFX layers, admin index, Märket asset swap. |
 | #15 | `cursor/greenland-vo-retime-7e9d` | `cursor/model-drop-7e9d` | Rejected retime. `_glide_keys` lives on this branch (`/workspace`). |
@@ -728,7 +755,7 @@ https://github.com/dagadt675-oss/juicytea-media/pull/19
 | #3 | `cursor/gold-style-kit-7e9d` | `cursor/map-shorts-pipeline-7e9d` | Gold style kit. Camera sway removed. |
 | #1 | `cursor/map-shorts-pipeline-7e9d` | `cursor/post-dropbox-shorts-9137` | YAML map-Shorts pipeline. |
 
-There is no PR #20 in this list. Do not open a second PR for the handoff. It belongs on #19.
+The handoff belongs on the v8 pull request. Do not open a second PR for the document alone.
 
 ### Other product lines (not this camera)
 
