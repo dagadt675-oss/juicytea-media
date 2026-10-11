@@ -27,9 +27,9 @@ OUT = Path("/tmp/opening_frame")
 
 # Image y is 0 at the top. These are the registered landmarks.
 BANDS = {
-    "skyline_y": ((0.0, 168.0, 1.4), 0.394),
-    "bank_y": ((0.0, 82.0, 0.35), 0.531),
-    "promenade_y": ((-8.0, 36.0, 0.7), 0.685),
+    "skyline_y": ((0.0, 168.0, 1.4), 0.479),
+    "bank_y": ((0.0, 82.0, 0.35), 0.579),
+    "promenade_y": ((-8.0, 36.0, 0.7), 0.672),
 }
 
 
@@ -112,11 +112,11 @@ def main():
         sx, sy = project(point)
         landmarks[name] = {"x": sx, "y": sy, "target": target, "error": abs(sy - target)}
     (px, py, _pz), _rot = tower_pose(TOWER_S[0])
-    # The near portal leg runs from z=0 to z=64.5 on the pivot.
-    top = (px, py, 64.5)
+    # The near portal leg runs from z=0 to z=58.6 on the pivot.
+    top = (px, py, 58.6)
     sx, sy = project(top)
-    landmarks["portal_x"] = {"x": sx, "y": sy, "target": 0.322, "error": abs(sx - 0.322)}
-    landmarks["portal_y"] = {"x": sx, "y": sy, "target": 0.116, "error": abs(sy - 0.116)}
+    landmarks["portal_x"] = {"x": sx, "y": sy, "target": 0.550, "error": abs(sx - 0.550)}
+    landmarks["portal_y"] = {"x": sx, "y": sy, "target": 0.315, "error": abs(sy - 0.315)}
 
     scene.render.filepath = str(OUT / "beauty.png")
     bpy.ops.render.render(write_still=True)

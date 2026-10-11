@@ -1,10 +1,16 @@
 # What-if engine
 
-## Standing owner rule: use the asset hub
+## Standing owner rule: hub, then CC0, then build
 
-Wherever possible, use existing ready-made models from the asset hub for everything: animations, people, buildings, whole scenes and city blocks, vehicles, props, nature, and effects. Procedural or hand-built geometry is allowed only when no suitable hub asset exists. When that happens, say which hub entries were checked and why they did not fit.
+Use a ready-made model. The order is fixed:
 
-Prefer a complete pre-built scene (the Procedural City blocks, and a ruined-city pack when it is added for the late decay years) over assembling the same thing from primitives. Rigged and animated people come from the hub's people and animation packs.
+1. The asset hub (`ASSET_HUB.json`). Check it before building anything.
+2. If it is not in the hub, search the web for a free ready-made asset that allows commercial use with no attribution. That means CC0 only: Poly Haven, ambientCG, Kenney, Quaternius, Poly Pizza's CC0 filter, OpenGameArt's CC0 filter, or Sketchfab with the CC0 filter via the API. Download it and log it in `assets/fetch/CATALOG.md` with its license and source.
+3. Build it yourself only if neither exists. Say which hub entries were checked and why they did not fit, and which CC0 sources were searched.
+
+Never use CC-BY, NC, or ND. Never use game or brand IP. Prefer a complete pre-built scene (the Procedural City blocks; Ruined city FREE 5 for the late decay years) over assembling the same thing from primitives. Rigged and animated people come from the hub's people and animation packs.
+
+The airport scene (`sketchfab_free_standard_airport_city_scene.glb`) has a Malaysia Airlines livery on the main jet. Do not place that aircraft until the livery is replaced with a plain white or generic one.
 
 Re-fetch the hub at the start of each episode. It is updated.
 

@@ -17,15 +17,15 @@ import math
 BRIDGE_YAW = math.radians(2.5)
 DECK_ROT_Z = -BRIDGE_YAW
 DECK_ORIGIN = (4.1, 79.0)
-# Object-index measurement, not a guess: 15.2 m is 22.6% of the frame at the
-# near bank and 30.4% on the lower deck. Zenith is 22.2% and 30.0%.
-DECK_W = 15.2
+# A 20 m deck is four real lanes. Towers rise about 2.7 times that width
+# above the roadway, so the portal reads as a bridge and not a gate.
+DECK_W = 20.0
 DECK_HALF = DECK_W / 2.0
 DECK_Z = 4.6
-# Leg centers plus leg thickness. The near portal's outer width measures 18.0%
-# of the frame where the legs meet the deck; zenith is 18.0%.
-TOWER_W = 15.7
-TOWER_LEG = 1.5
+TOWER_W = 22.0
+TOWER_LEG = 1.6
+# Height of each portal measured from the deck surface.
+TOWER_CLEAR = (54.0, 46.0)
 # Object-index ids for the opening metric. Cables and the pier stay at 0.
 INDEX_DECK = 2
 INDEX_CANOPY = 3
@@ -63,7 +63,7 @@ AVENUE_HALF = AVE_HALF + PARKING_W
 LANE_OFFSETS = (-1.5 * LANE_W, -0.5 * LANE_W, 0.5 * LANE_W, 1.5 * LANE_W)
 DECK_LANES = LANE_OFFSETS
 SIDEWALK_W = 3.0
-ZEBRA_DEPTH = 2.4
+ZEBRA_DEPTH = 3.0
 STOP_SETBACK = 2.5
 # US paint: 10 ft dashes, 30 ft gaps.
 DASH_LEN = 3.05

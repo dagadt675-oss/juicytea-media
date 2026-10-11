@@ -25,12 +25,14 @@ def _font(path: Path, size: int) -> ImageFont.FreeTypeFont:
     return ImageFont.truetype(str(path), size)
 
 
-def _shadow_text(base: Image.Image, xy, text, font, fill=(255, 255, 255, 255), anchor="lt", radius=8, opacity=150):
+def _shadow_text(base: Image.Image, xy, text, font, fill=(255, 255, 255, 255), anchor="lt", radius=2, opacity=110, offset=(1, 2)):
     layer = Image.new("RGBA", base.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(layer)
-    draw.text(xy, text, font=font, fill=(0, 0, 0, opacity), anchor=anchor)
-    blurred = layer.filter(ImageFilter.GaussianBlur(radius))
-    base.alpha_composite(blurred)
+    ox, oy = offset
+    draw.text((xy[0] + ox, xy[1] + oy), text, font=font, fill=(0, 0, 0, opacity), anchor=anchor)
+    if radius > 0:
+        layer = layer.filter(ImageFilter.GaussianBlur(radius))
+    base.alpha_composite(layer)
     draw2 = ImageDraw.Draw(base)
     draw2.text(xy, text, font=font, fill=fill, anchor=anchor)
 
@@ -163,8 +165,6 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
         x = int(margin_x + 8)
         y = int(margin_y)
         gap = int(size * 1.15)
-        block_w = max(title_font.getlength(line) for line in lines)
-        _title_scrim(img, x + block_w / 2.0, y + gap * max(len(lines) - 1, 0) / 2.0 + size * 0.4, block_w * 0.62, gap * max(len(lines), 1) * 0.7, a)
         for line in lines:
             _shadow_text(
                 img,
@@ -173,8 +173,9 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
                 title_font,
                 fill=_alpha((255, 255, 255), 255 * a),
                 anchor="lt",
-                radius=8,
-                opacity=int(160 * a),
+                radius=1,
+                opacity=int(90 * a),
+                offset=(2, 2),
             )
             y += gap
 

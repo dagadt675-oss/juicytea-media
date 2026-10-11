@@ -19,6 +19,7 @@ from engine import private_assets
 from engine.city_layout import (
     AVE_HALF,
     AVENUE_HALF,
+    BRIDGE_YAW,
     AVE_Y,
     CROSS_X,
     DASH_GAP,
@@ -126,7 +127,7 @@ def _materials():
     )
     bridge = make_surface(
         "BridgeRed",
-        lin(0.86, 0.09, 0.07),
+        lin(0.42, 0.13, 0.11),
         {"moss": 0.15, "rust": 1.0, "mud": 0.2, "scorch": 0.35, "snow": 0.7, "wet": 0.4},
         roughness=0.34,
     )
@@ -836,16 +837,15 @@ def _build_streets(kit, coll, mats):
     x_west = -88.0
     x_east = 72.0
     open_half = DECK_HALF
-    # Bare asphalt between the stop lines. Nothing else is painted there.
-    clear_west = ix - open_half - depth - STOP_SETBACK - 0.6
-    clear_east = ix + open_half + depth + STOP_SETBACK + 0.6
     _asphalt_plane("avenue", coll, ((x_west + x_east) / 2.0, y, road_z), (x_east - x_west, AVENUE_HALF * 2.0), fallback=mats["road"])
     # Shoulder south of the sidewalk, so the bottom of the frame is pavement.
     walk_s = y - AVENUE_HALF - SIDEWALK_W / 2.0
     walk_n = y + AVENUE_HALF + SIDEWALK_W / 2.0
     apron_far = walk_s - SIDEWALK_W / 2.0
-    _plane("near_shoulder", coll, ((x_west + x_east) / 2.0, apron_far / 2.0, road_z - 0.02), (x_east - x_west, apron_far), mats["concrete"])
-    stub_end = y - AVENUE_HALF - 16.0
+    # City floor under the south frontage so the frame has no void.
+    _plane("city_floor", coll, (0.0, -40.0, road_z - 0.08), (520.0, 200.0), mats["trim"])
+    _plane("near_shoulder", coll, ((x_west + x_east) / 2.0, apron_far / 2.0, road_z - 0.02), (x_east - x_west, max(apron_far, 1.0)), mats["concrete"])
+    stub_end = -120.0
     stub_near = y - AVENUE_HALF
     _asphalt_plane(
         "south_leg",
@@ -878,36 +878,45 @@ def _build_streets(kit, coll, mats):
         _lamp(kit, coll, mats, x, walk_s, road_z + 0.05)
         _lamp(kit, coll, mats, x, walk_n, road_z + 0.05)
 
-    def outside(a, b):
-        return b < clear_west or a > clear_east
-
-    step = DASH_LEN + DASH_GAP
-    cursor = x_west + 2.0
-    while cursor < x_east - 2.0:
-        if outside(cursor, cursor + DASH_LEN):
-            for offset in (-LANE_W, LANE_W):
-                _mark(kit, coll, "lane", (cursor + DASH_LEN / 2.0, y + offset, paint_z), (DASH_LEN, 0.12, 0.03), mats["mark"])
-        cursor += step
-    # Solid white between the parking lane and the travel lanes.
-    for sign, (a, b) in ((-1.0, (x_west, clear_west)), (1.0, (clear_east, x_east))):
+    # Paint runs continuously and stops on the outer edge of each crosswalk.
+    paint_west = ix - open_half - depth - STOP_SETBACK
+    paint_east = ix + open_half + depth + STOP_SETBACK
+    for a, b in ((x_west, paint_west), (paint_east, x_east)):
         if b - a < 1.0:
             continue
-        _mark(kit, coll, "park_line", ((a + b) / 2.0, y + sign * AVE_HALF, paint_z), (b - a, 0.12, 0.03), mats["mark"])
+        for sign in (-1.0, 1.0):
+            _mark(kit, coll, "park_line", ((a + b) / 2.0, y + sign * AVE_HALF, paint_z), (b - a, 0.12, 0.03), mats["mark"])
         for line in (-0.11, 0.11):
             _mark(kit, coll, "yellow", ((a + b) / 2.0, y + line, paint_z + 0.004), (b - a, 0.10, 0.03), mats["yellow"])
-    # West and east legs cross the avenue. North and south legs cross the cross street.
-    private_assets.place_zebra(coll, ix - open_half - depth / 2.0, y, paint_z + 0.01, 0.0, AVENUE_HALF * 2.0, depth)
-    private_assets.place_zebra(coll, ix + open_half + depth / 2.0, y, paint_z + 0.01, 0.0, AVENUE_HALF * 2.0, depth)
-    private_assets.place_zebra(coll, ix, y - AVENUE_HALF - depth / 2.0, paint_z + 0.01, math.pi / 2.0, DECK_W, depth)
+    phase = x_west + 2.0
+    cursor = phase
+    while cursor < x_east:
+        a = cursor
+        b = cursor + DASH_LEN
+        cursor += DASH_LEN + DASH_GAP
+        for x0, x1 in ((x_west, paint_west), (paint_east, x_east)):
+            if a >= x0 and b <= x1:
+                for offset in (-LANE_W, LANE_W):
+                    _mark(kit, coll, "lane", ((a + b) / 2.0, y + offset, paint_z), (DASH_LEN, 0.12, 0.03), mats["mark"])
+    zebra_z = road_z + 0.002
+    for zebra in (
+        private_assets.place_zebra(coll, ix - open_half - depth / 2.0, y, zebra_z, 0.0, AVENUE_HALF * 2.0, depth),
+        private_assets.place_zebra(coll, ix + open_half + depth / 2.0, y, zebra_z, 0.0, AVENUE_HALF * 2.0, depth),
+        private_assets.place_zebra(coll, ix, y - AVENUE_HALF - depth / 2.0, zebra_z, math.pi / 2.0, DECK_W, depth),
+    ):
+        if zebra is not None:
+            kit.add(zebra, "road_mark", sink=False)
     s_zebra = deck_s_at_y(y + AVENUE_HALF) + depth / 2.0
     zx, zy = deck_point(s_zebra)
-    private_assets.place_zebra(
-        coll, zx, zy, deck_z(s_zebra) + RIBBON_TOP + 0.02,
-        math.pi / 2.0 + DECK_ROT_Z, DECK_W, depth,
+    ramp_zebra = private_assets.place_zebra(
+        coll, zx, zy, deck_z(s_zebra) + RIBBON_TOP + 0.002,
+        math.pi / 2.0 - BRIDGE_YAW, DECK_W, depth,
     )
+    if ramp_zebra is not None:
+        kit.add(ramp_zebra, "road_mark", sink=False)
     # Stop lines sit in front of the crosswalk, across the lanes that must stop.
-    _mark(kit, coll, "stop_eb", (clear_west + 0.3, y - AVE_HALF / 2.0, paint_z + 0.01), (0.28, AVE_HALF, 0.03), mats["mark"])
-    _mark(kit, coll, "stop_wb", (clear_east - 0.3, y + AVE_HALF / 2.0, paint_z + 0.01), (0.28, AVE_HALF, 0.03), mats["mark"])
+    _mark(kit, coll, "stop_eb", (paint_west, y - AVE_HALF / 2.0, paint_z + 0.004), (0.28, AVE_HALF, 0.02), mats["mark"])
+    _mark(kit, coll, "stop_wb", (paint_east, y + AVE_HALF / 2.0, paint_z + 0.004), (0.28, AVE_HALF, 0.02), mats["mark"])
     _mark(
         kit, coll, "stop_nb",
         (ix + DECK_HALF / 2.0, y - AVENUE_HALF - depth - STOP_SETBACK, paint_z + 0.01),
@@ -977,6 +986,178 @@ def _block_streets(kit, coll, mats):
         while step < y1:
             _mark(kit, coll, "block_dash", (sx, step, road_z + 0.05), (0.55, 3.2, 0.04), mats["mark"])
             step += 9.0
+
+
+def _place_hub_blocks(kit, coll, mats):
+    """Pre-built hub blocks for the empty frontage and the skyline.
+
+    Procedural City 3 flanks the south street up to the sidewalk, short along
+    the avenue and taller behind it. City 4 fills the east lawn without
+    covering the ramp or the river. City 6 and One WTC vary the far bank.
+    Ruined city FREE 5 stands on that bank once the collapse channel rises.
+    The commute pack is abandoned bikes and scooters. The airport scene is
+    not used: its jet wears a Malaysia Airlines livery.
+
+    Weeds, cracks, and dirt patches are hand-built. The hub blocks are
+    buildings, not lawn debris, and no CC0 pack is a flat year-1 stain.
+    """
+    ix = CROSS_X
+    road_z = ROAD_Z
+    street_west = ix - DECK_HALF - 3.6
+    street_east = ix + DECK_HALF + 3.6
+    front_north = AVE_Y - AVENUE_HALF - SIDEWALK_W - 0.3
+
+    def sit(filename, cx, cy, z, height, yaw, name, min_z=1.2, role="prop"):
+        block = private_assets.place_city_block(
+            coll, filename, cx, cy, z, yaw=yaw, height=height, min_z=min_z, name=name,
+        )
+        if block is not None:
+            kit.add(block, role, sink=False)
+        return block
+
+    def flank(filename, height, north, z, min_z, name, limit=2):
+        size = private_assets.block_size(filename, min_z)
+        if size is None:
+            return 0.0
+        width, depth, native_h = size
+        scale = float(height) / max(native_h, 0.01)
+        footprint_w = width * scale
+        footprint_d = depth * scale
+        edge = street_west
+        for i in range(limit):
+            if edge < -108.0:
+                break
+            sit(
+                filename, edge - footprint_w * 0.5, north - footprint_d * 0.5, z, height,
+                math.pi if i % 2 else 0.0, f"{name}_w{i}", min_z,
+            )
+            edge -= footprint_w - 1.5
+        edge = street_east
+        for i in range(limit):
+            if edge > 108.0:
+                break
+            sit(
+                filename, edge + footprint_w * 0.5, north - footprint_d * 0.5, z, height,
+                0.0 if i % 2 else math.pi, f"{name}_e{i}", min_z,
+            )
+            edge += footprint_w - 1.5
+        return footprint_d
+
+    front_depth = flank("procedural_city_3.glb", 10.0, front_north, road_z, 1.2, "front", limit=2)
+    if front_depth <= 0.0:
+        front_depth = 40.0
+    flank("procedural_city_3.glb", 28.0, front_north - front_depth + 1.2, road_z, 1.2, "back", limit=1)
+
+    park_south = AVE_Y + AVENUE_HALF + SIDEWALK_W + 1.0
+    park_north = RIVER_Y0 - 4.0
+    east_size = private_assets.block_size("procedural_city_4.glb", 1.2)
+    if east_size is not None:
+        width, depth, native_h = east_size
+        slot = max(8.0, park_north - park_south)
+        scale = slot / max(depth, 0.01)
+        height = native_h * scale
+        footprint_w = width * scale
+        edge = street_east + 2.0
+        for i in range(3):
+            if edge > 96.0:
+                break
+            sit(
+                "procedural_city_4.glb",
+                edge + footprint_w * 0.5,
+                park_south + slot * 0.5,
+                PARK_Z,
+                height,
+                math.pi if i % 2 else 0.0,
+                f"east_{i}",
+            )
+            edge += footprint_w - 1.0
+
+    for name, x, y, h, yaw in (("nyc_w", -110.0, 188.0, 52.0, 0.15), ("nyc_e", 95.0, 192.0, 46.0, -0.25)):
+        sit("procedural_city_6.glb", x, y, FAR_Z, h, yaw, name)
+    sit("one_wtc.glb", -42.0, 164.0, FAR_Z, 90.0, 0.45, "wtc", min_z=1.0)
+
+    ruin_size = private_assets.block_size("ruined_city_free_5.glb", 0.25)
+    if ruin_size is not None:
+        width, depth, native_h = ruin_size
+        height = 40.0
+        scale = height / max(native_h, 0.01)
+        sit(
+            "ruined_city_free_5.glb",
+            58.0,
+            (RIVER_Y1 + 5.0) + depth * scale * 0.5,
+            FAR_Z,
+            height,
+            -0.15,
+            "ruin_block",
+            min_z=0.25,
+            role="ruin",
+        )
+
+    walk = AVE_Y - AVENUE_HALF - SIDEWALK_W * 0.35
+    for i, x in enumerate((-62.0, -36.0, 28.0, 52.0)):
+        bikes = private_assets.place_city_block(
+            coll, "city_commute_transport.glb", x, walk, road_z + 0.02, yaw=0.2 * i, height=1.35, min_z=0.0, name="commute",
+        )
+        if bikes is not None:
+            kit.add(bikes, "prop", sink=False)
+    for i, y in enumerate((-8.0, -28.0, -52.0)):
+        bikes = private_assets.place_city_block(
+            coll, "city_commute_transport.glb", ix - DECK_HALF - 1.7, y, road_z + 0.02, yaw=1.2, height=1.3, min_z=0.0, name="commute_s",
+        )
+        if bikes is not None:
+            kit.add(bikes, "prop", sink=False)
+
+    # Year-1 wear. These stay off the hub blocks: those files are buildings.
+    rng = random.Random(5)
+    for i in range(55):
+        wx = rng.uniform(-78.0, 8.0)
+        wy = rng.uniform(40.0, 80.0)
+        if abs(wx - _deck_x(wy)) < DECK_HALF + 3.5:
+            continue
+        scale = (rng.uniform(0.7, 1.35), rng.uniform(0.55, 1.05), rng.uniform(0.75, 1.25))
+        weed = ico_object("weed", coll, (wx, wy, PARK_Z + 0.08), scale, mats["leaf"])
+        weed.color = (0.16, 0.34, 0.10, 1)
+        kit.add(weed, "weed", delay=0.0, sink=False, leaf=(0.16, 0.34, 0.10, 1))
+    for i, x in enumerate((-78.0, -58.0, -40.0, -18.0, 22.0, 40.0, 58.0)):
+        for sign in (-1.0, 1.0):
+            stain = box_object(
+                "stain", coll,
+                (x, AVE_Y + sign * (2.4 if i % 2 == 0 else 6.2), road_z + 0.01),
+                (8.5, 1.7, 0.012),
+                mats["dirt"],
+            )
+            kit.add(stain, "wear", sink=False)
+            crack = box_object(
+                "crack", coll,
+                (x + 1.4, AVE_Y + sign * 4.2, road_z + 0.016),
+                (7.5, 0.32, 0.015),
+                mats["trim"],
+            )
+            kit.add(crack, "wear", sink=False)
+            tuft = ico_object(
+                "tuft", coll,
+                (x, AVE_Y + sign * (AVENUE_HALF - 0.6), road_z + 0.06),
+                (0.45, 0.35, 0.7),
+                mats["leaf"],
+            )
+            kit.add(tuft, "weed", delay=0.0, sink=False, leaf=(0.22, 0.40, 0.12, 1))
+    for i in range(18):
+        wx = rng.uniform(-70.0, 60.0)
+        if abs(wx - ix) < DECK_HALF + 4.0:
+            continue
+        leaf = box_object(
+            "leaf", coll,
+            (wx, AVE_Y + rng.choice((-8.2, -3.4, 3.1, 7.6)), road_z + 0.02),
+            (rng.uniform(0.8, 1.6), rng.uniform(0.5, 1.1), 0.03),
+            mats["dirt"],
+        )
+        leaf.rotation_euler[2] = rng.uniform(0.0, math.pi)
+        kit.add(leaf, "weed", delay=0.0, sink=False, leaf=(0.34, 0.28, 0.12, 1))
+    for i, y in enumerate((-6.0, -22.0, -40.0, -58.0, -78.0)):
+        crack = box_object("stub_crack", coll, (ix + (1.6 if i % 2 == 0 else -1.8), y, road_z + 0.02), (0.28, 6.0, 0.015), mats["trim"])
+        kit.add(crack, "wear", sink=False)
+        tuft = ico_object("stub_tuft", coll, (ix - DECK_HALF + 0.8, y, road_z + 0.05), (0.4, 0.3, 0.65), mats["leaf"])
+        kit.add(tuft, "weed", delay=0.0, sink=False, leaf=(0.2, 0.38, 0.12, 1))
 
 
 def build_river_city(kit, mats, rng, pieces):
@@ -1108,6 +1289,8 @@ def build_river_city(kit, mats, rng, pieces):
                 obj.color = color
                 kit.add(obj, "building_base", sink=True, skeleton=(row == 3 and int(x) % 80 < 40))
             x += w + rng.uniform(10.0, 16.0)
+
+    _place_hub_blocks(kit, col_c, mats)
 
     if "power" in pieces:
         _power_plant(kit, col_c, mats, -70.0, 280.0, FAR_Z)
@@ -1462,7 +1645,8 @@ def _bridge(kit, col, cars, mats, rng):
         pivot.rotation_euler[2] = rot
         # Near portal: leg top at z=62 is about 38% of the frame above the deck.
         # The far portal stays shorter so it does not fill the title.
-        height = 64.5 if i == 0 else 52.0
+        # 54 m and 46 m above the 4.6 m deck: about 2.7 and 2.3 deck-widths.
+        height = 58.6 if i == 0 else 50.6
         _tower_portal(col, mats, pivot, height, TOWER_W, INDEX_PORTAL if i == 0 else 0)
         towers.append(kit.add(pivot, "bridge_tower", i=i, height=height, width=TOWER_W, sink=True))
         # Both portals stand on a pier that rises from the river bed to the deck.

@@ -42,6 +42,12 @@ TOWERS = (
     "Skyline_Vista_Tower_ff2c8a98",
     "Horizon_Glow_Tower_b9db0504",
     "Urban_Pulse_Tower_cf4883e9",
+    "Brutalist_Apartment_Building_34c4860b",
+    "Mediterranean_Apartment_Building_57cec170",
+    "Modern_apartment_building_d5727bba",
+    "Residential_Building_15133650",
+    "Scan_Old_Brick_Building_9aa86602",
+    "Block_of_flats_b5711e89",
 )
 
 
@@ -141,7 +147,9 @@ def place_tower(coll, x, y, z, height):
     if not ready():
         return None
     token = TOWERS[int(abs(x * 3 + y)) % len(TOWERS)]
-    return place(coll, token, (x, y, z), 0.0, height=height, name="tower")
+    obj = place(coll, token, (x, y, z), 0.0, height=height, name="tower")
+    _hook_object_decay(obj)
+    return obj
 
 
 def place_bench(coll, x, y, z, yaw):
@@ -334,7 +342,10 @@ def place_city_car(coll, loc, yaw, index=0):
         return None
     native = max(bounds[1] - bounds[0], bounds[3] - bounds[2])
     align = _front_yaw(root)
-    return _place_root(coll, root, loc, float(yaw) + align, float(length) / max(native, 0.01), "car")
+    placed = _place_root(coll, root, loc, float(yaw) + align, float(length) / max(native, 0.01), "car")
+    if placed is not None:
+        _tint_mesh_colors(placed)
+    return placed
 
 
 def place_city_prop(coll, token, loc, yaw=0.0, height=1.0, name="prop"):
@@ -372,14 +383,34 @@ def road_asphalt_material():
             obj.hide_render = True
             obj.hide_viewport = True
     _ROAD_MAT = bpy.data.materials.get("Road1")
+    _hook_decay(_ROAD_MAT)
     return _ROAD_MAT
 
 
-def place_zebra(coll, x, y, z, yaw, across, depth):
-    """One flat 5-stripe zebra.
+def _bake_flat_zebra(src):
+    """A mesh that lies on XY. Local +X is each stripe (traffic). Local +Y is the row (across the road)."""
+    bpy.context.view_layer.update()
+    mesh = src.data.copy()
+    world = src.matrix_world.copy()
+    for vert in mesh.vertices:
+        point = world @ vert.co
+        vert.co = Vector((point.y, point.x, 0.0))
+    xs = [vert.co.x for vert in mesh.vertices]
+    ys = [vert.co.y for vert in mesh.vertices]
+    cx = (min(xs) + max(xs)) * 0.5
+    cy = (min(ys) + max(ys)) * 0.5
+    for vert in mesh.vertices:
+        vert.co.x -= cx
+        vert.co.y -= cy
+    mesh.update()
+    return mesh, max(xs) - min(xs), max(ys) - min(ys)
 
-    The mesh lies in local XZ (the row of bars along X, each bar along Z).
-    A -90° pitch lays it on the ground; yaw then turns it in the street.
+
+def place_zebra(coll, x, y, z, yaw, across, along):
+    """Flat zebra, 2 mm above the asphalt. Stripes run with traffic.
+
+    The source is five bars a few meters wide. Scaling that row to the whole
+    road turns each bar into a square, so the module is repeated instead.
     """
     global _ZEBRA
     if _ZEBRA is None:
@@ -401,17 +432,197 @@ def place_zebra(coll, x, y, z, yaw, across, depth):
                         bsdf = material.node_tree.nodes.get("Principled BSDF")
                         if bsdf:
                             bsdf.inputs["Base Color"].default_value = (0.95, 0.95, 0.93, 1.0)
-                            bsdf.inputs["Roughness"].default_value = 0.45
-        _ZEBRA = mesh
-    if _ZEBRA is None:
+                            bsdf.inputs["Roughness"].default_value = 0.4
+        if mesh is None:
+            return None
+        baked, native_along, native_across = _bake_flat_zebra(mesh)
+        _ZEBRA = (baked, native_along, native_across)
+    baked, native_along, native_across = _ZEBRA
+    sx = float(along) / max(native_along, 0.01)
+    pitch = native_across * sx
+    count = max(1, int(round(float(across) / max(pitch, 0.01))))
+    sy = float(across) / (count * max(native_across, 0.01))
+    empty = bpy.data.objects.new("zebra", None)
+    coll.objects.link(empty)
+    empty.empty_display_size = 0.2
+    empty.rotation_mode = "XYZ"
+    empty.rotation_euler = (0.0, 0.0, float(yaw))
+    empty.location = (float(x), float(y), float(z))
+    empty.scale = (sx, sy, 1.0)
+    empty.visible_shadow = False
+    mid = (count - 1) * 0.5
+    for i in range(count):
+        copy = bpy.data.objects.new("zebra_bar", baked)
+        coll.objects.link(copy)
+        copy.parent = empty
+        copy.location = (0.0, (i - mid) * native_across, 0.0)
+        copy.rotation_mode = "XYZ"
+        copy.rotation_euler = (0.0, 0.0, 0.0)
+        copy.scale = (1.0, 1.0, 1.0)
+        copy.visible_shadow = False
+        copy.hide_render = False
+    return empty
+
+
+def _hook_decay(material):
+    """Dark patches driven by a value node named Decay. Day 1 leaves it at 0."""
+    if material is None or material.get("decay_hook"):
+        return
+    tree = material.node_tree
+    if tree is None:
+        return
+    bsdf = next((node for node in tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+    if bsdf is None or "Base Color" not in bsdf.inputs:
+        return
+    color_in = bsdf.inputs["Base Color"]
+    noise = tree.nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 7.0
+    noise.inputs["Detail"].default_value = 2.0
+    spread = tree.nodes.new("ShaderNodeMath")
+    spread.operation = "MULTIPLY_ADD"
+    spread.inputs[1].default_value = 0.82
+    spread.inputs[2].default_value = 0.12
+    tree.links.new(noise.outputs["Fac"], spread.inputs[0])
+    decay = tree.nodes.new("ShaderNodeValue")
+    decay.name = "Decay"
+    decay.label = "Decay"
+    decay.outputs[0].default_value = 0.0
+    fac = tree.nodes.new("ShaderNodeMath")
+    fac.operation = "MULTIPLY"
+    tree.links.new(decay.outputs[0], fac.inputs[0])
+    tree.links.new(spread.outputs[0], fac.inputs[1])
+    mix = tree.nodes.new("ShaderNodeMixRGB")
+    mix.blend_type = "MIX"
+    mix.inputs["Color2"].default_value = (0.015, 0.016, 0.018, 1.0)
+    if color_in.is_linked:
+        source = color_in.links[0].from_socket
+        tree.links.remove(color_in.links[0])
+        tree.links.new(source, mix.inputs["Color1"])
+    else:
+        mix.inputs["Color1"].default_value = tuple(color_in.default_value)
+    tree.links.new(fac.outputs["Value"], mix.inputs["Fac"])
+    tree.links.new(mix.outputs["Color"], color_in)
+    material["decay_hook"] = True
+
+
+def _hook_object_decay(obj):
+    if obj is None:
+        return
+    meshes = _walk_meshes(obj) if obj.type != "MESH" else [obj]
+    for mesh in meshes:
+        for slot in mesh.material_slots:
+            _hook_decay(slot.material)
+
+
+def _tint_mesh_colors(obj):
+    """Multiply a textured car by its object color so grime can dull the paint."""
+    for mesh in _walk_meshes(obj):
+        for slot in mesh.material_slots:
+            material = slot.material
+            if material is None or material.get("object_tint") or material.node_tree is None:
+                continue
+            tree = material.node_tree
+            bsdf = next((node for node in tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+            if bsdf is None or "Base Color" not in bsdf.inputs:
+                continue
+            color_in = bsdf.inputs["Base Color"]
+            mix = tree.nodes.new("ShaderNodeMixRGB")
+            mix.blend_type = "MULTIPLY"
+            mix.inputs["Fac"].default_value = 1.0
+            if color_in.is_linked:
+                source = color_in.links[0].from_socket
+                tree.links.remove(color_in.links[0])
+                tree.links.new(source, mix.inputs["Color1"])
+            else:
+                mix.inputs["Color1"].default_value = tuple(color_in.default_value)
+            info = tree.nodes.new("ShaderNodeObjectInfo")
+            tree.links.new(info.outputs["Color"], mix.inputs["Color2"])
+            tree.links.new(mix.outputs["Color"], color_in)
+            material["object_tint"] = True
+        mesh.color = (1.0, 1.0, 1.0, 1.0)
+
+
+_BLOCK_PROTOS = {}
+
+
+def _block_protos(filename, min_z):
+    key = (filename, float(min_z))
+    if key in _BLOCK_PROTOS:
+        return _BLOCK_PROTOS[key]
+    path = PRIVATE / "sketchfab" / "city_blocks" / filename
+    if not path.exists():
+        _BLOCK_PROTOS[key] = []
+        return []
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(path))
+    bpy.context.view_layer.update()
+    kept = []
+    for obj in bpy.data.objects:
+        if obj not in before:
+            obj.hide_render = True
+            obj.hide_viewport = True
+        if obj in before or obj.type != "MESH":
+            continue
+        pts = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+        height = max(point.z for point in pts) - min(point.z for point in pts)
+        if height < min_z:
+            continue
+        for slot in obj.material_slots:
+            _hook_decay(slot.material)
+        kept.append(obj)
+    _BLOCK_PROTOS[key] = kept
+    return kept
+
+
+def block_size(filename, min_z=1.2):
+    """(width, depth, height) of the tall meshes, in the file's units."""
+    protos = _block_protos(filename, min_z)
+    if not protos:
         return None
-    copy = _ZEBRA.copy()
-    coll.objects.link(copy)
-    copy.parent = None
-    copy.hide_render = False
-    copy.hide_viewport = False
-    # Local X is the row (4.54 m). Local Z is the bar length (2.0 m).
-    copy.scale = (float(depth) / 4.544, 1.0, float(across) / 2.0)
-    copy.rotation_euler = (-math.pi / 2.0, 0.0, float(yaw))
-    copy.location = (x, y, z)
-    return copy
+    bpy.context.view_layer.update()
+    xs, ys, zs = [], [], []
+    for src in protos:
+        for corner in src.bound_box:
+            point = src.matrix_world @ Vector(corner)
+            xs.append(point.x)
+            ys.append(point.y)
+            zs.append(point.z)
+    return (max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs))
+
+
+def place_city_block(coll, filename, x, y, z, yaw=0.0, height=30.0, min_z=1.2, name="block"):
+    """One hub city block, bottom on z, footprint centered on x, y. Flat road decals are skipped."""
+    protos = _block_protos(filename, min_z)
+    if not protos:
+        return None
+    bpy.context.view_layer.update()
+    xs, ys, zs = [], [], []
+    for src in protos:
+        for corner in src.bound_box:
+            point = src.matrix_world @ Vector(corner)
+            xs.append(point.x)
+            ys.append(point.y)
+            zs.append(point.z)
+    native_h = max(zs) - min(zs)
+    cx = (min(xs) + max(xs)) * 0.5
+    cy = (min(ys) + max(ys)) * 0.5
+    cz = min(zs)
+    empty = bpy.data.objects.new(name, None)
+    coll.objects.link(empty)
+    for src in protos:
+        copy = src.copy()
+        coll.objects.link(copy)
+        world = copy.matrix_world.copy()
+        copy.parent = empty
+        copy.matrix_world = world
+        copy.hide_render = False
+        copy.hide_viewport = False
+    scale = float(height) / max(native_h, 0.01)
+    empty.scale = (scale, scale, scale)
+    empty.rotation_mode = "XYZ"
+    empty.rotation_euler = (0.0, 0.0, float(yaw))
+    from mathutils import Euler
+
+    lifted = Vector((scale * cx, scale * cy, scale * cz))
+    empty.location = Vector((float(x), float(y), float(z))) - Euler((0.0, 0.0, float(yaw)), "XYZ").to_matrix() @ lifted
+    return empty

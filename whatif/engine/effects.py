@@ -54,12 +54,33 @@ def _veg_scale(item, ch):
     return max(0.0, grow)
 
 
+def _set_building_decay(amount):
+    """Broken windows and grime. The value node is absent on day-1-only materials."""
+    import bpy
+
+    for material in bpy.data.materials:
+        if not material.get("decay_hook") or material.node_tree is None:
+            continue
+        node = material.node_tree.nodes.get("Decay")
+        if node is not None:
+            node.outputs[0].default_value = float(amount)
+
+
+def _paint_descendants(obj, color):
+    if getattr(obj, "type", "") == "MESH":
+        obj.color = color
+    for child in obj.children:
+        _paint_descendants(child, color)
+
+
 def apply(kit, ch, frame, fps):
     kind = kit.kind
     collapse = ch["collapse"]
     ice = ch["ice"]
     snow = max(ch["snow"], ice * 0.95)
     veg = ch["vegetation"]
+    # Year 1 (vegetation ~0.30) already breaks patches of windows. Later years go dark.
+    _set_building_decay(smoother(0.08, 0.55, veg))
     # Water.
     if kit.water is not None:
         z = water_surface(ch, kind)
@@ -253,15 +274,15 @@ def _life(kit, ch, frame, fps, snow):
             b = Vector(item.extra["path_to"])
             pos = a.lerp(b, u)
             rust = ch["rust"]
-            pos.z -= snow * 0.32 + rust * 0.12
+            grime_u = max(rust, smoother(0.04, 0.32, ch["vegetation"]) * 0.85)
+            pos.z -= snow * 0.32 + rust * 0.12 + grime_u * 0.05
             pos.z += ch["gravity"] * item.extra.get("float", 0.0)
             obj.location = pos
             obj.scale = item.base_scale
             obj.hide_render = False
-            paint = Vector(item.extra.get("paint", (0.93, 0.93, 0.94))[:3])
-            grime = paint.lerp(Vector((0.28, 0.18, 0.12)), rust)
-            obj.color = (grime.x, grime.y, grime.z, 1.0)
-            yaw = item.base_rot.z + rust * (0.35 if item.extra.get("index", 0) % 2 == 0 else -0.28)
+            grime = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.38, 0.32, 0.24)), grime_u)
+            _paint_descendants(obj, (grime.x, grime.y, grime.z, 1.0))
+            yaw = item.base_rot.z + grime_u * (0.28 if item.extra.get("index", 0) % 2 == 0 else -0.24)
             obj.rotation_euler = _euler(item.base_rot, dz=yaw - item.base_rot.z)
         elif role == "bird":
             gone = max(ch["fauna"], smoother(0.15, 0.45, ch["vanish"]))
@@ -281,12 +302,21 @@ def _life(kit, ch, frame, fps, snow):
         elif role == "road_mark":
             # Lane paint fades after the meadow. Year 500 is forest, not a fresh street.
             obj.hide_render = ch["vegetation"] > 0.92
+            for child in obj.children:
+                child.hide_render = obj.hide_render
         elif role == "forest_floor":
             # Day 1 stays city-grey on the far bank. Meadow, then forest floor.
             obj.hide_render = ch["vegetation"] < 0.22
         elif role == "ruin":
-            s = smoother(0.28, 0.75, ch["collapse"])
-            obj.hide_render = s < 0.05
+            # Full size once the collapse is underway. Scaling it up reads as a toy.
+            s = smoother(0.35, 0.72, ch["collapse"])
+            obj.hide_render = s < 0.08
+            obj.scale = item.base_scale
+            for child in obj.children:
+                child.hide_render = obj.hide_render
+        elif role == "wear":
+            s = smoother(0.06, 0.28, ch["vegetation"])
+            obj.hide_render = s < 0.04
             obj.scale = item.base_scale * max(s, 0.001)
         elif role == "prop":
             loc = item.base_loc.copy()
@@ -385,7 +415,7 @@ def _bridge(kit, ch):
     ya = bridge["towers"][0].base_loc.y
     yb = bridge["towers"][1].base_loc.y
     span = max(1.0, abs(yb - ya))
-    sag = span / 16.0
+    sag = span / 8.5
     snap = smoother(0.66, 0.9, ch["collapse"])
     half = float(bridge.get("half", 7.6))
     sides = []

@@ -44,7 +44,7 @@ class OpeningFrameTest(unittest.TestCase):
 
     def test_locked_camera_landmarks(self):
         camera = self.report["camera"]
-        self.assertEqual([round(v, 1) for v in camera["location"]], [-56.0, -42.0, 66.0])
+        self.assertEqual([round(v, 1) for v in camera["location"]], [-85.0, -90.0, 80.0])
         self.assertAlmostEqual(camera["lens"], 57.2, places=1)
         for name in ("skyline_y", "bank_y", "promenade_y", "portal_x", "portal_y"):
             row = self.report["landmarks"][name]

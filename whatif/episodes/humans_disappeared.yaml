@@ -15,8 +15,8 @@ format: A
 camera:
   # Far enough west that both tower pairs read, and low enough that the
   # avenue intersection and the foreground cars sit inside the frame.
-  location: [-56.0, -42.0, 66.0]
-  target: [24.0, 100.0, -6.0]
+  location: [-85.0, -90.0, 80.0]
+  target: [12.0, 130.0, 4.0]
   lens: 57.2
   sensor_fit: HORIZONTAL
   sensor_width: 36

@@ -3,18 +3,23 @@
 BlendKit royalty-free and Sketchfab Free Standard files go here, or in
 `/opt/cursor/asset-cache/private`. They are for rendered videos only.
 
-One shared hub lists every pack (CC0 and private). The standing rule is to
-use those ready-made models for everything, and to build geometry only when
-no hub entry fits (then name the entries that were checked). Re-fetch the hub
-at the start of each episode. The copy on disk is gitignored because the JSON
-includes private download commands. See `docs/whatif_engine.md`.
+One shared hub lists every pack (CC0 and private). The order is the hub, then
+a no-attribution CC0 download logged in the catalog, then hand-built geometry.
+Never CC-BY, NC, ND, or brand IP. Re-fetch the hub at the start of each
+episode. The copy on disk is gitignored because the JSON includes private
+download commands. See `docs/whatif_engine.md`.
+
+The airport scene has a Malaysia Airlines livery on the main jet. Do not
+place that aircraft until the livery is a plain white or generic one.
+Ruined city FREE 5 is the late-year skyline. The commute pack (bike, scooter,
+skateboard) is abandoned street clutter.
 
 ```bash
 curl -L 'https://drive.usercontent.google.com/download?id=1KamSsZFG8L8ZJviGNzjLQM-jNg8g9idV&export=download&confirm=t' -o ASSET_HUB.json
 ```
 
 The human-readable twin is Drive id `1ICoBrOKT-tJa_PqtI--LoJ59TiGsOk2T`
-(`ASSET_HUB.md`). As of 2026-10-11 the hub has 52 entries: 33 public, 19
+(`ASSET_HUB.md`). As of 2026-10-11 the hub has 59 entries: 33 public, 26
 private. Private Free Standard and BlendKit files stay in the cache.
 
 Do not commit the raw `.blend`, `.glb`, `.fbx`, or zip files. Do not publish
