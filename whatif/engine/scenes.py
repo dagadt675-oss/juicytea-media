@@ -565,14 +565,28 @@ def _kenney_car_mesh(model):
 
 
 def _car(kit, coll, mats, loc, yaw, color, parent=None, local=None, drive=0.0, model="sedan", scale=1.0, force_white=False, **extra):
-    if parent is None:
-        built = private_assets.place_city_car(coll, loc, yaw, index=extra.get("index", 0))
-        if built is None and cc0_city.ready():
-            built = cc0_city.place_car(coll, loc[0], loc[1], loc[2], yaw)
+    if parent is None and cc0_city.ready():
+        built = cc0_city.place_fleet_car(coll, loc, yaw, index=extra.get("index", 0))
+        if built is None:
+            built = private_assets.place_city_car(coll, loc, yaw, index=extra.get("index", 0))
         if built is not None:
             kit.add(
                 built, "car", path_from=(loc[0] + drive, loc[1], loc[2]), path_to=loc,
                 parented=False, float=1.1, bob=0.18, sink=False,
+                **{"paint": color, **extra},
+            )
+            return
+    if parent is not None and cc0_city.ready():
+        built = cc0_city.place_fleet_car(coll, (0.0, 0.0, 0.0), 0.0, index=extra.get("index", 0))
+        if built is not None:
+            built.parent = parent
+            built.matrix_parent_inverse = Matrix.Identity(4)
+            built.location = local
+            built.rotation_euler[2] = yaw
+            kit.add(
+                built, "car",
+                path_from=local, path_to=local,
+                parented=True, float=0.0, bob=0.0, sink=False,
                 **{"paint": color, **extra},
             )
             return
@@ -842,8 +856,8 @@ def _build_streets(kit, coll, mats):
     walk_s = y - AVENUE_HALF - SIDEWALK_W / 2.0
     walk_n = y + AVENUE_HALF + SIDEWALK_W / 2.0
     apron_far = walk_s - SIDEWALK_W / 2.0
-    # City floor under the south frontage so the frame has no void.
-    _plane("city_floor", coll, (0.0, -40.0, road_z - 0.08), (520.0, 200.0), mats["trim"])
+    # Warm concrete under the south blocks. The old trim read as a navy lot.
+    _plane("city_floor", coll, (0.0, -40.0, road_z - 0.08), (520.0, 280.0), mats["concrete"])
     _plane("near_shoulder", coll, ((x_west + x_east) / 2.0, apron_far / 2.0, road_z - 0.02), (x_east - x_west, max(apron_far, 1.0)), mats["concrete"])
     stub_end = -120.0
     stub_near = y - AVENUE_HALF
@@ -989,6 +1003,115 @@ def _block_streets(kit, coll, mats):
             step += 9.0
 
 
+def _south_city_blocks(kit, coll, mats, ix, road_z, street_west, street_east, front_north):
+    """Real blocks south of the avenue: sidewalk, street wall, alley, cross street.
+
+    The ground inside a block is concrete. A 12 m east-west street sits about
+    90 m south of the avenue. BlendKit towers stand on the sidewalk line.
+    """
+    walk = 3.2
+    ew_y = -62.0
+    ew_half = 6.0
+    _asphalt_plane(
+        "ew_street",
+        coll,
+        (0.0, ew_y, road_z + 0.006),
+        (210.0, ew_half * 2.0),
+        fallback=mats["road"],
+    )
+    _plane("ew_walk_n", coll, (0.0, ew_y + ew_half + walk / 2.0, road_z + 0.04), (210.0, walk), mats["concrete"])
+    _plane("ew_walk_s", coll, (0.0, ew_y - ew_half - walk / 2.0, road_z + 0.04), (210.0, walk), mats["concrete"])
+    # Alleys: one north-south service lane through each block, plus a short
+    # east-west alley behind the avenue frontage.
+    for ax in (ix - 52.0, ix + 48.0):
+        _asphalt_plane("alley", coll, (ax, -28.0, road_z + 0.01), (4.0, 70.0), fallback=mats["road"])
+        _asphalt_plane("alley_s", coll, (ax, -95.0, road_z + 0.01), (4.0, 40.0), fallback=mats["road"])
+    _asphalt_plane("alley_ew", coll, (ix - 52.0, -18.0, road_z + 0.012), (70.0, 3.6), fallback=mats["road"])
+    _asphalt_plane("alley_ew_e", coll, (ix + 48.0, -18.0, road_z + 0.012), (64.0, 3.6), fallback=mats["road"])
+
+    def courtyard(x0, x1, y0, y1):
+        _plane(
+            "court",
+            coll,
+            ((x0 + x1) / 2.0, (y0 + y1) / 2.0, road_z - 0.01),
+            (x1 - x0, y1 - y0),
+            mats["concrete"],
+        )
+
+    # Block faces. y increases north. The avenue frontage is the north edge.
+    north_build = front_north - 0.4
+    south_of_ew = ew_y - ew_half - walk
+    north_of_ew = ew_y + ew_half + walk
+    blocks = (
+        (-100.0, street_west - walk, north_of_ew, north_build),
+        (street_east + walk, 110.0, north_of_ew, north_build),
+        (-100.0, street_west - walk, -120.0, south_of_ew),
+        (street_east + walk, 110.0, -120.0, south_of_ew),
+    )
+    for x0, x1, y0, y1 in blocks:
+        courtyard(x0, x1, y0, y1)
+        _plane("perim_n", coll, ((x0 + x1) / 2.0, y1 + walk / 2.0, road_z + 0.045), (x1 - x0, walk), mats["concrete"])
+        _plane("perim_s", coll, ((x0 + x1) / 2.0, y0 - walk / 2.0, road_z + 0.045), (x1 - x0, walk), mats["concrete"])
+        _plane("perim_w", coll, (x0 - walk / 2.0, (y0 + y1) / 2.0, road_z + 0.045), (walk, y1 - y0), mats["concrete"])
+        _plane("perim_e", coll, (x1 + walk / 2.0, (y0 + y1) / 2.0, road_z + 0.045), (walk, y1 - y0), mats["concrete"])
+
+    def row(x0, x1, y, height, index0, facing=0.0):
+        cursor = x0 + 6.0
+        i = 0
+        while cursor < x1 - 4.0:
+            # Avenue frontage stays near 11 m so the locked camera still sees the road.
+            h = height if abs(y - north_build) > 8.0 else min(height, 11.0)
+            h += (i % 3) * 0.8
+            obj = private_assets.place_tower(coll, cursor, y, road_z, h)
+            if obj is not None:
+                obj.rotation_mode = "XYZ"
+                obj.rotation_euler.z = facing
+                kit.add(obj, "frontage", sink=False, index=index0 + i)
+            cursor += 8.6
+            i += 1
+        return i
+
+    n = 0
+    for x0, x1, y0, y1 in blocks:
+        # Continuous wall on the avenue side of the near blocks. Side and
+        # back edges are the same buildings, set on the sidewalk line.
+        n += row(x0 + 1.0, x1 - 1.0, y1 - 5.5, 18.0, n, 0.0)
+        n += row(x0 + 1.0, x1 - 1.0, y0 + 6.0, 22.0, n, math.pi)
+    # Ruined city pieces occupy the same blocks once the collapse rises.
+    for name, x, y, yaw in (
+        ("ruin_sw", ix - 48.0, -16.0, 0.2),
+        ("ruin_se", ix + 42.0, -14.0, -0.3),
+        ("ruin_far_s", ix - 40.0, -96.0, 0.6),
+    ):
+        block = private_assets.place_city_block(
+            coll, "ruined_city_free_5.glb", x, y, road_z, yaw=yaw, height=16.0, min_z=0.2, name=name,
+        )
+        if block is not None:
+            kit.add(block, "ruin", sink=False)
+    _gutted_room(kit, coll, mats, -50.0, -30.0, road_z)
+
+
+def _gutted_room(kit, coll, mats, x, y, z):
+    """A windowed shell the drone flies through. Vines and a cat stay inside."""
+    # South wall split around a 2.4 m window so the camera has an opening.
+    box_object("room_w", coll, (x - 3.6, y - 5.5, z + 3.6), (4.8, 0.35, 7.2), mats["concrete"])
+    box_object("room_e", coll, (x + 3.6, y - 5.5, z + 3.6), (4.8, 0.35, 7.2), mats["concrete"])
+    box_object("room_head", coll, (x, y - 5.5, z + 5.9), (2.4, 0.35, 2.6), mats["concrete"])
+    box_object("room_sill", coll, (x, y - 5.5, z + 0.7), (2.4, 0.35, 1.4), mats["concrete"])
+    box_object("room_back", coll, (x, y + 5.5, z + 3.6), (12.0, 0.4, 7.2), mats["trim"])
+    box_object("room_side_w", coll, (x - 6.0, y, z + 3.6), (0.4, 11.0, 7.2), mats["concrete"])
+    box_object("room_side_e", coll, (x + 6.0, y, z + 3.6), (0.4, 11.0, 7.2), mats["concrete"])
+    floor = box_object("room_floor", coll, (x, y, z + 0.08), (11.2, 11.0, 0.12), mats["dirt"])
+    kit.add(floor, "blanket", sink=False)
+    for i, (vx, vy) in enumerate(((-2.2, 4.2), (1.4, 3.6), (-0.4, -4.8), (2.8, 1.0), (-3.0, -1.0))):
+        vine = ico_object("vine", coll, (x + vx, y + vy, z + 1.2 + (i % 3) * 0.8), (0.7, 0.45, 1.6), mats["leaf"])
+        vine.color = (0.18, 0.36, 0.12, 1)
+        kit.add(vine, "weed", delay=0.35, sink=False, leaf=(0.18, 0.36, 0.12, 1))
+    cat = private_assets.place_cat(coll, x + 0.4, y - 5.5, z + 1.45, yaw=0.4)
+    if cat is not None:
+        kit.add(cat, "animal", sink=False)
+
+
 def _place_hub_blocks(kit, coll, mats):
     """Pre-built hub blocks for the empty frontage and the skyline.
 
@@ -1016,62 +1139,11 @@ def _place_hub_blocks(kit, coll, mats):
             kit.add(block, role, sink=False)
         return block
 
-    def flank(filename, height, north, z, min_z, name, limit=2):
-        size = private_assets.block_size(filename, min_z)
-        if size is None:
-            return 0.0
-        width, depth, native_h = size
-        scale = float(height) / max(native_h, 0.01)
-        footprint_w = width * scale
-        footprint_d = depth * scale
-        edge = street_west
-        for i in range(limit):
-            if edge < -108.0:
-                break
-            sit(
-                filename, edge - footprint_w * 0.5, north - footprint_d * 0.5, z, height,
-                math.pi if i % 2 else 0.0, f"{name}_w{i}", min_z,
-            )
-            edge -= footprint_w - 1.5
-        edge = street_east
-        for i in range(limit):
-            if edge > 108.0:
-                break
-            sit(
-                filename, edge + footprint_w * 0.5, north - footprint_d * 0.5, z, height,
-                0.0 if i % 2 else math.pi, f"{name}_e{i}", min_z,
-            )
-            edge += footprint_w - 1.5
-        return footprint_d
-
-    front_depth = flank("procedural_city_3.glb", 10.0, front_north, road_z, 1.2, "front", limit=2)
-    if front_depth <= 0.0:
-        front_depth = 40.0
-    flank("procedural_city_3.glb", 28.0, front_north - front_depth + 1.2, road_z, 1.2, "back", limit=1)
-
-    park_south = AVE_Y + AVENUE_HALF + SIDEWALK_W + 1.0
-    park_north = RIVER_Y0 - 4.0
-    east_size = private_assets.block_size("procedural_city_4.glb", 1.2)
-    if east_size is not None:
-        width, depth, native_h = east_size
-        slot = max(8.0, park_north - park_south)
-        scale = slot / max(depth, 0.01)
-        height = native_h * scale
-        footprint_w = width * scale
-        edge = street_east + 2.0
-        for i in range(3):
-            if edge > 96.0:
-                break
-            sit(
-                "procedural_city_4.glb",
-                edge + footprint_w * 0.5,
-                park_south + slot * 0.5,
-                PARK_Z,
-                height,
-                math.pi if i % 2 else 0.0,
-                f"east_{i}",
-            )
-            edge += footprint_w - 1.0
+    _south_city_blocks(kit, coll, mats, ix, road_z, street_west, street_east, front_north)
+    # East of the ramp: mid-rise canyon, not the suburban houses in City 4.
+    # Height ~22 m keeps the block between the sidewalk and the river.
+    sit("procedural_city_6.glb", 46.0, 58.0, PARK_Z, 22.0, 0.1, "east_mid_a")
+    sit("procedural_city_6.glb", 92.0, 60.0, PARK_Z, 26.0, math.pi, "east_mid_b")
 
     for name, x, y, h, yaw in (("nyc_w", -110.0, 188.0, 52.0, 0.15), ("nyc_e", 95.0, 192.0, 46.0, -0.25)):
         sit("procedural_city_6.glb", x, y, FAR_Z, h, yaw, name)
@@ -1159,6 +1231,19 @@ def _place_hub_blocks(kit, coll, mats):
         kit.add(crack, "wear", sink=False)
         tuft = ico_object("stub_tuft", coll, (ix - DECK_HALF + 0.8, y, road_z + 0.05), (0.4, 0.3, 0.65), mats["leaf"])
         kit.add(tuft, "weed", delay=0.0, sink=False, leaf=(0.2, 0.38, 0.12, 1))
+    # Trees come up through the avenue only after the meadow. Sidewalks get a
+    # soil sheet at the same time.
+    for x, lane in ((-64.0, -4.0), (-40.0, 3.5), (-18.0, -2.0), (30.0, 4.0), (52.0, -3.2)):
+        _tree(kit, coll, mats, x, AVE_Y + lane, road_z, 2.4, future=True, delay=0.72, rng=rng, kind="round")
+    for x, lane in ((-55.0, 1.5), (18.0, -5.0), (42.0, 2.0)):
+        _tree(kit, coll, mats, x, AVE_Y + lane, road_z, 3.1, future=True, delay=0.8, rng=rng, kind="pine")
+    sheet = _plane("walk_blanket", coll, (0.0, AVE_Y - AVENUE_HALF - 1.6, road_z + 0.05), (180.0, 3.4), mats["dirt"])
+    kit.add(sheet, "blanket", sink=False)
+    sheet_n = _plane("walk_blanket_n", coll, (0.0, AVE_Y + AVENUE_HALF + 1.6, road_z + 0.05), (180.0, 3.4), mats["dirt"])
+    kit.add(sheet_n, "blanket", sink=False)
+    deer = cc0_city.place_deer(coll, -28.0, 156.0, FAR_Z)
+    if deer is not None:
+        kit.add(deer, "animal", sink=False)
 
 
 def build_river_city(kit, mats, rng, pieces):
@@ -1438,7 +1523,7 @@ def build_river_city(kit, mats, rng, pieces):
             kit,
             col_v,
             mats,
-            (x, y, ROAD_Z + 0.25),
+            (x, y, ROAD_Z),
             yaw,
             white,
             drive=0.0,
@@ -1690,7 +1775,7 @@ def _bridge(kit, col, cars, mats, rng):
     for i, s in enumerate((58.0, 78.0)):
         x, y = deck_point(s)
         lane = lanes[i]
-        pos = Vector((x + rx * lane, y + ry * lane, deck_z(s) + RIBBON_TOP + 0.18))
+        pos = Vector((x + rx * lane, y + ry * lane, deck_z(s) + RIBBON_TOP + 0.02))
         _car(
             kit,
             cars,
@@ -1701,9 +1786,8 @@ def _bridge(kit, col, cars, mats, rng):
             parent=deck_obj,
             local=tuple(pos - Vector(deck_obj.location)),
             drive=0.0,
-            model="sedan",
-            scale=0.55,
-            force_white=True,
+            model=deck_models[i % len(deck_models)],
+            index=i + 3,
         )
     kit.bridge = {
         "decks": decks,

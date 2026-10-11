@@ -17,7 +17,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from engine.effects import apply  # noqa: E402
-from engine.meshkit import set_linear_keys  # noqa: E402
+from engine.meshkit import set_linear_keys, smoother  # noqa: E402
 from engine.pov import apply_pov, attach_pov  # noqa: E402
 from engine.scenes import build_scene  # noqa: E402
 from engine.segments import MOTION_BLUR_SHUTTER, frame_seed  # noqa: E402
@@ -235,6 +235,61 @@ def _render_settings(scene, resolved, samples, scale, image_format="png", motion
     scene.frame_end = int(resolved["frame_count"])
 
 
+def _blend_camera(a, b, t):
+    def mix(left, right):
+        return [left[i] + (right[i] - left[i]) * t for i in range(3)]
+
+    fstop_a = float(a.get("fstop") or 0.0)
+    fstop_b = float(b.get("fstop") or 0.0)
+    return {
+        "location": mix(a["location"], b["location"]),
+        "target": mix(a["target"], b["target"]),
+        "lens": float(a.get("lens") or 40) + (float(b.get("lens") or 40) - float(a.get("lens") or 40)) * t,
+        "fstop": fstop_a + (fstop_b - fstop_a) * t,
+    }
+
+
+def _shot_camera(path, u):
+    keys = sorted(path, key=lambda item: float(item["u"]))
+    if u <= float(keys[0]["u"]):
+        return keys[0]
+    if u >= float(keys[-1]["u"]):
+        return keys[-1]
+    for left, right in zip(keys, keys[1:]):
+        u0, u1 = float(left["u"]), float(right["u"])
+        if u <= u1:
+            t = smoother(0.0, 1.0, 0.0 if u1 <= u0 else (u - u0) / (u1 - u0))
+            return _blend_camera(left, right, t)
+    return keys[-1]
+
+
+def _apply_shot_camera(scene, resolved):
+    """Drone beats carry their own camera. Every other frame stays locked."""
+    frame = float(scene.frame_current)
+    cam = scene.camera
+    if cam is None:
+        return
+    for beat in resolved.get("beats") or []:
+        path = beat.get("camera")
+        if not path:
+            continue
+        start = float(beat["start_frame"])
+        end = float(beat["end_frame"])
+        if frame < start or frame > end + 0.01:
+            continue
+        span = max(1.0, end - start)
+        pose = _shot_camera(path, (frame - start) / span)
+        cam.location = pose["location"]
+        _look_at(cam, pose["target"])
+        cam.data.lens = float(pose["lens"])
+        fstop = float(pose.get("fstop") or 0.0)
+        cam.data.dof.use_dof = fstop > 0.05
+        if fstop > 0.05:
+            cam.data.dof.aperture_fstop = fstop
+            cam.data.dof.focus_distance = (Vector(pose["target"]) - Vector(pose["location"])).length
+        return
+
+
 def _on_frame(scene, *args):
     if KIT is None or RESOLVED is None:
         return
@@ -243,6 +298,7 @@ def _on_frame(scene, *args):
     ch = channels_at(RESOLVED, frame)
     apply(KIT, ch, frame, RESOLVED["fps"])
     apply_pov(scene, KIT, RESOLVED, frame)
+    _apply_shot_camera(scene, RESOLVED)
 
 
 def main():

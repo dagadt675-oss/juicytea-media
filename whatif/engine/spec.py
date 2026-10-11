@@ -198,6 +198,7 @@ def resolve(spec: dict) -> dict:
                 "time_label": beat.get("time_label"),
                 "ticker": beat.get("ticker"),
                 "title": bool(beat.get("title", False)),
+                "camera": beat.get("camera"),
             }
         )
 

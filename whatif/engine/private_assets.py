@@ -406,11 +406,90 @@ def _bake_flat_zebra(src):
     return mesh, max(xs) - min(xs), max(ys) - min(ys)
 
 
-def place_zebra(coll, x, y, z, yaw, across, along):
-    """Flat zebra, 2 mm above the asphalt. Stripes run with traffic.
+def _continental_bar(baked):
+    """One hub crosswalk bar, resized to 3.0 m along traffic and 0.6 m across."""
+    import bmesh
 
-    The source is five bars a few meters wide. Scaling that row to the whole
-    road turns each bar into a square, so the module is repeated instead.
+    source = bmesh.new()
+    source.from_mesh(baked)
+    source.faces.ensure_lookup_table()
+    seen = set()
+    islands = []
+    for face in source.faces:
+        if face.index in seen:
+            continue
+        stack = [face]
+        seen.add(face.index)
+        group = []
+        while stack:
+            current = stack.pop()
+            group.append(current)
+            for edge in current.edges:
+                for link in edge.link_faces:
+                    if link.index not in seen:
+                        seen.add(link.index)
+                        stack.append(link)
+        islands.append(group)
+
+    def bounds(group):
+        xs, ys = [], []
+        for face in group:
+            for vert in face.verts:
+                xs.append(vert.co.x)
+                ys.append(vert.co.y)
+        return min(xs), max(xs), min(ys), max(ys)
+
+    if islands:
+        islands.sort(key=lambda group: (bounds(group)[1] - bounds(group)[0]) * max(bounds(group)[3] - bounds(group)[2], 1e-4))
+        chosen = islands[len(islands) // 2]
+        x0, x1, y0, y1 = bounds(chosen)
+        bm = bmesh.new()
+        mapping = {}
+        for face in chosen:
+            verts = []
+            for vert in face.verts:
+                if vert.index not in mapping:
+                    mapping[vert.index] = bm.verts.new(vert.co)
+                verts.append(mapping[vert.index])
+            try:
+                bm.faces.new(verts)
+            except ValueError:
+                pass
+    else:
+        x0, x1, y0, y1 = -1.0, 1.0, -0.3, 0.3
+        bm = bmesh.new()
+        bmesh.ops.create_cube(bm, size=1.0)
+        for vert in bm.verts:
+            vert.co.x *= 2.0
+            vert.co.y *= 0.6
+            vert.co.z = 0.0
+    # Local +X is the bar (with traffic). Local +Y is its width.
+    if (y1 - y0) > (x1 - x0):
+        for vert in bm.verts:
+            vert.co.x, vert.co.y = vert.co.y, vert.co.x
+        x0, x1, y0, y1 = y0, y1, x0, x1
+    sx = 3.0 / max(x1 - x0, 0.01)
+    sy = 0.6 / max(y1 - y0, 0.01)
+    cx = (x0 + x1) * 0.5
+    cy = (y0 + y1) * 0.5
+    for vert in bm.verts:
+        vert.co.x = (vert.co.x - cx) * sx
+        vert.co.y = (vert.co.y - cy) * sy
+        vert.co.z = 0.004
+    me = bpy.data.meshes.new("continental_bar")
+    bm.to_mesh(me)
+    bm.free()
+    source.free()
+    if baked.materials:
+        me.materials.append(baked.materials[0])
+    return me
+
+
+def place_zebra(coll, x, y, z, yaw, across, along):
+    """US continental bars: 0.6 m wide, 0.6 m gaps, 3 m with the traffic.
+
+    Every leg uses that same bar. ``along`` is accepted so older calls still
+    line up, and the bar length stays 3 m.
     """
     global _ZEBRA
     if _ZEBRA is None:
@@ -435,27 +514,27 @@ def place_zebra(coll, x, y, z, yaw, across, along):
                             bsdf.inputs["Roughness"].default_value = 0.4
         if mesh is None:
             return None
-        baked, native_along, native_across = _bake_flat_zebra(mesh)
-        _ZEBRA = (baked, native_along, native_across)
-    baked, native_along, native_across = _ZEBRA
-    sx = float(along) / max(native_along, 0.01)
-    pitch = native_across * sx
-    count = max(1, int(round(float(across) / max(pitch, 0.01))))
-    sy = float(across) / (count * max(native_across, 0.01))
+        baked, _native_along, _native_across = _bake_flat_zebra(mesh)
+        _ZEBRA = _continental_bar(baked)
+    bar = _ZEBRA
+    pitch = 1.2
+    count = max(1, int((float(across) - 0.6) / pitch) + 1)
+    while count > 1 and (count - 1) * pitch + 0.6 > float(across) + 0.05:
+        count -= 1
     empty = bpy.data.objects.new("zebra", None)
     coll.objects.link(empty)
     empty.empty_display_size = 0.2
     empty.rotation_mode = "XYZ"
     empty.rotation_euler = (0.0, 0.0, float(yaw))
     empty.location = (float(x), float(y), float(z))
-    empty.scale = (sx, sy, 1.0)
+    empty.scale = (1.0, 1.0, 1.0)
     empty.visible_shadow = False
     mid = (count - 1) * 0.5
     for i in range(count):
-        copy = bpy.data.objects.new("zebra_bar", baked)
+        copy = bpy.data.objects.new("zebra_bar", bar)
         coll.objects.link(copy)
         copy.parent = empty
-        copy.location = (0.0, (i - mid) * native_across, 0.0)
+        copy.location = (0.0, (i - mid) * pitch, 0.0)
         copy.rotation_mode = "XYZ"
         copy.rotation_euler = (0.0, 0.0, 0.0)
         copy.scale = (1.0, 1.0, 1.0)

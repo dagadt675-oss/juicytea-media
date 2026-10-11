@@ -274,15 +274,21 @@ def _life(kit, ch, frame, fps, snow):
             b = Vector(item.extra["path_to"])
             pos = a.lerp(b, u)
             rust = ch["rust"]
-            grime_u = max(rust, smoother(0.04, 0.32, ch["vegetation"]) * 0.85)
-            pos.z -= snow * 0.32 + rust * 0.12 + grime_u * 0.05
+            veg = ch["vegetation"]
+            grime_u = max(rust, smoother(0.05, 0.4, veg) * 0.7)
+            flat = 1.0 - 0.62 * smoother(0.28, 0.92, rust)
+            bury = 0.7 * smoother(0.5, 1.0, max(rust, veg if veg > 0.85 else 0.0))
+            gone = rust > 0.9 and (int(item.extra.get("index", 0)) % 4 != 0)
+            pos.z -= snow * 0.32 + bury
             pos.z += ch["gravity"] * item.extra.get("float", 0.0)
             obj.location = pos
-            obj.scale = item.base_scale
-            obj.hide_render = False
-            grime = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.38, 0.32, 0.24)), grime_u)
-            _paint_descendants(obj, (grime.x, grime.y, grime.z, 1.0))
-            yaw = item.base_rot.z + grime_u * (0.28 if item.extra.get("index", 0) % 2 == 0 else -0.24)
+            obj.scale = (item.base_scale.x, item.base_scale.y, item.base_scale.z * max(flat, 0.2))
+            obj.hide_render = gone
+            for child in obj.children:
+                child.hide_render = gone
+            husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.18, 0.11, 0.07)), grime_u)
+            _paint_descendants(obj, (husk.x, husk.y, husk.z, 1.0))
+            yaw = item.base_rot.z + grime_u * (0.12 if item.extra.get("index", 0) % 2 == 0 else -0.1)
             obj.rotation_euler = _euler(item.base_rot, dz=yaw - item.base_rot.z)
         elif role == "bird":
             gone = max(ch["fauna"], smoother(0.15, 0.45, ch["vanish"]))
@@ -300,8 +306,19 @@ def _life(kit, ch, frame, fps, snow):
         elif role == "mascot":
             obj.hide_render = ch["vegetation"] > 0.65 or ch["ice"] > 0.2 or ch["geology"] > 0.15
         elif role == "road_mark":
-            # Lane paint fades after the meadow. Year 500 is forest, not a fresh street.
-            obj.hide_render = ch["vegetation"] > 0.92
+            # Year 100 fragments the paint. Year 500 removes it.
+            veg = ch["vegetation"]
+            frag = smoother(0.5, 0.88, veg)
+            bucket = abs(hash(obj.name)) % 100
+            obj.hide_render = veg > 0.9 or bucket < frag * 62.0
+            for child in obj.children:
+                child.hide_render = obj.hide_render
+        elif role == "blanket":
+            obj.hide_render = ch["vegetation"] < 0.7
+        elif role == "frontage":
+            u = smoother(0.42, 0.74, ch["collapse"])
+            keep = int(item.extra.get("index", 0)) % 5 == 0
+            obj.hide_render = (not keep) and u > 0.45
             for child in obj.children:
                 child.hide_render = obj.hide_render
         elif role == "forest_floor":

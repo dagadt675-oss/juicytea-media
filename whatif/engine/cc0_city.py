@@ -189,17 +189,162 @@ def _car_yaw_fix(path: Path) -> float:
 
 
 def place_car(coll, x, y, z, yaw):
-    root = CACHE / "vehicles" / "kenney_car_kit" / "Models" / "GLB format"
-    names = ("sedan.glb", "taxi.glb", "suv.glb", "hatchback-sports.glb", "van.glb")
-    path = root / names[int(abs(x)) % len(names)]
-    fix = _car_yaw_fix(path)
-    mesh = static_mesh(path, rotate_z=fix)
+    return place_fleet_car(coll, (x, y, z), yaw, index=int(abs(x)))
+
+
+# Real-world size. Length runs along +X after the mesh is baked. Kenney's
+# car kit (sedan, yellow taxi, SUV, van) is the CC0 fleet in the hub. The
+# low-poly mini pack reads as a toy at this camera, so it is not used here.
+_FLEET = (
+    ("sedan.glb", 4.8, 1.80, 1.45),
+    ("taxi.glb", 4.8, 1.80, 1.55),
+    ("suv.glb", 4.9, 1.95, 1.75),
+    ("hatchback-sports.glb", 4.4, 1.78, 1.40),
+    ("sedan-sports.glb", 4.7, 1.85, 1.38),
+    ("suv-luxury.glb", 5.1, 2.00, 1.72),
+    ("van.glb", 5.3, 2.00, 2.05),
+    ("delivery.glb", 6.5, 2.15, 2.55),
+    ("truck.glb", 8.2, 2.45, 3.10),
+)
+_FLEET_MESH = {}
+_CONTACT = None
+
+
+def _contact_mesh():
+    global _CONTACT
+    if _CONTACT is not None:
+        return _CONTACT
+    import bmesh
+
+    bm = bmesh.new()
+    bmesh.ops.create_circle(bm, cap_ends=True, segments=16, radius=1.0)
+    me = bpy.data.meshes.new("contact")
+    bm.to_mesh(me)
+    bm.free()
+    _CONTACT = me
+    return me
+
+
+def _fleet_mesh(filename, length, width, height):
+    key = filename
+    if key in _FLEET_MESH:
+        return _FLEET_MESH[key]
+    path = CACHE / "vehicles" / "kenney_car_kit" / "Models" / "GLB format" / filename
+    if not path.exists():
+        _FLEET_MESH[key] = None
+        return None
+    new = _import_objects(path)
+    meshes = [obj for obj in new if obj.type == "MESH"]
+    if not meshes:
+        _FLEET_MESH[key] = None
+        return None
+    bpy.ops.object.select_all(action="DESELECT")
+    for obj in meshes:
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
+    if len(meshes) > 1:
+        bpy.ops.object.join()
+    obj = bpy.context.view_layer.objects.active
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    xs = [v.co.x for v in obj.data.vertices]
+    ys = [v.co.y for v in obj.data.vertices]
+    zs = [v.co.z for v in obj.data.vertices]
+    # The long axis is the car. Point the lower end (the hood) along +X.
+    if max(ys) - min(ys) >= max(xs) - min(xs):
+        obj.rotation_euler.z += math.pi / 2.0
+        bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+        xs = [v.co.x for v in obj.data.vertices]
+        ys = [v.co.y for v in obj.data.vertices]
+    lo, hi = min(xs), max(xs)
+    span = max(hi - lo, 1e-4)
+    front = [v.co for v in obj.data.vertices if v.co.x < lo + span * 0.22]
+    back = [v.co for v in obj.data.vertices if v.co.x > hi - span * 0.22]
+    if front and back:
+        if sum(p.z for p in front) / len(front) > sum(p.z for p in back) / len(back):
+            obj.rotation_euler.z += math.pi
+            bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+    xs = [v.co.x for v in obj.data.vertices]
+    ys = [v.co.y for v in obj.data.vertices]
+    zs = [v.co.z for v in obj.data.vertices]
+    sx = float(length) / max(max(xs) - min(xs), 0.01)
+    sy = float(width) / max(max(ys) - min(ys), 0.01)
+    sz = float(height) / max(max(zs) - min(zs), 0.01)
+    cx = (min(xs) + max(xs)) * 0.5
+    cy = (min(ys) + max(ys)) * 0.5
+    cz = min(zs)
+    for vert in obj.data.vertices:
+        vert.co.x = (vert.co.x - cx) * sx
+        vert.co.y = (vert.co.y - cy) * sy
+        vert.co.z = (vert.co.z - cz) * sz
+    mesh = obj.data
+    mesh.name = "fleet_" + path.stem
+    for item in new:
+        if item == obj:
+            continue
+        try:
+            bpy.data.objects.remove(item, do_unlink=True)
+        except ReferenceError:
+            pass
+    bpy.data.objects.remove(obj, do_unlink=True)
+    _FLEET_MESH[key] = mesh
+    return mesh
+
+
+def _tint_fleet(obj):
+    """Object color multiplies the paint so rust can dull it later."""
+    for slot in obj.material_slots:
+        material = slot.material
+        if material is None or material.get("object_tint") or material.node_tree is None:
+            continue
+        tree = material.node_tree
+        bsdf = next((node for node in tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+        if bsdf is None or "Base Color" not in bsdf.inputs:
+            continue
+        color_in = bsdf.inputs["Base Color"]
+        mix = tree.nodes.new("ShaderNodeMixRGB")
+        mix.blend_type = "MULTIPLY"
+        mix.inputs["Fac"].default_value = 1.0
+        if color_in.is_linked:
+            source = color_in.links[0].from_socket
+            tree.links.remove(color_in.links[0])
+            tree.links.new(source, mix.inputs["Color1"])
+        else:
+            mix.inputs["Color1"].default_value = tuple(color_in.default_value)
+        info = tree.nodes.new("ShaderNodeObjectInfo")
+        tree.links.new(info.outputs["Color"], mix.inputs["Color2"])
+        tree.links.new(mix.outputs["Color"], color_in)
+        material["object_tint"] = True
+    obj.color = (1.0, 1.0, 1.0, 1.0)
+
+
+def place_fleet_car(coll, loc, yaw, index=0):
+    """A Kenney sedan, taxi, SUV, van, or truck at a real size. Wheels sit on z."""
+    filename, length, width, height = _FLEET[int(index) % len(_FLEET)]
+    mesh = _fleet_mesh(filename, length, width, height)
     if mesh is None:
         return None
-    size = _mesh_size(mesh)
-    length = max(size[0], size[1])
-    scale = 4.6 / max(length, 0.01)
-    return _spawn(coll, mesh, (x, y, z), yaw, scale, "car")
+    obj = _spawn(coll, mesh, loc, yaw, 1.0, "car")
+    obj.visible_shadow = True
+    _tint_fleet(obj)
+    disc = _spawn(coll, _contact_mesh(), (0.0, 0.0, 0.015), 0.0, 1.0, "contact")
+    disc.parent = obj
+    disc.location = (0.0, 0.0, 0.012)
+    disc.scale = (length * 0.42, width * 0.46, 1.0)
+    disc.visible_shadow = False
+    mat = bpy.data.materials.get("CarContact")
+    if mat is None:
+        mat = bpy.data.materials.new("CarContact")
+        mat.use_nodes = True
+        bsdf = mat.node_tree.nodes.get("Principled BSDF")
+        if bsdf:
+            bsdf.inputs["Base Color"].default_value = (0.02, 0.02, 0.025, 1.0)
+            bsdf.inputs["Roughness"].default_value = 1.0
+            if "Alpha" in bsdf.inputs:
+                bsdf.inputs["Alpha"].default_value = 0.45
+        mat.blend_method = "BLEND"
+    if mat.name not in [slot.name for slot in disc.data.materials]:
+        disc.data.materials.append(mat)
+    return obj
 
 
 def _road_mesh(filename: str):
