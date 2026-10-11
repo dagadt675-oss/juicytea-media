@@ -198,7 +198,14 @@ def _structures(kit, ch, frame, fps):
                 item.base_scale.y * bury,
                 item.base_scale.z * stump * bury,
             )
-            obj.hide_render = bury < 0.05 or (spectacular > 0.82 and not skeleton and int(item.base_loc.x * 3 + item.base_loc.y) % 4 == 0)
+            fallen = spectacular > 0.55 and not skeleton
+            obj.hide_render = bury < 0.05 or fallen
+            for child in obj.children_recursive:
+                child.hide_render = obj.hide_render
+            if fallen and obj.name:
+                for other in bpy.data.objects:
+                    if other.get("ruin_with") == obj.name:
+                        other.hide_render = True
         elif role == "building_top":
             loc = item.base_loc.copy()
             fall = item.extra.get("fall_at")

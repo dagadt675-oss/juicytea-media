@@ -1300,7 +1300,7 @@ def _fill_far_bank(kit, coll):
         )
         if block is None:
             continue
-        kit.add(block, "building_base", sink=True, skeleton=(i % 6 == 0))
+        kit.add(block, "building_base", sink=True, skeleton=False)
         placed += 1
     # Towers in the gaps between the skyline rows, so the streets run through blocks.
     y = 205.0
@@ -1317,7 +1317,7 @@ def _fill_far_bank(kit, coll):
             if built is None and cc0_city.ready():
                 built = cc0_city.place_tower(coll, x, y, FAR_Z, height)
             if built is not None:
-                kit.add(built, "building_base", sink=True, skeleton=(int(x + y) % 19 == 0))
+                kit.add(built, "building_base", sink=True, skeleton=False)
                 placed += 1
             x += 20.0
         y += 28.0
@@ -1367,40 +1367,27 @@ def _park_approach(kit, coll):
         s += 8.0
 
 
+def _seat_bottom(obj, z):
+    """Drop a mesh so its lowest point sits on z."""
+    bpy.context.view_layer.update()
+    zs = [(obj.matrix_world @ Vector(corner)).z for corner in obj.bound_box]
+    if zs:
+        obj.location.z += float(z) - min(zs)
+
+
 def _mountains(kit, coll):
-    """A cliff ridge on the horizon. The glacier scan is a flat ice sheet, so it stays a distant snowfield."""
-    cliff = Path("/opt/cursor/asset-cache/cc0/extracted/city_buildings/kenney_retro_urban_kit/Models/GLB format/cliff-side.glb")
-    corner = Path("/opt/cursor/asset-cache/cc0/extracted/city_buildings/kenney_retro_urban_kit/Models/GLB format/cliff-corner.glb")
-    rock = Path("/opt/cursor/asset-cache/cc0/extracted/ruins_decay/kenney_survival_kit/Models/GLB format/rock-c.glb")
+    """The glacier scan is a flat sheet. Stood on edge, the rock rim is the horizon."""
     placed = 0
-    x = -720.0
-    i = 0
-    while x < 760.0:
-        height = 55.0 + (i % 4) * 22.0 + (18.0 if i % 5 == 0 else 0.0)
-        y = 690.0 + (i % 3) * 28.0
-        path = corner if i % 5 == 0 else cliff
-        ridge = _mesh_prop(coll, path, (x, y, FAR_Z - 8.0), (0.15 if i % 2 == 0 else math.pi + 0.1), height, "ridge")
-        if ridge is not None:
-            kit.add(ridge, "mountain", sink=False)
-            placed += 1
-        if rock.exists() and i % 2 == 0:
-            foothill = _mesh_prop(
-                coll, rock,
-                (x + 24.0, y - 70.0, FAR_Z - 4.0),
-                i * 0.4, height * 0.42, "foothill",
-            )
-            if foothill is not None:
-                kit.add(foothill, "mountain", sink=False)
-                placed += 1
-        x += 92.0
-        i += 1
-    # One photoscan sheet, laid on the ground behind the ridge. It is not a peak.
-    sheet = private_assets.place(
-        coll, "Glacier_Photoscan_on_Mountain_d7f119cc",
-        (40.0, 980.0, FAR_Z - 30.0), 0.4, longest=900.0, name="snowfield",
-    )
-    if sheet is not None:
-        kit.add(sheet, "mountain", sink=False)
+    for i, x in enumerate((-480.0, -180.0, 80.0, 340.0, 600.0)):
+        ridge = private_assets.place(
+            coll, "Glacier_Photoscan_on_Mountain_d7f119cc",
+            (x, 920.0, FAR_Z), 0.2 * i, longest=340.0, name="ridge",
+        )
+        if ridge is None:
+            continue
+        ridge.rotation_euler.x = math.radians(72)
+        _seat_bottom(ridge, FAR_Z - 18.0)
+        kit.add(ridge, "mountain", sink=False)
         placed += 1
     mesh = bpy.data.meshes.new("distance_haze")
     bm = bmesh.new()
@@ -2016,7 +2003,7 @@ def build_river_city(kit, mats, rng, pieces):
             if built is None and cc0_city.ready():
                 built = cc0_city.place_tower(col_c, x, y, FAR_Z, h)
             if built is not None:
-                kit.add(built, "building_base", sink=True, skeleton=(row == 3 and int(x) % 80 < 40))
+                kit.add(built, "building_base", sink=True, skeleton=False)
                 x += w + rng.uniform(4.0, 8.0)
                 continue
             if _library_tower(kit, col_c, x, y, FAR_Z, h, color):

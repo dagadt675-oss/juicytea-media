@@ -954,6 +954,7 @@ def place_city_block(coll, filename, x, y, z, yaw=0.0, height=30.0, min_z=1.2, n
         world = copy.matrix_world.copy()
         copy.parent = empty
         copy.matrix_world = world
+        copy["ruin_with"] = empty.name
         copy.hide_render = False
         copy.hide_viewport = False
     scale = float(height) / max(native_h, 0.01)
