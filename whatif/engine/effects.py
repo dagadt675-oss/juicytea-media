@@ -100,6 +100,63 @@ def _paint_descendants(obj, color, drive_nodes=False):
         _paint_descendants(child, color, drive_nodes)
 
 
+def _fade_mark(obj, amount):
+    """Push painted lines toward the dirty asphalt around them."""
+    if amount <= 0.01 or getattr(obj, "type", "") != "MESH":
+        return
+    dust = (0.42, 0.36, 0.28, 1.0)
+    for slot in obj.material_slots:
+        material = slot.material
+        if material is None or material.node_tree is None:
+            continue
+        bsdf = next((node for node in material.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+        if bsdf is None or "Base Color" not in bsdf.inputs:
+            continue
+        if "paint0" not in material:
+            material["paint0"] = list(bsdf.inputs["Base Color"].default_value)
+        base = material["paint0"]
+        bsdf.inputs["Base Color"].default_value = tuple(
+            base[i] + (dust[i] - base[i]) * amount for i in range(4)
+        )
+
+
+def _arm_fleet_rust(obj, amount):
+    """Mix a rust colour into shared car paints. Day 1 stays at zero."""
+    stack = [obj]
+    while stack:
+        item = stack.pop()
+        stack.extend(list(getattr(item, "children", ())))
+        if getattr(item, "type", "") != "MESH":
+            continue
+        for slot in item.material_slots:
+            material = slot.material
+            if material is None or material.node_tree is None or material.get("wreck_mix"):
+                continue
+            tree = material.node_tree
+            bsdf = next((node for node in tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+            if bsdf is None or "Base Color" not in bsdf.inputs:
+                continue
+            if not material.get("fleet_rust"):
+                color_in = bsdf.inputs["Base Color"]
+                mix = tree.nodes.new("ShaderNodeMixRGB")
+                if color_in.is_linked:
+                    source = color_in.links[0].from_socket
+                    tree.links.remove(color_in.links[0])
+                    tree.links.new(source, mix.inputs["Color1"])
+                else:
+                    mix.inputs["Color1"].default_value = tuple(color_in.default_value)
+                mix.inputs["Color2"].default_value = (0.42, 0.16, 0.07, 1.0)
+                value = tree.nodes.new("ShaderNodeValue")
+                value.name = "FleetRust"
+                value.label = "FleetRust"
+                tree.links.new(value.outputs[0], mix.inputs["Fac"])
+                tree.links.new(mix.outputs["Color"], color_in)
+                material["fleet_rust"] = True
+            node = tree.nodes.get("FleetRust")
+            if node is not None and node.type == "VALUE":
+                node.outputs[0].default_value = float(amount)
+
+
 def _crumple_nose(empty):
     """Push the nose down and back. The mesh copy stays unique to this hero."""
     nose = empty.matrix_world.to_quaternion() @ Vector((1.0, 0.0, 0.0))
@@ -182,30 +239,33 @@ def _structures(kit, ch, frame, fps):
         obj = item.obj
         if role == "building_base":
             loc = _sink(item, ch, item.base_loc.copy())
-            # Year 100 has already lost roofs and leaned. Year 500 topples the rest.
-            # A few marked skeletons stay up as the broken frames.
-            ruin = smoother(0.28, 0.64, collapse)
-            spectacular = smoother(0.72, 1.0, collapse)
+            # Year 100 loses roofs. Year 500 leaves stumps, shells, and a few towers on their sides.
+            # Nothing is deleted: the collapse has to stay readable.
+            ruin = smoother(0.22, 0.6, collapse)
+            spectacular = smoother(0.68, 1.0, collapse)
             skeleton = bool(item.extra.get("skeleton"))
-            stump = max(0.18, 1.0 - ruin * (0.4 if skeleton else 0.38) - spectacular * (0.35 if skeleton else 0.42))
+            topple = bool(item.extra.get("topple"))
+            near = bool(item.extra.get("near_bank")) or item.base_loc.y < 320.0
             bury = _bury_scale(item, ch)
-            lean = ruin * (0.2 if skeleton else 0.5)
-            topple = spectacular * (0.75 if skeleton else 1.2)
             obj.location = loc
-            obj.rotation_euler = _euler(item.base_rot, dx=min(1.45, lean + topple))
-            obj.scale = (
-                item.base_scale.x * bury,
-                item.base_scale.y * bury,
-                item.base_scale.z * stump * bury,
-            )
-            fallen = spectacular > 0.55 and not skeleton
-            obj.hide_render = bury < 0.05 or fallen
+            obj.hide_render = bury < 0.05
+            if topple:
+                ang = min(1.4, ruin * 0.7 + spectacular * 0.75)
+                obj.rotation_euler = _euler(item.base_rot, dx=ang)
+                obj.scale = item.base_scale * bury
+            else:
+                roof = 0.55 if near and not skeleton else 0.22
+                stump = max(0.34, 1.0 - ruin * roof - spectacular * (0.12 if skeleton else 0.22))
+                lean = ruin * (0.12 if skeleton else (0.42 if near else 0.16))
+                lean += spectacular * (0.18 if skeleton else 0.12)
+                obj.rotation_euler = _euler(item.base_rot, dx=lean)
+                obj.scale = (
+                    item.base_scale.x * bury,
+                    item.base_scale.y * bury,
+                    item.base_scale.z * stump * bury,
+                )
             for child in obj.children_recursive:
                 child.hide_render = obj.hide_render
-            if fallen and obj.name:
-                for other in bpy.data.objects:
-                    if other.get("ruin_with") == obj.name:
-                        other.hide_render = True
         elif role == "building_top":
             loc = item.base_loc.copy()
             fall = item.extra.get("fall_at")
@@ -493,8 +553,9 @@ def _life(kit, ch, frame, fps, snow):
                     if node is not None:
                         node.outputs[0].default_value = float(min(1.0, grime_u * 0.95))
             else:
-                husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.18, 0.11, 0.07)), grime_u)
+                husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.45, 0.18, 0.08)), min(1.0, grime_u * 1.25))
             _paint_descendants(obj, (husk.x, husk.y, husk.z, 1.0), drive_nodes=hero)
+            _arm_fleet_rust(obj, min(1.0, max(rust * 1.3, smoother(0.12, 0.42, veg))))
             if cruise:
                 yaw = float(item.extra.get("travel_yaw", item.base_rot.z))
             else:
@@ -520,13 +581,14 @@ def _life(kit, ch, frame, fps, snow):
         elif role == "mascot":
             obj.hide_render = ch["vegetation"] > 0.65 or ch["ice"] > 0.2 or ch["geology"] > 0.15
         elif role == "road_mark":
-            # Year 100 fragments the paint. Year 500 removes it.
+            # Year 1 starts fading the paint. Year 100 has worn most of it off.
             veg = ch["vegetation"]
-            frag = smoother(0.5, 0.88, veg)
+            frag = smoother(0.16, 0.62, veg)
             bucket = abs(hash(obj.name)) % 100
-            obj.hide_render = veg > 0.9 or bucket < frag * 62.0
+            obj.hide_render = veg > 0.82 or bucket < frag * 88.0
             for child in obj.children:
                 child.hide_render = obj.hide_render
+            _fade_mark(obj, smoother(0.12, 0.5, veg))
         elif role == "blanket":
             obj.hide_render = ch["vegetation"] < 0.7
         elif role == "frontage":
@@ -558,7 +620,7 @@ def _life(kit, ch, frame, fps, snow):
             obj.hide_render = ch["vegetation"] < 0.22
         elif role == "ruin":
             # Broken shells are up by year 100 and stay through the collapse.
-            s = smoother(0.4, 0.62, ch["collapse"])
+            s = smoother(0.28, 0.52, ch["collapse"])
             obj.hide_render = s < 0.08
             obj.scale = item.base_scale
             for child in obj.children:

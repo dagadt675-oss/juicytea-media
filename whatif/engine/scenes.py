@@ -685,7 +685,7 @@ def _person_mesh():
     return _PERSON_MESH
 
 
-def _walker(kit, coll, path, speed, phase):
+def _walker(kit, coll, path, speed, phase, height=1.75):
     """A rigged pedestrian. The walk cycle plays until the vanish cue."""
     if not path or not cc0_city.ready():
         return None
@@ -696,10 +696,15 @@ def _walker(kit, coll, path, speed, phase):
     built = cc0_city.place_person(coll, x, y, z, yaw, "Walk", offset=int(phase * 10) % 36)
     if built is None:
         return None
-    return kit.add(built, "person", path=path, speed=speed, phase=phase, sink=False, bob=0.0, float=0.0)
+    item = kit.add(built, "person", path=path, speed=speed, phase=phase, sink=False, bob=0.0, float=0.0)
+    if height != 1.75:
+        factor = float(height) / 1.75
+        item.obj.scale = tuple(axis * factor for axis in item.obj.scale)
+        item.base_scale = item.obj.scale.copy()
+    return item
 
 
-def _bike(kit, coll, path, phase, drift=0.2):
+def _bike(kit, coll, path, phase, drift=0.2, height=1.75):
     """A downloaded bicycle. It topples when the rider vanishes."""
     path_glb = Path("/opt/cursor/asset-cache/private/sketchfab_free_standard/Bicycle_Low-Poly_Minimalistic_5c70d53e/Bicycle_Low-Poly_Minimalistic_5c70d53e.glb")
     mesh = cc0_city.static_mesh(path_glb) if path_glb.exists() else None
@@ -710,10 +715,13 @@ def _bike(kit, coll, path, phase, drift=0.2):
     x, y, z = path[0]
     obj = link_obj("bike", mesh, coll)
     obj.location = (x, y, z)
-    obj.scale = (scale, scale, scale)
+    factor = float(height) / 1.75
+    obj.scale = (scale * factor, scale * factor, scale * factor)
     # The rider walks with the bike, a step to the side, and vanishes with everyone else.
-    _walker(kit, coll, [(p[0], p[1] + 0.75, p[2]) for p in path], 4.2, phase)
-    return kit.add(obj, "bike", path=path, speed=4.2, phase=phase, sink=False)
+    _walker(kit, coll, [(p[0], p[1] + 0.9, p[2]) for p in path], 4.2, phase, height=height)
+    item = kit.add(obj, "bike", path=path, speed=4.2, phase=phase, sink=False)
+    item.base_scale = obj.scale.copy()
+    return item
 
 
 def _traffic(kit, coll, cruise, index, speed, phase, stop_line=False, drift=0.0, coast=8.0):
@@ -757,6 +765,23 @@ def _alive(kit, coll):
     bike_y = AVE_Y - AVENUE_HALF - 1.15
     for i, x0 in enumerate((-70.0, -30.0, 8.0, 40.0)):
         _bike(kit, coll, [(x0, bike_y, z), (x0 + 28.0, bike_y, z)], i * 6.0)
+    # The locked camera's nearest sidewalk. These are the people it can actually read.
+    near_y = AVE_Y - AVENUE_HALF - SIDEWALK_W * 0.55
+    for i, x in enumerate((-36.0, -24.0, -12.0, -2.0, 8.0, 18.0, 30.0)):
+        _walker(kit, coll, [(x, near_y, z), (x + 10.0, near_y, z)], 1.15, i * 1.3, height=2.55)
+    for i, y in enumerate((-16.0, -6.0, 2.0)):
+        _walker(
+            kit, coll,
+            [(CROSS_X - DECK_HALF - 2.2, y, z), (CROSS_X - DECK_HALF - 2.2, y + 9.0, z)],
+            1.2, i * 2.0, height=2.55,
+        )
+        _walker(
+            kit, coll,
+            [(CROSS_X + DECK_HALF + 2.2, y + 8.0, z), (CROSS_X + DECK_HALF + 2.2, y, z)],
+            1.15, i * 1.6, height=2.55,
+        )
+    for i, x0 in enumerate((-20.0, -2.0, 14.0)):
+        _bike(kit, coll, [(x0, near_y - 0.8, z), (x0 + 16.0, near_y - 0.8, z)], i * 3.0, height=2.45)
     # Eastbound queue stops before the crosswalk. Through traffic keeps going.
     stop_x = zx - DECK_HALF - ZEBRA_DEPTH - STOP_SETBACK - 1.0
     east_y = AVE_Y + LANE_OFFSETS[0]
@@ -1283,44 +1308,53 @@ def _fit_block(coll, filename, x, y, z, lot, height, yaw, name):
 
 
 def _fill_far_bank(kit, coll):
-    """Real blocks on the far-bank lots, between the roads, not in them."""
+    """Hub city blocks filling the lots. A few real towers are the ones that fall."""
     files = ("procedural_city_3.glb", "procedural_city_6.glb", "procedural_city_4.glb")
-    lots = (
-        (-130.0, 230.0), (-70.0, 230.0), (110.0, 230.0), (165.0, 230.0),
-        (-130.0, 370.0), (-70.0, 370.0), (110.0, 370.0), (165.0, 370.0),
-        (-145.0, 175.0), (150.0, 175.0),
-    )
+    spots = []
+    for y in (210.0, 248.0, 345.0, 400.0):
+        for x in (-130.0, -78.0, 98.0, 150.0):
+            if not _on_far_road(x, y, 16.0):
+                spots.append((x, y))
     placed = 0
-    for i, (x, y) in enumerate(lots):
-        if _on_far_road(x, y, 14.0):
-            continue
+    for i, (x, y) in enumerate(spots):
         block = _fit_block(
-            coll, files[i % len(files)], x, y, FAR_Z, 58.0,
-            34.0 if y < 250.0 else 46.0, 0.12 if i % 2 == 0 else math.pi, "far_block",
+            coll, files[i % len(files)], x, y, FAR_Z, 108.0,
+            58.0 if y < 300.0 else 74.0, 0.08 if i % 2 == 0 else math.pi, "far_block",
         )
         if block is None:
             continue
-        kit.add(block, "building_base", sink=True, skeleton=False)
+        kit.add(block, "building_base", sink=True, skeleton=False, near_bank=y < 300.0)
+        found_assets.stamp_object(block, "plaster")
         placed += 1
-    # Towers in the gaps between the skyline rows, so the streets run through blocks.
-    y = 205.0
-    while y < FAR_END_Y - 16.0:
-        x = -155.0
-        while x < 185.0:
-            if _on_far_road(x, y, 9.0) or any(abs(y - row) < 16.0 for row in (172.0, 255.0, 360.0)):
-                x += 16.0
-                continue
-            height = 26.0 if y < 250.0 else 40.0
-            if x < 20.0:
-                height = min(height, 34.0)
-            built = private_assets.place_tower(coll, x, y, FAR_Z, height)
-            if built is None and cc0_city.ready():
-                built = cc0_city.place_tower(coll, x, y, FAR_Z, height)
-            if built is not None:
-                kit.add(built, "building_base", sink=True, skeleton=False)
-                placed += 1
-            x += 20.0
-        y += 28.0
+    # Landmarks the wide camera can still read after the roofs fail.
+    for i, (x, y, height, topple) in enumerate((
+        (-88.0, 205.0, 52.0, False),
+        (-36.0, 228.0, 64.0, True),
+        (22.0, 198.0, 58.0, True),
+        (78.0, 236.0, 46.0, False),
+        (-96.0, 360.0, 72.0, False),
+        (36.0, 372.0, 60.0, False),
+        (128.0, 214.0, 44.0, False),
+        (-48.0, 410.0, 68.0, False),
+    )):
+        if _on_far_road(x, y, 10.0):
+            continue
+        built = private_assets.place_tower(coll, x, y, FAR_Z, height)
+        if built is None and cc0_city.ready():
+            built = cc0_city.place_tower(coll, x, y, FAR_Z, height)
+        if built is None:
+            continue
+        kit.add(
+            built, "building_base", sink=True,
+            skeleton=height > 66.0, topple=topple, near_bank=y < 300.0,
+        )
+        found_assets.stamp_object(built, "plaster")
+        for k, slug in enumerate(("moss_01", "fern_02", "shrub_01", "fern_02")):
+            _plant(
+                kit, coll, slug, x + (k - 1.5) * 1.4, y - 5.5, FAR_Z + k * 2.2,
+                0.7 + k * 0.25, delay=0.28, yaw=k,
+            )
+        placed += 1
     return placed
 
 
@@ -1375,27 +1409,108 @@ def _seat_bottom(obj, z):
         obj.location.z += float(z) - min(zs)
 
 
+def _heaved_avenue(kit, coll, mats):
+    """Cracked, lifted asphalt on the near lanes. Hidden until the first weeds."""
+    damaged = found_assets.pbr_material("HeavedAsphalt", "road_damaged", uv=0.35, displace=0.12) or mats["road"]
+    road_z = ROAD_Z
+    w, d, step = 86.0, 16.0, 0.7
+    bm = bmesh.new()
+    nx, ny = int(w / step), int(d / step)
+    rng = random.Random(21)
+    grid = []
+    for iy in range(ny + 1):
+        row = []
+        for ix in range(nx + 1):
+            lift = rng.uniform(-0.04, 0.16) if 0 < ix < nx and 0 < iy < ny else 0.0
+            row.append(bm.verts.new((-w / 2 + w * ix / nx, -d / 2 + d * iy / ny, lift)))
+        grid.append(row)
+    uv = bm.loops.layers.uv.new("UVMap")
+    for iy in range(ny):
+        for ix in range(nx):
+            face = bm.faces.new((grid[iy][ix], grid[iy][ix + 1], grid[iy + 1][ix + 1], grid[iy + 1][ix]))
+            for loop in face.loops:
+                loop[uv].uv = ((loop.vert.co.x + w / 2) / 4.0, (loop.vert.co.y + d / 2) / 4.0)
+    patch = link_obj("heaved_avenue", mesh_from_bm("heaved_avenue", bm), coll, (damaged,))
+    patch.location = (-6.0, AVE_Y, road_z + 0.04)
+    kit.add(patch, "groundwear", sink=False)
+    for i in range(28):
+        _plant(
+            kit, coll,
+            ("grass_medium_01", "grass_bermuda_01", "weed_plant_02", "grass_medium_02")[i % 4],
+            -40.0 + (i % 14) * 5.2, AVE_Y + (-3.5 if i < 14 else 3.2), road_z,
+            rng.uniform(0.25, 0.55), delay=0.18, yaw=i * 0.4,
+        )
+
+
+def _snow_peaks(obj):
+    """Snow on the high, upward faces of the shared mountainside material."""
+    if obj is None or getattr(obj, "type", "") != "MESH" or not obj.data.materials:
+        return
+    mat = obj.data.materials[0]
+    if mat is None or mat.get("snow_cap") or mat.node_tree is None:
+        return
+    tree = mat.node_tree
+    bsdf = next((node for node in tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+    if bsdf is None or "Base Color" not in bsdf.inputs:
+        return
+    color_in = bsdf.inputs["Base Color"]
+    tex = tree.nodes.new("ShaderNodeTexCoord")
+    sep = tree.nodes.new("ShaderNodeSeparateXYZ")
+    tree.links.new(tex.outputs["Object"], sep.inputs["Vector"])
+    span = tree.nodes.new("ShaderNodeMapRange")
+    span.inputs["From Min"].default_value = 5.8
+    span.inputs["From Max"].default_value = 9.6
+    span.inputs["To Min"].default_value = 0.0
+    span.inputs["To Max"].default_value = 1.0
+    span.clamp = True
+    tree.links.new(sep.outputs["Z"], span.inputs["Value"])
+    geom = tree.nodes.new("ShaderNodeNewGeometry")
+    nsep = tree.nodes.new("ShaderNodeSeparateXYZ")
+    tree.links.new(geom.outputs["Normal"], nsep.inputs["Vector"])
+    up = tree.nodes.new("ShaderNodeMapRange")
+    up.inputs["From Min"].default_value = 0.25
+    up.inputs["From Max"].default_value = 0.8
+    up.clamp = True
+    tree.links.new(nsep.outputs["Z"], up.inputs["Value"])
+    both = tree.nodes.new("ShaderNodeMath")
+    both.operation = "MULTIPLY"
+    tree.links.new(span.outputs["Result"], both.inputs[0])
+    tree.links.new(up.outputs["Result"], both.inputs[1])
+    mix = tree.nodes.new("ShaderNodeMixRGB")
+    if color_in.is_linked:
+        source = color_in.links[0].from_socket
+        tree.links.remove(color_in.links[0])
+        tree.links.new(source, mix.inputs["Color1"])
+    else:
+        mix.inputs["Color1"].default_value = tuple(color_in.default_value)
+    mix.inputs["Color2"].default_value = (0.94, 0.96, 0.98, 1.0)
+    tree.links.new(both.outputs[0], mix.inputs["Fac"])
+    tree.links.new(mix.outputs["Color"], color_in)
+    mat["snow_cap"] = True
+
+
 def _mountains(kit, coll):
-    """Rock ridges on the far ground. The glacier scan is a flat ice sheet, so it is not stood up."""
-    folder = Path("/opt/cursor/asset-cache/cc0/extracted/nature/quaternius_stylized_nature_megakit/glTF")
-    rocks = [folder / "Rock_Medium_1.gltf", folder / "Rock_Medium_2.gltf", folder / "Rock_Medium_3.gltf"]
+    """A real mountainside, repeated into a range a few kilometres behind the city."""
+    path = Path("/workspace/assets/found/polyhaven/models/mountainside/mountainside_1k.gltf")
+    # (x, y, peak height). Native mesh is about 10 m. These peaks are hundreds of metres.
+    spots = (
+        (-2800.0, 3100.0, 620.0, 0.35),
+        (-1600.0, 3450.0, 840.0, -0.4),
+        (-400.0, 2900.0, 760.0, 0.15),
+        (700.0, 3600.0, 980.0, 0.55),
+        (1900.0, 3200.0, 880.0, -0.25),
+        (3000.0, 3700.0, 700.0, 0.7),
+        (400.0, 4100.0, 1100.0, 0.05),
+    )
     placed = 0
-    x = -680.0
-    i = 0
-    while x < 740.0:
-        height = 42.0 + (i % 5) * 14.0
-        y = 530.0 + (i % 3) * 26.0
-        ridge = _mesh_prop(coll, rocks[i % 3], (x, y, FAR_Z), 0.7 * i, height, "ridge")
-        if ridge is not None:
-            kit.add(ridge, "mountain", sink=False)
-            placed += 1
-        if i % 2 == 0:
-            peak = _mesh_prop(coll, rocks[(i + 1) % 3], (x + 18.0, y + 55.0, FAR_Z), 1.4 + i, height * 1.45, "peak")
-            if peak is not None:
-                kit.add(peak, "mountain", sink=False)
-                placed += 1
-        x += 78.0
-        i += 1
+    for x, y, height, yaw in spots:
+        ridge = _mesh_prop(coll, path, (x, y, FAR_Z - 30.0), yaw, height, "range")
+        if ridge is None:
+            continue
+        _snow_peaks(ridge)
+        kit.add(ridge, "mountain", sink=False)
+        placed += 1
+    # Blue air in the kilometres between the skyline and the range.
     mesh = bpy.data.meshes.new("distance_haze")
     bm = bmesh.new()
     bmesh.ops.create_cube(bm, size=1.0)
@@ -1403,16 +1518,16 @@ def _mountains(kit, coll):
     bm.free()
     haze = bpy.data.objects.new("distance_haze", mesh)
     coll.objects.link(haze)
-    haze.location = (0.0, 780.0, 70.0)
-    haze.scale = (1800.0, 90.0, 80.0)
+    haze.location = (0.0, 1900.0, 280.0)
+    haze.scale = (9000.0, 1100.0, 500.0)
     mat = bpy.data.materials.new("DistanceHaze")
     mat.use_nodes = True
     tree = mat.node_tree
     tree.nodes.clear()
     out = tree.nodes.new("ShaderNodeOutputMaterial")
     vol = tree.nodes.new("ShaderNodeVolumePrincipled")
-    vol.inputs["Color"].default_value = (0.62, 0.72, 0.84, 1.0)
-    vol.inputs["Density"].default_value = 0.004
+    vol.inputs["Color"].default_value = (0.62, 0.72, 0.86, 1.0)
+    vol.inputs["Density"].default_value = 0.00045
     tree.links.new(vol.outputs["Volume"], out.inputs["Volume"])
     haze.data.materials.append(mat)
     kit.add(haze, "mountain", sink=False)
@@ -1948,6 +2063,8 @@ def build_river_city(kit, mats, rng, pieces):
     far_near = RIVER_Y1 + 1.0
     far_depth = 1100.0
     _plane("city_ground", col_g, (0, far_near + far_depth / 2.0, FAR_Z), (2400, far_depth), mats["trim"])
+    # The range sits kilometres past the city. The plain under it is the same land.
+    _plane("range_plain", col_g, (0, 2800.0, FAR_Z - 4.0), (9000, 4200), mats["trim"])
     floor = _plane(
         "forest_floor",
         col_g,
@@ -1977,6 +2094,10 @@ def build_river_city(kit, mats, rng, pieces):
             w = rng.uniform(*wr)
             # The bridge approach is a road. Towers stay off it on every row,
             # not only the first, and the gap is the road plus the building's own width.
+            # The near far-bank is filled with hub blocks. Tiny towers here read as scattered boxes.
+            if y < FAR_END_Y - 20.0:
+                x += max(w, 48.0)
+                continue
             corridor = abs(x - _deck_x(y)) < (w * 0.5 + DECK_HALF + 6.0) and y < FAR_END_Y + 30.0
             if corridor or on_block_street(x, w * 0.5 + 1.0):
                 x += 6.0
@@ -2023,11 +2144,21 @@ def build_river_city(kit, mats, rng, pieces):
     _place_hub_blocks(kit, col_c, mats)
     _park_approach(kit, col_g)
     _mountains(kit, col_c)
+    _heaved_avenue(kit, col_g, mats)
+    # Broken shells and rubble the wide camera can still read after the towers fail.
     for ruin_loc, ruin_h, ruin_yaw in (
-        ((-18.0, 4.0, ROAD_Z), 12.0, 0.2),
-        ((-80.0, 220.0, FAR_Z), 16.0, 0.4),
-        ((95.0, 235.0, FAR_Z), 18.0, -0.3),
-        ((140.0, 355.0, FAR_Z), 14.0, 1.1),
+        ((-18.0, 4.0, ROAD_Z), 14.0, 0.2),
+        ((-42.0, 8.0, ROAD_Z), 11.0, 1.1),
+        ((6.0, 178.0, FAR_Z), 24.0, 0.15),
+        ((-28.0, 208.0, FAR_Z), 20.0, 0.8),
+        ((38.0, 196.0, FAR_Z), 28.0, -0.35),
+        ((-72.0, 242.0, FAR_Z), 18.0, 1.4),
+        ((86.0, 228.0, FAR_Z), 22.0, 2.2),
+        ((12.0, 268.0, FAR_Z), 26.0, 0.4),
+        ((-8.0, 156.0, FAR_Z), 9.0, 0.6),
+        ((30.0, 162.0, FAR_Z), 8.0, 1.7),
+        ((-55.0, 188.0, FAR_Z), 10.0, -0.2),
+        ((60.0, 250.0, FAR_Z), 16.0, 0.9),
     ):
         shell = _ruin_piece(col_c, ruin_loc, ruin_yaw, ruin_h)
         if shell is not None:
