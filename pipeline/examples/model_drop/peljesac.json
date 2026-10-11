@@ -1,0 +1,33 @@
+{
+  "spec": {
+    "type": "model_drop",
+    "asset": "parametric:cable_stayed",
+    "geo": [[42.92178, 17.52797], [42.93964, 17.5438]],
+    "scale": "stylized",
+    "heading": null,
+    "at_word": "NINETEEN",
+    "build": "span_by_span",
+    "kind": "cable_stayed",
+    "spans_m": [72, 96, 118, 203.5, 285, 285, 285, 285, 285, 203.5, 118, 96, 72],
+    "deck_m": 22.5,
+    "tower_m": 98,
+    "tower_after": [3, 4, 5, 6, 7, 8],
+    "label": "13 SPANS · 2.4 KM"
+  },
+  "shot": {
+    "wide_m": 900000,
+    "wide_lon": 17.2,
+    "wide_lat": 43.4,
+    "close_m": 18000,
+    "zoom_end": 2.6,
+    "build_start": 2.7,
+    "build_dur": 3.5,
+    "untilt": 6.5,
+    "duration": 7.5,
+    "tilt": 28,
+    "imagery": "/workspace/asset_library/extra/neum_proof",
+    "utm": 32633,
+    "out": "peljesac_drop.mp4"
+  },
+  "line": "Digitized from USGS Landsat 9, 30 m, the straight deck between the two shore landfalls. Span lengths are the published 13-span schedule, scaled onto that line."
+}
