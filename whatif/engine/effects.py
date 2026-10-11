@@ -656,7 +656,8 @@ def _bridge(kit, ch):
         # Year 100 shortens the portals. Year 500 leaves broken pylon stumps.
         ruin = smoother(0.36, 0.66, ch["collapse"])
         spectacular = smoother(0.74, 1.0, ch["collapse"])
-        height_left = max(0.12, 1.0 - ruin * 0.38 - spectacular * 0.48)
+        # Year 100 keeps most of the portal. Year 500 is a broken stump.
+        height_left = max(0.32, 1.0 - ruin * 0.22 - spectacular * 0.4)
         if i == 1:
             rot.x += ruin * 0.12 + spectacular * 0.85
             loc.z -= spectacular * 8.0

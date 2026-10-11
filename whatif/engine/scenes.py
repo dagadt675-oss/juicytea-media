@@ -1347,52 +1347,61 @@ def _park_approach(kit, coll):
         x, y = deck_point(s)
         z = deck_z(s) + RIBBON_TOP
         for side in (-1.0, 1.0):
-            edge = DECK_HALF + 0.55
+            edge = DECK_HALF + 0.7
             curb = _mesh_prop(
                 coll, barrier,
                 (x + rx * side * edge, y + ry * side * edge, z),
-                DECK_ROT_Z, 0.85, "ramp_curb",
+                DECK_ROT_Z, 1.7, "ramp_curb",
             )
             if curb is not None:
                 kit.add(curb, "prop", sink=False)
             rise = z - PARK_Z
-            if rise > 1.1 and pillar.exists() and int(s) % 14 < 5:
+            if rise > 0.9 and pillar.exists():
                 pier = _mesh_prop(
                     coll, pillar,
-                    (x + rx * side * (DECK_HALF + 0.2), y + ry * side * (DECK_HALF + 0.2), PARK_Z),
-                    DECK_ROT_Z, rise, "ramp_pier",
+                    (x + rx * side * (DECK_HALF - 0.3), y + ry * side * (DECK_HALF - 0.3), PARK_Z),
+                    DECK_ROT_Z, max(rise, 1.2), "ramp_pier",
                 )
                 if pier is not None:
                     kit.add(pier, "prop", sink=False)
-        s += 5.5
+        s += 8.0
 
 
 def _mountains(kit, coll):
-    """Photoscan ridges on the horizon, behind the skyline, in every era."""
-    spots = (
-        (-420.0, 760.0, 520.0, 0.4),
-        (-140.0, 820.0, 640.0, 1.2),
-        (180.0, 790.0, 560.0, 2.2),
-        (460.0, 840.0, 600.0, 0.8),
-    )
+    """A cliff ridge on the horizon. The glacier scan is a flat ice sheet, so it stays a distant snowfield."""
+    cliff = Path("/opt/cursor/asset-cache/cc0/extracted/city_buildings/kenney_retro_urban_kit/Models/GLB format/cliff-side.glb")
+    corner = Path("/opt/cursor/asset-cache/cc0/extracted/city_buildings/kenney_retro_urban_kit/Models/GLB format/cliff-corner.glb")
+    rock = Path("/opt/cursor/asset-cache/cc0/extracted/ruins_decay/kenney_survival_kit/Models/GLB format/rock-c.glb")
     placed = 0
-    for x, y, longest, yaw in spots:
-        obj = private_assets.place(
-            coll, "Glacier_Photoscan_on_Mountain_d7f119cc",
-            (x, y, FAR_Z - 8.0), yaw, longest=longest, name="mountain",
-        )
-        if obj is None:
-            continue
-        kit.add(obj, "mountain", sink=False)
-        placed += 1
-    if placed == 0:
-        cliff = Path("/opt/cursor/asset-cache/cc0/extracted/city_buildings/kenney_retro_urban_kit/Models/GLB format/cliff-side.glb")
-        for i, x in enumerate(range(-500, 560, 140)):
-            obj = _mesh_prop(coll, cliff, (x, 780.0 + (i % 2) * 40.0, FAR_Z), 0.2 * i, 180.0, "ridge")
-            if obj is not None:
-                kit.add(obj, "mountain", sink=False)
+    x = -720.0
+    i = 0
+    while x < 760.0:
+        height = 55.0 + (i % 4) * 22.0 + (18.0 if i % 5 == 0 else 0.0)
+        y = 690.0 + (i % 3) * 28.0
+        path = corner if i % 5 == 0 else cliff
+        ridge = _mesh_prop(coll, path, (x, y, FAR_Z - 8.0), (0.15 if i % 2 == 0 else math.pi + 0.1), height, "ridge")
+        if ridge is not None:
+            kit.add(ridge, "mountain", sink=False)
+            placed += 1
+        if rock.exists() and i % 2 == 0:
+            foothill = _mesh_prop(
+                coll, rock,
+                (x + 24.0, y - 70.0, FAR_Z - 4.0),
+                i * 0.4, height * 0.42, "foothill",
+            )
+            if foothill is not None:
+                kit.add(foothill, "mountain", sink=False)
                 placed += 1
-    # A slab of blue air in front of the ridges. Near streets sit south of it.
+        x += 92.0
+        i += 1
+    # One photoscan sheet, laid on the ground behind the ridge. It is not a peak.
+    sheet = private_assets.place(
+        coll, "Glacier_Photoscan_on_Mountain_d7f119cc",
+        (40.0, 980.0, FAR_Z - 30.0), 0.4, longest=900.0, name="snowfield",
+    )
+    if sheet is not None:
+        kit.add(sheet, "mountain", sink=False)
+        placed += 1
     mesh = bpy.data.meshes.new("distance_haze")
     bm = bmesh.new()
     bmesh.ops.create_cube(bm, size=1.0)
@@ -1400,16 +1409,16 @@ def _mountains(kit, coll):
     bm.free()
     haze = bpy.data.objects.new("distance_haze", mesh)
     coll.objects.link(haze)
-    haze.location = (20.0, 820.0, 160.0)
-    haze.scale = (1600.0, 220.0, 280.0)
+    haze.location = (0.0, 860.0, 90.0)
+    haze.scale = (1800.0, 160.0, 140.0)
     mat = bpy.data.materials.new("DistanceHaze")
     mat.use_nodes = True
     tree = mat.node_tree
     tree.nodes.clear()
     out = tree.nodes.new("ShaderNodeOutputMaterial")
     vol = tree.nodes.new("ShaderNodeVolumePrincipled")
-    vol.inputs["Color"].default_value = (0.55, 0.66, 0.78, 1.0)
-    vol.inputs["Density"].default_value = 0.0016
+    vol.inputs["Color"].default_value = (0.62, 0.72, 0.84, 1.0)
+    vol.inputs["Density"].default_value = 0.0022
     tree.links.new(vol.outputs["Volume"], out.inputs["Volume"])
     haze.data.materials.append(mat)
     kit.add(haze, "mountain", sink=False)
@@ -1600,12 +1609,12 @@ def _place_hub_blocks(kit, coll, mats):
     street_east = ix + DECK_HALF + 3.6
     front_north = AVE_Y - AVENUE_HALF - SIDEWALK_W - 0.3
 
-    def sit(filename, cx, cy, z, height, yaw, name, min_z=1.2, role="prop"):
+    def sit(filename, cx, cy, z, height, yaw, name, min_z=1.2, role="building_base", skeleton=False):
         block = private_assets.place_city_block(
             coll, filename, cx, cy, z, yaw=yaw, height=height, min_z=min_z, name=name,
         )
         if block is not None:
-            kit.add(block, role, sink=False)
+            kit.add(block, role, sink=True, skeleton=skeleton)
         return block
 
     _south_city_blocks(kit, coll, mats, ix, road_z, street_west, street_east, front_north)
@@ -1620,7 +1629,7 @@ def _place_hub_blocks(kit, coll, mats):
 
     for name, x, y, h, yaw in (("nyc_w", -110.0, 188.0, 52.0, 0.15), ("nyc_e", 95.0, 192.0, 46.0, -0.25)):
         sit("procedural_city_6.glb", x, y, FAR_Z, h, yaw, name)
-    sit("one_wtc.glb", -42.0, 164.0, FAR_Z, 90.0, 0.45, "wtc", min_z=1.0)
+    sit("one_wtc.glb", -78.0, 218.0, FAR_Z, 90.0, 0.45, "wtc", min_z=1.0, skeleton=True)
 
     # The far bank keeps its day-1 towers. They age in place; a second city is not swapped in.
 
