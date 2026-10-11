@@ -91,12 +91,16 @@ def compose_b(plate: Image.Image, ep, fr) -> Image.Image:
                 opacity=int(160 * fr.title_alpha),
             )
             y += int(font.size * 1.05)
+    shown = fr.primary_prev if fr.primary_prev and fr.roll < 0.5 else fr.primary
+    metric = fr.metric or None
+    if fr.primary_unit == "ft" and shown.replace(",", "").isdigit():
+        metric = f"{int(round(int(shown.replace(',', '')) * 0.3048)):,} m"
     img, _box = draw_scale_counter(
         img,
         fr.label_primary,
         fr.primary,
         fr.primary_unit,
-        metric=fr.metric or None,
+        metric=metric,
         previous=fr.primary_prev or None,
         roll=fr.roll,
         second_label=fr.label_secondary,

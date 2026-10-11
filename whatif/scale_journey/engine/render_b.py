@@ -77,15 +77,16 @@ def _contact(frame_dir: Path, fps: int, dest: Path):
 def _keys(ep, final_dir: Path, dest: Path):
     dest.mkdir(parents=True, exist_ok=True)
 
-    def first(phase):
-        return next(fr.frame for fr in ep.frames if fr.phase == phase)
+    def into(phase, seconds):
+        frames = [fr for fr in ep.frames if fr.phase == phase]
+        return frames[min(len(frames) - 1, int(seconds * ep.fps))].frame
 
     picks = [
-        ("00_hook", 0),
-        ("fall", first("fall")),
-        ("liberty", first("liberty")),
-        ("edge", first("edge")),
-        ("hit", first("hit")),
+        ("00_hook", into("hook", 1.0)),
+        ("fall", into("fall", 1.5)),
+        ("liberty", into("liberty", 4.0)),
+        ("edge", into("edge", 1.5)),
+        ("hit", into("hit", 2.5)),
         ("loop", ep.frames[-1].frame),
     ]
     written = []

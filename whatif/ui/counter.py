@@ -75,20 +75,30 @@ def _stroke(base: Image.Image, xy, text, font, fill, stroke=5):
 
 
 def _slot(base: Image.Image, xy, old: str, new: str, roll: float, font, fill) -> tuple[int, int, int, int]:
-    """Slide the whole token. roll 0 is the old value, roll 1 is the new one."""
+    """Slide the whole token. roll 0 is the old value, roll 1 is the new one.
+
+    The window is tall enough for the stroke, and the returned box hugs the
+    token that is actually on screen so the unit does not jump ahead.
+    """
+    shown = new if roll >= 0.5 or old == new else old
     if roll >= 0.999 or old == new:
-        box = _stroke(base, xy, new, font, fill)
+        box = _stroke(base, xy, shown, font, fill)
         return tuple(int(v) for v in box)
+    stroke = 5
     ascent, descent = font.getmetrics()
-    line_h = ascent + descent + 8
-    width = int(max(font.getlength(old), font.getlength(new)) + 24)
-    tall = Image.new("RGBA", (max(width, 1), line_h * 2 + 8), (0, 0, 0, 0))
-    ImageDraw.Draw(tall).text((2, 2), old, font=font, fill=fill, stroke_width=5, stroke_fill=(0, 0, 0, 150))
-    ImageDraw.Draw(tall).text((2, line_h + 2), new, font=font, fill=fill, stroke_width=5, stroke_fill=(0, 0, 0, 150))
-    top = int(round(roll * line_h))
+    line_h = ascent + descent + stroke * 2 + 10
+    pad = stroke + 2
+    width = int(max(font.getlength(old), font.getlength(new)) + pad * 2 + 8)
+    tall = Image.new("RGBA", (max(width, 1), line_h * 2), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(tall)
+    draw.text((pad, pad), old, font=font, fill=fill, stroke_width=stroke, stroke_fill=(0, 0, 0, 150))
+    draw.text((pad, line_h + pad), new, font=font, fill=fill, stroke_width=stroke, stroke_fill=(0, 0, 0, 150))
+    top = int(round(min(1.0, max(0.0, roll)) * line_h))
     crop = tall.crop((0, top, width, top + line_h))
     base.alpha_composite(crop, (int(xy[0]), int(xy[1])))
-    return (int(xy[0]), int(xy[1]), int(xy[0] + width), int(xy[1] + line_h))
+    text_w = font.getlength(shown)
+    glyph_bottom = int(xy[1] + pad + ascent + descent)
+    return (int(xy[0]), int(xy[1]), int(xy[0] + pad + text_w), glyph_bottom)
 
 
 def draw_scale_counter(
