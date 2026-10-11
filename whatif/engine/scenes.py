@@ -1388,6 +1388,55 @@ def _jagged_stump(coll, x, y):
     return src
 
 
+def _ruin_shells():
+    """Building shells from Ruined city FREE (5). Ground planes stay out."""
+    if getattr(_ruin_shells, "protos", None) is not None:
+        return _ruin_shells.protos
+    path = Path("/opt/cursor/asset-cache/private/sketchfab/city_blocks/ruined_city_free_5.glb")
+    if not path.exists():
+        _ruin_shells.protos = []
+        return []
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(path))
+    bpy.context.view_layer.update()
+    protos = []
+    for obj in bpy.data.objects:
+        if obj not in before:
+            obj.hide_render = True
+            obj.hide_viewport = True
+        if obj not in before or obj.type != "MESH" or obj.data is None:
+            continue
+        pts = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+        height = max(p.z for p in pts) - min(p.z for p in pts)
+        width = max(max(p.x for p in pts) - min(p.x for p in pts), max(p.y for p in pts) - min(p.y for p in pts))
+        # Keep ruined towers and broken blocks. Skip the city ground sheet.
+        if 3.0 < height < 16.0 and width < 18.0:
+            protos.append((obj, height))
+    _ruin_shells.protos = protos
+    return protos
+
+
+def _spawn_shell(coll, src, native_h, x, y, z, target_h, yaw, name):
+    copy = src.copy()
+    coll.objects.link(copy)
+    copy.parent = None
+    copy.hide_render = False
+    copy.hide_viewport = False
+    factor = float(target_h) / max(native_h, 0.01)
+    copy.scale = (src.scale.x * factor, src.scale.y * factor, src.scale.z * factor)
+    copy.rotation_euler.z = float(yaw)
+    copy.location = (0.0, 0.0, 0.0)
+    bpy.context.view_layer.update()
+    pts = [copy.matrix_world @ Vector(corner) for corner in copy.bound_box]
+    copy.location = (
+        float(x) - (min(p.x for p in pts) + max(p.x for p in pts)) * 0.5,
+        float(y) - (min(p.y for p in pts) + max(p.y for p in pts)) * 0.5,
+        float(z) - min(p.z for p in pts),
+    )
+    copy.name = name
+    return copy
+
+
 def _collapse_city(kit, coll):
     """Ruin shells and fallen towers that replace the skyline once it fails."""
     shells = ("Brick_Ruins_0b2b49b4", "Brick_Ruins_94d63184", "Scan_Rubble_ruins_01def269")
@@ -1410,20 +1459,21 @@ def _collapse_city(kit, coll):
                 )
                 if pile is not None:
                     kit.add(pile, "shell", sink=False)
-    for loc, height, yaw in (
-        ((-16.0, 6.0, ROAD_Z), 13.0, 0.2),
-        ((18.0, 4.0, ROAD_Z), 11.0, 1.4),
-        ((-48.0, 2.0, ROAD_Z), 12.0, -0.4),
-        ((8.0, 186.0, FAR_Z), 28.0, 0.15),
-        ((-40.0, 230.0, FAR_Z), 24.0, 0.9),
-        ((48.0, 210.0, FAR_Z), 30.0, -0.3),
-        ((-70.0, 300.0, FAR_Z), 22.0, 1.5),
-        ((90.0, 280.0, FAR_Z), 26.0, 2.1),
-    ):
-        shell = _ruin_piece(coll, loc, yaw, height)
-        if shell is not None:
-            kit.add(shell, "shell", sink=False)
-            placed += 1
+    shells_src = _ruin_shells()
+    spots = []
+    for y in (168.0, 198.0, 236.0, 286.0, 340.0, 400.0):
+        for x in (-96.0, -40.0, 16.0, 72.0, 128.0):
+            if not _on_far_road(x, y, 8.0):
+                spots.append((x, y, FAR_Z, 22.0 + (abs(int(x + y)) % 4) * 5.0))
+    for x, h in ((-28.0, 14.0), (-6.0, 16.0), (16.0, 13.0), (36.0, 15.0)):
+        spots.append((x, 3.0, ROAD_Z, h))
+    for i, (x, y, z, height) in enumerate(spots):
+        if not shells_src:
+            break
+        src, native = shells_src[i % len(shells_src)]
+        shell = _spawn_shell(coll, src, native, x, y, z, height, (i % 5) * 0.6, "ruin_shell")
+        kit.add(shell, "shell", sink=False)
+        placed += 1
     # Jagged stumps cut from real towers. They replace the standing meshes at year 500.
     for x, y in ((-60.0, 188.0), (10.0, 176.0), (70.0, 204.0), (-20.0, 260.0), (40.0, 330.0), (110.0, 250.0)):
         stump = _jagged_stump(coll, x, y)
@@ -1438,6 +1488,7 @@ def _collapse_city(kit, coll):
         if fallen is None:
             continue
         fallen.rotation_euler.x = 1.28
+        fallen.rotation_euler.z = yaw
         kit.add(fallen, "fallen", sink=False)
         placed += 1
     return placed
