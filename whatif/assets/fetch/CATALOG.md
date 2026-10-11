@@ -261,3 +261,15 @@ All of these are Sketchfab Free Standard. Rendered videos only. Files live under
 | Low Poly Vehicle Mini Pack | vladek27 | `Low_Poly_Vehicle_Mini_Pack.glb` (78 MB) | River city, now | Sedans (4.6 m), pickups (4.9 m), and a van (5.2 m), nose along +X. The armored carrier in the same file is not used. |
 | PSX First Person Arms | Drillimpact | `PSX_First_Person_Arms.glb` (1.4 MB, 18 clips) | POV episodes | Clips: finger_gun_broken, finger_gun_fire, finger_gun_fix, finger_gun_idle, grab.L, grab.R, guard_draw, guard_idle, jab.L, jab.R, knife_draw, knife_hit_01, knife_hit_02, knife_idle, push.L, push.R, relax, rest. Not used in the river city. |
 | Kitchen hand painted | Katydid. | `Kitchen_hand_painted.glb` (8.6 MB) | burger_years, cat-POV interiors | A hand-painted kitchen. Not placed in the river city. |
+
+## Private — trees, disaster, snow, POV (do not redistribute)
+
+Same license and cache folder. Not placed in the river-city episode.
+
+| Name | File | Where | Notes |
+|---|---|---|---|
+| Low poly Tree pack | `Low_poly_Tree_pack.glb` (2.1 MB, 69 meshes, 23,460 faces) | Nature, later park passes | Separate tree groups, about 100–297 file units tall. Scale each tree to 6–10 m. Do not drop the pack in as one object. |
+| Hazmat Suit | `Hazmat_Suit.glb` (5.4 MB, 72,076 faces) | Disaster episodes | The suit is 0.75 × 0.44 × 1.90 m. Scale the height to about 1.85 m. |
+| Cottage in the forest | `Cottage_in_the_forest.glb` (3.0 MB, 28,818 faces) | snow_forever, nature | One forest diorama, 1417 × 1424 × 2500 file units. Scale the whole scene together; do not treat those units as meters. |
+| Animated civilian Helicopter | `Animated_civilian_Helicopter.glb` (2.3 MB, 21,876 faces) | City and disaster episodes | One clip, `Armature\|ArmatureAction.001`, frames 0–219. The model is 2.61 × 1.68 × 0.71 m; scale the long axis to about 10 m for a light civilian helicopter. Skip the preview icosphere. |
+| Classroom 01 | `Classroom_01.glb` (0.6 MB, 10,168 faces) | Interior POV | One room, 21.2 × 25.2 × 10.7 m. Scale the height to about 3.2 m. |
