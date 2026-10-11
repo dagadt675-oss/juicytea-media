@@ -3208,6 +3208,10 @@ def build_scene(scene, spec, features):
         build_rio_beach(kit, mats, rng)
     elif name == "city_park":
         raise RuntimeError("city_park is on the roadmap (picnic set and cat rig) and is not built")
+    elif name == "ready_city":
+        from engine.ready_city import build as build_ready_city
+
+        build_ready_city(kit, mats, rng)
     elif "coast" in pieces:
         build_coast(kit, mats, rng, with_city="city" in pieces)
         if "suburbs" in pieces and "city" not in pieces:
