@@ -209,8 +209,8 @@ def apply(kit, ch, frame, fps):
     ice = ch["ice"]
     snow = max(ch["snow"], ice * 0.95)
     veg = ch["vegetation"]
-    # Year 1 (vegetation ~0.30) already breaks patches of windows. Later years go dark.
-    _set_building_decay(smoother(0.08, 0.55, veg), forest=veg)
+    # Grime and moss sit on the original textures. They never replace the facade with a flat colour.
+    _set_building_decay(min(0.58, smoother(0.14, 0.85, veg)), forest=min(0.4, max(0.0, veg - 0.4)))
     # Water.
     if kit.water is not None:
         z = water_surface(ch, kind)
@@ -248,17 +248,18 @@ def _structures(kit, ch, frame, fps):
             near = bool(item.extra.get("near_bank")) or item.base_loc.y < 800.0
             bury = _bury_scale(item, ch)
             obj.location = loc
-            obj.hide_render = bury < 0.05
+            # Year 500 removes the intact towers. Shells, stumps, and fallen copies stay.
+            gone = spectacular > 0.62 and not topple
+            obj.hide_render = bury < 0.05 or gone
             if topple:
-                ang = min(1.4, ruin * 0.7 + spectacular * 0.75)
+                ang = min(1.45, ruin * 0.85 + spectacular * 0.7)
                 obj.rotation_euler = _euler(item.base_rot, dx=ang)
                 obj.scale = item.base_scale * bury
             else:
-                roof = 0.55 if near and not skeleton else 0.22
-                stump = max(0.34, 1.0 - ruin * roof - spectacular * (0.12 if skeleton else 0.22))
-                lean = ruin * (0.12 if skeleton else (0.42 if near else 0.16))
-                lean += spectacular * (0.18 if skeleton else 0.12)
-                obj.rotation_euler = _euler(item.base_rot, dx=lean)
+                roof = 0.48 if near else 0.36
+                stump = max(0.45, 1.0 - ruin * roof)
+                lean = ruin * (0.55 if near else 0.28)
+                obj.rotation_euler = _euler(item.base_rot, dx=lean * (0.0 if gone else 1.0))
                 obj.scale = (
                     item.base_scale.x * bury,
                     item.base_scale.y * bury,
@@ -266,6 +267,11 @@ def _structures(kit, ch, frame, fps):
                 )
             for child in obj.children_recursive:
                 child.hide_render = obj.hide_render
+            if gone and obj.name:
+                token = obj.name
+                for other in bpy.data.objects:
+                    if other.get("ruin_with") == token:
+                        other.hide_render = True
         elif role == "building_top":
             loc = item.base_loc.copy()
             fall = item.extra.get("fall_at")
@@ -555,7 +561,7 @@ def _life(kit, ch, frame, fps, snow):
             else:
                 husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.45, 0.18, 0.08)), min(1.0, grime_u * 1.25))
             _paint_descendants(obj, (husk.x, husk.y, husk.z, 1.0), drive_nodes=hero)
-            _arm_fleet_rust(obj, min(1.0, max(rust * 1.3, smoother(0.12, 0.42, veg))))
+            _arm_fleet_rust(obj, min(1.0, max(rust * 1.6, smoother(0.04, 0.22, veg))))
             if cruise:
                 yaw = float(item.extra.get("travel_yaw", item.base_rot.z))
             else:
@@ -583,29 +589,30 @@ def _life(kit, ch, frame, fps, snow):
         elif role == "road_mark":
             # Year 1 starts fading the paint. Year 100 has worn most of it off.
             veg = ch["vegetation"]
-            frag = smoother(0.16, 0.62, veg)
+            frag = smoother(0.06, 0.4, veg)
             bucket = abs(hash(obj.name)) % 100
-            obj.hide_render = veg > 0.82 or bucket < frag * 88.0
+            obj.hide_render = veg > 0.55 or bucket < frag * 92.0
             for child in obj.children:
                 child.hide_render = obj.hide_render
             _fade_mark(obj, smoother(0.12, 0.5, veg))
         elif role == "blanket":
             obj.hide_render = ch["vegetation"] < 0.7
         elif role == "frontage":
-            # Same buildings. Year 100 breaks the roofs. Year 500 drops several of them.
+            # Keep the facade mesh. Year 100 only breaks the roof line. Year 500 swaps in ruin shells.
             index = int(item.extra.get("index", 0))
             ruin = smoother(0.26, 0.62, ch["collapse"])
-            spectacular = smoother(0.72, 1.0, ch["collapse"])
-            lean = ruin * (0.55 if index % 3 == 0 else 0.16)
-            topple = spectacular * (1.15 if index % 2 == 0 else 0.45)
-            obj.rotation_euler = _euler(item.base_rot, dx=min(1.4, lean + topple))
-            stump = max(0.2, 1.0 - ruin * 0.28 - spectacular * 0.4)
+            spectacular = smoother(0.7, 0.92, ch["collapse"])
+            lean = ruin * (0.35 if index % 3 == 0 else 0.08)
+            obj.rotation_euler = _euler(item.base_rot, dx=lean)
+            stump = max(0.78, 1.0 - ruin * 0.22)
             obj.scale = (
                 item.base_scale.x,
                 item.base_scale.y,
                 item.base_scale.z * stump,
             )
-            obj.hide_render = spectacular > 0.9 and index % 5 == 1
+            obj.hide_render = spectacular > 0.55
+            for child in obj.children_recursive:
+                child.hide_render = obj.hide_render
         elif role == "rubble":
             s = smoother(0.3, 0.58, ch["collapse"])
             obj.hide_render = s < 0.08
@@ -616,8 +623,18 @@ def _life(kit, ch, frame, fps, snow):
             obj.location = item.base_loc
             _kill_emission(obj, u)
         elif role == "forest_floor":
-            # Day 1 stays city-grey on the far bank. Meadow, then forest floor.
-            obj.hide_render = ch["vegetation"] < 0.22
+            # A full green sheet at year 1 repaints the bank. Trees and cracks come first.
+            obj.hide_render = ch["vegetation"] < 0.92
+        elif role == "shell":
+            s = smoother(0.38, 0.6, ch["collapse"])
+            obj.hide_render = s < 0.12
+            obj.scale = item.base_scale * (0.72 + 0.28 * s)
+            for child in obj.children_recursive:
+                child.hide_render = obj.hide_render
+        elif role == "fallen":
+            obj.hide_render = ch["collapse"] < 0.7
+            for child in obj.children_recursive:
+                child.hide_render = obj.hide_render
         elif role == "ruin":
             # Broken shells are up by year 100 and stay through the collapse.
             s = smoother(0.28, 0.52, ch["collapse"])
@@ -632,7 +649,7 @@ def _life(kit, ch, frame, fps, snow):
             for child in obj.children:
                 child.hide_render = obj.hide_render
         elif role == "groundwear":
-            obj.hide_render = ch["vegetation"] < 0.2
+            obj.hide_render = ch["vegetation"] < 0.1
         elif role == "late_meadow":
             obj.hide_render = ch["vegetation"] < 0.84
         elif role == "year_green":

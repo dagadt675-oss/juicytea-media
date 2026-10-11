@@ -1358,6 +1358,113 @@ def _fill_far_bank(kit, coll):
     return placed
 
 
+def _jagged_stump(coll, x, y):
+    """Cut the top off a real tower on a noisy line, so the stump is not a flat box."""
+    src = private_assets.place_tower(coll, x, y, FAR_Z, 36.0)
+    if src is None or src.type != "MESH" or src.data is None:
+        return src
+    src.data = src.data.copy()
+    me = src.data
+    zs = [vert.co.z for vert in me.vertices]
+    if not zs:
+        return src
+    lo, hi = min(zs), max(zs)
+    span = max(hi - lo, 0.01)
+    rng = random.Random(int(x * 13 + y))
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bm.verts.ensure_lookup_table()
+    kill = []
+    for vert in bm.verts:
+        t = (vert.co.z - lo) / span
+        wobble = 0.08 * math.sin(vert.co.x * 2.4 + vert.co.y * 1.7)
+        if t > 0.36 + wobble + rng.uniform(-0.04, 0.05):
+            kill.append(vert)
+    if kill:
+        bmesh.ops.delete(bm, geom=kill, context="VERTS")
+    bm.to_mesh(me)
+    bm.free()
+    me.update()
+    return src
+
+
+def _collapse_city(kit, coll):
+    """Ruin shells and fallen towers that replace the skyline once it fails."""
+    shells = ("Brick_Ruins_0b2b49b4", "Brick_Ruins_94d63184", "Scan_Rubble_ruins_01def269")
+    mound = "Scan_Pile_of_rubble_8d90c8f1"
+    placed = 0
+    for y in (176.0, 214.0, 258.0, 312.0, 368.0, 424.0):
+        for x in (-108.0, -52.0, 2.0, 52.0, 104.0, 154.0):
+            if _on_far_road(x, y, 7.0):
+                continue
+            height = 16.0 + ((int(x) + int(y)) % 5) * 4.0
+            obj = private_assets.place(
+                coll, shells[placed % len(shells)], (x, y, FAR_Z), (placed % 6) * 0.5, height=height, name="shell",
+            )
+            if obj is not None:
+                kit.add(obj, "shell", sink=False)
+                placed += 1
+            if placed % 2 == 0:
+                pile = private_assets.place(
+                    coll, mound, (x + 5.0, y - 4.0, FAR_Z), placed * 0.3, height=4.2, name="rubble_mound",
+                )
+                if pile is not None:
+                    kit.add(pile, "shell", sink=False)
+    for loc, height, yaw in (
+        ((-16.0, 6.0, ROAD_Z), 13.0, 0.2),
+        ((18.0, 4.0, ROAD_Z), 11.0, 1.4),
+        ((-48.0, 2.0, ROAD_Z), 12.0, -0.4),
+        ((8.0, 186.0, FAR_Z), 28.0, 0.15),
+        ((-40.0, 230.0, FAR_Z), 24.0, 0.9),
+        ((48.0, 210.0, FAR_Z), 30.0, -0.3),
+        ((-70.0, 300.0, FAR_Z), 22.0, 1.5),
+        ((90.0, 280.0, FAR_Z), 26.0, 2.1),
+    ):
+        shell = _ruin_piece(coll, loc, yaw, height)
+        if shell is not None:
+            kit.add(shell, "shell", sink=False)
+            placed += 1
+    # Jagged stumps cut from real towers. They replace the standing meshes at year 500.
+    for x, y in ((-60.0, 188.0), (10.0, 176.0), (70.0, 204.0), (-20.0, 260.0), (40.0, 330.0), (110.0, 250.0)):
+        stump = _jagged_stump(coll, x, y)
+        if stump is not None:
+            kit.add(stump, "fallen", sink=False)
+            placed += 1
+    # Two real towers, already on their sides. They appear when the standing copies go.
+    for x, y, yaw in ((-24.0, 198.0, 0.15), (46.0, 246.0, 0.9)):
+        fallen = private_assets.place_tower(coll, x, y, FAR_Z, 46.0)
+        if fallen is None and cc0_city.ready():
+            fallen = cc0_city.place_tower(coll, x, y, FAR_Z, 46.0)
+        if fallen is None:
+            continue
+        fallen.rotation_euler.x = 1.28
+        kit.add(fallen, "fallen", sink=False)
+        placed += 1
+    return placed
+
+
+def _foothill_woods(kit, coll, mats):
+    """Trees on the plain between the far bank and the range. Not a painted lawn."""
+    rng = random.Random(23)
+    placed = 0
+    y = 700.0
+    while y < 2200.0:
+        x = -700.0
+        while x < 1600.0:
+            if abs(x - _deck_x(y)) < 40.0 and y < 900.0:
+                x += 150.0
+                continue
+            _tree(
+                kit, coll, mats, x + rng.uniform(-8.0, 8.0), y, FAR_Z,
+                rng.uniform(8.0, 16.0), future=False, rng=rng,
+                kind="pine" if (int(x + y) % 3 == 0) else "round",
+            )
+            placed += 1
+            x += 150.0
+        y += 170.0
+    return placed
+
+
 def _mesh_prop(coll, path, loc, yaw, height, name):
     """A downloaded mesh, bottom on loc, scaled to ``height`` metres."""
     mesh = cc0_city.static_mesh(Path(path))
@@ -1421,7 +1528,7 @@ def _heaved_avenue(kit, coll, mats):
     for iy in range(ny + 1):
         row = []
         for ix in range(nx + 1):
-            lift = rng.uniform(-0.04, 0.16) if 0 < ix < nx and 0 < iy < ny else 0.0
+            lift = rng.uniform(-0.08, 0.38) if 0 < ix < nx and 0 < iy < ny else 0.0
             row.append(bm.verts.new((-w / 2 + w * ix / nx, -d / 2 + d * iy / ny, lift)))
         grid.append(row)
     uv = bm.loops.layers.uv.new("UVMap")
@@ -1433,12 +1540,12 @@ def _heaved_avenue(kit, coll, mats):
     patch = link_obj("heaved_avenue", mesh_from_bm("heaved_avenue", bm), coll, (damaged,))
     patch.location = (-6.0, AVE_Y, road_z + 0.04)
     kit.add(patch, "groundwear", sink=False)
-    for i in range(28):
+    for i in range(48):
         _plant(
             kit, coll,
-            ("grass_medium_01", "grass_bermuda_01", "weed_plant_02", "grass_medium_02")[i % 4],
-            -40.0 + (i % 14) * 5.2, AVE_Y + (-3.5 if i < 14 else 3.2), road_z,
-            rng.uniform(0.25, 0.55), delay=0.18, yaw=i * 0.4,
+            ("grass_medium_01", "grass_bermuda_01", "weed_plant_02", "fern_02")[i % 4],
+            -48.0 + (i % 16) * 5.4, AVE_Y + (-4.2 if i % 2 == 0 else 3.6), road_z,
+            rng.uniform(0.45, 0.95), delay=0.12, yaw=i * 0.4,
         )
 
 
@@ -1466,17 +1573,16 @@ def _mountains(kit, coll):
     # The locked camera looks up this axis, so the range is centered on it
     # rather than on world x=0. Scale 2000 turns the 2 m Gaea mesh into a 4 km range.
     # Buried and further back. Upright, the range's cliff reads as a wall in this camera.
-    span = _mesh_prop(coll, cache / "gaea_range.glb", (2200.0, 7800.0, FAR_Z - 200.0), 1.2, 0.23 * 1600.0, "gaea_range")
+    span = _mesh_prop(coll, cache / "gaea_range.glb", (1400.0, 3600.0, FAR_Z - 80.0), 1.15, 0.23 * 1800.0, "gaea_range")
     if span is not None:
         kit.add(span, "mountain", sink=False)
         placed += 1
-    # Already about 2 km wide, with a snow peak. It sits in the left half of that range.
-    snow = _mesh_prop(coll, cache / "free_textured_mountain.glb", (700.0, 5000.0, FAR_Z - 10.0), -0.25, 348.0, "snow_peak")
+    # Closer and taller than the last pass, so the peaks clear the skyline.
+    snow = _mesh_prop(coll, cache / "free_textured_mountain.glb", (400.0, 2500.0, FAR_Z - 20.0), -0.2, 620.0, "snow_peak")
     if snow is not None:
         kit.add(snow, "mountain", sink=False)
         placed += 1
-    # Snow-capped trio on the right half. Native height is 162 m.
-    trio = _mesh_prop(coll, cache / "three_peaked.glb", (3200.0, 5300.0, FAR_Z - 8.0), 0.35, 162.0 * 2.2, "three_peaks")
+    trio = _mesh_prop(coll, cache / "three_peaked.glb", (2300.0, 2700.0, FAR_Z - 16.0), 0.25, 162.0 * 3.4, "three_peaks")
     if trio is not None:
         kit.add(trio, "mountain", sink=False)
         placed += 1
@@ -1489,8 +1595,8 @@ def _mountains(kit, coll):
     bm.free()
     haze = bpy.data.objects.new("distance_haze", mesh)
     coll.objects.link(haze)
-    haze.location = (1600.0, 2600.0, 280.0)
-    haze.scale = (12000.0, 1800.0, 700.0)
+    haze.location = (1200.0, 1600.0, 220.0)
+    haze.scale = (8000.0, 700.0, 400.0)
     mat = bpy.data.materials.new("DistanceHaze")
     mat.use_nodes = True
     tree = mat.node_tree
@@ -1498,7 +1604,7 @@ def _mountains(kit, coll):
     out = tree.nodes.new("ShaderNodeOutputMaterial")
     vol = tree.nodes.new("ShaderNodeVolumePrincipled")
     vol.inputs["Color"].default_value = (0.64, 0.74, 0.86, 1.0)
-    vol.inputs["Density"].default_value = 0.00042
+    vol.inputs["Density"].default_value = 0.00016
     tree.links.new(vol.outputs["Volume"], out.inputs["Volume"])
     haze.data.materials.append(mat)
     kit.add(haze, "mountain", sink=False)
@@ -2115,6 +2221,8 @@ def build_river_city(kit, mats, rng, pieces):
     _place_hub_blocks(kit, col_c, mats)
     _park_approach(kit, col_g)
     _mountains(kit, col_c)
+    _foothill_woods(kit, kit.collection("Plants"), mats)
+    _collapse_city(kit, col_c)
     _heaved_avenue(kit, col_g, mats)
     # Broken shells and rubble the wide camera can still read after the towers fail.
     for ruin_loc, ruin_h, ruin_yaw in (
