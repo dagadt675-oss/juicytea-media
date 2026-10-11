@@ -1442,73 +1442,29 @@ def _heaved_avenue(kit, coll, mats):
         )
 
 
-def _snow_peaks(obj):
-    """Snow on the high, upward faces of the shared mountainside material."""
-    if obj is None or getattr(obj, "type", "") != "MESH" or not obj.data.materials:
-        return
-    mat = obj.data.materials[0]
-    if mat is None or mat.get("snow_cap") or mat.node_tree is None:
-        return
-    tree = mat.node_tree
-    bsdf = next((node for node in tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
-    if bsdf is None or "Base Color" not in bsdf.inputs:
-        return
-    color_in = bsdf.inputs["Base Color"]
-    tex = tree.nodes.new("ShaderNodeTexCoord")
-    sep = tree.nodes.new("ShaderNodeSeparateXYZ")
-    tree.links.new(tex.outputs["Object"], sep.inputs["Vector"])
-    span = tree.nodes.new("ShaderNodeMapRange")
-    span.inputs["From Min"].default_value = 5.8
-    span.inputs["From Max"].default_value = 9.6
-    span.inputs["To Min"].default_value = 0.0
-    span.inputs["To Max"].default_value = 1.0
-    span.clamp = True
-    tree.links.new(sep.outputs["Z"], span.inputs["Value"])
-    geom = tree.nodes.new("ShaderNodeNewGeometry")
-    nsep = tree.nodes.new("ShaderNodeSeparateXYZ")
-    tree.links.new(geom.outputs["Normal"], nsep.inputs["Vector"])
-    up = tree.nodes.new("ShaderNodeMapRange")
-    up.inputs["From Min"].default_value = 0.25
-    up.inputs["From Max"].default_value = 0.8
-    up.clamp = True
-    tree.links.new(nsep.outputs["Z"], up.inputs["Value"])
-    both = tree.nodes.new("ShaderNodeMath")
-    both.operation = "MULTIPLY"
-    tree.links.new(span.outputs["Result"], both.inputs[0])
-    tree.links.new(up.outputs["Result"], both.inputs[1])
-    mix = tree.nodes.new("ShaderNodeMixRGB")
-    if color_in.is_linked:
-        source = color_in.links[0].from_socket
-        tree.links.remove(color_in.links[0])
-        tree.links.new(source, mix.inputs["Color1"])
-    else:
-        mix.inputs["Color1"].default_value = tuple(color_in.default_value)
-    mix.inputs["Color2"].default_value = (0.94, 0.96, 0.98, 1.0)
-    tree.links.new(both.outputs[0], mix.inputs["Fac"])
-    tree.links.new(mix.outputs["Color"], color_in)
-    mat["snow_cap"] = True
-
-
 def _mountains(kit, coll):
-    """A real mountainside, repeated into a range a few kilometres behind the city."""
-    path = Path("/workspace/assets/found/polyhaven/models/mountainside/mountainside_1k.gltf")
-    # (x, y, peak height). Native mesh is about 10 m. These peaks are hundreds of metres.
-    spots = (
-        (-2800.0, 3100.0, 620.0, 0.35),
-        (-1600.0, 3450.0, 840.0, -0.4),
-        (-400.0, 2900.0, 760.0, 0.15),
-        (700.0, 3600.0, 980.0, 0.55),
-        (1900.0, 3200.0, 880.0, -0.25),
-        (3000.0, 3700.0, 700.0, 0.7),
-        (400.0, 4100.0, 1100.0, 0.05),
-    )
+    """Hub ranges, several kilometres behind the far bank. They do not age."""
+    cache = Path("/opt/cursor/asset-cache/private/mountains")
+    # gaea_range imports about 2 m across and 0.23 m tall. 1800x is a 3.6 km range.
     placed = 0
-    for x, y, height, yaw in spots:
-        ridge = _mesh_prop(coll, path, (x, y, FAR_Z - 30.0), yaw, height, "range")
-        if ridge is None:
-            continue
-        _snow_peaks(ridge)
-        kit.add(ridge, "mountain", sink=False)
+    span = _mesh_prop(coll, cache / "gaea_range.glb", (180.0, 6200.0, FAR_Z - 20.0), 0.08, 0.23 * 1800.0, "gaea_range")
+    if span is not None:
+        kit.add(span, "mountain", sink=False)
+        placed += 1
+    # Already about 2 km wide, with a snow peak. It flanks the main range.
+    snow = _mesh_prop(coll, cache / "free_textured_mountain.glb", (-1900.0, 5400.0, FAR_Z - 10.0), -0.3, 348.0, "snow_peak")
+    if snow is not None:
+        kit.add(snow, "mountain", sink=False)
+        placed += 1
+    # Snow-capped trio. Native height is 162 m; 2.2x keeps it in the same range.
+    trio = _mesh_prop(coll, cache / "three_peaked.glb", (2100.0, 5600.0, FAR_Z - 8.0), 0.4, 162.0 * 2.2, "three_peaks")
+    if trio is not None:
+        kit.add(trio, "mountain", sink=False)
+        placed += 1
+    # Photoscan peak, already about a kilometre across.
+    peak = _mesh_prop(coll, cache / "bk_peak.glb", (450.0, 4700.0, FAR_Z - 12.0), 0.2, 584.0, "bk_peak")
+    if peak is not None:
+        kit.add(peak, "mountain", sink=False)
         placed += 1
     # Blue air in the kilometres between the skyline and the range.
     mesh = bpy.data.meshes.new("distance_haze")
@@ -1518,16 +1474,16 @@ def _mountains(kit, coll):
     bm.free()
     haze = bpy.data.objects.new("distance_haze", mesh)
     coll.objects.link(haze)
-    haze.location = (0.0, 1900.0, 280.0)
-    haze.scale = (9000.0, 1100.0, 500.0)
+    haze.location = (200.0, 2800.0, 320.0)
+    haze.scale = (10000.0, 1400.0, 600.0)
     mat = bpy.data.materials.new("DistanceHaze")
     mat.use_nodes = True
     tree = mat.node_tree
     tree.nodes.clear()
     out = tree.nodes.new("ShaderNodeOutputMaterial")
     vol = tree.nodes.new("ShaderNodeVolumePrincipled")
-    vol.inputs["Color"].default_value = (0.62, 0.72, 0.86, 1.0)
-    vol.inputs["Density"].default_value = 0.00045
+    vol.inputs["Color"].default_value = (0.64, 0.74, 0.86, 1.0)
+    vol.inputs["Density"].default_value = 0.00028
     tree.links.new(vol.outputs["Volume"], out.inputs["Volume"])
     haze.data.materials.append(mat)
     kit.add(haze, "mountain", sink=False)
@@ -2064,7 +2020,7 @@ def build_river_city(kit, mats, rng, pieces):
     far_depth = 1100.0
     _plane("city_ground", col_g, (0, far_near + far_depth / 2.0, FAR_Z), (2400, far_depth), mats["trim"])
     # The range sits kilometres past the city. The plain under it is the same land.
-    _plane("range_plain", col_g, (0, 2800.0, FAR_Z - 4.0), (9000, 4200), mats["trim"])
+    _plane("range_plain", col_g, (200.0, 4200.0, FAR_Z - 6.0), (12000, 7000), mats["trim"])
     floor = _plane(
         "forest_floor",
         col_g,
@@ -3115,8 +3071,11 @@ def _lights(kit):
     sky_mix.name = "SkyMix"
     # 0 keeps the HDRI for lighting. 1 is the night gradient.
     sky_mix.inputs["Fac"].default_value = 0.0
-    hdri_path = found_assets.clear_sky() or cc0_city.sunny_hdri() or (
-        Path(__file__).resolve().parents[1] / "assets" / "cc0" / "hdri" / "kloofendal_48d_partly_cloudy_1k.hdr"
+    alps = Path("/opt/cursor/asset-cache/private/mountains/alps_field_4k.hdr")
+    hdri_path = alps if alps.exists() else (
+        found_assets.clear_sky() or cc0_city.sunny_hdri() or (
+            Path(__file__).resolve().parents[1] / "assets" / "cc0" / "hdri" / "kloofendal_48d_partly_cloudy_1k.hdr"
+        )
     )
     if hdri_path.exists():
         env = nt.nodes.new("ShaderNodeTexEnvironment")

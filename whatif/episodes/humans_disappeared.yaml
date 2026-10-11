@@ -20,7 +20,7 @@ camera:
   lens: 57.2
   sensor_fit: HORIZONTAL
   sensor_width: 36
-  clip_end: 9000
+  clip_end: 14000
 ui:
   counter_y: 0.46
   # Zenith style: the title, and one counter (population, then the year).
