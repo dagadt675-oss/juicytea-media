@@ -13,15 +13,23 @@ scene:
   seed: 11
 format: A
 camera:
-  # 40 m up, about 18° down. Bands: skyline, wide river, park, road.
-  location: [-18.0, -22.0, 40.0]
-  target: [4.0, 95.0, 2.0]
-  lens: 58
+  # Solved against the zenith frame: skyline base 38%, near bank 55%,
+  # promenade 77%, tower x 62%, tower top 13%.
+  location: [-38.0, -25.3, 58.3]
+  target: [2.5, 125.85, -11.0]
+  lens: 57.2
   sensor_fit: HORIZONTAL
   sensor_width: 36
   clip_end: 2500
 ui:
-  counter_y: 0.445
+  counter_y: 0.46
+  # Zenith style: the title, and one counter (population, then the year).
+  text: [title, counter]
+# Sound effects only. The beat lines time the picture; they are not spoken.
+audio:
+  narration: false
+  music: false
+  sfx: true
 beats:
   - id: vanish
     title: true

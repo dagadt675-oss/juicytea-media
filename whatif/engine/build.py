@@ -154,8 +154,8 @@ def _render_settings(scene, resolved, samples, scale):
     scene.cycles.use_light_tree = False
     try:
         scene.cycles.use_fast_gi = True
-        scene.world.light_settings.ao_factor = 1.0
-        scene.world.light_settings.distance = 1.6
+        scene.world.light_settings.ao_factor = 0.65
+        scene.world.light_settings.distance = 3.2
     except Exception as exc:
         print("ao", exc)
     scene.render.use_motion_blur = False
@@ -168,10 +168,33 @@ def _render_settings(scene, resolved, samples, scale):
     scene.render.image_settings.color_mode = "RGB"
     scene.render.image_settings.color_depth = "8"
     scene.render.image_settings.compression = 15
-    scene.view_settings.view_transform = "Standard"
-    scene.view_settings.look = "None"
-    scene.view_settings.exposure = 0.0
+    scene.view_settings.view_transform = "AgX"
+    try:
+        scene.view_settings.look = "AgX - Base Contrast"
+    except TypeError:
+        scene.view_settings.look = "None"
+    scene.view_settings.exposure = 0.42
     scene.view_settings.gamma = 1.0
+    try:
+        scene.use_nodes = True
+        nt = scene.node_tree
+        if nt and "Bloom" not in nt.nodes:
+            glare = nt.nodes.new("CompositorNodeGlare")
+            glare.name = "Bloom"
+            glare.glare_type = "FOG_GLOW"
+            glare.quality = "MEDIUM"
+            glare.mix = -0.65
+            glare.threshold = 0.6
+            layers = nt.nodes.get("Render Layers")
+            composite = nt.nodes.get("Composite")
+            if layers and composite:
+                for link in list(nt.links):
+                    if link.to_node == composite and link.to_socket == composite.inputs.get("Image"):
+                        nt.links.remove(link)
+                nt.links.new(layers.outputs["Image"], glare.inputs["Image"])
+                nt.links.new(glare.outputs["Image"], composite.inputs["Image"])
+    except Exception as exc:
+        print("bloom", exc)
     scene.frame_start = 1
     scene.frame_end = int(resolved["frame_count"])
 

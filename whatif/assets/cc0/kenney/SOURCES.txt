@@ -1,0 +1,16 @@
+Kenney game assets, CC0.
+https://creativecommons.org/publicdomain/zero/1.0/
+https://kenney.nl
+
+trees/          Fantasy Town Kit 2.0 (tree, tree-high, tree-round, tree-crooked)
+people/         Blocky Characters 2.0 (character-a through character-d)
+props/          City Kit Roads (light-curved, traffic-light)
+props/bench/    Furniture Kit (bench)
+cars/           Car Kit (already vendored)
+
+Kenney Nature Kit is a 2D isometric sprite set, so it is not used in this
+3D scene. Quaternius Ultimate Nature on Google Drive returned "Quota exceeded".
+OpenGameArt hosts Quaternius Nature Pack vol.3 (CC0) as a direct zip; those
+meshes are uncolored mushroom umbrellas, so the park uses round procedural
+canopies instead. poly.pizza returned 403. The itch.io packs are name-your-price
+pages without a direct file URL.

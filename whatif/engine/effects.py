@@ -6,6 +6,7 @@ import math
 
 from mathutils import Euler, Vector
 
+from engine.city_layout import city_water_top
 from engine.meshkit import aim_z, clamp, lin, smoother
 
 
@@ -24,8 +25,8 @@ def water_surface(ch, kind):
         return 0.05 + ch["flood"] * 1.35 + ch["water"] * 3.1
     if kind == "farm":
         return 0.02 + ch["flood"] * 0.9 + ch["water"] * 0.8
-    # The park and cross street stay dry. Only the quay and subway flood.
-    return 0.18 + ch["flood"] * 0.42 + ch["water"] * 1.15
+    # Capped under the quay. The mesh itself is only the river polygon.
+    return city_water_top(ch["flood"], ch["water"])
 
 
 def _sink(item, ch, loc):
@@ -87,12 +88,17 @@ def _structures(kit, ch, frame, fps):
         obj = item.obj
         if role == "building_base":
             loc = _sink(item, ch, item.base_loc.copy())
-            # Late collapse removes the shaft. Squashing the mesh turns the windows into a cage.
-            ruin = smoother(0.62, 0.92, collapse)
+            # Shrink to a concrete stump. A few marked skeletons stay standing.
+            ruin = smoother(0.40, 0.92, collapse)
+            stump = 1.0 - ruin * (0.55 if item.extra.get("skeleton") else 0.78)
             bury = _bury_scale(item, ch)
             obj.location = loc
-            obj.scale = item.base_scale * bury
-            obj.hide_render = ruin > 0.9 or bury < 0.05
+            obj.scale = (
+                item.base_scale.x * bury,
+                item.base_scale.y * bury,
+                item.base_scale.z * max(0.18, stump) * bury,
+            )
+            obj.hide_render = bury < 0.05
         elif role == "building_top":
             loc = item.base_loc.copy()
             fall = item.extra.get("fall_at")
@@ -171,10 +177,16 @@ def _structures(kit, ch, frame, fps):
             obj.location = loc
             obj.scale = (puff, puff, puff * 1.3)
         elif role == "flame":
-            s = max(ch["fire"], ch["heat"] * 0.55)
-            obj.hide_render = s < 0.04
-            flicker = 0.75 + 0.25 * math.sin(frame * 0.7 + item.extra["index"])
-            obj.scale = (s * flicker, s * flicker, s * 1.4 * flicker)
+            if item.extra.get("outage"):
+                s = ch["power"] * (1.0 - smoother(0.15, 0.55, ch["vegetation"]))
+                obj.hide_render = s < 0.04
+                flicker = 0.85 + 0.15 * math.sin(frame * 0.9)
+                obj.scale = item.base_scale * max(s * flicker, 0.001)
+            else:
+                s = max(ch["fire"], ch["heat"] * 0.55)
+                obj.hide_render = s < 0.04
+                flicker = 0.75 + 0.25 * math.sin(frame * 0.7 + item.extra["index"])
+                obj.scale = (s * flicker, s * flicker, s * 1.4 * flicker)
         elif role == "crack":
             s = max(ch["heat"], ch["scorch"], ch["dry"] if "dry" in ch else 0.0)
             obj.hide_render = s < 0.08
@@ -235,17 +247,22 @@ def _life(kit, ch, frame, fps, snow):
             obj.location = loc
             obj.scale = item.base_scale * max(s, 0.001)
         elif role == "car":
+            # People vanish. Cars roll to a stop and stay, then rust where they stopped.
             u = smoother(0.0, 1.0, clamp(ch["vanish"] / 0.55))
             a = Vector(item.extra["path_from"])
             b = Vector(item.extra["path_to"])
             pos = a.lerp(b, u)
-            fade = 1.0 - smoother(0.78, 1.0, ch["vanish"])
-            pos.z -= snow * 0.32
+            rust = ch["rust"]
+            pos.z -= snow * 0.32 + rust * 0.12
             pos.z += ch["gravity"] * item.extra.get("float", 0.0)
-            pos.z += math.sin(frame * 0.16 + pos.x) * ch["gravity"] * item.extra.get("bob", 0.0)
             obj.location = pos
-            obj.scale = item.base_scale * max(fade, 0.001)
-            obj.hide_render = fade < 0.03
+            obj.scale = item.base_scale
+            obj.hide_render = False
+            paint = Vector(item.extra.get("paint", (0.93, 0.93, 0.94))[:3])
+            grime = paint.lerp(Vector((0.28, 0.18, 0.12)), rust)
+            obj.color = (grime.x, grime.y, grime.z, 1.0)
+            yaw = item.base_rot.z + rust * (0.35 if item.extra.get("index", 0) % 2 == 0 else -0.28)
+            obj.rotation_euler = _euler(item.base_rot, dz=yaw - item.base_rot.z)
         elif role == "bird":
             gone = max(ch["fauna"], smoother(0.15, 0.45, ch["vanish"]))
             s = 1.0 - gone
@@ -261,10 +278,23 @@ def _life(kit, ch, frame, fps, snow):
             obj.scale = item.base_scale * max(s, 0.001)
         elif role == "mascot":
             obj.hide_render = ch["vegetation"] > 0.65 or ch["ice"] > 0.2 or ch["geology"] > 0.15
+        elif role == "road_mark":
+            # Lane paint fades after the meadow. Year 500 is forest, not a fresh street.
+            obj.hide_render = ch["vegetation"] > 0.92
+        elif role == "forest_floor":
+            # Day 1 stays city-grey on the far bank. Meadow, then forest floor.
+            obj.hide_render = ch["vegetation"] < 0.22
+        elif role == "ruin":
+            s = smoother(0.28, 0.75, ch["collapse"])
+            obj.hide_render = s < 0.05
+            obj.scale = item.base_scale * max(s, 0.001)
         elif role == "prop":
             loc = item.base_loc.copy()
-            loc.z += ch["gravity"] * item.extra.get("float", 0.2)
+            loc.z += ch["gravity"] * item.extra.get("float", 0.0)
+            tilt = smoother(0.45, 0.9, ch["collapse"])
             obj.location = loc
+            obj.rotation_euler = _euler(item.base_rot, dx=tilt * (1.15 if "lamp" in obj.name else 0.0))
+            obj.hide_render = "lamp" in obj.name and ch["collapse"] > 0.93
     for mound, car in zip(mounds, cars):
         if snow < 0.18:
             mound.obj.hide_render = True
@@ -282,7 +312,7 @@ def _bridge(kit, ch):
     for item in bridge["decks"]:
         i = item.extra["i"]
         loc = item.base_loc.copy()
-        droop = (ch["sag"] * 0.55 + ch["gravity"] * 0.15) * (0.55 if i in (1, 2) else 0.12)
+        droop = ch["sag"] * (4.5 if i == 0 else 1.2) + ch["gravity"] * 0.15
         loc.z -= droop
         rot = _euler(item.base_rot)
         if i in (1, 2):
@@ -295,12 +325,25 @@ def _bridge(kit, ch):
             for child in item.obj.children:
                 child.hide_render = hidden
         elif i == 0:
-            u = smoother(0.9, 1.0, ch["collapse"])
-            rot.x += u * 0.06
-            loc.z -= u * 0.4
+            # The river span falls into the water. It does not stay a finished road.
+            u = smoother(0.70, 0.96, ch["collapse"])
+            rot.x += u * 0.55
+            loc.z -= u * 7.5
+            loc.y += u * 4.0
             item.obj.hide_render = False
+            for child in item.obj.children:
+                child.hide_render = ch["vegetation"] > 0.55 or u > 0.35
+        elif i == 4:
+            u = smoother(0.78, 0.98, ch["collapse"])
+            rot.x += u * 0.45
+            loc.z -= u * 4.0
+            item.obj.hide_render = False
+            for child in item.obj.children:
+                child.hide_render = ch["vegetation"] > 0.5 or u > 0.3
         else:
             item.obj.hide_render = False
+            for child in item.obj.children:
+                child.hide_render = ch["vegetation"] > 0.5 or ch["collapse"] > 0.7
         if item.extra.get("sink"):
             loc.z -= ch["geology"] * 180.0
         item.obj.location = loc
@@ -343,7 +386,7 @@ def _bridge(kit, ch):
     ya = bridge["towers"][0].base_loc.y
     yb = bridge["towers"][1].base_loc.y
     span = max(1.0, abs(yb - ya))
-    sag = span / 10.0
+    sag = span / 16.0
     snap = smoother(0.66, 0.9, ch["collapse"])
     half = float(bridge.get("half", 7.6))
     sides = []
@@ -375,7 +418,7 @@ def _bridge(kit, ch):
             if a.z < -20 or b.z < -20:
                 seg.hide_render = True
                 continue
-            aim_z(seg, a, b, 0.28)
+            aim_z(seg, a, b, 0.16)
         for seg in cables[len(pairs) :]:
             seg.hide_render = True
     count = len(bridge["suspenders"])
@@ -392,7 +435,7 @@ def _bridge(kit, ch):
             sus.hide_render = True
             continue
         sus.hide_render = False
-        aim_z(sus, top, deck, 0.11)
+        aim_z(sus, top, deck, 0.07)
 
 
 def _catenary(a, b, sag, n):
@@ -492,12 +535,18 @@ def _sky(kit, ch, frame, fps):
     # 0.16 noon-ish, ~0.5 sunset, ~0.78 night.
     if dn < 0.42:
         u = clamp((dn - 0.12) / 0.3)
-        elev = _lerp(1.15, 1.28, u)
-        energy = _lerp(5.2, 2.6, u)
-        color = Vector(lin(1.0, 0.86, 0.68)[:3]).lerp(Vector(lin(1.0, 0.55, 0.28)[:3]), u)
-        sky = Vector(lin(0.58, 0.74, 0.90)[:3]).lerp(Vector(lin(0.98, 0.62, 0.38)[:3]), u * 0.75)
-        sky_e = _lerp(0.85, 0.7, u)
-        fill = 0.16
+        elev = _lerp(1.05, 1.22, u)
+        # The HDRI is the fill. The sun is a cooler, weaker key with a wide angle.
+        energy = _lerp(2.8, 1.5, u)
+        color = Vector(lin(0.95, 0.97, 1.0)[:3]).lerp(Vector(lin(1.0, 0.72, 0.48)[:3]), u)
+        sky = Vector(lin(0.56, 0.74, 0.96)[:3]).lerp(Vector(lin(0.98, 0.62, 0.38)[:3]), u * 0.75)
+        horizon = Vector(lin(0.78, 0.86, 0.94)[:3]).lerp(Vector(lin(0.98, 0.55, 0.32)[:3]), u)
+        sky_e = _lerp(1.55, 0.95, u)
+        fill = 0.18
+        # 0 keeps the sunny HDRI in the sky. Sunset mixes toward the gradient.
+        # A little of the blue gradient keeps the zenith cheerful. The HDRI
+        # still supplies the clouds and the light.
+        sky_mix = _lerp(0.34, 0.55, u)
     elif dn < 0.68:
         u = clamp((dn - 0.42) / 0.26)
         elev = _lerp(1.15, 1.72, u)
@@ -505,7 +554,9 @@ def _sky(kit, ch, frame, fps):
         color = Vector(lin(1.0, 0.62, 0.32)[:3]).lerp(Vector(lin(0.55, 0.68, 1.0)[:3]), u)
         sky = Vector(lin(0.95, 0.55, 0.35)[:3]).lerp(Vector((0.015, 0.02, 0.045)), u)
         sky_e = _lerp(0.7, 0.28, u)
-        fill = _lerp(0.4, 0.32, u)
+        horizon = sky
+        fill = _lerp(0.18, 0.12, u)
+        sky_mix = _lerp(0.55, 1.0, u)
     else:
         u = clamp((dn - 0.68) / 0.2)
         elev = _lerp(1.72, 0.8, u)
@@ -513,7 +564,9 @@ def _sky(kit, ch, frame, fps):
         color = Vector(lin(0.55, 0.68, 1.0)[:3]).lerp(Vector(lin(1.0, 0.97, 0.92)[:3]), u)
         sky = Vector((0.015, 0.02, 0.045)).lerp(Vector(lin(0.64, 0.76, 0.88)[:3]), u)
         sky_e = _lerp(0.28, 0.95, u)
-        fill = _lerp(0.32, 0.45, u)
+        horizon = sky
+        fill = _lerp(0.12, 0.2, u)
+        sky_mix = 1.0
     # Heat haze warms the sky. Dust desaturates it.
     if ch["heat"] > 0.01:
         sky = sky.lerp(Vector(lin(0.95, 0.72, 0.45)[:3]), ch["heat"] * 0.65)
@@ -522,9 +575,13 @@ def _sky(kit, ch, frame, fps):
         sky = sky.lerp(Vector(lin(0.72, 0.62, 0.48)[:3]), ch["dust"] * 0.5)
     kit.sun.rotation_euler = Euler((elev, 0.08, -0.85))
     kit.sun.data.energy = energy
-    kit.sun.data.angle = 0.08 if dn > 0.68 else 0.5
+    kit.sun.data.angle = 0.1 if dn > 0.68 else 0.36
     kit.sun.data.color = (color.x, color.y, color.z)
     kit.fill.data.energy = fill * (1.0 - 0.3 * ch["ice"])
     if kit.world_bg:
-        kit.world_bg.inputs[0].default_value = (sky.x, sky.y, sky.z, 1)
         kit.world_bg.inputs[1].default_value = sky_e
+    if getattr(kit, "sky_zenith", None) is not None:
+        kit.sky_zenith.outputs[0].default_value = (sky.x, sky.y, sky.z, 1)
+        kit.sky_horizon.outputs[0].default_value = (horizon.x, horizon.y, horizon.z, 1)
+    if getattr(kit, "sky_mix", None) is not None:
+        kit.sky_mix.inputs["Fac"].default_value = sky_mix

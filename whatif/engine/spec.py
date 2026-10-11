@@ -256,6 +256,7 @@ def resolve(spec: dict) -> dict:
         "opening": {name: frame_channels[name][0][1] for name in CHANNELS},
         "features": features,
         "ui": spec.get("ui") or {},
+        "audio": spec.get("audio") or {"narration": True, "music": False, "sfx": False},
     }
     return resolved
 
@@ -307,11 +308,19 @@ def load_resolved(path: Path) -> dict:
 
 
 def words_document(resolved: dict) -> dict:
-    """Voice timings in the same shape as pipeline/examples/lax_tokyo/words.json.
+    """Voice timings. Empty when the episode is sound-effects only.
 
     Format B owns captions. This only shares the word clock so the two
     pipelines do not invent two schemas.
     """
+    audio = resolved.get("audio") or {}
+    if audio.get("narration") is False:
+        return {
+            "duration": resolved["duration"],
+            "words": [],
+            "narration": False,
+            "music": bool(audio.get("music")),
+        }
     words = []
     for beat in resolved["beats"]:
         tokens = beat["narration"].split()
@@ -326,7 +335,135 @@ def words_document(resolved: dict) -> dict:
     return {"duration": resolved["duration"], "words": words}
 
 
+def _beat_by_id(resolved, beat_id):
+    for beat in resolved["beats"]:
+        if beat["id"] == beat_id:
+            return beat
+    return None
+
+
+def sfx_document(resolved: dict) -> dict:
+    """Sound-effects cue sheet. No narration and no music.
+
+    ``file`` stays null until a clip is dropped into the asset library.
+    The mixer keys off ``kind``. Beds are loops. Cues are one-shots.
+    Times are seconds from the start of the film.
+    """
+    audio = resolved.get("audio") or {}
+    policy = {
+        "narration": bool(audio.get("narration", True)),
+        "music": bool(audio.get("music", False)),
+        "sfx": bool(audio.get("sfx", False)),
+    }
+    if not policy["sfx"]:
+        return {"id": resolved["id"], "policy": policy, "beds": [], "cues": []}
+
+    def span(beat_id):
+        beat = _beat_by_id(resolved, beat_id)
+        if beat is None:
+            return None
+        return float(beat["start"]), float(beat["end"])
+
+    vanish = span("vanish")
+    power = span("power")
+    flood = span("flood")
+    weeds = span("weeds")
+    houses = span("houses")
+    towers = span("towers")
+    bridge = span("bridge")
+    forest = span("forest")
+    ret = span("return")
+    end = float(resolved["duration"])
+
+    def t(pair, index=0):
+        return pair[index] if pair else 0.0
+
+    beds = [
+        {
+            "id": "city",
+            "kind": "city",
+            "file": None,
+            "loop": True,
+            "start": 0.0,
+            "end": t(weeds, 0),
+            "gain": [
+                {"t": 0.0, "v": 1.0},
+                {"t": t(vanish, 1), "v": 0.35},
+                {"t": t(power, 1), "v": 0.0},
+            ],
+            "note": "Day-1 street ambience. It dies with the people and the power.",
+        },
+        {
+            "id": "wind",
+            "kind": "wind",
+            "file": None,
+            "loop": True,
+            "start": t(weeds, 0),
+            "end": t(ret, 0) or end,
+            "gain": [
+                {"t": t(weeds, 0), "v": 0.0},
+                {"t": t(houses, 0), "v": 0.45},
+                {"t": t(forest, 0), "v": 0.8},
+            ],
+            "note": "Open air after the city bed is gone.",
+        },
+        {
+            "id": "birds",
+            "kind": "birds",
+            "file": None,
+            "loop": True,
+            "start": t(weeds, 0),
+            "end": t(ret, 0) or end,
+            "gain": [
+                {"t": t(weeds, 0), "v": 0.05},
+                {"t": t(towers, 0), "v": 0.35},
+                {"t": t(forest, 0), "v": 0.85},
+            ],
+            "note": "Sparse at one year, a forest chorus by 500 years.",
+        },
+        {
+            "id": "water",
+            "kind": "water",
+            "file": None,
+            "loop": True,
+            "start": t(flood, 0),
+            "end": t(ret, 0) or end,
+            "gain": [
+                {"t": t(flood, 0), "v": 0.15},
+                {"t": t(flood, 1), "v": 0.55},
+                {"t": t(forest, 1), "v": 0.4},
+            ],
+            "note": "The river keeps flowing. It does not cover the city.",
+        },
+    ]
+    cues = []
+    if power:
+        cues.append({"id": "power_down", "kind": "power", "file": None, "t": power[0], "dur": 1.4, "gain": 0.8})
+    if flood:
+        cues.append({"id": "water_in", "kind": "water", "file": None, "t": flood[0] + 0.3, "dur": 2.2, "gain": 0.6})
+    if houses:
+        cues.append({"id": "creak_houses", "kind": "creak", "file": None, "t": houses[0] + 0.6, "dur": 1.6, "gain": 0.55})
+        cues.append({"id": "glass_houses", "kind": "glass", "file": None, "t": houses[0] + 1.8, "dur": 0.8, "gain": 0.7})
+    if towers:
+        cues.append({"id": "rust_towers", "kind": "rust", "file": None, "t": towers[0] + 0.4, "dur": 2.4, "gain": 0.6})
+        cues.append({"id": "glass_towers", "kind": "glass", "file": None, "t": towers[0] + 1.6, "dur": 0.9, "gain": 0.75})
+        cues.append({"id": "collapse_towers", "kind": "collapse", "file": None, "t": (towers[0] + towers[1]) / 2.0, "dur": 3.0, "gain": 0.85})
+    if bridge:
+        cues.append({"id": "rust_bridge", "kind": "rust", "file": None, "t": bridge[0] + 0.3, "dur": 2.8, "gain": 0.7})
+        cues.append({"id": "creak_cables", "kind": "creak", "file": None, "t": bridge[0] + 1.2, "dur": 1.8, "gain": 0.65})
+        cues.append({"id": "collapse_bridge", "kind": "collapse", "file": None, "t": bridge[0] + 1.5, "dur": 4.0, "gain": 1.0})
+    if ret:
+        cues.append({"id": "city_returns", "kind": "city", "file": None, "t": ret[0], "dur": 1.0, "gain": 0.9, "note": "The loop snaps the street bed back on."})
+    return {
+        "id": resolved["id"],
+        "policy": policy,
+        "beds": beds,
+        "cues": cues,
+    }
+
+
 def timeline_document(resolved: dict) -> dict:
+    audio = resolved.get("audio") or {}
     return {
         "id": resolved["id"],
         "title": resolved["title"],
@@ -337,6 +474,11 @@ def timeline_document(resolved: dict) -> dict:
         "frame_count": resolved["frame_count"],
         "word_rate": RATE,
         "pause_sec": PAUSE,
+        "audio": {
+            "narration": bool(audio.get("narration", True)),
+            "music": bool(audio.get("music", False)),
+            "sfx": bool(audio.get("sfx", False)),
+        },
         "beats": [
             {
                 "id": beat["id"],
