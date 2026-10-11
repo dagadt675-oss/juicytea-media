@@ -10,8 +10,9 @@ import os
 from pathlib import Path
 
 import bpy
+from mathutils import Vector
 
-from engine.cc0_city import _mesh_size, _sit_on_ground, _spawn
+from engine.cc0_city import _clone, _mesh_size, _sit_on_ground, _spawn
 
 PRIVATE = Path(os.environ.get("PRIVATE_CACHE", "/opt/cursor/asset-cache/private"))
 ROOT = PRIVATE / "blendkit"
@@ -202,3 +203,151 @@ def place_queen_mary(coll, loc, yaw=0.0, distant=False):
     empty.rotation_euler.z = float(yaw) + QUEEN_MARY_ALIGN
     empty.location = loc
     return empty
+
+
+SKETCHFAB = PRIVATE / "sketchfab"
+_PACKS = {}
+
+# Generic cars only. The armored carrier in the same pack stays unused.
+_CITY_CARS = (
+    ("sedan_body_sedan_white_0", 4.6),
+    ("sedan_body.001_sedan_blue_0", 4.6),
+    ("sedan_body.002_sedan_red_0", 4.6),
+    ("pickup_body_pickup_white_0", 4.9),
+    ("pickup_body.001_pickup_blue_0", 4.9),
+    ("pickup_body.002_pickup_red_0", 4.9),
+    ("van_body_extra1_van_extra1_white_0", 5.2),
+)
+
+
+def _load_pack(filename):
+    path = SKETCHFAB / filename
+    if not path.exists():
+        return None
+    key = str(path)
+    if key in _PACKS:
+        return _PACKS[key]
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(path))
+    new = [obj for obj in bpy.data.objects if obj not in before]
+    for obj in new:
+        obj.hide_render = True
+        obj.hide_viewport = True
+    _PACKS[key] = new
+    return new
+
+
+def _walk_meshes(root):
+    found = []
+
+    def walk(obj):
+        if obj.type == "MESH":
+            found.append(obj)
+        for child in obj.children:
+            walk(child)
+
+    walk(root)
+    return found
+
+
+def _pack_root(mesh):
+    obj = mesh
+    while obj.parent is not None and obj.parent.name not in ("RootNode", "Sketchfab_model") and "fbx" not in obj.parent.name.lower():
+        obj = obj.parent
+    return obj
+
+
+def _bounds_of(root):
+    pts = []
+    for mesh in _walk_meshes(root):
+        for corner in mesh.bound_box:
+            pts.append(mesh.matrix_world @ Vector(corner))
+    if not pts:
+        return None
+    xs = [p.x for p in pts]
+    ys = [p.y for p in pts]
+    zs = [p.z for p in pts]
+    return (min(xs), max(xs), min(ys), max(ys), min(zs), max(zs))
+
+
+def _front_yaw(root):
+    """Yaw that points the low end of the body (the hood) along +X."""
+    body = next((mesh for mesh in _walk_meshes(root) if "wheel" not in mesh.name.lower()), None)
+    if body is None:
+        return 0.0
+    coords = [body.matrix_world @ vert.co for vert in body.data.vertices]
+    xs = [p.x for p in coords]
+    ys = [p.y for p in coords]
+    if max(ys) - min(ys) >= max(xs) - min(xs):
+        axis = Vector((0.0, 1.0, 0.0))
+        along = [p.y for p in coords]
+    else:
+        axis = Vector((1.0, 0.0, 0.0))
+        along = [p.x for p in coords]
+    lo, hi = min(along), max(along)
+    span = max(hi - lo, 1e-4)
+    front = [p for p, a in zip(coords, along) if a < lo + span * 0.25]
+    back = [p for p, a in zip(coords, along) if a > hi - span * 0.25]
+    if not front or not back:
+        return 0.0
+    # The cabin is taller than the hood, so the lower end is the front.
+    front_z = sum(p.z for p in front) / len(front)
+    back_z = sum(p.z for p in back) / len(back)
+    sign = 1.0 if front_z <= back_z else -1.0
+    forward = axis * sign
+    # The lower end was landing on -X; the hood on these meshes is the taller end.
+    return math.pi - math.atan2(forward.y, forward.x)
+
+
+def _place_root(coll, root, loc, yaw, scale, name):
+    clone = _clone(root, coll)
+    bpy.context.view_layer.update()
+    bounds = _bounds_of(clone)
+    empty = bpy.data.objects.new(name, None)
+    coll.objects.link(empty)
+    if bounds is not None:
+        center = Vector(((bounds[0] + bounds[1]) * 0.5, (bounds[2] + bounds[3]) * 0.5, bounds[4]))
+        empty.location = center
+    bpy.context.view_layer.update()
+    world = clone.matrix_world.copy()
+    clone.parent = empty
+    clone.matrix_world = world
+    empty.scale = (scale, scale, scale)
+    empty.rotation_euler.z = yaw
+    empty.location = loc
+    return empty
+
+
+def place_city_car(coll, loc, yaw, index=0):
+    """A colored sedan, pickup, or van at car length. Nose points along yaw from +X."""
+    pack = _load_pack("Low_Poly_Vehicle_Mini_Pack.glb")
+    if not pack:
+        return None
+    token, length = _CITY_CARS[int(index) % len(_CITY_CARS)]
+    mesh = next((obj for obj in pack if obj.type == "MESH" and obj.name == token), None)
+    if mesh is None:
+        return None
+    root = _pack_root(mesh)
+    bpy.context.view_layer.update()
+    bounds = _bounds_of(root)
+    if bounds is None:
+        return None
+    native = max(bounds[1] - bounds[0], bounds[3] - bounds[2])
+    align = _front_yaw(root)
+    return _place_root(coll, root, loc, float(yaw) + align, float(length) / max(native, 0.01), "car")
+
+
+def place_city_prop(coll, token, loc, yaw=0.0, height=1.0, name="prop"):
+    """One mesh from the city-props pack, scaled to a real height."""
+    pack = _load_pack("City_Props_Collection_vol1.glb")
+    if not pack:
+        return None
+    mesh = next((obj for obj in pack if obj.type == "MESH" and token in obj.name), None)
+    if mesh is None:
+        return None
+    bpy.context.view_layer.update()
+    bounds = _bounds_of(mesh)
+    if bounds is None:
+        return None
+    native_h = max(bounds[5] - bounds[4], 0.01)
+    return _place_root(coll, mesh, loc, float(yaw), float(height) / native_h, name)

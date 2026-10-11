@@ -552,8 +552,10 @@ def _kenney_car_mesh(model):
 
 
 def _car(kit, coll, mats, loc, yaw, color, parent=None, local=None, drive=0.0, model="sedan", scale=1.0, force_white=False, **extra):
-    if parent is None and cc0_city.ready():
-        built = cc0_city.place_car(coll, loc[0], loc[1], loc[2], yaw)
+    if parent is None:
+        built = private_assets.place_city_car(coll, loc, yaw, index=extra.get("index", 0))
+        if built is None and cc0_city.ready():
+            built = cc0_city.place_car(coll, loc[0], loc[1], loc[2], yaw)
         if built is not None:
             kit.add(
                 built, "car", path_from=(loc[0] + drive, loc[1], loc[2]), path_to=loc,
@@ -684,6 +686,9 @@ def _markings(coll, mats, x0, x1, y, z, along="x"):
 
 
 def _lamp(kit, coll, mats, x, y, z):
+    lamp = private_assets.place_city_prop(coll, "Light_Light", (x, y, z), 0.0, height=5.0, name="lamp")
+    if lamp is not None:
+        return kit.add(lamp, "prop", sink=False, float=0.1)
     found = _library_file("prop", "lamp")
     if found is not None:
         record, path = found
@@ -1186,6 +1191,14 @@ def _blendkit_crowd(kit, col_v, col_g):
     hydrant = private_assets.place_hydrant(col_g, -14.0, walk_y, ROAD_Z)
     if hydrant is not None:
         kit.add(hydrant, "prop", sink=False)
+    for token, loc, yaw, height in (
+        ("TrashCanSmall", (-20.0, walk_y, ROAD_Z), 0.4, 0.95),
+        ("ParkingMeter", (-30.0, walk_y, ROAD_Z), 0.2, 1.35),
+        ("Dumpster_Dumpster", (-16.0, 40.0, PARK_Z), 1.1, 1.45),
+    ):
+        prop = private_assets.place_city_prop(col_g, token, loc, yaw, height=height, name="prop")
+        if prop is not None:
+            kit.add(prop, "prop", sink=False)
 
     def ruin(token, loc, yaw, longest):
         obj = private_assets.place(col_g, token, loc, yaw, longest=longest, name="ruin")

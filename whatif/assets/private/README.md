@@ -10,6 +10,10 @@ except this note.
 The Sketchfab Free Standard set and the BlendKit set are unpacked under
 `/opt/cursor/asset-cache/private` (also gitignored). The scene reads them from
 there for the rendered short only. Branded models in that cache are not placed.
+Extra Sketchfab packs are in `sketchfab/`. The river city uses the city-props
+pack (street lights, a bin, a meter, a dumpster) and the generic cars from the
+vehicle mini pack. The night diorama, the SketchUp city pack, the kitchen, and
+the first-person arms stay indexed for their own episodes.
 
 RMS Queen Mary (PeeJaa, Sketchfab Free Standard) is cached at
 `ships/RMS_Queen_Mary.glb` for the ocean episodes only: oceans_drained,

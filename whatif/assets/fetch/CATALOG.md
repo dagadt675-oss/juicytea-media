@@ -248,3 +248,16 @@ Skipped: 03a34825490142a281e57f048f75b885 (Hello Neighbor: copyrighted game char
 | Name | Author | License | Where | Real length | File | Use |
 |---|---|---|---|---|---|---|
 | RMS Queen Mary | PeeJaa | Sketchfab Free Standard. Rendered videos only. The GLB stays in the gitignored cache and is never committed or published. | oceans_drained, ice_melted, rain_million. Not the river-city episode. | 310.7 m overall | `/opt/cursor/asset-cache/private/ships/RMS_Queen_Mary.glb` (734,355 faces). Distant shots: `RMS_Queen_Mary_distant.glb` (49,980 faces), same scale. | Harbor photogrammetry tile (ship, pier, dome), about 826 m across in the file. Scale the hull axis, not that tile. The hull axis measures 260.7 units along +Y; placement multiplies by 310.7/260.7 and swings that axis onto +X. |
+
+## Private — city, POV, kitchen (do not redistribute)
+
+All of these are Sketchfab Free Standard. Rendered videos only. Files live under `/opt/cursor/asset-cache/private/sketchfab/` and are not in git.
+
+| Name | Author | File | Where | Notes |
+|---|---|---|---|---|
+| Low-poly City Night | smooth998 | `Lowpoly_City_Night.glb` (6 MB, 33,523 faces) | A night city beat later | A 38 m diorama. Buildings are only a few meters tall, so it does not replace the day-1 skyline. |
+| City Props Collection vol 1 | TampaJoey | `City_Props_Collection_vol1.glb` (51 MB) | River city, now | Separate props already near real size: 4.15 m street light (placed at 5 m), bins, parking meter, dumpster, benches, hydrant, bus stop. The street uses the light, a small bin, a meter, and a dumpster. |
+| City pack 3 | Pasha. | `City_pack_3.glb` (13 MB) | Held for a city episode | One SketchUp scene. The biggest mesh is tens of thousands of file units, not a set of separate buildings, so it is not dropped into the locked skyline. |
+| Low Poly Vehicle Mini Pack | vladek27 | `Low_Poly_Vehicle_Mini_Pack.glb` (78 MB) | River city, now | Sedans (4.6 m), pickups (4.9 m), and a van (5.2 m), nose along +X. The armored carrier in the same file is not used. |
+| PSX First Person Arms | Drillimpact | `PSX_First_Person_Arms.glb` (1.4 MB, 18 clips) | POV episodes | Clips: finger_gun_broken, finger_gun_fire, finger_gun_fix, finger_gun_idle, grab.L, grab.R, guard_draw, guard_idle, jab.L, jab.R, knife_draw, knife_hit_01, knife_hit_02, knife_idle, push.L, push.R, relax, rest. Not used in the river city. |
+| Kitchen hand painted | Katydid. | `Kitchen_hand_painted.glb` (8.6 MB) | burger_years, cat-POV interiors | A hand-painted kitchen. Not placed in the river city. |
