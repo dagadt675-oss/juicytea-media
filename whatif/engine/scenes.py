@@ -1465,8 +1465,10 @@ def _mountains(kit, coll):
     placed = 0
     # The locked camera looks up this axis, so the range is centered on it
     # rather than on world x=0. Scale 2000 turns the 2 m Gaea mesh into a 4 km range.
-    span = _mesh_prop(coll, cache / "gaea_range.glb", (2100.0, 5600.0, FAR_Z - 25.0), 0.15, 0.23 * 2000.0, "gaea_range")
+    span = _mesh_prop(coll, cache / "gaea_range.glb", (2100.0, 5600.0, FAR_Z - 40.0), 0.15, 0.23 * 2000.0, "gaea_range")
     if span is not None:
+        # The import is a wide sheet. Extra height turns the relief into a ridgeline.
+        span.scale.z *= 2.6
         kit.add(span, "mountain", sink=False)
         placed += 1
     # Already about 2 km wide, with a snow peak. It sits in the left half of that range.
@@ -1479,12 +1481,7 @@ def _mountains(kit, coll):
     if trio is not None:
         kit.add(trio, "mountain", sink=False)
         placed += 1
-    # Photoscan peak. Its scan has a low outlier, so the body is seated on the horizon.
-    peak = _mesh_prop(coll, cache / "bk_peak.glb", (1600.0, 5400.0, FAR_Z), 1.1, 420.0, "bk_peak")
-    if peak is not None:
-        _seat_mass(peak, FAR_Z, bury=80.0)
-        kit.add(peak, "mountain", sink=False)
-        placed += 1
+    # The photoscan faces the camera as a slab, so it stays out of this view.
     # Blue air in the kilometres between the skyline and the range.
     mesh = bpy.data.meshes.new("distance_haze")
     bm = bmesh.new()
