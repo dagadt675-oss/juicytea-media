@@ -6,7 +6,9 @@ If you have only this file plus the repo, continue from here. Do not restart the
 
 Scene work that this document describes is commit `60c8318` on `cursor/ready-city-f245`. This handoff is the commit after that. `git log -1 -- docs/handoff/city_decay_HANDOFF.md` is the handoff SHA.
 
-Blender on this machine: **4.5.9 LTS**, binary `/home/ubuntu/blender/blender`, built 2026-04-21. There is **no NVIDIA GPU**. `nvidia-smi` is absent. Cycles devices: CPU only (`compute_device_type` is `NONE`).
+Blender for scene work on this machine: **4.5.9 LTS**, binary `/home/ubuntu/blender/blender`, built 2026-04-21. There is **no NVIDIA GPU**. `nvidia-smi` is absent. Cycles devices: CPU only (`compute_device_type` is `NONE`).
+
+The Colab blend was saved with **Blender 4.2.3 LTS** at `/home/ubuntu/blender-4.2.3/blender` (build date 2024-10-14). Open and resave that blend only with 4.2. A 4.5 save will not open on Colab's 4.2.3.
 
 ---
 
@@ -49,10 +51,21 @@ Two city versions exist. **Keep both.**
   - 100 years: https://github.com/dagadt675-oss/juicytea-media/raw/60c8318/whatif/review/ready_city/100.jpg
   - 500 years: https://github.com/dagadt675-oss/juicytea-media/raw/60c8318/whatif/review/ready_city/500.jpg
 - What the agent was doing when stopped: the ready-city proof stills were committed. A lossless-speedup A/B (SSIM ≥ 0.99) was requested and then **paused before any test frame was rendered**. Do not resume that A/B unless Kristóf asks. Do not encode either episode.
+- Colab final-render bundle for this version is built. See the dated note below and section 7. The blend is not in git.
 
 ### What "continue" means
 
 Wait for Kristóf to say which version he wants next. If he says nothing, the open ask on version B is his review of those three stills. Likely follow-ups if he stays on B: closer camera so the grey ground does not fill the bottom half; god rays that read between the towers instead of one foreground bloom; 500y trees that read through the fog; the same living-city beats (people, traffic) only if a downloaded crowd already exists in the block. Do not go back to assembling towers from boxes.
+
+### 2026-10-11 — Colab bundle for version B
+
+Kristóf: the final render runs on Google Colab (free Tesla T4, Blender 4.2.3, OptiX). This VM keeps doing stills and low-sample previews. The bundle is the ready-made city only. Version A is still the handmade episode and is not inside `scene.blend`.
+
+The packed blend, `render.py`, and `manifest.json` are one zip of **296,657,654 bytes** (SHA-256 `8ef8dc15712f2cb2af15e8115fd42f271b62fb08cede1005a8cf1b21e7901fa7`). The artifact store returns `EINVAL` on a single file near 110 MB, so the zip is stored as four parts under `/opt/cursor/artifacts/colab_bundle/city_decay/` (90 MiB, 90 MiB, 90 MiB, 13 MiB). Rejoin with the `cat` line in section 7, then unzip. Proof PNGs from that unpack sit in `verify/`.
+
+Clean unpack, Blender 4.2.3, `render.py`, frames 1 and 871: both PNGs are 1080×1920 RGB. Frame 1 shows Procedural City 6 with its facade textures. Frame 871 shows Ruined City Free 5, the two mountains, and the ground fog. Wall clock was 54 s and 72 s. Mean **63 s/frame** on this 4-thread CPU. `est_sec_per_frame_t4` is **16**, which is that mean divided by 4. No T4 was available, so 16 is a planning guess. 1800 frames at 63 s is about 31.5 hours on this CPU. At the guess, a free Colab session needs `START`/`END` chunks.
+
+No 1800-frame encode was started. The speedup A/B stays paused.
 
 ---
 
@@ -412,14 +425,44 @@ SSIM recipe when you do run the gate: same frames, one knob changed, luma, 11×1
 - Assembly hardlinks `f_####.png` into `frames/` for frames 1..N only.
 - Encode is one ffmpeg call: libx264, yuv420p, crf 18, `+faststart`, `-frames:v` equal to the film length. PNG composite first if you want the title. EXR is not composited and is not what ffmpeg is set up for in the tests (the command still builds an input pattern; do not encode EXR with that command without checking).
 
-There is **no Colab notebook and no render-bundle script in this repo.** Do not invent a Colab path and do not look for `render_bundle.ipynb`. The workflow an agent can actually ship is:
+Local stills and previews still use the segment tools above. There is no Colab notebook and no `render_bundle.ipynb`. The final for version B is a packed blend, not a segment-cache upload.
 
-1. `render_episode.py --segments --plan-only` writes `segments.json` and cache keys. No pixels.
-2. Render chunks with `--segments --no-encode`. Each chunk is a directory of `f_####.png` under `segment_cache/<sha>/`.
-3. The assembler writes `frames/` and, with `--composite`, `comp/`.
-4. One encode at the end, or `--no-encode` and encode later from `comp/`.
+### Colab bundle (version B, ready city)
 
-If Kristóf wants a Colab bundle, the bundle is those directories plus `resolved.json`, `timeline.json`, `sfx.json`, and `segments.json`. Build it from `whatif/out/<id>/`. Do not upload Free Standard GLBs into a public Colab.
+Built 2026-10-11 with Blender 4.2.3. The blend is packed (`bpy.ops.file.pack_all()`, 131 images, 0 unpacked external files, 0 libraries). Era hides, sun, fog density, and weather cards are keyframed for frames 1–1800. Frame-change handlers are cleared. No add-on, no RBD cache, no fluid cache. Fog is a Principled Volume shader.
+
+Repo copies of the text files (the blend is not committed):
+
+- `whatif/colab/city_decay/render.py`
+- `whatif/colab/city_decay/manifest.json`
+- Rebuild, 4.2.3 only: `whatif/colab/pack_ready_city.py` (reads `/tmp/ready_city_resolved.json`, writes `/tmp/city_decay_bundle/scene.blend`)
+
+Artifact parts, each under the store's ~100 MB ceiling and under the 1.9 GB cap:
+
+| File | Bytes |
+|---|---|
+| `/opt/cursor/artifacts/colab_bundle/city_decay/city_decay.zip.00` | 94371840 |
+| `/opt/cursor/artifacts/colab_bundle/city_decay/city_decay.zip.01` | 94371840 |
+| `/opt/cursor/artifacts/colab_bundle/city_decay/city_decay.zip.02` | 94371840 |
+| `/opt/cursor/artifacts/colab_bundle/city_decay/city_decay.zip.03` | 13542134 |
+| `JOIN.txt` in that same directory | rejoin instructions |
+| `verify/0001.png`, `verify/0871.png` | proof frames from the clean unpack |
+
+Rejoin and run:
+
+```bash
+cat city_decay.zip.00 city_decay.zip.01 city_decay.zip.02 city_decay.zip.03 > city_decay.zip
+unzip city_decay.zip
+blender -b scene.blend -P render.py -- START END
+```
+
+Joined zip: 296657654 bytes, SHA-256 `8ef8dc15712f2cb2af15e8115fd42f271b62fb08cede1005a8cf1b21e7901fa7`. `unzip -t` passed after copying the parts back off the artifact store.
+
+`render.py` sets Cycles to OptiX, then CUDA, then CPU. Samples 32, adaptive threshold 0.01, minimum 8, OIDN, max bounces 6, volume bounces 1, 1080×1920, 30 fps. It writes `frames/0001.png` beside the blend (`//frames/####.png`). Seed is `frame * 997 + 17`. It does not import `whatif`.
+
+`manifest.json`: blender 4.2.3, frames 1–1800, fps 30, 1080×1920, samples 32, `est_sec_per_frame_cpu` 63, `est_sec_per_frame_t4` 16 (guess: CPU mean / 4). Overlay notes: beauty only; title `What if every human vanished… right now?`; counter is population 8.2 billion then the year, composited later by `whatif/engine/overlay.py`. No narration, no music. SFX stays in `sfx.json`.
+
+Do not upload loose Free Standard GLBs. They are already packed inside the blend. Do not start the 1800-frame encode on this VM.
 
 ---
 
@@ -450,7 +493,7 @@ Stack that matters for this city, from older base to newer tip:
 | 8 | `cursor/bridge-road-skyline-f245` | `cursor/whatif-humans-engine-f245` | `5224be4` | Bridge, roads, skyline logic. Open. |
 | 10 | `cursor/segmented-render-f245` | `cursor/whatif-humans-engine-f245` | `6ac3651` | Segment cache. **Stale relative to the city tip.** It does not contain the road, mountain, or ready-city commits. Do not rebase the city onto it blindly. The segment code is already on the city branches. |
 | 11 | `cursor/road-network-stills-f245` | `cursor/bridge-road-skyline-f245` | `b33e88f` | Latest handmade stills. Open. Not approved. |
-| 21 | `cursor/ready-city-f245` | `cursor/road-network-stills-f245` | `60c8318` plus this handoff | Downloaded city. Open. Not approved. |
+| 21 | `cursor/ready-city-f245` | `cursor/road-network-stills-f245` | `60c8318`, handoff `7032728`, plus the Colab-bundle commit on this branch | Downloaded city. Open. Not approved. Colab zip is an artifact, not a git blob. |
 
 `main` on this VM was `1ea85e4` and `git status` at last check said it was **behind origin/main by 2**. Fetch before you branch from main. Other open PRs (1–4, 6–7, 9, 12–20) are map, Greenland, plane-seat, and scale-journey work. They are not this city. Do not edit them.
 
@@ -461,6 +504,7 @@ Local branches match those tips. The handmade review JPEGs in `whatif/review/fou
 - Version A stills committed and pushed (`b33e88f`, PR 11).
 - Version B built, proof-rendered, committed, pushed (`60c8318`, PR 21).
 - Speedup A/B not started. Kristóf paused it in the same hour.
-- No full encode. No Colab bundle. No Cryptomatte.
+- No full encode. No Cryptomatte.
+- 2026-10-11: version B Colab bundle packed with Blender 4.2.3, two frames verified from a clean unpack (1 and 871), zip split into four parts under `/opt/cursor/artifacts/colab_bundle/city_decay/`.
 
 When you finish a run, append a dated paragraph under section 1 and fix any row in sections 5 and 9 that you changed. Commit the markdown and refresh the artifacts copy.
