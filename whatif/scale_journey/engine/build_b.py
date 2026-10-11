@@ -1107,7 +1107,7 @@ def prepare_scene(job, lod=False):
     return scene, cam, penny, arms
 
 
-def render_frame(scene, cam, penny, arms, fr, dest: Path, speed=None):
+def pose_frame(scene, cam, penny, arms, fr, speed=None):
     from engine.manhattan import cull_to_camera, restore_cull, set_distant_lod, tick_city
 
     speed = SPEED if speed is None else speed
@@ -1152,6 +1152,10 @@ def render_frame(scene, cam, penny, arms, fr, dest: Path, speed=None):
     else:
         restore_cull()
     bpy.context.view_layer.update()
+
+
+def render_frame(scene, cam, penny, arms, fr, dest: Path, speed=None):
+    pose_frame(scene, cam, penny, arms, fr, speed)
     dest.parent.mkdir(parents=True, exist_ok=True)
     scene.render.image_settings.file_format = "PNG"
     scene.render.filepath = str(dest)
