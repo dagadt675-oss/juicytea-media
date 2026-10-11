@@ -20,11 +20,28 @@ Web downloads for the plane-seat Short. Each row is a file this branch actually 
 | Easy Clouds 2.2.0 | https://extensions.blender.org/download/sha256:98f8d4ca22c8e8a0ec85e0ad98f0d681fedd8c7f346766a8fb53aa69207eb2fd/add-on-easy-clouds-v2.2.0.zip | https://extensions.blender.org/add-ons/easy-clouds/ | GPL-3.0-or-later | 10,614 bytes | Volumetric cloud volumes (Cycles) the jet punches through. Installed headless and called as `easyclouds.create_sphere` |
 | Scatter Objects 0.2.0 | https://extensions.blender.org/download/sha256:3fda488f56523b799e3937c802119f1da986391e193cb4d443177e6e132c764b/add-on-scatter-objects-v0.2.0.zip | https://extensions.blender.org/add-ons/scatter-objects/ | GPL-2.0-or-later | 6,876 bytes | Official scatter tool. It is a mouse-stroke modal (`object.scatter`) and cannot run headless, so the forest tile uses the hub tree pack instead |
 | Sapling Tree Gen 0.3.7 | https://extensions.blender.org/download/sha256:27a478262e1c86612a9c3daffe7f4dce2802f5bc2294033462e5adc6d9c0080f/add-on-sapling-tree-gen-v0.3.7.zip | https://extensions.blender.org/add-ons/sapling-tree-gen/ | GPL-3.0-or-later | 36,296 bytes | Parametric trees. Not used in the stills; the hub low-poly tree pack is the forest |
-| PTerrain 1.0.5 | https://extensions.blender.org/download/sha256:57ee257e81297a4989f6f6b0c9165801b5843cdf886cf9206bd368033c1c1dca/add-on-pterrain-v1.0.5-linux-x64.zip | https://extensions.blender.org/add-ons/pterrain/ | GPL-3.0-or-later | 14,099,458 bytes | Real-world DEM terrain add-on. Needs live tile downloads plus a viewport draw handler, so the mountain tile is the SRTM heightmap below instead |
-| SRTM N45E007 | https://elevation-tiles-prod.s3.amazonaws.com/skadi/N45/N45E007.hgt.gz | https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-shhp-001 | Public domain (NASA SRTM). This file is the 1-arc-second HGT tile | 16,143,921 bytes | Monte Rosa / Pennine Alps elevation. Peak in the tile is 4,543 m. Displaced mesh, snow above the ridgeline, rock below |
+| PTerrain 1.0.5 | https://extensions.blender.org/download/sha256:57ee257e81297a4989f6f6b0c9165801b5843cdf886cf9206bd368033c1c1dca/add-on-pterrain-v1.0.5-linux-x64.zip | https://extensions.blender.org/add-ons/pterrain/ | GPL-3.0-or-later | 14,099,458 bytes | Real-world DEM add-on. Not used: it needs a viewport draw handler. The mountain tile is the Poly Haven terrain below |
+| Alps Field 2K HDRI | https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/alps_field_2k.hdr | https://polyhaven.com/a/alps_field | CC0 1.0 (Poly Haven) | 6,531,494 bytes | Photographed alpine meadow and snowy range behind the jet |
+| mountainside 2K | https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/mountainside/mountainside_2k.gltf | https://polyhaven.com/a/mountainside | CC0 1.0 (Poly Haven) | glTF 2,776 + bin 4,409,280 + diff 3,557,566 + normal 4,568,125 + arm 2,829,509 | Scanned cliff. Repeated as the valley walls the jet flies over |
+| rock_face_01 2K | https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/rock_face_01/rock_face_01_2k.gltf | https://polyhaven.com/a/rock_face_01 | CC0 1.0 (Poly Haven) | glTF 2,793 + bin 476,436 + diff 3,167,302 + normal 3,970,196 + arm 2,592,972 | Near ridge in the same valley |
+| rock_face_02 2K | https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/rock_face_02/rock_face_02_2k.gltf | https://polyhaven.com/a/rock_face_02 | CC0 1.0 (Poly Haven) | glTF 2,794 + bin 702,068 + diff 3,399,918 + normal 4,023,813 + arm 2,973,304 | Near ridge in the same valley |
 
-No contrail add-on and no ocean add-on on extensions.blender.org that runs in Blender 4.5 headless. Dynamic Sky needs Blender 5.0. Ocean waves use Blender's built-in Ocean modifier. Sky is the Poly Haven HDRIs already in the hub pack (Belfast sunset, Kloofendal partly cloudy) plus a warm sun and a rim light.
+No contrail add-on and no ocean add-on on extensions.blender.org that runs in Blender 4.5 headless. Dynamic Sky needs Blender 5.0. Ocean waves use Blender's built-in Ocean modifier. Sky is the Poly Haven HDRIs already in the hub pack (Belfast sunset, Kloofendal partly cloudy) plus Alps Field for the mountain pass, a warm sun, and a rim light.
 
-BlenderGIS and the free Blosm build are viewport/download tools. This film uses the same public-domain SRTM tile those tools fetch, loaded directly, and the hub city pack for the blocks. Scatter Objects cannot run headless (it is a mouse-stroke modal). Geo-Scatter is not the free tier we can ship. The forest tile instances the hub tree pack on the scrolling ground tile.
+Mountain models are the hub Mountains set. They are Free Standard / BlendKit, so the raw files stay in the private cache (`/opt/cursor/asset-cache/private/mountains/`) and are not committed.
+
+| Name | Drive id | License | For |
+| --- | --- | --- | --- |
+| gaea_range.glb | `1uTqyJ7dNgY_XItgaJGfNo8Ag9qkPZpxp` | Free Standard | Primary range. Imports 2 m wide, placed at scale 1800–2000 |
+| three_peaked.glb | `1fe4xozIhUD7EnnDU_y208cvW2Tu0rfoi` | Free Standard | Snow-capped trio, native ~1 km |
+| free_textured_mountain.glb | `15lv0B3OxAyVi0TooPi_Tz6shbLwDOwch` | Free Standard | Snow peak, native ~2 km |
+| bk_snow_cliff.glb | `1OUVpoN_WuisazHEPhI2bpyCCEJawhsY9` | BlendKit | Alpine ridge for the nearer pass |
+| lago_disola_4k.hdr | `1uh4W6lnFidmBcXbCMWMXY_z3u-MNal2k` | Free Standard | Snowy Alps horizon on the mountain beat |
+
+Download: `curl -L 'https://drive.usercontent.google.com/download?id=ID&export=download&confirm=t'`. bk_peak.glb (`1sdNY81fyO7gxzg_pLLsVfItah3-JeXqm`) was fetched and not placed; the four above are the range.
+
+Forest trees are Poly Haven photoscans, not the hub low-poly pack. `fir_sapling_medium` and `pine_sapling_medium` (CC0, https://polyhaven.com/a/fir_sapling_medium and https://polyhaven.com/a/pine_sapling_medium) are decimated to 30k triangles for the aerial shot and saved as `assets/found/trees/realistic/*.glb`. Bases sit on the ground. Heights are scaled to about 28–46 m and mixed. The original bins stay out of git.
+
+BlenderGIS and the free Blosm build are viewport/download tools. Scatter Objects cannot run headless (it is a mouse-stroke modal). Geo-Scatter is not the free tier we can ship.
 
 Local copies: `assets/found/sfx/`, `assets/found/fx/`, `assets/found/textures/`, `assets/found/extensions/`, `assets/found/terrain/`.

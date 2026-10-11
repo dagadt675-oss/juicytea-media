@@ -39,16 +39,19 @@ HDRI_DIR = Path("/tmp/plane_hdri")
 SKY_FILES = {
     "city": "belfast_sunset_puresky_2k.hdr",
     "forest": "kloofendal_48d_partly_cloudy_puresky_2k.hdr",
-    "mountains": "belfast_sunset_puresky_2k.hdr",
+    "mountains": "lago_disola_4k.hdr",
     "ocean": "belfast_sunset_puresky_2k.hdr",
     "desert": "goegap_2k.hdr",
     "cloudsea": "kloofendal_48d_partly_cloudy_puresky_2k.hdr",
 }
+ALPS_HDR = Path("/workspace/assets/found/hdri/alps_field_2k.hdr")
+TERRAIN = Path("/workspace/assets/found/terrain/polyhaven")
 # Radians. 0 puts the Belfast sun on the chase camera's horizon.
 SKY_TURN = {
     "city": 0.15,
     "forest": 0.4,
-    "mountains": 0.35,
+    # Alps Field faces the massif toward the chase camera (nose is +X).
+    "mountains": 1.15,
     "ocean": -0.2,
     "desert": 1.2,
     "cloudsea": 0.4,
@@ -94,8 +97,12 @@ def _extract_skies():
     with zipfile.ZipFile(HDRI_ZIP) as zf:
         for entry in zf.namelist():
             base = Path(entry).name
-            if base in needed:
+            if base in needed and base != "alps_field_2k.hdr":
                 (HDRI_DIR / base).write_bytes(zf.read(entry))
+    if LAGO_HDR.exists():
+        target = HDRI_DIR / LAGO_HDR.name
+        if not target.exists() or target.stat().st_size < 100000:
+            target.write_bytes(LAGO_HDR.read_bytes())
 
 
 def _mist(scene):
@@ -637,218 +644,173 @@ def _big_plane(name, size=20000.0):
     return obj
 
 
-def _peaks_object():
-    """Monte Rosa massif from the SRTM N45E007 tile. Heights are metres above 1,600 m."""
-    import array
-    import gzip
+MOUNTAINS = Path("/opt/cursor/asset-cache/private/mountains")
+LAGO_HDR = MOUNTAINS / "lago_disola_4k.hdr"
 
-    raw = gzip.open(HGT, "rb").read()
-    n = 3601
-    elev = array.array("h")
-    elev.frombytes(raw)
-    elev.byteswap()
-    # Window around the 4,543 m summit. Row 0 of an HGT is the north edge.
-    # Tighter window so ridgelines stay sharp. Step is one arc-second (~31 m).
-    r0, c0 = 80, 3000
-    nx = ny = 200
-    step = 1
-    metres = (111_320.0 / 3600.0) * step
-    # Put the 4,543 m summit ahead and to the side, so the jet flies the valley.
-    peak_i = (3133 - c0) / step
-    peak_j = (208 - r0) / step
-    verts = []
-    for j in range(ny):
-        for i in range(nx):
-            h = elev[(r0 + j * step) * n + (c0 + i * step)]
-            if h < 0:
-                h = 0
-            # Exaggerate the relief so a 500 m alpine ridge reads from the chase camera.
-            rel = 0.0 if h < 0 else max(0.0, h - 1600.0)
-            verts.append((
-                (i - peak_i) * metres + 420.0,
-                (j - peak_j) * metres - 80.0,
-                (rel - 2100.0) * 2.8,
-            ))
-    faces = []
-    for j in range(ny - 1):
-        for i in range(nx - 1):
-            a = j * nx + i
-            faces.append((a, a + 1, a + nx + 1, a + nx))
-    mesh = bpy.data.meshes.new("Peaks")
-    mesh.from_pydata(verts, [], faces)
-    mesh.shade_smooth()
-    mat, bsdf = _principled("Snow", (0.90, 0.92, 0.95), 0.48)
-    if "Coat Weight" in bsdf.inputs:
-        bsdf.inputs["Coat Weight"].default_value = 0.02
+
+def _alpine_grade(mat):
+    """Light snow on high upward faces, then aerial haze so distant ridges recede."""
+    if mat is None or not mat.use_nodes or mat.get("alpine_grade"):
+        return
     nt = mat.node_tree
-    rock = nt.nodes.new("ShaderNodeTexImage")
-    rock.image = bpy.data.images.load(str(TEX / "aerial_rocks_01_diff_1k.jpg"), check_existing=True)
-    mapping = nt.nodes.new("ShaderNodeMapping")
-    mapping.inputs["Scale"].default_value = (0.004, 0.004, 0.004)
-    coord = nt.nodes.new("ShaderNodeTexCoord")
-    nt.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
-    nt.links.new(mapping.outputs["Vector"], rock.inputs["Vector"])
+    bsdf = next((node for node in nt.nodes if node.type == "BSDF_PRINCIPLED"), None)
+    if bsdf is None or "Base Color" not in bsdf.inputs:
+        return
+    link = next((item for item in nt.links if item.to_socket == bsdf.inputs["Base Color"]), None)
+    if link is None:
+        return
     geom = nt.nodes.new("ShaderNodeNewGeometry")
-    sep = nt.nodes.new("ShaderNodeSeparateXYZ")
-    nt.links.new(geom.outputs["Position"], sep.inputs["Vector"])
-    span = nt.nodes.new("ShaderNodeMapRange")
-    # Snow starts around a real 3,000 m and is solid by the 4,000 m ridges.
-    span.inputs["From Min"].default_value = 1200.0
-    span.inputs["From Max"].default_value = 1750.0
-    span.clamp = True
-    nt.links.new(sep.outputs["Z"], span.inputs["Value"])
-    darkened = _mix_rgb(nt, None, rock.outputs["Color"], (0.22, 0.20, 0.18, 1))
-    darkened.inputs["Fac"].default_value = 0.72
-    snow = _mix_rgb(nt, span.outputs["Result"], darkened.outputs["Color"], (0.93, 0.94, 0.96, 1))
+    height_sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+    nt.links.new(geom.outputs["Position"], height_sep.inputs["Vector"])
+    height = nt.nodes.new("ShaderNodeMapRange")
+    height.inputs["From Min"].default_value = 280.0
+    height.inputs["From Max"].default_value = 620.0
+    height.clamp = True
+    nt.links.new(height_sep.outputs["Z"], height.inputs["Value"])
+    normal_sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+    nt.links.new(geom.outputs["Normal"], normal_sep.inputs["Vector"])
+    upward = nt.nodes.new("ShaderNodeMapRange")
+    upward.inputs["From Min"].default_value = 0.15
+    upward.inputs["From Max"].default_value = 0.55
+    upward.clamp = True
+    nt.links.new(normal_sep.outputs["Z"], upward.inputs["Value"])
+    snow_fac = nt.nodes.new("ShaderNodeMath")
+    snow_fac.operation = "MULTIPLY"
+    nt.links.new(height.outputs["Result"], snow_fac.inputs[0])
+    nt.links.new(upward.outputs["Result"], snow_fac.inputs[1])
+    snow_scale = nt.nodes.new("ShaderNodeMath")
+    snow_scale.operation = "MULTIPLY"
+    snow_scale.inputs[1].default_value = 0.45
+    nt.links.new(snow_fac.outputs["Value"], snow_scale.inputs[0])
+    # Keep the painted snow. This only thickens thin caps.
+    snow = nt.nodes.new("ShaderNodeMixRGB")
+    nt.links.new(snow_scale.outputs["Value"], snow.inputs["Fac"])
+    nt.links.new(link.from_socket, snow.inputs["Color1"])
+    snow.inputs["Color2"].default_value = (0.93, 0.95, 0.97, 1.0)
     cam = nt.nodes.new("ShaderNodeCameraData")
     dist = nt.nodes.new("ShaderNodeMapRange")
-    dist.inputs["From Min"].default_value = 2500.0
-    dist.inputs["From Max"].default_value = 18000.0
-    dist.inputs["To Max"].default_value = 0.28
+    dist.inputs["From Min"].default_value = 4000.0
+    dist.inputs["From Max"].default_value = 26000.0
+    dist.inputs["To Min"].default_value = 0.0
+    dist.inputs["To Max"].default_value = 0.72
     dist.clamp = True
     nt.links.new(cam.outputs["View Distance"], dist.inputs["Value"])
-    haze = _mix_rgb(nt, dist.outputs["Result"], snow.outputs["Color"], (0.62, 0.68, 0.78, 1))
+    haze = nt.nodes.new("ShaderNodeMixRGB")
+    nt.links.new(dist.outputs["Result"], haze.inputs["Fac"])
+    nt.links.new(snow.outputs["Color"], haze.inputs["Color1"])
+    haze.inputs["Color2"].default_value = (0.62, 0.70, 0.80, 1.0)
     nt.links.new(haze.outputs["Color"], bsdf.inputs["Base Color"])
-    mesh.materials.append(mat)
-    obj = bpy.data.objects.new("Peaks", mesh)
-    obj["ground"] = 1
-    peak = max(v[2] for v in verts)
-    print("alps peak metres above 1600", round(peak), "samples", nx)
-    return obj
+    mat["alpine_grade"] = 1
 
 
-def _ocean_mat():
-    mat = bpy.data.materials.new("Ocean")
-    mat.use_nodes = True
-    nt = mat.node_tree
-    bsdf = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
-    bsdf.inputs["Roughness"].default_value = 0.04
-    if "Specular IOR Level" in bsdf.inputs:
-        bsdf.inputs["Specular IOR Level"].default_value = 0.9
-    if "Coat Weight" in bsdf.inputs:
-        bsdf.inputs["Coat Weight"].default_value = 0.15
-    cam = nt.nodes.new("ShaderNodeCameraData")
-    span = nt.nodes.new("ShaderNodeMapRange")
-    span.inputs["From Min"].default_value = 500.0
-    span.inputs["From Max"].default_value = 10000.0
-    span.clamp = True
-    nt.links.new(cam.outputs["View Distance"], span.inputs["Value"])
-    haze = _mix_rgb(nt, span.outputs["Result"], (0.02, 0.08, 0.12, 1), (*HAZE, 1))
-    nt.links.new(haze.outputs["Color"], bsdf.inputs["Base Color"])
-    noise = nt.nodes.new("ShaderNodeTexNoise")
-    noise.inputs["Scale"].default_value = 2.2
-    noise.inputs["Detail"].default_value = 6.0
-    bump = nt.nodes.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.45
-    bump.inputs["Distance"].default_value = 2.4
-    nt.links.new(noise.outputs["Fac"], bump.inputs["Height"])
-    nt.links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
-    return mat
-
-
-def _move_to_collection(objs, col):
-    for obj in objs:
-        try:
-            name = obj.name
-        except ReferenceError:
-            continue
-        live = bpy.data.objects.get(name)
-        if live is None:
-            continue
-        for holder in list(live.users_collection):
-            holder.objects.unlink(live)
-        col.objects.link(live)
-
-
-def _city_instances(parent):
-    if not CITY.exists():
-        return
+def _import_mountain(filename, name):
     before = set(bpy.data.objects)
-    bpy.ops.import_scene.gltf(filepath=str(CITY))
+    bpy.ops.import_scene.gltf(filepath=str(MOUNTAINS / filename))
+    bpy.context.view_layer.update()
     fresh = [obj for obj in bpy.data.objects if obj not in before]
-    col = bpy.data.collections.new("CityBlock")
-    _move_to_collection(fresh, col)
-    # The block is about 150 m. Scale 3.4 makes towers ~120 m, a real skyline.
-    # Blocks run ahead of the nose (+X) and to both sides so a chase camera sees them.
-    for ix in range(-1, 5):
-        for iy in range(-3, 4):
-            inst = bpy.data.objects.new(f"City_{ix}_{iy}", None)
-            inst.instance_type = "COLLECTION"
-            inst.instance_collection = col
-            inst.parent = parent
-            inst.location = (ix * 560.0 - 200.0, iy * 460.0, 0.0)
-            inst.scale = (3.8, 3.8, 3.8)
-            inst.rotation_euler[2] = (ix * 0.35 + iy * 0.55)
-            _link(inst)
+    meshes = [obj for obj in fresh if obj.type == "MESH"]
+    if not meshes:
+        raise RuntimeError(filename)
+    xs, ys, zs = [], [], []
+    for obj in meshes:
+        for corner in obj.bound_box:
+            world = obj.matrix_world @ mathutils.Vector(corner)
+            xs.append(world.x)
+            ys.append(world.y)
+            zs.append(world.z)
+        for mat in obj.data.materials:
+            _alpine_grade(mat)
+    col = bpy.data.collections.new(name)
+    for obj in fresh:
+        for holder in list(obj.users_collection):
+            holder.objects.unlink(obj)
+        col.objects.link(obj)
+    print(name, "size", round(max(xs) - min(xs), 2), round(max(zs) - min(zs), 2), "z0", round(min(zs), 3))
+    return col, min(zs)
+
+
+def _place_mountain(parent, col, z0, x, y, scale, yaw, mirror=False):
+    inst = bpy.data.objects.new(col.name + "_inst", None)
+    inst.instance_type = "COLLECTION"
+    inst.instance_collection = col
+    inst.parent = parent
+    sx = -scale if mirror else scale
+    inst.scale = (sx, scale, scale)
+    inst.rotation_euler[2] = yaw
+    # Seat the lowest vertex on z=0 so peaks stay a known height below the jet.
+    inst.location = (x, y, -z0 * scale)
+    _link(inst)
+    return inst
+
+
+def _alps_range(parent):
+    """Hub mountain models. Raw files stay out of git. Two to four copies, kilometres out."""
+    gaea, gaea_z = _import_mountain("gaea_range.glb", "GaeaRange")
+    peaks, peaks_z = _import_mountain("three_peaked.glb", "ThreePeaks")
+    textured, textured_z = _import_mountain("free_textured_mountain.glb", "TexturedPeak")
+    cliff, cliff_z = _import_mountain("bk_snow_cliff.glb", "SnowCliff")
+    # gaea imports 2 m wide. Scale 1600-1900 makes a 3-4 km range with real ridges.
+    # Centres sit 8-20 km out so the jet is above the range, not against a wall.
+    # Near edge of each range is still several kilometres from the jet.
+    # Overlap them into one range 4–12 km ahead, so the camera looks down on the tops.
+    _place_mountain(parent, gaea, gaea_z, 3400.0, 200.0, 2000.0, 0.2)
+    _place_mountain(parent, gaea, gaea_z, 5600.0, -1400.0, 1800.0, 2.5, mirror=True)
+    _place_mountain(parent, peaks, peaks_z, 5600.0, 200.0, 4.5, -0.2)
+    _place_mountain(parent, textured, textured_z, 11000.0, -1600.0, 2.6, 0.6)
+    _place_mountain(parent, cliff, cliff_z, 9000.0, 2200.0, 5.0, 1.4)
+    print("hub mountains placed")
+
+
+REAL_TREES = Path("/workspace/assets/found/trees/realistic")
 
 
 def _forest_trees(parent):
-    if not TREES.exists():
+    glbs = sorted(REAL_TREES.glob("*.glb"))
+    if not glbs:
+        print("no realistic trees")
         return
-    before = set(bpy.data.objects)
-    bpy.ops.import_scene.gltf(filepath=str(TREES))
-    fresh = [obj for obj in bpy.data.objects if obj not in before]
-    picked = []
-    for obj in fresh:
-        if obj.type != "MESH":
+    templates = []
+    for path in glbs:
+        before = set(bpy.data.objects)
+        bpy.ops.import_scene.gltf(filepath=str(path))
+        meshes = [obj for obj in bpy.data.objects if obj not in before and obj.type == "MESH"]
+        if not meshes:
             continue
-        pts = [obj.matrix_world @ mathutils.Vector(c) for c in obj.bound_box]
-        size = (
-            max(p.x for p in pts) - min(p.x for p in pts),
-            max(p.y for p in pts) - min(p.y for p in pts),
-            max(p.z for p in pts) - min(p.z for p in pts),
-        )
-        if 80.0 < size[2] < 210.0 and size[0] < 160.0 and size[2] > size[0]:
-            picked.append((size[2], obj.data))
-    meshes = []
-    for _h, mesh in picked[:6]:
-        copy = mesh.copy()
-        zs = [v.co.z for v in copy.vertices]
-        xs = [v.co.x for v in copy.vertices]
-        ys = [v.co.y for v in copy.vertices]
-        if not zs:
-            continue
-        cx = (min(xs) + max(xs)) * 0.5
-        cy = (min(ys) + max(ys)) * 0.5
-        z0 = min(zs)
-        height = max(zs) - z0
-        if height < 1e-4:
-            continue
-        for vert in copy.vertices:
-            vert.co.x = (vert.co.x - cx) / height
-            vert.co.y = (vert.co.y - cy) / height
-            vert.co.z = (vert.co.z - z0) / height
-        copy.use_fake_user = True
-        meshes.append(copy)
-        if len(meshes) == 3:
-            break
-    for obj in fresh:
-        try:
-            bpy.data.objects.remove(obj, do_unlink=True)
-        except ReferenceError:
-            continue
-    if not meshes:
-        print("no tree meshes kept")
+        src = meshes[0]
+        zs = [vert.co.z for vert in src.data.vertices]
+        height = (max(zs) - min(zs)) if zs else 8.0
+        src.hide_render = True
+        templates.append((src, height))
+        print("realistic tree", path.name, "height", round(height, 2))
+    if not templates:
         return
-    rng = math.pi
-    # Dense canopy from the downloaded tree meshes. Spacing is tighter than the crown.
-    cols = 36
-    for i in range(cols * 8):
-        mesh = meshes[i % len(meshes)]
-        obj = bpy.data.objects.new(f"Tree_{i}", mesh)
+    # Photoscanned saplings are 6–9 m. Scale them into a 16–30 m canopy.
+    # The strip sits ahead of the nose across the forest scroll (phase ~400–1,200 m).
+    ground_z = -2.0
+    cols = 88
+    rows = 44
+    spacing = 18.0
+    x0 = 180.0
+    for i in range(cols * rows):
+        src, height = templates[(i * 3) % len(templates)]
+        obj = src.copy()
+        obj.data = src.data
         obj.parent = parent
-        # Mesh is normalized to 1 m tall, then scaled into a closed canopy.
-        scale = 38.0 + (i % 4) * 8.0
-        obj.scale = (scale, scale, scale)
-        # Local X is shifted with the scrolling tile, so this strip stays under the jet.
+        obj.hide_render = False
+        metres = 28.0 + (i % 7) * 2.8
+        scale = metres / max(height, 0.1)
+        # Break the rows so the canopy is not a plantation grid.
+        jitter_x = ((i * 17) % 9) - 4
+        jitter_y = ((i * 13) % 9) - 4
+        obj.scale = (scale, scale, scale * (0.85 + (i % 5) * 0.06))
         obj.location = (
-            (i % cols) * 24.0 + 700.0,
-            (i // cols) * 24.0 - 90.0,
-            0.0,
+            x0 + (i % cols) * spacing + jitter_x,
+            (i // cols) * spacing - (rows * spacing) * 0.5 - 220.0 + jitter_y,
+            ground_z,
         )
-        obj.rotation_euler[2] = rng * (i % 7)
+        obj.rotation_euler[2] = (i % 11) * 0.57
         _link(obj)
-    print("trees", len(meshes), "instances", cols * 8)
+    print("realistic trees", len(templates), "instances", cols * rows)
 
 
 def _enable_easy_clouds():
@@ -895,6 +857,69 @@ def _godrays():
     return obj
 
 
+def _ocean_mat():
+    mat = bpy.data.materials.new("Ocean")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = next(node for node in nt.nodes if node.type == "BSDF_PRINCIPLED")
+    bsdf.inputs["Roughness"].default_value = 0.04
+    if "Specular IOR Level" in bsdf.inputs:
+        bsdf.inputs["Specular IOR Level"].default_value = 0.9
+    if "Coat Weight" in bsdf.inputs:
+        bsdf.inputs["Coat Weight"].default_value = 0.15
+    cam = nt.nodes.new("ShaderNodeCameraData")
+    span = nt.nodes.new("ShaderNodeMapRange")
+    span.inputs["From Min"].default_value = 500.0
+    span.inputs["From Max"].default_value = 10000.0
+    span.clamp = True
+    nt.links.new(cam.outputs["View Distance"], span.inputs["Value"])
+    haze = _mix_rgb(nt, span.outputs["Result"], (0.02, 0.08, 0.12, 1), (*HAZE, 1))
+    nt.links.new(haze.outputs["Color"], bsdf.inputs["Base Color"])
+    noise = nt.nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 2.2
+    noise.inputs["Detail"].default_value = 6.0
+    bump = nt.nodes.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value = 0.45
+    bump.inputs["Distance"].default_value = 2.4
+    nt.links.new(noise.outputs["Fac"], bump.inputs["Height"])
+    nt.links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
+    return mat
+
+
+def _move_to_collection(objs, col):
+    for obj in objs:
+        try:
+            name = obj.name
+        except ReferenceError:
+            continue
+        live = bpy.data.objects.get(name)
+        if live is None:
+            continue
+        for holder in list(live.users_collection):
+            holder.objects.unlink(live)
+        col.objects.link(live)
+
+
+def _city_instances(parent):
+    if not CITY.exists():
+        return
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(CITY))
+    fresh = [obj for obj in bpy.data.objects if obj not in before]
+    col = bpy.data.collections.new("CityBlock")
+    _move_to_collection(fresh, col)
+    for ix in range(-1, 5):
+        for iy in range(-3, 4):
+            inst = bpy.data.objects.new(f"City_{ix}_{iy}", None)
+            inst.instance_type = "COLLECTION"
+            inst.instance_collection = col
+            inst.parent = parent
+            inst.location = (ix * 560.0 - 200.0, iy * 460.0, 0.0)
+            inst.scale = (3.8, 3.8, 3.8)
+            inst.rotation_euler[2] = (ix * 0.35 + iy * 0.55)
+            _link(inst)
+
+
 def _ocean_object():
     bpy.ops.mesh.primitive_grid_add(x_subdivisions=4, y_subdivisions=4, size=2.0)
     obj = bpy.context.active_object
@@ -932,7 +957,7 @@ def _biome_tiles():
         if name == "ocean":
             ground = _ocean_object()
         elif name == "mountains":
-            ground = _peaks_object()
+            ground = bpy.data.objects.new("MountainAnchor", None)
         else:
             image, tint = photos[name]
             ground = _big_plane(name + "Ground", 22000.0)
@@ -940,6 +965,7 @@ def _biome_tiles():
             ground.data.materials.append(mat)
         _link(ground, a)
         copies[name] = (a, b)
+    _alps_range(copies["mountains"][0])
     _city_instances(copies["city"][0])
     _forest_trees(copies["forest"][0])
     _enable_easy_clouds()
@@ -1280,6 +1306,7 @@ def render_stills(job):
     state = build_scene()
     scene = state["scene"]
     scene.cycles.samples = int(job.get("samples", 24))
+    scene.render.use_motion_blur = False
     scene.render.image_settings.file_format = "JPEG"
     scene.render.image_settings.quality = 90
     scene.render.resolution_percentage = int(job.get("scale", 100))
