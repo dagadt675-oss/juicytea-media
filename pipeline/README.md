@@ -6,6 +6,14 @@ The default picture is the gold style kit in `pipeline/style/`: a full-bleed fla
 
 The seven old topics (Hans Island, London, France, Diomede, Ceuta/Melilla, Congo) are not specs here. `specs/alaska.yaml` is only a renderer test. Later videos should be more dramatic: danger, scandal, stories that are hard to believe. Copy the Alaska file and change the lines.
 
+### Standing owner rule: use the asset hub
+
+Wherever possible, use existing ready-made assets from the asset hub (`ASSET_HUB.json`) and `asset_library/` for everything: icons, 3D pins, vehicles, characters, face parts, animations and Lottie FX, textures, and fonts. Re-fetch the hub at the start of each episode. The fetch commands are in `ASSET_HUB.md`.
+
+Build from scratch only when nothing suitable exists. When you do, say which hub entries you checked and why they did not fit.
+
+Private packs (Sketchfab Free Standard and BlendKit) are for rendered video only. Never commit them.
+
 ---
 
 ## English
@@ -99,6 +107,14 @@ Egy YAML = egy Short. A kép, a karaoke, a hang és az ellenőrzés mind abból 
 Az alap kép lapos politikai térkép: sötétkék háttér, egy ország neonpirossal, egy vonal vagy egy tű radar-gyűrűkkel, fehér kapszula piros felirattal. Nincs domborzat. A Mercator és a Lambert megmarad.
 
 A régi hét téma (Hans-sziget, London, Franciaország, Diomede, Ceuta, Kongó) nincs benne. Az `specs/alaska.yaml` csak teszt. A következő témák legyenek erősebbek: veszély, botrány, hihetetlen történet. Másoláshoz az Alaska fájl a minta.
+
+### Állandó szabály: kész assetek
+
+Ahol lehet, kész assetet használj az asset hubból (`ASSET_HUB.json`) és az `asset_library/` mappából: ikon, 3D tű, jármű, karakter, arcrész, animáció és Lottie, textúra, betű. Epizódonként újra le kell tölteni a hubot. A parancsok az `ASSET_HUB.md` fájlban vannak.
+
+Nulláról csak akkor építs, ha nincs megfelelő. Akkor írd le, melyik hub-bejegyzéseket nézted meg, és miért nem illettek.
+
+A privát csomagok (Sketchfab Free Standard, BlendKit) csak a kész videóba kerülhetnek. Soha ne commitold őket.
 
 ### Mit ír a YAML
 
