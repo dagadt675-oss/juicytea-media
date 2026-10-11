@@ -17,9 +17,9 @@ timing:
   hook_hold: 3.0
 
 camera:
-  lens_mm: 22
-  # Close follow. It eases wider on the way down and returns on the rise.
-  offset_m: [0.48, -0.11, 0.06]
+  # The hook is wider. The chase and the impact override this per frame.
+  lens_mm: 13
+  offset_m: [2.2, 2.4, 2.0]
   penny_x_m: 0.22
 
 quantity:
@@ -36,9 +36,8 @@ hook:
 
 ending:
   lines:
-    - "Ow."
-    - "The penny's fine."
-    - "The guy's fine."
+    - "25 MPH."
+    - "IT STINGS. THAT'S IT."
 
 say:
   hook: "Could a falling penny actually kill someone?"
@@ -46,8 +45,8 @@ say:
   floors: "A Statue of Liberty would only reach the three-hundred-foot mark."
   drag: "You might think it keeps speeding up. Air resistance holds it around twenty-five miles an hour."
   liberty: "There is the Statue of Liberty. Three hundred and five feet. Still twenty-five."
-  edge: "Edge-on, the fastest case, it might reach sixty-five. Still well short of deadly."
-  hit: "It hits a cap. Ow. MythBusters fired pennies at sixty-four miles an hour and only scuffed things."
+  edge: "The street is right there. Still twenty-five miles an hour."
+  hit: "It hits the sidewalk. Twenty-five miles an hour. It stings. That's it."
   rise: "So the penny's fine. The guy's fine. Want to drop it again?"
 
 references: [empire, liberty, person]
@@ -59,7 +58,7 @@ sources:
     title: "United States Mint, one-cent coin specifications"
   - id: drag
     used_for: "Face-on disk, Cd 1.14, air 1.204 kg/m3. v = sqrt(2mg / ρ A Cd) rounds to 25 mph."
-    note: "Edge-on is faster. The on-screen range is up to 65 mph, and that figure still needs the Veritasium wind-tunnel video before a voiceover uses it."
+    note: "Edge-on is faster in the literature. That figure is not spoken or shown until it has a wind-tunnel source."
   - id: deck
     used_for: "102nd-floor observatory and roof, 1,250 ft. Tip 1,454 ft."
     url: "https://www.esbnyc.com/about/facts-figures"

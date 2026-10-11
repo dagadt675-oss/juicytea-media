@@ -101,6 +101,23 @@ def _slot(base: Image.Image, xy, old: str, new: str, roll: float, font, fill) ->
     return (int(xy[0]), int(xy[1]), int(xy[0] + pad + text_w), glyph_bottom)
 
 
+def _centered_column(img, origin, label, number, previous, roll, unit, num_px, unit_px):
+    """One big readout. origin is the top-left of the column."""
+    width = img.size[0]
+    x, y = origin
+    label_font = _font(SANS, max(22, int(width * 0.028)))
+    _shadow_text(img, (x, y), label, label_font, fill=_alpha((255, 122, 40), 255), anchor="lt", radius=3, opacity=140)
+    num_font = _anton(num_px)
+    num_y = y + int(label_font.size * 1.15)
+    box = _slot(img, (x, num_y), previous or number, number, roll, num_font, (255, 248, 242, 255))
+    unit_font = _anton(unit_px)
+    unit_x = box[2] + int(width * 0.012)
+    ub = _stroke(img, (unit_x, box[3] - int(unit_font.size * 0.92)), (unit or "").upper(), unit_font, ORANGE, stroke=4)
+    right = max(box[2], int(ub[2]))
+    bottom = max(box[3], int(ub[3]))
+    return (x, y, right, bottom)
+
+
 def draw_scale_counter(
     image: Image.Image,
     label: str,
@@ -114,10 +131,31 @@ def draw_scale_counter(
     second_unit: str | None = None,
     second_previous: str | None = None,
     second_roll: float = 1.0,
+    align: str = "left",
+    anchor_y: int | None = None,
 ) -> tuple[Image.Image, tuple[int, int, int, int]]:
-    """Anton height/speed stack. Top-left, above the caption band."""
+    """Anton height/speed stack. Above the caption band."""
     img = image.convert("RGBA")
     width, height = img.size
+    if align == "center" and second_label and second_number:
+        y = anchor_y if anchor_y is not None else int(height * 0.045)
+        # Measure both columns, then center the pair. Numbers stay at least 80 px.
+        height_px = 112
+        speed_px = 88
+        probe = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+        left = _centered_column(probe, (0, 0), label, number, previous, roll, unit, height_px, 42)
+        right = _centered_column(probe, (0, 0), second_label, second_number, second_previous, second_roll, second_unit, speed_px, 36)
+        gap = int(width * 0.06)
+        pair = (left[2] - left[0]) + gap + (right[2] - right[0])
+        x0 = int((width - pair) / 2)
+        left_box = _centered_column(img, (x0, y), label, number, previous, roll, unit, height_px, 42)
+        x1 = left_box[2] + gap
+        right_box = _centered_column(img, (x1, y), second_label, second_number, second_previous, second_roll, second_unit, speed_px, 36)
+        box = (left_box[0], y, right_box[2], max(left_box[3], right_box[3]))
+        band0 = int(CAPTION_Y0 * height)
+        if box[3] > band0:
+            raise RuntimeError(f"counter entered the caption band: {box} vs {band0}")
+        return img, box
     x = int(width * 0.055)
     y = int(height * 0.175)
     label_font = _font(SANS, max(15, int(width * 0.018)))

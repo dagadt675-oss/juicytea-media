@@ -40,7 +40,10 @@ class PennyTest(unittest.TestCase):
         self.assertEqual(self._at(16.0).primary, "700")
         self.assertEqual(self._at(24.0).primary, "305")
         self.assertEqual(self._at(24.0).phase, "liberty")
-        self.assertIn("65", self._at(29.0).pill_sub)
+        spoken = " ".join(beat["narration"] for beat in self.ep.beats)
+        self.assertNotIn("65", spoken)
+        self.assertNotIn("sixty-five", spoken.lower())
+        self.assertNotIn("65", self._at(29.0).pill_sub)
         self.assertEqual(self._at(33.0).primary, "0")
         self.assertNotIn("25", self.ep.raw["title"])
 
@@ -49,7 +52,7 @@ class PennyTest(unittest.TestCase):
         for a, b in zip(self.ep.frames, self.ep.frames[1:]):
             if b.phase in ("rise", "hold"):
                 rising = True
-            elif not rising:
+            elif b.phase != "hit" and not rising:
                 self.assertLessEqual(b.penny[2], a.penny[2] + 1e-6)
         self.assertTrue(rising)
         first, last = self.ep.frames[0], self.ep.frames[-1]
@@ -71,6 +74,14 @@ class PennyTest(unittest.TestCase):
         runs.append((current, start, self.ep.duration))
         for value, a, b in runs:
             self.assertGreaterEqual(b - a, 0.8 - 1e-6, value)
+
+    def test_hook_looks_out_over_the_city(self):
+        hook = self._at(1.2)
+        chase = self._at(14.0)
+        self.assertLess(hook.target[2], hook.cam[2] - 20)
+        self.assertGreater(hook.cam[2], hook.penny[2])
+        self.assertLess(chase.target[2], chase.penny[2] - 1.0)
+        self.assertGreater(chase.cam[2], chase.penny[2] + 0.8)
 
     def test_hook_does_not_spoil(self):
         hook = [fr for fr in self.ep.frames if fr.t < 2.5]

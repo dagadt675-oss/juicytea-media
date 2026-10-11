@@ -57,7 +57,7 @@ def _preview_plate(ep, fr) -> Image.Image:
 
 def _contact(frame_dir: Path, fps: int, dest: Path):
     frames = sorted(frame_dir.glob("f_*.png"))
-    step = max(1, fps // 2)
+    step = max(1, int(round(fps * 2.5)))
     picked = frames[::step]
     thumb_w, thumb_h = 135, 240
     cols = 8
@@ -83,10 +83,10 @@ def _keys(ep, final_dir: Path, dest: Path):
 
     picks = [
         ("00_hook", into("hook", 1.0)),
-        ("fall", into("fall", 1.5)),
-        ("liberty", into("liberty", 4.0)),
-        ("edge", into("edge", 1.5)),
-        ("hit", into("hit", 2.5)),
+        ("setback", into("floors", 2.0)),
+        ("mid", into("drag", 3.0)),
+        ("street", into("edge", 2.0)),
+        ("impact", into("hit", 4.0)),
         ("loop", ep.frames[-1].frame),
     ]
     written = []
@@ -136,6 +136,10 @@ def render_format_b(args, raw):
             "tip_m": empire["height_m"],
             "liberty_m": outline("liberty")["height_m"],
             "facade": textures["facade"],
+            "street": textures["street"],
+            "hdri": str(ROOT / "assets" / "hdri" / "sunset_jhbcentral_1k.hdr"),
+            "character": str(ROOT / "assets" / "characters" / "characterMedium.fbx"),
+            "skin": str(ROOT / "assets" / "characters" / "skaterMaleA.png"),
             "out": str(out / "plates"),
             "frames": [
                 {
@@ -145,6 +149,9 @@ def render_format_b(args, raw):
                     "target": list(fr.target),
                     "penny": list(fr.penny),
                     "rot": list(fr.rot),
+                    "lens": fr.lens,
+                    "prev_cam": list(ep.frames[max(0, fr.frame - 1)].cam),
+                    "prev_penny": list(ep.frames[max(0, fr.frame - 1)].penny),
                 }
                 for fr in frames
             ],

@@ -21,6 +21,9 @@ def write_all(dest: Path) -> dict[str, str]:
         _bokeh(paths["bokeh"])
     if not paths["stars"].exists():
         _stars(paths["stars"])
+    paths["street"] = dest / "street.png"
+    if not paths["street"].exists():
+        _street(paths["street"])
     return {k: str(v) for k, v in paths.items()}
 
 
@@ -66,6 +69,34 @@ def _bokeh(path: Path) -> None:
     wash = Image.new("RGB", img.size, (255, 168, 110))
     img = Image.blend(img, wash, 0.18)
     img.save(path, quality=90)
+
+
+def _street(path: Path) -> None:
+    """Top-down sidewalk and road grid. 240 m mapped onto the image."""
+    span = 2048
+    metres = 240.0
+    origin = 40.0
+
+    def px(m: float) -> int:
+        return int((m + origin) / metres * span)
+
+    img = Image.new("RGB", (span, span), (176, 168, 156))
+    draw = ImageDraw.Draw(img)
+    road = (38, 40, 44)
+    lane = (214, 186, 64)
+    for center in (8, 78, 140, 190):
+        a, b = px(center - 5.0), px(center + 5.0)
+        draw.rectangle((a, 0, b, span), fill=road)
+        draw.rectangle((0, a, span, b), fill=road)
+        mid = px(center)
+        for step in range(0, span, 36):
+            draw.rectangle((mid - 2, step, mid + 2, step + 16), fill=lane)
+            draw.rectangle((step, mid - 2, step + 16, mid + 2), fill=lane)
+    # Crosswalk near the tower corner, around x=70, y=40.
+    paint = (230, 226, 216)
+    for i in range(8):
+        draw.rectangle((px(68), px(36 + i * 0.7), px(76), px(36.4 + i * 0.7)), fill=paint)
+    img.save(path)
 
 
 def _stars(path: Path) -> None:

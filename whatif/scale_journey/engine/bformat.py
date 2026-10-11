@@ -87,6 +87,7 @@ class BFrame:
     secondary_roll: float = 1.0
     secondary_prev: str = ""
     rot: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    lens: float = 18.0
 
 
 @dataclass
@@ -166,6 +167,31 @@ def _held(rows, t):
     return chosen
 
 
+# SE corner of each setback, metres. The coin stays just outside this corner.
+TOWER_TIERS = (
+    (320.0, 381.0, 18.0, 14.0),
+    (210.0, 320.0, 28.0, 22.0),
+    (110.0, 210.0, 40.0, 30.0),
+    (28.0, 110.0, 52.0, 38.0),
+    (0.0, 28.0, 62.0, 46.0),
+)
+
+
+def _tier_corner(z: float) -> tuple[float, float]:
+    look = max(0.0, z - 24.0)
+    for z0, z1, hx, hy in TOWER_TIERS:
+        if z0 <= look < z1:
+            return hx, hy
+    if look >= TOWER_TIERS[0][1]:
+        return TOWER_TIERS[0][2], TOWER_TIERS[0][3]
+    return TOWER_TIERS[-1][2], TOWER_TIERS[-1][3]
+
+
+def _penny_xy(z: float) -> tuple[float, float]:
+    hx, hy = _tier_corner(z)
+    return hx + 2.4, hy + 2.2
+
+
 def _penny(raw: dict) -> BEpisode:
     """Beat clock from the slate. Physics still supplies the 25 mph payoff.
 
@@ -180,23 +206,23 @@ def _penny(raw: dict) -> BEpisode:
     fps = int(raw["fps"])
     duration = float(raw["timing"]["duration_sec"])
     n = int(round(duration * fps))
-    # Visual altitude, feet. Arrives at each slate height, then holds.
+    # Visual altitude keeps moving. The counter holds; the picture does not.
     altitude = [
         (0.0, 1250.0),
-        (3.0, 1250.0),
-        (4.2, 1200.0),
-        (6.0, 1200.0),
-        (8.0, 1000.0),
-        (12.0, 1000.0),
-        (14.5, 700.0),
-        (20.0, 700.0),
-        (23.0, 305.0),
-        (27.0, 305.0),
-        (29.2, 150.0),
-        (31.0, 150.0),
-        (33.2, 5.45),
-        (36.0, 5.45),
-        (39.2, 1250.0),
+        (2.7, 1250.0),
+        (3.4, 1220.0),
+        (7.0, 1000.0),
+        (11.0, 780.0),
+        (16.0, 480.0),
+        (21.0, 240.0),
+        (26.0, 90.0),
+        (31.0, 18.0),
+        (33.4, 4.0),
+        (34.3, 0.2),
+        (34.7, 1.15),
+        (35.3, 0.15),
+        (36.1, 0.15),
+        (36.25, 1250.0),
         (40.0, 1250.0),
     ]
     # (t, feet, mph). Each row holds until the next, and every gap is ≥ 0.8 s.
@@ -210,16 +236,8 @@ def _penny(raw: dict) -> BEpisode:
         (22.4, 305, 25),
         (27.0, 150, 25),
         (31.0, 0, 25),
-        (36.0, 400, 0),
-        (37.2, 800, 0),
-        (38.4, 1200, 0),
-        (39.2, 1250, 0),
+        (36.2, 1250, 0),
     ]
-    # Outside the tower corner, so the fall shows sky and the next buildings.
-    close = (1.35, -0.2, 0.72)
-    wide = (1.55, -0.35, 0.85)
-    cap_xy = (0.62, 15.45)
-    ledge_xy = (0.24, 15.15)
     frames = []
     prev_feet, prev_mph = None, None
     feet_from, mph_from = "1,250", "0"
@@ -258,41 +276,12 @@ def _penny(raw: dict) -> BEpisode:
             prev_mph = mph_s
         feet_roll = 1.0 if feet_from == feet_s else _fade(t, feet_change, feet_change + 0.28)
         mph_roll = 1.0 if mph_from == mph_s else _fade(t, mph_change, mph_change + 0.28)
-        # Widen on the way down. The rise is the only return, so the loop matches frame 0.
-        if t < 3.0:
-            off = close
-        elif t < 36.0:
-            off = _lerp(close, wide, _fade(t, 3.0, 33.0))
-        else:
-            off = _lerp(wide, close, _fade(t, 36.0, 39.2))
-        if t < 31.0:
-            xy = ledge_xy
-        elif t < 36.0:
-            xy = _lerp(ledge_xy, cap_xy, _fade(t, 31.0, 33.2))
-        else:
-            xy = _lerp(cap_xy, ledge_xy, _fade(t, 36.0, 39.2))
-        z = alt_ft * FT
-        penny = (xy[0], xy[1], z)
-        cam = (penny[0] + off[0], penny[1] + off[1], penny[2] + off[2])
-        target = (penny[0] - 0.02, penny[1], penny[2] - 0.02)
-        # Face the lens on the way down. Edge-on through the 27–31 s beat. Frame 0 pose at the end.
-        # Y tilt keeps the face toward the camera. The edge beat is the only tumble.
-        if phase == "edge":
-            tilt, spin = 0.08, t * 2.2
-        elif phase in ("hook", "hold"):
-            tilt, spin = 1.15, 0.05
-        elif phase == "rise":
-            u = _fade(t, 36.0, 39.2)
-            tilt = 0.08 + (1.15 - 0.08) * u
-            spin = (1.0 - u) * 0.4
-        else:
-            tilt, spin = 1.15, 0.15 * math.sin(t * 1.7)
         title_alpha = 1.0 if phase in ("hook", "hold") else 1.0 - _fade(t, 2.6, 3.3)
         if phase == "rise":
             title_alpha = _fade(t, 38.4, 39.2)
         ending_alpha = 0.0
-        if phase == "hit":
-            ending_alpha = _fade(t, 31.0, 31.6) * (1.0 - _fade(t, 35.2, 36.0))
+        if 34.45 <= t < 36.15:
+            ending_alpha = _fade(t, 34.45, 34.85) * (1.0 - _fade(t, 35.85, 36.12))
         pill_title, pill_sub, pill_a = "", "", 0.0
         if phase == "hook":
             pill_title, pill_sub, pill_a = "102ND FLOOR", "1,250 ft", 1.0
@@ -304,11 +293,46 @@ def _penny(raw: dict) -> BEpisode:
             pill_title, pill_sub, pill_a = "AIR HOLDS IT", "25 mph", 1.0
         elif phase == "liberty":
             pill_title, pill_sub, pill_a = "STATUE OF LIBERTY", "305 ft", 1.0
-        elif phase == "edge":
-            pill_title, pill_sub, pill_a = "EDGE-ON", "up to 65 mph", 1.0
         elif phase == "hold":
             pill_title, pill_sub, pill_a = "102ND FLOOR", "1,250 ft", 1.0
         metric = f"{int(feet) * FT:,.0f} m"
+        z_vis = alt_ft * FT
+        ledge_xy = _penny_xy(drop)
+        ledge_penny = (ledge_xy[0], ledge_xy[1], drop + 0.12)
+        if t < 3.0 or t >= 36.2:
+            penny = ledge_penny
+        else:
+            xy = _penny_xy(z_vis)
+            penny = (xy[0], xy[1], z_vis + 0.08)
+        hook_cam = (ledge_penny[0] - 2.6, ledge_penny[1] - 2.1, ledge_penny[2] + 1.25)
+        hook_tgt = (ledge_penny[0] + 34.0, ledge_penny[1] + 44.0, 350.0)
+        chase_cam = (penny[0] + 0.45, penny[1] + 3.4, penny[2] + 1.55)
+        chase_tgt = (penny[0] + 0.1, penny[1] + 1.15, penny[2] - 1.15)
+        hit_cam = (penny[0] - 1.4, penny[1] - 4.4, max(2.35, penny[2] + 1.7))
+        hit_tgt = (penny[0] + 0.7, penny[1] + 0.35, 0.55)
+        if t < 3.0 or t >= 36.2:
+            cam, target, lens = hook_cam, hook_tgt, 13.0
+        elif t < 4.2:
+            u = _fade(t, 3.0, 4.2)
+            cam = _lerp(hook_cam, chase_cam, u)
+            target = _lerp(hook_tgt, chase_tgt, u)
+            lens = 13.0 + 0.0 * u
+        elif t < 31.2:
+            cam, target, lens = chase_cam, chase_tgt, 13.0
+        elif t < 33.4:
+            u = _fade(t, 31.2, 33.4)
+            cam = _lerp(chase_cam, hit_cam, u)
+            target = _lerp(chase_tgt, hit_tgt, u)
+            lens = 13.0 + (26.0 - 13.0) * u
+        else:
+            cam, target, lens = hit_cam, hit_tgt, 26.0
+        if 33.2 <= t < 35.4:
+            spin = (t - 33.2) * 16.0
+            tilt = 0.35
+        elif t < 3.0 or t >= 36.2:
+            spin, tilt = 1.15, 0.25
+        else:
+            spin, tilt = 0.4 + t * 0.35, 0.45 + 0.25 * math.sin(t * 1.3)
         frames.append(
             BFrame(
                 frame=i,
@@ -330,13 +354,14 @@ def _penny(raw: dict) -> BEpisode:
                 cam=cam,
                 target=target,
                 speed_mps=vt if speed_mph == 25 else 0.0,
-                fallen_m=max(0.0, drop - z),
+                fallen_m=max(0.0, drop - penny[2]),
                 metric=metric,
                 roll=feet_roll,
                 primary_prev=feet_from,
                 secondary_roll=mph_roll,
                 secondary_prev=mph_from,
                 rot=(spin, tilt, 0.05),
+                lens=lens,
             )
         )
     say = raw.get("say", {})
@@ -346,7 +371,7 @@ def _penny(raw: dict) -> BEpisode:
         {"id": "floors", "narration": say.get("floors", ""), "start": 6.0, "end": 12.0, "time_label": "1,000 ft / 25 mph"},
         {"id": "drag", "narration": say.get("drag", ""), "start": 12.0, "end": 20.0, "time_label": "700 ft / 25 mph"},
         {"id": "liberty", "narration": say.get("liberty", ""), "start": 20.0, "end": 27.0, "time_label": "305 ft / 25 mph"},
-        {"id": "edge", "narration": say.get("edge", ""), "start": 27.0, "end": 31.0, "time_label": "up to 65 mph"},
+        {"id": "edge", "narration": say.get("edge", ""), "start": 27.0, "end": 31.0, "time_label": "25 mph"},
         {"id": "hit", "narration": say.get("hit", ""), "start": 31.0, "end": 36.0, "time_label": "0 ft"},
         {"id": "rise", "narration": say.get("rise", ""), "start": 36.0, "end": 40.0, "time_label": "1,250 ft"},
     ]

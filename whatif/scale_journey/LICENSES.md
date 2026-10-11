@@ -21,6 +21,14 @@ All Python, and every mesh built in `engine/build.py` (rice grain, pile, person,
 | `assets/textures/wood_nor_2k.jpg` | CC0 | Poly Haven, `wood_table_001` GL normal 2k. Same as roughness: shipped, not wired into the fast render. |
 | `assets/textures/earth_2k.jpg` | Public domain (US government work) | NASA Visible Earth, Blue Marble / land surface, shallow water, shaded topography, 2048×1024. https://visibleearth.nasa.gov/images/57752 |
 | `assets/textures/moon_1k.jpg` | Public domain (US government work) | NASA/GSFC/LRO LROC colour mosaic, 1k. https://svs.gsfc.nasa.gov/4720 |
+| `assets/hdri/sunset_jhbcentral_1k.hdr` | CC0 | Poly Haven, `sunset_jhbcentral` 1k HDR. https://polyhaven.com/a/sunset_jhbcentral |
+
+## Characters
+
+| File | Licence | Source |
+| --- | --- | --- |
+| `assets/characters/characterMedium.fbx` | CC0 | Kenney, Animated Characters Protagonists. https://kenney.nl/assets/animated-characters-protagonists |
+| `assets/characters/skaterMaleA.png` | CC0 | Same pack, skater skin. |
 
 `engine/gen_textures.py` bakes the facade, bokeh card, and starfield at render time. Those images are procedural and original.
 
