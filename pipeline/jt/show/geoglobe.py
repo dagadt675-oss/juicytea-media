@@ -294,9 +294,9 @@ class Episode:
             age = t - hit
             if 0.0 <= age <= 0.22:
                 kick = max(kick, math.sin(math.pi * age / 0.22))
-        s = 4.05 + 0.7 * kick
-        ox = 540.0 + 260.0 * math.sin(t * 2.6)
-        oy = 1000.0 + 180.0 * math.sin(t * 2.1)
+        s = 4.05 + 0.85 * kick
+        ox = 540.0 + 280.0 * math.sin(t * 2.7)
+        oy = 1000.0 + 190.0 * math.sin(t * 2.2)
 
         def pt(x, y):
             return ox + x * s, oy - y * s
