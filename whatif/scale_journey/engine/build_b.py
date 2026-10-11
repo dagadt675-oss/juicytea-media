@@ -371,10 +371,6 @@ def _empire():
         flush=True,
     )
     _clip_low(meshes, -1.0)
-    # The scan crown and spire stay. A small ledge gives the penny a surface
-    # on the north-east corner, outside the mast.
-    _crown()
-    _podium()
     return empty
 
 
@@ -812,30 +808,35 @@ def _copper(name, roughness):
 
 
 def _penny():
-    face = _copper("Penny", 0.34)
-    rim = _copper("Rim", 0.22)
-    show = 9.0
-    radius = 0.009525 * show
-    depth = 0.0042 * show
-    bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=radius, depth=depth, location=(0, 0, 0))
-    obj = bpy.context.object
-    obj.name = "Penny"
-    bevel = obj.modifiers.new("Edge", "BEVEL")
-    bevel.width = depth * 0.22
-    bevel.segments = 2
-    bpy.ops.object.modifier_apply(modifier=bevel.name)
-    _assign(obj, face)
-    bpy.ops.mesh.primitive_torus_add(
-        major_radius=radius * 0.98,
-        minor_radius=depth * 0.42,
-        major_segments=48,
-        minor_segments=8,
+    """Kenney bronze coin from the hub CC0 library. Not a generated disc."""
+    path = (
+        CACHE
+        / "assets_cc0_vehicles"
+        / "vehicles"
+        / "kenney_toy_car_kit"
+        / "Models"
+        / "GLB format"
+        / "item-coin-bronze.glb"
     )
-    ring = bpy.context.object
-    ring.name = "Rim"
-    ring.parent = obj
-    _assign(ring, rim)
-    return obj
+    if not path.exists():
+        raise RuntimeError(f"missing hub coin {path}")
+    objs = _imported(path)
+    meshes = [obj for obj in objs if obj.type == "MESH"]
+    empty = _link(bpy.data.objects.new("Penny", None))
+    roots = [obj for obj in objs if obj.parent is None or obj.parent not in objs]
+    _parent_keep(roots, empty)
+    bpy.context.view_layer.update()
+    mn, mx = _bounds(meshes)
+    span = max(mx.x - mn.x, mx.y - mn.y, 1e-4)
+    empty.scale = (0.17 / span,) * 3
+    bpy.context.view_layer.update()
+    mn, mx = _bounds(meshes)
+    mid = (mn + mx) * 0.5
+    for obj in roots:
+        obj.matrix_world.translation -= mid
+    bpy.context.view_layer.update()
+    print(f"COIN kenney bronze span {span:.3f} -> 0.17 m", flush=True)
+    return empty
 
 
 def _camera():

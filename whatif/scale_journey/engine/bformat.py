@@ -448,7 +448,7 @@ def _penny(raw: dict) -> BEpisode:
         else:
             penny = clear_of_shaft(penny, 0.8)
         if t < 0.57 or t >= 33.15:
-            spin, tilt, roll = 0.2, 0.55, 0.04
+            spin, tilt, roll = 0.08, 0.15, 0.02
         elif t < 1.15:
             flick = _fade(t, 0.57, 1.15)
             spin = 0.2 + flick * 3.4

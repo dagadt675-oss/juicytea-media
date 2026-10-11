@@ -241,15 +241,9 @@ def _tile(blocks):
 
 
 def _ground():
-    mat = bpy.data.materials.new("Underlay")
-    mat.use_nodes = True
-    bsdf = mat.node_tree.nodes["Principled BSDF"]
-    bsdf.inputs["Base Color"].default_value = (0.08, 0.08, 0.085, 1)
-    bsdf.inputs["Roughness"].default_value = 0.95
-    bpy.ops.mesh.primitive_plane_add(size=16000, location=(0.0, -400.0, -0.08))
-    obj = bpy.context.object
-    obj.name = "Underlay"
-    obj.data.materials.append(mat)
+    # The city blocks and Kenney roads already carry the ground. A generated
+    # plane is not allowed in the picture.
+    print("GROUND from city packs", flush=True)
 
 
 def _fit_height(empty, meshes, height):
