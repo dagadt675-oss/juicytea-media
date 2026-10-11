@@ -89,12 +89,12 @@ def _world():
     mapped.inputs["From Min"].default_value = -0.2
     mapped.inputs["From Max"].default_value = 0.8
     nt.links.new(sep.outputs["Z"], mapped.inputs["Value"])
-    ramp.color_ramp.elements[0].position = 0.35
-    ramp.color_ramp.elements[0].color = (0.95, 0.62, 0.42, 1)
-    ramp.color_ramp.elements[1].position = 0.62
-    ramp.color_ramp.elements[1].color = (0.55, 0.68, 0.82, 1)
-    top = ramp.color_ramp.elements.new(0.9)
-    top.color = (0.16, 0.28, 0.48, 1)
+    ramp.color_ramp.elements[0].position = 0.22
+    ramp.color_ramp.elements[0].color = (0.98, 0.50, 0.38, 1)
+    ramp.color_ramp.elements[1].position = 0.48
+    ramp.color_ramp.elements[1].color = (0.96, 0.74, 0.62, 1)
+    top = ramp.color_ramp.elements.new(0.82)
+    top.color = (0.42, 0.58, 0.82, 1)
     nt.links.new(mapped.outputs["Result"], ramp.inputs["Fac"])
     nt.links.new(ramp.outputs["Color"], bg.inputs["Color"])
     bg.inputs["Strength"].default_value = 1.0
@@ -111,72 +111,127 @@ def _world():
 
 def _sun():
     light = bpy.data.lights.new("Sun", "SUN")
-    light.energy = 4.5
-    light.color = (1.0, 0.9, 0.75)
+    light.energy = 6.0
+    light.color = (1.0, 0.72, 0.48)
     light.angle = 0.0
     obj = _link(bpy.data.objects.new("Sun", light))
-    direction = mathutils.Vector((0.45, -0.2, 0.85))
+    direction = mathutils.Vector((0.55, 0.35, 0.76))
     obj.rotation_euler = mathutils.Vector((0, 0, -1)).rotation_difference(-direction).to_euler()
     fill = bpy.data.lights.new("Fill", "SUN")
-    fill.energy = 1.4
-    fill.color = (0.7, 0.8, 1.0)
+    fill.energy = 2.6
+    fill.color = (0.75, 0.82, 1.0)
     fill.use_shadow = False
     fill_obj = _link(bpy.data.objects.new("Fill", fill))
     fill_obj.rotation_euler = (math.radians(70), 0, math.radians(160))
+    bounce = bpy.data.lights.new("Bounce", "SUN")
+    bounce.energy = 5.0
+    bounce.color = (1.0, 0.82, 0.7)
+    bounce.angle = 0.0
+    bounce.use_shadow = False
+    bounce_obj = _link(bpy.data.objects.new("Bounce", bounce))
+    bounce_obj.rotation_euler = (math.radians(180), 0.0, 0.2)
 
 
-def _uv_facade(obj):
-    mesh = obj.data
-    if not mesh.uv_layers:
-        mesh.uv_layers.new(name="UVMap")
-    uv = mesh.uv_layers.active
-    for poly in mesh.polygons:
-        for li in poly.loop_indices:
-            co = mesh.vertices[mesh.loops[li].vertex_index].co
-            uv.data[li].uv = (co.y / 3.4, co.z / 3.7)
+def _facade(_path: str = ""):
+    return _mat("Facade", (0.72, 0.66, 0.58), 1.0, 0.22)
 
 
-def _facade(path: str):
-    mat = _mat("Facade", (0.55, 0.57, 0.60), 0.72, 0.04)
-    nt = mat.node_tree
-    bsdf = nt.nodes["Principled BSDF"]
-    tex = nt.nodes.new("ShaderNodeTexImage")
-    tex.image = bpy.data.images.load(path)
-    tex.interpolation = "Cubic"
-    uv = nt.nodes.new("ShaderNodeUVMap")
-    nt.links.new(uv.outputs["UV"], tex.inputs["Vector"])
-    nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
-    return mat
+def _window_mats():
+    dark = _mat("Glass", (0.22, 0.26, 0.32), 1.0, 0.15)
+    warm = _mat("Lit", (0.45, 0.16, 0.04), 1.0, 8.0)
+    return dark, warm
+
+
+def _boxes(name, pts, size, mat):
+    """One mesh of boxes. Instancing was not showing up on the face."""
+    if not pts:
+        return
+    hx, hy, hz = size
+    verts = []
+    faces = []
+    corners = ((-hx, -hy, -hz), (hx, -hy, -hz), (hx, hy, -hz), (-hx, hy, -hz),
+               (-hx, -hy, hz), (hx, -hy, hz), (hx, hy, hz), (-hx, hy, hz))
+    quads = ((0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0))
+    for x, y, z in pts:
+        base = len(verts)
+        verts.extend((x + dx, y + dy, z + dz) for dx, dy, dz in corners)
+        faces.extend(tuple(base + i for i in quad) for quad in quads)
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    return _assign(_link(bpy.data.objects.new(name, mesh)), mat)
+
+
+def _windows(name, face_x, z0, z1):
+    """Two columns in the camera's view. The follow stays on this corner."""
+    dark, warm = _window_mats()
+    points = {dark: [], warm: []}
+    for col, y in enumerate((14.35, 15.45)):
+        z = z0 + 0.9
+        row = 0
+        while z < z1 - 0.5:
+            mat = warm if (row + col) % 3 == 0 else dark
+            points[mat].append((face_x + 0.02, y, z))
+            z += 1.85
+            row += 1
+    _boxes(name + "Dark", points[dark], (0.012, 0.38, 0.55), dark)
+    _boxes(name + "Warm", points[warm], (0.012, 0.38, 0.55), warm)
+
+
+def _shaft(name, face_x, y0, y1, z0, z1, depth, mat):
+    height = max(0.2, z1 - z0)
+    width = max(0.2, y1 - y0)
+    return _assign(_box(name, depth, width, height, (face_x - depth * 0.5, (y0 + y1) * 0.5, z0 + height * 0.5)), mat)
 
 
 def _tower(job, facade):
-    stone = _mat("Stone", (0.62, 0.60, 0.56), 0.8, 0.03)
+    stone = _mat("Stone", (0.74, 0.68, 0.60), 1.0, 0.22)
     deck = float(job["deck_m"])
     roof = float(job["roof_m"])
     tip = float(job["tip_m"])
-    # The shaft stops at the ledge. The camera stays on the street side of x=0.
-    wall_top = deck - 0.02
-    wall = _box("Shaft", 0.9, 28.0, wall_top, (-0.45, 0.0, wall_top * 0.5))
-    _assign(wall, facade)
-    _uv_facade(wall)
-    ledge = _box("Ledge", 0.36, 0.42, 0.1, (0.10, 0.0, deck - 0.05))
-    _assign(ledge, stone)
-    bpy.ops.mesh.primitive_cone_add(vertices=4, radius1=3.2, depth=tip - roof, location=(-6.0, 0.0, roof + (tip - roof) * 0.5))
+    corner = 16.0
+    seam = deck * 0.55
+    # The corner the penny follows stays put. The wall steps out lower down.
+    _shaft("Crown", -1.15, corner - 10.0, corner, seam, deck - 0.02, 12.0, facade)
+    _shaft("Base", -0.05, corner - 26.0, corner, 0.0, seam, 16.0, facade)
+    _windows("Crown", -1.15, seam + 1.0, deck - 1.5)
+    _windows("Base", -0.05, 1.5, seam - 0.8)
+    _assign(_box("Setback", 1.35, 10.2, 0.18, (-0.55, corner - 5.0, seam)), stone)
+    _assign(_box("Ledge", 0.7, 1.1, 0.14, (0.12, 15.15, deck - 0.07)), stone)
+    bpy.ops.mesh.primitive_cone_add(vertices=4, radius1=2.4, depth=max(1.0, tip - roof), location=(-8.0, corner - 6.0, roof + (tip - roof) * 0.5))
     spire = bpy.context.object
     spire.name = "Spire"
     _assign(spire, stone)
-    _liberty(float(job.get("liberty_m", 93.0)))
+    _skyline(facade, stone)
+
+
+def _skyline(facade, stone):
+    """Neighboring blocks, on the open side of the corner so the fall has a city."""
+    blocks = (
+        ("Near", (-2.0, 26.0, 0.0), (8.0, 8.0, 210.0), facade),
+        ("Mid", (3.0, 36.0, 0.0), (10.0, 10.0, 140.0), stone),
+        ("Far", (-8.0, 48.0, 0.0), (12.0, 12.0, 90.0), facade),
+    )
+    for name, (x, y, _z), (w, d, h), mat in blocks:
+        _assign(_box(name, w, d, h, (x, y, h * 0.5)), mat)
 
 
 def _penny():
-    # Picture scale, about 5×. A real 19 mm coin is a speck in a follow shot.
-    # Drag still uses the real diameter in the spec.
-    mat = _mat("Penny", (0.72, 0.38, 0.18), 0.38, 0.12)
-    show = 3.2
-    bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=0.009525 * show, depth=0.00152 * show, location=(0, 0, 0))
+    # Picture scale. A real 19 mm coin is a speck beside the tower. Drag uses the spec diameter.
+    mat = _mat("Penny", (0.86, 0.45, 0.22), 1.0, 0.06)
+    rim = _mat("Rim", (0.62, 0.34, 0.16), 1.0, 0.02)
+    show = 5.5
+    radius = 0.009525 * show
+    depth = 0.00152 * show
+    bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=radius, depth=depth, location=(0, 0, 0))
     obj = bpy.context.object
     obj.name = "Penny"
     _assign(obj, mat)
+    bpy.ops.mesh.primitive_torus_add(major_radius=radius, minor_radius=depth * 0.55, major_segments=48, minor_segments=8, location=(0, 0, 0))
+    ring = bpy.context.object
+    ring.name = "Rim"
+    ring.parent = obj
+    _assign(ring, rim)
     return obj
 
 
@@ -187,7 +242,7 @@ def _person():
     skin = _mat("Skin", (0.55, 0.38, 0.30), 0.6, 0.02)
     cap = _mat("Cap", (0.15, 0.22, 0.55), 0.55, 0.04)
     root = _link(bpy.data.objects.new("Person", None))
-    root.location = (0.48, 0.06, 0.0)
+    root.location = (0.62, 15.45, 0.0)
 
     def part(scale, loc, mat, kind="sphere"):
         if kind == "sphere":
@@ -202,50 +257,15 @@ def _person():
 
     part((0.22, 0.16, 0.42), (0, 0, 0.55 * h), cloth)
     part((0.11, 0.11, 0.12), (0, 0, 1.48), skin)
-    part((0.095, 0.095, 0.022), (0, -0.01, 1.62), cap, kind="cyl")
+    part((0.095, 0.095, 0.018), (0, 0.0, 1.58), cap, kind="cyl")
     return root
 
 
-def _ghost_mat():
-    mat = _mat("Ghost", (0.55, 0.82, 0.58), 0.4, 1.6)
-    bsdf = mat.node_tree.nodes["Principled BSDF"]
-    if "Alpha" in bsdf.inputs:
-        bsdf.inputs["Alpha"].default_value = 0.55
-    try:
-        mat.surface_render_method = "BLENDED"
-    except Exception:
-        pass
-    return mat
-
-
-def _liberty(height):
-    """Generic monument massing, ground to torch at the real 305 ft. No likeness."""
-    mat = _ghost_mat()
-    base = (-6.0, 4.5, 0.0)
-    scale = height / 93.0
-
-    def put(name, w, d, h, center):
-        loc = (base[0] + center[0], base[1] + center[1], center[2] * scale)
-        obj = _box(name, w * scale, d * scale, h * scale, loc)
-        _assign(obj, mat)
-        return obj
-
-    put("Pedestal", 8.0, 8.0, 14.0, (0, 0, 7.0))
-    put("Robe", 5.5, 4.5, 50.0, (0, 0, 14.0 + 25.0))
-    put("Head", 3.0, 3.0, 8.0, (0, 0, 68.0))
-    put("Crown", 3.6, 0.5, 7.0, (0, 0, 76.0))
-    put("Arm", 2.0, 2.0, 16.0, (2.4, 0, 78.0))
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=1.3 * scale, location=(base[0] + 2.4, base[1], 93.0 * scale))
-    torch = bpy.context.object
-    torch.name = "Torch"
-    _assign(torch, mat)
-
-
 def _street():
-    ground = _mat("Sidewalk", (0.35, 0.35, 0.36), 0.9, 0.02)
-    road = _mat("Road", (0.12, 0.12, 0.13), 0.85, 0.01)
-    _assign(_box("Walk", 30, 30, 0.2, (2, 0, -0.1)), ground)
-    _assign(_box("Road", 16, 40, 0.05, (14, 0, 0.01)), road)
+    ground = _mat("Sidewalk", (0.55, 0.53, 0.50), 1.0, 0.02)
+    road = _mat("Road", (0.16, 0.16, 0.17), 1.0, 0.0)
+    _assign(_box("Walk", 40, 50, 0.2, (8, 16, -0.1)), ground)
+    _assign(_box("Road", 18, 60, 0.05, (20, 16, 0.01)), road)
     _person()
 
 
@@ -301,7 +321,7 @@ def main():
         cam.location = fr["cam"]
         target.location = fr["target"]
         px, py, pz = fr["penny"]
-        penny.location = (px, py, pz + 0.035)
+        penny.location = (px, py, pz + 0.11)
         rot = fr.get("rot")
         if rot:
             penny.rotation_euler = tuple(rot)

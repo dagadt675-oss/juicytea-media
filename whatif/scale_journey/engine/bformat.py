@@ -215,10 +215,11 @@ def _penny(raw: dict) -> BEpisode:
         (38.4, 1200, 0),
         (39.2, 1250, 0),
     ]
-    close = (0.62, -0.30, 0.22)
-    wide = (0.70, -0.34, 0.24)
-    cap_xy = (0.48, -0.02)
-    ledge_xy = (0.20, 0.0)
+    # Outside the tower corner, so the fall shows sky and the next buildings.
+    close = (1.35, -0.2, 0.72)
+    wide = (1.55, -0.35, 0.85)
+    cap_xy = (0.62, 15.45)
+    ledge_xy = (0.24, 15.15)
     frames = []
     prev_feet, prev_mph = None, None
     feet_from, mph_from = "1,250", "0"
@@ -275,16 +276,17 @@ def _penny(raw: dict) -> BEpisode:
         cam = (penny[0] + off[0], penny[1] + off[1], penny[2] + off[2])
         target = (penny[0] - 0.02, penny[1], penny[2] - 0.02)
         # Face the lens on the way down. Edge-on through the 27–31 s beat. Frame 0 pose at the end.
+        # Y tilt keeps the face toward the camera. The edge beat is the only tumble.
         if phase == "edge":
-            tilt, spin = 0.15, t * 11.0
+            tilt, spin = 0.08, t * 2.2
         elif phase in ("hook", "hold"):
-            tilt, spin = 1.35, 0.2
+            tilt, spin = 1.15, 0.05
         elif phase == "rise":
             u = _fade(t, 36.0, 39.2)
-            tilt = 0.15 + (1.35 - 0.15) * u
-            spin = (1.0 - u) * 2.0
+            tilt = 0.08 + (1.15 - 0.08) * u
+            spin = (1.0 - u) * 0.4
         else:
-            tilt, spin = 1.25, 0.4 + t * 3.4
+            tilt, spin = 1.15, 0.15 * math.sin(t * 1.7)
         title_alpha = 1.0 if phase in ("hook", "hold") else 1.0 - _fade(t, 2.6, 3.3)
         if phase == "rise":
             title_alpha = _fade(t, 38.4, 39.2)

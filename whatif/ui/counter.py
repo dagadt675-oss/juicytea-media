@@ -121,7 +121,7 @@ def draw_scale_counter(
     x = int(width * 0.055)
     y = int(height * 0.175)
     label_font = _font(SANS, max(15, int(width * 0.018)))
-    _shadow_text(img, (x, y), label, label_font, fill=_alpha((255, 255, 255), 230), anchor="lt", radius=3, opacity=110)
+    _shadow_text(img, (x, y), label, label_font, fill=_alpha((255, 122, 40), 255), anchor="lt", radius=3, opacity=110)
     num_font = _fit_anton(number, width * 0.62, max(72, int(width * 0.118)))
     num_y = y + int(height * 0.026)
     box = _slot(img, (x, num_y), previous or number, number, roll, num_font, (255, 248, 242, 255))
@@ -140,7 +140,7 @@ def draw_scale_counter(
         bottom = int(mb[3])
     if second_label and second_number:
         sy = bottom + int(height * 0.016)
-        _shadow_text(img, (x, sy), second_label, label_font, fill=_alpha((255, 255, 255), 220), anchor="lt", radius=3, opacity=100)
+        _shadow_text(img, (x, sy), second_label, label_font, fill=_alpha((255, 122, 40), 255), anchor="lt", radius=3, opacity=100)
         sfont = _fit_anton(second_number, width * 0.40, max(40, int(width * 0.058)))
         sb = _slot(img, (x, sy + int(height * 0.022)), second_previous or second_number, second_number, second_roll, sfont, (255, 248, 242, 255))
         bottom = sb[3]

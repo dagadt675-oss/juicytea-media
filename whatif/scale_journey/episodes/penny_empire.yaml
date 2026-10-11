@@ -3,6 +3,7 @@
 format: B
 id: penny_empire
 title: "Could a falling penny actually kill someone?"
+title_highlight: "kill someone?"
 status: final
 preset: penny_fall
 fps: 30
@@ -16,7 +17,7 @@ timing:
   hook_hold: 3.0
 
 camera:
-  lens_mm: 28
+  lens_mm: 22
   # Close follow. It eases wider on the way down and returns on the rise.
   offset_m: [0.48, -0.11, 0.06]
   penny_x_m: 0.22
