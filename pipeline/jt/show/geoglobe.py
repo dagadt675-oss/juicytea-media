@@ -39,6 +39,26 @@ from jt.show.moves import (
 )
 from jt.show.polys import fill_iso
 
+HAND_PNG = Path("/workspace/asset_library/map_assets/face_parts/face_parts/kenney_shape_characters/PNG/Double/red_hand_point.png")
+ZOOM_PNG = Path("/workspace/asset_library/map_assets/icons_3d/icons_3d/kenney_game_icons_2d/PNG/White/2x/zoom.png")
+QUESTION_PNG = Path("/workspace/asset_library/map_assets/icons_3d/icons_3d/kenney_game_icons_2d/PNG/White/2x/question.png")
+ASPHALT_JPG = Path("/workspace/asset_library/cc0/assets_cc0_materials/materials/ambientcg_2k/Asphalt013/Asphalt013_2K-JPG_Color.jpg")
+ROCK_PHOTO = Path(__file__).resolve().parents[3] / "assets" / "found" / "aerial_rocks_02_diff_1k.jpg"
+_PNG_CACHE: dict[str, skia.Image] = {}
+
+
+def _png(path: Path) -> skia.Image:
+    key = str(path)
+    cached = _PNG_CACHE.get(key)
+    if cached is not None:
+        return cached
+    data = skia.Data.MakeFromFileName(key)
+    image = skia.Image.MakeFromEncoded(data)
+    if image is None:
+        raise FileNotFoundError(path)
+    _PNG_CACHE[key] = image
+    return image
+
 W, H = 1080, 1920
 FPS = 30
 
@@ -186,8 +206,9 @@ class Episode:
                 continue
             dive = match_cut_dive(t, float(beat["t"]), float(beat["t"]) + float(beat.get("dur", 0.7)))
             amount = max(amount, dive["blur"])
-        if t >= self.tail0:
-            amount = max(amount, ease_in(_window(t, self.tail0, self.tail0 + 0.28)))
+        # The loop join is a clean frame. A radial smear on the last frames is not.
+        if t >= self.tail0 - (1.0 / self.fps):
+            return 0.0
         return amount
 
     def render(self, t: float) -> np.ndarray:
@@ -292,11 +313,26 @@ class Episode:
         kick = 0.0
         for hit in (10.2, 11.0, 12.25, 13.35, 14.85, 16.05, 17.7, 19.15):
             age = t - hit
-            if 0.0 <= age <= 0.22:
-                kick = max(kick, math.sin(math.pi * age / 0.22))
+            if 0.0 <= age <= 0.24:
+                kick = max(kick, math.sin(math.pi * age / 0.24))
         s = 4.05 + 0.85 * kick
-        ox = 540.0 + 280.0 * math.sin(t * 2.7)
-        oy = 1000.0 + 190.0 * math.sin(t * 2.2)
+        ox, oy = 480.0, 980.0
+
+        def _zoom(t0: float, dur: float) -> float:
+            if t < t0 or dur <= 0.0:
+                return 0.0
+            u = _clamp((t - t0) / dur)
+            return u * u * (3.0 - 2.0 * u)
+
+        # In-frame pushes on the rock photo. They settle; they do not wander off.
+        s *= 1.0 + 0.32 * _zoom(10.15, 0.7)
+        s *= 1.0 + 0.26 * _zoom(12.3, 0.65)
+        s *= 1.0 + 0.24 * _zoom(14.1, 0.65)
+        s *= 1.0 + 0.22 * _zoom(15.4, 0.6)
+        s *= 1.0 + 0.22 * _zoom(16.2, 0.7)
+        s *= 1.0 + 0.2 * _zoom(17.7, 0.6)
+        s *= 1.0 + 0.18 * _zoom(18.6, 0.55)
+        ox += 90.0 * _zoom(10.3, 0.8) + 70.0 * _zoom(16.4, 0.8)
 
         def pt(x, y):
             return ox + x * s, oy - y * s
@@ -307,9 +343,17 @@ class Episode:
         for xy in ISLAND[1:]:
             path.lineTo(*pt(*xy))
         path.close()
-        sand = skia.Paint(AntiAlias=True)
-        sand.setColor(skia.ColorSetARGB(int(255 * alpha), 196, 176, 120))
-        canvas.drawPath(path, sand)
+        rock = _png(ROCK_PHOTO)
+        canvas.save()
+        canvas.clipPath(path, skia.ClipOp.kIntersect, True)
+        bounds = path.getBounds()
+        canvas.drawImageRect(
+            rock,
+            skia.Rect.MakeWH(rock.width(), rock.height()),
+            bounds,
+            skia.SamplingOptions(skia.FilterMode.kLinear, skia.MipmapMode.kLinear),
+        )
+        canvas.restore()
         shore = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=6)
         shore.setColor(skia.ColorSetARGB(255, 255, 248, 230))
         canvas.drawPath(path, shore)
@@ -364,14 +408,15 @@ class Episode:
         canvas.translate(rect.centerX(), rect.centerY())
         canvas.scale(0.7 + 0.3 * pop, 0.7 + 0.3 * pop)
         canvas.translate(-rect.centerX(), -rect.centerY())
-        paint = skia.Paint(AntiAlias=True)
-        paint.setColor(skia.ColorSetARGB(235, 90, 92, 98))
-        canvas.drawRoundRect(rect, 8, 8, paint)
-        pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=3)
-        pen.setColor(skia.ColorSetARGB(220, 255, 255, 255))
-        for i in range(1, 5):
-            yy = rect.top() + (rect.height() / 5) * i
-            canvas.drawLine(rect.left() + 8, yy, rect.right() - 8, yy, pen)
+        canvas.save()
+        canvas.clipRect(rect, True)
+        canvas.drawImageRect(
+            _png(ASPHALT_JPG),
+            skia.Rect.MakeWH(_png(ASPHALT_JPG).width(), _png(ASPHALT_JPG).height()),
+            rect,
+            skia.SamplingOptions(skia.FilterMode.kLinear, skia.MipmapMode.kLinear),
+        )
+        canvas.restore()
         _label(canvas, "PARKING LOT", rect.centerX(), rect.bottom() + 36, 28)
         canvas.restore()
 
@@ -590,21 +635,23 @@ def draw_flag(canvas, x, y, w, h, which: str) -> None:
 
 
 def draw_hand_magnifier(canvas, x, y, pop: float) -> None:
+    """Kenney hand plus Kenney magnifier. About one third of the frame wide."""
+    if pop <= 0.02:
+        return
+    hand = _png(HAND_PNG)
+    glass = _png(ZOOM_PNG)
+    width = 360.0 * pop
     canvas.save()
     canvas.translate(x, y)
-    canvas.scale(pop, pop)
-    skin = skia.Paint(AntiAlias=True)
-    skin.setColor(skia.ColorSetARGB(255, 240, 196, 156))
-    canvas.drawRoundRect(skia.Rect.MakeXYWH(-70, -20, 90, 70), 24, 24, skin)
-    for i, fx in enumerate((-48, -16, 14)):
-        canvas.drawRoundRect(skia.Rect.MakeXYWH(fx, -78 - (i % 2) * 10, 26, 64), 12, 12, skin)
-    rim = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=10)
-    rim.setColor(skia.ColorSetARGB(255, 48, 48, 52))
-    canvas.drawCircle(20, -110, 58, rim)
-    glass = skia.Paint(AntiAlias=True)
-    glass.setColor(skia.ColorSetARGB(60, 180, 220, 255))
-    canvas.drawCircle(20, -110, 50, glass)
-    canvas.drawRoundRect(skia.Rect.MakeXYWH(8, -58, 16, 40), 6, 6, rim)
+    scale = width / hand.width()
+    canvas.scale(scale, scale)
+    canvas.drawImage(hand, -hand.width() * 0.55, -hand.height() * 0.35)
+    glass_w = hand.width() * 0.72
+    gs = glass_w / glass.width()
+    canvas.save()
+    canvas.scale(gs, gs)
+    canvas.drawImage(glass, hand.width() * 0.05 / gs, -hand.height() * 0.72 / gs)
+    canvas.restore()
     canvas.restore()
 
 
@@ -738,10 +785,16 @@ def draw_thumb(canvas, x, y, pop: float) -> None:
 
 
 def _question(canvas, x, y, r):
-    paint = skia.Paint(AntiAlias=True)
-    paint.setColor(skia.ColorSetARGB(255, 255, 255, 255))
-    canvas.drawCircle(x, y, r, paint)
-    _label(canvas, "?", x, y + r * 0.34, r * 0.95, (20, 24, 32))
+    icon = _png(QUESTION_PNG)
+    side = max(200.0, r * 2.6)
+    canvas.save()
+    canvas.translate(x, y)
+    canvas.scale(side / icon.width(), side / icon.height())
+    shade = skia.Paint(AntiAlias=True)
+    shade.setColor(skia.ColorSetARGB(210, 12, 16, 24))
+    canvas.drawCircle(icon.width() * 0.5, icon.height() * 0.5, icon.width() * 0.62, shade)
+    canvas.drawImage(icon, 0, 0)
+    canvas.restore()
 
 
 def _arrow(canvas, x, y, pop, rot):

@@ -79,3 +79,13 @@ Append-only log of files found on the web for this branch, so they can be mirror
 - Size: 1,988 bytes (license file 1,059 bytes)
 - For: the radial zoom-blur kernel used by `apply_zoom_blur` in `pipeline/jt/show/moves.py`
 - Copy: `assets/found/code/glfx-zoomblur.js`, `assets/found/code/glfx-LICENSE`
+
+## Poly Haven aerial rocks
+
+- Name: `aerial_rocks_02_diff_1k.jpg`
+- Direct download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/aerial_rocks_02/aerial_rocks_02_diff_1k.jpg
+- Source page: https://polyhaven.com/a/aerial_rocks_02
+- License: CC0. No on-screen credit required.
+- Size: 785,923 bytes
+- For: rocky texture on the Märket close-up, clipped to the islet, instead of a flat fill
+- Copy: `assets/found/aerial_rocks_02_diff_1k.jpg`
