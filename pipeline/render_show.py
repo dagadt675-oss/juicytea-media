@@ -21,12 +21,14 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
 from jt.show.greenland import (  # noqa: E402
+    CLOCK,
     DURATION,
     FPS,
     N,
     TAIL1,
     Greenland,
     cue_payload,
+    scale_report,
     timeline_payload,
 )
 from jt.show.qa import motion_per_second, report, write_report  # noqa: E402
@@ -66,6 +68,10 @@ def _encode(show: Greenland, path: Path) -> dict:
         for i in range(N):
             t = i / FPS
             img, hits = show.render(t)
+            # Drag is authored at 60 fps and averaged down to the 30 fps file.
+            if CLOCK.drag - 0.02 <= t <= CLOCK.drop + 0.5:
+                earlier, _earlier_hits = show.render(max(0.0, t - (1.0 / 60.0)))
+                img = ((img.astype(np.uint16) + earlier.astype(np.uint16)) // 2).astype(np.uint8)
             if hits:
                 band_max = max(band_max, hits)
                 if len(band_at) < 8:
@@ -135,6 +141,18 @@ def main() -> None:
         stats = _encode(show, OUT / "greenland_africa.mp4")
         (OUT / "encode_stats.json").write_text(json.dumps(stats, indent=2) + "\n", encoding="utf-8")
         print(json.dumps(stats, indent=2))
+        engine = {
+            "scale": scale_report(),
+            "fourteen": getattr(show, "qc_fourteen", None),
+            "pack": getattr(show, "qc_pack", None),
+        }
+        engine["pass"] = bool(
+            engine["scale"]["pass"]
+            and (engine["fourteen"] or {}).get("pass")
+            and (engine["pack"] or {}).get("pass")
+        )
+        (OUT / "engine_qc.json").write_text(json.dumps(engine, indent=2) + "\n", encoding="utf-8")
+        print(json.dumps(engine, indent=2))
         qa = report(OUT / "greenland_africa.mp4", cues["cues"])
         write_report(OUT / "qa.json", qa)
         motion = motion_per_second(OUT / "greenland_africa.mp4")

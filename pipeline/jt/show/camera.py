@@ -59,6 +59,7 @@ def mix(a: Cam, b: Cam, u: float) -> Cam:
 class Key:
     t: float
     cam: Cam
+    ease: str = "linear"
 
 
 class CameraTrack:
@@ -82,8 +83,9 @@ class CameraTrack:
                 continue
             span = b.t - a.t
             u = 0.0 if span <= 1e-6 else (t - a.t) / span
-            # Linear keeps a constant step, so a second never dies at a key.
-            s = _ease(u, "linear")
+            # Linear on the busy moves. The outro key asks for an in-out ease
+            # so the wide return does not read as a cut.
+            s = _ease(u, a.ease or "linear")
             if a.cam.proj != b.cam.proj:
                 return CamState(a.cam, b.cam, s)
             return CamState(mix(a.cam, b.cam, s))

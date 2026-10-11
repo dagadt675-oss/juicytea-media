@@ -39,6 +39,36 @@ def _shade(earth) -> np.ndarray:
     return np.clip(earth.shade.astype(np.float32) / 220.0, 0.25, 1.15)
 
 
+def _load_bluemarble() -> np.ndarray | None:
+    """NASA Blue Marble topo+bathy, July, scaled to the plate the camera samples.
+
+    The source is the public-domain 21600×10800 JPEG in the asset library.
+    The working plate is 10800×5400 so a frame stays as cheap as Natural Earth II.
+    """
+    cache = ROOT / "data" / "cache" / "bmng_jul_10800.npy"
+    if cache.exists():
+        return np.load(cache)
+    src = None
+    for candidate in (
+        Path("/workspace/asset_library/extra/blue_marble/world.topo.bathy.200407.3x21600x10800.jpg"),
+        Path("/workspace/asset_library/map_assets/basemaps/basemaps/nasa_blue_marble/world.topo.bathy.200407.3x21600x10800.jpg"),
+    ):
+        if candidate.exists():
+            src = candidate
+            break
+    if src is None:
+        return None
+    print("building Blue Marble plate", src.name, flush=True)
+    # The NASA plate is 21600×10800, above Pillow's default bomb ceiling.
+    Image.MAX_IMAGE_PIXELS = 250_000_000
+    im = Image.open(src).convert("RGB")
+    im = im.resize((10800, 5400), Image.Resampling.LANCZOS)
+    arr = np.asarray(im)
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    np.save(cache, arr)
+    return arr
+
+
 def _load_ne2() -> np.ndarray:
     """Natural Earth II, 10800×5400, row 0 at the north. Cached after the first read."""
     if NE2_CACHE.exists():
@@ -69,7 +99,9 @@ def build_plates(earth) -> dict[str, np.ndarray]:
     global _CACHE
     if _CACHE is not None:
         return _CACHE
-    sat = _load_ne2()
+    sat = _load_bluemarble()
+    if sat is None:
+        sat = _load_ne2()
     # A hair of darkening so a bright fill still reads. The hues stay natural.
     dark = np.clip(sat.astype(np.float32) * 0.96, 0, 255).astype(np.uint8)
     ids = earth.ids

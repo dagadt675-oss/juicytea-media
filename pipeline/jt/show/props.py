@@ -89,7 +89,7 @@ def equal_bars(canvas, x0: float, x1: float, y: float, length: float, pop: float
         canvas.drawLine(x - length / 2, y, x + length / 2, y, paint)
 
 
-def dashed_path(canvas, cam, lonlat, w: int, h: int, grow: float):
+def dashed_path(canvas, cam, lonlat, w: int, h: int, grow: float, phase: float = 0.0):
     if grow <= 0.02 or cam.proj != "merc":
         return
     view = view_for(cam, w, h)
@@ -125,7 +125,7 @@ def dashed_path(canvas, cam, lonlat, w: int, h: int, grow: float):
         path.lineTo(x, y)
     pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=5)
     pen.setColor(skia.ColorSetARGB(220, 255, 244, 220))
-    pen.setPathEffect(skia.DashPathEffect.Make([10, 12], 0))
+    pen.setPathEffect(skia.DashPathEffect.Make([14, 12], float(phase)))
     canvas.drawPath(path, pen)
 
 

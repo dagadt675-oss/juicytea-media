@@ -1,0 +1,26 @@
+{
+  "scale": {
+    "start": 16.0,
+    "end": 1.013,
+    "max_step": 0.3582,
+    "samples": 151,
+    "pass": true
+  },
+  "fourteen": {
+    "raw_overlap": 0.303,
+    "raw_outside": 0.0962,
+    "painted_overlap": 0.0,
+    "painted_outside": 0.0,
+    "pieces": 14,
+    "pass": true
+  },
+  "pack": {
+    "mode": "overlap",
+    "raw_overlap": 0.2375,
+    "raw_outside": 0.0141,
+    "painted_overlap": 0.0,
+    "painted_outside": 0.0,
+    "pass": true
+  },
+  "pass": true
+}

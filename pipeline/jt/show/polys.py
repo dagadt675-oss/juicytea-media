@@ -158,7 +158,7 @@ class Shape:
 
     def draw(self, canvas, ox: float, oy: float, px_per_m: float, rgb, alpha: int,
              pop: float = 1.0, shadow: float = 1.0, stroke=(255, 255, 255), stroke_w: float = 5.0,
-             rot: float = 0.0):
+             rot: float = 0.0, under: bool = False):
         if pop <= 0.02 or not self.polys:
             return
         if alpha <= 0 and stroke is None:
@@ -177,7 +177,8 @@ class Shape:
             for x, y in zip(xs[1:], ys[1:]):
                 path.lineTo(float(x), float(y))
             path.close()
-        if shadow > 0:
+        blend = skia.BlendMode.kDstOver if under else skia.BlendMode.kSrcOver
+        if shadow > 0 and not under:
             shade = skia.Paint(AntiAlias=True)
             shade.setColor(skia.ColorSetARGB(int(80 * shadow), 0, 0, 0))
             canvas.save()
@@ -185,10 +186,12 @@ class Shape:
             canvas.drawPath(path, shade)
             canvas.restore()
         paint = skia.Paint(AntiAlias=True)
+        paint.setBlendMode(blend)
         paint.setColor(skia.ColorSetARGB(int(alpha), rgb[0], rgb[1], rgb[2]))
         canvas.drawPath(path, paint)
         if stroke is not None:
             pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=stroke_w)
+            pen.setBlendMode(blend)
             pen.setColor(skia.ColorSetARGB(255, stroke[0], stroke[1], stroke[2]))
             canvas.drawPath(path, pen)
 

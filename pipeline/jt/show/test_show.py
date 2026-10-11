@@ -46,10 +46,11 @@ def main() -> None:
     assert open_pose["lying"] == 1.0
     assert open_pose["disp"] == 16.0
     assert pose(12.80)["disp"] == 16.0
-    assert pose(20.70)["disp"] == 1.0
-    assert pose(18.20)["disp"] == 8.0
-    assert abs(pose(18.78)["disp"] - 4.0) < 0.05
-    assert abs(pose(19.78)["disp"] - 2.0) < 0.05
+    from jt.show.greenland import CLOCK, scale_report
+    report = scale_report()
+    assert report["pass"], report
+    assert abs(pose(CLOCK.drag)["disp"] - 16.0) < 0.05
+    assert pose(CLOCK.drop)["disp"] < 2.2
 
     mouth, bob = gag_pose(4.60, 4.442, 5.022, 2)
     assert mouth > 0.4 and bob > 0.0

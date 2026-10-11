@@ -156,10 +156,14 @@ def pill(hud: Hud, text: str, cx: float, cy: float, fill, ink=(255, 255, 255),
     top = min(max(16, top), hud.h - th - 16)
     rect = skia.Rect.MakeXYWH(left, top, tw, th)
     radius = th / 2
+    shadow = skia.Paint(AntiAlias=True)
+    shadow.setColor(skia.ColorSetARGB(46, 16, 18, 24))
+    shadow.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 14))
+    hud.canvas.drawRRect(skia.RRect.MakeRectXY(rect.makeOffset(0, 6), radius, radius), shadow)
     if glow is not None:
         g = skia.Paint(AntiAlias=True)
-        g.setColor(skia.ColorSetARGB(90, glow[0], glow[1], glow[2]))
-        g.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 10))
+        g.setColor(skia.ColorSetARGB(48, glow[0], glow[1], glow[2]))
+        g.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 16))
         hud.canvas.drawRRect(skia.RRect.MakeRectXY(rect.makeOutset(4, 4), radius, radius), g)
     body = skia.Paint(AntiAlias=True)
     body.setColor(skia.ColorSetARGB(235, fill[0], fill[1], fill[2]))

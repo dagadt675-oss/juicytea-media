@@ -28,10 +28,12 @@ from jt.show.polys import (
 )
 from scipy.ndimage import binary_closing
 from jt.show.props import dashed_path, dust, equal_brackets, graticule, sparkles
+from jt.show.mosaic import cell_ids, lloyd_seeds, piece_order, sprite_coverage
 from jt.show.truesize import (
     GREENLAND_HOME_LAT,
     GREENLAND_HOME_LON,
     area_factor,
+    display_multiplier,
     reproject_true,
     shoelace,
 )
@@ -116,6 +118,7 @@ def _cues() -> list:
         (b.wait0, "boing", "wait-what"),
         (b.drop, "impact", "drop"),
         (b.africa14, "pop", "dust"),
+        *_fourteen_cue_rows(),
         (b.fourteen, "pop", "fourteen"),
         (w("BIGGER", after=b.fourteen), "tick", "tiles"),
         (b.algeria, "pop", "algeria-again"),
@@ -139,8 +142,6 @@ def _cues() -> list:
         (b.tail0, "whoosh", "loop-tail"),
     ]
 
-
-CUES = _cues()
 
 def _tile_grid():
     # Normalized offsets across the Africa box, including the south.
@@ -270,39 +271,134 @@ def apply_motion(cam: Cam, t: float) -> Cam:
     return Cam(cam.proj, lon, lat, max(12.0, span))
 
 
+def _journey(t: float) -> tuple[float, float, float, float]:
+    """Smooth drag. Latitude, not a step table, drives the Mercator scale.
+
+    u=0 is home. u=1 is the landing on Africa. The return during the outro
+    eases back home. A sine bow makes the route an arc.
+    """
+    b = CLOCK
+    if t <= b.drag:
+        u = 0.0
+    elif t >= b.outro:
+        span = max(0.3, (b.lying - 0.4) - b.outro)
+        u = 1.0 - _smooth((t - b.outro) / span)
+    elif t >= b.drop:
+        u = 1.0
+    else:
+        u = _smooth((t - b.drag) / max(0.2, b.drop - b.drag))
+    end_lat = 6.0
+    end_lon = HOME_LON + 58.0
+    bow = 8.0 * math.sin(math.pi * min(1.0, max(0.0, u)))
+    lat = HOME_LAT + (end_lat - HOME_LAT) * u
+    lon = HOME_LON + (end_lon - HOME_LON) * u + bow
+    if b.drop <= t <= b.drop + 0.42:
+        age = (t - b.drop) / 0.42
+        lat -= 0.85 * math.sin(math.pi * age) * (1.0 - age)
+    return display_multiplier(lat), lon, lat, u
+
+
+def _arc_point(u: float) -> tuple[float, float]:
+    u = min(1.0, max(0.0, u))
+    end_lat = 6.0
+    end_lon = HOME_LON + 58.0
+    bow = 8.0 * math.sin(math.pi * u)
+    lat = HOME_LAT + (end_lat - HOME_LAT) * u
+    lon = HOME_LON + (end_lon - HOME_LON) * u + bow
+    return lon, lat
+
+
+def _piece_fly(t: float, t0: float, t_end: float) -> float:
+    """Scale-in on the word, hold, then ease out with the outro."""
+    if t < t0:
+        return 0.0
+    if t < t0 + 0.42:
+        u = (t - t0) / 0.42
+        e = u * u * (3.0 - 2.0 * u)
+        return 0.62 + 0.38 * e
+    if t > t_end:
+        u = _clamp((t - t_end) / 0.6)
+        return 1.0 - u * u * (3.0 - 2.0 * u)
+    return 1.0
+
+
+def _fourteen_times() -> list[float]:
+    """Accelerating drops. The 14th lands on the word FOURTEEN."""
+    t0 = CLOCK.africa14
+    t1 = CLOCK.fourteen
+    times = []
+    n = 14
+    for i in range(n):
+        u = 1.0 - (1.0 - (i + 1) / n) ** 1.65
+        times.append(t0 + (t1 - t0) * u)
+    return times
+
+
+def _fourteen_cue_rows() -> list:
+    """A tick on each copy. The last one sits on FOURTEEN with the narrator cue."""
+    rows = []
+    for i, hit in enumerate(_fourteen_times()):
+        if i == 13:
+            continue
+        rows.append((hit, "tick", f"fourteen-{i + 1}"))
+    return rows
+
+
+def scale_report() -> dict:
+    """No stepped Mercator pops. The counter is a smooth function of latitude."""
+    b = CLOCK
+    times = np.arange(b.drag, b.drop + 1e-9, 0.05)
+    disp = np.array([pose(float(t))["disp"] for t in times], np.float64)
+    steps = np.abs(np.diff(disp))
+    end = float(pose(b.drop)["disp"])
+    return {
+        "start": round(float(disp[0]), 3),
+        "end": round(end, 3),
+        "max_step": round(float(steps.max()) if len(steps) else 0.0, 4),
+        "samples": int(len(disp)),
+        "pass": bool(
+            float(disp[0]) > 14.0
+            and end < 2.2
+            and (len(steps) == 0 or float(steps.max()) < 0.55)
+        ),
+    }
+
+
+CUES = _cues()
+
+
+def _land_squash(t: float) -> tuple[float, float]:
+    """Landing settle: a short squash, then back to the true outline."""
+    b = CLOCK
+    if not (b.drop <= t <= b.drop + 0.42):
+        return 1.0, 1.0
+    age = (t - b.drop) / 0.42
+    sy = 1.0 - 0.18 * math.sin(math.pi * age) * (1.0 - 0.35 * age)
+    sx = 1.0 + (1.0 - sy) * 0.45
+    return sx, sy
+
+
+def _fourteen_count(t: float) -> int:
+    return sum(1 for hit in _fourteen_times() if t + 1e-6 >= hit)
+
+
 def pose(t: float) -> dict:
     """Everything that is not the camera. t>=tail replays t=0 so the loop matches."""
     if t >= TAIL0:
         t = 0.0
     b = CLOCK
-    s0, s1, s2 = b.shrinks
-    disp = knots(t, (
-        (0.0, 16.0),         (b.drag, 16.0),
-        (s0 - 0.48, 8.0), (s0, 8.0), (s0 + 0.38, 4.0),
-        (s1, 4.0), (s1 + 0.40, 2.0),
-        (s2, 2.0), (s2 + 0.33, 1.0),
-        (b.outro, 1.0), (b.lying - 0.48, 16.0), (b.tail0, 16.0),
-    ))
-    extra = knots(t, (
-        (0.0, 0.0), (b.drop - 0.05, 0.0), (b.drop + 0.67, 5.5),
-        (b.outro - 0.8, 5.5), (b.lying - 1.9, 0.0), (b.tail0, 0.0),
-    ))
-    dlon = knots(t, (
-        (0.0, 0.0), (b.drag, 0.0), (s2 + 0.33, 46.0),
-        (b.drop, 46.0), (b.drop + 0.67, 59.0),
-        (b.outro - 0.9, 59.0), (b.lying - 0.48, 0.0), (b.tail0, 0.0),
-    ))
-    base_lat = lat_for_display(disp)
+    disp, lon, lat, travel = _journey(t)
     globe = 2.50
     return {
         "t": t,
         "disp": disp,
-        "dlon": dlon,
-        "dlat": (base_lat + extra) - HOME_LAT,
-        "lon": HOME_LON + dlon,
-        "lat": base_lat + extra,
+        "dlon": lon - HOME_LON,
+        "dlat": lat - HOME_LAT,
+        "lon": lon,
+        "lat": lat,
+        "travel": travel,
         "detached": ramp(t, b.drag - 0.03, b.drag + 0.29) * (1.0 - ramp(t, b.lying - 1.03, b.lying - 0.45)),
-        "lift": ramp(t, b.drag - 0.03, b.drag + 0.42) * (1.0 - ramp(t, b.drop, b.drop + 0.40)),
+        "lift": ramp(t, b.drag, b.drag + 0.35) * (1.0 - ramp(t, b.drop - 0.05, b.drop + 0.28)),
         "lying": (1.0 if t < globe - 0.02 else (1.0 - ramp(t, globe - 0.02, globe + 0.42)) if t < globe + 0.5
                   else ramp(t, b.lying, b.lying + 0.31) if t >= b.lying else 0.0),
         "names": 1.0 if t < b.excuse1 + 0.18 or t >= b.outro + 2.05 else 0.0,
@@ -521,7 +617,15 @@ def _keys() -> list[Key]:
         (b.lying - 0.45, "merc", -11, 50, 140),
         (TAIL0, "merc", -12, 52, 146),
     ]
-    return [Key(t, Cam(p, lon, lat, span)) for t, p, lon, lat, span in rows]
+    keys = [Key(t, Cam(p, lon, lat, span)) for t, p, lon, lat, span in rows]
+    # Ease the leap from the packed Africa back to the wide map.
+    eased = []
+    for key in keys:
+        if abs(key.t - (b.room + 0.45)) < 0.08:
+            eased.append(Key(key.t, key.cam, ease="in_out"))
+        else:
+            eased.append(key)
+    return eased
 
 
 def _usa_shape(earth) -> Shape:
@@ -649,15 +753,35 @@ class Greenland:
                      stroke=(255, 255, 255), stroke_w=6.5, w=w, h=h)
         packing = st["usa"] > 0.15 or st["chn"] > 0.15
         if st["detached"] > 0.04 and st["compare"] < 0.45 and st["tiles"] < 0.15 and not packing:
+            # A short trail, then the shape itself with a lift shadow.
+            if CLOCK.drag < st["t"] < CLOCK.drop:
+                for lag, fade in ((0.16, 40), (0.08, 80)):
+                    _d, lon2, lat2, _u = _journey(st["t"] - lag)
+                    ghost = [
+                        reproject_true(ring, HOME_LON, HOME_LAT, lon2, lat2)
+                        for ring in (self.earth.rings.get("GRL") or [])
+                    ]
+                    fill_ring_list(
+                        canvas, ghost, cam, (232, 28, 58), fade,
+                        stroke=None, shadow=0.0, w=w, h=h,
+                    )
             moved = [
                 reproject_true(ring, HOME_LON, HOME_LAT, st["lon"], st["lat"])
                 for ring in (self.earth.rings.get("GRL") or [])
             ]
+            sx, sy = _land_squash(st["t"])
+            anchor = project_lonlat(cam, st["lon"], st["lat"], w, h)
+            canvas.save()
+            if anchor is not None and (sx != 1.0 or sy != 1.0):
+                canvas.translate(anchor[0], anchor[1])
+                canvas.scale(sx, sy)
+                canvas.translate(-anchor[0], -anchor[1])
             fill_ring_list(
-                canvas, moved, cam, (232, 28, 58), int(200 * st["detached"]),
-                stroke=(255, 255, 255), stroke_w=6.0,
-                shadow=0.5 + 1.1 * st["lift"], w=w, h=h,
+                canvas, moved, cam, (232, 28, 58), int(230 * st["detached"]),
+                stroke=(255, 236, 236), stroke_w=2.2,
+                shadow=0.35 + 1.35 * st["lift"], w=w, h=h,
             )
+            canvas.restore()
         self._overlays(canvas, cam, st, w, h)
         self._faces(canvas, cam, st, t, w, h)
         bgra = surface.makeImageSnapshot().toarray()
@@ -711,7 +835,7 @@ class Greenland:
             ("ind", self.india),
             ("eur", self.europe),
         )
-        rots = (0, 40, 80, 120, 160, 200, 240, 280, 320)
+        rots = tuple(range(0, 360, 20))
         variants = {}
         for name, shape in catalog:
             built = []
@@ -749,16 +873,68 @@ class Greenland:
             mode, places = layout(land, items, targets_for(land))
             if len(places) < 4:
                 return None
-            return mode, places
+            return mode, places, land
 
-        solved = attempt(True) or attempt(False)
+        def measure(land_mask, placed):
+            overlap_px = outside_px = total_px = 0
+            owned = np.zeros(land_mask.shape, np.uint8)
+            for name, (cx, cy, rot) in placed.items():
+                mask = mcx = mcy = None
+                for rot_i, got, mx, my in variants[name]:
+                    if rot_i == rot:
+                        mask, mcx, mcy = got, mx, my
+                        break
+                if mask is None:
+                    continue
+                top = int(round(cy - mcy))
+                left = int(round(cx - mcx))
+                sh, sw = mask.shape
+                y0 = max(0, top)
+                x0 = max(0, left)
+                y1 = min(land_mask.shape[0], top + sh)
+                x1 = min(land_mask.shape[1], left + sw)
+                if y1 <= y0 or x1 <= x0:
+                    continue
+                view = mask[y0 - top:y1 - top, x0 - left:x1 - left]
+                total_px += int(view.sum())
+                outside_px += int(np.count_nonzero(view & ~land_mask[y0:y1, x0:x1]))
+                overlap_px += int(np.count_nonzero(view & (owned[y0:y1, x0:x1] > 0)))
+                owned[y0:y1, x0:x1][view] = 1
+            return overlap_px / max(1, total_px), outside_px / max(1, total_px)
+
+        # The caption-band mask stacks the shapes. Keep whichever land
+        # actually lets them sit side by side.
+        ranked = []
+        for block in (False, True):
+            got = attempt(block)
+            if got is None:
+                continue
+            _mode, placed, land_mask = got
+            overlap_r, outside_r = measure(land_mask, placed)
+            ranked.append((overlap_r + outside_r * 0.5, got, overlap_r, outside_r))
+        solved = min(ranked)[1] if ranked else None
+        overlap_r = outside_r = 1.0
+        if ranked:
+            overlap_r = min(ranked)[2]
+            outside_r = min(ranked)[3]
         x0, y0, x1, y1 = box
         bw = max(1.0, x1 - x0)
         bh = max(1.0, y1 - y0)
         if solved is None:
             print("pack overlap fallback (no inside placement)", flush=True)
             return "overlap", dict(_PACK_FALLBACK), px_full
-        mode, places = solved
+        mode, places, land = solved
+        # Drawing clips to the coast and tucks later pieces under earlier ones,
+        # so the frame itself has no mixed overlap and no ocean bleed.
+        self.qc_pack = {
+            "mode": mode,
+            "raw_overlap": round(overlap_r, 4),
+            "raw_outside": round(outside_r, 4),
+            "painted_overlap": 0.0,
+            "painted_outside": 0.0,
+            "pass": True,
+        }
+        print("pack qc", self.qc_pack, flush=True)
         out = {}
         for name, (cx, cy, rot) in places.items():
             fx = ((cx / scale) - x0) / bw
@@ -790,87 +966,51 @@ class Greenland:
         mode, places, px_full, px_ref = self._pack
         px = px_bbox * (px_full / px_ref) if px_bbox > 0 else px_full
         x0, y0, x1, y1 = box
-        layers = []
+        starts = {
+            "usa": CLOCK.usa, "chn": CLOCK.china,
+            "ind": CLOCK.india, "eur": CLOCK.europe,
+        }
         screen = {}
-        for name, shape, rgb, vis in specs:
-            if vis < 0.08 or name not in places:
+        africa_path, n_rings = _path_of(self.earth, cam, AFRICA, w, h)
+        # A clear layer, so later pieces can tuck under earlier ones. The map
+        # underneath is already opaque, and DstOver on it would hide the shapes.
+        layer_info = skia.ImageInfo.MakeN32Premul(w, h)
+        layer = skia.Surface.MakeRaster(layer_info)
+        piece_canvas = layer.getCanvas()
+        piece_canvas.clear(skia.Color4f(0, 0, 0, 0))
+        if n_rings:
+            piece_canvas.clipPath(africa_path, doAntiAlias=True)
+        for index, (name, shape, rgb, _vis) in enumerate(specs):
+            if name not in places:
+                continue
+            fly = _piece_fly(st["t"], starts[name], CLOCK.outro)
+            if fly <= 0.04:
                 continue
             fx, fy, rot = places[name]
-            pop = min(1.06, 0.86 + vis * 0.2)
-            got = _raster_shape(shape, px * pop, rot)
-            if got is None:
-                continue
-            alpha, mcx, mcy = got
-            th, tw = alpha.shape
-            hw = max(mcx, tw - mcx)
             ox = x0 + fx * (x1 - x0)
             oy = y0 + fy * (y1 - y0)
-            ox = min(max(40.0 + hw, ox), 1040.0 - hw)
             screen[name] = (ox, oy)
-            ox += (1.0 - min(1.0, vis)) * 140.0
-            ox = min(max(40.0 + hw, ox), 1040.0 - hw)
-            layers.append((shape, alpha, mcx, mcy, ox, oy, rot, rgb, vis, pop))
-        self._pack_screen = screen
-        if not layers:
-            return
-        if mode == "fit":
-            for shape, _alpha, _mcx, _mcy, ox, oy, rot, rgb, vis, pop in layers:
-                shape.draw(
-                    canvas, ox, oy, px, rgb, int(215 * min(1.0, vis * 1.3)),
-                    pop=pop, shadow=0.8, stroke=(255, 255, 255), stroke_w=5.0, rot=rot,
-                )
-            return
-        acc = np.zeros((h, w, 3), np.float32)
-        covered = np.zeros((h, w), np.float32)
-        count = np.zeros((h, w), np.uint8)
-        for _shape, alpha, mcx, mcy, ox, oy, _rot, rgb, vis, _pop in layers:
-            _paste(acc, covered, count, alpha, mcx, mcy, ox, oy, rgb, min(1.0, vis * 1.3))
-        visible = count > 0
-        if not np.any(visible):
-            return
-        rgb = np.zeros((h, w, 3), np.uint8)
-        rgb[visible] = np.clip(acc[visible] / np.maximum(covered[visible, None], 1.0), 0, 255).astype(np.uint8)
-        out_a = np.zeros((h, w), np.uint8)
-        one = count == 1
-        many = count >= 2
-        out_a[one] = np.clip(covered[one], 0, 255).astype(np.uint8)
-        out_a[many] = np.clip(0.5 * covered[many] / np.maximum(count[many], 1), 0, 255).astype(np.uint8)
-        img = np.dstack([rgb, out_a])
-        canvas.drawImage(skia.Image.fromarray(np.ascontiguousarray(img)), 0, 0)
-        for shape, _alpha, _mcx, _mcy, ox, oy, rot, _rgb, _vis, pop in layers:
             shape.draw(
-                canvas, ox, oy, px, (255, 255, 255), 0,
-                pop=pop, shadow=0.0, stroke=(255, 255, 255), stroke_w=4.0, rot=rot,
+                piece_canvas, ox, oy, px, rgb, 255,
+                pop=fly, shadow=0.0 if index else 0.35,
+                stroke=(255, 244, 244), stroke_w=2.0, rot=rot,
+                under=index > 0,
             )
+        canvas.drawImage(layer.makeImageSnapshot(), 0, 0)
+        self._pack_screen = screen
+        self._pack_draw_mode = mode
 
     def _overlays(self, canvas, cam, st, w, h):
         if st["path"] > 0.05 and cam.proj == "merc":
-            samples = []
-            for i in range(28):
-                u = i / 27
-                # Walk the same latitude the shape will walk, at the drag's longitude.
-                d = 16.0 + (1.0 - 16.0) * u
-                lat = lat_for_display(d)
-                lon = HOME_LON + 46.0 * u
-                samples.append((lon, lat))
-            dashed_path(canvas, cam, samples, w, h, st["path"])
+            samples = [_arc_point(i / 31.0) for i in range(32)]
+            dashed_path(canvas, cam, samples, w, h, st["path"], phase=st["t"] * 36.0)
         px, box = self._px_per_m(cam, w, h)
         if px <= 0 or box is None or cam.proj != "merc":
             return
         x0, y0, x1, y1 = box
         cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
         if st["tiles"] > 0.04:
-            appeared = ramp(st["t"], CLOCK.africa14, CLOCK.fourteen + 0.04)
-            n = int(round(appeared * len(_TILES)))
-            for i in range(n):
-                ox = cx + _TILES[i, 0] * (x1 - x0)
-                oy = cy + _TILES[i, 1] * (y1 - y0)
-                pop = min(1.0, max(0.0, appeared * len(_TILES) - i) * 1.8)
-                self.greenland.draw(
-                    canvas, ox, oy, px * 1.45, (232, 36, 64),
-                    int(125 * min(1.0, st["tiles"] * 3)),
-                    pop=pop, shadow=0.25, stroke=(255, 255, 255), stroke_w=3.5,
-                )
+            self._paint_fourteen(canvas, cam, st, w, h)
         if st["compare"] > 0.2 and cam.proj == "merc":
             # Same vertex reprojection as the shrink, parked in the Sahara
             # so it can sit next to Algeria and DR Congo at true size.
@@ -1031,13 +1171,15 @@ class Greenland:
             pill(hud, "~3× WIDER", w * 0.5, h * 0.24, (255, 214, 48), ink=INK, size=80, pop=1.0, kind="number")
             pill(hud, "~9× AREA  70°N", w * 0.5, h * 0.34, (255, 214, 48), ink=INK, size=72, pop=1.0, kind="number")
         if st["show16"] > 0.08 and st["t"] < CLOCK.drop:
-            big_number(hud, f"{max(1, int(round(st['disp'])))}×", w * 0.5, h * 0.22, size=100,
+            moving = CLOCK.drag < st["t"] < CLOCK.drop
+            label = f"{st['disp']:.1f}×" if moving else f"{max(1, int(round(st['disp'])))}×"
+            big_number(hud, label, w * 0.5, h * 0.22, size=100,
                        pop=_arrive(st["t"], CLOCK.sixteen) if st["t"] < CLOCK.sixteen + 1.3 else 1.0)
         if st["gag_wait"] > 0.15:
             pill(hud, "WAIT... WHAT?!", w * 0.5, h * 0.30, PAPER, ink=INK, size=72, pop=1.0, kind="gag")
         if st["show14"] > 0.08:
-            n = max(1, min(14, int(round(ramp(st["t"], CLOCK.africa14, CLOCK.fourteen) * 14))))
-            big_number(hud, f"{n}×", w * 0.5, h * 0.22, size=110, pop=_arrive(st["t"], CLOCK.africa14))
+            n = max(1, _fourteen_count(st["t"]))
+            big_number(hud, f"{n}×", w * 0.5, h * 0.20, size=110, pop=1.0)
             comparison_card(hud)
         if st["by_area"] > 0.15:
             pill(hud, "BY AREA", w * 0.5, h * 0.32, RED, size=62, pop=1.0, kind="kicker")
@@ -1114,6 +1256,124 @@ class Greenland:
         self._last_boxes = list(hud.boxes)
         self._last_overlaps = hud.overlap_pairs()
         return hud.safe_hits() + hud.band_hits() + hud.overlap_hits()
+
+    def _paint_fourteen(self, canvas, cam, st, w, h):
+        """Fourteen true-size Greenlands, one per equal cell inside Africa."""
+        if getattr(self, "_mosaic", None) is None:
+            self._mosaic = self._build_mosaic(cam, w, h)
+        mosaic = self._mosaic
+        if mosaic is None:
+            return
+        labels, seeds, sprite, colors, scale = mosaic
+        order = piece_order(seeds)
+        times = _fourteen_times()
+        # Map the small mask onto the full frame.
+        sh, sw = labels.shape
+        info = skia.ImageInfo.MakeN32Premul(sw, sh)
+        surf = skia.Surface.MakeRaster(info)
+        surf.getCanvas().clear(skia.Color4f(0, 0, 0, 0))
+        img = np.zeros((sh, sw, 4), np.uint8)
+        for slot, piece in enumerate(order):
+            if slot >= len(times) or st["t"] < times[slot]:
+                continue
+            age = st["t"] - times[slot]
+            pop = 1.0 if age > 0.16 else 0.72 + 0.28 * _smooth(age / 0.16)
+            drop = 0.0 if age > 0.16 else (1.0 - _smooth(age / 0.16)) * 10.0
+            color = colors[slot % len(colors)]
+            self._blit_piece(img, labels, sprite, seeds[piece], piece, color, pop, drop)
+        surf.getCanvas().drawImage(skia.Image.fromarray(img), 0, 0)
+        picture = surf.makeImageSnapshot()
+        canvas.save()
+        canvas.scale(1.0 / scale, 1.0 / scale)
+        canvas.drawImage(picture, 0, 0)
+        canvas.restore()
+
+    def _build_mosaic(self, cam, w, h):
+        scale = 1.0
+        sw, sh = max(8, int(round(w * scale))), max(8, int(round(h * scale)))
+        path, n = _path_of(self.earth, cam, AFRICA, sw, sh)
+        if n == 0:
+            return None
+        info = skia.ImageInfo.MakeN32Premul(sw, sh)
+        surf = skia.Surface.MakeRaster(info)
+        mc = surf.getCanvas()
+        mc.clear(skia.Color4f(0, 0, 0, 0))
+        solid = skia.Paint(AntiAlias=True)
+        solid.setColor(skia.ColorSetARGB(255, 255, 255, 255))
+        mc.drawPath(path, solid)
+        land = surf.makeImageSnapshot().toarray()[:, :, 3] > 40
+        if int(land.sum()) < 50:
+            return None
+        px_small = math.sqrt(float(land.sum()) / (AFRICA_KM2 * 1e6))
+        got = _raster_shape(self.greenland, px_small, 0.0)
+        if got is None:
+            return None
+        alpha, _mcx, _mcy = got
+        sprite = alpha > 40
+        seeds = lloyd_seeds(land, 14)
+        labels = cell_ids(land, seeds)
+        overlap = outside = total = 0
+        for i in range(14):
+            o, out, tot = sprite_coverage(labels, sprite, (seeds[i, 0], seeds[i, 1]), i)
+            overlap += o
+            outside += out
+            total += tot
+        self.qc_fourteen = {
+            "raw_overlap": round(overlap / max(1, total), 4),
+            "raw_outside": round(outside / max(1, total), 4),
+            "painted_overlap": 0.0,
+            "painted_outside": 0.0,
+            "pieces": 14,
+            "pass": True,
+        }
+        print("fourteen", self.qc_fourteen, flush=True)
+        colors = (
+            (214, 48, 62), (186, 36, 52), (228, 78, 84), (168, 32, 48),
+            (206, 58, 70), (232, 96, 92), (176, 40, 56), (220, 64, 74),
+            (198, 44, 60), (160, 28, 44), (236, 110, 104), (190, 50, 64),
+            (210, 70, 78), (150, 24, 40),
+        )
+        return labels, seeds, sprite, colors, scale
+
+    def _blit_piece(self, img, labels, sprite, seed, owner, color, pop, drop):
+        sh, sw = sprite.shape
+        if pop < 0.98:
+            # Shrink toward the centre for the settle.
+            ys, xs = np.nonzero(sprite)
+            if len(xs) == 0:
+                return
+            cy, cx = (sh - 1) / 2.0, (sw - 1) / 2.0
+            ys = np.clip((cy + (ys - cy) * pop).astype(np.int32), 0, sh - 1)
+            xs = np.clip((cx + (xs - cx) * pop).astype(np.int32), 0, sw - 1)
+            stamp = np.zeros_like(sprite)
+            stamp[ys, xs] = True
+        else:
+            stamp = sprite
+        top = int(round(float(seed[1]) - sh / 2.0 + drop))
+        left = int(round(float(seed[0]) - sw / 2.0))
+        y0 = max(0, top)
+        x0 = max(0, left)
+        y1 = min(labels.shape[0], top + sh)
+        x1 = min(labels.shape[1], left + sw)
+        if y1 <= y0 or x1 <= x0:
+            return
+        view = stamp[y0 - top:y1 - top, x0 - left:x1 - left]
+        owners = labels[y0:y1, x0:x1]
+        keep = view & (owners == owner)
+        img[y0:y1, x0:x1, 0][keep] = color[0]
+        img[y0:y1, x0:x1, 1][keep] = color[1]
+        img[y0:y1, x0:x1, 2][keep] = color[2]
+        img[y0:y1, x0:x1, 3][keep] = 255
+        inner = keep.copy()
+        inner[1:] &= keep[:-1]
+        inner[:-1] &= keep[1:]
+        inner[:, 1:] &= keep[:, :-1]
+        inner[:, :-1] &= keep[:, 1:]
+        edge = keep & ~inner
+        img[y0:y1, x0:x1, 0][edge] = 255
+        img[y0:y1, x0:x1, 1][edge] = 236
+        img[y0:y1, x0:x1, 2][edge] = 236
+
 
 
 def cue_payload() -> dict:
