@@ -9,7 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from jt.show.camera import CameraTrack, Key, Cam  # noqa: E402
+from jt.show.camera import CameraTrack  # noqa: E402
+from jt.show.pack import layout  # noqa: E402
 from jt.show.cues import lint_gaps, pack  # noqa: E402
 from jt.show.faces import gag_pose  # noqa: E402
 from jt.show.greenland import (  # noqa: E402
@@ -63,14 +64,27 @@ def main() -> None:
 
     track = CameraTrack(_keys(), TAIL0, TAIL1)
     a = track.at(0.0).front()
-    b = track.at(TAIL1).front()
-    assert a.proj == b.proj == "merc"
-    assert abs(a.lon - b.lon) < 1e-6
-    assert abs(a.lat - b.lat) < 1e-6
-    assert abs(a.span - b.span) < 1e-6
-    # The tail moves, and it only moves toward the open frame.
+    pre = track.at(TAIL1).front()
+    nxt = track.at(1.0 / 30.0).front()
+    assert a.proj == pre.proj == nxt.proj == "merc"
+    # Last frame is one opening step before frame 0, so last→first matches first→second.
+    assert abs((a.span - pre.span) - (nxt.span - a.span)) < 1e-6
+    assert abs((a.lat - pre.lat) - (nxt.lat - a.lat)) < 1e-6
+    assert abs(a.span - pre.span) > 1e-3
     mid = track.at((TAIL0 + TAIL1) / 2).front()
     assert mid.proj == "merc"
+    # Two blocks fit inside a field without overlap. Four fat blocks do not.
+    field = np.zeros((40, 40), np.bool_)
+    field[2:38, 2:38] = True
+    block = np.zeros((10, 10), np.bool_)
+    block[1:9, 1:9] = True
+    items = [(name, [(0.0, block, 5.0, 5.0)]) for name in ("a", "b")]
+    mode, placed = layout(field, items, {"a": (10, 10), "b": (28, 28)})
+    assert mode == "fit" and set(placed) == {"a", "b"}
+    fat = np.ones((24, 24), np.bool_)
+    crowded = [(name, [(0.0, fat, 12.0, 12.0)]) for name in ("a", "b", "c", "d")]
+    mode, placed = layout(field, crowded, {n: (20, 20) for n in "abcd"})
+    assert mode == "overlap" and len(placed) == 4
     assert N == 1273
     assert abs(DURATION - 1273 / 30) < 1e-9
     assert abs(TAIL1 - 42.4) < 1e-9

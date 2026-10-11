@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import skia
 from scipy.ndimage import binary_closing, binary_dilation, gaussian_filter
@@ -155,15 +157,22 @@ class Shape:
         self.cy = cy / weight if weight else 0.0
 
     def draw(self, canvas, ox: float, oy: float, px_per_m: float, rgb, alpha: int,
-             pop: float = 1.0, shadow: float = 1.0, stroke=(255, 255, 255), stroke_w: float = 5.0):
-        if pop <= 0.02 or alpha <= 0 or not self.polys:
+             pop: float = 1.0, shadow: float = 1.0, stroke=(255, 255, 255), stroke_w: float = 5.0,
+             rot: float = 0.0):
+        if pop <= 0.02 or not self.polys:
+            return
+        if alpha <= 0 and stroke is None:
             return
         s = px_per_m * pop
+        turn = math.radians(rot)
+        c, sn = math.cos(turn), math.sin(turn)
         path = skia.Path()
         path.setFillType(skia.PathFillType.kEvenOdd)
         for poly in self.polys:
-            xs = ox + (poly[:, 0] - self.cx) * s
-            ys = oy - (poly[:, 1] - self.cy) * s
+            dx = (poly[:, 0] - self.cx) * s
+            dy = -((poly[:, 1] - self.cy) * s)
+            xs = ox + c * dx - sn * dy
+            ys = oy + sn * dx + c * dy
             path.moveTo(float(xs[0]), float(ys[0]))
             for x, y in zip(xs[1:], ys[1:]):
                 path.lineTo(float(x), float(y))

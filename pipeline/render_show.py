@@ -29,7 +29,7 @@ from jt.show.greenland import (  # noqa: E402
     cue_payload,
     timeline_payload,
 )
-from jt.show.qa import report, write_report  # noqa: E402
+from jt.show.qa import motion_per_second, report, write_report  # noqa: E402
 
 OUT = ROOT / "examples" / "greenland"
 WORDS = ROOT / "examples" / "greenland" / "words.json"
@@ -137,7 +137,10 @@ def main() -> None:
         print(json.dumps(stats, indent=2))
         qa = report(OUT / "greenland_africa.mp4", cues["cues"])
         write_report(OUT / "qa.json", qa)
+        motion = motion_per_second(OUT / "greenland_africa.mp4")
+        write_report(OUT / "motion_per_second.json", motion)
         print(json.dumps(qa, indent=2))
+        print(json.dumps({k: motion[k] for k in ("motion_mean", "seconds_under_1", "event_gap_max", "pass")}, indent=2))
     if args.contact:
         _contact(show, OUT / "contact.jpg")
 

@@ -15,7 +15,8 @@ FONT_BLACK = Path(__file__).resolve().parents[2] / "fonts" / "Montserrat-Black.t
 FONT_BOLD = "/usr/share/fonts/truetype/macos/Inter-Bold.ttf"
 FONT_FALLBACK = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
-BAND = (0.64, 0.72)
+# Karaoke is burned later, centered near y=1300, covering about 1150–1450.
+BAND = (1150 / 1920, 1450 / 1920)
 KM2_PER_SQMI = 2.58998811
 
 _FACES = None
@@ -176,8 +177,9 @@ def pill(hud: Hud, text: str, cx: float, cy: float, fill, ink=(255, 255, 255),
 def comparison_card(hud: Hud) -> None:
     """One 2-column card in the strip above the bottom safe zone, under the caption band."""
     w, h = hud.w, hud.h
-    top = BAND[1] * h + 8
-    bottom = SAFE_BOT * h - 8
+    # The whole card stays above the caption band (bottom edge y <= 1150).
+    bottom = 1144.0
+    top = bottom - 156.0
     left, right = 24.0, w - 24.0
     rect = skia.Rect.MakeLTRB(left, top, right, bottom)
     body = skia.Paint(AntiAlias=True)
@@ -202,9 +204,9 @@ def comparison_card(hud: Hud) -> None:
         (w * 0.27, "AFRICA", "11.73M SQ MI", "30.37M KM²"),
         (w * 0.73, "GREENLAND", "0.84M SQ MI", "2.17M KM²"),
     )
-    base_name = top + 30
-    base_sq = top + 68
-    base_km = bottom - 16
+    base_name = top + 40
+    base_sq = top + 88
+    base_km = top + 134
     for cx, name, sq, km in columns:
         hud.canvas.drawString(name, cx - name_font.measureText(name) / 2, base_name, name_font, name_c)
         hud.canvas.drawString(sq, cx - sq_font.measureText(sq) / 2, base_sq, sq_font, sq_c)

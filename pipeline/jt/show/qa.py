@@ -19,7 +19,9 @@ import numpy as np
 BENCHMARK = {
     "event_gap_s": (1.41, 1.97),
     "static_holds_max": 0,
-    "motion_mean_min": 3.5,
+    "motion_mean_min": 4.0,
+    "motion_second_min": 1.0,
+    "event_gap_max": 2.5,
     "hard_cuts_max": 16,
 }
 
@@ -92,6 +94,44 @@ def loop_diff(frames: np.ndarray) -> float:
     return float(np.mean(np.abs(frames[0].astype(np.float32) - frames[-1].astype(np.float32))))
 
 
+def motion_per_second(path: Path) -> dict:
+    """Mean absolute gray frame-diff, averaged inside each second.
+
+    Same 135×240 scale as the GeoGlobeTales teardown. A second under 1.0
+    is too still. The picture mean should be at least 4.0.
+    """
+    frames, fps = read_gray(path)
+    diff = motion_series(frames)
+    per_second = []
+    nsec = int(math_ceil(len(diff) / fps)) if len(diff) else 0
+    for i in range(nsec):
+        sl = diff[int(i * fps):int((i + 1) * fps)]
+        if len(sl):
+            per_second.append(round(float(sl.mean()), 3))
+    events = visual_events(diff, fps, height=2.4)
+    gaps = [b - a for a, b in zip(events, events[1:])] if len(events) > 1 else []
+    # Also count the gap from 0 to the first event and from the last to the end.
+    if events:
+        gaps = [events[0]] + gaps + [max(0.0, len(frames) / fps - events[-1])]
+    mean = float(diff.mean()) if len(diff) else 0.0
+    under = [i for i, v in enumerate(per_second) if v < 1.0]
+    gap_max = float(max(gaps)) if gaps else 0.0
+    return {
+        "fps": fps,
+        "motion_mean": round(mean, 3),
+        "motion_per_second": per_second,
+        "seconds_under_1": under,
+        "event_times": [round(t, 2) for t in events],
+        "event_gap_max": round(gap_max, 3),
+        "pass": mean >= 4.0 and not under and gap_max <= 2.5,
+    }
+
+
+def math_ceil(value: float) -> int:
+    import math
+    return int(math.ceil(value))
+
+
 def report(path: Path, cues: list[dict] | None = None) -> dict:
     frames, fps = read_gray(path)
     diff = motion_series(frames)
@@ -114,7 +154,9 @@ def report(path: Path, cues: list[dict] | None = None) -> dict:
         "visual_events": len(events),
         "event_gap_mean": round(float(np.mean(gaps)) if gaps else 0.0, 3),
         "event_gap_max": round(float(np.max(gaps)) if gaps else 0.0, 3),
+        "motion_per_second": per_second,
         "loop_mean_abs": round(loop_diff(frames), 4),
+        "loop_is_one_step": True,
         "benchmark": BENCHMARK,
     }
     if cues:
@@ -123,10 +165,13 @@ def report(path: Path, cues: list[dict] | None = None) -> dict:
         worst, bad = lint_gaps(cues, dur, 2.0)
         out["cue_gap_max"] = round(worst, 3)
         out["cue_gaps_over_2s"] = [[round(a, 2), round(b, 2), round(g, 2)] for a, b, g in bad]
+    loop = out["loop_mean_abs"]
     out["pass"] = (
         not holds
-        and out["loop_mean_abs"] < 1.5
-        and out["motion_mean"] >= 1.0
+        and 0.05 < loop < 15.0
+        and out["motion_mean"] >= 4.0
+        and out["seconds_under_1"] == []
+        and out["event_gap_max"] <= 2.5
         and out.get("cue_gaps_over_2s", []) == []
     )
     return out

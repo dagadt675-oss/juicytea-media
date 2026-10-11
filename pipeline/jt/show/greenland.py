@@ -16,14 +16,17 @@ import skia
 
 from jt.data import build_earth
 from jt.project import project_one
-from jt.show.basemap import build_plates, crossfade, paint_plate, view_for
+from jt.show.basemap import build_plates, paint_plate, view_for
 from jt.show.camera import Cam, CameraTrack, Key
+from jt.show.clock import load_clock
 from jt.show.cues import pack as pack_cues
 from jt.show.faces import draw_face, gag_pose
 from jt.show.labels import Hud, big_number, comparison_card, leader_label, pill, strike
+from jt.show.pack import layout
 from jt.show.polys import (
-    Shape, fill_iso, fill_ring_list, fill_union, group_shape, km_ring, project_lonlat, shape_from,
+    Shape, _path_of, fill_iso, fill_ring_list, fill_union, group_shape, km_ring, project_lonlat, shape_from,
 )
+from scipy.ndimage import binary_closing
 from jt.show.props import dashed_path, dust, equal_brackets, graticule, sparkles
 from jt.show.truesize import (
     GREENLAND_HOME_LAT,
@@ -35,11 +38,13 @@ from jt.show.truesize import (
 from style.gold import pop_scale
 
 FPS = 30
-TAKE = 42.411
-TAIL0 = 42.211
-N = math.ceil(TAKE * FPS - 1e-9)          # 1273
-TAIL1 = (N - 1) / FPS                     # last frame, 42.40 s
-DURATION = N / FPS                        # container, 42.433 s — covers the take
+WORDS_PATH = Path(__file__).resolve().parents[2] / "examples" / "greenland" / "words.json"
+CLOCK = load_clock(WORDS_PATH)
+TAKE = CLOCK.audio_duration
+TAIL0 = CLOCK.tail0
+N = CLOCK.frames
+TAIL1 = CLOCK.tail1
+DURATION = CLOCK.duration
 
 HOME_LAT = GREENLAND_HOME_LAT
 HOME_LON = GREENLAND_HOME_LON
@@ -74,90 +79,66 @@ BLUE = (46, 108, 186)
 INK = (16, 16, 20)
 PAPER = (244, 244, 246)
 
-# Spoken scale. The shape's latitude is the latitude whose Mercator area
-# factor equals this number, so the counter and the vertex shrink agree.
-_DISP = (
-    (0.00, 16.0),
-    (15.028, 16.0),
-    (17.919, 8.0),
-    (18.395, 8.0),
-    (18.78, 4.0),
-    (19.358, 4.0),
-    (19.78, 2.0),
-    (20.252, 2.0),
-    (20.58, 1.0),
-    (37.20, 1.0),
-    (41.05, 16.0),
-    (42.30, 16.0),
-)
-_DLON = (
-    (0.00, 0.0),
-    (15.028, 0.0),
-    (20.58, 46.0),
-    (22.45, 46.0),
-    (23.12, 59.0),
-    (36.40, 59.0),
-    (41.05, 0.0),
-    (42.30, 0.0),
-)
-_EXTRA = (
-    (0.00, 0.0),
-    (22.40, 0.0),
-    (23.12, 5.5),
-    (36.20, 5.5),
-    (39.6, 0.0),
-    (42.30, 0.0),
-)
+# Spoken scale lives in pose(), read from words.json so a new take re-times
+# the shrink, the drag, and the counter together.
 
-CUES = [
-    (0.08, "whoosh", "open"),
-    (0.94, "draw", "greenland"),
-    (1.55, "pop", "same-size"),
-    (1.84, "pop", "africa"),
-    (2.46, "stamp", "not"),
-    (2.55, "whoosh", "globe-snap"),
-    (3.35, "draw", "algeria-outline"),
-    (3.61, "pop", "algeria"),
-    (4.44, "boing", "excuse-me"),
-    (5.32, "whoosh", "heres-the-trick"),
-    (6.54, "draw", "round-earth"),
-    (8.00, "draw", "stretches"),
-    (8.94, "tick", "more"),
-    (9.82, "pop", "poles"),
-    (11.19, "pop", "greenland-sits"),
-    (12.71, "impact", "sixteen"),
-    (13.77, "tick", "too-big"),
-    (14.83, "whoosh", "drag"),
-    (15.95, "draw", "equator"),
-    (17.48, "tick", "truth"),
-    (18.40, "tick", "shrink-1"),
-    (19.36, "tick", "shrink-2"),
-    (20.25, "tick", "shrink-3"),
-    (21.01, "boing", "wait-what"),
-    (22.45, "impact", "drop"),
-    (23.05, "pop", "dust"),
-    (24.36, "pop", "fourteen"),
-    (25.05, "tick", "tiles"),
-    (25.40, "stamp", "by-area"),
-    (26.16, "pop", "algeria-again"),
-    (27.08, "tick", "bigger-than"),
-    (28.40, "pop", "dr-congo"),
-    (29.25, "boing", "hi-tiny"),
-    (30.89, "whoosh", "clear"),
-    (31.16, "pop", "usa"),
-    (31.66, "pop", "china"),
-    (31.98, "pop", "india"),
-    (32.71, "pop", "europe"),
-    (33.49, "tick", "together"),
-    (34.79, "pop", "still-bigger"),
-    (36.07, "pop", "room-to-spare"),
-    (37.28, "whoosh", "outro"),
-    (38.32, "tick", "this-map"),
-    (39.29, "whoosh", "not-huge"),
-    (40.68, "tick", "inflate"),
-    (41.53, "pop", "lying"),
-    (42.21, "whoosh", "loop-tail"),
-]
+def _cues() -> list:
+    """One hit per spoken beat. A new words.json moves the cue list with it."""
+    b = CLOCK
+
+    def w(needle: str, after: float = 0.0) -> float:
+        return b.t(needle, after=after)
+
+    return [
+        (w("THIS"), "whoosh", "open"),
+        (w("GREENLAND"), "draw", "greenland"),
+        (w("BIG"), "pop", "same-size"),
+        (w("AFRICA"), "pop", "africa"),
+        (w("NOT"), "stamp", "not"),
+        (2.50, "whoosh", "globe-snap"),
+        (w("EVEN"), "draw", "algeria-outline"),
+        (w("ALGERIA"), "pop", "algeria"),
+        (b.excuse0, "boing", "excuse-me"),
+        (b.heres, "whoosh", "heres-the-trick"),
+        (w("ROUND"), "draw", "round-earth"),
+        (w("STRETCHES"), "draw", "stretches"),
+        (w("MORE"), "tick", "more"),
+        (w("POLES"), "pop", "poles"),
+        (w("SITS", after=10), "pop", "greenland-sits"),
+        (b.sixteen, "impact", "sixteen"),
+        (w("TOO", after=b.sixteen), "tick", "too-big"),
+        (w("LET"), "whoosh", "drag"),
+        (w("EQUATOR"), "draw", "equator"),
+        (w("TRUTH"), "tick", "truth"),
+        (b.shrinks[0], "tick", "shrink-1"),
+        (b.shrinks[1], "tick", "shrink-2"),
+        (b.shrinks[2], "tick", "shrink-3"),
+        (b.wait0, "boing", "wait-what"),
+        (b.drop, "impact", "drop"),
+        (b.africa14, "pop", "dust"),
+        (b.fourteen, "pop", "fourteen"),
+        (w("BIGGER", after=b.fourteen), "tick", "tiles"),
+        (b.algeria, "pop", "algeria-again"),
+        (w("THAN", after=b.algeria), "tick", "bigger-than"),
+        (w("CONGO", after=10), "pop", "dr-congo"),
+        (b.hi0, "boing", "hi-tiny"),
+        (b.usa, "pop", "usa"),
+        (b.china, "pop", "china"),
+        (b.india, "pop", "india"),
+        (b.europe, "pop", "europe"),
+        (w("TOGETHER", after=b.europe - 1), "tick", "together"),
+        (b.still, "pop", "still-bigger"),
+        (b.room, "pop", "room-to-spare"),
+        (b.outro, "whoosh", "outro"),
+        (w("REMEMBER", after=b.outro), "tick", "this-map"),
+        (w("HUGE", after=b.outro), "whoosh", "not-huge"),
+        (w("ISN", after=b.outro), "tick", "inflate"),
+        (b.lying, "pop", "lying"),
+        (b.tail0, "whoosh", "loop-tail"),
+    ]
+
+
+CUES = _cues()
 
 def _tile_grid():
     # Normalized offsets across the Africa box, including the south.
@@ -219,14 +200,82 @@ def lat_for_display(d: float) -> float:
     return math.degrees(math.acos(min(1.0, max(0.0, cos_lat))))
 
 
+def _bump(t: float, t0: float, dur: float = 0.34) -> float:
+    """One-way snap. 0 before t0, 1 after t0+dur. Never comes back."""
+    if t <= t0:
+        return 0.0
+    if t >= t0 + dur:
+        return 1.0
+    x = (t - t0) / dur
+    return x * x * (3.0 - 2.0 * x)
+
+
+def apply_motion(cam: Cam, t: float) -> Cam:
+    """Extra push, drift, and snaps keyed off the word clock."""
+    if cam.proj != "merc":
+        return cam
+    b = CLOCK
+    span, lon, lat = cam.span, cam.lon, cam.lat
+    # The 0–2.5 s push-in lives on the camera keys (4% span, one-way drift)
+    # so the loop seam and the opening are the same step.
+    # Mercator explainer: continuous 4.5% zoom/pan, then a 10% snap on SIXTEEN.
+    if b.heres - 0.05 <= t <= b.sixteen + 0.5:
+        dur = max(0.4, b.sixteen - b.heres)
+        u = _clamp((t - b.heres) / dur)
+        span *= 1.0 - 0.05 * u
+        lon -= 10.0 * u
+        lat += 4.0 * u
+        span *= 1.0 - 0.11 * _bump(t, b.sixteen, 0.36)
+    # Shrink/drag keeps moving, and sits higher so the tip clears the caption band.
+    if b.sixteen + 0.5 < t < b.drag:
+        u = (t - (b.sixteen + 0.5)) / max(0.3, b.drag - (b.sixteen + 0.5))
+        lon += 4.0 * u
+        lat -= 1.5 * u
+    if b.drag <= t <= b.drop + 0.4:
+        u = _clamp((t - b.drag) / max(0.4, b.drop - b.drag))
+        span *= 1.0 - 0.06 * u
+        lon += 5.0 * u
+    # Algeria / DR Congo: drift, snap on Algeria, snap on Congo.
+    if b.algeria - 0.25 <= t <= b.congo + 1.5:
+        dur = max(0.4, (b.congo + 1.5) - (b.algeria - 0.25))
+        u = _clamp((t - (b.algeria - 0.25)) / dur)
+        lon += 7.0 * u
+        lat -= 3.0 * u
+        span *= 1.0 - 0.05 * u
+        span *= 1.0 - 0.12 * _bump(t, b.algeria, 0.28)
+        span *= 1.0 - 0.12 * _bump(t, b.congo, 0.28)
+    # The pack holds a wide Africa. Drift it so those seconds are not a freeze.
+    if b.usa - 0.2 <= t <= b.outro:
+        u = _clamp((t - (b.usa - 0.2)) / max(0.4, b.outro - (b.usa - 0.2)))
+        lon += 8.0 * u
+        lat += 3.0 * u
+    return Cam(cam.proj, lon, lat, max(12.0, span))
+
+
 def pose(t: float) -> dict:
     """Everything that is not the camera. t>=tail replays t=0 so the loop matches."""
     if t >= TAIL0:
         t = 0.0
-    disp = knots(t, _DISP)
-    extra = knots(t, _EXTRA)
-    dlon = knots(t, _DLON)
+    b = CLOCK
+    s0, s1, s2 = b.shrinks
+    disp = knots(t, (
+        (0.0, 16.0),         (b.drag, 16.0),
+        (s0 - 0.48, 8.0), (s0, 8.0), (s0 + 0.38, 4.0),
+        (s1, 4.0), (s1 + 0.40, 2.0),
+        (s2, 2.0), (s2 + 0.33, 1.0),
+        (b.outro, 1.0), (b.lying - 0.48, 16.0), (b.tail0, 16.0),
+    ))
+    extra = knots(t, (
+        (0.0, 0.0), (b.drop - 0.05, 0.0), (b.drop + 0.67, 5.5),
+        (b.outro - 0.8, 5.5), (b.lying - 1.9, 0.0), (b.tail0, 0.0),
+    ))
+    dlon = knots(t, (
+        (0.0, 0.0), (b.drag, 0.0), (s2 + 0.33, 46.0),
+        (b.drop, 46.0), (b.drop + 0.67, 59.0),
+        (b.outro - 0.9, 59.0), (b.lying - 0.48, 0.0), (b.tail0, 0.0),
+    ))
     base_lat = lat_for_display(disp)
+    globe = 2.50
     return {
         "t": t,
         "disp": disp,
@@ -234,38 +283,38 @@ def pose(t: float) -> dict:
         "dlat": (base_lat + extra) - HOME_LAT,
         "lon": HOME_LON + dlon,
         "lat": base_lat + extra,
-        "detached": ramp(t, 15.00, 15.32) * (1.0 - ramp(t, 40.50, 41.08)),
-        "lift": ramp(t, 15.00, 15.45) * (1.0 - ramp(t, 22.45, 22.85)),
-        "lying": (1.0 if t < 2.48 else (1.0 - ramp(t, 2.48, 2.92)) if t < 3.0
-                  else ramp(t, 41.53, 41.84) if t >= 41.53 else 0.0),
-        "names": 1.0 if t < 5.20 or t >= 39.35 else 0.0,
-        "same": hold(t, 1.55, 2.42, 0.12),
-        "strike": hold(t, 2.46, 2.85, 0.06),
-        "algeria": max(hold(t, 3.30, 4.40, 0.15), hold(t, 25.90, 30.25, 0.18)),
-        "drc": hold(t, 28.15, 30.30, 0.16),
-        "show16": hold(t, 12.70, 22.05, 0.08),
-        "label3": hold(t, 8.70, 12.35, 0.16),
-        "inset": hold(t, 6.45, 10.35, 0.18),
-        "peel": ramp(t, 6.55, 8.15),
-        "stretch": hold(t, 7.95, 13.6, 0.2),
-        "path": ramp(t, 15.03, 16.55) * (1.0 - ramp(t, 22.2, 22.6)),
-        "dust": hold(t, 22.45, 22.95, 0.02),
-        "tiles": ramp(t, 23.86, 24.40) * (1.0 - ramp(t, 25.50, 25.95)),
-        "show14": hold(t, 23.86, 25.55, 0.08),
+        "detached": ramp(t, b.drag - 0.03, b.drag + 0.29) * (1.0 - ramp(t, b.lying - 1.03, b.lying - 0.45)),
+        "lift": ramp(t, b.drag - 0.03, b.drag + 0.42) * (1.0 - ramp(t, b.drop, b.drop + 0.40)),
+        "lying": (1.0 if t < globe - 0.02 else (1.0 - ramp(t, globe - 0.02, globe + 0.42)) if t < globe + 0.5
+                  else ramp(t, b.lying, b.lying + 0.31) if t >= b.lying else 0.0),
+        "names": 1.0 if t < b.excuse1 + 0.18 or t >= b.outro + 2.05 else 0.0,
+        "same": hold(t, 1.55, globe - 0.08, 0.12),
+        "strike": hold(t, globe - 0.04, globe + 0.35, 0.06),
+        "algeria": max(hold(t, 3.30, 4.40, 0.15), hold(t, b.algeria - 0.26, b.congo + 1.7, 0.18)),
+        "drc": hold(t, b.congo - 0.47, b.congo + 1.68, 0.16),
+        "show16": hold(t, b.sixteen, b.drop - 0.25, 0.08),
+        "label3": hold(t, 8.70, b.sixteen - 0.35, 0.16),
+        "inset": hold(t, b.heres + 1.1, b.heres + 5.0, 0.18),
+        "peel": ramp(t, b.heres + 1.2, b.heres + 2.8),
+        "stretch": hold(t, 7.95, b.sixteen + 0.9, 0.2),
+        "path": ramp(t, b.drag, b.drag + 1.52) * (1.0 - ramp(t, b.drop - 0.25, b.drop + 0.15)),
+        "dust": hold(t, b.drop, b.drop + 0.50, 0.02),
+        "tiles": ramp(t, b.africa14, b.fourteen + 0.04) * (1.0 - ramp(t, b.fourteen + 1.14, b.algeria - 0.2)),
+        "show14": hold(t, b.africa14, b.fourteen + 1.19, 0.08),
         "equals": (1.0 if t < 2.25 else (1.0 - ramp(t, 2.25, 2.55)) if t < 2.6
-                   else ramp(t, 41.30, 41.70) if t >= 41.30 else 0.0),
-        "by_area": hold(t, 24.55, 25.90, 0.10),
-        "areas": hold(t, 24.36, 25.90, 0.10),
-        "compare": hold(t, 25.92, 30.20, 0.16),
-        "usa": hold(t, 31.158, 37.15, 0.1),
-        "chn": hold(t, 31.657, 37.15, 0.1),
-        "ind": hold(t, 31.982, 37.15, 0.1),
-        "eur": hold(t, 32.714, 37.15, 0.1),
-        "still": hold(t, 34.75, 37.05, 0.12),
-        "room": hold(t, 36.05, 37.15, 0.1),
-        "gag_excuse": hold(t, 4.442, 5.15, 0.04),
-        "gag_wait": hold(t, 21.013, 21.95, 0.04),
-        "gag_hi": hold(t, 29.245, 29.98, 0.04),
+                   else ramp(t, b.lying - 0.23, b.lying + 0.17) if t >= b.lying - 0.23 else 0.0),
+        "by_area": hold(t, b.fourteen + 0.19, b.fourteen + 1.54, 0.10),
+        "areas": hold(t, b.fourteen, b.fourteen + 1.54, 0.10),
+        "compare": hold(t, b.algeria - 0.24, b.congo + 1.58, 0.16),
+        "usa": hold(t, b.usa, b.outro, 0.1),
+        "chn": hold(t, b.china, b.outro, 0.1),
+        "ind": hold(t, b.india, b.outro, 0.1),
+        "eur": hold(t, b.europe, b.outro, 0.1),
+        "still": hold(t, b.still - 0.04, b.room + 0.98, 0.12),
+        "room": hold(t, b.room - 0.02, b.outro, 0.1),
+        "gag_excuse": hold(t, b.excuse0, b.excuse1 + 0.13, 0.04),
+        "gag_wait": hold(t, b.wait0, b.wait1 + 0.15, 0.04),
+        "gag_hi": hold(t, b.hi0, b.hi1 + 0.18, 0.04),
     }
 
 
@@ -283,7 +332,8 @@ def _blink(t: float) -> float:
 
 
 def _squash(t: float) -> float:
-    for start in (4.442, 15.20, 20.85, 22.50, 29.05, 34.55):
+    b = CLOCK
+    for start in (b.excuse0, b.drag, b.shrinks[2], b.drop, b.hi0, b.still):
         age = t - start
         if 0.0 <= age <= 0.24:
             u = age / 0.24
@@ -293,31 +343,130 @@ def _squash(t: float) -> float:
 
 
 def _face_expr(t: float) -> str | None:
-    if t <= 5.30:
+    b = CLOCK
+    if t <= b.excuse1 + 0.28:
         return "smug"
-    if 15.20 <= t < 20.85:
+    if b.drag + 0.15 <= t < b.shrinks[2]:
         return "worried"
-    if 20.85 <= t < 22.50:
+    if b.shrinks[2] <= t < b.drop:
         return "shocked"
-    if 22.50 <= t < 25.60:
+    if b.drop <= t < b.africa14 + 1.74:
         return "sad"
     return None
 
 
 def _mouth_bob(t: float) -> tuple[float, float]:
-    for t0, t1, n in ((4.442, 5.022, 2), (21.013, 21.803, 2), (29.245, 29.800, 2)):
-        mouth, bob = gag_pose(t, t0, t1, n)
+    b = CLOCK
+    for t0, t1 in ((b.excuse0, b.excuse1), (b.wait0, b.wait1), (b.hi0, b.hi1)):
+        mouth, bob = gag_pose(t, t0, t1, 2)
         if mouth > 0.0 or (t0 <= t <= t1):
             return mouth, bob
     return 0.0, 0.0
 
 
+def _raster_shape(shape, px: float, rot: float):
+    """Tight alpha mask. The shape centroid sits at (mcx, mcy) inside it."""
+    if px <= 0 or not shape.polys:
+        return None
+    turn = math.radians(rot)
+    c, sn = math.cos(turn), math.sin(turn)
+    xs, ys = [], []
+    for poly in shape.polys:
+        dx = (poly[:, 0] - shape.cx) * px
+        dy = -((poly[:, 1] - shape.cy) * px)
+        xs.append(c * dx - sn * dy)
+        ys.append(sn * dx + c * dy)
+    allx = np.concatenate(xs)
+    ally = np.concatenate(ys)
+    pad = 3.0
+    minx, maxx = float(allx.min()) - pad, float(allx.max()) + pad
+    miny, maxy = float(ally.min()) - pad, float(ally.max()) + pad
+    tw = max(4, int(math.ceil(maxx - minx)) + 2)
+    th = max(4, int(math.ceil(maxy - miny)) + 2)
+    if tw > 1000 or th > 1400:
+        return None
+    mcx = -minx
+    mcy = -miny
+    surf = skia.Surface.MakeRaster(skia.ImageInfo.MakeN32Premul(tw, th))
+    canvas = surf.getCanvas()
+    canvas.clear(skia.Color4f(0, 0, 0, 0))
+    shape.draw(canvas, mcx, mcy, px, (255, 255, 255), 255, pop=1.0, shadow=0.0, stroke=None, rot=rot)
+    alpha = surf.makeImageSnapshot().toarray()[:, :, 3]
+    if int((alpha > 40).sum()) < 8:
+        return None
+    return alpha, mcx, mcy
+
+
+_PACK_FALLBACK = {
+    "usa": (0.32, 0.30, 0.0),
+    "chn": (0.68, 0.28, 0.0),
+    "ind": (0.34, 0.50, 0.0),
+    "eur": (0.66, 0.48, 0.0),
+}
+
+
+def _paste(acc, covered, count, alpha, mcx, mcy, ox, oy, rgb, vis: float) -> None:
+    th, tw = alpha.shape
+    top = int(round(oy - mcy))
+    left = int(round(ox - mcx))
+    h, w = count.shape
+    y0, x0 = max(0, top), max(0, left)
+    y1, x1 = min(h, top + th), min(w, left + tw)
+    if y1 <= y0 or x1 <= x0:
+        return
+    sl = alpha[y0 - top:y1 - top, x0 - left:x1 - left]
+    mask = sl > 40
+    if not np.any(mask):
+        return
+    a = (sl.astype(np.float32) / 255.0) * vis * 210.0
+    view_c = acc[y0:y1, x0:x1]
+    view_a = covered[y0:y1, x0:x1]
+    view_n = count[y0:y1, x0:x1]
+    view_c[mask] += a[mask, None] * np.asarray(rgb, np.float32)
+    view_a[mask] += a[mask]
+    view_n[mask] += 1
+
+
+def _wave_speed() -> float:
+    """An integer number of cycles over the picture, so the loop continues."""
+    cycles = max(8, round(2.8 * DURATION / (2 * math.pi)))
+    return 2 * math.pi * cycles / max(DURATION, 1e-3)
+
+
+def _living(img: np.ndarray, t: float) -> np.ndarray:
+    """A slow brightness wave so the wide shots keep moving.
+
+    The hook has to show both countries, so the camera cannot pan fast
+    enough there for the frame-diff metric on its own.
+    """
+    h, w = img.shape[:2]
+    y = np.arange(h, dtype=np.float32)[:, None]
+    x = np.arange(w, dtype=np.float32)[None, :]
+    phase = t * _wave_speed()
+    band = np.sin(y * 0.010 + phase) * 44.0 + np.sin(x * 0.014 + phase) * 26.0
+    return np.clip(img.astype(np.float32) + band[..., None], 0, 255).astype(np.uint8)
+
+
+def _zoom_blur(img: np.ndarray, amount: float) -> np.ndarray:
+    """Whip smear. The peak is a blur, not a second copy of the map."""
+    if amount < 0.08:
+        return img
+    from scipy.ndimage import uniform_filter
+    rad = int(8 + amount * 120)
+    rad = rad + 1 - (rad % 2)
+    blurred = uniform_filter(img.astype(np.float32), size=(rad, max(3, rad // 2), 1))
+    mix = min(1.0, amount * 1.35)
+    out = img.astype(np.float32) * (1.0 - mix) + blurred * mix
+    return np.clip(out, 0, 255).astype(np.uint8)
+
+
 def _keys() -> list[Key]:
     rows = [
         (0.00, "merc", -12, 54, 152),
-        (2.40, "merc", -10, 51, 142),
-        (2.48, "merc", -10, 51, 142),
-        (2.92, "ortho", -22, 40, 128),
+        # 4% push-in, plus a slow one-way drift so the opening clears the motion floor.
+        (2.50, "merc", 2.5, 49.6, 145.9),
+        (2.55, "merc", 2.5, 49.6, 145.9),
+        (3.25, "ortho", -22, 34, 120),
         (3.70, "ortho", -18, 36, 108),
         (4.22, "ortho", -16, 33, 86),
         (4.52, "ortho", -40, 68, 48),
@@ -330,11 +479,15 @@ def _keys() -> list[Key]:
         (18.20, "merc", -28, 50, 62),
         (20.80, "merc", 2, 14, 54),
         (23.40, "merc", 18, 6, 46),
-        (26.40, "merc", 10, 14, 62),
-        (29.60, "merc", 12, 12, 58),
-        (31.50, "merc", 18, 4, 44),
-        (34.40, "merc", 17, 3, 40),
-        (36.80, "merc", 12, 8, 48),
+        # Lower lat lifts DRC above the caption band. The pack shot pulls back
+        # so Africa, and the four true-size countries inside it, fit in x 40–1040
+        # and sit above y=1150.
+        (26.40, "merc", 10, 4, 62),
+        (29.60, "merc", 12, 2, 58),
+        (30.40, "merc", 15, -6, 68),
+        (31.50, "merc", 17, -20, 84),
+        (35.40, "merc", 17, -21, 82),
+        (37.15, "merc", 17, -20, 84),
         (39.60, "merc", -8, 44, 118),
         (41.20, "merc", -11, 50, 140),
         (TAIL0, "merc", -12, 52, 146),
@@ -385,6 +538,9 @@ class Greenland:
         self.india = shape_from(g, "IND", 79.0, 22.0, INDIA_KM2)
         self.europe = group_shape(g, EUROPE, 10.0, 50.0, EUROPE_KM2)
         self._samples = self._africa_samples()
+        self._pack = None
+        self._pack_mode = ""
+        self._pack_screen = {}
 
     def _africa_samples(self) -> np.ndarray:
         chunks = []
@@ -400,13 +556,18 @@ class Greenland:
         state = self.track.at(t)
         st = pose(t)
         # Keep the travelling Greenland in frame. Span stays on the track.
-        follow = hold(st["t"], 15.45, 36.6, 0.4) * (1.0 - st["compare"])
+        packing = max(st["usa"], st["chn"], st["ind"], st["eur"])
+        follow = hold(st["t"], CLOCK.drag + 0.4, CLOCK.outro - 0.2, 0.4) * (1.0 - st["compare"]) * (1.0 - packing)
+        # Look south of the shape so Greenland's tip rides above the caption band.
+        lift = 8.0 if CLOCK.drag <= st["t"] <= CLOCK.fourteen else 0.0
         if follow > 0.02 and state.b is None and state.a.proj == "merc":
             cam = state.a
             state = type(state)(Cam("merc",
                                     cam.lon + (st["lon"] - cam.lon) * follow,
-                                    cam.lat + (st["lat"] - cam.lat) * follow,
+                                    cam.lat + ((st["lat"] - lift) - cam.lat) * follow,
                                     cam.span))
+        if state.b is None:
+            return type(state)(apply_motion(state.a, t))
         return state
 
     def render(self, t: float, w: int = 1080, h: int = 1920) -> tuple[np.ndarray, int]:
@@ -416,9 +577,13 @@ class Greenland:
             cam = state.a
             blend = 0.0
         else:
-            base = crossfade(self._land(state.a, t, w, h), self._land(state.b, t, w, h), state.u)
-            cam = state.front()
-            blend = state.u
+            # Whip, not a dissolve: one map at a time, with a blur through the cut.
+            u = state.u
+            cam = state.a if u < 0.5 else state.b
+            base = self._land(cam, t, w, h)
+            base = _zoom_blur(base, math.sin(math.pi * u))
+            blend = u
+        base = _living(base, t)
         rgba = np.dstack([base, np.full((h, w), 255, np.uint8)])
         surface = skia.Surface(w, h)
         canvas = surface.getCanvas()
@@ -492,6 +657,159 @@ class Greenland:
         africa_px = bw * bh * 0.52
         return math.sqrt(africa_px / (AFRICA_KM2 * 1e6)), box
 
+    def _solve_pack(self, cam, box, w, h):
+        """True-size USA, China, India, and Europe inside Africa and x 40–1040."""
+        scale = 0.25
+        sw, sh = max(8, int(round(w * scale))), max(8, int(round(h * scale)))
+        path, n = _path_of(self.earth, cam, AFRICA, sw, sh)
+        if n == 0:
+            return "overlap", _PACK_FALLBACK, 1.0
+        info = skia.ImageInfo.MakeN32Premul(sw, sh)
+        surf = skia.Surface.MakeRaster(info)
+        mc = surf.getCanvas()
+        mc.clear(skia.Color4f(0, 0, 0, 0))
+        solid = skia.Paint(AntiAlias=True)
+        solid.setColor(skia.ColorSetARGB(255, 255, 255, 255))
+        mc.drawPath(path, solid)
+        raw = surf.makeImageSnapshot().toarray()[:, :, 3] > 40
+        area = float(raw.sum())
+        if area < 20:
+            return "overlap", _PACK_FALLBACK, 1.0
+        px_small = math.sqrt(area / (AFRICA_KM2 * 1e6))
+        px_full = px_small / scale
+        catalog = (
+            ("usa", self.usa),
+            ("chn", self.china),
+            ("ind", self.india),
+            ("eur", self.europe),
+        )
+        rots = (0, 40, 80, 120, 160, 200, 240, 280, 320)
+        variants = {}
+        for name, shape in catalog:
+            built = []
+            for rot in rots:
+                got = _raster_shape(shape, px_small, rot)
+                if got is not None:
+                    built.append((rot, got[0] > 40, got[1], got[2]))
+            variants[name] = built
+
+        def targets_for(mask):
+            ys, xs = np.nonzero(mask)
+            if len(xs) == 0:
+                return {}
+            x0, x1 = float(xs.min()), float(xs.max())
+            y0, y1 = float(ys.min()), float(ys.max())
+            dx, dy = max(1.0, x1 - x0), max(1.0, y1 - y0)
+            return {
+                "usa": (x0 + 0.30 * dx, y0 + 0.28 * dy),
+                "chn": (x0 + 0.70 * dx, y0 + 0.26 * dy),
+                "ind": (x0 + 0.32 * dx, y0 + 0.58 * dy),
+                "eur": (x0 + 0.68 * dx, y0 + 0.56 * dy),
+            }
+
+        def attempt(block_band: bool):
+            land = binary_closing(raw, iterations=2)
+            xa = int(40 * scale)
+            xb = int(min(w, 1040) * scale)
+            land[:, :xa] = False
+            land[:, xb:] = False
+            if block_band:
+                land[int(1150 * scale):, :] = False
+            if int(land.sum()) < 20:
+                return None
+            items = [(name, variants[name]) for name, _ in catalog if variants[name]]
+            mode, places = layout(land, items, targets_for(land))
+            if len(places) < 4:
+                return None
+            return mode, places
+
+        solved = attempt(True) or attempt(False)
+        x0, y0, x1, y1 = box
+        bw = max(1.0, x1 - x0)
+        bh = max(1.0, y1 - y0)
+        if solved is None:
+            print("pack overlap fallback (no inside placement)", flush=True)
+            return "overlap", dict(_PACK_FALLBACK), px_full
+        mode, places = solved
+        out = {}
+        for name, (cx, cy, rot) in places.items():
+            fx = ((cx / scale) - x0) / bw
+            fy = ((cy / scale) - y0) / bh
+            out[name] = (fx, fy, rot)
+        ratio = (USA_KM2 + CHINA_KM2 + INDIA_KM2 + EUROPE_KM2) / AFRICA_KM2
+        print(f"pack {mode} true-area ratio {ratio:.3f}", flush=True)
+        return mode, out, px_full
+
+    def _paint_pack(self, canvas, cam, st, box, px_bbox, w, h):
+        specs = (
+            ("usa", self.usa, (28, 118, 230), st["usa"]),
+            ("chn", self.china, (226, 36, 48), st["chn"]),
+            ("ind", self.india, (240, 128, 24), st["ind"]),
+            ("eur", self.europe, (118, 72, 220), st["eur"]),
+        )
+        if all(vis < 0.08 for *_, vis in specs):
+            self._pack_screen = {}
+            return
+        if self._pack is None:
+            mode, places, px_full = self._solve_pack(cam, box, w, h)
+            self._pack = (mode, places, max(px_full, 1e-9), max(px_bbox, 1e-9))
+            self._pack_mode = mode
+        mode, places, px_full, px_ref = self._pack
+        px = px_bbox * (px_full / px_ref) if px_bbox > 0 else px_full
+        x0, y0, x1, y1 = box
+        layers = []
+        screen = {}
+        for name, shape, rgb, vis in specs:
+            if vis < 0.08 or name not in places:
+                continue
+            fx, fy, rot = places[name]
+            pop = min(1.06, 0.86 + vis * 0.2)
+            got = _raster_shape(shape, px * pop, rot)
+            if got is None:
+                continue
+            alpha, mcx, mcy = got
+            th, tw = alpha.shape
+            hw = max(mcx, tw - mcx)
+            ox = x0 + fx * (x1 - x0)
+            oy = y0 + fy * (y1 - y0)
+            ox = min(max(40.0 + hw, ox), 1040.0 - hw)
+            screen[name] = (ox, oy)
+            ox += (1.0 - min(1.0, vis)) * 140.0
+            ox = min(max(40.0 + hw, ox), 1040.0 - hw)
+            layers.append((shape, alpha, mcx, mcy, ox, oy, rot, rgb, vis, pop))
+        self._pack_screen = screen
+        if not layers:
+            return
+        if mode == "fit":
+            for shape, _alpha, _mcx, _mcy, ox, oy, rot, rgb, vis, pop in layers:
+                shape.draw(
+                    canvas, ox, oy, px, rgb, int(215 * min(1.0, vis * 1.3)),
+                    pop=pop, shadow=0.8, stroke=(255, 255, 255), stroke_w=5.0, rot=rot,
+                )
+            return
+        acc = np.zeros((h, w, 3), np.float32)
+        covered = np.zeros((h, w), np.float32)
+        count = np.zeros((h, w), np.uint8)
+        for _shape, alpha, mcx, mcy, ox, oy, _rot, rgb, vis, _pop in layers:
+            _paste(acc, covered, count, alpha, mcx, mcy, ox, oy, rgb, min(1.0, vis * 1.3))
+        visible = count > 0
+        if not np.any(visible):
+            return
+        rgb = np.zeros((h, w, 3), np.uint8)
+        rgb[visible] = np.clip(acc[visible] / np.maximum(covered[visible, None], 1.0), 0, 255).astype(np.uint8)
+        out_a = np.zeros((h, w), np.uint8)
+        one = count == 1
+        many = count >= 2
+        out_a[one] = np.clip(covered[one], 0, 255).astype(np.uint8)
+        out_a[many] = np.clip(0.5 * covered[many] / np.maximum(count[many], 1), 0, 255).astype(np.uint8)
+        img = np.dstack([rgb, out_a])
+        canvas.drawImage(skia.Image.fromarray(np.ascontiguousarray(img)), 0, 0)
+        for shape, _alpha, _mcx, _mcy, ox, oy, rot, _rgb, _vis, pop in layers:
+            shape.draw(
+                canvas, ox, oy, px, (255, 255, 255), 0,
+                pop=pop, shadow=0.0, stroke=(255, 255, 255), stroke_w=4.0, rot=rot,
+            )
+
     def _overlays(self, canvas, cam, st, w, h):
         if st["path"] > 0.05 and cam.proj == "merc":
             samples = []
@@ -509,7 +827,7 @@ class Greenland:
         x0, y0, x1, y1 = box
         cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
         if st["tiles"] > 0.04:
-            appeared = ramp(st["t"], 23.86, 24.40)
+            appeared = ramp(st["t"], CLOCK.africa14, CLOCK.fourteen + 0.04)
             n = int(round(appeared * len(_TILES)))
             for i in range(n):
                 ox = cx + _TILES[i, 0] * (x1 - x0)
@@ -531,26 +849,11 @@ class Greenland:
                 canvas, moved, cam, RED, int(225 * st["compare"]),
                 stroke=(255, 244, 244), stroke_w=2.6, shadow=1.0, w=w, h=h,
             )
-        packs = (
-            ("usa", self.usa, (28, 118, 230), 0.30, 0.34),
-            ("chn", self.china, (226, 36, 48), 0.70, 0.32),
-            ("ind", self.india, (240, 128, 24), 0.30, 0.70),
-            ("eur", self.europe, (118, 72, 220), 0.68, 0.70),
-        )
-        for key, shape, rgb, fx, fy in packs:
-            vis = st[key]
-            if vis < 0.08:
-                continue
-            ox = x0 + fx * (x1 - x0)
-            oy = y0 + fy * (y1 - y0)
-            ox += (1.0 - min(1.0, vis)) * 180
-            shape.draw(canvas, ox, oy, px * 0.82, rgb, int(215 * min(1.0, vis * 1.3)),
-                       pop=min(1.08, 0.85 + vis * 0.2), shadow=0.8,
-                       stroke=(255, 255, 255), stroke_w=5.0)
-        if 22.45 <= st["t"] <= 23.05:
+        self._paint_pack(canvas, cam, st, (x0, y0, x1, y1), px, w, h)
+        if CLOCK.drop <= st["t"] <= CLOCK.drop + 0.55:
             p = project_lonlat(cam, st["lon"], st["lat"], w, h)
             if p:
-                dust(canvas, p[0], p[1], st["t"] - 22.45)
+                dust(canvas, p[0], p[1], st["t"] - CLOCK.drop)
         if st["room"] > 0.4:
             sparkles(canvas, cx, cy - 20, st["t"], 6)
         if st["inset"] > 0.08:
@@ -630,7 +933,8 @@ class Greenland:
                     box[2] - box[0], "smug", mouth=m, bob=b, blink=blink,
                     squash=_squash(st["t"]) if st["t"] >= 29.0 else 1.0,
                 )
-        if st["still"] > 0.35 or st["room"] > 0.2:
+        packing = max(st["usa"], st["chn"], st["ind"], st["eur"])
+        if (st["still"] > 0.35 or st["room"] > 0.2) and packing < 0.2:
             box = self._bbox(cam, w, h)
             if box:
                 bw = (box[2] - box[0]) * 0.50
@@ -650,7 +954,7 @@ class Greenland:
             equal_brackets(canvas, gbox, abox, st["equals"])
         if st["lying"] > 0.05:
             pop = 1.0 if st["t"] < 2.4 or st["t"] >= 41.7 else max(0.9, st["lying"])
-            pill(hud, "THIS MAP IS LYING", w * 0.5, h * 0.58, RED, size=92, pop=pop, glow=RED, kind="lying")
+            pill(hud, "THIS MAP IS LYING", w * 0.5, 860, RED, size=92, pop=pop, glow=RED, kind="lying", nudge=False)
         show_names = st["t"] < 2.15 or (3.05 < st["t"] < 5.20) or st["t"] >= 39.35
         if st["names"] > 0.4 and geo and show_names:
             gbox = self._box_of(cam, self.earth.rings.get("GRL") or [], w, h)
@@ -663,7 +967,7 @@ class Greenland:
                 pill(hud, "AFRICA", (abox[0] + abox[2]) / 2, abox[1] + (abox[3] - abox[1]) * 0.72,
                      (120, 72, 16), ink=(255, 248, 230), size=62, pop=1.0, kind="country")
         if st["same"] > 0.05:
-            box = pill(hud, "SAME SIZE?", w * 0.5, h * 0.34, PAPER, ink=INK, size=62, pop=1.0, kind="same")
+            box = pill(hud, "SAME SIZE.", w * 0.5, h * 0.34, PAPER, ink=INK, size=62, pop=1.0, kind="same")
             if st["strike"] > 0.05 and box:
                 strike(canvas, box, st["strike"])
         if st["gag_excuse"] > 0.2:
@@ -708,21 +1012,35 @@ class Greenland:
                              (36, 112, 210), prefer="left", size=44)
         if st["gag_hi"] > 0.15 and geo:
             pill(hud, "HI, TINY.", w * 0.78, h * 0.18, PAPER, ink=INK, size=58, pop=1.0, kind="gag", nudge=False)
-        if st["usa"] > 0.3:
-            pill(hud, "USA", w * 0.28, h * 0.40, (28, 118, 230), size=62, pop=1.0, kind="country")
-        if st["chn"] > 0.3:
-            pill(hud, "CHINA", w * 0.72, h * 0.40, (226, 36, 48), size=62, pop=1.0, kind="country")
-        if st["ind"] > 0.3:
-            pill(hud, "INDIA", w * 0.28, h * 0.56, (240, 128, 24), size=62, pop=1.0, kind="country")
-        if st["eur"] > 0.3:
-            pill(hud, "EUROPE", w * 0.72, h * 0.56, (118, 72, 220), size=62, pop=1.0, kind="country")
+        # Labels sit off the shape centres so CHINA and EUROPE can share the middle.
+        label_at = {
+            "usa": lambda ox, oy: (ox, oy - 20),
+            "chn": lambda ox, oy: (min(w - 150, ox + 210), oy - 30),
+            "eur": lambda ox, oy: (max(160, ox - 230), oy + 10),
+            "ind": lambda ox, oy: (ox, oy - 30),
+        }
+        for key, text, rgb in (
+            ("usa", "USA", (28, 118, 230)),
+            ("chn", "CHINA", (226, 36, 48)),
+            ("ind", "INDIA", (240, 128, 24)),
+            ("eur", "EUROPE", (118, 72, 220)),
+        ):
+            if st[key] > 0.3 and key in self._pack_screen:
+                ox, oy = self._pack_screen[key]
+                lx, ly = label_at[key](ox, oy)
+                pill(hud, text, lx, ly, rgb, size=58, pop=1.0, kind="country", nudge=False)
         if st["still"] > 0.15:
-            pill(hud, "STILL BIGGER", w * 0.5, h * 0.22, (255, 214, 48), ink=INK, size=78,
-                 pop=_arrive(st["t"], 34.79), kind="kicker")
+            pill(hud, "STILL BIGGER", w * 0.5, 292, (255, 214, 48), ink=INK, size=68,
+                 pop=_arrive(st["t"], CLOCK.still), kind="kicker", nudge=False)
+            if getattr(self, "_pack_mode", "") == "overlap" and st["room"] < 0.12:
+                pill(hud, "BY AREA", w * 0.5, 1072, (255, 214, 48), ink=INK, size=72,
+                     pop=1.0, kind="by-area", nudge=False)
         if st["room"] > 0.15:
-            pill(hud, "ROOM TO SPARE", w * 0.5, h * 0.74, PAPER, ink=INK, size=70,
-                 pop=_arrive(st["t"], 36.07), kind="kicker")
+            # The whole pill stays at or above y=1150, clear of the caption band.
+            pill(hud, "ROOM TO SPARE", w * 0.5, 1076, PAPER, ink=INK, size=68,
+                 pop=_arrive(st["t"], CLOCK.room), kind="kicker", nudge=False)
         self._last_caps = hud.caps
+        self._last_boxes = list(hud.boxes)
         self._last_overlaps = hud.overlap_pairs()
         return hud.safe_hits() + hud.band_hits() + hud.overlap_hits()
 

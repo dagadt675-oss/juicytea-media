@@ -1,0 +1,16 @@
+{
+  "take": "chris_f0",
+  "words": "pipeline/examples/greenland/words.json",
+  "audio_duration": 42.411,
+  "frames": 1273,
+  "fps": 30,
+  "method": "Mean absolute gray difference on a 135x240 frame, 0-255. Full 1080x1920 frames resized with bilinear filtering. The encode path writes the same report from ffmpeg.",
+  "motion_mean": 4.243,
+  "motion_min_second": 2.738,
+  "motion_max_second": 7.919,
+  "seconds_under_1": [],
+  "event_gap_max": 1.367,
+  "visual_events": 84,
+  "pass": true,
+  "motion_per_second": [3.055, 3.137, 5.653, 3.791, 7.919, 3.908, 3.033, 3.092, 3.487, 3.655, 3.797, 3.678, 4.483, 4.563, 4.589, 6.186, 4.331, 4.06, 5.898, 5.522, 5.729, 2.873, 3.971, 3.561, 5.122, 5.278, 3.618, 3.194, 4.163, 4.584, 6.041, 4.786, 3.001, 2.738, 2.88, 2.802, 3.02, 6.56, 5.075, 4.824, 3.372, 3.274, 4.007]
+}

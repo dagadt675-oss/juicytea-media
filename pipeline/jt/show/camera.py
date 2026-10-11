@@ -1,8 +1,9 @@
 """Globe-to-map camera. Ease curves, snap segments, and a loop tail.
 
-A segment whose projections differ is a crossfade, not a cut. Inside one
-segment the centre and the span move one way. The tail eases onto the
-opening camera and lands on it exactly at the last frame.
+A segment whose projections differ is a whip, not a dissolve. Inside one
+segment the centre and the span move one way. The tail eases toward the
+opening and stops one frame short, so last→first is the next step of the
+same move rather than a repeated frame.
 """
 
 from __future__ import annotations
@@ -10,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from jt.loop_tail import tail_progress
-from jt.project import ang_lerp
+from jt.project import ang_delta, ang_lerp
 
 
 @dataclass(frozen=True)
@@ -81,18 +82,32 @@ class CameraTrack:
                 continue
             span = b.t - a.t
             u = 0.0 if span <= 1e-6 else (t - a.t) / span
-            kind = "out" if i == 0 else "in_out"
-            s = _ease(u, kind)
+            # Linear keeps a constant step, so a second never dies at a key.
+            s = _ease(u, "linear")
             if a.cam.proj != b.cam.proj:
                 return CamState(a.cam, b.cam, s)
             return CamState(mix(a.cam, b.cam, s))
         return CamState(keys[-1].cam)
 
+    def pre_open(self) -> Cam:
+        """The camera one frame before frame 0, along the opening move."""
+        dt = 1.0 / 30.0
+        a = self._raw(0.0).front()
+        b = self._raw(dt).front()
+        return Cam(
+            a.proj,
+            a.lon - ang_delta(a.lon, b.lon),
+            a.lat - (b.lat - a.lat),
+            a.span - (b.span - a.span),
+        )
+
     def at(self, t: float) -> CamState:
-        if t >= self.tail1:
-            return CamState(self.open)
+        # Land on the step before frame 0. Playing the last frame into the
+        # first frame continues the opening push instead of repeating it.
+        if t >= self.tail1 - 1e-6:
+            return CamState(self.pre_open())
         if t > self.tail0:
             u = tail_progress(t, self.tail0, self.tail1)
             start = self._raw(self.tail0).front()
-            return CamState(mix(start, self.open, u))
+            return CamState(mix(start, self.pre_open(), u))
         return self._raw(t)
