@@ -16,11 +16,11 @@ import math
 BRIDGE_YAW = math.radians(11.0)
 DECK_ROT_Z = -BRIDGE_YAW
 DECK_ORIGIN = (4.1, 79.0)
-DECK_W = 10.0
+DECK_W = 20.0
 DECK_HALF = DECK_W / 2.0
 DECK_Z = 4.6
 SOUTH_Z = 0.62
-TOWER_W = 12.2
+TOWER_W = 22.0
 TOWER_LEG = 1.6
 # Both portals are over the water, on the level deck.
 TOWER_S = (32.0, 102.0)
@@ -68,13 +68,13 @@ PATHS = (
 FOUNTAIN = (-38.0, 60.0)
 # One eastbound row on the near road, clear of the bridge slab and the park paths.
 FOREGROUND_CARS = (
-    (-40.0, 17.2),
-    (-28.0, 17.5),
-    (-18.0, 17.3),
-    (8.0, 17.6),
-    (20.0, 17.4),
+    (-46.0, 14.5),
+    (-32.0, 14.8),
+    (-22.0, 14.4),
+    (16.0, 14.6),
+    (28.0, 14.9),
 )
-DECK_LANES = (-2.4, -0.8, 0.8, 2.4)
+DECK_LANES = (-6.2, -2.1, 2.1, 6.2)
 
 
 def deck_direction():
