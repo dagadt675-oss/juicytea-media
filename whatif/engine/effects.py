@@ -187,10 +187,10 @@ def _structures(kit, ch, frame, fps):
             ruin = smoother(0.28, 0.64, collapse)
             spectacular = smoother(0.72, 1.0, collapse)
             skeleton = bool(item.extra.get("skeleton"))
-            stump = max(0.14, 1.0 - ruin * (0.15 if skeleton else 0.38) - spectacular * (0.2 if skeleton else 0.42))
+            stump = max(0.18, 1.0 - ruin * (0.4 if skeleton else 0.38) - spectacular * (0.35 if skeleton else 0.42))
             bury = _bury_scale(item, ch)
-            lean = ruin * (0.16 if skeleton else 0.5)
-            topple = spectacular * (0.28 if skeleton else 1.2)
+            lean = ruin * (0.2 if skeleton else 0.5)
+            topple = spectacular * (0.75 if skeleton else 1.2)
             obj.location = loc
             obj.rotation_euler = _euler(item.base_rot, dx=min(1.45, lean + topple))
             obj.scale = (
