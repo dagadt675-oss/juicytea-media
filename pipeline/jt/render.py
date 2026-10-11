@@ -195,11 +195,6 @@ def _shade_sample(earth, lon, lat, highlights, theme, pulse: float, t: float):
     lat_u = np.clip(np.cos(np.radians(lat)), 0, 1).astype(np.float32)
     ocean = (np.array(theme["ocean"], np.float32) * (1 - lat_u)[:, None]
              + np.array(theme["ocean2"], np.float32) * lat_u[:, None])
-    # Slow geographic tint. The frame-to-frame motion lives in _living_light.
-    w1 = np.sin(np.radians(lon) * 3.2 + t * 1.4)
-    w2 = np.cos(np.radians(lat) * 2.2 - t * 0.9)
-    wave = 0.72 * w1 + 0.28 * w2
-    ocean = ocean * (0.90 + 0.10 * wave.astype(np.float32)[:, None])
     col = np.empty((lon.shape[0], 3), np.float32)
     col[:] = np.array(theme["land"], np.float32)
     col *= shade[:, None]
@@ -213,22 +208,6 @@ def _shade_sample(earth, lon, lat, highlights, theme, pulse: float, t: float):
         col[m] = np.array(rgb, np.float32) * (shade[m] * boost * 1.35)[:, None]
     col = np.where(land[:, None], col, ocean)
     return col.reshape(shape + (3,))
-
-
-def _living_light(col, across, t):
-    """A broad wedge of light that keeps sliding, including on a held camera.
-
-    Added, not multiplied: the map fills are dark, so a percentage swing barely
-    moves the pixels and the frozen-frame gate fires on a hold. A triangle wave
-    has a steady slope, so the change does not die out at the top of a sine.
-    Blue-weighted so the lift cannot read as white, yellow, or orange text.
-    """
-    x = np.asarray(across, np.float32)
-    phase = np.mod(x * 0.40 + t * 1.15, 1.0)
-    tri = 1.0 - np.abs(2.0 * phase - 1.0)
-    add = tri * np.float32(50.0)
-    lift = np.stack((add * 0.22, add * 0.48, add * 0.82), axis=-1)
-    return col + lift
 
 
 def _paint_ortho(frame, earth, view, highlights, theme, phase, t):
@@ -265,7 +244,6 @@ def _paint_ortho(frame, earth, view, highlights, theme, phase, t):
     az = t * 3.1
     light = np.clip(nzm * 0.70 + nym * (0.22 * math.cos(az)) - nxm * (0.42 * math.sin(az)), 0, 1)
     col = col * (0.40 + 0.60 * light)[:, None]
-    col = _living_light(col, nxm, t)
     rim = np.clip(1.0 - nzm, 0, 1)[:, None] ** 1.5
     rim_c = np.array(theme["rim"], np.float32)
     col = col * (1 - 0.38 * rim) + rim_c * (rim * 0.42)
@@ -298,7 +276,6 @@ def _paint_flat(frame, earth, view, highlights, theme, phase, t):
         lon, lat = laea_inverse(xr, yr, view.lon, view.lat)
     pulse = 0.86 + 0.14 * math.sin(t * 4.6)
     col = _shade_sample(earth, lon, lat, highlights, theme, pulse, t)
-    col = _living_light(col, (xx - view.cx) / max(x1 - x0, 1.0) * 2.0, t)
     if view.whip_dark:
         col *= 1.0 - 0.62 * view.whip_dark
     # Soft edge so the flat map doesn't stamp a hard rectangle.

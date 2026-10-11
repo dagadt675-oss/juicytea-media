@@ -253,6 +253,20 @@ def apply_motion(cam: Cam, t: float) -> Cam:
         u = _clamp((t - (b.usa - 0.2)) / max(0.4, b.outro - (b.usa - 0.2)))
         lon += 8.0 * u
         lat += 3.0 * u
+        span *= 1.0 - 0.03 * u
+    # A 3% one-way zoom on the holds that would otherwise sit still.
+    # The loop tail is left alone so the last frame stays one step before frame 0.
+    if t < TAIL0:
+        for t0, t1 in (
+            (b.sixteen + 0.55, b.drag),
+            (b.drop + 0.5, b.algeria - 0.3),
+            (b.congo + 1.6, b.usa - 0.25),
+        ):
+            if t0 < t < t1:
+                u = (t - t0) / (t1 - t0)
+                span *= 1.0 - 0.03 * u
+                lon += 1.2 * u
+                break
     return Cam(cam.proj, lon, lat, max(12.0, span))
 
 
@@ -463,27 +477,6 @@ def _bubble_tail(canvas, box, tip) -> None:
     canvas.drawPath(path, paint)
 
 
-def _wave_speed() -> float:
-    """An integer number of cycles over the picture, so the loop continues."""
-    cycles = max(8, round(2.8 * DURATION / (2 * math.pi)))
-    return 2 * math.pi * cycles / max(DURATION, 1e-3)
-
-
-def _living(img: np.ndarray, t: float) -> np.ndarray:
-    """A slow brightness wave so the wide shots keep moving.
-
-    The hook has to show both countries, so the camera cannot pan fast
-    enough there for the frame-diff metric on its own.
-    """
-    h, w = img.shape[:2]
-    y = np.arange(h, dtype=np.float32)[:, None]
-    x = np.arange(w, dtype=np.float32)[None, :]
-    phase = t * _wave_speed()
-    # Half the earlier amplitude. The slow shading was reading as dirty patches.
-    band = np.sin(y * 0.010 + phase) * 22.0 + np.sin(x * 0.014 + phase) * 13.0
-    return np.clip(img.astype(np.float32) + band[..., None], 0, 255).astype(np.uint8)
-
-
 def _zoom_blur(img: np.ndarray, amount: float) -> np.ndarray:
     """Whip smear. The peak is a blur, not a second copy of the map."""
     if amount < 0.08:
@@ -619,7 +612,6 @@ class Greenland:
             base = self._land(cam, t, w, h)
             base = _zoom_blur(base, math.sin(math.pi * u))
             blend = u
-        base = _living(base, t)
         rgba = np.dstack([base, np.full((h, w), 255, np.uint8)])
         surface = skia.Surface(w, h)
         canvas = surface.getCanvas()
@@ -902,7 +894,8 @@ class Greenland:
 
     def _inset(self, canvas, st, w, h):
         side = 250
-        cam = Cam("ortho", -25, 42, 130)
+        # Span 90 keeps the disk inside the globe, so the rim is ocean, not black space.
+        cam = Cam("ortho", -20, 48, 90)
         tile = paint_plate(self.plates["satellite"], cam, side, side)
         rgba = np.dstack([tile, np.full((side, side), 255, np.uint8)])
         # The circle stays small, then draws in across 6.78–6.96 s.
@@ -913,18 +906,25 @@ class Greenland:
             pop = 0.12 + 0.88 * (u * u * (3.0 - 2.0 * u))
         else:
             pop = 1.0
-        canvas.save()
         cx, cy = w * 0.78, h * 0.52
+        radius = side * 0.46
+        canvas.save()
         canvas.translate(cx, cy)
         canvas.scale(pop, pop)
+        shade = skia.Paint(AntiAlias=True)
+        shade.setColor(skia.ColorSetARGB(110, 0, 0, 0))
+        shade.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 14))
+        canvas.drawCircle(0, 8, radius, shade)
+        canvas.save()
         canvas.translate(-side / 2, -side / 2)
         clip = skia.Path()
-        clip.addCircle(side / 2, side / 2, side * 0.46)
+        clip.addCircle(side / 2, side / 2, radius)
         canvas.clipPath(clip, doAntiAlias=True)
         canvas.drawImage(skia.Image.fromarray(rgba), 0, 0)
-        rim = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=5)
-        rim.setColor(skia.ColorSetARGB(220, 244, 244, 246))
-        canvas.drawCircle(side / 2, side / 2, side * 0.46, rim)
+        canvas.restore()
+        rim = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=8)
+        rim.setColor(skia.ColorSetARGB(255, 255, 255, 255))
+        canvas.drawCircle(0, 0, radius, rim)
         canvas.restore()
 
     def _box_of(self, cam, rings, w, h):
