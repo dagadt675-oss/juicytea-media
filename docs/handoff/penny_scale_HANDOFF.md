@@ -23,7 +23,15 @@ Picture spec that is locked:
 - Frame 1001 is the same pose as frame 0. When assembling, **copy `frames/0000.png` over `frames/1001.png`** so the seam has no motion smear.
 - Physics, three-shot grammar, and the pedestrian reaction are in `whatif/scale_journey/engine/bformat.py` and `build_b.py`. See section 5.
 
-**Where this run stopped.** Kristóf rendered review stills from the first Colab bundle and rejected them (grey scan slabs, empty sidewalk, identical reaction frames, a city edge and a ribbon). A corrected still set is in `/opt/cursor/artifacts/penny_stills_v2/` (1080×1920, 10 samples). The Colab bundle has **not** been rebuilt. Wait for his approval, then bake again with Blender 4.2.3.
+**Where this run stopped.** v3 review stills are in `/opt/cursor/artifacts/penny_stills_v3/` (1080×1920, 10 samples). The Colab bundle has **not** been rebuilt. Wait for approval, then bake again with Blender 4.2.3.
+
+What the v3 stills are:
+
+- The hub PeeJaa scan is visible again. Its 1024 aerial photo is replaced by ambientCG `Facade014` (vertical piers and window strips, CC0, logged in `assets/FOUND_ASSETS.md`) on the walls and `Plaster001` on the setbacks. Sketchfab’s modeled Empire State (NanoRay `2174e71`, CC-BY, 247k tris, real window geometry) is downloadable only with an API token. No token is in the environment or the hub notes, so that GLB was not fetched.
+- Shot 1 (frame 20) looks back onto the scanned setback with the coin in front of the window wall. The curved rail is in the scene; it does not read as the 86th-floor cage. There is no Midtown drop in that frame because the camera is looking at the facade.
+- Shot 2 (frame 200) is the 24 mm facade follow. The coin is face-on (local Y tracked at the lens and keyed, because motion blur ignores a later euler write).
+- Frames 425, 633, and 700 put the man on the Quaternius sidewalk with the road, curb, and the city block behind him. 633 is the bonk (coin on his head). 700 is a different pose, not a classic two-palm shrug. The hub animation packs have no shrug clip, and the only CC0 shrug found (Innerscene `gesture-shrug.glb`) is a static mesh of a different character with no armature.
+- Frame 920 is the rise: the scanned shaft, setbacks, and crown fill the frame.
 
 What changed for those stills:
 

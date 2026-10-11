@@ -421,12 +421,13 @@ def _penny(raw: dict) -> BEpisode:
         man_x, man_y = MAN[0] + step, MAN[1]
         # Street camera sits on the sidewalk, south of him, looking north
         # across the curb, the road, and the shopfronts.
-        up_cam = (11.0, 64.9, 1.55)
-        up_tgt = (man_x - 0.4, man_y + 6.5, 1.15)
+        # Just north of the lot line, on the sidewalk, looking through him at the street.
+        up_cam = (9.2, 65.15, 1.58)
+        up_tgt = (man_x, man_y + 0.2, 1.32)
         face_cam = up_cam
         face_tgt = up_tgt
-        guy_cam = (MAN[0] + 16.0, MAN[1] + 3.5, 9.5)
-        guy_tgt = (MAN[0] - 4.0, MAN[1] - 0.4, 0.3)
+        guy_cam = (MAN[0] + 2.4, MAN[1] + 0.6, 4.6)
+        guy_tgt = (MAN[0], MAN[1], 1.15)
         if t < 2.4 or t >= 33.15:
             cam = hook_cam
             target = hook_tgt
