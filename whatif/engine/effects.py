@@ -272,6 +272,12 @@ def _life(kit, ch, frame, fps, snow):
             obj.scale = item.base_scale * max(s, 0.001)
         elif role == "mascot":
             obj.hide_render = ch["vegetation"] > 0.65 or ch["ice"] > 0.2 or ch["geology"] > 0.15
+        elif role == "road_mark":
+            # Lane paint fades after the meadow. Year 500 is forest, not a fresh street.
+            obj.hide_render = ch["vegetation"] > 0.92
+        elif role == "forest_floor":
+            # Day 1 stays city-grey on the far bank. Meadow, then forest floor.
+            obj.hide_render = ch["vegetation"] < 0.22
         elif role == "prop":
             loc = item.base_loc.copy()
             loc.z += ch["gravity"] * item.extra.get("float", 0.0)
@@ -521,13 +527,16 @@ def _sky(kit, ch, frame, fps):
         u = clamp((dn - 0.12) / 0.3)
         elev = _lerp(1.05, 1.22, u)
         # The HDRI is the fill. The sun is a cooler, weaker key with a wide angle.
-        energy = _lerp(1.8, 1.05, u)
-        color = Vector(lin(0.92, 0.95, 1.0)[:3]).lerp(Vector(lin(1.0, 0.72, 0.48)[:3]), u)
-        sky = Vector(lin(0.36, 0.54, 0.74)[:3]).lerp(Vector(lin(0.98, 0.62, 0.38)[:3]), u * 0.75)
-        horizon = Vector(lin(0.55, 0.66, 0.76)[:3]).lerp(Vector(lin(0.98, 0.55, 0.32)[:3]), u)
-        sky_e = _lerp(1.15, 0.8, u)
-        fill = 0.12
-        sky_mix = _lerp(0.22, 0.55, u)
+        energy = _lerp(2.8, 1.5, u)
+        color = Vector(lin(0.95, 0.97, 1.0)[:3]).lerp(Vector(lin(1.0, 0.72, 0.48)[:3]), u)
+        sky = Vector(lin(0.56, 0.74, 0.96)[:3]).lerp(Vector(lin(0.98, 0.62, 0.38)[:3]), u * 0.75)
+        horizon = Vector(lin(0.78, 0.86, 0.94)[:3]).lerp(Vector(lin(0.98, 0.55, 0.32)[:3]), u)
+        sky_e = _lerp(1.55, 0.95, u)
+        fill = 0.18
+        # 0 keeps the sunny HDRI in the sky. Sunset mixes toward the gradient.
+        # A little of the blue gradient keeps the zenith cheerful. The HDRI
+        # still supplies the clouds and the light.
+        sky_mix = _lerp(0.34, 0.55, u)
     elif dn < 0.68:
         u = clamp((dn - 0.42) / 0.26)
         elev = _lerp(1.15, 1.72, u)

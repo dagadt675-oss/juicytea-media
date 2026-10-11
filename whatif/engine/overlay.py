@@ -1,7 +1,8 @@
-"""Crisp UI overlay: title, left counter, and a short year/day ticker.
+"""Crisp UI overlay: the title and the time counter.
 
-Drawn in screen space after the 3D render so type stays sharp. Nothing is
-placed in the caption band (normalized y 0.64–0.78).
+Drawn in screen space after the 3D render so type stays sharp. Episode 1
+shows those two only. Nothing is placed in the caption band (y 0.64–0.78),
+and the center ticker is not drawn.
 """
 
 from __future__ import annotations
@@ -60,8 +61,9 @@ def ui_state(resolved: dict, frame: int) -> dict:
     if beat["index"] == len(resolved["beats"]) - 1 and beat.get("title"):
         title_alpha = 1.0
 
+    shown = set((resolved.get("ui") or {}).get("text") or ["title", "counter"])
     ticker_alpha = 0.0
-    ticker = beat.get("ticker")
+    ticker = beat.get("ticker") if "ticker" in shown else ""
     if ticker and beat["index"] != 0:
         # 0.18 in, 0.85 hold, 0.28 out.
         if local < 0.18:
@@ -136,7 +138,7 @@ def _alpha(color, a: float):
 
 def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Image.Image:
     img = image.convert("RGBA")
-    title_size = max(22, int(width * 0.026))
+    title_size = max(36, int(width * 0.042))
     title_font = _font(SERIF, title_size)
     label_font = _font(SANS, max(16, int(width * 0.020)))
     number_font = _font(SERIF, max(42, int(width * 0.052)))
@@ -148,13 +150,15 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
         a = state["title_alpha"]
         # Two centered lines in the sky, well above the caption band.
         lines = _wrap_title(state["title"])
-        # Left margin, so the lines end before the portal (the portal starts near x=0.55).
-        cx = int(width * 0.03)
-        y = int(height * 0.07)
-        gap = int(title_size * 1.05)
+        # Large, in the open sky left of the portal. The portal's left leg
+        # is near x=0.49, so the block is centered in the sky pocket, not
+        # on the frame center and not jammed into the corner.
+        cx = int(width * 0.24)
+        y = int(height * 0.068)
+        gap = int(title_size * 1.08)
         block_h = gap * max(0, len(lines) - 1)
         y -= block_h // 2
-        _title_scrim(img, cx + width * 0.12, y + block_h / 2, width * 0.2, gap * len(lines) * 0.7, a)
+        _title_scrim(img, cx, y + block_h / 2.0, width * 0.23, gap * max(len(lines), 1) * 0.85, a)
         for line in lines:
             _shadow_text(
                 img,
@@ -162,7 +166,7 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
                 line,
                 title_font,
                 fill=_alpha((255, 255, 255), 255 * a),
-                anchor="lm",
+                anchor="mm",
                 radius=14,
                 opacity=int(170 * a),
             )
@@ -239,7 +243,7 @@ def _wrap_title(title: str) -> list[str]:
     if lowered.startswith("what if all humans disappeared"):
         return ["What if all humans", "disappeared?"]
     if "every human vanished" in lowered:
-        return ["What if", "every human", "vanished…", "right now?"]
+        return ["What if every human", "vanished… right now?"]
     words = title.split()
     if len(words) <= 4:
         return [title]

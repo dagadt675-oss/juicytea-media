@@ -13,9 +13,11 @@ import bmesh
 import bpy
 from mathutils import Matrix
 
+from engine import assets as assetlib
 from engine.city_layout import (
     AVE_HALF,
     AVE_Y,
+    CITY_STREETS,
     DECK_HALF,
     DECK_LANES,
     DECK_ROT_Z,
@@ -45,6 +47,7 @@ from engine.city_layout import (
     WATER_BED_Z,
     bridge_spans,
     city_water_top,
+    on_block_street,
     deck_direction,
     deck_point,
     deck_s_at_y,
@@ -120,7 +123,7 @@ def _materials():
     )
     road = make_surface(
         "Road",
-        lin(0.14, 0.15, 0.16),
+        lin(0.42, 0.44, 0.47),
         {"moss": 0.55, "rust": 0.05, "mud": 0.8, "scorch": 0.45, "snow": 1.0, "wet": 0.85},
     )
     # Dark blue-grey asphalt. The rendered pixels are what the metric checks
@@ -133,8 +136,8 @@ def _materials():
     )
     park = make_surface(
         "Park",
-        lin(0.28, 0.78, 0.34),
-        {"moss": 0.75, "rust": 0.0, "mud": 0.55, "scorch": 0.65, "snow": 1.0, "wet": 0.35},
+        lin(0.34, 0.72, 0.28),
+        {"moss": 0.85, "rust": 0.0, "mud": 0.15, "scorch": 0.45, "snow": 1.0, "wet": 0.2},
     )
     dirt = make_surface(
         "Dirt",
@@ -367,9 +370,50 @@ _PERSON_FILES = (
 )
 
 
+def _library_file(category, kind=None, rng=None):
+    """Enabled file record, or None when the category is still procedural."""
+    record = assetlib.choose(category, kind, rng)
+    path = assetlib.existing_path(record)
+    if path is None:
+        return None
+    return record, path
+
+
+def _library_tower(kit, coll, x, y, z, height, color):
+    """One imported tower, scaled to the lot height. False when no pack is enabled."""
+    found = _library_file("building", "tower")
+    if found is None:
+        return False
+    record, path = found
+    mesh = _load_glb(record["id"], path)
+    if mesh is None:
+        return False
+    obj = link_obj("tower", mesh, coll)
+    # The loader leaves the mesh 1 m tall. Scale to this lot so the skyline
+    # stays under the locked camera.
+    obj.scale = (height, height, height)
+    obj.location = (x, y, z)
+    obj.color = color
+    kit.add(obj, "building_base", sink=True)
+    return True
+
+
 def _tree(kit, coll, mats, x, y, z, scale, future=False, delay=0.0, rng=None, kind="round", leaf=None):
-    """Low-poly crown: a trunk plus 5–8 beveled lobes, lighter toward the top."""
+    """A registry tree when a pack is enabled, otherwise the lobed crown."""
     rng = rng or random
+    found = _library_file("tree", kind, rng)
+    if found is not None:
+        record, path = found
+        nominal = float(record.get("target_height") or 8.0)
+        height = nominal * (float(scale) / 2.8)
+        obj = _prop(
+            kit, coll, record["id"], path, (x, y, z), rng.uniform(0.0, 6.28), height,
+            "tree_canopy", future=future, delay=delay,
+            leaf=leaf or (0.16, 0.52, 0.18, 1), autumn=(0.62, 0.42, 0.12, 1),
+        )
+        if obj is not None:
+            obj.pass_index = INDEX_CANOPY
+            return obj
 
     autumns = (
         (0.72, 0.42, 0.12, 1),
@@ -496,8 +540,15 @@ def _kenney_car_mesh(model):
 
 
 def _car(kit, coll, mats, loc, yaw, color, parent=None, local=None, drive=0.0, model="sedan", scale=1.0, force_white=False, **extra):
-    mesh = _kenney_car_mesh(model)
+    found = _library_file("car", model)
+    fitted = None
+    if found is not None and not found[0]["id"].startswith("kenney_"):
+        mesh = _load_glb(found[0]["id"], found[1])
+        fitted = float(found[0].get("target_height") or 1.5)
+    else:
+        mesh = _kenney_car_mesh(model)
     if mesh is None:
+        fitted = None
         bm = bmesh.new()
         add_box(bm, (0, 0, 0.4), (0.9, 2.0, 0.7), 0)
         mesh = mesh_from_bm("car", bm)
@@ -506,7 +557,9 @@ def _car(kit, coll, mats, loc, yaw, color, parent=None, local=None, drive=0.0, m
         mesh.materials.clear()
         mesh.materials.append(mats["mark"])
     obj = link_obj("car", mesh, coll)
-    obj.scale = (scale, scale, scale)
+    # Kenney cars are already 4.6 m long. A new pack comes in 1 m tall and is
+    # scaled to the registry height, then by the same instance scale.
+    obj.scale = (scale * fitted, scale * fitted, scale * fitted) if fitted else (scale, scale, scale)
     obj.color = (0.94, 0.94, 0.95, 1) if force_white else color
     if parent is not None:
         obj.parent = parent
@@ -547,19 +600,19 @@ def _person_mesh():
 
 
 def _person(kit, coll, mats, x, y, z, rng):
-    choice = _PERSON_FILES[rng.randrange(len(_PERSON_FILES))]
-    obj = _prop(
-        kit,
-        coll,
-        choice.rsplit("/", 1)[-1].split(".")[0],
-        _kenney(choice),
-        (x, y, z),
-        rng.uniform(0, 6.28),
-        1.75,
-        "person",
-        float=0.4,
-        bob=0.08,
-    )
+    found = _library_file("person", "person", rng)
+    if found is not None:
+        record, path = found
+        obj = _prop(
+            kit, coll, record["id"], path, (x, y, z), rng.uniform(0, 6.28),
+            float(record.get("target_height") or 1.75), "person", float=0.4, bob=0.08,
+        )
+    else:
+        choice = _PERSON_FILES[rng.randrange(len(_PERSON_FILES))]
+        obj = _prop(
+            kit, coll, choice.rsplit("/", 1)[-1].split(".")[0], _kenney(choice),
+            (x, y, z), rng.uniform(0, 6.28), 1.75, "person", float=0.4, bob=0.08,
+        )
     if obj is not None:
         return obj
     obj = link_obj("person", _person_mesh(), coll, (mats["cloth"], mats["skin"]))
@@ -606,7 +659,12 @@ def _markings(coll, mats, x0, x1, y, z, along="x"):
 
 
 def _lamp(kit, coll, mats, x, y, z):
-    obj = _prop(kit, coll, "lamp", _kenney("props/light-curved.glb"), (x, y, z), 0.0, 5.0, "prop")
+    found = _library_file("prop", "lamp")
+    if found is not None:
+        record, path = found
+        obj = _prop(kit, coll, record["id"], path, (x, y, z), 0.0, float(record.get("target_height") or 5.0), "prop")
+    else:
+        obj = _prop(kit, coll, "lamp", _kenney("props/light-curved.glb"), (x, y, z), 0.0, 5.0, "prop")
     if obj is None:
         pole = box_object("lamp", coll, (x, y, z + 2.5), (0.16, 0.16, 5.0), mats["trim"])
         kit.add(pole, "prop", sink=False, float=0.1)
@@ -683,49 +741,100 @@ def _on_deck(x, y, pad=16.0):
     return abs(x - _deck_x(y)) < pad
 
 
+def _mark(kit, coll, name, center, size, mat):
+    """A painted marking. It fades once the forest has taken the street."""
+    obj = box_object(name, coll, center, size, mat)
+    kit.add(obj, "road_mark", sink=False)
+    return obj
+
+
 def _build_streets(kit, coll, mats):
-    """Avenue plus one cross street: lanes, curbs, sidewalks, a crosswalk, signals."""
+    """Avenue in the bottom of the frame, plus the park side street.
+
+    Asphalt, white lane dashes, a yellow center line, curbs, light sidewalks,
+    a crosswalk, and a traffic light. The bridge approach lands on this avenue.
+    """
     road_z = ROAD_Z
     y = AVE_Y
-    # Extends toward the camera so the street fills the bottom of the frame.
-    _plane("avenue", coll, (0, y - 6, road_z), (460, AVE_HALF * 2 + 18), mats["road"])
-    _plane("cross_street", coll, (GRID_X, 48, road_z), (GRID_HALF * 2, 70), mats["road"])
-    # Curbs and sidewalks on both sides of the avenue.
-    for sign in (-1, 1):
-        curb_y = y + sign * (AVE_HALF + 0.18)
-        walk_y = y + sign * (AVE_HALF + SIDEWALK_W / 2 + 0.3)
-        box_object("curb", coll, (0, curb_y, road_z + 0.08), (420, 0.28, 0.22), mats["concrete"])
-        _plane("sidewalk", coll, (0, walk_y, road_z + 0.06), (420, SIDEWALK_W), mats["concrete"])
-        for x in range(-70, 80, 16):
-            if abs(x - GRID_X) < 8:
-                continue
-            _lamp(kit, coll, mats, x, walk_y, road_z + 0.06)
-    # Four lanes. White dashes, yellow center.
+    paint_z = road_z + 0.07
+    # Asphalt from just under the camera to the promenade, so the bottom of
+    # the locked frame is street and not an empty plane.
+    _plane("avenue", coll, (0, 20.0, road_z), (520, 36.0), mats["road"])
+    # Side street across the lawn, from the promenade to the quay, above the grass.
+    shore = RIVER_Y0 - 3.0
+    _plane(
+        "cross_street",
+        coll,
+        (GRID_X, (40.0 + shore) / 2.0, PARK_Z + 0.05),
+        (GRID_HALF * 2, shore - 40.0),
+        mats["road"],
+    )
+    # Light sidewalks on both sides. The north one is the promenade (y≈36).
+    _plane("sidewalk_s", coll, (0, 9.0, road_z + 0.05), (520, 8.0), mats["concrete"])
+    _plane("sidewalk_n", coll, (0, 35.0, road_z + 0.06), (520, 6.0), mats["concrete"])
+    box_object("curb_s", coll, (0, 13.2, road_z + 0.10), (480, 0.35, 0.22), mats["concrete"])
+    box_object("curb_n", coll, (0, 31.6, road_z + 0.10), (480, 0.35, 0.22), mats["concrete"])
+    for x in range(-56, 24, 16):
+        if abs(x - GRID_X) < 8:
+            continue
+        _lamp(kit, coll, mats, x, 9.2, road_z + 0.06)
+        _lamp(kit, coll, mats, x, 35.2, road_z + 0.06)
+    # Four lanes. Dashes are wide enough to read in the full frame.
     for offset in LANE_OFFSETS:
-        step = -90
-        while step < 100:
-            if abs(step) < 8:
-                step += 7.0
+        step = -52.0
+        while step < 8.0:
+            if abs(step - GRID_X) < 6.0:
+                step += 8.0
                 continue
-            box_object("lane", coll, (step, y + offset, road_z + 0.03), (2.2, 0.14, 0.03), mats["mark"])
-            step += 7.0
-    box_object("center", coll, (0, y, road_z + 0.03), (200, 0.16, 0.03), mats["yellow"])
-    # Crosswalk where the bridge meets the avenue, and one at the side street.
-    for i in range(8):
-        box_object("xwalk", coll, (i * 1.5 - 5.2, y, road_z + 0.035), (0.55, AVE_HALF * 1.7, 0.03), mats["mark"])
+            _mark(kit, coll, "lane", (step, y + offset, paint_z), (3.6, 0.55, 0.04), mats["mark"])
+            step += 8.0
+    _mark(kit, coll, "center", (-22.0, y, paint_z + 0.005), (52.0, 0.62, 0.04), mats["yellow"])
+    # Crosswalk where the bridge meets the avenue.
+    for i in range(9):
+        _mark(
+            kit, coll, "xwalk",
+            (-12.0 + i * 1.7, y, paint_z + 0.01),
+            (0.72, AVE_HALF * 1.85, 0.04),
+            mats["mark"],
+        )
+    # Crosswalk across the side street, on the avenue.
     for i in range(6):
-        box_object("xwalk2", coll, (GRID_X, 22 + i * 1.5, road_z + 0.035), (GRID_HALF * 1.6, 0.5, 0.03), mats["mark"])
-    # Signals at the bridge intersection, on the sidewalks.
-    dx, dy = deck_direction()
-    ix, iy = deck_point(south_s())
-    for side in (-1, 1):
+        _mark(
+            kit, coll, "xwalk2",
+            (GRID_X, 14.0 + i * 1.6, paint_z + 0.01),
+            (GRID_HALF * 1.7, 0.55, 0.04),
+            mats["mark"],
+        )
+    # Dashes up the side street so the gap reads as a road, not a grey slot.
+    step = 44.0
+    while step < RIVER_Y0 - 8.0:
+        _mark(kit, coll, "side_dash", (GRID_X, step, PARK_Z + 0.1), (0.5, 2.8, 0.04), mats["mark"])
+        step += 8.0
+    ix, _iy = deck_point(south_s())
+    for side, yaw in ((-1, math.pi), (1, 0.0)):
         _prop(
             kit, coll, "signal", _kenney("props/traffic-light.glb"),
-            (ix + side * 8.0, y + side * (AVE_HALF + 1.2), road_z + 0.06),
-            0.0 if side > 0 else math.pi,
+            (ix + side * 7.5, 34.2 if side < 0 else 12.4, road_z + 0.06),
+            yaw,
             5.0,
             "prop",
         )
+
+
+def _block_streets(kit, coll, mats):
+    """Asphalt gaps between the tower blocks, from the far bank inland."""
+    road_z = FAR_Z + 0.08
+    y0 = RIVER_Y1 + 2.0
+    y1 = 340.0
+    mid = (y0 + y1) / 2.0
+    depth = y1 - y0
+    for sx in CITY_STREETS:
+        _plane("walk", coll, (sx, mid, road_z - 0.03), (13.0, depth), mats["concrete"])
+        _plane("block_street", coll, (sx, mid, road_z), (8.5, depth), mats["road"])
+        step = y0 + 6.0
+        while step < y1:
+            _mark(kit, coll, "block_dash", (sx, step, road_z + 0.05), (0.55, 3.2, 0.04), mats["mark"])
+            step += 9.0
 
 
 def build_river_city(kit, mats, rng, pieces):
@@ -734,41 +843,53 @@ def build_river_city(kit, mats, rng, pieces):
     col_b = kit.collection("Bridge")
     col_v = kit.collection("Life")
     col_p = kit.collection("Plants")
-    # Real scale. Park and the cross street stay above the flood; the quay does not.
-    # Planes run far past the frustum so no brown edge can enter the frame.
-    # Far ground is city, not lawn, so the horizon cannot turn green.
+    # Real scale. Park and the avenue stay above the river. The far bank is
+    # city on day 1 so the horizon is not a green field; forest_floor covers
+    # it only after the vegetation channel rises.
     _plane("bedrock", col_g, (0, 800, -6.0), (4000, 4000), mats["trim"], 0.4)
     _build_streets(kit, col_g, mats)
-    # Park sits between the north sidewalk and the quay. It does not cross the river.
-    park_y0 = AVE_Y + AVE_HALF + SIDEWALK_W
-    park_y1 = RIVER_Y0 - 2.0
+    # Lawn from the promenade to the quay. It does not cross the river.
+    park_y0 = 39.0
+    park_y1 = RIVER_Y0 - 2.2
     _plane("park", col_g, (0, (park_y0 + park_y1) / 2, PARK_Z), (900, park_y1 - park_y0), mats["park"])
     for name, px, py, hx, hy in PATHS:
         _plane(name, col_g, (px, py, PARK_Z + 0.04), (hx * 2, hy * 2), mats["concrete"])
-    # Stone quay, about 3 m of face, with a railing on the walkway.
-    wall_h = QUAY_Z - WATER_BED_Z
+    # Stone quay, about 2.5 m of face above the lawn, with a railing.
+    # The wall stays on the bank. The water sheet starts at RIVER_Y0.
+    wall_base = PARK_Z - 0.3
+    wall_h = QUAY_Z - wall_base
+    wall_y = (park_y1 + RIVER_Y0) / 2.0
     box_object(
         "quay_wall",
         col_g,
-        (0, RIVER_Y0 - 1.1, WATER_BED_Z + wall_h / 2),
-        (980, 2.2, wall_h),
+        (0, wall_y, wall_base + wall_h / 2),
+        (980, RIVER_Y0 - park_y1, wall_h),
         mats["concrete"],
     )
     for x in range(-80, 90, 8):
-        box_object("quay_post", col_g, (x, RIVER_Y0 - 0.3, QUAY_Z + 0.45), (0.12, 0.12, 0.9), mats["trim"])
+        box_object("quay_post", col_g, (x, wall_y + 0.15, QUAY_Z + 0.45), (0.12, 0.12, 0.9), mats["trim"])
         if x < 82:
-            box_object("quay_rail", col_g, (x + 4, RIVER_Y0 - 0.3, QUAY_Z + 0.82), (8.0, 0.06, 0.06), mats["trim"])
-    _plane("city_ground", col_g, (0, 700, FAR_Z), (2400, 1400), mats["trim"])
-
-    for i, x in enumerate((-18.0, 6.0)):
-        slab = box_object("slab", col_g, (x, 126.0, LOW_Z + 0.08), (8.0, 3.0, 0.2), mats["road"])
-        box_object("hole", col_g, (x, 126.0, LOW_Z - 1.2), (6.5, 2.4, 1.0), mats["dark"])
-        kit.add(slab, "road_slab", index=i, sink=False)
+            box_object("quay_rail", col_g, (x + 4, wall_y + 0.15, QUAY_Z + 0.82), (8.0, 0.06, 0.06), mats["trim"])
+    # Far bank only. A sheet from y=0 buried the river, the lawn, and the avenue.
+    far_near = RIVER_Y1 + 1.0
+    far_depth = 1100.0
+    _plane("city_ground", col_g, (0, far_near + far_depth / 2.0, FAR_Z), (2400, far_depth), mats["trim"])
+    floor = _plane(
+        "forest_floor",
+        col_g,
+        (0, far_near + far_depth / 2.0, FAR_Z + 0.06),
+        (2400, far_depth),
+        mats["park"],
+    )
+    kit.add(floor, "forest_floor", sink=False)
+    _block_streets(kit, col_g, mats)
 
     if "subway" in pieces:
-        box_object("stair", col_g, (-6.0, 126.0, LOW_Z - 0.2), (4.2, 2.6, 0.9), mats["dark"])
-        box_object("rail_a", col_g, (-7.6, 126.0, LOW_Z + 0.8), (0.2, 2.8, 1.4), mats["trim"])
-        box_object("rail_b", col_g, (-4.4, 126.0, LOW_Z + 0.8), (0.2, 2.8, 1.4), mats["trim"])
+        # A concrete entrance on the lawn. No black pit: that read as a hole in the grass.
+        pad = box_object("stair", col_g, (-28.0, 70.0, PARK_Z + 0.16), (3.4, 2.2, 0.28), mats["concrete"])
+        box_object("rail_a", col_g, (-29.4, 70.0, PARK_Z + 0.7), (0.12, 2.0, 1.1), mats["trim"])
+        box_object("rail_b", col_g, (-26.6, 70.0, PARK_Z + 0.7), (0.12, 2.0, 1.1), mats["trim"])
+        kit.add(pad, "road_slab", index=0, sink=False)
 
     # Three depths. Center towers stay shorter so the title has open sky.
     # Colors and heights live in city_layout so a pass cannot quietly drop them.
@@ -780,16 +901,19 @@ def build_river_city(kit, mats, rng, pieces):
     for row, (y, hmin, hmax, x0, x1, wr) in enumerate(rows):
         x = x0
         while x < x1:
-            gap = row == 0 and abs(x - _deck_x(y)) < 24.0
-            if gap:
+            w = rng.uniform(*wr)
+            # Leave the bridge corridor and the streets between blocks open.
+            if (row <= 1 and abs(x - _deck_x(y)) < 18.0) or on_block_street(x, w * 0.5 + 1.0):
                 x += 4.0
                 continue
-            w = rng.uniform(*wr)
-            d = rng.uniform(wr[0] * 0.75, wr[1] * 0.9)
+            d = min(rng.uniform(wr[0] * 0.72, wr[1] * 0.85), 32.0)
             h = rng.uniform(hmin, hmax)
             # Neighbors jump between short and tall instead of clustering in the middle.
             if rng.random() < 0.4:
                 h = hmin + (hmax - hmin) * (0.12 if rng.random() < 0.45 else 0.94)
+            # Roofs left of the portal stay under the open sky the title uses.
+            if x < 12.0:
+                h = min(h, 38.0)
             # 30% salmon, 30% blue/teal, 25% grey, 15% white.
             roll = (row * 17 + int(x * 3)) % 20
             if roll < 6:
@@ -807,8 +931,12 @@ def build_river_city(kit, mats, rng, pieces):
                 min(1.0, base_col[2] + hz[2]),
                 1,
             )
+            # A packed tower replaces the box when that record is enabled and on disk.
+            if _library_tower(kit, col_c, x, y, FAR_Z, h, color):
+                x += w + rng.uniform(10.0, 16.0)
+                continue
             # A box with the facade grid. Depth is the footprint, so the side face shows.
-            falling = fall_i < 8 and row < 2 and h > 120
+            falling = fall_i < 8 and row < 2 and h > 40.0
             if falling:
                 split = h * 0.62
                 base = link_obj("tower", _tower_mesh("tower", w, d, split, windows=False), col_c, (mats["facade"],))
@@ -825,7 +953,7 @@ def build_river_city(kit, mats, rng, pieces):
                 obj.location = (x, y, FAR_Z)
                 obj.color = color
                 kit.add(obj, "building_base", sink=True, skeleton=(row == 3 and int(x) % 80 < 40))
-            x += w + rng.uniform(14.0, 26.0)
+            x += w + rng.uniform(10.0, 16.0)
 
     if "power" in pieces:
         _power_plant(kit, col_c, mats, -70.0, 280.0, FAR_Z)
@@ -871,14 +999,14 @@ def build_river_city(kit, mats, rng, pieces):
         if bench is None:
             box_object("bench", col_g, (bx, by, PARK_Z + 0.4), (1.6, 0.5, 0.8), mats["wood"])
     for i in range(8):
-        fx = rng.uniform(-38, -2)
-        fy = rng.uniform(38, 74)
-        if _on_deck(fx, fy, 12):
+        bed_x = rng.uniform(-38, -2)
+        bed_y = rng.uniform(42, 74)
+        if _on_deck(bed_x, bed_y, 12):
             continue
-        bed = box_object("bed", col_g, (fx, fy, PARK_Z + 0.12), (2.2, 1.3, 0.16), mats["dirt"])
+        bed = box_object("bed", col_g, (bed_x, bed_y, PARK_Z + 0.12), (2.2, 1.3, 0.16), mats["dirt"])
         kit.add(bed, "prop", sink=False)
         for k in range(5):
-            flower = ico_object("flower", col_p, (fx + rng.uniform(-0.8, 0.8), fy + rng.uniform(-0.4, 0.4), PARK_Z + 0.35), 0.22, mats["leaf"])
+            flower = ico_object("flower", col_p, (bed_x + rng.uniform(-0.8, 0.8), bed_y + rng.uniform(-0.4, 0.4), PARK_Z + 0.35), 0.22, mats["leaf"])
             flower.color = [(0.85, 0.35, 0.38, 1), (0.9, 0.78, 0.3, 1), (0.85, 0.55, 0.7, 1)][k % 3]
             kit.add(flower, "flower", sink=False, leaf=tuple(flower.color), autumn=(0.45, 0.32, 0.18, 1))
 
@@ -893,18 +1021,27 @@ def build_river_city(kit, mats, rng, pieces):
                     rng.uniform(3.5, 6.5), future=True, delay=rng.uniform(0.35, 0.85),
                     rng=rng, kind=rng.choice(kinds),
                 )
-        for ix in range(-280, 300, 14):
-            for iy in (220, 250, 285, 325, 370):
-                if abs(ix) < 14 and iy < 250:
+        for ix in range(-80, 100, 12):
+            for iy in (162, 180, 200):
+                if on_block_street(ix, 2.5) or abs(ix - _deck_x(iy)) < 10:
                     continue
                 _tree(
                     kit, col_p, mats, ix, iy, FAR_Z,
-                    rng.uniform(6.0, 11.0), future=True, delay=0.15 + (abs(ix) % 6) * 0.05,
+                    rng.uniform(7.0, 12.0), future=True, delay=rng.uniform(0.25, 0.7),
+                    rng=rng, kind=rng.choice(kinds),
+                )
+        for ix in range(-280, 300, 16):
+            for iy in (230, 270, 320, 380):
+                if on_block_street(ix, 2.0) or (abs(ix) < 14 and iy < 250):
+                    continue
+                _tree(
+                    kit, col_p, mats, ix, iy, FAR_Z,
+                    rng.uniform(7.0, 12.0), future=True, delay=0.15 + (abs(ix) % 6) * 0.05,
                     rng=rng, kind=rng.choice(kinds),
                 )
         for i in range(28):
-            x = rng.uniform(-70, 40)
-            y = rng.choice((AVE_Y + AVE_HALF - 0.4, AVE_Y - 1.2, rng.uniform(36, 88)))
+            x = rng.uniform(-70, 20)
+            y = rng.choice((AVE_Y + 6.0, AVE_Y - 4.0, rng.uniform(42, 76)))
             if _on_deck(x, y, 8):
                 continue
             bush = ico_object("bush", col_p, (x, y, ROAD_Z + 0.15 if abs(y - AVE_Y) < AVE_HALF else PARK_Z + 0.2), (0.55, 0.45, 0.7), mats["leaf"])
@@ -937,7 +1074,7 @@ def build_river_city(kit, mats, rng, pieces):
         _person(kit, col_v, mats, x, walk_y, ROAD_Z + 0.06, rng)
     for i in range(16):
         x = rng.uniform(-50, 10)
-        y = rng.uniform(40, 86)
+        y = rng.uniform(42, 76)
         if _on_deck(x, y, 8) or _on_path(x, y) or math.hypot(x - fx, y - fy) < 6:
             continue
         _person(kit, col_v, mats, x, y, PARK_Z, rng)
@@ -948,7 +1085,7 @@ def build_river_city(kit, mats, rng, pieces):
             col_v,
             mats,
             (x, y, ROAD_Z + 0.25),
-            0.0,
+            0.0 if y < AVE_Y else math.pi,
             white,
             drive=0.0,
             model="sedan",
@@ -1706,9 +1843,12 @@ def _lights(kit):
     camera = nt.nodes.new("ShaderNodeLightPath")
     shown = nt.nodes.new("ShaderNodeMixRGB")
     shown.name = "SkyShown"
+    # Daytime the camera sees the HDRI (sky_mix fac 0). Night raises the fac
+    # and both rays see the gradient. A flat dim gradient here made the
+    # opening gloomy even when the HDRI was lighting the ground.
     nt.links.new(camera.outputs["Is Camera Ray"], shown.inputs["Fac"])
     nt.links.new(sky_mix.outputs["Color"], shown.inputs["Color1"])
-    nt.links.new(gradient.outputs["Color"], shown.inputs["Color2"])
+    nt.links.new(sky_mix.outputs["Color"], shown.inputs["Color2"])
     nt.links.new(shown.outputs["Color"], bg.inputs["Color"])
     nt.links.new(bg.outputs["Background"], out.inputs["Surface"])
     bg.inputs[1].default_value = 0.85

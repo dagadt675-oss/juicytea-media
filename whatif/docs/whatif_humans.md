@@ -1,6 +1,10 @@
 # What if all humans disappeared?
 
-Calm documentary narration, US English. About 118 words. Each line is one beat. Claims we could not source are not in the script.
+The picture follows this timeline. It is not a voiceover. Episode 1 plays sound effects only: no narration and no music. The cue sheet is `sfx.json` from the spec (`engine/spec.py`). On screen, the only type is the title and the time counter.
+
+Day 1 is an ambient city bed. That bed fades as people vanish and the power fails. What replaces it is wind, birds, and the river. One-shots mark the decays: a power-down, water, creaks, rust groans, glass, and a collapse rumble when the towers and the bridge fail. The river bed keeps running. The loop snaps the city bed back on with the picture.
+
+Each line below is one beat. Claims we could not source are not in the script. The sentences still set the beat lengths. They are not recorded.
 
 1. Every person on Earth disappears at once.
    Premise of Alan Weisman, *The World Without Us* (Thomas Dunne / St. Martin's, 2007): people vanish at once, and the book follows what the built world does next.

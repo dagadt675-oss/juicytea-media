@@ -173,7 +173,7 @@ def _render_settings(scene, resolved, samples, scale):
         scene.view_settings.look = "AgX - Base Contrast"
     except TypeError:
         scene.view_settings.look = "None"
-    scene.view_settings.exposure = 0.05
+    scene.view_settings.exposure = 0.42
     scene.view_settings.gamma = 1.0
     try:
         scene.use_nodes = True

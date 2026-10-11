@@ -23,6 +23,13 @@ camera:
   clip_end: 2500
 ui:
   counter_y: 0.46
+  # Zenith style: the title, and one counter (population, then the year).
+  text: [title, counter]
+# Sound effects only. The beat lines time the picture; they are not spoken.
+audio:
+  narration: false
+  music: false
+  sfx: true
 beats:
   - id: vanish
     title: true
