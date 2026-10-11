@@ -4,7 +4,7 @@ Last updated: 2026-10-11.
 
 This file is the only briefing a new agent gets, plus the git repo. Read it before editing. Update it at the end of every future run that changes the picture, the rules, the branches, or the next step, then commit it on the branch you are actually working on and copy it to `/opt/cursor/artifacts/handoff/map_HANDOFF.md`.
 
-Picture this document describes: `greenland_africa_v9.mp4` on `cursor/greenland-africa-v9-7e9d`. v8 is the parent (`87d43d4` on `cursor/greenland-africa-v8-7e9d`).
+Picture this document describes: `greenland_africa_v9.mp4` in commit `5f05e73` on `cursor/greenland-africa-v9-7e9d`. v8 is the parent (`87d43d4` on `cursor/greenland-africa-v8-7e9d`).
 
 ## Where the code actually is
 
@@ -745,7 +745,7 @@ All of these were open drafts on 2026-10-11 unless noted. The map-Shorts camera 
 
 | PR | Head | Base | Title | Role |
 | --- | --- | --- | --- | --- |
-| v9 PR | `cursor/greenland-africa-v9-7e9d` | `cursor/greenland-africa-v8-7e9d` | One geometry on the way into the globe | **Current.** v9 picture plus this handoff. |
+| #23 | `cursor/greenland-africa-v9-7e9d` | `cursor/greenland-africa-v8-7e9d` | One geometry on the way into the globe | **Current.** v9 picture plus this handoff. |
 
 https://github.com/dagadt675-oss/juicytea-media/pull/19
 
@@ -766,7 +766,9 @@ https://github.com/dagadt675-oss/juicytea-media/pull/19
 | #3 | `cursor/gold-style-kit-7e9d` | `cursor/map-shorts-pipeline-7e9d` | Gold style kit. Camera sway removed. |
 | #1 | `cursor/map-shorts-pipeline-7e9d` | `cursor/post-dropbox-shorts-9137` | YAML map-Shorts pipeline. |
 
-The handoff belongs on the v9 pull request. Do not open a second PR for the document alone.
+https://github.com/dagadt675-oss/juicytea-media/pull/23
+
+The handoff belongs on #23. Do not open a second PR for the document alone.
 
 ### Other product lines (not this camera)
 
