@@ -66,11 +66,28 @@ def _set_building_decay(amount):
             node.outputs[0].default_value = float(amount)
 
 
-def _paint_descendants(obj, color):
+def _drive_tint(mesh, color):
+    """Write the rust color into the multiply node. Object Info does not update on these meshes."""
+    for slot in mesh.material_slots:
+        material = slot.material
+        if material is None or not material.get("object_tint") or material.node_tree is None:
+            continue
+        for node in material.node_tree.nodes:
+            if node.type != "MIX_RGB" or node.blend_type != "MULTIPLY":
+                continue
+            sock = node.inputs["Color2"]
+            while sock.is_linked:
+                material.node_tree.links.remove(sock.links[0])
+            sock.default_value = color
+
+
+def _paint_descendants(obj, color, drive_nodes=False):
     if getattr(obj, "type", "") == "MESH":
         obj.color = color
+        if drive_nodes:
+            _drive_tint(obj, color)
     for child in obj.children:
-        _paint_descendants(child, color)
+        _paint_descendants(child, color, drive_nodes)
 
 
 def _crumple_nose(empty):
@@ -338,10 +355,10 @@ def _life(kit, ch, frame, fps, snow):
             paint = Vector(item.extra.get("paint", (1.0, 1.0, 1.0))[:3])
             if hero:
                 # Darken the factory paint. A red or gold Miura still reads through the rust.
-                husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.58, 0.34, 0.26)), min(1.0, grime_u * 0.62))
+                husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.32, 0.18, 0.11)), min(1.0, grime_u * 0.85))
             else:
                 husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.18, 0.11, 0.07)), grime_u)
-            _paint_descendants(obj, (husk.x, husk.y, husk.z, 1.0))
+            _paint_descendants(obj, (husk.x, husk.y, husk.z, 1.0), drive_nodes=hero)
             askew = 0.35 if veg > 0.15 and not hero else 0.08
             yaw = item.base_rot.z + grime_u * (askew if item.extra.get("index", 0) % 2 == 0 else -askew)
             obj.rotation_euler = _euler(item.base_rot, dz=yaw - item.base_rot.z)

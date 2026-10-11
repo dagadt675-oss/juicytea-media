@@ -1062,8 +1062,8 @@ def _south_city_blocks(kit, coll, mats, ix, road_z, street_west, street_east, fr
         cursor = x0 + 6.0
         i = 0
         while cursor < x1 - 4.0:
-            # Leave the drone facade's lot empty so that one building stays itself.
-            if abs(cursor + 50.0) < 9.0 and abs(y + 30.0) < 12.0:
+            # Keep the lot in front of the broken window empty. The drone flies this gap.
+            if abs(cursor + 50.0) < 14.0 and y < -20.0:
                 cursor += 8.6
                 i += 1
                 continue
@@ -1104,12 +1104,19 @@ def _gutted_room(kit, coll, mats, x, y, z):
     box_object("room_back", coll, (x, y + 5.5, z + 3.6), (12.0, 0.4, 7.2), mats["trim"])
     box_object("room_side_w", coll, (x - 6.0, y, z + 3.6), (0.4, 11.0, 7.2), mats["concrete"])
     box_object("room_side_e", coll, (x + 6.0, y, z + 3.6), (0.4, 11.0, 7.2), mats["concrete"])
+    box_object("room_ceiling", coll, (x, y, z + 6.5), (11.6, 11.0, 0.28), mats["concrete"])
     floor = box_object("room_floor", coll, (x, y, z + 0.08), (11.2, 11.0, 0.12), mats["dirt"])
     kit.add(floor, "blanket", sink=False)
-    for i, (vx, vy) in enumerate(((-2.2, 4.2), (1.4, 3.6), (-0.4, -4.8), (2.8, 1.0), (-3.0, -1.0))):
-        vine = ico_object("vine", coll, (x + vx, y + vy, z + 1.2 + (i % 3) * 0.8), (0.7, 0.45, 1.6), mats["leaf"])
-        vine.color = (0.18, 0.36, 0.12, 1)
-        kit.add(vine, "weed", delay=0.35, sink=False, leaf=(0.18, 0.36, 0.12, 1))
+    # Hanging stems, not faceted blobs. They drop from the ceiling inside the window.
+    for i, (vx, vy) in enumerate(((-0.7, -3.2), (0.55, -2.4), (-0.15, -1.2), (0.9, -4.0))):
+        stem = box_object(
+            "vine", coll, (x + vx, y + vy, z + 4.6), (0.08, 0.08, 2.4 + (i % 2) * 0.6), mats["leaf"],
+        )
+        stem.color = (0.16, 0.34, 0.12, 1)
+        kit.add(stem, "weed", delay=0.35, sink=False, leaf=(0.16, 0.34, 0.12, 1))
+        leaf = ico_object("vine_leaf", coll, (x + vx, y + vy, z + 3.2 - i * 0.25), (0.28, 0.22, 0.35), mats["leaf"])
+        leaf.color = (0.2, 0.4, 0.14, 1)
+        kit.add(leaf, "weed", delay=0.35, sink=False, leaf=(0.2, 0.4, 0.14, 1))
     cat = private_assets.place_cat(coll, x + 0.4, y - 5.5, z + 1.45, yaw=0.4)
     if cat is not None:
         kit.add(cat, "animal", sink=False)
@@ -1523,33 +1530,13 @@ def build_river_city(kit, mats, rng, pieces):
         kit, col_v, mats, (hx, hy, ROAD_Z), hyaw, (1.0, 1.0, 1.0),
         drive=0.0, index=2, hero=True, paint=(1.0, 1.0, 1.0),
     )
-    # Vines, moss, and a sapling in the rear engine bay. They grow with the years
-    # and stay parented to the hero so a Miura mesh can take the same empty.
-    hero = next((item.obj for item in kit.items if item.extra.get("hero")), None)
-    if hero is not None:
-        for i, (lx, ly, lz, sc) in enumerate((
-            (1.4, 0.15, 0.55, (0.55, 0.35, 0.4)),
-            (0.2, -0.35, 0.7, (0.7, 0.4, 0.55)),
-            (-0.8, 0.2, 0.45, (0.6, 0.4, 0.35)),
-            (-1.5, -0.1, 0.35, (0.45, 0.3, 0.25)),
-        )):
-            vine = ico_object("hero_vine", col_v, (0, 0, 0), sc, mats["leaf"])
-            vine.parent = hero
-            vine.matrix_parent_inverse = Matrix.Identity(4)
-            vine.location = (lx, ly, lz)
-            vine.color = (0.15, 0.32, 0.1, 1)
-            kit.add(vine, "weed", delay=0.45, sink=False, leaf=(0.15, 0.32, 0.1, 1))
-        moss = box_object("hero_moss", col_v, (0, 0, 0), (1.4, 0.9, 0.04), mats["leaf"])
-        moss.parent = hero
-        moss.matrix_parent_inverse = Matrix.Identity(4)
-        moss.location = (-0.2, 0.0, 0.72)
-        moss.color = (0.2, 0.36, 0.14, 1)
-        kit.add(moss, "weed", delay=0.4, sink=False, leaf=(0.2, 0.36, 0.14, 1))
-        sap = ico_object("hero_sapling", col_v, (0, 0, 0), (0.35, 0.35, 1.1), mats["leaf"])
-        sap.parent = hero
-        sap.matrix_parent_inverse = Matrix.Identity(4)
-        sap.location = (-1.15, 0.05, 0.9)
-        kit.add(sap, "tree_canopy", future=True, delay=0.62, sink=False, leaf=(0.22, 0.45, 0.16, 1))
+    # A real sapling in the rear engine bay. Not parented: the Miura empty is scaled ~100x.
+    if cc0_city.ready():
+        sap = cc0_city.place_tree(
+            col_v, hx - math.cos(hyaw) * 1.7, hy - math.sin(hyaw) * 1.7, ROAD_Z, 1.5, kind="round",
+        )
+        if sap is not None:
+            kit.add(sap, "tree_canopy", future=True, delay=0.55, sink=False, leaf=(0.22, 0.45, 0.16, 1))
     for i, (x, y, yaw) in enumerate(FOREGROUND_CARS):
         _car(
             kit,

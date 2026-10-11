@@ -143,8 +143,8 @@ beats:
       collapse: 1.0
       sag: 0.6
     camera:
-      - {u: 0.0, location: [-40.2, 11.7, 1.38], target: [-36.2, 14.5, 0.55], lens: 48, fstop: 2.0}
-      - {u: 1.0, location: [-32.4, 11.6, 1.22], target: [-35.4, 14.5, 0.48], lens: 52, fstop: 1.8}
+      - {u: 0.0, location: [-44.5, 8.2, 2.4], target: [-36.0, 14.5, 0.75], lens: 40, fstop: 2.8}
+      - {u: 1.0, location: [-40.5, 10.4, 1.9], target: [-36.0, 14.5, 0.7], lens: 44, fstop: 2.4}
 
   - id: drone_facade
     seconds: 2.6
@@ -157,9 +157,8 @@ beats:
       collapse: 1.0
       sag: 0.6
     camera:
-      - {u: 0.0, location: [-50.0, -43.5, 3.15], target: [-50.0, -35.5, 2.95], lens: 35, fstop: 2.2}
-      - {u: 0.62, location: [-50.0, -37.2, 2.9], target: [-50.0, -28.0, 2.55], lens: 30, fstop: 2.0}
-      - {u: 1.0, location: [-50.0, -32.6, 2.55], target: [-50.0, -25.0, 2.25], lens: 28, fstop: 1.8}
+      - {u: 0.0, location: [-50.0, -41.2, 1.9], target: [-50.0, -35.5, 3.1], lens: 28, fstop: 2.8}
+      - {u: 1.0, location: [-50.0, -37.6, 2.15], target: [-50.0, -30.2, 2.5], lens: 24, fstop: 2.2}
 
   - id: drone_span
     seconds: 2.6

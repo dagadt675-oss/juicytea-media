@@ -519,9 +519,8 @@ def place_hero_sports(coll, loc, yaw):
     for obj in new:
         if obj.type != "MESH":
             continue
-        if obj.name == "Icosphere" or _is_mark(obj):
-            obj.hide_render = True
-            obj.hide_viewport = True
+        if "icosphere" in obj.name.lower() or _is_mark(obj):
+            bpy.data.objects.remove(obj, do_unlink=True)
             continue
         try:
             coll.objects.link(obj)
