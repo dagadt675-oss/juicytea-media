@@ -26,6 +26,8 @@ import numpy as np
 import skia
 
 from jt.show.cues import pack as pack_cues
+from jt.show.flyto import fly_lonlat
+from jt.show.moves import ease_out_back
 
 
 @dataclass
@@ -179,10 +181,11 @@ def progress(spec: ModelDrop, t: float, t0: float, dur: float) -> dict:
         slot = dur / n
         for i, span in enumerate(spans):
             age = t - span["t"]
-            if age >= slot * 0.9:
+            if age >= slot:
                 done = i + 1.0
             elif age > 0:
-                done = i + _smooth(age / (slot * 0.9))
+                # Ease-out-back: the span overshoots as it lands, then sits.
+                done = i + ease_out_back(age / slot)
                 break
         else:
             if t >= spans[-1]["t"]:
@@ -206,54 +209,63 @@ def _project_point(project, east: float, north: float, up: float):
     return project(east, north, up)
 
 
-def draw(canvas, spec: ModelDrop, state: dict, project, view_m: float, frame_w: float) -> None:
-    """Draw the model. `project(east, north, up) -> (x, y) or None`."""
+def hero_view_m(spec: ModelDrop, fraction: float = 0.60) -> float:
+    """Ground width that puts the bridge across `fraction` of the frame.
+
+    The chord is measured along the bridge, which the camera lays left to right.
+    """
+    xy = path_meters(spec.polyline)
+    if len(xy) < 2:
+        return 8_000.0
+    delta = xy[-1] - xy[0]
+    heading = math.atan2(float(delta[1]), float(delta[0]))
+    c, s = math.cos(heading), math.sin(heading)
+    along = xy[:, 0] * c + xy[:, 1] * s
+    extent = float(along.max() - along.min()) or 1.0
+    return extent / fraction
+
+
+def bridge_heading(spec: ModelDrop) -> float:
+    """Radians from east toward north, so the chord runs left to right."""
+    xy = path_meters(spec.polyline)
+    if len(xy) < 2:
+        return 0.0
+    delta = xy[-1] - xy[0]
+    return math.atan2(float(delta[1]), float(delta[0]))
+
+
+def draw(canvas, spec: ModelDrop, state: dict, project, view_m: float, frame_w: float, tilt: float = 30.0) -> None:
+    """Low-poly bridge. Each span drops in whole, then its pier and, where asked, a pylon."""
     spans = state["spans"]
     done = float(state["spans_done"])
     if not spans or done <= 0.02:
         return
     gsd = view_m / max(1.0, frame_w)
+    sin_t = max(0.35, math.sin(math.radians(max(18.0, tilt))))
     if spec.scale == "stylized":
-        deck_m = max(spec.deck_m, 14.0 * gsd)
-        tower_m = max(spec.tower_m, 110.0 * gsd)
+        # Screen-space targets, so a hero framing reads as a model rather than a stroke.
+        deck_m = max(spec.deck_m, 22.0 * gsd / sin_t)
+        thick_m = max(spec.deck_m * 0.45, 18.0 * gsd / sin_t)
+        tower_m = max(spec.tower_m, 78.0 * gsd / sin_t)
     else:
         deck_m = spec.deck_m
+        thick_m = max(6.0, spec.deck_m * 0.22)
         tower_m = spec.tower_m
-    deck_z = 18.0 if spec.scale == "stylized" else 8.0
-    lift = state.get("drop", 0.0) * tower_m + state.get("fly", 0.0) * view_m * 0.15
+    deck_z = thick_m * 0.15
+    length = sum(s["length_m"] for s in spans) or 1.0
 
     def P(pt, up):
-        return _project_point(project, float(pt[0]), float(pt[1]), up + lift)
+        return _project_point(project, float(pt[0]), float(pt[1]), up)
 
-    # Contact shadow first, under every finished and partial span.
-    shadow = skia.Paint(AntiAlias=True)
-    shadow.setColor(skia.ColorSetARGB(54, 16, 20, 28))
-    shadow.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 10))
     for span in spans:
         frac = _span_frac(done, span["index"])
-        if frac <= 0.02:
+        if frac <= 0.04:
             continue
-        _deck(canvas, span, frac, deck_m * 1.15, 0.0, P, shadow, None, (0, 0))
-
-    fill = skia.Paint(AntiAlias=True)
-    fill.setColor(skia.ColorSetARGB(245, 226, 230, 234))
-    rim = skia.Paint(AntiAlias=True)
-    rim.setColor(skia.ColorSetARGB(255, 255, 250, 242))
-    edge = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=3.6)
-    edge.setColor(skia.ColorSetARGB(255, 22, 28, 36))
-    for span in spans:
-        frac = _span_frac(done, span["index"])
-        if frac <= 0.02:
-            continue
-        _deck(canvas, span, frac, deck_m, deck_z, P, fill, edge, (0, 0))
-        _deck(canvas, span, frac, deck_m * 0.55, deck_z + 2.2, P, rim, None, (-1.4, -1.0))
-        if span["index"] in spec.tower_after and frac > 0.45:
-            _tower_at(canvas, span["b"], span, tower_m, deck_z, P, frac)
-            _cables_at(canvas, spec.kind, span["b"], span, tower_m, deck_z, deck_m, P, frac)
+        _span_model(canvas, spec, span, spans, frac, deck_m, thick_m, tower_m, deck_z, length, P)
 
 
 def _span_frac(done: float, index: int) -> float:
-    if done >= index + 1:
+    if done >= index + 1.25:
         return 1.0
     if done <= index:
         return 0.0
@@ -271,83 +283,165 @@ def _quad(canvas, corners, paint) -> None:
     canvas.drawPath(path, paint)
 
 
-def _deck(canvas, span, frac, width, up, project, fill, edge, nudge) -> None:
-    a = span["a"]
-    b = span["a"] + (span["b"] - span["a"]) * frac
+def _ends(span, frac: float) -> tuple[np.ndarray, np.ndarray]:
+    """Whole span, slightly shortened so the pieces read as separate drops."""
+    gap = 0.045
+    a = span["a"] * (1 - gap) + span["b"] * gap
+    b = span["b"] * (1 - gap) + span["a"] * gap
+    # A span that is still dropping is fully formed; frac only sets the height.
+    _ = frac
+    return a, b
+
+
+def _drop_z(frac: float, tower_m: float) -> float:
+    if frac >= 1.0:
+        # The ease-out-back overshoot presses the span into the water, then releases.
+        return -min(0.18, frac - 1.0) * tower_m * 0.35
+    u = max(0.0, frac)
+    return (1.0 - u) ** 2 * tower_m * 1.35
+
+
+def _span_model(canvas, spec, span, spans, frac, deck_m, thick, tower_m, deck_z, length, project) -> None:
+    a, b = _ends(span, frac)
+    z_off = _drop_z(frac, tower_m)
+    squash = 1.0
+    if frac > 0.72:
+        w = math.sin(math.pi * min(1.0, (frac - 0.72) / 0.28))
+        squash = 1.0 - 0.16 * w
+    top_z = deck_z + z_off + thick * squash
+    bot_z = deck_z + z_off
     direction = _unit(b - a)
+    side = np.array([-direction[1], direction[0]])
+    half = side * (deck_m / 2)
+    # Shadow on the water, wider than the deck.
+    shade = skia.Paint(AntiAlias=True)
+    shade.setColor(skia.ColorSetARGB(70, 10, 16, 28))
+    shade.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 12))
+    _quad(canvas, [
+        project(a + half * 1.35, 1.0), project(b + half * 1.35, 1.0),
+        project(b - half * 1.35, 1.0), project(a - half * 1.35, 1.0),
+    ], shade)
+    side_paint = skia.Paint(AntiAlias=True)
+    side_paint.setColor(skia.ColorSetARGB(255, 176, 186, 196))
+    top_paint = skia.Paint(AntiAlias=True)
+    top_paint.setColor(skia.ColorSetARGB(255, 246, 244, 236))
+    edge = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=4.0)
+    edge.setColor(skia.ColorSetARGB(255, 22, 28, 36))
+    rim = skia.Paint(AntiAlias=True)
+    rim.setColor(skia.ColorSetARGB(255, 255, 252, 244))
+    # Side faces, then the roadway, then a light rim on the near edge.
+    corners_bot = [a + half, b + half, b - half, a - half]
+    corners_top = corners_bot
+    for i in range(4):
+        p = corners_bot[i]
+        q = corners_bot[(i + 1) % 4]
+        _quad(canvas, [project(p, bot_z), project(q, bot_z), project(q, top_z), project(p, top_z)], side_paint)
+        _quad(canvas, [project(p, bot_z), project(q, bot_z), project(q, top_z), project(p, top_z)], edge)
+    _quad(canvas, [project(p, top_z) for p in corners_top], top_paint)
+    _quad(canvas, [project(p, top_z) for p in corners_top], edge)
+    _quad(canvas, [
+        project(a + half * 0.72, top_z + thick * 0.08),
+        project(b + half * 0.72, top_z + thick * 0.08),
+        project(b - half * 0.15, top_z + thick * 0.08),
+        project(a - half * 0.15, top_z + thick * 0.08),
+    ], rim)
+    _pier(canvas, (a + b) * 0.5, direction, deck_m * 0.28, bot_z, project, edge)
+    if span["index"] in spec.tower_after and frac > 0.55:
+        _tower_at(canvas, span["b"], span, tower_m * min(1.0, (frac - 0.45) / 0.4), top_z, project, frac)
+        _cables_at(canvas, spec.kind, span["b"], span, spans, tower_m, top_z, project, frac)
+    _ = length
+
+
+def _pier(canvas, mid, direction, width, top_z, project, edge) -> None:
     side = np.array([-direction[1], direction[0]]) * (width / 2)
-    corners = [
-        project(a + side, up),
-        project(b + side, up),
-        project(b - side, up),
-        project(a - side, up),
-    ]
-    if nudge != (0, 0):
-        corners = [None if c is None else (c[0] + nudge[0], c[1] + nudge[1]) for c in corners]
-    _quad(canvas, corners, fill)
-    if edge is not None:
-        _quad(canvas, corners, edge)
+    along = direction * (width / 2)
+    paint = skia.Paint(AntiAlias=True)
+    paint.setColor(skia.ColorSetARGB(255, 150, 160, 170))
+    footprint = [mid - side - along, mid + side - along, mid + side + along, mid - side + along]
+    for i in range(4):
+        p = footprint[i]
+        q = footprint[(i + 1) % 4]
+        _quad(canvas, [project(p, 0.0), project(q, 0.0), project(q, top_z), project(p, top_z)], paint)
+        _quad(canvas, [project(p, 0.0), project(q, 0.0), project(q, top_z), project(p, top_z)], edge)
 
 
 def _tower_at(canvas, mid, span, height, deck_z, project, frac) -> None:
-    grow = min(1.0, max(0.0, (frac - 0.35) / 0.4))
-    if grow <= 0.02:
+    if height <= 1 or frac < 0.5:
         return
     direction = _unit(span["b"] - span["a"])
-    side = np.array([-direction[1], direction[0]]) * 7.0
-    top = height * grow
+    side = np.array([-direction[1], direction[0]])
+    leg = side * max(8.0, height * 0.045)
     body = skia.Paint(AntiAlias=True)
-    body.setColor(skia.ColorSetARGB(250, 244, 240, 230))
-    edge = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=3.2)
+    body.setColor(skia.ColorSetARGB(255, 244, 240, 230))
+    edge = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=3.6)
     edge.setColor(skia.ColorSetARGB(255, 22, 28, 36))
-    corners = [
-        project(mid - side, deck_z),
-        project(mid - side * 0.45, deck_z + top),
-        project(mid + side * 0.45, deck_z + top),
-        project(mid + side, deck_z),
-    ]
-    _quad(canvas, corners, body)
-    _quad(canvas, corners, edge)
+    top = deck_z + height
+    # A-frame: two legs meeting near the top, plus a crossbeam.
+    for sign in (-1.0, 1.0):
+        foot = mid + side * sign * height * 0.16
+        crown = mid + side * sign * height * 0.035
+        _quad(canvas, [
+            project(foot - leg, deck_z),
+            project(foot + leg, deck_z),
+            project(crown + leg * 0.45, top),
+            project(crown - leg * 0.45, top),
+        ], body)
+        _quad(canvas, [
+            project(foot - leg, deck_z),
+            project(foot + leg, deck_z),
+            project(crown + leg * 0.45, top),
+            project(crown - leg * 0.45, top),
+        ], edge)
+    beam_y = deck_z + height * 0.72
+    _quad(canvas, [
+        project(mid - side * height * 0.14, beam_y),
+        project(mid + side * height * 0.14, beam_y),
+        project(mid + side * height * 0.14, beam_y + height * 0.06),
+        project(mid - side * height * 0.14, beam_y + height * 0.06),
+    ], body)
 
 
-def _cables_at(canvas, kind, mid, span, height, deck_z, deck_m, project, frac) -> None:
-    if frac < 0.55:
+def _cables_at(canvas, kind, mid, span, spans, height, deck_z, project, frac) -> None:
+    if frac < 0.62:
         return
-    pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=1.7)
-    pen.setColor(skia.ColorSetARGB(220, 36, 44, 54))
-    top = project(mid, deck_z + height * min(1.0, (frac - 0.35) / 0.4))
+    pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=2.4)
+    pen.setColor(skia.ColorSetARGB(230, 28, 34, 42))
+    top = project(mid, deck_z + height)
     if top is None:
         return
+    neighbors = [span]
+    nxt = span["index"] + 1
+    if nxt < len(spans):
+        neighbors.append(spans[nxt])
     if kind == "suspension":
-        anchors = (span["a"], span["b"])
-        for anchor in anchors:
-            p = project(anchor, deck_z + 4)
+        for piece in neighbors:
+            for anchor in (piece["a"], piece["b"]):
+                p = project(anchor, deck_z)
+                if p is None:
+                    continue
+                path = skia.Path()
+                path.moveTo(top[0], top[1])
+                path.quadTo((top[0] + p[0]) / 2, (top[1] + p[1]) / 2 + 22, p[0], p[1])
+                canvas.drawPath(path, pen)
+        return
+    for piece in neighbors:
+        for u in (0.18, 0.42, 0.66, 0.9):
+            pt = piece["a"] + (piece["b"] - piece["a"]) * u
+            p = project(pt, deck_z)
             if p is None:
                 continue
-            path = skia.Path()
-            path.moveTo(top[0], top[1])
-            # A shallow catenary in screen space.
-            sag = (p[0], (top[1] + p[1]) / 2 + 18)
-            path.quadTo(sag[0], sag[1], p[0], p[1])
-            canvas.drawPath(path, pen)
-        return
-    # Cable-stayed fan to a few points on this span.
-    for u in (0.2, 0.45, 0.7, 0.92):
-        pt = span["a"] + (span["b"] - span["a"]) * u
-        p = project(pt, deck_z + 3)
-        if p is None:
-            continue
-        canvas.drawLine(top[0], top[1], p[0], p[1], pen)
+            canvas.drawLine(top[0], top[1], p[0], p[1], pen)
 
 
 def zoom_width(t: float, t0: float, t1: float, wide_m: float, close_m: float) -> float:
-    """Smooth exponential zoom. Settled width is close_m."""
+    """Van Wijk zoom (d3 interpolateZoom) with smoothstep timing. Settled width is close_m."""
     if t <= t0:
         return wide_m
     if t >= t1:
         return close_m
     u = _smooth((t - t0) / (t1 - t0))
-    return math.exp(math.log(wide_m) + (math.log(close_m) - math.log(wide_m)) * u)
+    _lon, _lat, width = fly_lonlat(u, 0.0, 0.0, wide_m, 0.0, 0.0, close_m)
+    return width
 
 
 def tilt_deg(t: float, t_in: float, t_hold: float, t_out: float, degrees: float = 28.0) -> float:

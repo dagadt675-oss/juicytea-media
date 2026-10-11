@@ -21,13 +21,17 @@ from osgeo import gdal, osr
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
+from jt.show.flyto import fly_lonlat  # noqa: E402
+from jt.show.labels import Hud, pill  # noqa: E402
+from jt.show.moves import apply_vignette, apply_zoom_blur, drop_in, match_cut_dive  # noqa: E402
 from jt.show.model_drop import (  # noqa: E402
+    bridge_heading,
     build_cues,
+    draw,
+    hero_view_m,
     parse_spec,
     progress,
-    tilt_deg,
     zoom_width,
-    draw,
 )
 
 HERE = Path(__file__).resolve().parent
@@ -138,13 +142,17 @@ def _camera(width_m, tilt_deg):
     return eye, right, up, forward, focal
 
 
-def _projector(width_m, tilt_deg):
+def _projector(width_m, tilt_deg, heading):
+    """Project geographic east/north. The bridge chord lies along screen X."""
     eye, right, up, forward, focal = _camera(width_m, tilt_deg)
+    c, s = math.cos(heading), math.sin(heading)
 
     def project(east, north, up_m):
-        rel = np.array([east - eye[0], north - eye[1], up_m - eye[2]])
+        x = east * c + north * s
+        y = -east * s + north * c
+        rel = np.array([x - eye[0], y - eye[1], up_m - eye[2]])
         vz = float(rel @ forward)
-        if vz < 12.0:
+        if vz < 8.0:
             return None
         vx = float(rel @ right)
         vy = float(rel @ up)
@@ -153,140 +161,187 @@ def _projector(width_m, tilt_deg):
     return project
 
 
-def render_plate(tex, gt, utm, lat0, lon0, width_m, tilt_deg) -> np.ndarray:
-    """Landsat on a flat plane, nadir or oblique. One source pixel stays one pixel at 30 m."""
-    if tilt_deg < 1.2:
-        col_c, row_c = _pix(lon0, lat0, gt, utm)
-        gsd = width_m / W
-        # Source is 30 m. Crop that many source pixels across the frame.
-        crop_w = width_m / 30.0
-        crop_h = crop_w * (H / W)
-        x0 = int(round(col_c - crop_w / 2))
-        y0 = int(round(row_c - crop_h / 2))
-        x1 = int(round(col_c + crop_w / 2))
-        y1 = int(round(row_c + crop_h / 2))
-        pad = np.zeros((max(1, y1 - y0), max(1, x1 - x0), 3), np.uint8)
-        sx0, sy0 = max(0, x0), max(0, y0)
-        sx1, sy1 = min(tex.shape[1], x1), min(tex.shape[0], y1)
-        if sx1 > sx0 and sy1 > sy0:
-            pad[sy0 - y0:sy1 - y0, sx0 - x0:sx1 - x0] = tex[sy0:sy1, sx0:sx1]
-        view = np.array(Image.fromarray(pad).resize((W, H), Image.Resampling.BICUBIC))
-        return view
-    # Oblique mesh. Texture coordinates are Landsat pixels.
-    xs = np.linspace(-width_m * 0.7, width_m * 0.7, 72)
-    ys = np.linspace(-width_m * 0.85, width_m * 1.15, 84)
-    east, north = np.meshgrid(xs, ys)
-    lats = lat0 + np.degrees(north / 6378137.0)
-    lons = lon0 + np.degrees(east / (6378137.0 * math.cos(math.radians(lat0))))
-    cols, rows = _pix_grid(lons, lats, gt, utm)
-    eye, right, up, forward, focal = _camera(width_m, tilt_deg)
-    rel_x = east - eye[0]
-    rel_y = north - eye[1]
-    rel_z = 0.0 - eye[2]
-    vx = rel_x * right[0] + rel_y * right[1] + rel_z * right[2]
-    vy = rel_x * up[0] + rel_y * up[1] + rel_z * up[2]
-    vz = rel_x * forward[0] + rel_y * forward[1] + rel_z * forward[2]
-    inside = (cols >= 1) & (cols < tex.shape[1] - 1) & (rows >= 1) & (rows < tex.shape[0] - 1)
-    good = (vz > 20) & inside
-    sx = W / 2 + vx / np.maximum(vz, 1.0) * focal
-    sy = H / 2 - vy / np.maximum(vz, 1.0) * focal
-    ny, nx = sx.shape
-    ii, jj = np.mgrid[0:ny - 1, 0:nx - 1]
-    a = (ii * nx + jj).ravel()
-    b = a + 1
-    c = a + nx
-    d = c + 1
-    flat = good.ravel()
-    keep = flat[a] & flat[b] & flat[c] & flat[d]
-    tris = np.concatenate([np.stack([a, b, c], -1), np.stack([b, d, c], -1)])
-    idx = tris[np.concatenate([keep, keep])].ravel()
-    positions = [skia.Point(float(sx.ravel()[i]), float(sy.ravel()[i])) for i in range(sx.size)]
-    texs = [skia.Point(float(cols.ravel()[i]), float(rows.ravel()[i])) for i in range(sx.size)]
-    verts = skia.Vertices.MakeCopy(
-        skia.Vertices.kTriangles_VertexMode, positions, texs, None, [int(v) for v in idx],
-    )
-    surface = skia.Surface(W, H)
-    canvas = surface.getCanvas()
-    canvas.clear(skia.Color4f(0.04, 0.08, 0.12, 1))
-    paint = skia.Paint(AntiAlias=True)
-    rgba = np.dstack([tex, np.full(tex.shape[:2], 255, np.uint8)])
-    paint.setShader(skia.Image.fromarray(rgba).makeShader(skia.TileMode.kClamp, skia.TileMode.kClamp))
-    canvas.drawVertices(verts, paint)
-    bgra = surface.makeImageSnapshot().toarray()
-    return np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
+def _regional(name: str, south: float, west: float, north: float, east: float) -> tuple[np.ndarray, tuple]:
+    """NASA Blue Marble via GIBS. Public domain. Cached under the asset library."""
+    path = Path("/workspace/asset_library/extra") / f"gibs_{name}.jpg"
+    if not path.exists():
+        url = (
+            "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi"
+            "?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=BlueMarble_NextGeneration"
+            "&FORMAT=image/jpeg&CRS=EPSG:4326"
+            f"&BBOX={south},{west},{north},{east}&WIDTH=1600&HEIGHT=1600"
+        )
+        subprocess.run(["curl", "-fsSL", "-o", str(path), url], check=True)
+    img = np.asarray(Image.open(path).convert("RGB"))
+    return img, (south, west, north, east)
 
 
-def _pix(lon, lat, gt, utm):
-    src = osr.SpatialReference()
-    src.ImportFromEPSG(4326)
+def _smooth_w(x):
+    x = np.clip(x, 0, 1)
+    return x * x * (3 - 2 * x)
+
+
+def _feather(lon, lat, bounds, margin=0.18):
+    south, west, north, east = bounds
+    nx = (lon - west) / max(1e-6, east - west)
+    ny = (lat - south) / max(1e-6, north - south)
+    inside = (nx > 0) & (nx < 1) & (ny > 0) & (ny < 1)
+    edge = np.minimum(np.minimum(nx, 1 - nx), np.minimum(ny, 1 - ny))
+    return inside.astype(np.float32) * _smooth_w(edge / margin)
+
+
+def _sample_bbox(img, bounds, lat, lon):
+    south, west, north, east = bounds
+    row = (north - lat) / max(1e-6, north - south) * (img.shape[0] - 1)
+    col = (lon - west) / max(1e-6, east - west) * (img.shape[1] - 1)
+    row = np.clip(row, 0, img.shape[0] - 1.001)
+    col = np.clip(col, 0, img.shape[1] - 1.001)
+    r0 = np.floor(row).astype(np.int32)
+    c0 = np.floor(col).astype(np.int32)
+    fr = (row - r0)[..., None]
+    fc = (col - c0)[..., None]
+    a = img[r0, c0].astype(np.float32)
+    b = img[r0, np.minimum(c0 + 1, img.shape[1] - 1)].astype(np.float32)
+    c = img[np.minimum(r0 + 1, img.shape[0] - 1), c0].astype(np.float32)
+    d = img[np.minimum(r0 + 1, img.shape[0] - 1), np.minimum(c0 + 1, img.shape[1] - 1)].astype(np.float32)
+    return (a * (1 - fc) + b * fc) * (1 - fr) + (c * (1 - fc) + d * fc) * fr
+
+
+def _hits(width_m, tilt_deg, heading):
+    """Intersect each pixel's ray with the ground. Returns aligned x, y and a hit mask."""
+    focal = 980.0
+    tilt = math.radians(tilt_deg)
+    dist = (width_m / 2) * focal / (W / 2)
+    eye = np.array([0.0, -dist * math.sin(tilt), dist * math.cos(tilt)])
+    forward = -eye / np.linalg.norm(eye)
+    world_up = np.array([0.0, 1.0, 0.0]) if tilt < 0.04 else np.array([0.0, 0.0, 1.0])
+    right = np.cross(forward, world_up)
+    right = right / np.linalg.norm(right)
+    up = np.cross(right, forward)
+    ys, xs = np.mgrid[0:H, 0:W]
+    cx = (xs - (W - 1) / 2) / focal
+    cy = ((H - 1) / 2 - ys) / focal
+    direction = cx[..., None] * right + cy[..., None] * up + forward
+    dz = direction[..., 2]
+    hit = dz < -1e-4
+    t = np.zeros_like(dz)
+    t[hit] = -eye[2] / dz[hit]
+    hit &= t > 0
+    point = eye + t[..., None] * direction
+    # Rays that hit far past the plate are the black cap above an oblique view.
+    far = np.hypot(point[..., 0], point[..., 1]) > width_m * 5.5
+    hit = hit & ~far
+    return point[..., 0], point[..., 1], hit, heading
+
+
+def _to_lonlat(x, y, heading, lat0, lon0):
+    c, s = math.cos(heading), math.sin(heading)
+    east = x * c - y * s
+    north = x * s + y * c
+    lat = lat0 + np.degrees(north / 6378137.0)
+    lon = lon0 + np.degrees(east / (6378137.0 * math.cos(math.radians(lat0))))
+    return lat, lon
+
+
+def _width_ok(bounds, lat, width_m) -> bool:
+    """The frame is narrower than the plate, so the plate is not a rectangle sitting in the corner."""
+    _south, west, _north, east = bounds
+    bw = (east - west) * 111320.0 * math.cos(math.radians(lat))
+    return width_m < 0.82 * bw
+
+
+def render_ground(marble, regional, landsat, land_bounds, lat0, lon0, width_m, tilt_deg, heading) -> np.ndarray:
+    """Full-frame plate. A finer level is used only when it covers the frame, so no plate edge shows."""
+    x, y, hit, _h = _hits(width_m, tilt_deg, heading)
+    lat, lon = _to_lonlat(x, y, heading, lat0, lon0)
+    gsd = width_m / W
+    color = _sample_equirect(marble, np.where(hit, lat, lat0), np.where(hit, lon, lon0))
+    if regional is not None and _width_ok(regional[1], lat0, width_m):
+        reg, bounds = regional
+        wr = float(_smooth((14_000 - gsd) / (14_000 - 600))) * _feather(lon, lat, bounds, 0.2)
+        sampled = _sample_bbox(reg, bounds, np.clip(lat, bounds[0], bounds[2]), np.clip(lon, bounds[1], bounds[3]))
+        color = color * (1 - wr[..., None]) + sampled * wr[..., None]
+    if landsat is not None and gsd < 500 and _width_ok(land_bounds, lat0, width_m):
+        wl = float(_smooth((280 - gsd) / (280 - 40))) * _feather(lon, lat, land_bounds, 0.28)
+        src = landsat["soft"] if gsd < 24 else landsat["sharp"]
+        sampled = _sample_bbox(src, land_bounds, np.clip(lat, land_bounds[0], land_bounds[2]), np.clip(lon, land_bounds[1], land_bounds[3]))
+        # Closer than the 30 m sample, flatten toward map colors so the upscale is not a pixel grid.
+        if gsd < 16:
+            lum = sampled.mean(axis=-1)
+            flat = np.where(lum[..., None] < 78, np.array([12.0, 40.0, 82.0]), np.array([92.0, 122.0, 74.0]))
+            mix = float(_smooth((16 - gsd) / 12)) * 0.72
+            sampled = sampled * (1 - mix) + flat * mix
+        color = color * (1 - wl[..., None]) + sampled * wl[..., None]
+    rgb = np.clip(color, 0, 255).astype(np.uint8)
+    if np.any(~hit):
+        first = np.argmax(hit, axis=0)
+        for col in range(W):
+            row = int(first[col])
+            if row <= 0 or not hit[row, col]:
+                continue
+            rgb[:row, col] = rgb[row, col]
+    # A dark cap above the oblique horizon is stretched from the picture under it.
+    row_max = rgb.max(axis=(1, 2))
+    content = row_max > 36
+    if content.any():
+        first = int(np.argmax(content))
+        if first > 2:
+            band = rgb[first:min(H, first + 180)]
+            stretched = np.asarray(Image.fromarray(band).resize((W, first + 30), Image.Resampling.BILINEAR))
+            rgb[:first] = stretched[:first]
+            seam = min(24, H - first)
+            if seam > 4:
+                fade = np.linspace(1, 0, seam, dtype=np.float32)[:, None, None]
+                rgb[first:first + seam] = (
+                    rgb[first:first + seam] * (1 - fade) + stretched[first:first + seam] * fade
+                ).astype(np.uint8)
+    return rgb
+
+
+
+def _land_bounds(gt, shape, utm):
+    src = osr.SpatialReference(); src.ImportFromEPSG(int(utm))
     src.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-    dst = osr.SpatialReference()
-    dst.ImportFromEPSG(int(utm))
+    dst = osr.SpatialReference(); dst.ImportFromEPSG(4326)
     dst.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-    e, n, _z = osr.CoordinateTransformation(src, dst).TransformPoint(float(lon), float(lat))
-    return (e - gt[0]) / gt[1], (gt[3] - n) / (-gt[5])
+    back = osr.CoordinateTransformation(src, dst)
+    h, w = shape[:2]
+    lats, lons = [], []
+    for c, r in ((0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)):
+        e = gt[0] + c * gt[1]
+        n = gt[3] + r * gt[5]
+        lon, lat, _z = back.TransformPoint(e, n)
+        lats.append(lat); lons.append(lon)
+    return (min(lats), min(lons), max(lats), max(lons))
 
 
-def _pix_grid(lons, lats, gt, utm):
-    # Vectorized UTM zone from the epsg number: 326xx -> zone xx, northern.
-    zone = int(utm) - 32600
-    lon0 = (zone - 1) * 6 - 180 + 3
-    a = 6378137.0
-    f = 1 / 298.257223563
-    e2 = f * (2 - f)
-    ep2 = e2 / (1 - e2)
-    k0 = 0.9996
-    lat = np.radians(lats)
-    lon = np.radians(lons)
-    N = a / np.sqrt(1 - e2 * np.sin(lat) ** 2)
-    T = np.tan(lat) ** 2
-    C = ep2 * np.cos(lat) ** 2
-    A = (lon - math.radians(lon0)) * np.cos(lat)
-    M = a * (
-        (1 - e2 / 4 - 3 * e2 ** 2 / 64 - 5 * e2 ** 3 / 256) * lat
-        - (3 * e2 / 8 + 3 * e2 ** 2 / 32 + 45 * e2 ** 3 / 1024) * np.sin(2 * lat)
-        + (15 * e2 ** 2 / 256 + 45 * e2 ** 3 / 1024) * np.sin(4 * lat)
-        - (35 * e2 ** 3 / 3072) * np.sin(6 * lat)
-    )
-    easting = k0 * N * (A + (1 - T + C) * A ** 3 / 6 + (5 - 18 * T + T ** 2 + 72 * C - 58 * ep2) * A ** 5 / 120) + 500000.0
-    northing = k0 * (M + N * np.tan(lat) * (A ** 2 / 2 + (5 - T + 9 * C + 4 * C ** 2) * A ** 4 / 24))
-    col = (easting - gt[0]) / gt[1]
-    row = (gt[3] - northing) / (-gt[5])
-    return col, row
-
-
-def _label(img, text):
-    surface = skia.Surface(W, H)
-    canvas = surface.getCanvas()
-    rgba = np.dstack([img, np.full(img.shape[:2], 255, np.uint8)])
-    canvas.drawImage(skia.Image.fromarray(rgba), 0, 0)
-    face = skia.Typeface.MakeFromFile(str(ROOT / "fonts" / "Montserrat-Black.ttf"))
-    if face is None:
-        face = skia.Typeface.MakeFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
-    font = skia.Font(face, 40)
-    blob = skia.TextBlob.MakeFromString(text, font)
-    bounds = blob.bounds()
-    cx, cy = W / 2, 250
-    paint = skia.Paint(AntiAlias=True)
-    paint.setColor(skia.ColorSetARGB(214, 14, 16, 20))
-    canvas.drawRoundRect(skia.Rect.MakeXYWH(cx - bounds.width() / 2 - 26, cy - 38, bounds.width() + 52, 64), 16, 16, paint)
-    fill = skia.Paint(AntiAlias=True)
-    fill.setColor(skia.ColorSetARGB(255, 255, 236, 64))
-    canvas.drawTextBlob(blob, cx - bounds.width() / 2, cy + 8, fill)
-    bgra = surface.makeImageSnapshot().toarray()
-    return np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
+def _label(canvas, text, pop):
+    hud = Hud(canvas, W, H)
+    pill(hud, text, W * 0.5, 280, (255, 214, 48), ink=(16, 16, 20), size=46, pop=pop, kind="bridge", nudge=False)
 
 
 def render_shot(doc: dict, marble) -> None:
+    from scipy.ndimage import gaussian_filter
     spec = parse_spec(doc["spec"])
     shot = doc["shot"]
     tex, gt = load_landsat(Path(shot["imagery"]))
+    soft = np.clip(gaussian_filter(tex.astype(np.float32), sigma=(2.4, 2.4, 0)), 0, 255).astype(np.uint8)
+    landsat = {"sharp": tex, "soft": soft}
+    land_bounds = _land_bounds(gt, tex.shape, shot["utm"])
+    if "brunei" in shot["imagery"] or "temburong" in shot["imagery"]:
+        regional = _regional("brunei", 1.2, 112.2, 7.6, 117.6)
+    else:
+        regional = _regional("adriatic", 40.2, 14.8, 45.2, 20.2)
     lat0 = float(np.mean([p[0] for p in spec.polyline]))
     lon0 = float(np.mean([p[1] for p in spec.polyline]))
+    heading0 = bridge_heading(spec)
+    close_m = hero_view_m(spec, 0.60)
     dur = float(shot["duration"])
     n = int(round(dur * FPS))
     cues = build_cues(spec, float(shot["build_start"]), float(shot["build_dur"]))
-    (HERE / (Path(shot["out"]).stem + "_cues.json")).write_text(json.dumps({"cues": cues}, indent=2) + "\n")
+    cues.append({"t": 2.55, "kind": "whoosh", "name": "match-cut-dive"})
+    cues.sort(key=lambda row: (row["t"], row["name"]))
+    (HERE / (Path(shot["out"]).stem + "_cues.json")).write_text(json.dumps({"cues": cues, "close_m": close_m}, indent=2) + "\n")
     dest = HERE / shot["out"]
     cmd = [
         "ffmpeg", "-y", "-v", "error",
@@ -296,38 +351,54 @@ def render_shot(doc: dict, marble) -> None:
         "-movflags", "+faststart", str(dest),
     ]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-    prev = None
+    prev_raw = None
     try:
         for i in range(n):
             t = i / FPS
-            u = _smooth((t - 0.15) / (shot["zoom_end"] - 0.15))
-            lon = shot["wide_lon"] + (lon0 - shot["wide_lon"]) * u
-            lat = shot["wide_lat"] + (lat0 - shot["wide_lat"]) * u
-            width = zoom_width(t, 0.15, shot["zoom_end"], shot["wide_m"], shot["close_m"])
-            tilt = tilt_deg(t, shot["zoom_end"] - 0.35, shot["zoom_end"] + 0.35, shot["untilt"], shot["tilt"])
-            base = render_wide(marble, lon, lat, width)
-            fade = _smooth((shot["close_m"] * 2.2 - width) / (shot["close_m"] * 1.1))
-            if fade > 0.02:
-                plate = render_plate(tex, gt, shot["utm"], lat0, lon0, max(width, shot["close_m"]), tilt if fade > 0.85 else 0.0)
-                frame = (base.astype(np.float32) * (1 - fade) + plate.astype(np.float32) * fade).astype(np.uint8)
+            # 0.1–1.9 ease-out drop to the regional plate. 1.9–2.55 accelerating dive to the bridge.
+            # Width and center follow d3 interpolateZoom (MapLibre / deck.gl flyTo). Timing is ease-out, then ease-in.
+            intro = drop_in(t, 0.10, 1.90)
+            dive = match_cut_dive(t, 1.90, 2.55)
+            mid_m = close_m * 4.5
+            if t < 1.90:
+                blur = intro["blur"]
+                radial = False
+                lon, lat, width = fly_lonlat(
+                    intro["u"], shot["wide_lon"], shot["wide_lat"], shot["wide_m"], lon0, lat0, mid_m,
+                )
             else:
-                frame = base
-            if fade > 0.7:
-                surface = skia.Surface(W, H)
-                canvas = surface.getCanvas()
-                rgba = np.dstack([frame, np.full(frame.shape[:2], 255, np.uint8)])
-                canvas.drawImage(skia.Image.fromarray(rgba), 0, 0)
+                blur = dive["blur"]
+                radial = True
+                lon, lat, width = fly_lonlat(dive["u"], lon0, lat0, mid_m, lon0, lat0, close_m)
+            tilt = shot["tilt"] * _smooth((t - 2.45) / 0.55)
+            hold = t - float(shot["untilt"])
+            heading = heading0
+            if hold > 0:
+                heading += math.sin(hold * 1.3) * math.radians(1.7)
+                width *= 1.0 + 0.014 * math.sin(hold * 1.15)
+                tilt = shot["tilt"] + 1.4 * math.sin(hold * 0.85)
+            near = width < close_m * 3
+            frame = render_ground(
+                marble, regional, landsat, land_bounds,
+                lat0 if near else lat, lon0 if near else lon, width, tilt, heading,
+            )
+            surface = skia.Surface(W, H)
+            canvas = surface.getCanvas()
+            rgba = np.dstack([frame, np.full(frame.shape[:2], 255, np.uint8)])
+            canvas.drawImage(skia.Image.fromarray(rgba), 0, 0)
+            if t >= shot["build_start"] - 0.05:
                 state = progress(spec, t, shot["build_start"], shot["build_dur"])
-                draw(canvas, spec, state, _projector(max(width, shot["close_m"]), tilt if fade > 0.85 else 0.0), max(width, shot["close_m"]), W)
-                bgra = surface.makeImageSnapshot().toarray()
-                frame = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
-            if spec.label and t > shot["build_start"] + shot["build_dur"] * 0.55:
-                frame = _label(frame, spec.label)
-            # Motion blur only while the zoom is still moving fast.
-            if prev is not None and t < shot["zoom_end"] * 0.72:
-                frame = ((frame.astype(np.uint16) + prev.astype(np.uint16)) // 2).astype(np.uint8)
-            prev = frame
-            proc.stdin.write(frame.tobytes())
+                draw(canvas, spec, state, _projector(width, tilt, heading), width, W, tilt=tilt)
+            if spec.label and t > shot["build_start"] + shot["build_dur"] * 0.45:
+                pulse = 1.0 + (0.045 * math.sin(t * 4.2) if hold > 0 else 0.0)
+                _label(canvas, spec.label, pulse)
+            bgra = surface.makeImageSnapshot().toarray()
+            raw = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
+            raw = apply_vignette(raw, 0.38)
+            # Blur only while a move is fast. The settled plate and the span build stay sharp.
+            out = apply_zoom_blur(raw, blur, radial=radial) if blur >= 0.05 else raw
+            prev_raw = raw
+            proc.stdin.write(out.tobytes())
             if i % 15 == 0:
                 print(f"{shot['out']} {i}/{n} width {width:.0f} tilt {tilt:.1f}", flush=True)
     finally:
@@ -335,7 +406,8 @@ def render_shot(doc: dict, marble) -> None:
         code = proc.wait()
     if code != 0:
         raise SystemExit(f"ffmpeg failed {code}")
-    print("wrote", dest)
+    print("wrote", dest, "close_m", round(close_m))
+
 
 
 def main() -> None:

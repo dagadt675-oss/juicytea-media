@@ -6,6 +6,11 @@
       "name": "zoom-to-spot"
     },
     {
+      "t": 2.55,
+      "kind": "whoosh",
+      "name": "match-cut-dive"
+    },
+    {
       "t": 2.7,
       "kind": "ratchet",
       "name": "span-1"
@@ -75,5 +80,6 @@
       "kind": "ding",
       "name": "build-done"
     }
-  ]
+  ],
+  "close_m": 3950.214615359596
 }
