@@ -235,40 +235,73 @@ def _ground(empty, objs):
     bpy.context.view_layer.update()
 
 
+def _envelope(z: float) -> tuple[float, float]:
+    """Half-width and half-depth of the real shaft, measured after it is centered.
+
+    Below 90 m the keep is the lot, so the base cannot spill into Fifth Avenue.
+    """
+    if z >= 408.0:
+        return 5.0, 5.0
+    if z >= 372.0:
+        return 8.5, 8.5
+    if z >= 350.0:
+        return 12.0, 12.0
+    if z >= 325.0:
+        return 18.0, 26.0
+    if z >= 295.0:
+        return 22.0, 32.0
+    if z >= 90.0:
+        return 32.0, 42.0
+    _x0, x1, _y0, y1 = ESB_LOT
+    return x1, y1
+
+
 def _clip_low(meshes, zcut):
-    """Drop scan holes, giant spanning triangles, and faces outside the shaft."""
+    """Keep the vertical shaft. The grey plane was the scan's ground, left at the origin while the tower sat 90 m away."""
     import bmesh
 
+    kept_min = mathutils.Vector((1e9, 1e9, 1e9))
+    kept_max = mathutils.Vector((-1e9, -1e9, -1e9))
+    kept_n = 0
     for obj in meshes:
+        if obj.data.users > 1:
+            obj.data = obj.data.copy()
         bm = bmesh.new()
         bm.from_mesh(obj.data)
         mw = obj.matrix_world
+        nmat = mw.to_3x3()
         dead = []
         for face in bm.faces:
-            center = mw @ face.calc_center_median()
             verts = [mw @ vert.co for vert in face.verts]
+            center = sum(verts, mathutils.Vector()) / len(verts)
+            hx, hy = _envelope(center.z)
+            outside = abs(center.x) > hx or abs(center.y) > hy
+            stray = any(abs(v.x) > hx + 3.0 or abs(v.y) > hy + 3.0 for v in verts)
             edge = 0.0
             for a, b in zip(verts, verts[1:] + verts[:1]):
                 edge = max(edge, (a - b).length)
-            outside = center.z < 180.0 and (center.x < -80.0 or center.x > 60.0 or center.y < -42.0 or center.y > 40.0)
-            # The scan's crown is a hollow faceted shell. Cut it off and
-            # replace it; only kill giant edges on the lower junk.
-            x0, x1, y0, y1 = ESB_LOT
-            off_lot = center.z < 80.0 and (center.x < x0 or center.x > x1 or center.y < y0 or center.y > y1)
-            far = max(math.hypot(v.x, v.y) for v in verts)
-            high = min(v.z for v in verts)
-            # Drop the hollow mast and any face that reaches into the air
-            # beside the crown, even if its center sits inside the shaft.
-            sprawl = (high > 300.0 and far > 11.0) or (80.0 <= center.z <= 300.0 and far > 30.0)
-            hollow_crown = high > 352.0
-            if hollow_crown or sprawl or off_lot or center.z < zcut or edge > 22.0 or outside:
+            area = (verts[1] - verts[0]).cross(verts[2] - verts[0]).length * 0.5 if len(verts) >= 3 else 0.0
+            normal = (nmat @ face.normal).normalized()
+            # Spanning triangles, not the tessellated setback roofs.
+            flat_lid = abs(normal.z) > 0.84 and area > 14.0 and center.z < 350.0
+            if outside or stray or edge > 12.0 or flat_lid or center.z < zcut:
                 dead.append(face)
+            else:
+                kept_n += 1
+                for v in verts:
+                    kept_min = mathutils.Vector((min(kept_min.x, v.x), min(kept_min.y, v.y), min(kept_min.z, v.z)))
+                    kept_max = mathutils.Vector((max(kept_max.x, v.x), max(kept_max.y, v.y), max(kept_max.z, v.z)))
         if dead:
             bmesh.ops.delete(bm, geom=dead, context="FACES")
             bm.to_mesh(obj.data)
             obj.data.update()
         print(f"CLIP {obj.name} removed {len(dead)}", flush=True)
         bm.free()
+    if kept_n:
+        print(
+            f"SHAFT faces {kept_n} bbox x[{kept_min.x:.1f},{kept_max.x:.1f}] y[{kept_min.y:.1f},{kept_max.y:.1f}] z[{kept_min.z:.1f},{kept_max.z:.1f}]",
+            flush=True,
+        )
 
 
 def _sharpen_textures():
@@ -309,16 +342,10 @@ def _sharpen_textures():
 
 
 def _podium():
-    # The Free Standard scan is open below ~46 m. No hub asset is a cap for
-    # this mesh (the city blocks are whole streets and would bury the tower).
-    stone = _mat("Podium", (0.73, 0.67, 0.58), 0.72, 0.04)
-    glass = _mat("Storefront", (0.12, 0.14, 0.16), 0.15, 0.35)
-    x0, x1, y0, y1 = ESB_LOT
-    _assign(_box("Podium", x1 - x0, y1 - y0, 40.0, ((x0 + x1) * 0.5, (y0 + y1) * 0.5, 20.0)), stone)
-    for index, x in enumerate(range(-24, 25, 8)):
-        _assign(_box(f"ShopN{index}", 5.4, 0.28, 3.2, (x, y1 + 0.15, 2.0)), glass)
-    for index, y in enumerate(range(-56, 57, 12)):
-        _assign(_box(f"ShopE{index}", 0.28, 6.0, 3.2, (x1 + 0.15, y, 2.0)), glass)
+    # The scan is a shell at the bottom. This plug stays inside the walls,
+    # so it does not become a roof the hook camera looks down on.
+    stone = _mat("Podium", (0.70, 0.66, 0.60), 0.7, 0.04)
+    _assign(_box("Podium", 44.0, 56.0, 32.0, (0.0, 0.0, 16.0)), stone)
 
 
 def _empire():
@@ -343,26 +370,64 @@ def _empire():
         f"ESB tip {mx2.z:.1f} m base {mn2.z:.1f} m footprint {mx2.x - mn2.x:.0f} x {mx2.y - mn2.y:.0f} yaw {empty.rotation_euler.z:.2f}",
         flush=True,
     )
-    _clip_low(meshes, 44.0)
-    # The 2x unsharp pass turned the scan's photo into blotches on the crown.
-    # The hook uses the solid cap below instead.
+    _clip_low(meshes, -1.0)
+    # The scan crown and spire stay. A small ledge gives the penny a surface
+    # on the north-east corner, outside the mast.
     _crown()
     _podium()
     return empty
 
 
+def _median_xy(meshes, zmin, zmax, rmax=None):
+    xs, ys = [], []
+    for obj in meshes:
+        if obj.type != "MESH":
+            continue
+        mw = obj.matrix_world
+        for poly in obj.data.polygons:
+            center = mw @ mathutils.Vector(poly.center)
+            if center.z < zmin or center.z > zmax:
+                continue
+            if rmax is not None and math.hypot(center.x, center.y) > rmax:
+                continue
+            xs.append(center.x)
+            ys.append(center.y)
+    if len(xs) < 40:
+        return None
+    xs.sort()
+    ys.sort()
+    mid = len(xs) // 2
+    return xs[mid], ys[mid]
+
+
+def _shift_xy(empty, meshes, zmin, zmax, rmax=None):
+    center = _median_xy(meshes, zmin, zmax, rmax)
+    if center is None:
+        return
+    empty.location.x -= center[0]
+    empty.location.y -= center[1]
+    bpy.context.view_layer.update()
+    print(f"ESB center shift ({center[0]:.1f}, {center[1]:.1f})", flush=True)
+
+
 def _align_to_lot(empty, meshes):
-    """Stand the scan on Z, turn its long side north, and center that footprint on the lot."""
+    """Put the mast on the lot center, long side north, base on z = 0.
+
+    The scan includes a few hundred metres of ground. Centering that bbox
+    parked the real tower at about (-46, 75) and left the ground under the camera.
+    """
+    _shift_xy(empty, meshes, 370.0, 435.0)
     pts = []
     for obj in meshes:
         if obj.type != "MESH":
             continue
         mw = obj.matrix_world
-        step = max(1, len(obj.data.vertices) // 2500)
-        for index in range(0, len(obj.data.vertices), step):
-            world = mw @ obj.data.vertices[index].co
-            if 30.0 < world.z < 220.0:
-                pts.append((world.x, world.y))
+        polys = obj.data.polygons
+        step = max(1, len(polys) // 6000)
+        for index in range(0, len(polys), step):
+            center = mw @ mathutils.Vector(polys[index].center)
+            if 110.0 < center.z < 280.0 and math.hypot(center.x, center.y) < 45.0:
+                pts.append((center.x, center.y))
     if len(pts) > 30:
         mean_x = sum(p[0] for p in pts) / len(pts)
         mean_y = sum(p[1] for p in pts) / len(pts)
@@ -372,43 +437,28 @@ def _align_to_lot(empty, meshes):
         angle = 0.5 * math.atan2(2.0 * sxy, sxx - syy)
         empty.rotation_euler.z += math.pi * 0.5 - angle
         bpy.context.view_layer.update()
-    mn, mx = _bounds(meshes)
-    empty.location.x -= (mn.x + mx.x) * 0.5
-    empty.location.y -= (mn.y + mx.y) * 0.5
-    empty.location.z -= mn.z
-    bpy.context.view_layer.update()
+    _shift_xy(empty, meshes, 370.0, 435.0, 25.0)
+    lowest = 1e9
+    for obj in meshes:
+        if obj.type != "MESH":
+            continue
+        mw = obj.matrix_world
+        verts = obj.data.vertices
+        for index in range(0, len(verts), 4):
+            world = mw @ verts[index].co
+            if math.hypot(world.x, world.y) < 50.0 and world.z < lowest:
+                lowest = world.z
+    if lowest < 1e8:
+        empty.location.z -= lowest
+        bpy.context.view_layer.update()
 
 
 def _crown():
-    """Solid observation ledge and a sharp spire over the cut scan.
-
-    The hub mesh is PeeJaa 47187daf. Its mast is an open photogrammetry
-    shell, so the first shot was the inside of that shell. No other hub
-    Empire State exists. This cap is the deck the penny sits on.
-    """
-    stone = _mat("CrownStone", (0.74, 0.71, 0.66), 0.48, 0.03)
-    metal = _mat("SpireMetal", (0.78, 0.79, 0.82), 0.22, 0.04)
-    metal_bsdf = metal.node_tree.nodes["Principled BSDF"]
-    if "Metallic" in metal_bsdf.inputs:
-        metal_bsdf.inputs["Metallic"].default_value = 0.9
-    glass = _mat("CrownWin", (0.07, 0.08, 0.1), 0.18, 0.0)
-    deck = 381.0
-    # Shaft under the deck, closing the cut at 358 m. Centered on the lot.
-    _assign(_box("CrownShaft", 8.0, 7.0, 22.0, (0.0, 0.0, deck - 16.0)), stone)
-    _assign(_box("Deck", 8.0, 8.0, 0.7, (5.0, 5.0, deck - 0.2)), stone)
-    _assign(_box("CrownNeck", 7.2, 6.2, 7.0, (0.0, 0.0, deck + 3.6)), stone)
-    for index, x in enumerate((-2.4, 0.0, 2.4)):
-        _assign(_box(f"CrownWin{index}", 1.15, 0.12, 2.4, (x, 3.15, deck + 3.5)), glass)
-    bpy.ops.mesh.primitive_cone_add(
-        vertices=8,
-        radius1=1.05,
-        radius2=0.015,
-        depth=55.2,
-        location=(0.0, 0.0, deck + 7.0 + 27.6),
-    )
-    spire = bpy.context.object
-    spire.name = "Spire"
-    _assign(spire, metal)
+    """North-east observation ledge. The scan already has the mast and the spire."""
+    stone = _mat("CrownStone", (0.62, 0.58, 0.52), 0.55, 0.02)
+    # A pad just bigger than the coin, on the scan's north-east corner.
+    # A flat spot under the coin, sunk into the scan roof so it does not read as a slab.
+    _assign(_box("Deck", 0.55, 0.5, 0.16, (3.28, 3.68, 381.0)), stone)
 
 
 def _liberty():
@@ -844,7 +894,7 @@ def _punchline(arm, t):
 
     33.40 flinch, 33.75 look up and around, 34.45 scratch, 35.25 shrug, then he walks.
     """
-    if arm is None or t < 33.25 or t >= 36.2:
+    if arm is None or t < 21.0 or t >= 27.6:
         return
     action = arm.animation_data.action if arm.animation_data else None
     if action is not None and not arm.get("punch_muted"):
@@ -868,47 +918,47 @@ def _punchline(arm, t):
     clav_r = (0.0, 0.0, 0.0)
     thigh_l = (0.0, 0.0, 0.0)
     thigh_r = (0.0, 0.0, 0.0)
-    if t < 33.75:
-        u = _fade_u(t, 33.32, 33.48)
-        neck = (0.15 * u, 0.0, 0.35 * u)
-        spine = (-0.28 * u, 0.0, 0.0)
-    elif t < 34.45:
-        u = (t - 33.75) / 0.7
-        yaw = math.sin(u * math.pi * 2.0) * 0.65
-        neck = (0.0, yaw, -0.45)
+    if t < 21.85:
+        u = _fade_u(t, 21.07, 21.28)
+        neck = (0.15 * u, 0.0, 0.4 * u)
+        spine = (-0.3 * u, 0.0, 0.0)
+    elif t < 22.55:
+        u = (t - 21.85) / 0.7
+        yaw = math.sin(u * math.pi * 2.0) * 0.7
+        neck = (0.0, yaw, -0.5)
         spine = (0.0, yaw * 0.25, -0.08)
-    elif t < 35.25:
-        u = min(1.0, (t - 34.45) / 0.22)
+    elif t < 23.27:
+        u = min(1.0, (t - 22.55) / 0.2)
         uarm = (-1.0 * u, 0.0, -2.0 * u)
         fore = (-1.5 * u, 0.0, -1.2 * u)
         neck = (0.0, 0.15 * u, 0.2 * u)
     else:
-        u = min(1.0, (t - 35.25) / 0.28)
+        u = min(1.0, (t - 23.27) / 0.25)
         down = 1.0
-        if t > 35.7:
-            down = max(0.0, 1.0 - (t - 35.7) / 0.4)
-            swing = math.sin((t - 35.7) * 8.0) * 0.55
+        if t > 23.85:
+            down = max(0.0, 1.0 - (t - 23.85) / 0.4)
+            swing = math.sin((t - 23.85) * 8.0) * 0.55
             thigh_l = (swing, 0.0, 0.0)
             thigh_r = (-swing, 0.0, 0.0)
         clav_l = (0.0, 0.0, 0.5 * u * down)
         clav_r = (0.0, 0.0, -0.5 * u * down)
         uarm = (0.35 * u * down, 0.0, -0.45 * u * down)
-        neck = (0.0, 0.2 * math.sin((t - 35.25) * 3.0) * down, 0.05)
+        neck = (0.0, 0.2 * math.sin((t - 23.27) * 3.0) * down, 0.05)
     put("Neck_05", neck)
     put("Spine_03", spine)
     put("L UpperArm_08", uarm)
     put("L Forearm_09", fore)
     put("L Clavicle_07", clav_l)
     put("R Clavicle_015", clav_r)
-    if t >= 35.7:
+    if t >= 23.85:
         put("L Thigh_023", thigh_l)
         put("R Thigh_027", thigh_r)
     host = arm.parent or arm
     if "home_x" not in host:
         host["home_x"] = host.location.x
         host["home_y"] = host.location.y
-    if t > 35.75:
-        host.location.x = float(host["home_x"]) + (t - 35.75) * 1.15
+    if t > 23.9:
+        host.location.x = float(host["home_x"]) + (t - 23.9) * 0.9
     elif "home_x" in host:
         host.location.x = float(host["home_x"])
         host.location.y = float(host["home_y"])
@@ -983,7 +1033,7 @@ def main():
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
     scene.cycles.device = "CPU"
-    scene.cycles.samples = max(16, int(job.get("samples", 16)))
+    scene.cycles.samples = max(4, int(job.get("samples", 16)))
     scene.cycles.use_denoising = True
     try:
         scene.cycles.denoiser = "OPENIMAGEDENOISE"

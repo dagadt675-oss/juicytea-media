@@ -1,0 +1,620 @@
+{
+ "duration": 33.403,
+ "sr": 48000,
+ "take": "c30966de.mp3 (Brian, Eleven v4), single take, no splice, no stretch",
+ "edit": {
+  "lead_roomtone_s": 0.098,
+  "rush_insert_s": 0.785,
+  "rush_insert_at_s": 19.68,
+  "rush_gap_hundred_to_bonk_s": 2.003,
+  "cut_after_swear_src_s": 32.52
+ },
+ "words": [
+  {
+   "w": "This",
+   "t0": 0.147,
+   "t1": 0.573,
+   "speaker": "narrator"
+  },
+  {
+   "w": "penny",
+   "t0": 0.573,
+   "t1": 0.981,
+   "speaker": "narrator"
+  },
+  {
+   "w": "could",
+   "t0": 0.981,
+   "t1": 1.26,
+   "speaker": "narrator"
+  },
+  {
+   "w": "KILL",
+   "t0": 1.26,
+   "t1": 1.701,
+   "speaker": "narrator"
+  },
+  {
+   "w": "someone.",
+   "t0": 1.701,
+   "t1": 2.158,
+   "speaker": "narrator"
+  },
+  {
+   "w": "Dropped",
+   "t0": 2.4,
+   "t1": 2.962,
+   "speaker": "narrator"
+  },
+  {
+   "w": "from",
+   "t0": 2.962,
+   "t1": 3.185,
+   "speaker": "narrator"
+  },
+  {
+   "w": "TWELVE",
+   "t0": 3.185,
+   "t1": 3.622,
+   "speaker": "narrator",
+   "cap": "1,250",
+   "cap_t1": 4.503
+  },
+  {
+   "w": "hundred",
+   "t0": 3.622,
+   "t1": 3.923,
+   "speaker": "narrator",
+   "cap": ""
+  },
+  {
+   "w": "and",
+   "t0": 3.923,
+   "t1": 4.103,
+   "speaker": "narrator",
+   "cap": ""
+  },
+  {
+   "w": "fifty",
+   "t0": 4.103,
+   "t1": 4.503,
+   "speaker": "narrator",
+   "cap": ""
+  },
+  {
+   "w": "feet.",
+   "t0": 4.503,
+   "t1": 4.793,
+   "speaker": "narrator"
+  },
+  {
+   "w": "Ten",
+   "t0": 5.34,
+   "t1": 5.584,
+   "speaker": "narrator",
+   "cap": "10",
+   "cap_t1": 5.584
+  },
+  {
+   "w": "miles",
+   "t0": 5.584,
+   "t1": 5.864,
+   "speaker": "narrator"
+  },
+  {
+   "w": "an",
+   "t0": 5.864,
+   "t1": 5.964,
+   "speaker": "narrator"
+  },
+  {
+   "w": "hour...",
+   "t0": 5.964,
+   "t1": 6.338,
+   "speaker": "narrator"
+  },
+  {
+   "w": "twenty...",
+   "t0": 6.7,
+   "t1": 7.228,
+   "speaker": "narrator",
+   "cap": "20...",
+   "cap_t1": 7.228
+  },
+  {
+   "w": "TWENTY-FIVE.",
+   "t0": 7.675,
+   "t1": 8.745,
+   "speaker": "narrator",
+   "parts": [
+    {
+     "w": "TWENTY",
+     "t0": 7.725,
+     "t1": 8.025
+    },
+    {
+     "w": "FIVE",
+     "t0": 8.166,
+     "t1": 8.586
+    }
+   ],
+   "cap": "25.",
+   "cap_t1": 8.745
+  },
+  {
+   "w": "With",
+   "t0": 9.185,
+   "t1": 9.466,
+   "speaker": "narrator"
+  },
+  {
+   "w": "no",
+   "t0": 9.466,
+   "t1": 9.807,
+   "speaker": "narrator"
+  },
+  {
+   "w": "air,",
+   "t0": 9.807,
+   "t1": 10.267,
+   "speaker": "narrator"
+  },
+  {
+   "w": "it'd",
+   "t0": 10.267,
+   "t1": 10.527,
+   "speaker": "narrator"
+  },
+  {
+   "w": "hit",
+   "t0": 10.527,
+   "t1": 10.727,
+   "speaker": "narrator"
+  },
+  {
+   "w": "at",
+   "t0": 10.727,
+   "t1": 10.907,
+   "speaker": "narrator"
+  },
+  {
+   "w": "almost",
+   "t0": 10.907,
+   "t1": 11.262,
+   "speaker": "narrator"
+  },
+  {
+   "w": "TWO",
+   "t0": 11.262,
+   "t1": 11.648,
+   "speaker": "narrator",
+   "cap": "200",
+   "cap_t1": 12.088
+  },
+  {
+   "w": "HUNDRED",
+   "t0": 11.648,
+   "t1": 12.088,
+   "speaker": "narrator",
+   "cap": ""
+  },
+  {
+   "w": "miles",
+   "t0": 12.088,
+   "t1": 12.388,
+   "speaker": "narrator"
+  },
+  {
+   "w": "an",
+   "t0": 12.388,
+   "t1": 12.488,
+   "speaker": "narrator"
+  },
+  {
+   "w": "hour.",
+   "t0": 12.488,
+   "t1": 12.762,
+   "speaker": "narrator"
+  },
+  {
+   "w": "And",
+   "t0": 13.31,
+   "t1": 13.449,
+   "speaker": "narrator"
+  },
+  {
+   "w": "there's",
+   "t0": 13.449,
+   "t1": 13.689,
+   "speaker": "narrator"
+  },
+  {
+   "w": "a",
+   "t0": 13.689,
+   "t1": 13.82,
+   "speaker": "narrator"
+  },
+  {
+   "w": "guy",
+   "t0": 13.82,
+   "t1": 14.25,
+   "speaker": "narrator"
+  },
+  {
+   "w": "RIGHT",
+   "t0": 14.25,
+   "t1": 14.55,
+   "speaker": "narrator"
+  },
+  {
+   "w": "under",
+   "t0": 14.55,
+   "t1": 14.81,
+   "speaker": "narrator"
+  },
+  {
+   "w": "it.",
+   "t0": 14.81,
+   "t1": 14.877,
+   "speaker": "narrator"
+  },
+  {
+   "w": "Five",
+   "t0": 15.44,
+   "t1": 15.791,
+   "speaker": "narrator",
+   "cap": "500",
+   "cap_t1": 16.091
+  },
+  {
+   "w": "hundred",
+   "t0": 15.791,
+   "t1": 16.091,
+   "speaker": "narrator",
+   "cap": ""
+  },
+  {
+   "w": "feet...",
+   "t0": 16.091,
+   "t1": 16.4,
+   "speaker": "narrator"
+  },
+  {
+   "w": "two",
+   "t0": 16.91,
+   "t1": 17.232,
+   "speaker": "narrator",
+   "cap": "200...",
+   "cap_t1": 17.668
+  },
+  {
+   "w": "hundred...",
+   "t0": 17.232,
+   "t1": 17.668,
+   "speaker": "narrator",
+   "cap": ""
+  },
+  {
+   "w": "ONE",
+   "t0": 18.25,
+   "t1": 18.613,
+   "speaker": "narrator",
+   "cap": "100...",
+   "cap_t1": 19.07
+  },
+  {
+   "w": "hundred...",
+   "t0": 18.613,
+   "t1": 19.07,
+   "speaker": "narrator",
+   "cap": ""
+  },
+  {
+   "w": "Bonk.",
+   "t0": 21.073,
+   "t1": 21.538,
+   "speaker": "narrator"
+  },
+  {
+   "w": "It",
+   "t0": 22.03,
+   "t1": 22.375,
+   "speaker": "narrator"
+  },
+  {
+   "w": "STINGS.",
+   "t0": 22.375,
+   "t1": 22.965,
+   "speaker": "narrator"
+  },
+  {
+   "w": "That's",
+   "t0": 23.275,
+   "t1": 23.616,
+   "speaker": "narrator"
+  },
+  {
+   "w": "it.",
+   "t0": 23.616,
+   "t1": 23.832,
+   "speaker": "narrator"
+  },
+  {
+   "w": "It",
+   "t0": 24.157,
+   "t1": 24.335,
+   "speaker": "narrator"
+  },
+  {
+   "w": "tumbles",
+   "t0": 24.335,
+   "t1": 24.757,
+   "speaker": "narrator"
+  },
+  {
+   "w": "like",
+   "t0": 24.757,
+   "t1": 24.937,
+   "speaker": "narrator"
+  },
+  {
+   "w": "a",
+   "t0": 24.937,
+   "t1": 25.077,
+   "speaker": "narrator"
+  },
+  {
+   "w": "LEAF,",
+   "t0": 25.077,
+   "t1": 25.617,
+   "speaker": "narrator"
+  },
+  {
+   "w": "so",
+   "t0": 25.617,
+   "t1": 25.797,
+   "speaker": "narrator"
+  },
+  {
+   "w": "it",
+   "t0": 25.797,
+   "t1": 25.87,
+   "speaker": "narrator"
+  },
+  {
+   "w": "tops",
+   "t0": 25.87,
+   "t1": 26.238,
+   "speaker": "narrator"
+  },
+  {
+   "w": "out",
+   "t0": 26.238,
+   "t1": 26.378,
+   "speaker": "narrator"
+  },
+  {
+   "w": "around",
+   "t0": 26.378,
+   "t1": 26.705,
+   "speaker": "narrator"
+  },
+  {
+   "w": "twenty-five.",
+   "t0": 26.705,
+   "t1": 27.275,
+   "speaker": "narrator",
+   "parts": [
+    {
+     "w": "TWENTY",
+     "t0": 26.705,
+     "t1": 26.858
+    },
+    {
+     "w": "FIVE",
+     "t0": 26.938,
+     "t1": 27.198
+    }
+   ],
+   "cap": "25.",
+   "cap_t1": 27.275
+  },
+  {
+   "w": "On",
+   "t0": 27.712,
+   "t1": 27.899,
+   "speaker": "narrator"
+  },
+  {
+   "w": "the",
+   "t0": 27.899,
+   "t1": 28.059,
+   "speaker": "narrator"
+  },
+  {
+   "w": "real",
+   "t0": 28.059,
+   "t1": 28.359,
+   "speaker": "narrator"
+  },
+  {
+   "w": "Empire",
+   "t0": 28.359,
+   "t1": 28.779,
+   "speaker": "narrator"
+  },
+  {
+   "w": "State,",
+   "t0": 28.779,
+   "t1": 29.36,
+   "speaker": "narrator"
+  },
+  {
+   "w": "wind",
+   "t0": 29.36,
+   "t1": 29.68,
+   "speaker": "narrator"
+  },
+  {
+   "w": "and",
+   "t0": 29.68,
+   "t1": 29.8,
+   "speaker": "narrator"
+  },
+  {
+   "w": "the",
+   "t0": 29.8,
+   "t1": 29.92,
+   "speaker": "narrator"
+  },
+  {
+   "w": "lower",
+   "t0": 29.92,
+   "t1": 30.22,
+   "speaker": "narrator"
+  },
+  {
+   "w": "ROOFS",
+   "t0": 30.22,
+   "t1": 30.521,
+   "speaker": "narrator"
+  },
+  {
+   "w": "would",
+   "t0": 30.521,
+   "t1": 30.681,
+   "speaker": "narrator"
+  },
+  {
+   "w": "stop",
+   "t0": 30.681,
+   "t1": 30.981,
+   "speaker": "narrator"
+  },
+  {
+   "w": "it",
+   "t0": 30.981,
+   "t1": 31.101,
+   "speaker": "narrator"
+  },
+  {
+   "w": "first...",
+   "t0": 31.101,
+   "t1": 31.52,
+   "speaker": "narrator"
+  },
+  {
+   "w": "but",
+   "t0": 31.965,
+   "t1": 32.145,
+   "speaker": "narrator"
+  },
+  {
+   "w": "people",
+   "t0": 32.145,
+   "t1": 32.582,
+   "speaker": "narrator"
+  },
+  {
+   "w": "still",
+   "t0": 32.582,
+   "t1": 32.982,
+   "speaker": "narrator"
+  },
+  {
+   "w": "swear",
+   "t0": 32.982,
+   "t1": 33.316,
+   "speaker": "narrator"
+  }
+ ],
+ "sentences": [
+  {
+   "text": "This penny could KILL someone.",
+   "t0": 0.147,
+   "t1": 2.158
+  },
+  {
+   "text": "Dropped from TWELVE hundred and fifty feet.",
+   "t0": 2.4,
+   "t1": 4.793
+  },
+  {
+   "text": "Ten miles an hour...",
+   "t0": 5.34,
+   "t1": 6.338
+  },
+  {
+   "text": "twenty...",
+   "t0": 6.7,
+   "t1": 7.228
+  },
+  {
+   "text": "TWENTY-FIVE.",
+   "t0": 7.675,
+   "t1": 8.745
+  },
+  {
+   "text": "With no air, it'd hit at almost TWO HUNDRED miles an hour.",
+   "t0": 9.185,
+   "t1": 12.762
+  },
+  {
+   "text": "And there's a guy RIGHT under it.",
+   "t0": 13.31,
+   "t1": 14.877
+  },
+  {
+   "text": "Five hundred feet...",
+   "t0": 15.44,
+   "t1": 16.4
+  },
+  {
+   "text": "two hundred...",
+   "t0": 16.91,
+   "t1": 17.668
+  },
+  {
+   "text": "ONE hundred...",
+   "t0": 18.25,
+   "t1": 19.07
+  },
+  {
+   "text": "Bonk.",
+   "t0": 21.073,
+   "t1": 21.538
+  },
+  {
+   "text": "It STINGS.",
+   "t0": 22.03,
+   "t1": 22.965
+  },
+  {
+   "text": "That's it.",
+   "t0": 23.275,
+   "t1": 23.832
+  },
+  {
+   "text": "It tumbles like a LEAF, so it tops out around twenty-five.",
+   "t0": 24.157,
+   "t1": 27.275
+  },
+  {
+   "text": "On the real Empire State, wind and the lower ROOFS would stop it first...",
+   "t0": 27.712,
+   "t1": 31.52
+  },
+  {
+   "text": "but people still swear",
+   "t0": 31.965,
+   "t1": 33.316
+  }
+ ],
+ "seam": {
+  "speech_onset": 0.147,
+  "tail_after_swear": 0.087,
+  "seam_gap": 0.234,
+  "loop": "'...but people still swear' -> 'This penny could KILL someone.'"
+ },
+ "notes": "times: wav2vec2 forced alignment on this edit with NO global shift; first word after each pause (>=0.10 s below -50 dB re RMS peak) snapped to its voiced onset; plosive-initial words inside phrases snapped to the burst (largest energy rise within \u00b160 ms); word ends run to the next onset, or to the -45 dB offset before a pause. 'cap' = caption text (digits); words with cap \"\" are merged into the preceding cap (cap_t1 = end of the merged span). Same timeline for penny_vo_edit.wav and penny_vo_edit_dry.wav."
+}

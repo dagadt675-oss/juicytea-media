@@ -32,19 +32,21 @@ class PennyTest(unittest.TestCase):
         self.assertAlmostEqual(self.ep.notes["drop_ft"], 1250, delta=0.2)
 
     def test_slate_beats(self):
-        self.assertEqual(self._at(1.0).primary, "1,250")
-        self.assertEqual(self._at(1.0).secondary, "0")
-        self.assertLess(int(self._at(9.0).primary.replace(",", "")), int(self._at(4.5).primary.replace(",", "")))
-        self.assertLess(int(self._at(16.0).primary.replace(",", "")), int(self._at(9.0).primary.replace(",", "")))
-        self.assertLess(int(self._at(24.0).primary.replace(",", "")), 400)
-        self.assertEqual(self._at(24.0).phase, "liberty")
+        self.assertAlmostEqual(self.ep.duration, 33.4, delta=0.05)
+        self.assertEqual(self._at(0.3).primary, "1,250")
+        self.assertEqual(self._at(0.3).secondary, "0")
+        self.assertEqual(self._at(5.5).secondary, "10")
+        self.assertEqual(self._at(6.9).secondary, "20")
         self.assertEqual(self._at(8.0).secondary, "25")
-        self.assertEqual(self._at(30.0).secondary, "25")
+        self.assertEqual(self._at(15.6).primary, "500")
+        self.assertEqual(self._at(17.1).primary, "200")
+        self.assertEqual(self._at(18.5).primary, "100")
+        self.assertEqual(self._at(21.07).primary, "0")
+        self.assertAlmostEqual(self._at(21.07).penny[2], 1.7, delta=0.25)
+        self.assertEqual(self._at(11.5).pill_title, "NO AIR")
         spoken = " ".join(beat["narration"] for beat in self.ep.beats)
         self.assertNotIn("65", spoken)
         self.assertNotIn("sixty-five", spoken.lower())
-        self.assertNotIn("65", self._at(29.0).pill_sub)
-        self.assertLess(int(self._at(33.0).primary.replace(",", "")), 40)
         self.assertNotIn("25", self.ep.raw["title"])
 
     def test_fall_descends_then_rises_to_the_ledge(self):
@@ -77,7 +79,7 @@ class PennyTest(unittest.TestCase):
         self.assertTrue(held)
         self.assertGreaterEqual(held[0][2] - held[0][1], 0.8)
         self.assertGreaterEqual(self._at(2.0).t, 0.0)
-        self.assertEqual(self._at(2.0).primary, "1,250")
+        self.assertEqual(self._at(4.0).primary, "1,250")
 
     def test_empire_lot_does_not_meet_the_road(self):
         from engine.landmarks import ESB_LOT, footprint_clears_roads, road_rects
@@ -100,15 +102,15 @@ class PennyTest(unittest.TestCase):
             self.assertAlmostEqual(coin[1], fr.penny[1], delta=0.05)
 
     def test_hook_looks_out_over_the_city(self):
-        hook = self._at(1.2)
-        chase = self._at(14.0)
+        hook = self._at(0.3)
+        chase = self._at(8.0)
         self.assertLess(hook.target[2], hook.cam[2] - 20)
         self.assertGreater(hook.cam[2], hook.penny[2])
         self.assertLess(chase.target[2], chase.penny[2] - 0.5)
         self.assertGreater(chase.cam[2], chase.penny[2] + 0.4)
 
     def test_hook_does_not_spoil(self):
-        hook = [fr for fr in self.ep.frames if fr.t < 2.5]
+        hook = [fr for fr in self.ep.frames if fr.t < 0.5]
         self.assertTrue(all(fr.secondary == "0" for fr in hook))
         self.assertTrue(all("mph" not in fr.pill_sub for fr in hook))
 

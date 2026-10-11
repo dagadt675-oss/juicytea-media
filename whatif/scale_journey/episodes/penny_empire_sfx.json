@@ -1,14 +1,18 @@
 {
   "episode": "penny_empire",
-  "narration": false,
+  "narration": "penny_vo_edit.wav",
+  "duration_sec": 33.4,
   "music": false,
   "cues": [
-    {"t": 0.0, "id": "deck_wind", "note": "Low wind on the observation deck. Holds under the hook."},
-    {"t": 2.85, "id": "flick", "note": "Small metallic tick as the penny leaves the ledge."},
-    {"t": 3.2, "id": "rush", "note": "Air rush. Steady, not rising in pitch. The speed stays near 25 mph."},
-    {"t": 34.35, "id": "impact", "note": "Light tap on concrete. Not a crash."},
-    {"t": 34.65, "id": "bounce", "note": "Tiny second tick, quieter than the impact."},
-    {"t": 35.1, "id": "cloth", "note": "A short rustle as the person looks down. No voice."},
-    {"t": 36.2, "id": "deck_wind", "note": "Cut back to the same deck wind as 0.0 so the loop matches."}
+    {"t": 0.0, "id": "deck_wind", "note": "Open-air deck wind under the hook. Same bed returns at the seam."},
+    {"t": 0.573, "id": "flick", "note": "Metallic tick as the penny tips off the ledge, on the word penny."},
+    {"t": 2.4, "id": "rush", "note": "Air rush begins on Dropped. Pitch stays flat once speed locks at 25 mph."},
+    {"t": 11.26, "id": "ghost", "note": "A thin, unreal whoosh under the no-air 200 mph readout. Not the real fall."},
+    {"t": 19.07, "id": "rush_close", "note": "The 2.0 s silent rush. Louder air, street noise rising. No voice."},
+    {"t": 21.073, "id": "bonk", "note": "Dry knock on a scalp. The word Bonk is spoken; this is the picture hit, not a second voice."},
+    {"t": 21.35, "id": "bounce", "note": "Lighter tick as the coin leaves the head."},
+    {"t": 22.4, "id": "scratch", "note": "Fingertips on hair while he scratches."},
+    {"t": 23.28, "id": "shrug", "note": "Cloth shift on the shrug."},
+    {"t": 27.71, "id": "deck_wind", "note": "Wind returns as the camera climbs. Match 0.0 at the seam."}
   ]
 }

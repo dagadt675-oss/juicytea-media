@@ -621,6 +621,10 @@ def _place_canyon(hero_pack):
 
 def dress_city():
     """Tile the NYC blocks, then the tower streets, sidewalk life, and One WTC."""
+    import os
+    if os.environ.get("SKIP_CITY") == "1":
+        print("SKIP_CITY", flush=True)
+        return []
     MOVERS.clear()
     HERO_KEEP.clear()
     _ground()

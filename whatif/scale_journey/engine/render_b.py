@@ -92,11 +92,11 @@ def _keys(ep, final_dir: Path, dest: Path):
         return frames[min(len(frames) - 1, int(seconds * ep.fps))].frame
 
     picks = [
-        ("00_hook", into("hook", 1.0)),
-        ("setback", into("floors", 2.0)),
-        ("mid", into("drag", 3.0)),
-        ("street", into("edge", 2.0)),
-        ("impact", into("hit", 4.0)),
+        ("00_hook", into("hook", 0.2)),
+        ("fall", into("fall", 2.0)),
+        ("guy", into("guy", 0.3)),
+        ("rush", into("rush", 0.8)),
+        ("impact", into("hit", 0.3)),
         ("loop", ep.frames[-1].frame),
     ]
     written = []

@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+import json
+from functools import lru_cache
+from pathlib import Path
+
 from PIL import Image
 
 from ui._load import sibling_overlay
+
+_WORDS = Path(__file__).resolve().parents[1] / "episodes" / "penny_words.json"
 
 _ov = sibling_overlay()
 SERIF, SANS = _ov.SERIF, _ov.SANS
@@ -79,6 +85,90 @@ def _reveal(img: Image.Image, ep, fr) -> None:
         y += int(size * 1.15)
 
 
+@lru_cache(maxsize=1)
+def _caption_tokens() -> tuple[dict, ...]:
+    if not _WORDS.exists():
+        return ()
+    words = json.loads(_WORDS.read_text(encoding="utf-8")).get("words") or []
+    tokens = []
+    index = 0
+    while index < len(words):
+        word = words[index]
+        cap = word.get("cap")
+        if cap:
+            tokens.append({"text": cap, "t0": float(word["t0"]), "t1": float(word.get("cap_t1", word["t1"]))})
+            index += 1
+            while index < len(words) and words[index].get("cap") == "":
+                index += 1
+            continue
+        if cap == "":
+            index += 1
+            continue
+        tokens.append({"text": str(word["w"]), "t0": float(word["t0"]), "t1": float(word["t1"])})
+        index += 1
+    return tuple(tokens)
+
+
+def _karaoke(img: Image.Image, t: float) -> None:
+    tokens = _caption_tokens()
+    if not tokens:
+        return
+    active = 0
+    for index, token in enumerate(tokens):
+        if token["t0"] <= t:
+            active = index
+    window = tokens[max(0, active - 2) : active + 4]
+    if not window:
+        return
+    w, h = img.size
+    font = _font(SANS, 46)
+    y = int(h * 0.68)
+    parts = []
+    for token in window:
+        on = token["t0"] <= t < token["t1"] or (token is tokens[active] and t >= token["t0"])
+        parts.append((token["text"] + " ", (255, 176, 64) if on else (255, 248, 242), on))
+    # The active token stays highlighted through its span only.
+    parts = []
+    for token in window:
+        on = token["t0"] <= t < token["t1"]
+        parts.append((token["text"] + "  ", (255, 176, 64) if on else (255, 248, 242)))
+    total = sum(font.getlength(text) for text, _color in parts)
+    x = w / 2 - total / 2
+    for text, color in parts:
+        _shadow_text(img, (x, y), text, font, fill=_alpha(color, 255), anchor="lt", radius=8, opacity=160)
+        x += font.getlength(text)
+
+
+def _guy_ring(img: Image.Image, fr) -> None:
+    if getattr(fr, "phase", "") != "guy":
+        return
+    from PIL import ImageDraw
+
+    w, h = img.size
+    draw = ImageDraw.Draw(img)
+    cx, cy = w * 0.50, h * 0.46
+    rx, ry = w * 0.09, w * 0.09
+    draw.ellipse((cx - rx, cy - ry, cx + rx, cy + ry), outline=(220, 40, 40, 230), width=6)
+
+
+def _ghost(img: Image.Image, fr) -> None:
+    if fr.pill_alpha <= 0.02 or not fr.pill_title:
+        return
+    w, _h = img.size
+    font = _font(SANS, 42)
+    label = f"{fr.pill_title}   {fr.pill_sub}"
+    _shadow_text(
+        img,
+        (w / 2, int(img.size[1] * 0.22)),
+        label,
+        font,
+        fill=_alpha((210, 225, 255), int(210 * fr.pill_alpha)),
+        anchor="mt",
+        radius=8,
+        opacity=int(120 * fr.pill_alpha),
+    )
+
+
 def compose_b(plate: Image.Image, ep, fr) -> Image.Image:
     img = plate.convert("RGBA")
     w, h = img.size
@@ -107,5 +197,8 @@ def compose_b(plate: Image.Image, ep, fr) -> Image.Image:
         align="center",
         anchor_y=anchor_y,
     )
+    _guy_ring(img, fr)
+    _ghost(img, fr)
+    _karaoke(img, float(fr.t))
     _reveal(img, ep, fr)
     return img.convert("RGB")

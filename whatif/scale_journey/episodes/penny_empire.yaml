@@ -12,9 +12,9 @@ height: 1920
 seed: 4
 
 timing:
-  # Slate beat clock, not the raw 34 s fall. The last 4 s rise back to the ledge.
-  duration_sec: 40.0
-  hook_hold: 3.0
+  # Locked to penny_words.json. 33.40 s, 30 fps, last frame matches frame 0.
+  duration_sec: 33.4
+  hook_hold: 0.57
 
 camera:
   # The hook is wider. The chase and the impact override this per frame.
