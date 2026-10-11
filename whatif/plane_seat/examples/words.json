@@ -1,0 +1,598 @@
+{
+ "duration": 32.81,
+ "sr": 48000,
+ "take": "A.mp3 (Brian, Eleven v4), single take, no splice, no stretch; cut after 'data,' with 5 ms fade, repeated last sentence dropped",
+ "words": [
+  {
+   "w": "The",
+   "t0": 0.147,
+   "t1": 0.261,
+   "speaker": "narrator"
+  },
+  {
+   "w": "back",
+   "t0": 0.261,
+   "t1": 0.461,
+   "speaker": "narrator"
+  },
+  {
+   "w": "of",
+   "t0": 0.521,
+   "t1": 0.621,
+   "speaker": "narrator"
+  },
+  {
+   "w": "the",
+   "t0": 0.621,
+   "t1": 0.741,
+   "speaker": "narrator"
+  },
+  {
+   "w": "plane",
+   "t0": 0.741,
+   "t1": 1.041,
+   "speaker": "narrator"
+  },
+  {
+   "w": "had",
+   "t0": 1.161,
+   "t1": 1.281,
+   "speaker": "narrator"
+  },
+  {
+   "w": "the",
+   "t0": 1.361,
+   "t1": 1.511,
+   "speaker": "narrator"
+  },
+  {
+   "w": "BEST",
+   "t0": 1.601,
+   "t1": 1.881,
+   "speaker": "narrator"
+  },
+  {
+   "w": "odds.",
+   "t0": 2.061,
+   "t1": 2.505,
+   "speaker": "narrator"
+  },
+  {
+   "w": "Not",
+   "t0": 2.84,
+   "t1": 3.001,
+   "speaker": "narrator"
+  },
+  {
+   "w": "the",
+   "t0": 3.061,
+   "t1": 3.211,
+   "speaker": "narrator"
+  },
+  {
+   "w": "front.",
+   "t0": 3.221,
+   "t1": 3.973,
+   "speaker": "narrator"
+  },
+  {
+   "w": "TIME",
+   "t0": 4.258,
+   "t1": 4.502,
+   "speaker": "narrator"
+  },
+  {
+   "w": "dug",
+   "t0": 4.582,
+   "t1": 4.742,
+   "speaker": "narrator"
+  },
+  {
+   "w": "through",
+   "t0": 4.802,
+   "t1": 4.982,
+   "speaker": "narrator"
+  },
+  {
+   "w": "FAA",
+   "t0": 5.202,
+   "t1": 5.562,
+   "speaker": "narrator",
+   "parts": [
+    {
+     "w": "F",
+     "t0": 5.202,
+     "t1": 5.242
+    },
+    {
+     "w": "A",
+     "t0": 5.322,
+     "t1": 5.362
+    },
+    {
+     "w": "A",
+     "t0": 5.542,
+     "t1": 5.562
+    }
+   ]
+  },
+  {
+   "w": "records...",
+   "t0": 5.742,
+   "t1": 6.28,
+   "speaker": "narrator"
+  },
+  {
+   "w": "seventeen",
+   "t0": 6.612,
+   "t1": 7.203,
+   "speaker": "narrator",
+   "cap": "17"
+  },
+  {
+   "w": "crashes",
+   "t0": 7.323,
+   "t1": 7.783,
+   "speaker": "narrator"
+  },
+  {
+   "w": "with",
+   "t0": 7.863,
+   "t1": 8.003,
+   "speaker": "narrator"
+  },
+  {
+   "w": "both",
+   "t0": 8.043,
+   "t1": 8.223,
+   "speaker": "narrator"
+  },
+  {
+   "w": "deaths",
+   "t0": 8.343,
+   "t1": 8.623,
+   "speaker": "narrator"
+  },
+  {
+   "w": "AND",
+   "t0": 8.883,
+   "t1": 8.983,
+   "speaker": "narrator"
+  },
+  {
+   "w": "survivors.",
+   "t0": 9.063,
+   "t1": 9.78,
+   "speaker": "narrator"
+  },
+  {
+   "w": "Front",
+   "t0": 10.293,
+   "t1": 10.524,
+   "speaker": "narrator"
+  },
+  {
+   "w": "third:",
+   "t0": 10.604,
+   "t1": 11.098,
+   "speaker": "narrator"
+  },
+  {
+   "w": "thirty-eight",
+   "t0": 11.373,
+   "t1": 11.824,
+   "speaker": "narrator",
+   "cap": "38",
+   "parts": [
+    {
+     "w": "THIRTY",
+     "t0": 11.384,
+     "t1": 11.644
+    },
+    {
+     "w": "EIGHT",
+     "t0": 11.684,
+     "t1": 11.824
+    }
+   ]
+  },
+  {
+   "w": "percent",
+   "t0": 11.864,
+   "t1": 12.164,
+   "speaker": "narrator"
+  },
+  {
+   "w": "died.",
+   "t0": 12.244,
+   "t1": 12.713,
+   "speaker": "narrator"
+  },
+  {
+   "w": "Middle",
+   "t0": 13.185,
+   "t1": 13.404,
+   "speaker": "narrator"
+  },
+  {
+   "w": "third:",
+   "t0": 13.465,
+   "t1": 13.895,
+   "speaker": "narrator"
+  },
+  {
+   "w": "thirty-nine.",
+   "t0": 14.193,
+   "t1": 14.935,
+   "speaker": "narrator",
+   "cap": "39.",
+   "parts": [
+    {
+     "w": "THIRTY",
+     "t0": 14.193,
+     "t1": 14.445
+    },
+    {
+     "w": "NINE",
+     "t0": 14.505,
+     "t1": 14.745
+    }
+   ]
+  },
+  {
+   "w": "Back",
+   "t0": 15.49,
+   "t1": 15.605,
+   "speaker": "narrator"
+  },
+  {
+   "w": "third...",
+   "t0": 15.705,
+   "t1": 16.163,
+   "speaker": "narrator"
+  },
+  {
+   "w": "thirty-two.",
+   "t0": 16.578,
+   "t1": 17.332,
+   "speaker": "narrator",
+   "cap": "32.",
+   "parts": [
+    {
+     "w": "THIRTY",
+     "t0": 16.578,
+     "t1": 16.825
+    },
+    {
+     "w": "TWO",
+     "t0": 16.926,
+     "t1": 17.066
+    }
+   ]
+  },
+  {
+   "w": "Now,",
+   "t0": 17.922,
+   "t1": 18.126,
+   "speaker": "narrator"
+  },
+  {
+   "w": "seat",
+   "t0": 18.506,
+   "t1": 18.706,
+   "speaker": "narrator"
+  },
+  {
+   "w": "by",
+   "t0": 18.786,
+   "t1": 18.926,
+   "speaker": "narrator"
+  },
+  {
+   "w": "seat.",
+   "t0": 19.046,
+   "t1": 19.42,
+   "speaker": "narrator"
+  },
+  {
+   "w": "The",
+   "t0": 19.808,
+   "t1": 19.906,
+   "speaker": "narrator"
+  },
+  {
+   "w": "worst?",
+   "t0": 19.906,
+   "t1": 20.4,
+   "speaker": "narrator"
+  },
+  {
+   "w": "Aisle",
+   "t0": 20.835,
+   "t1": 21.027,
+   "speaker": "narrator"
+  },
+  {
+   "w": "seats,",
+   "t0": 21.107,
+   "t1": 21.637,
+   "speaker": "narrator"
+  },
+  {
+   "w": "mid-cabin...",
+   "t0": 21.78,
+   "t1": 22.505,
+   "speaker": "narrator",
+   "parts": [
+    {
+     "w": "MID",
+     "t0": 21.807,
+     "t1": 21.947
+    },
+    {
+     "w": "CABIN",
+     "t0": 22.007,
+     "t1": 22.347
+    }
+   ]
+  },
+  {
+   "w": "FORTY-FOUR",
+   "t0": 22.81,
+   "t1": 23.427,
+   "speaker": "narrator",
+   "cap": "44",
+   "parts": [
+    {
+     "w": "FORTY",
+     "t0": 22.867,
+     "t1": 23.147
+    },
+    {
+     "w": "FOUR",
+     "t0": 23.247,
+     "t1": 23.427
+    }
+   ]
+  },
+  {
+   "w": "percent.",
+   "t0": 23.507,
+   "t1": 24.165,
+   "speaker": "narrator"
+  },
+  {
+   "w": "The",
+   "t0": 24.622,
+   "t1": 24.708,
+   "speaker": "narrator"
+  },
+  {
+   "w": "best?",
+   "t0": 24.708,
+   "t1": 25.185,
+   "speaker": "narrator"
+  },
+  {
+   "w": "Middle",
+   "t0": 25.587,
+   "t1": 25.828,
+   "speaker": "narrator"
+  },
+  {
+   "w": "seats",
+   "t0": 25.868,
+   "t1": 26.068,
+   "speaker": "narrator"
+  },
+  {
+   "w": "in",
+   "t0": 26.128,
+   "t1": 26.208,
+   "speaker": "narrator"
+  },
+  {
+   "w": "the",
+   "t0": 26.208,
+   "t1": 26.308,
+   "speaker": "narrator"
+  },
+  {
+   "w": "back.",
+   "t0": 26.308,
+   "t1": 26.72,
+   "speaker": "narrator"
+  },
+  {
+   "w": "Just",
+   "t0": 27.058,
+   "t1": 27.189,
+   "speaker": "narrator"
+  },
+  {
+   "w": "TWENTY-EIGHT",
+   "t0": 27.269,
+   "t1": 27.729,
+   "speaker": "narrator",
+   "cap": "28",
+   "parts": [
+    {
+     "w": "TWENTY",
+     "t0": 27.269,
+     "t1": 27.549
+    },
+    {
+     "w": "EIGHT",
+     "t0": 27.589,
+     "t1": 27.729
+    }
+   ]
+  },
+  {
+   "w": "percent.",
+   "t0": 27.769,
+   "t1": 28.262,
+   "speaker": "narrator"
+  },
+  {
+   "w": "Small",
+   "t0": 28.74,
+   "t1": 29.009,
+   "speaker": "narrator"
+  },
+  {
+   "w": "sample,",
+   "t0": 29.109,
+   "t1": 29.489,
+   "speaker": "narrator"
+  },
+  {
+   "w": "and",
+   "t0": 29.789,
+   "t1": 29.939,
+   "speaker": "narrator"
+  },
+  {
+   "w": "every",
+   "t0": 30.029,
+   "t1": 30.189,
+   "speaker": "narrator"
+  },
+  {
+   "w": "crash",
+   "t0": 30.269,
+   "t1": 30.51,
+   "speaker": "narrator"
+  },
+  {
+   "w": "is",
+   "t0": 30.59,
+   "t1": 30.73,
+   "speaker": "narrator"
+  },
+  {
+   "w": "different...",
+   "t0": 30.73,
+   "t1": 31.157,
+   "speaker": "narrator"
+  },
+  {
+   "w": "but",
+   "t0": 31.622,
+   "t1": 31.71,
+   "speaker": "narrator"
+  },
+  {
+   "w": "in",
+   "t0": 31.71,
+   "t1": 31.85,
+   "speaker": "narrator"
+  },
+  {
+   "w": "TIME's",
+   "t0": 31.85,
+   "t1": 32.19,
+   "speaker": "narrator"
+  },
+  {
+   "w": "data,",
+   "t0": 32.25,
+   "t1": 32.712,
+   "speaker": "narrator"
+  }
+ ],
+ "sentences": [
+  {
+   "text": "The back of the plane had the BEST odds.",
+   "t0": 0.147,
+   "t1": 2.505
+  },
+  {
+   "text": "Not the front.",
+   "t0": 2.84,
+   "t1": 3.973
+  },
+  {
+   "text": "TIME dug through FAA records...",
+   "t0": 4.258,
+   "t1": 6.28
+  },
+  {
+   "text": "seventeen crashes with both deaths AND survivors.",
+   "t0": 6.612,
+   "t1": 9.78
+  },
+  {
+   "text": "Front third: thirty-eight percent died.",
+   "t0": 10.293,
+   "t1": 12.713
+  },
+  {
+   "text": "Middle third: thirty-nine.",
+   "t0": 13.185,
+   "t1": 14.935
+  },
+  {
+   "text": "Back third...",
+   "t0": 15.49,
+   "t1": 16.163
+  },
+  {
+   "text": "thirty-two.",
+   "t0": 16.578,
+   "t1": 17.332
+  },
+  {
+   "text": "Now, seat by seat.",
+   "t0": 17.922,
+   "t1": 19.42
+  },
+  {
+   "text": "The worst?",
+   "t0": 19.808,
+   "t1": 20.4
+  },
+  {
+   "text": "Aisle seats, mid-cabin...",
+   "t0": 20.835,
+   "t1": 22.505
+  },
+  {
+   "text": "FORTY-FOUR percent.",
+   "t0": 22.81,
+   "t1": 24.165
+  },
+  {
+   "text": "The best?",
+   "t0": 24.622,
+   "t1": 25.185
+  },
+  {
+   "text": "Middle seats in the back.",
+   "t0": 25.587,
+   "t1": 26.72
+  },
+  {
+   "text": "Just TWENTY-EIGHT percent.",
+   "t0": 27.058,
+   "t1": 28.262
+  },
+  {
+   "text": "Small sample, and every crash is different...",
+   "t0": 28.74,
+   "t1": 31.157
+  },
+  {
+   "text": "but in TIME's data,",
+   "t0": 31.622,
+   "t1": 32.712
+  }
+ ],
+ "seam": {
+  "speech_onset": 0.147,
+  "tail_after_data": 0.098,
+  "seam_gap": 0.245,
+  "loop": "'...but in TIME's data,' -> 'The back of the plane...'"
+ },
+ "notes": "times: wav2vec2 forced alignment on the edit, global lag 0.079 s removed, first word after each pause snapped to the voiced onset, last word before each pause to the -45 dB offset. Same timeline for plane_vo_edit.wav (mastered) and plane_vo_edit_dry.wav. 'cap' = digit caption text for numbers."
+}
