@@ -888,6 +888,96 @@ def _rotated_mark(kit, coll, name, origin, offset, size, yaw, pitch, mat):
     return mark
 
 
+def _road_span(coll, name, a, b, width, z, mat):
+    """Asphalt from ``a`` to ``b``. Local +Y runs along the segment, matching the deck."""
+    ax, ay = a
+    bx, by = b
+    dx, dy = bx - ax, by - ay
+    length = math.hypot(dx, dy)
+    if length < 0.5:
+        return None
+    obj = box_object(name, coll, (0.0, 0.0, 0.0), (width, length, 0.08), mat)
+    obj.location = ((ax + bx) * 0.5, (ay + by) * 0.5, z)
+    obj.rotation_euler.z = -math.atan2(dx, dy)
+    return obj
+
+
+def _paint_along(kit, coll, a, b, z, mats):
+    """Double yellow and lane dashes, using the same offsets as the bridge deck."""
+    ax, ay = a
+    bx, by = b
+    dx, dy = bx - ax, by - ay
+    length = math.hypot(dx, dy)
+    if length < 2.0:
+        return
+    ux, uy = dx / length, dy / length
+    # Local +X at theta = -atan2(dx, dy) is the right-hand side of the road.
+    theta = -math.atan2(dx, dy)
+    rx, ry = math.cos(theta), math.sin(theta)
+    cursor = 2.0
+    while cursor < length - 2.0:
+        px = ax + ux * cursor
+        py = ay + uy * cursor
+        for sign in (-1.0, 1.0):
+            _rotated_mark(kit, coll, "net_yellow", (px, py, z + 0.03), sign * 0.12, (0.10, 4.0, 0.03), theta, 0.0, mats["yellow"])
+        if int(cursor / 4.0) % 3 == 0:
+            for offset in (-LANE_W, LANE_W):
+                _rotated_mark(kit, coll, "net_dash", (px, py, z + 0.03), offset, (0.12, DASH_LEN, 0.03), theta, 0.0, mats["mark"])
+        cursor += 4.0
+    # Edge lines so the four lanes read as one roadway.
+    for side in (-1.0, 1.0):
+        mark = box_object("net_edge", coll, (0.0, 0.0, 0.0), (0.12, length - 1.0, 0.02), mats["mark"])
+        mark.location = ((ax + bx) * 0.5 + rx * side * (DECK_HALF - 0.3), (ay + by) * 0.5 + ry * side * (DECK_HALF - 0.3), z + 0.03)
+        mark.rotation_euler.z = theta
+        kit.add(mark, "road_mark", sink=False)
+
+
+def _far_bank_network(kit, coll, mats):
+    """The bridge comes ashore into the far-bank grid.
+
+    The four deck lanes continue inland, cross an east-west arterial that
+    meets both north-south streets, and keep going. Two ramps leave the
+    approach onto that arterial. Nothing stops at the abutment.
+    """
+    road = private_assets.road_asphalt_material() or mats["road"]
+    z = FAR_Z + 0.05
+    land = deck_point(FAR_ROAD_S)
+    inland_s = deck_s_at_y(RIVER_Y1 + 170.0)
+    inland = deck_point(inland_s)
+    _road_span(coll, "far_approach", land, inland, DECK_W, z, road)
+    _paint_along(kit, coll, land, inland, z, mats)
+    # Arterial at the landing. Long enough to cross both far-bank streets
+    # and keep going past them, so neither side is a dead end.
+    fx, fy = land
+    x0, x1 = min(CITY_STREETS) - 70.0, max(CITY_STREETS) + 70.0
+    _asphalt_plane("far_arterial", coll, ((x0 + x1) * 0.5, fy, z + 0.01), (x1 - x0, DECK_W), fallback=road)
+    for sign in (-1.0, 1.0):
+        _mark(kit, coll, "art_yellow", ((x0 + x1) * 0.5, fy + sign * 0.12, z + 0.04), (x1 - x0 - 8.0, 0.10, 0.03), mats["yellow"])
+    # Leave the bridge intersection and the two street crossings unpainted in the box.
+    crossings = [fx, *CITY_STREETS]
+    cursor = x0 + 2.0
+    while cursor < x1 - 2.0:
+        if any(abs(cursor - cx) < DECK_HALF + 2.0 for cx in crossings):
+            cursor += 4.0
+            continue
+        for offset in (-LANE_W, LANE_W):
+            _mark(kit, coll, "art_dash", (cursor, fy + offset, z + 0.04), (DASH_LEN, 0.12, 0.03), mats["mark"])
+        cursor += DASH_LEN + DASH_GAP
+    # A second cross street further inland, so the approach is a through street.
+    fy2 = inland[1] - 40.0
+    _asphalt_plane("far_arterial_2", coll, ((x0 + x1) * 0.5, fy2, z + 0.01), (x1 - x0, DECK_W), fallback=road)
+    for sign in (-1.0, 1.0):
+        _mark(kit, coll, "art2_yellow", ((x0 + x1) * 0.5, fy2 + sign * 0.12, z + 0.04), (x1 - x0 - 8.0, 0.10, 0.03), mats["yellow"])
+    # On-ramps: leave the approach and meet the arterial beside the intersection.
+    ramp_s = deck_s_at_y(fy + 28.0)
+    rx, ry = right_vector()
+    mouth = deck_point(ramp_s)
+    for side in (-1.0, 1.0):
+        start = (mouth[0] + rx * side * 6.0, mouth[1] + ry * side * 6.0)
+        end = (fx + side * 42.0, fy)
+        _road_span(coll, "far_ramp", start, end, 8.0, z + 0.012, road)
+
+
 def _build_streets(kit, coll, mats):
     """One 4-lane avenue and one cross street, meeting at a single intersection.
 
@@ -1025,16 +1115,15 @@ def _build_streets(kit, coll, mats):
         else:
             dash_at += 4.0
         s += 4.0
-    # Far-bank road. The bridge joins it. No crosswalk: the only zebra is downtown.
-    fx, fy = deck_point(FAR_ROAD_S)
-    far_z = FAR_Z + 0.04
-    _asphalt_plane("far_road", coll, (fx, fy, far_z), (90.0, DECK_W), fallback=mats["road"])
-    for sign, span in ((-1.0, (fx - 45.0, fx - DECK_HALF - 1.5)), (1.0, (fx + DECK_HALF + 1.5, fx + 45.0))):
-        a, b = span
-        if b - a < 2.0:
-            continue
-        for line in (-0.11, 0.11):
-            _mark(kit, coll, "far_yellow", ((a + b) / 2.0, fy + line, far_z + 0.05), (b - a, 0.10, 0.03), mats["yellow"])
+    # Far bank. The deck comes ashore and becomes a street in the same grid
+    # as the two north-south roads, with a cross street and a pair of ramps.
+    _far_bank_network(kit, coll, mats)
+    # South leg of the near intersection keeps the same four lanes as the deck.
+    dash = stub_end + 4.0
+    while dash < yellow_n - 4.0:
+        for offset in (-LANE_W, LANE_W):
+            _mark(kit, coll, "stub_lane", (ix + offset, dash, paint_z + 0.008), (0.12, DASH_LEN, 0.03), mats["mark"])
+        dash += DASH_LEN + DASH_GAP
 
 
 def _block_streets(kit, coll, mats):
@@ -1610,9 +1699,11 @@ def build_river_city(kit, mats, rng, pieces):
         x = x0
         while x < x1:
             w = rng.uniform(*wr)
-            # Leave the bridge corridor and the streets between blocks open.
-            if (row <= 1 and abs(x - _deck_x(y)) < 18.0) or on_block_street(x, w * 0.5 + 1.0):
-                x += 4.0
+            # The bridge approach is a road. Towers stay off it on every row,
+            # not only the first, and the gap is the road plus the building's own width.
+            corridor = abs(x - _deck_x(y)) < (w * 0.5 + DECK_HALF + 6.0) and y < RIVER_Y1 + 200.0
+            if corridor or on_block_street(x, w * 0.5 + 1.0):
+                x += 6.0
                 continue
             d = min(rng.uniform(wr[0] * 0.72, wr[1] * 0.85), 32.0)
             h = rng.uniform(hmin, hmax)
@@ -1744,7 +1835,7 @@ def build_river_city(kit, mats, rng, pieces):
                 )
         for ix in range(-80, 100, 12):
             for iy in (162, 180, 200):
-                if on_block_street(ix, 2.5) or abs(ix - _deck_x(iy)) < 10:
+                if on_block_street(ix, 2.5) or abs(ix - _deck_x(iy)) < DECK_HALF + 8.0:
                     continue
                 _tree(
                     kit, col_p, mats, ix, iy, FAR_Z,

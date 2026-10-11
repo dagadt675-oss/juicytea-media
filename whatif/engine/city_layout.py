@@ -172,7 +172,8 @@ FAR_ROAD_S = _s_at_y(RIVER_Y1 + 40.0)
 TOWER_S = (_s_at_y(RIVER_Y0 + 12.0), _s_at_y(RIVER_Y1 - 12.0))
 CROSS_HALF_Y = AVENUE_HALF + 1.0
 # The ramp meets the north curb and stays at avenue grade through the crosswalk.
-RAMP_JOIN_S = _s_at_y(AVE_Y + AVENUE_HALF - 0.25)
+# Three metres into the avenue so the ramp asphalt overlaps the cross street.
+RAMP_JOIN_S = _s_at_y(AVE_Y + AVENUE_HALF - 3.5)
 RAMP_FLAT_S = _s_at_y(AVE_Y + AVENUE_HALF + ZEBRA_DEPTH + STOP_SETBACK + 1.2)
 
 
