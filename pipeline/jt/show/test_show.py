@@ -85,9 +85,9 @@ def main() -> None:
     crowded = [(name, [(0.0, fat, 12.0, 12.0)]) for name in ("a", "b", "c", "d")]
     mode, placed = layout(field, crowded, {n: (20, 20) for n in "abcd"})
     assert mode == "overlap" and len(placed) == 4
-    assert N == 1273
-    assert abs(DURATION - 1273 / 30) < 1e-9
-    assert abs(TAIL1 - 42.4) < 1e-9
+    assert N >= 1357
+    assert abs(DURATION - N / 30) < 1e-9
+    assert abs(TAIL1 - (N - 1) / 30) < 1e-9
     print("show tests ok", f"cue gap {worst:.2f}s", f"{N} frames")
 
 

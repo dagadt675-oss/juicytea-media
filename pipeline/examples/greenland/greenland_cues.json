@@ -1,13 +1,13 @@
 {
   "id": "greenland_africa",
-  "take": "chris_f0",
-  "take_duration": 42.411,
-  "picture_duration": 42.433,
+  "take": "chris_f0+seg_a112",
+  "take_duration": 45.227,
+  "picture_duration": 45.233,
   "fps": 30,
-  "frames": 1273,
+  "frames": 1357,
   "loop_tail": [
-    42.211,
-    42.4
+    45.027,
+    45.2
   ],
   "audio_targets": {
     "voice_wpm": 185,
@@ -24,82 +24,82 @@
       "name": "open"
     },
     {
-      "t": 0.94,
+      "t": 0.937,
       "kind": "draw",
       "name": "greenland"
     },
     {
-      "t": 1.55,
+      "t": 1.552,
       "kind": "pop",
       "name": "same-size"
     },
     {
-      "t": 1.84,
+      "t": 1.842,
       "kind": "pop",
       "name": "africa"
     },
     {
-      "t": 2.46,
-      "kind": "stamp",
-      "name": "not"
-    },
-    {
-      "t": 2.55,
+      "t": 2.5,
       "kind": "whoosh",
       "name": "globe-snap"
     },
     {
-      "t": 3.35,
+      "t": 2.643,
+      "kind": "stamp",
+      "name": "not"
+    },
+    {
+      "t": 2.783,
       "kind": "draw",
       "name": "algeria-outline"
     },
     {
-      "t": 3.61,
+      "t": 3.607,
       "kind": "pop",
       "name": "algeria"
     },
     {
-      "t": 4.44,
+      "t": 4.442,
       "kind": "boing",
       "name": "excuse-me"
     },
     {
-      "t": 5.32,
+      "t": 5.322,
       "kind": "whoosh",
       "name": "heres-the-trick"
     },
     {
-      "t": 6.54,
+      "t": 6.877,
       "kind": "draw",
       "name": "round-earth"
     },
     {
-      "t": 8.0,
+      "t": 8.003,
       "kind": "draw",
       "name": "stretches"
     },
     {
-      "t": 8.94,
+      "t": 8.944,
       "kind": "tick",
       "name": "more"
     },
     {
-      "t": 9.82,
+      "t": 9.815,
       "kind": "pop",
       "name": "poles"
     },
     {
-      "t": 11.19,
+      "t": 11.579,
       "kind": "pop",
       "name": "greenland-sits"
     },
     {
-      "t": 12.71,
+      "t": 12.705,
       "kind": "impact",
       "name": "sixteen"
     },
     {
-      "t": 13.77,
+      "t": 13.623,
       "kind": "tick",
       "name": "too-big"
     },
@@ -109,147 +109,147 @@
       "name": "drag"
     },
     {
-      "t": 15.95,
+      "t": 15.945,
       "kind": "draw",
       "name": "equator"
     },
     {
-      "t": 17.48,
+      "t": 17.477,
       "kind": "tick",
       "name": "truth"
     },
     {
-      "t": 18.4,
+      "t": 18.395,
       "kind": "tick",
       "name": "shrink-1"
     },
     {
-      "t": 19.36,
+      "t": 19.358,
       "kind": "tick",
       "name": "shrink-2"
     },
     {
-      "t": 20.25,
+      "t": 20.252,
       "kind": "tick",
       "name": "shrink-3"
     },
     {
-      "t": 21.01,
+      "t": 21.063,
       "kind": "boing",
       "name": "wait-what"
     },
     {
-      "t": 22.45,
+      "t": 22.553,
       "kind": "impact",
       "name": "drop"
     },
     {
-      "t": 23.05,
+      "t": 23.894,
       "kind": "pop",
       "name": "dust"
     },
     {
-      "t": 24.36,
+      "t": 24.67,
       "kind": "pop",
       "name": "fourteen"
     },
     {
-      "t": 25.05,
+      "t": 25.594,
       "kind": "tick",
       "name": "tiles"
     },
     {
-      "t": 25.4,
-      "kind": "stamp",
-      "name": "by-area"
-    },
-    {
-      "t": 26.16,
+      "t": 26.816,
       "kind": "pop",
       "name": "algeria-again"
     },
     {
-      "t": 27.08,
+      "t": 27.647,
       "kind": "tick",
       "name": "bigger-than"
     },
     {
-      "t": 28.4,
+      "t": 27.838,
+      "kind": "tick",
+      "name": "than-greenland"
+    },
+    {
+      "t": 29.0,
+      "kind": "tick",
+      "name": "so-is-congo"
+    },
+    {
+      "t": 29.904,
       "kind": "pop",
       "name": "dr-congo"
     },
     {
-      "t": 29.25,
+      "t": 30.784,
       "kind": "boing",
       "name": "hi-tiny"
     },
     {
-      "t": 30.89,
-      "kind": "whoosh",
-      "name": "clear"
-    },
-    {
-      "t": 31.16,
+      "t": 32.419,
       "kind": "pop",
       "name": "usa"
     },
     {
-      "t": 31.66,
+      "t": 33.079,
       "kind": "pop",
       "name": "china"
     },
     {
-      "t": 31.98,
+      "t": 33.595,
       "kind": "pop",
       "name": "india"
     },
     {
-      "t": 32.71,
+      "t": 34.733,
       "kind": "pop",
       "name": "europe"
     },
     {
-      "t": 33.49,
+      "t": 35.767,
       "kind": "tick",
       "name": "together"
     },
     {
-      "t": 34.79,
+      "t": 37.296,
       "kind": "pop",
       "name": "still-bigger"
     },
     {
-      "t": 36.07,
+      "t": 38.763,
       "kind": "pop",
       "name": "room-to-spare"
     },
     {
-      "t": 37.28,
+      "t": 40.043,
       "kind": "whoosh",
       "name": "outro"
     },
     {
-      "t": 38.32,
+      "t": 41.923,
       "kind": "tick",
       "name": "this-map"
     },
     {
-      "t": 39.29,
-      "kind": "whoosh",
-      "name": "not-huge"
-    },
-    {
-      "t": 40.68,
+      "t": 43.088,
       "kind": "tick",
       "name": "inflate"
     },
     {
-      "t": 41.53,
+      "t": 43.32,
+      "kind": "whoosh",
+      "name": "not-huge"
+    },
+    {
+      "t": 44.697,
       "kind": "pop",
       "name": "lying"
     },
     {
-      "t": 42.21,
+      "t": 45.027,
       "kind": "whoosh",
       "name": "loop-tail"
     }

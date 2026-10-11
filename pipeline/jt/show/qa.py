@@ -136,7 +136,7 @@ def report(path: Path, cues: list[dict] | None = None) -> dict:
     frames, fps = read_gray(path)
     diff = motion_series(frames)
     holds = static_holds(diff, fps)
-    events = visual_events(diff, fps)
+    events = visual_events(diff, fps, height=2.4)
     gaps = [b - a for a, b in zip(events, events[1:])] if len(events) > 1 else []
     per_second = []
     if len(diff):

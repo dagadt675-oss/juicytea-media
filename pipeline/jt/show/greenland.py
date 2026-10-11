@@ -120,6 +120,8 @@ def _cues() -> list:
         (w("BIGGER", after=b.fourteen), "tick", "tiles"),
         (b.algeria, "pop", "algeria-again"),
         (w("THAN", after=b.algeria), "tick", "bigger-than"),
+        (w("GREENLAND", after=b.algeria), "tick", "than-greenland"),
+        (w("SO", after=28), "tick", "so-is-congo"),
         (w("CONGO", after=10), "pop", "dr-congo"),
         (b.hi0, "boing", "hi-tiny"),
         (b.usa, "pop", "usa"),
@@ -461,6 +463,7 @@ def _zoom_blur(img: np.ndarray, amount: float) -> np.ndarray:
 
 
 def _keys() -> list[Key]:
+    b = CLOCK
     rows = [
         (0.00, "merc", -12, 54, 152),
         # 4% push-in, plus a slow one-way drift so the opening clears the motion floor.
@@ -478,18 +481,16 @@ def _keys() -> list[Key]:
         (15.30, "merc", -40, 72, 68),
         (18.20, "merc", -28, 50, 62),
         (20.80, "merc", 2, 14, 54),
-        (23.40, "merc", 18, 6, 46),
-        # Lower lat lifts DRC above the caption band. The pack shot pulls back
-        # so Africa, and the four true-size countries inside it, fit in x 40–1040
-        # and sit above y=1150.
-        (26.40, "merc", 10, 4, 62),
-        (29.60, "merc", 12, 2, 58),
-        (30.40, "merc", 15, -6, 68),
-        (31.50, "merc", 17, -20, 84),
-        (35.40, "merc", 17, -21, 82),
-        (37.15, "merc", 17, -20, 84),
-        (39.60, "merc", -8, 44, 118),
-        (41.20, "merc", -11, 50, 140),
+        # From the drop onward the camera follows this take's words.
+        (b.drop + 0.95, "merc", 18, 6, 46),
+        (b.algeria + 0.24, "merc", 10, 4, 62),
+        (b.hi0 + 0.15, "merc", 12, 2, 58),
+        (b.usa - 0.55, "merc", 15, -6, 68),
+        (b.usa + 0.35, "merc", 17, -20, 84),
+        (b.still + 0.35, "merc", 17, -21, 82),
+        (b.room + 0.45, "merc", 17, -20, 84),
+        (b.outro + 1.30, "merc", -8, 44, 118),
+        (b.lying - 0.45, "merc", -11, 50, 140),
         (TAIL0, "merc", -12, 52, 146),
     ]
     return [Key(t, Cam(p, lon, lat, span)) for t, p, lon, lat, span in rows]
@@ -751,8 +752,13 @@ class Greenland:
             self._pack_screen = {}
             return
         if self._pack is None:
-            mode, places, px_full = self._solve_pack(cam, box, w, h)
-            self._pack = (mode, places, max(px_full, 1e-9), max(px_bbox, 1e-9))
+            # Solve on the settled wide shot, not the entrance frame.
+            ref = self._cam(CLOCK.still, w, h).front()
+            px_ref, box_ref = self._px_per_m(ref, w, h)
+            if box_ref is None:
+                px_ref, box_ref = px_bbox, box
+            mode, places, px_full = self._solve_pack(ref, box_ref, w, h)
+            self._pack = (mode, places, max(px_full, 1e-9), max(px_ref, 1e-9))
             self._pack_mode = mode
         mode, places, px_full, px_ref = self._pack
         px = px_bbox * (px_full / px_ref) if px_bbox > 0 else px_full
@@ -924,14 +930,15 @@ class Greenland:
                     canvas, (box[0] + box[2]) / 2, (box[1] + box[3]) / 2,
                     box[2] - box[0], "sad", blink=blink, squash=squash,
                 )
-        if st["gag_hi"] > 0.15 or (29.05 <= st["t"] <= 30.05):
+        # The face pops a quarter-second before "Hi, tiny."
+        if CLOCK.hi0 - 0.25 <= st["t"] <= CLOCK.hi1 + 0.2:
             box = self._box_of(cam, self.earth.rings.get("DZA") or [], w, h)
             if box:
-                m, b = gag_pose(st["t"], 29.245, 29.800, 2)
+                m, bob = gag_pose(st["t"], CLOCK.hi0, CLOCK.hi1, 2)
                 draw_face(
                     canvas, (box[0] + box[2]) / 2, (box[1] + box[3]) / 2,
-                    box[2] - box[0], "smug", mouth=m, bob=b, blink=blink,
-                    squash=_squash(st["t"]) if st["t"] >= 29.0 else 1.0,
+                    box[2] - box[0], "smug", mouth=m, bob=bob, blink=blink,
+                    squash=_squash(st["t"]) if st["t"] >= CLOCK.hi0 - 0.25 else 1.0,
                 )
         packing = max(st["usa"], st["chn"], st["ind"], st["eur"])
         if (st["still"] > 0.35 or st["room"] > 0.2) and packing < 0.2:
@@ -975,14 +982,14 @@ class Greenland:
         if st["label3"] > 0.1 and geo:
             pill(hud, "~3× WIDER", w * 0.5, h * 0.24, (255, 214, 48), ink=INK, size=80, pop=1.0, kind="number")
             pill(hud, "~9× AREA  70°N", w * 0.5, h * 0.34, (255, 214, 48), ink=INK, size=72, pop=1.0, kind="number")
-        if st["show16"] > 0.08 and st["t"] < 22.4:
+        if st["show16"] > 0.08 and st["t"] < CLOCK.drop:
             big_number(hud, f"{max(1, int(round(st['disp'])))}×", w * 0.5, h * 0.22, size=100,
-                       pop=_arrive(st["t"], 12.705) if st["t"] < 14 else 1.0)
+                       pop=_arrive(st["t"], CLOCK.sixteen) if st["t"] < CLOCK.sixteen + 1.3 else 1.0)
         if st["gag_wait"] > 0.15:
             pill(hud, "WAIT... WHAT?!", w * 0.5, h * 0.30, PAPER, ink=INK, size=72, pop=1.0, kind="gag")
         if st["show14"] > 0.08:
-            n = max(1, min(14, int(round(ramp(st["t"], 23.86, 24.36) * 14))))
-            big_number(hud, f"{n}×", w * 0.5, h * 0.22, size=110, pop=_arrive(st["t"], 23.86))
+            n = max(1, min(14, int(round(ramp(st["t"], CLOCK.africa14, CLOCK.fourteen) * 14))))
+            big_number(hud, f"{n}×", w * 0.5, h * 0.22, size=110, pop=_arrive(st["t"], CLOCK.africa14))
             comparison_card(hud)
         if st["by_area"] > 0.15:
             pill(hud, "BY AREA", w * 0.5, h * 0.32, RED, size=62, pop=1.0, kind="kicker")
@@ -1011,7 +1018,7 @@ class Greenland:
                 leader_label(hud, canvas, "DR CONGO", "0.91M SQ MI", drc_box, avoid,
                              (36, 112, 210), prefer="left", size=44)
         if st["gag_hi"] > 0.15 and geo:
-            pill(hud, "HI, TINY.", w * 0.78, h * 0.18, PAPER, ink=INK, size=58, pop=1.0, kind="gag", nudge=False)
+            pill(hud, "HI, TINY.", w * 0.28, 310, PAPER, ink=INK, size=58, pop=1.0, kind="gag", nudge=False)
         # Labels sit off the shape centres so CHINA and EUROPE can share the middle.
         label_at = {
             "usa": lambda ox, oy: (ox, oy - 20),
@@ -1019,6 +1026,7 @@ class Greenland:
             "eur": lambda ox, oy: (max(160, ox - 230), oy + 10),
             "ind": lambda ox, oy: (ox, oy - 30),
         }
+        placed = []
         for key, text, rgb in (
             ("usa", "USA", (28, 118, 230)),
             ("chn", "CHINA", (226, 36, 48)),
@@ -1028,6 +1036,14 @@ class Greenland:
             if st[key] > 0.3 and key in self._pack_screen:
                 ox, oy = self._pack_screen[key]
                 lx, ly = label_at[key](ox, oy)
+                ly = min(max(280, ly), 940)
+                for _ in range(4):
+                    blocker = next(((px, py) for px, py in placed if abs(lx - px) < 300 and abs(ly - py) < 120), None)
+                    if blocker is None:
+                        break
+                    px, py = blocker
+                    lx = min(900, px + 320) if lx >= px else max(180, px - 320)
+                placed.append((lx, ly))
                 pill(hud, text, lx, ly, rgb, size=58, pop=1.0, kind="country", nudge=False)
         if st["still"] > 0.15:
             pill(hud, "STILL BIGGER", w * 0.5, 292, (255, 214, 48), ink=INK, size=68,
@@ -1048,7 +1064,7 @@ class Greenland:
 def cue_payload() -> dict:
     return {
         "id": "greenland_africa",
-        "take": "chris_f0",
+        "take": "chris_f0+seg_a112",
         "take_duration": TAKE,
         "picture_duration": round(DURATION, 3),
         "fps": FPS,
@@ -1075,20 +1091,20 @@ def timeline_payload(words_path: Path | None = None) -> dict:
         "frames": N,
         "loop_tail": {"start": TAIL0, "end": round(TAIL1, 3)},
         "beats": [
-            {"id": "hook", "t0": 0.08, "t1": 4.222, "say": "This map says Greenland is as big as Africa. It's not even as big as Algeria."},
-            {"id": "excuse", "t0": 4.442, "t1": 5.022, "speaker": "greenland", "say": "Excuse me?"},
-            {"id": "trick", "t0": 5.322, "t1": 14.087, "say": "Here's the trick. Sixteen times too big."},
-            {"id": "drag", "t0": 14.691, "t1": 17.919, "say": "So let's drag Greenland down to the equator."},
-            {"id": "shrink", "t0": 18.07, "t1": 20.763, "say": "Watch it shrink. And shrink. And SHRINK."},
-            {"id": "wait", "t0": 21.013, "t1": 21.803, "speaker": "greenland", "say": "Wait... what?!"},
-            {"id": "drop", "t0": 22.303, "t1": 23.244, "say": "Now drop it on Africa."},
-            {"id": "fourteen", "t0": 23.864, "t1": 25.397, "say": "Africa is FOURTEEN times bigger."},
-            {"id": "algeria", "t0": 25.919, "t1": 29.065, "say": "Even Algeria is bigger than Greenland. So is D.R. Congo."},
-            {"id": "hitiny", "t0": 29.245, "t1": 29.800, "speaker": "algeria", "say": "Hi, tiny."},
-            {"id": "pack", "t0": 30.16, "t1": 33.933, "say": "USA, China, India, and Europe."},
-            {"id": "still", "t0": 34.27, "t1": 35.361, "say": "Africa is STILL bigger."},
-            {"id": "room", "t0": 35.861, "t1": 36.755, "say": "With room to spare."},
-            {"id": "outro", "t0": 37.278, "t1": 42.211, "say": "The map is lying."},
+            {"id": "hook", "t0": 0.08, "t1": round(CLOCK.excuse0, 3), "say": "This map says Greenland is as big as Africa."},
+            {"id": "excuse", "t0": CLOCK.excuse0, "t1": CLOCK.excuse1, "speaker": "greenland", "say": "Excuse me?"},
+            {"id": "trick", "t0": CLOCK.heres, "t1": round(CLOCK.sixteen + 1.4, 3), "say": "Here's the trick. Sixteen times too big."},
+            {"id": "drag", "t0": round(CLOCK.drag - 0.34, 3), "t1": round(CLOCK.shrinks[0] - 0.15, 3), "say": "So let's drag Greenland down to the equator."},
+            {"id": "shrink", "t0": CLOCK.shrinks[0] - 0.325, "t1": round(CLOCK.shrinks[2] + 0.51, 3), "say": "Watch it shrink. And shrink. And SHRINK."},
+            {"id": "wait", "t0": CLOCK.wait0, "t1": CLOCK.wait1, "speaker": "greenland", "say": "Wait... what?!"},
+            {"id": "drop", "t0": round(CLOCK.drop - 0.2, 3), "t1": round(CLOCK.africa14 - 0.3, 3), "say": "Now drop it on Africa."},
+            {"id": "fourteen", "t0": CLOCK.africa14, "t1": round(CLOCK.fourteen + 1.3, 3), "say": "Africa is FOURTEEN times bigger."},
+            {"id": "algeria", "t0": round(CLOCK.algeria - 0.31, 3), "t1": round(CLOCK.congo + 0.5, 3), "say": "Even Algeria is bigger than Greenland. So is DR Congo."},
+            {"id": "hitiny", "t0": CLOCK.hi0, "t1": CLOCK.hi1, "speaker": "algeria", "say": "Hi, tiny."},
+            {"id": "pack", "t0": round(CLOCK.usa - 0.72, 3), "t1": round(CLOCK.still - 0.4, 3), "say": "USA, China, India, and Europe."},
+            {"id": "still", "t0": round(CLOCK.still - 0.43, 3), "t1": round(CLOCK.room - 0.2, 3), "say": "Africa is STILL bigger."},
+            {"id": "room", "t0": round(CLOCK.room - 0.22, 3), "t1": round(CLOCK.outro - 0.5, 3), "say": "With room to spare."},
+            {"id": "outro", "t0": round(CLOCK.outro - 0.13, 3), "t1": round(TAIL0, 3), "say": "The map is lying."},
         ],
     }
     if words_path and words_path.exists():
