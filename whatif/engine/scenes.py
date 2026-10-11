@@ -902,7 +902,8 @@ def _build_streets(kit, coll, mats):
     for zebra in (
         private_assets.place_zebra(coll, ix - open_half - depth / 2.0, y, zebra_z, 0.0, AVENUE_HALF * 2.0, depth),
         private_assets.place_zebra(coll, ix + open_half + depth / 2.0, y, zebra_z, 0.0, AVENUE_HALF * 2.0, depth),
-        private_assets.place_zebra(coll, ix, y - AVENUE_HALF - depth / 2.0, zebra_z, math.pi / 2.0, DECK_W, depth),
+        # The south leg slab sits 8 mm above the avenue. The zebra has to clear it.
+        private_assets.place_zebra(coll, ix, y - AVENUE_HALF - depth / 2.0, road_z + 0.014, math.pi / 2.0, DECK_W, depth),
     ):
         if zebra is not None:
             kit.add(zebra, "road_mark", sink=False)
