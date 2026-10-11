@@ -349,16 +349,19 @@ def _penny(raw: dict) -> BEpisode:
         metric = f"{int(feet) * FT:,.0f} m"
         z_vis = alt_ft * FT
         ledge_xy = _penny_xy(drop)
-        # Outer lip of the deck. The scan's roof is solid inside this point,
-        # so the coin and the camera have to sit in the air past it.
-        lip = (23.0, 26.8)
-        parapet = 373.9
+        # North-east lip of the 86th-floor setback. Outside the shaft box
+        # so the coin sits on the parapet instead of inside the crown.
+        lip = (13.6, 17.4)
+        parapet = 339.2
         ledge_penny = (lip[0], lip[1], parapet)
         if t < 0.57 or t >= 33.15:
             penny = ledge_penny
         else:
-            xy = _penny_xy(z_vis)
-            penny = (xy[0], xy[1], z_vis)
+            # Hold the parapet until the spoken altitude actually drops past it,
+            # so the coin never jumps upward off the 86th-floor ledge.
+            z_fall = min(z_vis, parapet)
+            xy = _penny_xy(z_fall)
+            penny = (xy[0], xy[1], z_fall)
             if t < 2.4:
                 off = _fade(t, 0.7, 2.2)
                 penny = (
@@ -371,8 +374,8 @@ def _penny(raw: dict) -> BEpisode:
                 if t > 18.4:
                     amp *= 1.0 - _fade(t, 18.4, 20.2)
                 penny = (
-                    penny[0] + 1.35 * amp * _wind(t, 1.1, 1.7),
-                    penny[1] + 1.05 * amp * _wind(t, 2.4, 1.9),
+                    penny[0] + 0.32 * amp * _wind(t, 1.1, 1.7),
+                    penny[1] + 0.24 * amp * _wind(t, 2.4, 1.9),
                     penny[2],
                 )
             if 20.40 <= t < 27.70:
@@ -386,17 +389,15 @@ def _penny(raw: dict) -> BEpisode:
                 else:
                     hop = _fade(t, 21.07, 21.55)
                     penny = (MAN[0] + 0.7 * hop, MAN[1] - 0.4 * hop, penny[2])
-        # Shot 1: on the deck, just inboard of the corner, looking over the rail
-        # at the city. The coin stays large and in front of the drop.
-        hook_cam = (28.4, 22.2, parapet + 3.2)
-        hook_tgt = (20.2, 31.0, parapet - 28.0)
-        # Shot 2: 24 mm, out in the air off the north-east corner so the
-        # limestone run and the street below are both in frame. Z lags the coin.
-        mean_xy = _penny_xy(z_vis if t < 33.15 else drop)
-        z_lag = _interp(altitude, max(0.0, t - 0.12)) * FT
-        z_follow = min(max(z_lag + 0.6, penny[2] + 0.9), penny[2] + 3.2)
-        drone_cam = (mean_xy[0] + 2.8, mean_xy[1] + 2.1, z_follow)
-        drone_tgt = (mean_xy[0] - 1.4, mean_xy[1] - 1.1, penny[2] - 16.0)
+        # Shot 1: macro on the parapet, just above the coin, looking out
+        # over the curved rail at the city. 50 mm, shallow focus on the coin.
+        hook_cam = (12.15, 16.05, parapet + 0.95)
+        hook_tgt = (18.6, 22.2, parapet - 16.0)
+        # Shot 2: 24 mm, close enough that the coin is about a tenth of the
+        # frame, with the window wall behind it and the street below.
+        z_follow = penny[2] + 0.72
+        drone_cam = (penny[0] + 1.15, penny[1] + 0.82, z_follow)
+        drone_tgt = (penny[0] - 2.2, penny[1] - 3.2, penny[2] - 22.0)
         if 2.4 <= t < 19.07 and not (13.31 <= t < 15.10):
             drone_cam = (
                 drone_cam[0] + 0.16 * _wind(t, 8.2, 6.5),
@@ -405,16 +406,17 @@ def _penny(raw: dict) -> BEpisode:
             )
         step = max(0.0, t - 23.9) * 0.9
         man_x, man_y = MAN[0] + step, MAN[1]
-        # Shot 3 stays put and looks up the facade. He walks through the frame.
-        up_cam = (MAN[0] + 0.35, MAN[1] + 2.9, 1.48)
-        up_tgt = (MAN[0] - 0.05, MAN[1] - 0.15, 1.38)
+        # Street camera sits on the sidewalk, south of him, looking north
+        # across the curb, the road, and the shopfronts.
+        up_cam = (11.0, 64.9, 1.55)
+        up_tgt = (man_x - 0.4, man_y + 6.5, 1.15)
         face_cam = up_cam
         face_tgt = up_tgt
         guy_cam = (MAN[0] + 16.0, MAN[1] + 3.5, 9.5)
         guy_tgt = (MAN[0] - 4.0, MAN[1] - 0.4, 0.3)
         if t < 2.4 or t >= 33.15:
             cam = hook_cam
-            target = (penny[0], penny[1], penny[2] - 0.35)
+            target = hook_tgt
             lens = 50.0
         elif t < 2.9:
             u = _fade(t, 2.4, 2.9)
@@ -441,13 +443,16 @@ def _penny(raw: dict) -> BEpisode:
             target = _lerp(drone_tgt, up_tgt, u)
             lens = 24.0 + (32.0 - 24.0) * u
         elif t < 27.71:
-            cam, target, lens = up_cam, up_tgt, 48.0
+            cam, target, lens = up_cam, up_tgt, 32.0
         else:
             u = _fade(t, 27.71, 33.05)
-            cam = _lerp(up_cam, hook_cam, u)
-            target = _lerp(up_tgt, hook_tgt, u)
-            cam = (cam[0] + math.sin(u * math.pi) * 34.0, cam[1], cam[2])
-            lens = 32.0 + (50.0 - 32.0) * u
+            # Back up and rise so the tower itself stays in frame, then meet the deck.
+            wide = (72.0, 155.0, 36.0)
+            wide_tgt = (0.0, 8.0, 210.0)
+            cam = _lerp(wide, hook_cam, u)
+            target = _lerp(wide_tgt, hook_tgt, u)
+            cam = (cam[0] + math.sin(u * math.pi) * 16.0, cam[1], cam[2])
+            lens = 28.0 + (50.0 - 28.0) * u
         if t >= 33.15:
             cam, target, penny, lens = hook_cam, hook_tgt, ledge_penny, 50.0
         cam = clear_of_shaft(cam, 1.2)
@@ -466,9 +471,11 @@ def _penny(raw: dict) -> BEpisode:
             damp = 1.0
             if t >= 21.07:
                 damp = 1.0 - _fade(t, 21.07, 22.0)
-            spin = t * 2.4 + damp * 2.1 * _wind(t, 0.4, 2.5)
-            tilt = t * 3.6 + damp * 2.4 * _wind(t, 1.8, 2.9)
-            roll = t * 1.7 + damp * 1.6 * _wind(t, 3.2, 2.2)
+            # Broadside near the drone still (t = 6.67) so the coin reads large,
+            # still tumbling the rest of the way down.
+            spin = (t - 6.67) * 6.2 + damp * 1.4 * _wind(t, 0.4, 2.5)
+            tilt = 0.35 + damp * 1.15 * _wind(t, 1.8, 2.9)
+            roll = (t - 6.67) * 4.4 + damp * 1.1 * _wind(t, 3.2, 2.2)
         frame = BFrame(
             frame=i,
             t=t,

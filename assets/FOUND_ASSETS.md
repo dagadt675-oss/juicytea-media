@@ -20,3 +20,9 @@ Each new row needs:
 
 | Name | Download | Source | License | Size | For | File |
 | --- | --- | --- | --- | --- | --- | --- |
+| Facade014_2K-JPG_Color.jpg | https://ambientcg.com/get?file=Facade014_2K-JPG.zip | https://ambientcg.com/a/Facade014 | CC0 | 4484770 | penny_empire Empire State facade, vertical limestone piers and window strips | assets/found/Facade014_2K-JPG_Color.jpg |
+| Facade014_2K-JPG_NormalGL.jpg | https://ambientcg.com/get?file=Facade014_2K-JPG.zip | https://ambientcg.com/a/Facade014 | CC0 | 6861552 | penny_empire facade normal | assets/found/Facade014_2K-JPG_NormalGL.jpg |
+| Facade014_2K-JPG_Roughness.jpg | https://ambientcg.com/get?file=Facade014_2K-JPG.zip | https://ambientcg.com/a/Facade014 | CC0 | 2260229 | penny_empire facade roughness | assets/found/Facade014_2K-JPG_Roughness.jpg |
+| Plaster001_1K-JPG_Color.jpg | https://ambientcg.com/get?file=Plaster001_1K-JPG.zip | https://ambientcg.com/a/Plaster001 | CC0 | 828790 | penny_empire setback roofs and parapet stone | assets/found/Plaster001_1K-JPG_Color.jpg |
+| Plaster001_1K-JPG_NormalGL.jpg | https://ambientcg.com/get?file=Plaster001_1K-JPG.zip | https://ambientcg.com/a/Plaster001 | CC0 | 2091491 | penny_empire parapet normal | assets/found/Plaster001_1K-JPG_NormalGL.jpg |
+| Plaster001_1K-JPG_Roughness.jpg | https://ambientcg.com/get?file=Plaster001_1K-JPG.zip | https://ambientcg.com/a/Plaster001 | CC0 | 367391 | penny_empire parapet roughness | assets/found/Plaster001_1K-JPG_Roughness.jpg |

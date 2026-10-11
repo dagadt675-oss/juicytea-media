@@ -477,6 +477,9 @@ def _roads_and_cars():
         ("sedan.glb", 110.0, 56.0, -1.5708, -7.5, "x"),
         ("taxi.glb", 150.0, 48.0, 1.5708, 6.5, "x"),
         ("sedan.glb", 190.0, 56.0, -1.5708, -8.0, "x"),
+        ("taxi.glb", -8.0, 74.0, 1.5708, 5.5, "x"),
+        ("sedan.glb", 16.0, 82.0, -1.5708, -6.5, "x"),
+        ("taxi.glb", 34.0, 76.0, 1.5708, 7.0, "x"),
         ("taxi.glb", 72.0, 8.0, 0.0, 6.0, "y"),
         ("sedan.glb", 76.0, -18.0, 3.1416, -6.0, "y"),
     )
@@ -787,21 +790,23 @@ def _pave_landing():
 
     paved = 0
     if asphalt is not None:
-        for x in range(-54, 120, 9):
-            for y in range(20, 140, 9):
-                if 14.0 < x < 26.0 and 18.0 < y < 36.0:
-                    continue
-                stamp(asphalt, x, y)
+        # 34th Street north of the tower, plus the avenue the camera can see.
+        for x in range(-30, 80, 9):
+            for y in range(70, 120, 9):
+                stamp(asphalt, x, y, 0.0, 0.02)
                 paved += 1
+        for y in range(40, 120, 9):
+            stamp(asphalt, 42.0, y, 1.5708, 0.02)
+            paved += 1
         asphalt.location.z = -400.0
     if walk is not None:
-        y = 67.2
-        for x in range(-36, 78, 3):
-            stamp(walk, x, y, 0.0, 0.05)
-            paved += 1
-        x = 31.5
-        for y in range(48, 78, 3):
-            stamp(walk, x, y, 1.5708, 0.05)
+        # Sidewalk the man stands on, and the strip under the street camera.
+        for x in range(-18, 48, 3):
+            for y in (64.8, 67.6):
+                stamp(walk, x, y, 0.0, 0.07)
+                paved += 1
+        for y in range(62, 78, 3):
+            stamp(walk, 36.5, y, 1.5708, 0.07)
             paved += 1
         walk.location.z = -400.0
     print(f"PAVE {paved}", flush=True)

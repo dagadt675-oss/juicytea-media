@@ -290,10 +290,7 @@ def _clip_low(meshes, zcut):
             # Long edges are the ribbon. Low flat lids are the scan's ground sheet.
             # The setback roofs stay so the deck is still there.
             flat_lid = abs(normal.z) > 0.84 and area > 14.0 and center.z < 80.0
-            # The base of the scan is loose triangles. The window courses
-            # are the building from the sidewalk up; those shards are not.
-            low_junk = center.z < 22.0
-            if outside or stray or edge > 9.0 or flat_lid or low_junk or center.z < zcut:
+            if outside or stray or edge > 9.0 or flat_lid or center.z < zcut:
                 dead.append(face)
             else:
                 kept_n += 1
@@ -357,6 +354,118 @@ def _podium():
     _assign(_box("Podium", 44.0, 56.0, 32.0, (0.0, 0.0, 16.0)), stone)
 
 
+def _triplanar_facade():
+    """CC0 window strips on vertical walls, plaster on the setback roofs."""
+    found = WHATIF.parent / "assets" / "found"
+    color_path = found / "Facade014_2K-JPG_Color.jpg"
+    rough_path = found / "Facade014_2K-JPG_Roughness.jpg"
+    stone_path = found / "Plaster001_1K-JPG_Color.jpg"
+    stone_rough = found / "Plaster001_1K-JPG_Roughness.jpg"
+    for path in (color_path, rough_path, stone_path, stone_rough):
+        if not path.exists():
+            raise RuntimeError(f"missing facade texture {path}")
+    mat = bpy.data.materials.new("ESBFacade")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
+    nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+    geo = nt.nodes.new("ShaderNodeNewGeometry")
+    sep_p = nt.nodes.new("ShaderNodeSeparateXYZ")
+    sep_n = nt.nodes.new("ShaderNodeSeparateXYZ")
+    nt.links.new(geo.outputs["Position"], sep_p.inputs["Vector"])
+    nt.links.new(geo.outputs["Normal"], sep_n.inputs["Vector"])
+
+    def axis_abs(socket):
+        return _math(nt, "ABSOLUTE", socket)
+
+    abs_x = axis_abs(sep_n.outputs["X"])
+    abs_y = axis_abs(sep_n.outputs["Y"])
+    abs_z = axis_abs(sep_n.outputs["Z"])
+    face_x = _math(nt, "GREATER_THAN", abs_x, abs_y)
+
+    def scaled(socket, scale):
+        return _math(nt, "MULTIPLY", socket, scale)
+
+    # About 2.2 m per window bay and 3.7 m per floor (31 rows in the tile).
+    u_ns = scaled(sep_p.outputs["X"], 0.014)
+    u_ew = scaled(sep_p.outputs["Y"], 0.014)
+    v = scaled(sep_p.outputs["Z"], 0.0087)
+    u = nt.nodes.new("ShaderNodeMix")
+    u.data_type = "FLOAT"
+    nt.links.new(face_x, u.inputs[0])
+    nt.links.new(u_ns, u.inputs[2])
+    nt.links.new(u_ew, u.inputs[3])
+    comb = nt.nodes.new("ShaderNodeCombineXYZ")
+    nt.links.new(u.outputs[0], comb.inputs["X"])
+    nt.links.new(v, comb.inputs["Y"])
+
+    def tex(path, colorspace):
+        node = nt.nodes.new("ShaderNodeTexImage")
+        node.image = bpy.data.images.load(str(path))
+        node.image.colorspace_settings.name = colorspace
+        node.interpolation = "Smart"
+        node.extension = "REPEAT"
+        nt.links.new(comb.outputs["Vector"], node.inputs["Vector"])
+        return node
+
+    facade = tex(color_path, "sRGB")
+    facade_r = tex(rough_path, "Non-Color")
+    # Plaster repeats on the horizontal setbacks, not up the shaft.
+    stone_uv = nt.nodes.new("ShaderNodeCombineXYZ")
+    nt.links.new(scaled(sep_p.outputs["X"], 0.35), stone_uv.inputs["X"])
+    nt.links.new(scaled(sep_p.outputs["Y"], 0.35), stone_uv.inputs["Y"])
+    stone = nt.nodes.new("ShaderNodeTexImage")
+    stone.image = bpy.data.images.load(str(stone_path))
+    stone.image.colorspace_settings.name = "sRGB"
+    stone.interpolation = "Smart"
+    stone.extension = "REPEAT"
+    nt.links.new(stone_uv.outputs["Vector"], stone.inputs["Vector"])
+    stone_r = nt.nodes.new("ShaderNodeTexImage")
+    stone_r.image = bpy.data.images.load(str(stone_rough))
+    stone_r.image.colorspace_settings.name = "Non-Color"
+    stone_r.interpolation = "Smart"
+    stone_r.extension = "REPEAT"
+    nt.links.new(stone_uv.outputs["Vector"], stone_r.inputs["Vector"])
+
+    roof = _math(nt, "GREATER_THAN", abs_z, 0.72)
+    color = nt.nodes.new("ShaderNodeMix")
+    color.data_type = "RGBA"
+    nt.links.new(roof, color.inputs[0])
+    nt.links.new(facade.outputs["Color"], color.inputs[6])
+    nt.links.new(stone.outputs["Color"], color.inputs[7])
+    rough = nt.nodes.new("ShaderNodeMix")
+    rough.data_type = "FLOAT"
+    nt.links.new(roof, rough.inputs[0])
+    nt.links.new(facade_r.outputs["Color"], rough.inputs[2])
+    nt.links.new(stone_r.outputs["Color"], rough.inputs[3])
+    nt.links.new(color.outputs[2], bsdf.inputs["Base Color"])
+    nt.links.new(rough.outputs[0], bsdf.inputs["Roughness"])
+    bsdf.inputs["Metallic"].default_value = 0.0
+    # Warm the piers toward Indiana limestone without replacing the window strips.
+    tint = nt.nodes.new("ShaderNodeMix")
+    tint.data_type = "RGBA"
+    tint.blend_type = "MULTIPLY"
+    tint.inputs[0].default_value = 1.0
+    nt.links.new(color.outputs[2], tint.inputs[6])
+    tint.inputs[7].default_value = (1.08, 0.98, 0.88, 1.0)
+    nt.links.new(tint.outputs[2], bsdf.inputs["Base Color"])
+    return mat
+
+
+def _dress_facade(meshes):
+    mat = _triplanar_facade()
+    dressed = 0
+    for obj in meshes:
+        if obj.type != "MESH":
+            continue
+        obj.data.materials.clear()
+        obj.data.materials.append(mat)
+        dressed += 1
+    print(f"FACADE {dressed} meshes", flush=True)
+
+
 def _empire():
     if not ESB_GLB.exists():
         raise RuntimeError(f"missing hero model {ESB_GLB}")
@@ -380,11 +489,9 @@ def _empire():
         flush=True,
     )
     _clip_low(meshes, -1.0)
-    # The scan's cast is one aerial photo and its loose triangles read as
-    # slabs and ribbons. The visible shaft is the Quaternius window courses.
-    empty.hide_render = True
-    for child in empty.children_recursive:
-        child.hide_render = True
+    # The scan albedo is one 1024 aerial photo. The massing stays; the walls
+    # wear a tileable CC0 facade so the limestone piers and window strips read.
+    _dress_facade(meshes)
     return empty
 
 
@@ -1147,7 +1254,6 @@ def prepare_scene(job, lod=False):
 
     arms = dress_city(lod=lod) or []
     _deck_rail()
-    _window_corner()
     penny = _penny()
     cam = _camera()
     return scene, cam, penny, arms
@@ -1192,7 +1298,7 @@ def _stamp(proto, location, yaw=0.0, scale=1.0):
 
 
 def _deck_rail():
-    """Metal rail from the downtown kit along the observation-deck corner."""
+    """Curved run of the downtown metal rail around the 86th-floor parapet."""
     path = (
         CACHE
         / "assets_cc0_city_buildings"
@@ -1208,26 +1314,19 @@ def _deck_rail():
     proto, span = _gltf_proto(path, "RailProto")
     if proto is None:
         return
-    length = max(span[0], span[1], 0.2)
     height = max(span[2], 0.2)
-    scale = 1.15 / height
-    step = length * scale * 0.92
-    z = 373.5
+    scale = 1.85 / height
+    # Just outside the north-east parapet the coin sits on.
+    cx, cy, z = 12.4, 15.8, 339.15
     count = 0
-    x = 23.6
-    y = 22.0
-    while y < 32.0:
-        _stamp(proto, (x, y, z), 1.5708, scale)
-        y += step
-        count += 1
-    y = 9.4
-    x = 4.0
-    while x < 14.0:
-        _stamp(proto, (x, y, z), 0.0, scale)
-        x += step
+    for index in range(12):
+        ang = -0.85 + index * 0.20
+        x = cx + math.cos(ang) * 2.55
+        y = cy + math.sin(ang) * 2.55
+        _stamp(proto, (x, y, z), ang + math.pi * 0.5, scale)
         count += 1
     proto.location.z = -400.0
-    print(f"RAIL {count} span {span}", flush=True)
+    print(f"RAIL {count} curved span {span}", flush=True)
 
 
 def _window_corner():
@@ -1294,7 +1393,11 @@ def pose_frame(scene, cam, penny, arms, fr, speed=None):
         walk_frame,
     )
     cam.data.lens = float(fr.get("lens") or 14)
-    cam.data.dof.use_dof = False
+    hook = float(fr.get("t") or 0.0) < 2.4 or float(fr.get("t") or 0.0) >= 33.15
+    cam.data.dof.use_dof = hook
+    if hook:
+        cam.data.dof.focus_distance = max(0.2, (mathutils.Vector(curr_penny) - mathutils.Vector(curr_cam)).length)
+        cam.data.dof.aperture_fstop = 2.2
     _look(cam, target)
     penny.rotation_euler = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
     for arm in arms:
