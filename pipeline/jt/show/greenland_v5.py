@@ -16,7 +16,7 @@ import skia
 from jt.data import build_earth
 from jt.draw import _ring_paths
 from jt.project import ang_delta, ang_lerp, project_points
-from jt.show.basemap import build_plates, crossfade, view_for
+from jt.show.basemap import _inv_merc, _merc, _stars, build_plates, crossfade, view_for
 from jt.show.camera import Cam
 from jt.show.clock import load_clock
 from jt.show.cues import pack as pack_cues
@@ -166,6 +166,56 @@ MOVES = _moves()
 def _smooth(u: float) -> float:
     u = 0.0 if u < 0.0 else 1.0 if u > 1.0 else u
     return u * u * (3.0 - 2.0 * u)
+
+
+def _merc_xy(lon, lat, view) -> tuple[np.ndarray, np.ndarray]:
+    """Unclipped Mercator. One position per vertex, same scale as the plate."""
+    scale = W / max(view.span, 1.0)
+    lat_c = np.clip(np.asarray(lat, np.float64), -85.0, 85.0)
+    lat0 = float(np.clip(view.lat, -85.0, 85.0))
+    merc = np.degrees(np.log(np.tan(np.pi / 4.0 + np.radians(lat_c) / 2.0)))
+    merc0 = math.degrees(math.log(math.tan(math.pi / 4.0 + math.radians(lat0) / 2.0)))
+    dlon = (np.asarray(lon, np.float64) - view.lon + 180.0) % 360.0 - 180.0
+    x = view.cx + dlon * scale
+    y = view.cy - (merc - merc0) * scale
+    return x, y
+
+
+def _ortho_xy(lon, lat, view) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Orthographic screen position. The back of the globe sits just outside the limb.
+
+    Folding the back side into the disk is a second copy of the same land.
+    Pushing it outside the limb keeps one position per vertex, and that
+    position meets the front face exactly on the horizon.
+    """
+    lon_r = np.radians(np.asarray(lon, np.float64))
+    lat_r = np.radians(np.asarray(lat, np.float64))
+    lon0 = math.radians(view.lon)
+    lat0 = math.radians(view.lat)
+    dlon = lon_r - lon0
+    cosc = (math.sin(lat0) * np.sin(lat_r)
+            + math.cos(lat0) * np.cos(lat_r) * np.cos(dlon))
+    x3 = np.cos(lat_r) * np.sin(dlon)
+    y3 = math.cos(lat0) * np.sin(lat_r) - math.sin(lat0) * np.cos(lat_r) * np.cos(dlon)
+    front_x = view.cx + view.r * x3
+    front_y = view.cy - view.r * y3
+    rho = np.hypot(x3, y3)
+    extra = np.maximum(0.0, 0.08 - cosc)
+    ext_r = view.r * (1.0 + 0.45 * extra)
+    tiny = rho < 1e-4
+    rho_safe = np.where(tiny, 1.0, rho)
+    ext_x = view.cx + np.where(tiny, ext_r, x3 / rho_safe * ext_r)
+    ext_y = view.cy - np.where(tiny, 0.0, y3 / rho_safe * ext_r)
+    u = np.clip(cosc / 0.08, 0.0, 1.0)
+    u = u * u * (3.0 - 2.0 * u)
+    return ext_x + (front_x - ext_x) * u, ext_y + (front_y - ext_y) * u, cosc
+
+
+def _blend_xy(lon, lat, merc_view, ortho_view, s: float):
+    """One screen position. s=0 is Mercator, s=1 is the globe, in between is the morph."""
+    xm, ym = _merc_xy(lon, lat, merc_view)
+    xo, yo, cosc = _ortho_xy(lon, lat, ortho_view)
+    return (1.0 - s) * xm + s * xo, (1.0 - s) * ym + s * yo, cosc
 
 
 def _anchors() -> list[tuple]:
@@ -558,6 +608,7 @@ class Episode:
         self._merc = OPEN
         self._ortho = Cam("ortho", OPEN.lon, OPEN.lat, OPEN.span)
         self._pw = 0.0
+        self._shaders = {}
 
     def _graded(self, cam) -> np.ndarray:
         """Regional and Blue Marble crossfade, with the colours pulled together."""
@@ -571,6 +622,161 @@ class Episode:
         pull = 1.0 - abs(2.0 * mix - 1.0)
         return crossfade(_pull_color(regional, globe, 0.9 * pull), _pull_color(globe, regional, 0.9 * pull), mix)
 
+    def _morph_plate(self, s: float) -> np.ndarray:
+        """One basemap. Both LoD textures are sampled on this same mesh."""
+        merc_view = view_for(self._merc, W, H)
+        ortho_view = view_for(self._ortho, W, H)
+        scale = W / max(self._merc.span, 1.0)
+        pad = 0.12
+        x0, x1 = -pad * W, W * (1.0 + pad)
+        y0, y1 = -pad * H, H * (1.0 + pad)
+        merc0 = float(_merc(self._merc.lat))
+        lon_a = self._merc.lon + (x0 - merc_view.cx) / scale
+        lon_b = self._merc.lon + (x1 - merc_view.cx) / scale
+        lat_top = float(_inv_merc(merc0 - (y0 - merc_view.cy) / scale))
+        lat_bot = float(_inv_merc(merc0 - (y1 - merc_view.cy) / scale))
+        reach = min(100.0, self._ortho.span * 1.05)
+        cos_lat = max(0.22, abs(math.cos(math.radians(self._ortho.lat))))
+        lon_a = min(lon_a, self._ortho.lon - reach / cos_lat)
+        lon_b = max(lon_b, self._ortho.lon + reach / cos_lat)
+        lat_a = min(lat_top, lat_bot, self._ortho.lat - reach)
+        lat_b = max(lat_top, lat_bot, self._ortho.lat + reach)
+        lat_a = max(-85.0, lat_a)
+        lat_b = min(85.0, lat_b)
+        my0, my1 = float(_merc(lat_a)), float(_merc(lat_b))
+        nx = int(np.clip(abs(lon_b - lon_a) * scale / 8.0, 28, 220))
+        ny = int(np.clip(abs(my1 - my0) * scale / 8.0, 28, 340))
+        while nx * ny > 56000:
+            nx = max(28, int(nx * 0.92))
+            ny = max(28, int(ny * 0.92))
+        lons = np.linspace(lon_a, lon_b, nx)
+        lats = _inv_merc(np.linspace(my0, my1, ny))
+        lon = np.broadcast_to(lons[None, :], (ny, nx))
+        lat = np.broadcast_to(lats[:, None], (ny, nx))
+        sx, sy, _cosc = _blend_xy(lon, lat, merc_view, ortho_view, s)
+        mix = _globe_mix(self._merc.span)
+        plate = self._lod_plate(mix)
+        # Near the globe, any gap in the mesh shows the ortho plate itself.
+        # Stars there read as a hole cut into the map.
+        under = self._graded(self._ortho) if s > 0.80 else None
+        rgb = self._raster_mesh(sx, sy, lon, lat, plate, background=under)
+        # The close globe sees around the pole, so a plain lon/lat box misses the
+        # frame corners. A screen grid of the disk, run through the same blend,
+        # fills those corners with the same geometry.
+        rgb = self._raster_ortho_screen(s, plate, rgb)
+        if s > 0.82:
+            rgb = np.clip(rgb.astype(np.float32) * self._limb_shade(s)[..., None], 0, 255).astype(np.uint8)
+        return rgb
+
+    def _lod_plate(self, mix: float) -> np.ndarray:
+        """Regional and Blue Marble, already the same size, so the blend is one framing."""
+        reg = self.plates["regional"]
+        glo = self._shaders.get("globe_aligned")
+        if glo is None:
+            src = self.plates["globe"]
+            if src.shape[:2] != reg.shape[:2]:
+                from PIL import Image
+                src = np.asarray(Image.fromarray(src).resize((reg.shape[1], reg.shape[0]), Image.Resampling.BOX))
+            self._shaders["globe_aligned"] = src
+            glo = src
+        if mix <= 0.001:
+            return reg
+        if mix >= 0.999:
+            return glo
+        pull = 1.0 - abs(2.0 * mix - 1.0)
+        return crossfade(_pull_color(reg, glo, 0.9 * pull), _pull_color(glo, reg, 0.9 * pull), mix)
+
+    def _raster_ortho_screen(self, s: float, plate: np.ndarray, background: np.ndarray) -> np.ndarray:
+        step = 10
+        # Margin past the frame. Once the blend starts, those samples slide
+        # inward and keep the picture full-bleed. At s=1 they sit off screen.
+        pad = 360.0
+        xs = np.arange(-pad, W + pad + step, step, dtype=np.float64)
+        ys = np.arange(-pad, H + pad + step, step, dtype=np.float64)
+        xx, yy = np.meshgrid(xs, ys)
+        view = view_for(self._ortho, W, H)
+        xn = (xx - view.cx) / max(view.r, 1.0)
+        yn = -(yy - view.cy) / max(view.r, 1.0)
+        rho2 = xn * xn + yn * yn
+        inside = rho2 <= 0.997
+        z = np.sqrt(np.clip(1.0 - rho2, 0.0, 1.0))
+        lat0 = math.radians(self._ortho.lat)
+        lon0 = math.radians(self._ortho.lon)
+        sin_lat = np.clip(z * math.sin(lat0) + yn * math.cos(lat0), -1.0, 1.0)
+        lat = np.degrees(np.arcsin(sin_lat))
+        lon = np.degrees(lon0 + np.arctan2(xn, z * math.cos(lat0) - yn * math.sin(lat0)))
+        merc_view = view_for(self._merc, W, H)
+        sx, sy, _cosc = _blend_xy(lon, lat, merc_view, view, s)
+        return self._raster_mesh(sx, sy, lon, lat, plate, background=background, valid=inside)
+
+    def _raster_mesh(self, sx, sy, lon, lat, plate: np.ndarray, background: np.ndarray | None = None,
+                     valid: np.ndarray | None = None, max_reach: float = 220.0) -> np.ndarray:
+        """One mesh. The texture is sampled in geographic coordinates, then drawn once."""
+        ny, nx = sx.shape
+        if background is None:
+            bg = np.clip(_stars(H, W), 0, 255).astype(np.uint8)
+        else:
+            bg = background
+        rgba = np.dstack([bg, np.full((H, W), 255, np.uint8)])
+        surface = skia.Surface(W, H)
+        canvas = surface.getCanvas()
+        canvas.drawImage(skia.Image.fromarray(np.ascontiguousarray(rgba)), 0, 0)
+        flat_x = np.ascontiguousarray(sx).reshape(-1)
+        flat_y = np.ascontiguousarray(sy).reshape(-1)
+        positions = [skia.Point(float(flat_x[i]), float(flat_y[i])) for i in range(flat_x.size)]
+        th, tw = plate.shape[:2]
+        col = np.mod(lon + 180.0, 360.0) / 360.0 * (tw - 1)
+        row = (90.0 - np.clip(lat, -90.0, 90.0)) / 180.0 * (th - 1)
+        flat_c = np.ascontiguousarray(col).reshape(-1)
+        flat_r = np.ascontiguousarray(row).reshape(-1)
+        texs = [skia.Point(float(flat_c[i]), float(flat_r[i])) for i in range(flat_c.size)]
+        r = np.arange(ny - 1, dtype=np.int32)[:, None]
+        c = np.arange(nx - 1, dtype=np.int32)[None, :]
+        reach = np.maximum.reduce([
+            np.abs(sx[:-1, :-1] - sx[:-1, 1:]), np.abs(sy[:-1, :-1] - sy[:-1, 1:]),
+            np.abs(sx[:-1, :-1] - sx[1:, :-1]), np.abs(sy[:-1, :-1] - sy[1:, :-1]),
+            np.abs(sx[:-1, 1:] - sx[1:, 1:]), np.abs(sy[:-1, 1:] - sy[1:, 1:]),
+            np.abs(sx[1:, :-1] - sx[1:, 1:]), np.abs(sy[1:, :-1] - sy[1:, 1:]),
+        ])
+        keep = reach < max_reach
+        if valid is not None:
+            keep &= valid[:-1, :-1] & valid[:-1, 1:] & valid[1:, :-1] & valid[1:, 1:]
+        a = (r * nx + c)[keep]
+        b = a + 1
+        d = a + nx
+        e = d + 1
+        indices = np.empty(a.size * 6, np.int32)
+        indices[0::6] = a
+        indices[1::6] = b
+        indices[2::6] = e
+        indices[3::6] = a
+        indices[4::6] = e
+        indices[5::6] = d
+        plate_rgba = np.dstack([plate, np.full(plate.shape[:2], 255, np.uint8)])
+        image = skia.Image.fromarray(np.ascontiguousarray(plate_rgba))
+        shader = image.makeShader(
+            skia.TileMode.kClamp, skia.TileMode.kClamp,
+            skia.SamplingOptions(skia.FilterMode.kLinear),
+        )
+        verts = skia.Vertices.MakeCopy(
+            skia.Vertices.kTriangles_VertexMode, positions, texs, None, indices.tolist(),
+        )
+        paint = skia.Paint(AntiAlias=True)
+        paint.setShader(shader)
+        canvas.drawVertices(verts, paint, skia.BlendMode.kModulate)
+        out = surface.makeImageSnapshot().toarray()
+        return np.ascontiguousarray(out[:, :, [2, 1, 0]])
+
+    def _limb_shade(self, s: float) -> np.ndarray:
+        view = view_for(self._ortho, W, H)
+        ys = np.arange(H, dtype=np.float32)[:, None]
+        xs = np.arange(W, dtype=np.float32)[None, :]
+        rho2 = ((xs - view.cx) / view.r) ** 2 + ((ys - view.cy) / view.r) ** 2
+        rim = np.clip((rho2 - 0.90) / 0.10, 0.0, 1.0)
+        amount = _smooth(min(1.0, (s - 0.82) / 0.18))
+        inside = rho2 <= 1.0
+        return 1.0 - 0.22 * amount * rim * inside
+
     def render(self, t: float) -> np.ndarray:
         merc, ortho, w = camera_blend(t)
         self._merc, self._ortho, self._pw = merc, ortho, w
@@ -580,9 +786,7 @@ class Episode:
         elif w >= 0.996:
             plate = self._graded(ortho)
         else:
-            flat = _curl(self._graded(merc), w)
-            globe = self._graded(ortho)
-            plate = crossfade(flat, globe, _smooth(w))
+            plate = self._morph_plate(_smooth(w))
         rgba = np.dstack([plate, np.full((H, W), 255, np.uint8)])
         surface = skia.Surface(W, H)
         canvas = surface.getCanvas()
@@ -712,20 +916,63 @@ class Episode:
                 path.close()
         return path
 
+    def _blend_path(self, rings, s: float) -> skia.Path:
+        """One coastline. Vertices slide from the flat map to the globe. Nothing is drawn twice."""
+        merc_view = view_for(self._merc, W, H)
+        ortho_view = view_for(self._ortho, W, H)
+        path = skia.Path()
+        path.setFillType(skia.PathFillType.kEvenOdd)
+        for ring in rings:
+            arr = np.asarray(ring, np.float64)
+            if len(arr) < 3:
+                continue
+            x, y, _cosc = _blend_xy(arr[:, 0], arr[:, 1], merc_view, ortho_view, s)
+            if (float(x.max()) < -80.0 or float(x.min()) > W + 80.0
+                    or float(y.max()) < -80.0 or float(y.min()) > H + 80.0):
+                continue
+            path.moveTo(float(x[0]), float(y[0]))
+            for i in range(1, len(x)):
+                path.lineTo(float(x[i]), float(y[i]))
+            path.close()
+        return path
+
+    def _blend_box(self, rings, s: float):
+        merc_view = view_for(self._merc, W, H)
+        ortho_view = view_for(self._ortho, W, H)
+        xs, ys = [], []
+        for ring in rings:
+            arr = np.asarray(ring, np.float64)
+            if len(arr) < 3:
+                continue
+            step = max(1, len(arr) // 70)
+            x, y, _cosc = _blend_xy(arr[::step, 0], arr[::step, 1], merc_view, ortho_view, s)
+            xs.append(x)
+            ys.append(y)
+        if not xs:
+            return None
+        x = np.concatenate(xs)
+        y = np.concatenate(ys)
+        keep = (x > -220.0) & (x < W + 220.0) & (y > -220.0) & (y < H + 220.0)
+        if not np.any(keep):
+            return None
+        x, y = x[keep], y[keep]
+        return float(x.min()), float(y.min()), float(x.max()), float(y.max())
+
     def _draw_fill(self, canvas, rings, rgb, alpha: int, neon, core: float) -> None:
         if alpha <= 0 and core <= 0:
             return
         w = getattr(self, "_pw", 0.0)
+        if 0.004 < w < 0.996:
+            path = self._blend_path(rings, _smooth(w))
+            self._fill(canvas, path, rgb, alpha)
+            if core > 0:
+                _neon(canvas, path, neon, core)
+            return
         if w <= 0.004:
             layers = ((self._merc, 1.0, False),)
-        elif w >= 0.996:
-            layers = ((self._ortho, 1.0, True),)
         else:
-            s = _smooth(w)
-            layers = ((self._merc, 1.0 - s, False), (self._ortho, s, True))
+            layers = ((self._ortho, 1.0, True),)
         for cam, weight, full_only in layers:
-            if weight <= 0.02:
-                continue
             path = self._path_on(rings, cam, full_only)
             self._fill(canvas, path, rgb, int(alpha * weight))
             if core > 0 and weight > 0.08:
@@ -745,6 +992,8 @@ class Episode:
     def _box(self, cam, rings):
         if not rings:
             return None
+        if 0.004 < getattr(self, "_pw", 0.0) < 0.996:
+            return self._blend_box(rings, _smooth(self._pw))
         view = view_for(cam, W, H)
         xs, ys = [], []
         for ring in rings:
@@ -790,9 +1039,16 @@ class Episode:
         return float(x.min()), float(y.min()), float(x.max()), float(y.max())
 
     def _world(self, canvas, cam, t: float) -> None:
-        if self._pw > 0.04:
+        # The rim belongs to the globe silhouette. It fades before the flat map
+        # has left that disk, so it never reads as a second outline.
+        if self._pw >= 0.996:
             view = view_for(self._ortho, W, H)
-            draw_atmosphere(canvas, view.cx, view.cy, view.r, 0.85 * self._pw)
+            draw_atmosphere(canvas, view.cx, view.cy, view.r, 0.85)
+        elif self._pw > 0.004:
+            rim = _smooth(min(1.0, max(0.0, (_smooth(self._pw) - 0.72) / 0.28)))
+            if rim > 0.04:
+                view = view_for(self._ortho, W, H)
+                draw_atmosphere(canvas, view.cx, view.cy, view.r, 0.85 * rim)
 
         breath = 1.0 + 0.07 * math.sin(t * 1.35)
         base_tint = 96.0 if t < CLOCK.algeria - 0.2 or t >= CLOCK.outro else 78.0
