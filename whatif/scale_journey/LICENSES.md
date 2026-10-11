@@ -1,6 +1,6 @@
 # Licences
 
-Scale-journey ships only CC0, public-domain, or OFL material, plus original procedural meshes. Nothing here is taken from the @what_if_animator reels.
+Scale-journey ships CC0, public-domain, or OFL material. Hand-built meshes are a last resort. The standing asset rule in `README.md` is the order: the asset hub, then a no-attribution free download logged here, then original geometry. Nothing here is taken from the @what_if_animator reels. Never add CC-BY, NC, ND, or game/brand IP.
 
 ## Code and meshes
 
@@ -36,7 +36,11 @@ All Python, and every mesh built in `engine/build.py` (rice grain, pile, person,
 
 The Empire State Building mesh (Sketchfab Free Standard, PeeJaa, model `47187dafbafa47948f9af4e140e72582`) and the Statue of Liberty mesh (Sketchfab Free Standard, vikramart2001, model `6cb75e326e784acb8e40d192281a93fe`) are commercial-use and not redistributed. `engine/build_b.py` reads them from `cache/private/`, which is gitignored. Do not commit the glb files.
 
-City blocks, roads, taxis, the hot dog, pedestrians, and the rooftop dance clip come from the CC0 library fetched by `tools/fetch_library.py`. The zips stay in `cache/library/`.
+City blocks, roads, taxis, and pedestrians start from the asset hub. CC0 packs fetched by `tools/fetch_library.py` stay in `cache/library/`. Sketchfab Free Standard files (Procedural City blocks, One WTC, the commute pack, the Empire State scan, the Statue of Liberty) stay in gitignored `cache/private/`. Do not commit them.
+
+The hub’s airport city scene contains a Malaysia Airlines livery. Do not render that livery. If the scene is used, repaint the airline aircraft plain white. The ruined-city pack is optional and is not part of the penny episode.
+
+When a CC0 file is downloaded because the hub did not have it, add a row to the tables above with the licence and the source URL, and add `assets/library/cc0_manifest.json` if the fetch should be repeatable.
 
 ## Blender
 

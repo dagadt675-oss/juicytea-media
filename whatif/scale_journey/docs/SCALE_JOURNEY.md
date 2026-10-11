@@ -1,5 +1,15 @@
 # Scale-journey
 
+## Standing asset rule
+
+Permanent, for every episode. Ready-made models cover animations, people, buildings, whole scenes and city blocks, vehicles, props, nature, and effects. A complete pre-built scene (Procedural City blocks, a ruined city, an airport) comes before anything assembled from primitives.
+
+1. **Asset hub first.** Re-fetch `ASSET_HUB.json` (Drive id `1KamSsZFG8L8ZJviGNzjLQM-jNg8g9idV`; readable copy `ASSET_HUB.md`, id `1ICoBrOKT-tJa_PqtI--LoJ59TiGsOk2T`) before building. Private Sketchfab Free Standard and BlendKit files stay in gitignored `cache/private/` and are never committed.
+2. **Then the web, only if the hub lacks it.** Commercial use, no attribution: CC0 or public domain from Poly Haven, ambientCG, Kenney, Quaternius, Poly Pizza (CC0), OpenGameArt (CC0), or Sketchfab’s CC0 filter via the API. Download it and log the license and source in `LICENSES.md`. Add `assets/library/cc0_manifest.json` when the file should be fetched again.
+3. **Build geometry only if neither source has a fit.** Name the hub entries and the web sources you checked, and why each one failed.
+
+Never use CC-BY, NC, or ND, and never use game or brand IP. People come from the hub’s rigged animation packs. The hub’s airport scene has a Malaysia Airlines livery; leave that livery unused, and if the scene is placed, repaint those aircraft plain white. Ruined city and the airport are optional, not the default street.
+
 A Short is one question, one zoom, and a counter that is the same math as the zoom.
 
 ```

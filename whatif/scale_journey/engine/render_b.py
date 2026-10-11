@@ -154,7 +154,7 @@ def _scene_key(ep, args) -> str:
     assets.append(ROOT / "assets" / "hdri" / "sunset_jhbcentral_1k.hdr")
     assets.append(ROOT / "assets" / "characters" / "characterMedium.fbx")
     return scene_hash(
-        [ROOT / "engine" / "build_b.py", ROOT / "engine" / "gen_textures.py"],
+        [ROOT / "engine" / "build_b.py", ROOT / "engine" / "manhattan.py", ROOT / "engine" / "gen_textures.py"],
         assets,
         {
             "samples": max(16, int(args.samples)),

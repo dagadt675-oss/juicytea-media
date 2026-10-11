@@ -164,12 +164,12 @@ def _sun():
     light = bpy.data.lights.new("Sun", "SUN")
     light.energy = 5.0
     light.color = (1.0, 0.78, 0.55)
-    light.angle = 0.008
+    light.angle = 0.045
     obj = _link(bpy.data.objects.new("Sun", light))
     direction = mathutils.Vector((0.45, -0.25, 0.86))
     obj.rotation_euler = direction.to_track_quat("Z", "Y").to_euler()
     fill = bpy.data.lights.new("Fill", "SUN")
-    fill.energy = 1.4
+    fill.energy = 2.2
     fill.color = (0.75, 0.82, 1.0)
     fill.use_shadow = False
     fill.angle = 0.4
@@ -234,13 +234,23 @@ def _ground(empty, objs):
 
 
 def _clip_low(meshes, zcut):
+    """Drop scan holes, giant spanning triangles, and faces outside the shaft."""
     import bmesh
 
     for obj in meshes:
         bm = bmesh.new()
         bm.from_mesh(obj.data)
         mw = obj.matrix_world
-        dead = [face for face in bm.faces if (mw @ face.calc_center_median()).z < zcut]
+        dead = []
+        for face in bm.faces:
+            center = mw @ face.calc_center_median()
+            verts = [mw @ vert.co for vert in face.verts]
+            edge = 0.0
+            for a, b in zip(verts, verts[1:] + verts[:1]):
+                edge = max(edge, (a - b).length)
+            outside = center.z < 180.0 and (center.x < -80.0 or center.x > 60.0 or center.y < -42.0 or center.y > 40.0)
+            if edge > 16.0 or center.z < zcut or outside:
+                dead.append(face)
         if dead:
             bmesh.ops.delete(bm, geom=dead, context="FACES")
             bm.to_mesh(obj.data)
@@ -287,13 +297,15 @@ def _sharpen_textures():
 
 
 def _podium():
+    # The Free Standard scan is open below ~46 m. No hub asset is a cap for
+    # this mesh (the city blocks are whole streets and would bury the tower).
     stone = _mat("Podium", (0.73, 0.67, 0.58), 0.72, 0.04)
     glass = _mat("Storefront", (0.12, 0.14, 0.16), 0.15, 0.35)
-    _assign(_box("Podium", 150, 90, 48.0, (10.0, 8.0, 24.0)), stone)
-    for index, x in enumerate(range(-55, 78, 9)):
-        _assign(_box(f"ShopS{index}", 6.2, 0.35, 3.4, (x, 33.2, 2.4)), glass)
-    for index, y in enumerate(range(-28, 32, 9)):
-        _assign(_box(f"ShopE{index}", 0.35, 6.2, 3.4, (81.2, y, 2.4)), glass)
+    _assign(_box("Podium", 130, 72, 46.0, (-11.0, 0.0, 23.0)), stone)
+    for index, x in enumerate(range(-60, 50, 9)):
+        _assign(_box(f"ShopN{index}", 6.2, 0.35, 3.4, (x, 36.2, 2.2)), glass)
+    for index, y in enumerate(range(-28, 30, 9)):
+        _assign(_box(f"ShopE{index}", 0.35, 6.2, 3.4, (54.2, y, 2.2)), glass)
 
 
 def _empire():
@@ -312,7 +324,7 @@ def _empire():
     bpy.context.view_layer.update()
     mn2, mx2 = _bounds(meshes)
     print(f"ESB tip {mx2.z:.1f} m base {mn2.z:.1f} m footprint {mx2.x - mn2.x:.0f} x {mx2.y - mn2.y:.0f}", flush=True)
-    _clip_low(meshes, 48.0)
+    _clip_low(meshes, 44.0)
     _sharpen_textures()
     _podium()
     return empty
@@ -663,7 +675,7 @@ def _camera():
     data.sensor_height = 24.0
     data.sensor_fit = "VERTICAL"
     data.clip_start = 0.04
-    data.clip_end = 6000.0
+    data.clip_end = 8000.0
     cam = _link(bpy.data.objects.new("Cam", data))
     bpy.context.scene.camera = cam
     return cam
@@ -702,16 +714,38 @@ def _head(arm, t):
         pose.rotation_euler = (down * scale, 0.0, 0.0)
 
 
+def _clear_camera(cam, protect):
+    """Raycast the real meshes and step the camera out of any solid."""
+    scene = bpy.context.scene
+    deps = bpy.context.evaluated_depsgraph_get()
+    origin = cam.location.copy()
+    dirs = []
+    for x in (-1.0, 0.0, 1.0):
+        for y in (-1.0, 0.0, 1.0):
+            for z in (-1.0, 0.0, 1.0):
+                if x == y == z == 0.0:
+                    continue
+                dirs.append(mathutils.Vector((x, y, z)).normalized())
+    for _ in range(6):
+        pushed = False
+        for direction in dirs:
+            hit, _loc, normal, _idx, obj, _mat = scene.ray_cast(deps, origin, direction, distance=24.0)
+            if not hit or obj in protect:
+                continue
+            if direction.dot(normal) > 0.2:
+                origin = origin + normal.normalized() * 1.1
+                pushed = True
+                break
+        if not pushed:
+            break
+    if (origin - cam.location).length > 0.05:
+        print(f"CAM CLEAR {tuple(round(v, 2) for v in cam.location)} -> {tuple(round(v, 2) for v in origin)}", flush=True)
+    cam.location = origin
+
+
 def _air_gap(t):
-    """Keep the coin in open air beside the facade during the chase."""
-    if t < 3.4 or t > 33.0:
-        return 0.0, 0.0
-    u = 1.0
-    if t < 5.0:
-        u = (t - 3.4) / 1.6
-    elif t > 31.2:
-        u = max(0.0, (33.0 - t) / 1.8)
-    return 1.6 * u, 1.2 * u
+    """The shaft test in bformat owns clearance. This offset stays zero."""
+    return 0.0, 0.0
 
 
 def _blur(scene, cam, penny, fr, frame):
@@ -740,9 +774,9 @@ def main():
         scene.cycles.denoiser = "OPENIMAGEDENOISE"
     except Exception:
         pass
-    scene.cycles.max_bounces = 0
-    scene.cycles.diffuse_bounces = 0
-    scene.cycles.glossy_bounces = 0
+    scene.cycles.max_bounces = 2
+    scene.cycles.diffuse_bounces = 1
+    scene.cycles.glossy_bounces = 1
     scene.cycles.transmission_bounces = 0
     scene.cycles.transparent_max_bounces = 0
     scene.cycles.sample_clamp_indirect = 0.0
@@ -762,12 +796,11 @@ def main():
     _sun()
     hdr = str(HDRI if HDRI.exists() else job["hdri"])
     _world(hdr)
+    from engine.manhattan import dress_city, tick_city
+
     _empire()
     _liberty()
-    _manhattan()
-    _hotdog()
-    _dancer()
-    arm = _people()
+    arm = dress_city()
     penny = _penny()
     cam = _camera()
     out = Path(job["out"])
@@ -798,7 +831,10 @@ def main():
         _look(cam, target)
         penny.rotation_euler = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
         _head(arm, float(fr["t"]))
+        tick_city(t)
         bpy.context.view_layer.update()
+        _clear_camera(cam, {penny, bpy.data.objects.get("Rim") or penny})
+        _look(cam, target)
         png_path = out / f"f_{fr['frame']:04d}.png"
         scene.render.image_settings.file_format = "PNG"
         scene.render.filepath = str(png_path)

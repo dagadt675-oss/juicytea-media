@@ -168,20 +168,53 @@ def _held(rows, t):
 
 
 # Southeast corner the coin must clear, measured on the Free Standard
-# Empire State mesh after the tip is scaled to 443.2 m. The crown ledge
-# is the hook. Lower values step out so the fall stays in open air.
-# Local southeast corner of the tower shaft (scan junk farther out is ignored).
-# The coin stays a few metres outside this corner, so the windows stay in frame.
+# Empire State mesh after the tip is scaled to 443.2 m and the scan junk
+# is cut away. The crown ledge is the hook. The coin stays a few metres
+# outside this corner, in open air, so the windows stay in frame.
 _ESB_CORNERS = (
-    (443.0, 18.0, 16.0),
-    (381.0, 18.0, 16.0),
-    (300.0, 42.0, 40.0),
-    (200.0, 50.0, 48.0),
-    (120.0, 70.0, 62.0),
-    (60.0, 105.0, 95.0),
-    (20.0, 120.0, 108.0),
-    (0.0, 124.0, 102.0),
+    (443.0, 3.2, 4.0),
+    (400.0, 5.4, 6.4),
+    (381.0, 7.0, 8.0),
+    (350.0, 13.0, 14.0),
+    (320.0, 28.0, 28.0),
+    (250.0, 36.0, 32.0),
+    (180.0, 40.0, 34.0),
+    (110.0, 48.0, 36.0),
+    (60.0, 56.0, 38.0),
+    (0.0, 58.0, 40.0),
 )
+
+# Solid shaft the camera is not allowed to enter. Slightly inside the
+# coin path above, so a point that is already outside is left alone.
+_SHAFT_BANDS = (
+    (450.0, 395.0, -3.0, 3.5, -2.0, 5.5),
+    (395.0, 360.0, -8.0, 6.5, -7.0, 7.5),
+    (360.0, 330.0, -16.0, 14.0, -14.0, 15.0),
+    (330.0, 280.0, -34.0, 34.0, -32.0, 33.0),
+    (280.0, 160.0, -40.0, 40.0, -36.0, 35.0),
+    (160.0, 90.0, -48.0, 50.0, -38.0, 37.0),
+    (90.0, 0.0, -76.0, 54.0, -36.0, 36.0),
+)
+
+
+def _shaft_box(z: float) -> tuple[float, float, float, float]:
+    for zhi, zlo, xmin, xmax, ymin, ymax in _SHAFT_BANDS:
+        if zlo - 0.01 <= z <= zhi + 0.01:
+            return xmin, xmax, ymin, ymax
+    return _SHAFT_BANDS[-1][2:]
+
+
+def clear_of_shaft(point, margin: float = 1.2) -> tuple[float, float, float]:
+    """Push a point that sits inside the tower solid out to the SE corner.
+
+    Points already in open air are returned unchanged. The render also
+    raycasts against the real meshes; this is the path-level check.
+    """
+    x, y, z = (float(point[0]), float(point[1]), float(point[2]))
+    xmin, xmax, ymin, ymax = _shaft_box(z)
+    if not (xmin < x < xmax and ymin < y < ymax):
+        return (x, y, z)
+    return (xmax + margin, ymax + margin, z)
 
 
 def _penny_xy(z: float) -> tuple[float, float]:
@@ -305,14 +338,14 @@ def _penny(raw: dict) -> BEpisode:
             penny = (xy[0], xy[1], z_vis + 0.08)
         hook_cam = (ledge_penny[0] + 6.5, ledge_penny[1] + 8.0, ledge_penny[2] + 8.0)
         hook_tgt = (ledge_penny[0] - 22.0, ledge_penny[1] - 18.0, ledge_penny[2] - 55.0)
-        # Close chase. The coin stays large, the facade is the scale reference.
-        # East of the coin, looking back at the facade and down the south street.
-        chase_cam = (penny[0] + 2.4, penny[1] + 0.3, penny[2] + 1.4)
-        chase_tgt = (penny[0] - 1.2, penny[1] + 2.2, penny[2] - 5.0)
-        tight_cam = (penny[0] + 1.6, penny[1] + 0.15, penny[2] + 1.05)
-        tight_tgt = (penny[0] - 0.6, penny[1] + 2.6, penny[2] - 4.2)
-        hit_cam = (penny[0] + 1.5, penny[1] + 2.0, max(1.6, penny[2] + 1.2))
-        hit_tgt = (penny[0] + 0.35, penny[1] + 0.7, max(0.7, penny[2] + 0.7))
+        # Close chase. The coin stays large. The lens looks back at the
+        # facade and down the street so the roadway rushes up under it.
+        chase_cam = (penny[0] + 0.95, penny[1] + 0.22, penny[2] + 0.62)
+        chase_tgt = (penny[0] - 3.4, penny[1] + 6.0, penny[2] - 12.0)
+        tight_cam = (penny[0] + 0.78, penny[1] + 0.16, penny[2] + 0.55)
+        tight_tgt = (penny[0] - 2.2, penny[1] + 7.5, penny[2] - 16.0)
+        hit_cam = (penny[0] + 2.2, penny[1] + 1.6, max(1.55, penny[2] + 1.15))
+        hit_tgt = (penny[0] - 0.35, penny[1] + 0.15, max(0.85, penny[2] + 0.35))
         if t < 3.0 or t >= 36.2:
             cam, target, lens = hook_cam, hook_tgt, 16.0
         elif t < 4.4:
@@ -334,6 +367,8 @@ def _penny(raw: dict) -> BEpisode:
             lens = 32.0 + (28.0 - 32.0) * u
         else:
             cam, target, lens = hit_cam, hit_tgt, 28.0
+        cam = clear_of_shaft(cam, 1.2)
+        penny = clear_of_shaft(penny, 0.8)
         if 33.2 <= t < 35.4:
             spin = (t - 33.2) * 16.0
             tilt = 0.35

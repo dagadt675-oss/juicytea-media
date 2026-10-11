@@ -79,6 +79,20 @@ class PennyTest(unittest.TestCase):
         self.assertGreaterEqual(self._at(2.0).t, 0.0)
         self.assertEqual(self._at(2.0).primary, "1,250")
 
+    def test_camera_stays_outside_the_shaft(self):
+        from engine.bformat import clear_of_shaft
+
+        pushed = clear_of_shaft((0.0, 0.0, 30.0), 1.0)
+        self.assertGreater(pushed[0], 50.0)
+        self.assertGreater(pushed[1], 30.0)
+        for fr in self.ep.frames:
+            again = clear_of_shaft(fr.cam, 0.8)
+            self.assertAlmostEqual(again[0], fr.cam[0], delta=0.05)
+            self.assertAlmostEqual(again[1], fr.cam[1], delta=0.05)
+            coin = clear_of_shaft(fr.penny, 0.4)
+            self.assertAlmostEqual(coin[0], fr.penny[0], delta=0.05)
+            self.assertAlmostEqual(coin[1], fr.penny[1], delta=0.05)
+
     def test_hook_looks_out_over_the_city(self):
         hook = self._at(1.2)
         chase = self._at(14.0)
