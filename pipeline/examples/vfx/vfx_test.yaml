@@ -9,6 +9,7 @@ camera:
   - {t: 1.6, proj: ortho, lon: 10, lat: 58, span: 62, ease: out, exp: true}
   - {t: 3.2, proj: ortho, lon: 22, lat: 66, span: 40, ease: cubic, exp: true}
   - {t: 4.8, proj: merc, lon: 16, lat: 60, span: 24, ease: out, exp: true}
+  - {t: 5.05, proj: merc, lon: 8, lat: 55, span: 14, ease: out, exp: true}
   - {t: 6.4, proj: merc, lon: 26, lat: 64, span: 16, ease: cubic, exp: true}
   - {t: 8.0, proj: merc, lon: 12, lat: 58, span: 12, ease: out, exp: true}
   - {t: 9.6, proj: merc, lon: 24, lat: 66, span: 20, ease: cubic, exp: true}
