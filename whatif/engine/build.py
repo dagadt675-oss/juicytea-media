@@ -21,7 +21,7 @@ from engine.meshkit import set_linear_keys, smoother  # noqa: E402
 from engine.pov import apply_pov, attach_pov  # noqa: E402
 from engine.scenes import build_scene  # noqa: E402
 from engine.segments import MOTION_BLUR_SHUTTER, frame_seed  # noqa: E402
-from engine.spec import CHANNELS, DEFAULTS, channels_at  # noqa: E402
+from engine.spec import CHANNELS, DEFAULTS, beat_at, channels_at  # noqa: E402
 
 KIT = None
 RESOLVED = None
@@ -264,7 +264,7 @@ def _shot_camera(path, u):
 
 
 def _apply_shot_camera(scene, resolved):
-    """Drone beats carry their own camera. Every other frame stays locked."""
+    """Drone beats carry their own camera. Every other frame returns to the locked wide camera."""
     frame = float(scene.frame_current)
     cam = scene.camera
     if cam is None:
@@ -289,6 +289,13 @@ def _apply_shot_camera(scene, resolved):
             cam.data.dof.aperture_fstop = fstop
             cam.data.dof.focus_distance = (Vector(pose["target"]) - Vector(pose["location"])).length
         return
+    spec = resolved.get("camera") or {}
+    if spec.get("location") and spec.get("target"):
+        cam.data.type = "PERSP"
+        cam.location = spec["location"]
+        _look_at(cam, spec["target"])
+        cam.data.lens = float(spec.get("lens", 57.2))
+        cam.data.dof.use_dof = False
 
 
 def _on_frame(scene, *args):
@@ -297,6 +304,7 @@ def _on_frame(scene, *args):
     # Subframe time keeps motion blur on the same curve a full render samples.
     frame = _frame_float(scene)
     ch = channels_at(RESOLVED, frame)
+    KIT.beat_id = beat_at(RESOLVED, int(frame))["id"]
     apply(KIT, ch, frame, RESOLVED["fps"])
     apply_pov(scene, KIT, RESOLVED, frame)
     _apply_shot_camera(scene, RESOLVED)

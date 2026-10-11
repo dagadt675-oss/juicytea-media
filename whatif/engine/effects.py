@@ -356,7 +356,8 @@ def _life(kit, ch, frame, fps, snow):
             flat = 1.0 - (0.22 if hero else 0.62) * smoother(0.28, 0.92, rust)
             bury = 0.7 * smoother(0.5, 1.0, max(rust, veg if veg > 0.85 else 0.0))
             if hero:
-                bury = 0.06 * rust
+                # Lift the body just enough that the flattened tires stay in view.
+                bury = -0.08 * rust
                 if rust > 0.55 and not obj.get("nose_crumpled"):
                     _crumple_nose(obj)
                     obj["nose_crumpled"] = True
@@ -380,9 +381,8 @@ def _life(kit, ch, frame, fps, snow):
                     if "wheel0" not in child:
                         child["wheel0"] = [child.scale.x, child.scale.y, child.scale.z]
                     base = child["wheel0"]
-                    child.scale = (base[0], base[1], base[2] * 0.22)
-                    if "rf" in low or "rr" in low:
-                        child.hide_render = rust > 0.7
+                    # Keep the tire visible as a flat ring. Do not hide the wheel mesh.
+                    child.scale = (base[0], base[1], base[2] * 0.28)
             paint = Vector(item.extra.get("paint", (1.0, 1.0, 1.0))[:3])
             if hero:
                 # Almost all the way to the rust texture. A trace of the yellow stays.
@@ -426,10 +426,13 @@ def _life(kit, ch, frame, fps, snow):
         elif role == "blanket":
             obj.hide_render = ch["vegetation"] < 0.7
         elif role == "frontage":
-            # The same building stays. A few lean as the top gives way.
+            # The same building stays. Several tops lean as the roof gives way.
+            index = int(item.extra.get("index", 0))
             lean = 0.0
-            if int(item.extra.get("index", 0)) % 17 == 0:
-                lean = smoother(0.55, 0.95, ch["collapse"]) * 0.22
+            if index % 5 == 0:
+                lean = smoother(0.5, 0.92, ch["collapse"]) * 0.42
+            elif index % 17 == 0:
+                lean = smoother(0.55, 0.95, ch["collapse"]) * 0.28
             obj.rotation_euler = _euler(item.base_rot, dx=lean)
             obj.hide_render = False
         elif role == "rubble":
@@ -459,6 +462,13 @@ def _life(kit, ch, frame, fps, snow):
                 child.hide_render = obj.hide_render
         elif role == "groundwear":
             obj.hide_render = ch["vegetation"] < 0.2
+        elif role == "late_meadow":
+            obj.hide_render = ch["vegetation"] < 0.84
+        elif role == "segment_prop":
+            show = getattr(kit, "beat_id", "") == item.extra.get("only")
+            obj.hide_render = not show
+            for child in obj.children_recursive:
+                child.hide_render = not show
         elif role == "wear":
             s = smoother(0.06, 0.28, ch["vegetation"])
             obj.hide_render = s < 0.04
@@ -507,7 +517,8 @@ def _bridge(kit, ch):
             loc.z = item.base_loc.z * (1.0 - u) + 0.15 * u
             item.obj.hide_render = False
             for child in item.obj.children:
-                child.hide_render = "car" not in child.name and u > 0.45
+                kept = any(token in child.name for token in ("rebar", "rail", "asphalt_layer", "span_debris"))
+                child.hide_render = "car" not in child.name and not kept and u > 0.45
         elif i == 4:
             u = smoother(0.75, 1.0, ch["collapse"])
             loc.z -= u * 0.12
