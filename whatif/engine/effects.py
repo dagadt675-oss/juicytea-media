@@ -356,8 +356,7 @@ def _life(kit, ch, frame, fps, snow):
             flat = 1.0 - (0.22 if hero else 0.62) * smoother(0.28, 0.92, rust)
             bury = 0.7 * smoother(0.5, 1.0, max(rust, veg if veg > 0.85 else 0.0))
             if hero:
-                # Lift the body just enough that the flattened tires stay in view.
-                bury = -0.08 * rust
+                bury = 0.04 * rust
                 if rust > 0.55 and not obj.get("nose_crumpled"):
                     _crumple_nose(obj)
                     obj["nose_crumpled"] = True
@@ -382,7 +381,7 @@ def _life(kit, ch, frame, fps, snow):
                         child["wheel0"] = [child.scale.x, child.scale.y, child.scale.z]
                     base = child["wheel0"]
                     # Keep the tire visible as a flat ring. Do not hide the wheel mesh.
-                    child.scale = (base[0], base[1], base[2] * 0.28)
+                    child.scale = (base[0], base[1], base[2] * 0.42)
             paint = Vector(item.extra.get("paint", (1.0, 1.0, 1.0))[:3])
             if hero:
                 # Almost all the way to the rust texture. A trace of the yellow stays.
@@ -399,6 +398,9 @@ def _life(kit, ch, frame, fps, snow):
             _paint_descendants(obj, (husk.x, husk.y, husk.z, 1.0), drive_nodes=hero)
             askew = 0.35 if veg > 0.15 and not hero else 0.08
             yaw = item.base_rot.z + grime_u * (askew if item.extra.get("index", 0) % 2 == 0 else -askew)
+            if hero:
+                # A quarter turn so the low camera sees the flat tires and rims.
+                yaw -= 0.7 * smoother(0.55, 0.85, rust)
             obj.rotation_euler = _euler(item.base_rot, dz=yaw - item.base_rot.z)
         elif role == "bird":
             gone = max(ch["fauna"], smoother(0.15, 0.45, ch["vanish"]))
@@ -464,6 +466,9 @@ def _life(kit, ch, frame, fps, snow):
             obj.hide_render = ch["vegetation"] < 0.2
         elif role == "late_meadow":
             obj.hide_render = ch["vegetation"] < 0.84
+        elif role == "year_green":
+            # Year 1 stays paved. Year 100 is already grass. Year 500 keeps it.
+            obj.hide_render = ch["vegetation"] < 0.42
         elif role == "segment_prop":
             show = getattr(kit, "beat_id", "") == item.extra.get("only")
             obj.hide_render = not show

@@ -1094,11 +1094,6 @@ def _south_city_blocks(kit, coll, mats, ix, road_z, street_west, street_east, fr
         cursor = x0 + 6.0
         i = 0
         while cursor < x1 - 4.0:
-            # Keep the lot in front of the broken window empty. The drone flies this gap.
-            if abs(cursor + 50.0) < 14.0 and y < -20.0:
-                cursor += 8.6
-                i += 1
-                continue
             # Avenue frontage stays near 11 m so the locked camera still sees the road.
             h = height if abs(y - north_build) > 8.0 else min(height, 11.0)
             h += (i % 3) * 0.8
@@ -1123,7 +1118,7 @@ def _south_city_blocks(kit, coll, mats, ix, road_z, street_west, street_east, fr
         n += row(x0 + 1.0, x1 - 1.0, y0 + 6.0, 22.0, n, math.pi)
     # Same buildings from day 1 through year 500. Rubble is added on a few lots;
     # the towers themselves are not replaced.
-    _gutted_room(kit, coll, mats, -50.0, -30.0, road_z)
+    _street_facade(kit, coll, mats, -32.8, 0.3, road_z)
 
 
 def _ruin_piece(coll, loc, yaw, height):
@@ -1190,59 +1185,52 @@ def _only_beat(kit, obj, beat):
     return kit.add(obj, "segment_prop", only=beat, sink=False)
 
 
-def _gutted_room(kit, coll, mats, x, y, z):
-    """A ruined facade and gutted room. Hidden in the wide shot; the drone beat shows them."""
-    plaster = found_assets.pbr_material("RoomPlaster", "cracked_concrete_wall", uv=0.35, displace=0.05) or mats["concrete"]
-    floor_mat = found_assets.pbr_material("RoomFloor", "concrete_floor_damaged_01", uv=0.35, displace=0.04) or mats["dirt"]
-    litter = found_assets.pbr_material("RoomLitter", "forest_leaves_02", uv=0.5) or mats["dirt"]
-    rebar = found_assets.pbr_material("RoomRebar", "rebar_reinforced_concrete", uv=1.2) or plaster
-    shell = _ruin_piece(coll, (x, y - 8.0, z), 0.0, 11.0)
-    if shell is not None:
-        _only_beat(kit, shell, "drone_facade")
-    # Jagged concrete frame around the opening, with a rebar reveal on one jamb.
-    wall = box_object("room_sill", coll, (x, y - 4.2, z + 0.55), (2.6, 0.28, 1.1), plaster)
-    found_assets.stamp_object(wall, "plaster")
-    head = box_object("room_head", coll, (x, y - 4.2, z + 5.6), (2.6, 0.28, 1.6), plaster)
-    jamb_l = box_object("room_w", coll, (x - 1.55, y - 4.2, z + 3.2), (0.45, 0.32, 6.4), plaster)
-    jamb_r = box_object("room_e", coll, (x + 1.55, y - 4.2, z + 3.2), (0.45, 0.32, 6.4), plaster)
-    for piece in (wall, head, jamb_l, jamb_r):
-        found_assets.stamp_object(piece, "plaster")
-        _only_beat(kit, piece, "drone_facade")
-    stub = box_object("rebar_stub", coll, (x - 1.15, y - 4.05, z + 2.4), (0.08, 0.5, 0.08), rebar)
-    stub.rotation_euler = (0.4, 0.2, 0.8)
-    _only_beat(kit, stub, "drone_facade")
-    for loc, size, rot in (
-        ((x - 0.2, y - 4.5, z + 4.7), (1.4, 0.55, 0.4), (0.35, 0.1, 0.5)),
-        ((x + 1.1, y - 4.45, z + 1.35), (1.1, 0.6, 0.55), (0.6, 0.25, -0.4)),
-        ((x - 1.7, y - 4.3, z + 3.4), (0.45, 0.7, 1.8), (0.2, 0.8, 0.15)),
-    ):
-        jag = box_object("jag", coll, loc, size, rebar)
-        jag.rotation_euler = rot
-        _only_beat(kit, jag, "drone_facade")
-    for name, loc, size in (
-        ("room_back", (x, y + 4.8, z + 3.2), (10.0, 0.35, 6.4)),
-        ("room_side_w", (x - 5.0, y, z + 3.2), (0.3, 9.0, 6.4)),
-        ("room_side_e", (x + 5.0, y, z + 3.2), (0.3, 9.0, 6.4)),
-        ("room_ceiling", (x - 2.2, y + 0.4, z + 6.2), (5.2, 8.0, 0.18)),
-    ):
-        _only_beat(kit, box_object(name, coll, loc, size, plaster), "drone_facade")
-    floor = box_object("room_floor", coll, (x, y, z + 0.06), (9.4, 8.6, 0.1), floor_mat)
-    _only_beat(kit, floor, "drone_facade")
-    for i, (vx, vy) in enumerate(((-1.4, 1.2), (1.6, 0.4), (0.2, 2.4), (-2.2, -0.6))):
-        tile = box_object("tile", coll, (x + vx, y + vy, z + 0.16), (0.7, 0.55, 0.04), floor_mat)
-        tile.rotation_euler = (0.15 * (i % 2), 0.2, i)
-        _only_beat(kit, tile, "drone_facade")
-        _plant(kit, coll, "fern_02" if i % 2 == 0 else "moss_01", x + vx, y + vy, z, 0.45 + i * 0.08, yaw=i, only="drone_facade")
-    _plant(kit, coll, "bark_debris_01", x + 0.8, y + 1.1, z, 0.35, yaw=0.4, only="drone_facade")
-    _plant(kit, coll, "dry_branches_medium_01", x - 1.2, y + 0.6, z, 0.4, yaw=1.1, only="drone_facade")
-    litter_mat = box_object("litter", coll, (x + 0.3, y - 1.5, z + 0.12), (2.4, 1.6, 0.02), litter)
-    _only_beat(kit, litter_mat, "drone_facade")
-    for grown in found_assets.grow_ivy(jamb_l, (x - 1.2, y - 4.0, z + 4.8), length=4.5):
-        _only_beat(kit, grown, "drone_facade")
-    for grown in found_assets.grow_ivy(head, (x + 0.2, y - 4.0, z + 5.2), length=3.2):
-        _only_beat(kit, grown, "drone_facade")
-    cat = private_assets.place_cat(coll, x + 0.15, y - 3.6, z + 1.15, yaw=0.6)
-    _only_beat(kit, cat, "drone_facade")
+def _street_facade(kit, coll, mats, x, y, z):
+    """Break one avenue building in place. Neighbours stay. The lot grows over."""
+    concrete = found_assets.pbr_material("FacadeCrack", "cracked_concrete_wall", uv=0.4, displace=0.04) or mats["concrete"]
+    rebar = found_assets.pbr_material("FacadeRebar", "rebar_reinforced_concrete", uv=1.1) or concrete
+    moss = found_assets.pbr_material("FacadeMoss", "worn_mossy_plasterwall", uv=0.55) or concrete
+    litter = found_assets.pbr_material("FacadeLitter", "leaves_forest_ground", uv=0.45) or mats["dirt"]
+    pavement = found_assets.pbr_material("FacadePave", "road_damaged", uv=0.6, displace=0.08) or mats["road"]
+    dark = mats["dark"]
+    face_y = y - 4.15
+    # Missing glass and broken frames on the south face, the side the drone sees.
+    for i, (dx, dz, w, h) in enumerate((
+        (-2.2, 2.2, 1.3, 1.6), (0.2, 2.4, 1.5, 1.7), (2.1, 1.8, 1.2, 1.4),
+        (-1.4, 5.2, 1.6, 1.5), (1.3, 5.6, 1.4, 1.3), (-0.2, 8.2, 1.8, 1.2),
+    )):
+        hole = box_object("missing_glass", coll, (x + dx, face_y, z + dz), (w, 0.18, h), dark)
+        kit.add(hole, "rubble", sink=False)
+        frame = box_object("window_frame", coll, (x + dx, face_y - 0.12, z + dz + h * 0.42), (w * 0.9, 0.16, 0.12), concrete)
+        frame.rotation_euler = (0.15 * (i % 2), 0.0, 0.2 if i % 2 else -0.35)
+        kit.add(frame, "rubble", sink=False)
+        rod = link_obj("rebar", cylinder_mesh("facade_rebar", radius=0.035, segments=5), coll, (rebar,))
+        rod.location = (x + dx + 0.3, face_y - 0.2, z + dz)
+        rod.rotation_euler = (1.1, 0.3 * i, 0.4)
+        rod.scale = (1.0, 1.0, 1.4 + (i % 3) * 0.3)
+        kit.add(rod, "rubble", sink=False)
+    # The top floors cave in. Slabs stay on this lot.
+    for i, (dx, dz, rot) in enumerate(((-1.2, 10.2, (0.5, 0.2, 0.3)), (1.4, 9.4, (0.8, -0.3, 0.6)), (0.2, 0.45, (0.35, 0.1, 0.8)))):
+        slab = box_object("roof_cave", coll, (x + dx, face_y - (0.15 if dz > 2 else 1.2), z + dz), (1.6, 0.9, 0.18), concrete if i else rebar)
+        slab.rotation_euler = rot
+        kit.add(slab, "rubble", sink=False)
+    for i, (dx, dz, slug) in enumerate((
+        (-2.0, 1.4, "fern_02"), (-0.4, 2.8, "moss_01"), (1.6, 1.8, "fern_02"),
+        (-1.2, 4.6, "shrub_01"), (1.1, 5.4, "moss_01"), (0.2, 7.6, "fern_02"),
+        (-1.8, 8.8, "moss_01"), (1.8, 9.2, "shrub_02"),
+    )):
+        _plant(kit, coll, slug, x + dx, face_y - 0.35, z + dz, 0.7 + (i % 3) * 0.25, delay=0.32, yaw=i * 0.4)
+    pave = box_object("cracked_pave", coll, (x, y - 6.2, z + 0.1), (7.0, 2.4, 0.05), pavement)
+    kit.add(pave, "year_green", sink=False)
+    leaves_pad = box_object("leaf_pad", coll, (x + 0.5, y - 6.2, z + 0.08), (10.0, 4.0, 0.03), litter)
+    kit.add(leaves_pad, "late_meadow", sink=False)
+    for i, (dx, dy, slug, height) in enumerate((
+        (-3.2, -6.5, "shrub_01", 1.4), (3.4, -5.8, "shrub_02", 1.6),
+        (-1.2, -8.0, "grass_medium_01", 0.7), (2.0, -7.2, "fern_02", 0.6),
+        (0.4, -5.2, "moss_01", 0.35), (-4.5, -9.0, "fir_sapling", 2.8),
+        (4.2, -8.4, "pine_sapling_small", 3.1),
+    )):
+        _plant(kit, coll, slug, x + dx, y + dy, z, height, delay=0.34, yaw=i * 0.5, role="tree_canopy" if height > 2 else "weed")
 
 
 def _place_hub_blocks(kit, coll, mats):
@@ -1348,54 +1336,64 @@ def _place_hub_blocks(kit, coll, mats):
 
 
 def _close_forest(kit, coll, mats):
-    """500-year street. Plants stay off until vegetation is almost full, so year 100 stays open."""
+    """Year 100 greens the beige lots. Year 500 closes a canopy over them."""
     rng = random.Random(19)
     road_z = ROAD_Z
     grasses = ("grass_medium_01", "grass_medium_02", "grass_bermuda_01", "weed_plant_02", "dandelion_01")
-    for i in range(110):
+    for i in range(90):
         _plant(
             kit, coll, grasses[i % len(grasses)],
-            rng.uniform(-85.0, 50.0), rng.uniform(-40.0, 34.0), road_z,
-            rng.uniform(0.45, 1.3), delay=0.8, yaw=rng.random() * math.tau,
+            rng.uniform(-110.0, 70.0), rng.uniform(-120.0, 12.0), road_z,
+            rng.uniform(0.4, 1.1), delay=0.4, yaw=rng.random() * math.tau,
         )
-    for i in range(36):
+    for i in range(40):
         _plant(
             kit, coll, "shrub_01" if i % 2 == 0 else "shrub_02",
-            rng.uniform(-80.0, 36.0), rng.uniform(-36.0, 30.0), road_z,
-            rng.uniform(1.1, 2.2), delay=0.78, yaw=rng.random() * math.tau,
+            rng.uniform(-100.0, 50.0), rng.uniform(-100.0, 8.0), road_z,
+            rng.uniform(1.0, 2.0), delay=0.42, yaw=rng.random() * math.tau,
         )
-    for i in range(24):
-        _plant(
-            kit, coll, "fir_sapling" if i % 2 == 0 else "pine_sapling_small",
-            rng.uniform(-78.0, 30.0), rng.uniform(-28.0, 28.0), road_z,
-            rng.uniform(2.4, 4.2), delay=0.76, yaw=rng.random() * 4.0, role="tree_canopy",
-        )
-    for i in range(18):
+    for i in range(28):
         _tree(
             kit, coll, mats,
-            rng.uniform(-75.0, 20.0), rng.choice((-18.0, -8.0, AVE_Y - 4.0, AVE_Y, AVE_Y + 5.0, 8.0)),
-            road_z, rng.uniform(3.2, 4.8), future=True, delay=0.8, rng=rng,
+            rng.uniform(-95.0, 40.0), rng.uniform(-90.0, 6.0),
+            road_z, rng.uniform(2.8, 4.2), future=True, delay=0.4, rng=rng,
             kind="pine" if i % 3 == 0 else "round",
         )
+    for i in range(22):
+        _tree(
+            kit, coll, mats,
+            rng.uniform(-80.0, 30.0), rng.choice((-70.0, -40.0, -16.0, AVE_Y - 3.0, AVE_Y, AVE_Y + 4.0)),
+            road_z, rng.uniform(3.4, 5.0), future=True, delay=0.74, rng=rng,
+            kind="pine" if i % 2 == 0 else "round",
+        )
+    # The beige city floor is what the wide camera sees in front of the blocks.
+    # A saturated grass sheet is what reads as meadow from that height.
+    # Stop south of the avenue. The hero lane and the cracked husk road stay asphalt.
+    lot = _plane("lot_grass", coll, (-20.0, -80.0, road_z + 0.08), (420.0, 150.0), mats["park"])
+    kit.add(lot, "year_green", sink=False)
+    soil = found_assets.pbr_material("LotSoil", "leaves_forest_ground", uv=0.2) or mats["dirt"]
+    for i, (lx, ly) in enumerate(((-40.0, -30.0), (-10.0, -55.0), (20.0, -18.0), (-70.0, -80.0))):
+        pad = _plane("litter_pad", coll, (lx, ly, road_z + 0.1), (18.0, 12.0), soil)
+        kit.add(pad, "late_meadow", sink=False)
     meadow = found_assets.pbr_material("ClosedGrass", "grass_ground", uv=0.15) or mats["park"]
-    sheet = _plane("avenue_meadow", coll, ( -8.0, AVE_Y, road_z + 0.045), (150.0, 18.0), meadow)
+    sheet = _plane("avenue_meadow", coll, (-8.0, AVE_Y, road_z + 0.045), (150.0, 18.0), meadow)
     kit.add(sheet, "late_meadow", sink=False)
     leaves = found_assets.pbr_material("IvyCard", "forest_leaves_02", uv=1.6) or mats["leaf"]
     for item in list(kit.items):
         if item.role != "frontage":
             continue
         x, y, z = item.obj.location
-        if not (-80.0 < x < 30.0 and -25.0 < y < 18.0):
+        if not (-100.0 < x < 40.0 and -80.0 < y < 18.0):
             continue
         index = int(item.extra.get("index", 0))
-        for step, dz in enumerate((3.2, 6.4, 9.6)):
+        for step, dz in enumerate((2.4, 5.2, 8.0)):
             card = box_object(
                 "ivy_card", coll, (x + (0.6 if index % 2 else -0.6), y - 5.2, z + dz),
-                (2.8, 0.12, 3.6), leaves,
+                (3.2, 0.12, 2.8), leaves,
             )
             card.rotation_euler.z = 0.15 * step
-            kit.add(card, "weed", delay=0.7, sink=False, leaf=(0.16, 0.36, 0.12, 1))
-        if index % 5 == 0:
+            kit.add(card, "weed", delay=0.4, sink=False, leaf=(0.16, 0.36, 0.12, 1))
+        if index % 3 == 0:
             slab = box_object(
                 "roof_fall", coll, (x + 2.2, y - 7.5, road_z + 0.4),
                 (6.5, 3.6, 0.35), mats["concrete"],
@@ -1520,19 +1518,54 @@ def _break_river_span(obj, coll, kit, mats):
         bit.parent = obj
         bit.matrix_parent_inverse = Matrix.Identity(4)
         bit.location = end.co + Vector((rng.uniform(-1.0, 1.0), rng.uniform(0.2, 1.4), 0.2))
-    # A second broken piece in the water, where the span camera is aimed.
-    chunk = box_object("span_debris", coll, (6.0, 110.0, 0.15), (8.0, 3.4, 0.55), mats["road"])
-    chunk.rotation_euler = (0.7, 0.25, 0.35)
-    kit.add(chunk, "rubble", sink=False)
-    for i in range(7):
-        rod = link_obj("rebar", cylinder_mesh("rebar_w", radius=0.045, segments=5), coll, (rust,))
-        rod.location = (6.0 + rng.uniform(-2.5, 2.5), 109.0 + rng.uniform(-1.0, 1.5), 0.35)
-        rod.rotation_euler = (rng.uniform(0.2, 1.3), rng.uniform(-0.6, 0.6), rng.random())
-        rod.scale = (1.0, 1.0, rng.uniform(0.8, 1.8))
+    # Thick broken end the span camera looks at. The face is jagged, not a flat top.
+    concrete = found_assets.pbr_material("SpanConcrete", "cracked_concrete", uv=0.7, displace=0.05) or mats["concrete"]
+    asphalt = found_assets.pbr_material("SpanAsphalt", "road_damaged_2", uv=0.8) or mats["road"]
+    mossy = found_assets.pbr_material("SpanMoss", "concrete_moss", uv=0.9) or concrete
+    face_y = 112.0
+    origin_x = 16.0
+    for ix in range(6):
+        length = 3.4 + ((ix * 3) % 5) * 0.55
+        for iz in range(5):
+            slab = box_object(
+                "deck_ply",
+                coll,
+                (origin_x + ix * 1.15, face_y + length * 0.5, 0.45 + iz * 0.24),
+                (1.1, length, 0.22),
+                mossy if iz == 4 else concrete,
+            )
+            kit.add(slab, "rubble", sink=False)
+            if iz == 2:
+                rod = link_obj("rebar", cylinder_mesh("span_rebar", radius=0.05, segments=5), coll, (rust,))
+                rod.location = (origin_x + ix * 1.15, face_y - 0.2, 0.6 + iz * 0.24)
+                rod.rotation_euler = (1.35, 0.15 * ix, 0.2)
+                rod.scale = (1.0, 1.0, 1.6 + (ix % 3) * 0.35)
+                kit.add(rod, "rubble", sink=False)
+    cap = box_object("asphalt_cap", coll, (origin_x + 3.2, face_y + 2.6, 1.72), (6.4, 4.2, 0.12), asphalt)
+    kit.add(cap, "rubble", sink=False)
+    for post, py in enumerate((face_y + 1.0, face_y + 2.8, face_y + 4.6)):
+        rail = box_object("rail", coll, (origin_x + 6.4, py, 2.2 if post < 2 else 1.15), (0.14, 0.14, 0.95 if post < 2 else 1.7), rust)
+        if post == 2:
+            rail.rotation_euler = (1.2, 0.15, 0.35)
+        kit.add(rail, "rubble", sink=False)
+    rail_top = box_object("rail", coll, (origin_x + 6.4, face_y + 2.4, 2.65), (0.1, 4.2, 0.1), rust)
+    kit.add(rail_top, "rubble", sink=False)
+    fallen = box_object("span_debris", coll, (origin_x + 1.5, face_y - 3.2, 0.2), (4.8, 2.4, 0.85), concrete)
+    fallen.rotation_euler = (1.05, 0.4, 0.2)
+    kit.add(fallen, "rubble", sink=False)
+    for i in range(5):
+        rod = link_obj("rebar", cylinder_mesh("fallen_rebar", radius=0.05, segments=5), coll, (rust,))
+        rod.location = (origin_x + 0.4 + i * 0.7, face_y - 3.6, 0.35)
+        rod.rotation_euler = (0.5, 1.2, i * 0.4)
+        rod.scale = (1.0, 1.0, 1.5)
         kit.add(rod, "rubble", sink=False)
-    bent = box_object("rail", coll, (8.4, 109.2, 0.7), (0.12, 4.8, 0.12), rust)
-    bent.rotation_euler = (1.2, 0.8, 0.5)
-    kit.add(bent, "rubble", sink=False)
+    for i, (px, py, slug) in enumerate((
+        (origin_x + 1.2, face_y + 1.6, "moss_01"),
+        (origin_x + 3.4, face_y + 2.4, "grass_bermuda_01"),
+        (origin_x + 2.2, face_y + 3.2, "fern_02"),
+        (origin_x + 4.6, face_y + 1.2, "weed_plant_02"),
+    )):
+        _plant(kit, coll, slug, px, py, 1.9, 0.4 + i * 0.06, delay=0.3, yaw=i)
 
 
 def build_river_city(kit, mats, rng, pieces):
@@ -1826,11 +1859,17 @@ def build_river_city(kit, mats, rng, pieces):
         ("bark_debris_01", 0.6, -0.15, 0.22, 1.2),
         ("dry_branches_medium_01", -0.8, 0.1, 0.28, 0.6),
         ("old_tyre", 1.5, 0.9, 0.35, 0.2),
-        ("rusted_wheel_rim_01", -1.3, -0.85, 0.55, 0.2),
-        ("rusted_wheel_rim_01", 1.15, -0.85, 0.55, 0.4),
-        ("fern_02", 0.2, 0.85, 0.4, 0.8),
+        ("rusted_wheel_rim_01", 0.35, -1.45, 0.72, 0.5),
+        ("rusted_wheel_rim_01", -1.4, 0.05, 0.72, 1.2),
+        ("moss_01", 0.1, 0.05, 0.28, 0.3),
+        ("fern_02", -0.35, 0.15, 0.32, 1.1),
     ):
-        _plant(kit, col_v, slug, hx + dx, hy + dy, ROAD_Z + (0.55 if slug == "moss_01" else 0.0), height, delay=0.0, yaw=yaw, role="wreckage")
+        z_lift = 1.02 if slug in ("moss_01", "fern_02") and abs(dx) < 0.5 else (0.55 if slug == "moss_01" else 0.0)
+        _plant(kit, col_v, slug, hx + dx, hy + dy, ROAD_Z + z_lift, height, delay=0.0, yaw=yaw, role="wreckage")
+    leaf = found_assets.pbr_material("HuskLeaves", "forest_leaves_02", uv=1.2) or mats["leaf"]
+    for dx, dy, sx in ((0.2, 0.05, 1.1), (-0.45, 0.12, 0.8), (0.7, -0.05, 0.7)):
+        pad = box_object("husk_leaf", col_v, (hx + dx, hy + dy, ROAD_Z + 1.05), (sx, 0.55, 0.03), leaf)
+        kit.add(pad, "wreckage", sink=False)
     hero = next((item.obj for item in kit.items if item.extra.get("hero")), None)
     found_assets.arm_wreck(hero)
     for i, (x, y, yaw) in enumerate(FOREGROUND_CARS):
