@@ -1046,7 +1046,7 @@ def main():
     scene.cycles.transparent_max_bounces = 0
     scene.cycles.sample_clamp_indirect = 0.0
     scene.render.use_motion_blur = True
-    scene.render.motion_blur_shutter = 0.72
+    scene.render.motion_blur_shutter = 0.6
     scene.cycles.motion_blur_position = "END"
     scene.render.resolution_x = int(job["width"])
     scene.render.resolution_y = int(job["height"])
@@ -1093,6 +1093,7 @@ def main():
         walk_frame = 12 + int(t * 24.0) % 40
         _blur(scene, cam, penny, {"cam": curr_cam, "penny": curr_penny, "prev_cam": prev_cam, "prev_penny": prev_penny}, walk_frame)
         cam.data.lens = float(fr.get("lens") or job.get("lens_mm") or 14)
+        cam.data.dof.use_dof = False
         _look(cam, target)
         penny.rotation_euler = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
         for arm in arms:

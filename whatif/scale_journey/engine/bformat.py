@@ -160,6 +160,16 @@ def _interp(keys, t) -> float:
     return float(keys[-1][1])
 
 
+def _wind(t: float, seed: float, scale: float) -> float:
+    """Deterministic Graph-Editor-style noise. Same t always gives the same offset."""
+    x = t * scale + seed
+    return (
+        math.sin(x)
+        + 0.62 * math.sin(x * 2.37 + 1.3)
+        + 0.28 * math.sin(x * 5.05 + seed * 1.7)
+    ) / 1.9
+
+
 def _held(rows, t):
     chosen = rows[0]
     for row in rows:
@@ -343,6 +353,22 @@ def _penny(raw: dict) -> BEpisode:
         else:
             xy = _penny_xy(z_vis)
             penny = (xy[0], xy[1], z_vis + 0.08)
+            if 0.57 <= t < 2.4:
+                off = _fade(t, 0.57, 1.05)
+                penny = (
+                    ledge_xy[0] + off * 3.4 + 0.2 * _wind(t, 1.1, 2.4),
+                    ledge_xy[1] + off * 2.6 + 0.16 * _wind(t, 2.4, 2.1),
+                    penny[2],
+                )
+            elif t < 20.2:
+                amp = _fade(t, 2.4, 3.2)
+                if t > 18.4:
+                    amp *= 1.0 - _fade(t, 18.4, 20.2)
+                penny = (
+                    penny[0] + 1.35 * amp * _wind(t, 1.1, 1.7),
+                    penny[1] + 1.05 * amp * _wind(t, 2.4, 1.9),
+                    penny[2],
+                )
             if 20.40 <= t < 27.70:
                 if t < 21.07:
                     u = _fade(t, 20.40, 21.07)
@@ -354,79 +380,87 @@ def _penny(raw: dict) -> BEpisode:
                 else:
                     hop = _fade(t, 21.07, 21.55)
                     penny = (MAN[0] + 0.7 * hop, MAN[1] - 0.4 * hop, penny[2])
-        # Out in the air off the north-east corner, above the penny, looking
-        # down the faces. The penny stays on the optical axis.
-        # Over the roof, just inside the corner, looking out past the penny
-        # so the street is in the background and the shaft edge stays in frame.
-        # Just outside the corner. The penny sits high in frame; the axis
-        # runs down the face so the street is below it.
+        # Shot 1: the camera stays on the deck and looks straight down.
         hook_cam = (ledge_penny[0] + 2.2, ledge_penny[1] + 1.5, ledge_penny[2] + 1.55)
         hook_tgt = (ledge_penny[0] - 22.0, ledge_penny[1] - 15.0, ledge_penny[2] - 20.5)
-        chase_cam = (penny[0] + 0.15, penny[1] - 1.1, penny[2] + 0.9)
-        chase_tgt = (penny[0] - 1.0, penny[1] + 22.0, penny[2] - 16.0)
-        # Stay north of the lot so the shaft box does not shove the camera
-        # onto the corner. Look down the avenue at the block walls.
-        # North-east of the lot, looking into the canyon. A point inside the
-        # lot gets pushed to this same corner and then stares at the pavement.
-        rush_cam = (34.0, 72.0, max(14.0, penny[2] + 4.0))
-        rush_tgt = (8.0, 130.0, max(16.0, penny[2] * 0.35 + 10.0))
+        # Shot 2: beside the facade. XY ignores the flutter. Z lags the coin.
+        mean_xy = _penny_xy(z_vis if t < 33.15 else drop)
+        z_lag = _interp(altitude, max(0.0, t - 0.12)) * FT
+        z_follow = min(max(z_lag + 0.8, penny[2] + 0.85), penny[2] + 3.2)
+        drone_cam = (mean_xy[0] + 0.45, mean_xy[1] - 1.55, z_follow)
+        drone_tgt = (penny[0] - 0.8, penny[1] + 10.0, penny[2] - 12.0)
+        if 2.4 <= t < 19.07 and not (13.31 <= t < 15.10):
+            drone_cam = (
+                drone_cam[0] + 0.16 * _wind(t, 8.2, 6.5),
+                drone_cam[1] + 0.12 * _wind(t, 3.4, 7.1),
+                drone_cam[2] + 0.10 * _wind(t, 5.5, 5.4),
+            )
         step = max(0.0, t - 23.9) * 0.9
         man_x, man_y = MAN[0] + step, MAN[1]
-        face_cam = (man_x + 0.15, man_y + 1.55, 1.62)
-        face_tgt = (man_x, man_y - 0.05, 1.50)
+        # Shot 3 stays put and looks up the facade. He walks through the frame.
+        up_cam = (MAN[0] + 0.15, MAN[1] + 1.55, 1.62)
+        up_tgt = (MAN[0], MAN[1] - 0.05, 1.72)
+        face_cam = up_cam
+        face_tgt = up_tgt
         guy_cam = (MAN[0] + 0.15, MAN[1] - 0.2, 12.5)
         guy_tgt = (MAN[0], MAN[1], 0.9)
-        if t < 0.57 or t >= 33.15:
-            cam, target, lens = hook_cam, hook_tgt, 34.0
-        elif t < 2.2:
-            u = _fade(t, 0.57, 2.2)
-            cam = _lerp(hook_cam, chase_cam, u)
-            target = _lerp(hook_tgt, chase_tgt, u)
-            lens = 34.0 + (28.0 - 34.0) * u
+        if t < 2.4 or t >= 33.15:
+            cam = hook_cam
+            target = (penny[0], penny[1], penny[2] - 0.35)
+            lens = 50.0
+        elif t < 2.9:
+            u = _fade(t, 2.4, 2.9)
+            cam = _lerp(hook_cam, drone_cam, u)
+            target = _lerp(hook_tgt, drone_tgt, u)
+            lens = 50.0 + (24.0 - 50.0) * u
         elif t < 13.31:
-            cam, target, lens = chase_cam, chase_tgt, 28.0
+            cam, target, lens = drone_cam, drone_tgt, 24.0
         elif t < 14.55:
             u = _fade(t, 13.31, 13.55)
-            cam = _lerp(chase_cam, guy_cam, u)
-            target = _lerp(chase_tgt, guy_tgt, u)
-            lens = 28.0 + (24.0 - 28.0) * u
+            cam = _lerp(drone_cam, guy_cam, u)
+            target = _lerp(drone_tgt, guy_tgt, u)
+            lens = 24.0 + (24.0 - 24.0) * u
         elif t < 15.10:
             u = _fade(t, 14.55, 15.10)
-            cam = _lerp(guy_cam, chase_cam, u)
-            target = _lerp(guy_tgt, chase_tgt, u)
-            lens = 24.0 + (28.0 - 24.0) * u
+            cam = _lerp(guy_cam, drone_cam, u)
+            target = _lerp(guy_tgt, drone_tgt, u)
+            lens = 24.0
         elif t < 19.07:
-            cam, target, lens = chase_cam, chase_tgt, 28.0
-        elif t < 20.70:
-            u = _fade(t, 19.07, 19.40)
-            cam = _lerp(chase_cam, rush_cam, u)
-            target = _lerp(chase_tgt, rush_tgt, u)
-            lens = 28.0 + (24.0 - 28.0) * u
-        elif t < 21.07:
-            cam, target, lens = rush_cam, rush_tgt, 24.0
+            cam, target, lens = drone_cam, drone_tgt, 24.0
+        elif t < 19.45:
+            u = _fade(t, 19.07, 19.45)
+            cam = _lerp(drone_cam, up_cam, u)
+            target = _lerp(drone_tgt, up_tgt, u)
+            lens = 24.0 + (32.0 - 24.0) * u
         elif t < 27.71:
-            cam, target, lens = face_cam, face_tgt, 55.0
+            cam, target, lens = up_cam, up_tgt, 48.0
         else:
             u = _fade(t, 27.71, 33.05)
-            cam = _lerp(face_cam, hook_cam, u)
-            target = _lerp(face_tgt, hook_tgt, u)
-            # Climb east of the shaft. A straight lerp from the sidewalk
-            # passes through the tower.
+            cam = _lerp(up_cam, hook_cam, u)
+            target = _lerp(up_tgt, hook_tgt, u)
             cam = (cam[0] + math.sin(u * math.pi) * 34.0, cam[1], cam[2])
-            lens = 55.0 + (34.0 - 55.0) * u
+            lens = 32.0 + (50.0 - 32.0) * u
         if t >= 33.15:
-            cam, target, penny, lens = hook_cam, hook_tgt, ledge_penny, 34.0
+            cam, target, penny, lens = hook_cam, hook_tgt, ledge_penny, 50.0
         cam = clear_of_shaft(cam, 1.2)
         if t < 0.57 or t >= 33.15:
             penny = ledge_penny
         else:
             penny = clear_of_shaft(penny, 0.8)
-        if 21.07 <= t < 22.2:
-            spin, tilt = (t - 21.07) * 18.0, 0.7
-        elif t < 0.57 or t >= 33.15:
-            spin, tilt = 0.45, 0.62
+        if t < 0.57 or t >= 33.15:
+            spin, tilt, roll = 0.2, 0.55, 0.04
+        elif t < 1.15:
+            flick = _fade(t, 0.57, 1.15)
+            spin = 0.2 + flick * 3.4
+            tilt = 0.55 + flick * 5.5
+            roll = flick * 2.2
         else:
-            spin, tilt = t * 12.0, 0.95
+            damp = 1.0
+            if t >= 21.07:
+                damp = 1.0 - _fade(t, 21.07, 22.0)
+            spin = t * 2.4 + damp * 2.1 * _wind(t, 0.4, 2.5)
+            tilt = t * 3.6 + damp * 2.4 * _wind(t, 1.8, 2.9)
+            roll = t * 1.7 + damp * 1.6 * _wind(t, 3.2, 2.2)
         frame = BFrame(
             frame=i,
             t=t,
@@ -453,7 +487,7 @@ def _penny(raw: dict) -> BEpisode:
             primary_prev=feet_from,
             secondary_roll=mph_roll,
             secondary_prev=mph_from,
-            rot=(spin, tilt, 0.05),
+            rot=(spin, tilt, roll),
             lens=lens,
         )
         if i == 0:
