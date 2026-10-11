@@ -37,7 +37,12 @@
   {
     "time": 11.373,
     "cue": "Front 38% pill, same tone as 39 (it is a tie)",
-    "sfx": "kenney_digital-audio/Audio/tone1.ogg"
+    "sfx": "kenney_digital-audio/Audio/tone1.ogg + sub drop on the x-ray cut (cue only, no file yet)"
+  },
+  {
+    "time": 11.373,
+    "cue": "Seat-zone flash sonar ping",
+    "sfx": "sonar ping (cue only, no file yet)"
   },
   {
     "time": 14.193,
@@ -55,9 +60,14 @@
     "sfx": "cloud_whoosh"
   },
   {
+    "time": 22.45,
+    "cue": "Cabin white noise under the roof cut",
+    "sfx": "cabin white noise bed (cue only, no file yet)"
+  },
+  {
     "time": 22.81,
     "cue": "44% red slab",
-    "sfx": "kenney_impact-sounds/Audio/impactGeneric_light_000.ogg (HPF 80 Hz, no LF boom)"
+    "sfx": "kenney_impact-sounds/Audio/impactGeneric_light_000.ogg (HPF 80 Hz, no LF boom) + sonar ping"
   },
   {
     "time": 24.38,

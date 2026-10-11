@@ -32,6 +32,7 @@ HDRI_ZIP = Path("/opt/cursor/asset-cache/cc0/assets_cc0_hdri.zip")
 CITY = Path("/opt/cursor/asset-cache/private/glb/procedural_city_3.glb")
 TREES = Path("/opt/cursor/asset-cache/private/glb/low_poly_tree_pack.glb")
 TEX = Path("/workspace/assets/found/textures")
+HGT = Path("/workspace/assets/found/terrain/N45E007.hgt.gz")
 HDRI_DIR = Path("/tmp/plane_hdri")
 # Pure-sky HDRIs leave the lower frame for our landscapes. goegap / spruit
 # bring a photographed horizon for desert and ocean.
@@ -61,7 +62,12 @@ HAZE = (0.96, 0.48, 0.22)
 
 
 def _link(obj, parent=None):
-    bpy.context.scene.collection.objects.link(obj)
+    linked = False
+    for collection in obj.users_collection:
+        linked = True
+        break
+    if not linked:
+        bpy.context.scene.collection.objects.link(obj)
     if parent is not None:
         obj.parent = parent
     return obj
@@ -92,6 +98,16 @@ def _extract_skies():
                 (HDRI_DIR / base).write_bytes(zf.read(entry))
 
 
+def _mist(scene):
+    """Distance haze settings. Ground shaders fade on their own; a full-frame
+    mist mix would paint the sky grey because the world sits at infinity."""
+    mist = scene.world.mist_settings
+    mist.start = 100.0
+    mist.depth = 5000.0
+    mist.falloff = "QUADRATIC"
+    scene.view_layers[0].use_pass_mist = True
+
+
 def _world():
     """Sunset HDRI. The image is swapped per biome in apply_pose."""
     _extract_skies()
@@ -108,10 +124,10 @@ def _world():
     nt.links.new(coord.outputs["Generated"], mapping.inputs["Vector"])
     nt.links.new(mapping.outputs["Vector"], env.inputs["Vector"])
     nt.links.new(env.outputs["Color"], bg.inputs["Color"])
-    bg.inputs["Strength"].default_value = 1.25
+    bg.inputs["Strength"].default_value = 0.55
     env.image = bpy.data.images.load(str(HDRI_DIR / SKY_FILES["city"]), check_existing=True)
     mapping.inputs["Rotation"].default_value[2] = SKY_TURN["city"]
-    return env, mapping
+    return env, mapping, bg
 
 
 def _mix_rgb(nt, fac_socket, color_a, color_b):
@@ -248,7 +264,7 @@ def _seat_material():
     nt.links.new(info.outputs["Color"], dark.inputs["Color1"])
     nt.links.new(dark.outputs["Color"], bsdf.inputs["Base Color"])
     nt.links.new(info.outputs["Color"], bsdf.inputs["Emission Color"])
-    bsdf.inputs["Emission Strength"].default_value = 6.0
+    bsdf.inputs["Emission Strength"].default_value = 5.0
     bsdf.inputs["Roughness"].default_value = 0.45
     return mat
 
@@ -379,8 +395,8 @@ def _shade_airliner(body):
     main = by_name.get("Material.001")
     if main and main.node_tree:
         bsdf = next(n for n in main.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
-        bsdf.inputs["Base Color"].default_value = (0.93, 0.94, 0.96, 1.0)
-        bsdf.inputs["Roughness"].default_value = 0.12
+        bsdf.inputs["Base Color"].default_value = (0.74, 0.76, 0.78, 1.0)
+        bsdf.inputs["Roughness"].default_value = 0.22
         if "Coat Weight" in bsdf.inputs:
             bsdf.inputs["Coat Weight"].default_value = 0.55
         if "Coat Roughness" in bsdf.inputs:
@@ -568,11 +584,11 @@ def _labels(root):
     font = bpy.data.fonts.load(str(font_path)) if font_path.is_file() else None
     # (text, color, location, em size)
     specs = {
-        "l38": ("38%", AMBER, (8.5, -18.0, 16.0), 5.4),
-        "l39": ("39%", AMBER, (0.2, -18.0, 16.0), 5.4),
-        "l32": ("32%", GREEN, (-8.2, -18.0, 16.0), 5.4),
-        "l44": ("44%", RED, (0.2, -16.0, 15.0), 7.0),
-        "l28": ("28%", BRIGHT, (-12.0, -16.0, 15.0), 6.4),
+        "l38": ("38%", AMBER, (11.0, -6.2, 12.8), 3.4),
+        "l39": ("39%", AMBER, (0.4, -6.2, 12.8), 3.4),
+        "l32": ("32%", GREEN, (-10.2, -6.2, 12.8), 3.4),
+        "l44": ("44%", RED, (1.2, -9.0, 13.5), 3.6),
+        "l28": ("28%", BRIGHT, (-11.5, -4.2, 10.6), 2.8),
     }
     out = {}
     for key, (text, color, loc, size) in specs.items():
@@ -622,48 +638,81 @@ def _big_plane(name, size=20000.0):
 
 
 def _peaks_object():
+    """Monte Rosa massif from the SRTM N45E007 tile. Heights are metres above 1,600 m."""
+    import array
+    import gzip
+
+    raw = gzip.open(HGT, "rb").read()
+    n = 3601
+    elev = array.array("h")
+    elev.frombytes(raw)
+    elev.byteswap()
+    # Window around the 4,543 m summit. Row 0 of an HGT is the north edge.
+    r0, c0 = 0, 2680
+    nx = ny = 170
+    step = 3
+    metres = (111_320.0 / 3600.0) * step
+    # Put the 4,543 m summit ahead and to the side, so the jet flies the valley.
+    peak_i = (3133 - c0) / step
+    peak_j = (208 - r0) / step
     verts = []
-    faces = []
-    nx = ny = 140
-    span = 16000.0
     for j in range(ny):
         for i in range(nx):
-            x = -span * 0.5 + span * i / (nx - 1)
-            y = -span * 0.5 + span * j / (ny - 1)
-            # Valley under the aircraft (origin), ridges off to the sides.
-            # A valley under the jet, with summits a kilometre or two out.
-            dist = math.hypot(x * 0.65, y)
-            valley = min(1.0, max(0.0, (dist - 400.0) / 1100.0))
-            ridge = max(0.0, math.sin(x * 0.00115 + 0.9) * math.sin(y * 0.00092 - 0.35))
-            ridge += 0.65 * max(0.0, math.sin(x * 0.00062 - 1.4) * math.cos(y * 0.0007 + 0.8))
-            h = 180.0 * abs(math.sin(x * 0.0016) * math.cos(y * 0.0013))
-            h += 1050.0 * ridge * ridge
-            h *= 0.15 + 0.85 * valley
-            verts.append((x, y, h))
+            h = elev[(r0 + j * step) * n + (c0 + i * step)]
+            if h < 0:
+                h = 0
+            # Exaggerate the relief so a 500 m alpine ridge reads from the chase camera.
+            rel = 0.0 if h < 0 else max(0.0, h - 1600.0)
+            verts.append((
+                (i - peak_i) * metres + 900.0,
+                (j - peak_j) * metres - 200.0,
+                (rel - 2300.0) * 2.4,
+            ))
+    faces = []
     for j in range(ny - 1):
         for i in range(nx - 1):
             a = j * nx + i
-            faces.append((a, a + 1, a + 1 + nx, a + nx))
+            faces.append((a, a + 1, a + nx + 1, a + nx))
     mesh = bpy.data.meshes.new("Peaks")
     mesh.from_pydata(verts, [], faces)
     mesh.shade_smooth()
-    mat, bsdf = _principled("Snow", (0.90, 0.92, 0.95), 0.55)
+    mat, bsdf = _principled("Snow", (0.90, 0.92, 0.95), 0.48)
     if "Coat Weight" in bsdf.inputs:
-        bsdf.inputs["Coat Weight"].default_value = 0.04
+        bsdf.inputs["Coat Weight"].default_value = 0.02
     nt = mat.node_tree
+    rock = nt.nodes.new("ShaderNodeTexImage")
+    rock.image = bpy.data.images.load(str(TEX / "aerial_rocks_01_diff_1k.jpg"), check_existing=True)
+    mapping = nt.nodes.new("ShaderNodeMapping")
+    mapping.inputs["Scale"].default_value = (0.004, 0.004, 0.004)
+    coord = nt.nodes.new("ShaderNodeTexCoord")
+    nt.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
+    nt.links.new(mapping.outputs["Vector"], rock.inputs["Vector"])
     geom = nt.nodes.new("ShaderNodeNewGeometry")
     sep = nt.nodes.new("ShaderNodeSeparateXYZ")
     nt.links.new(geom.outputs["Position"], sep.inputs["Vector"])
     span = nt.nodes.new("ShaderNodeMapRange")
-    span.inputs["From Min"].default_value = 180.0
-    span.inputs["From Max"].default_value = 620.0
+    # Snow starts around a real 3,000 m and is solid by the 4,000 m ridges.
+    span.inputs["From Min"].default_value = 1400.0
+    span.inputs["From Max"].default_value = 2100.0
     span.clamp = True
     nt.links.new(sep.outputs["Z"], span.inputs["Value"])
-    snow = _mix_rgb(nt, span.outputs["Result"], (0.34, 0.30, 0.28, 1), (0.92, 0.94, 0.96, 1))
-    nt.links.new(snow.outputs["Color"], bsdf.inputs["Base Color"])
+    darkened = _mix_rgb(nt, None, rock.outputs["Color"], (0.22, 0.20, 0.18, 1))
+    darkened.inputs["Fac"].default_value = 0.35
+    snow = _mix_rgb(nt, span.outputs["Result"], darkened.outputs["Color"], (0.93, 0.94, 0.96, 1))
+    cam = nt.nodes.new("ShaderNodeCameraData")
+    dist = nt.nodes.new("ShaderNodeMapRange")
+    dist.inputs["From Min"].default_value = 1500.0
+    dist.inputs["From Max"].default_value = 14000.0
+    dist.inputs["To Max"].default_value = 0.72
+    dist.clamp = True
+    nt.links.new(cam.outputs["View Distance"], dist.inputs["Value"])
+    haze = _mix_rgb(nt, dist.outputs["Result"], snow.outputs["Color"], (0.62, 0.68, 0.78, 1))
+    nt.links.new(haze.outputs["Color"], bsdf.inputs["Base Color"])
     mesh.materials.append(mat)
     obj = bpy.data.objects.new("Peaks", mesh)
     obj["ground"] = 1
+    peak = max(v[2] for v in verts)
+    print("alps peak metres above 1600", round(peak), "samples", nx)
     return obj
 
 
@@ -766,42 +815,83 @@ def _forest_trees(parent):
         print("no tree meshes kept")
         return
     rng = math.pi
-    for i in range(48):
+    for i in range(72):
         mesh = meshes[i % len(meshes)]
         obj = bpy.data.objects.new(f"Tree_{i}", mesh)
         obj.parent = parent
-        # ~40 m tall from a ~170 unit source mesh.
-        scale = 0.20 + (i % 5) * 0.025
+        scale = 0.28 + (i % 5) * 0.03
         obj.scale = (scale, scale, scale)
         obj.location = (
-            ((i * 97) % 2400) - 1200,
-            ((i * 173) % 2400) - 1200,
+            ((i * 53) % 1400) - 500,
+            ((i * 89) % 1400) - 700,
             0.0,
         )
         obj.rotation_euler[2] = rng * (i % 7)
         _link(obj)
-    print("trees", len(meshes), "instances 48")
+    print("trees", len(meshes), "instances 72")
 
 
-def _cloud_material():
-    mat, bsdf = _principled("Cloud", (0.96, 0.94, 0.90), 0.88)
-    bsdf.inputs["Base Color"].default_value = (0.97, 0.95, 0.91, 1)
-    if "Coat Weight" in bsdf.inputs:
-        bsdf.inputs["Coat Weight"].default_value = 0.0
-    return mat
+def _enable_easy_clouds():
+    module = "bl_ext.user_default.easy_clouds"
+    if module not in bpy.context.preferences.addons:
+        bpy.ops.preferences.addon_enable(module=module)
+    print("easy clouds", module)
 
 
-def _puff(mat, parent, loc, scale, kind):
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=16, radius=1.0)
-    obj = bpy.context.active_object
-    for poly in obj.data.polygons:
-        poly.use_smooth = True
-    obj.data.materials.append(mat)
+def _easy_cloud(parent, loc, scale, density, kind):
+    before = set(bpy.data.objects)
+    bpy.ops.easyclouds.create_sphere()
+    obj = next(item for item in bpy.data.objects if item not in before)
     obj.parent = parent
     obj.location = loc
     obj.scale = scale
     obj["kind"] = kind
-    obj.visible_shadow = False
+    mat = obj.active_material
+    if mat and mat.node_tree:
+        for node in mat.node_tree.nodes:
+            if node.type == "GROUP" and node.node_tree and "Realistic" in node.node_tree.name:
+                if "Density" in node.inputs:
+                    node.inputs["Density"].default_value = density
+    return obj
+
+
+def _godrays():
+    """A thin cabin volume so sun shafts read when the roof is open."""
+    bpy.ops.mesh.primitive_cube_add(size=1.0)
+    obj = bpy.context.active_object
+    obj.name = "CabinGodrays"
+    obj.scale = (32.0, 8.0, 10.0)
+    obj.location = (0.0, 0.0, 11.0)
+    mat = bpy.data.materials.new("Godray")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    vol = nt.nodes.new("ShaderNodeVolumePrincipled")
+    vol.inputs["Density"].default_value = 0.012
+    vol.inputs["Color"].default_value = (1.0, 0.82, 0.62, 1.0)
+    nt.links.new(vol.outputs["Volume"], out.inputs["Volume"])
+    obj.data.materials.append(mat)
+    return obj
+
+
+def _ocean_object():
+    bpy.ops.mesh.primitive_grid_add(x_subdivisions=4, y_subdivisions=4, size=2.0)
+    obj = bpy.context.active_object
+    obj.name = "OceanSurface"
+    waves = obj.modifiers.new("Waves", "OCEAN")
+    waves.geometry_mode = "GENERATE"
+    waves.resolution = 12
+    waves.spatial_size = 48
+    waves.wave_scale = 1.8
+    waves.choppiness = 1.05
+    waves.wave_alignment = 0.2
+    waves.wind_velocity = 16.0
+    waves.repeat_x = 10
+    waves.repeat_y = 10
+    obj.scale = (70.0, 70.0, 4.0)
+    obj.data.materials.append(_ocean_mat())
+    obj["ground"] = 1
     return obj
 
 
@@ -820,8 +910,7 @@ def _biome_tiles():
         _link(a)
         _link(b)
         if name == "ocean":
-            ground = _big_plane(name + "Ground", 22000.0)
-            ground.data.materials.append(_ocean_mat())
+            ground = _ocean_object()
         elif name == "mountains":
             ground = _peaks_object()
         else:
@@ -833,30 +922,26 @@ def _biome_tiles():
         copies[name] = (a, b)
     _city_instances(copies["city"][0])
     _forest_trees(copies["forest"][0])
-    puff = _cloud_material()
+    _enable_easy_clouds()
     cloud_root = bpy.data.objects.new("CloudField", None)
     _link(cloud_root)
-    # Deck sits beside and below the jet so a chase camera stays in clear air.
-    deck = [
-        ((-10, -60, -18), (30, 18, 11)),
-        ((40, 48, -22), (34, 20, 12)),
-        ((-36, 42, -16), (22, 16, 9)),
-        ((70, -24, -40), (40, 24, 12)),
-        ((-20, -24, -48), (36, 22, 12)),
-        ((24, 18, -36), (26, 18, 10)),
+    # Easy Clouds volumes. A gap along the fuselage lets the jet read through the wisps.
+    bank = [
+        ((-4, -16, 9), (48, 26, 18), 3.2),
+        ((12, 14, 12), (40, 28, 16), 2.4),
+        ((-16, 6, 6), (32, 20, 14), 3.8),
+        ((20, -8, 10), (36, 22, 16), 2.2),
+        ((2, -24, 15), (26, 16, 11), 2.0),
+        ((-22, -2, 16), (22, 14, 10), 2.6),
     ]
-    for loc, scale in deck:
-        _puff(puff, cloud_root, loc, scale, "deck")
-    # A bank the jet is flying out of. Kept off the chase camera, which sits near x=-90.
-    for i in range(12):
-        side = -1.0 if i % 2 == 0 else 1.0
-        _puff(
-            puff,
-            cloud_root,
-            (-28 + (i % 6) * 14, side * (20 + (i % 3) * 8), 4 + (i % 3) * 7),
-            (24, 16, 8),
-            "punch",
-        )
+    for loc, scale, density in bank:
+        _easy_cloud(cloud_root, loc, scale, density, "punch")
+    # Wingtip vortices: long thin volumes trailing the tips (aircraft Y is the span).
+    _easy_cloud(cloud_root, (-16, -27, 5.2), (22, 2.2, 2.2), 8, "vortex")
+    _easy_cloud(cloud_root, (-16, 27, 5.2), (22, 2.2, 2.2), 8, "vortex")
+    shaft = _godrays()
+    shaft.parent = cloud_root
+    copies["_godrays"] = (shaft, shaft)
     copies["_clouds"] = (cloud_root, cloud_root)
     return copies
 
@@ -874,9 +959,16 @@ def build_scene():
     scene.cycles.glossy_bounces = 2
     scene.cycles.transmission_bounces = 4
     scene.cycles.transparent_max_bounces = 8
+    scene.cycles.volume_bounces = 2
+    scene.cycles.volume_max_steps = 64
+    scene.cycles.volume_step_rate = 1.8
+    scene.cycles.light_sampling_threshold = 0.01
+    scene.render.use_persistent_data = True
     scene.cycles.use_light_tree = False
     scene.cycles.caustics_reflective = False
     scene.cycles.caustics_refractive = False
+    scene.render.use_motion_blur = True
+    scene.render.motion_blur_shutter = 0.35
     scene.render.threads_mode = "FIXED"
     scene.render.threads = 4
     scene.render.resolution_x = 1080
@@ -885,25 +977,34 @@ def build_scene():
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGB"
     scene.render.image_settings.compression = 3
-    scene.view_settings.exposure = -0.15
+    scene.view_settings.exposure = -0.55
     scene.view_settings.view_transform = "AgX"
     try:
-        scene.view_settings.look = "AgX - Punchy"
+        scene.view_settings.look = "AgX - High Contrast"
     except TypeError:
         pass
-    env, sky_map = _world()
+    env, sky_map, sky_bg = _world()
+    _mist(scene)
     root = _link(bpy.data.objects.new("AircraftRoot", None))
     plane, skin_nodes, body, opened, glass_facs = _load_plane(root)
     cabin, seats, shell = _load_cabin(root)
     biomes = _biome_tiles()
     labels = _labels(root)
     sun = bpy.data.lights.new("Sun", "SUN")
-    sun.energy = 2.2
-    sun.angle = math.radians(1.4)
-    sun.color = (1.0, 0.78, 0.55)
+    sun.energy = 6.5
+    sun.angle = math.radians(1.8)
+    sun.color = (1.0, 0.48, 0.18)
     sun_obj = bpy.data.objects.new("Sun", sun)
-    sun_obj.rotation_euler = (math.radians(68), math.radians(6), math.radians(32))
+    # Low warm key from the front-right, so the white paint holds a shadow.
+    sun_obj.rotation_euler = (math.radians(62), math.radians(-12), math.radians(-35))
     _link(sun_obj)
+    rim = bpy.data.lights.new("Rim", "SUN")
+    rim.energy = 9.0
+    rim.angle = math.radians(3.5)
+    rim.color = (1.0, 0.72, 0.42)
+    rim_obj = bpy.data.objects.new("Rim", rim)
+    rim_obj.rotation_euler = (math.radians(96), math.radians(18), math.radians(150))
+    _link(rim_obj)
     cabin_light = bpy.data.lights.new("CabinFill", "AREA")
     cabin_light.energy = 0.0
     cabin_light.size = 8.0
@@ -937,6 +1038,7 @@ def build_scene():
         "scene": scene,
         "env": env,
         "sky_map": sky_map,
+        "sky_bg": sky_bg,
         "cabin_light": cabin_light,
     }
 
@@ -990,16 +1092,25 @@ def apply_pose(state, pose):
         if env.image != image:
             env.image = image
         state["sky_map"].inputs["Rotation"].default_value[2] = SKY_TURN.get(biome, 0.0)
+    if state.get("sky_bg") is not None:
+        state["sky_bg"].inputs["Strength"].default_value = float(pose.get("sky", 0.55))
     cloud_mode = pose.get("clouds") or ("punch" if pose.get("cloud", 0.0) > 0.72 else "deck")
     if pose.get("inside") or pose.get("interior"):
         cloud_mode = "off"
     for name, (a, b) in state["biomes"].items():
+        if name == "_godrays":
+            a.hide_render = not bool(pose.get("cutaway"))
+            continue
         if name == "_clouds":
             # Stay with the jet (the jet itself does not translate). Deck vs punch.
             a.location = (0.0, 0.0, pose["altitude"])
+            xray_now = float(pose.get("xray", 0.0))
             for child in a.children:
                 kind = child.get("kind", "deck")
-                child.hide_render = cloud_mode != "all" and kind != cloud_mode
+                if kind == "vortex":
+                    child.hide_render = bool(pose.get("interior")) or xray_now > 0.25
+                else:
+                    child.hide_render = cloud_mode != "all" and kind != cloud_mode
             continue
         show = name == biome
         a.hide_render = not show
@@ -1062,6 +1173,10 @@ def apply_pose(state, pose):
     cam.location = eye
     _aim(cam, eye, look, pose["cam_roll"])
     cam.data.lens = pose["lens"]
+    focus = (mathutils.Vector(pose["look"]) - mathutils.Vector(pose["eye"])).length
+    cam.data.dof.use_dof = True
+    cam.data.dof.focus_distance = max(4.0, focus)
+    cam.data.dof.aperture_fstop = float(pose.get("fstop", 8.0))
     show = {
         "l38": pose.get("show_38", 0) > 0.4,
         "l39": pose.get("show_39", 0) > 0.4,
@@ -1167,6 +1282,10 @@ def render_stills(job):
         pose["inside"] = bool(shot.get("interior", False))
         if shot.get("clouds"):
             pose["clouds"] = shot["clouds"]
+        if "sky" in shot:
+            pose["sky"] = float(shot["sky"])
+        if "fstop" in shot:
+            pose["fstop"] = float(shot["fstop"])
         wanted = set(shot.get("show") or [])
         for key in ("show_38", "show_39", "show_32", "show_44", "show_28"):
             pose[key] = 1.0 if key.replace("show_", "l") in wanted else 0.0
