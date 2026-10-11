@@ -159,6 +159,11 @@ def _world(hdr_path: str):
     nt.links.new(dark.outputs["Background"], mix.inputs[1])
     nt.links.new(bg.outputs["Background"], mix.inputs[2])
     nt.links.new(mix.outputs["Shader"], out.inputs["Surface"])
+    haze = nt.nodes.new("ShaderNodeVolumePrincipled")
+    haze.inputs["Color"].default_value = (0.62, 0.68, 0.74, 1.0)
+    haze.inputs["Density"].default_value = 0.00028
+    haze.inputs["Anisotropy"].default_value = 0.15
+    nt.links.new(haze.outputs["Volume"], out.inputs["Volume"])
 
 
 def _sun():
@@ -282,9 +287,13 @@ def _clip_low(meshes, zcut):
                 edge = max(edge, (a - b).length)
             area = (verts[1] - verts[0]).cross(verts[2] - verts[0]).length * 0.5 if len(verts) >= 3 else 0.0
             normal = (nmat @ face.normal).normalized()
-            # Spanning triangles, not the tessellated setback roofs.
-            flat_lid = abs(normal.z) > 0.84 and area > 14.0 and center.z < 350.0
-            if outside or stray or edge > 12.0 or flat_lid or center.z < zcut:
+            # Long edges are the ribbon. Low flat lids are the scan's ground sheet.
+            # The setback roofs stay so the deck is still there.
+            flat_lid = abs(normal.z) > 0.84 and area > 14.0 and center.z < 80.0
+            # The base of the scan is loose triangles. The window courses
+            # are the building from the sidewalk up; those shards are not.
+            low_junk = center.z < 22.0
+            if outside or stray or edge > 9.0 or flat_lid or low_junk or center.z < zcut:
                 dead.append(face)
             else:
                 kept_n += 1
@@ -371,6 +380,11 @@ def _empire():
         flush=True,
     )
     _clip_low(meshes, -1.0)
+    # The scan's cast is one aerial photo and its loose triangles read as
+    # slabs and ribbons. The visible shaft is the Quaternius window courses.
+    empty.hide_render = True
+    for child in empty.children_recursive:
+        child.hide_render = True
     return empty
 
 
@@ -828,14 +842,14 @@ def _penny():
     bpy.context.view_layer.update()
     mn, mx = _bounds(meshes)
     span = max(mx.x - mn.x, mx.y - mn.y, 1e-4)
-    empty.scale = (0.17 / span,) * 3
+    empty.scale = (0.09 / span,) * 3
     bpy.context.view_layer.update()
     mn, mx = _bounds(meshes)
     mid = (mn + mx) * 0.5
     for obj in roots:
         obj.matrix_world.translation -= mid
     bpy.context.view_layer.update()
-    print(f"COIN kenney bronze span {span:.3f} -> 0.17 m", flush=True)
+    print(f"COIN kenney bronze span {span:.3f} -> 0.09 m", flush=True)
     return empty
 
 
@@ -890,26 +904,36 @@ def _head(arm, t):
         pose.rotation_euler = (-0.55 * min(1.0, down), 0.0, 0.0)
 
 
-def _punchline(arm, t):
-    """Four beats after the coin taps his head. No scratch/shrug clip in the hub, so these are keyed on the idle rig.
+_IDLE_BASIS: dict = {}
 
-    33.40 flinch, 33.75 look up and around, 34.45 scratch, 35.25 shrug, then he walks.
+
+def _punchline(arm, t):
+    """Four beats after the coin taps his head. Offsets are applied on top of the idle pose.
+
+    Euler 0 on this rig is a T, so the idle matrices are captured before the curves are muted.
     """
     if arm is None or t < 21.0 or t >= 27.6:
         return
-    action = arm.animation_data.action if arm.animation_data else None
-    if action is not None and not arm.get("punch_muted"):
-        for curve in action.fcurves:
-            if any(token in curve.data_path for token in ("Neck", "Head", "Spine", "Clavicle", "UpperArm", "Forearm", "Thigh")):
-                curve.mute = True
-        arm["punch_muted"] = 1
+    if arm.name not in _IDLE_BASIS:
+        _IDLE_BASIS[arm.name] = {bone.name: bone.matrix.copy() for bone in arm.pose.bones}
+        action = arm.animation_data.action if arm.animation_data else None
+        if action is not None:
+            for curve in action.fcurves:
+                if any(token in curve.data_path for token in ("Neck", "Head", "Spine", "Clavicle", "UpperArm", "Forearm", "Hand", "Thigh")):
+                    curve.mute = True
+    bases = _IDLE_BASIS[arm.name]
+    for bone in arm.pose.bones:
+        saved = bases.get(bone.name)
+        if saved is not None:
+            bone.matrix = saved
 
     def put(suffix, rot):
         pose = _bone(arm, suffix)
         if pose is None:
             return
         pose.rotation_mode = "XYZ"
-        pose.rotation_euler = rot
+        extra = mathutils.Euler(rot, "XYZ").to_matrix().to_4x4()
+        pose.matrix = pose.matrix @ extra
 
     neck = (0.0, 0.0, 0.0)
     spine = (0.0, 0.0, 0.0)
@@ -919,36 +943,56 @@ def _punchline(arm, t):
     clav_r = (0.0, 0.0, 0.0)
     thigh_l = (0.0, 0.0, 0.0)
     thigh_r = (0.0, 0.0, 0.0)
-    if t < 21.85:
-        u = _fade_u(t, 21.07, 21.28)
-        neck = (0.15 * u, 0.0, 0.4 * u)
-        spine = (-0.3 * u, 0.0, 0.0)
-    elif t < 22.55:
-        u = (t - 21.85) / 0.7
-        yaw = math.sin(u * math.pi * 2.0) * 0.7
-        neck = (0.0, yaw, -0.5)
-        spine = (0.0, yaw * 0.25, -0.08)
-    elif t < 23.27:
-        u = min(1.0, (t - 22.55) / 0.2)
-        uarm = (-1.0 * u, 0.0, -2.0 * u)
-        fore = (-1.5 * u, 0.0, -1.2 * u)
-        neck = (0.0, 0.15 * u, 0.2 * u)
+    hand_l = (0.0, 0.0, 0.0)
+    hand_r = (0.0, 0.0, 0.0)
+    uarm_r = (0.0, 0.0, 0.0)
+    fore_r = (0.0, 0.0, 0.0)
+    if t < 21.70:
+        u = _fade_u(t, 21.07, 21.16)
+        neck = (0.65 * u, 0.0, 0.15 * u)
+        spine = (0.45 * u, 0.0, 0.0)
+        uarm = (0.35 * u, 0.15 * u, -0.2 * u)
+        uarm_r = (0.35 * u, -0.15 * u, 0.2 * u)
+        fore = (-0.45 * u, 0.0, 0.0)
+        fore_r = (-0.45 * u, 0.0, 0.0)
+    elif t < 22.45:
+        u = (t - 21.70) / 0.75
+        yaw = math.sin(u * math.pi * 2.0) * 0.9
+        neck = (-0.15, yaw, -0.35)
+        spine = (0.0, yaw * 0.35, 0.0)
+    elif t < 23.05:
+        u = min(1.0, (t - 22.45) / 0.18)
+        uarm = (-0.4 * u, 0.2 * u, -1.6 * u)
+        fore = (-1.3 * u, 0.0, -0.8 * u)
+        hand_l = (0.6 * u, 0.4 * u, 0.2 * u)
+        neck = (-0.25 * u, 0.2 * u, 0.15 * u)
     else:
-        u = min(1.0, (t - 23.27) / 0.25)
+        u = min(1.0, (t - 23.05) / 0.2)
         down = 1.0
-        if t > 23.85:
-            down = max(0.0, 1.0 - (t - 23.85) / 0.4)
-            swing = math.sin((t - 23.85) * 8.0) * 0.55
+        if t > 24.05:
+            down = max(0.0, 1.0 - (t - 24.05) / 0.35)
+            swing = math.sin((t - 24.05) * 7.0) * 0.7
             thigh_l = (swing, 0.0, 0.0)
             thigh_r = (-swing, 0.0, 0.0)
-        clav_l = (0.0, 0.0, 0.5 * u * down)
-        clav_r = (0.0, 0.0, -0.5 * u * down)
-        uarm = (0.35 * u * down, 0.0, -0.45 * u * down)
-        neck = (0.0, 0.2 * math.sin((t - 23.27) * 3.0) * down, 0.05)
+        clav_l = (0.0, 0.35 * u * down, 1.1 * u * down)
+        clav_r = (0.0, -0.35 * u * down, -1.1 * u * down)
+        uarm = (0.25 * u * down, 0.0, -0.55 * u * down)
+        uarm_r = (0.25 * u * down, 0.0, 0.55 * u * down)
+        fore = (-0.2 * u * down, 0.0, -0.35 * u * down)
+        fore_r = (-0.2 * u * down, 0.0, 0.35 * u * down)
+        hand_l = (0.2 * u * down, 1.1 * u * down, 0.0)
+        hand_r = (0.2 * u * down, -1.1 * u * down, 0.0)
+        neck = (-0.2 * u * down, 0.45 * u * down, 0.35 * u * down)
+        spine = (-0.15 * u * down, 0.0, 0.0)
     put("Neck_05", neck)
+    put("Head_06", (neck[0] * 0.6, neck[1] * 0.5, neck[2] * 0.4))
     put("Spine_03", spine)
     put("L UpperArm_08", uarm)
+    put("R UpperArm_016", uarm_r)
     put("L Forearm_09", fore)
+    put("R Forearm_017", fore_r)
+    put("L Hand_010", hand_l)
+    put("R Hand_018", hand_r)
     put("L Clavicle_07", clav_l)
     put("R Clavicle_015", clav_r)
     if t >= 23.85:
@@ -1039,7 +1083,7 @@ SPEED = {
     "min_samples": 1,
     "bounces": 12,
     "persistent": True,
-    "cull": True,
+    "cull": False,
     "lod": False,
 }
 
@@ -1102,9 +1146,125 @@ def prepare_scene(job, lod=False):
     from engine.manhattan import dress_city
 
     arms = dress_city(lod=lod) or []
+    _deck_rail()
+    _window_corner()
     penny = _penny()
     cam = _camera()
     return scene, cam, penny, arms
+
+
+def _gltf_proto(path: Path, name: str):
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(path))
+    meshes = [obj for obj in bpy.data.objects if obj not in before and obj.type == "MESH"]
+    if not meshes:
+        print(f"KIT missing {path.name}", flush=True)
+        return None, (0.0, 0.0, 0.0)
+    empty = _link(bpy.data.objects.new(name, None))
+    for obj in meshes:
+        world = obj.matrix_world.copy()
+        obj.parent = empty
+        obj.matrix_world = world
+    bpy.context.view_layer.update()
+    mn, mx = _bounds(meshes)
+    empty.location.z -= mn.z
+    bpy.context.view_layer.update()
+    mn, mx = _bounds(meshes)
+    empty["cull"] = "prop"
+    empty["lod_hidden"] = 0
+    return empty, (mx.x - mn.x, mx.y - mn.y, mx.z - mn.z)
+
+
+def _stamp(proto, location, yaw=0.0, scale=1.0):
+    bpy.ops.object.select_all(action="DESELECT")
+    proto.select_set(True)
+    for child in proto.children_recursive:
+        child.select_set(True)
+    bpy.context.view_layer.objects.active = proto
+    bpy.ops.object.duplicate(linked=True)
+    copy = bpy.context.view_layer.objects.active
+    copy.location = location
+    copy.rotation_euler = (0.0, 0.0, yaw)
+    copy.scale = (scale, scale, scale)
+    copy["cull"] = "prop"
+    copy["lod_hidden"] = 0
+    return copy
+
+
+def _deck_rail():
+    """Metal rail from the downtown kit along the observation-deck corner."""
+    path = (
+        CACHE
+        / "assets_cc0_city_buildings"
+        / "city_buildings"
+        / "quaternius_downtown_city_megakit"
+        / "Exports"
+        / "glTF (Godot)"
+        / "Stairs_Rails_Metal_Straight_1.gltf"
+    )
+    if not path.exists():
+        print("RAIL missing", flush=True)
+        return
+    proto, span = _gltf_proto(path, "RailProto")
+    if proto is None:
+        return
+    length = max(span[0], span[1], 0.2)
+    height = max(span[2], 0.2)
+    scale = 1.15 / height
+    step = length * scale * 0.92
+    z = 373.5
+    count = 0
+    x = 23.6
+    y = 22.0
+    while y < 32.0:
+        _stamp(proto, (x, y, z), 1.5708, scale)
+        y += step
+        count += 1
+    y = 9.4
+    x = 4.0
+    while x < 14.0:
+        _stamp(proto, (x, y, z), 0.0, scale)
+        x += step
+        count += 1
+    proto.location.z = -400.0
+    print(f"RAIL {count} span {span}", flush=True)
+
+
+def _window_corner():
+    """Quaternius brick windows down the corner the drone looks at.
+
+    The scan albedo is one aerial photo, so a close wall reads as a grey slab.
+    These pieces are the limestone courses with actual window openings.
+    """
+    path = (
+        CACHE
+        / "assets_cc0_city_buildings"
+        / "city_buildings"
+        / "quaternius_downtown_city_megakit"
+        / "Exports"
+        / "glTF (Godot)"
+        / "Brick_Inset_Window.gltf"
+    )
+    if not path.exists():
+        print("WINDOW missing", flush=True)
+        return
+    proto, span = _gltf_proto(path, "WinProto")
+    if proto is None:
+        return
+    height = max(span[2], 0.2)
+    width = max(span[0], span[1], 0.2)
+    scale = 3.4 / height
+    step_z = height * scale * 0.98
+    step_x = width * scale * 0.98
+    count = 0
+    z = 2.0
+    while z < 372.0:
+        _stamp(proto, (21.6, 27.5, z), 1.5708, scale)
+        _stamp(proto, (21.6 + step_x, 27.5, z), 1.5708, scale)
+        z += step_z
+        count += 2
+    proto.location.z = -400.0
+    print(f"WINDOWS {count} piece {span}", flush=True)
 
 
 def pose_frame(scene, cam, penny, arms, fr, speed=None):

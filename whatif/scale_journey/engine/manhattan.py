@@ -53,7 +53,7 @@ ROADS = CACHE / "assets_cc0_roads_props" / "roads_props" / "kenney_city_kit_road
 CARS = CACHE / "assets_cc0_vehicles" / "vehicles" / "kenney_car_kit" / "Models" / "GLB format"
 
 CELL = 200.0
-REACH = 1000.0
+REACH = 2400.0
 # Open plaza the scan occupies. City blocks tile outside it.
 PLAZA = (-78.0, 64.0, -44.0, 50.0)
 # One WTC is about 5.5 km south-southwest of the Empire State.
@@ -562,14 +562,7 @@ def _people():
         protos.append(empty)
     if not protos:
         return []
-    spots = [(x, 37.2, 1.4) for x in range(-40, 150, 22)]
-    # The impact group, on the sidewalk, facing back toward the coin and the lens.
-    # On the sidewalk the 32.5 s lens sees, and clustered at the landing.
-    spots += [
-        (MAN[0] - 1.8, MAN[1] + 0.15, 1.4),
-        (MAN[0] + 1.7, MAN[1] - 0.1, 1.8),
-        (MAN[0] + 0.4, MAN[1] + 0.7, 0.6),
-    ]
+    spots = [(x, 52.0, 0.2) for x in range(-30, 90, 18)]
     crowd = [proto for proto in protos if proto.location.x < 40.0] or protos
     for index, (x, y, yaw) in enumerate(spots):
         proto = crowd[index % len(crowd)]
@@ -680,6 +673,10 @@ def _corners(obj):
                 continue
             world = obj.matrix_world @ child.matrix_world
             pts.extend(world @ mathutils.Vector(corner) for corner in child.bound_box)
+    meshes = [obj] if obj.type == "MESH" else []
+    meshes.extend(child for child in obj.children_recursive if child.type == "MESH")
+    for child in meshes:
+        pts.extend(child.matrix_world @ mathutils.Vector(corner) for corner in child.bound_box)
     if len(pts) < 2:
         pts = [obj.matrix_world @ mathutils.Vector(corner) for corner in obj.bound_box]
     if pts and obj.get("cull") == "block":
@@ -736,6 +733,80 @@ def cull_to_camera(cam, margin=0.22, shadow_m=80.0, near_m=120.0):
     print(f"CULL hide {hidden} keep {kept}", flush=True)
 
 
+def _fresh_meshes(path: Path):
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(path))
+    return [obj for obj in bpy.data.objects if obj not in before and obj.type == "MESH"]
+
+
+def _grounded_proto(path: Path, name: str):
+    meshes = _fresh_meshes(path)
+    if not meshes:
+        print(f"PAVE missing {path.name}", flush=True)
+        return None
+    empty = _link(bpy.data.objects.new(name, None))
+    for obj in meshes:
+        world = obj.matrix_world.copy()
+        obj.parent = empty
+        obj.matrix_world = world
+    bpy.context.view_layer.update()
+    mn, _mx = _bounds(meshes)
+    empty.location.z -= mn.z
+    empty["cull"] = "prop"
+    empty["lod_hidden"] = 0
+    return empty
+
+
+def _pave_landing():
+    """Quaternius sidewalk and asphalt on the 34th/5th corner. The plaza had no ground."""
+    kit = (
+        CACHE
+        / "assets_cc0_city_buildings"
+        / "city_buildings"
+        / "quaternius_downtown_city_megakit"
+        / "Exports"
+        / "glTF (Godot)"
+    )
+    walk = _grounded_proto(kit / "Sidewalk_Straight_3m.gltf", "WalkProto")
+    asphalt = _grounded_proto(kit / "Street_Asphalt_9x9.gltf", "AsphaltProto")
+    if walk is None and asphalt is None:
+        return
+
+    def stamp(proto, x, y, yaw=0.0, z=0.02):
+        bpy.ops.object.select_all(action="DESELECT")
+        proto.select_set(True)
+        for child in proto.children_recursive:
+            child.select_set(True)
+        bpy.context.view_layer.objects.active = proto
+        bpy.ops.object.duplicate(linked=True)
+        copy = bpy.context.view_layer.objects.active
+        copy.location = (x, y, z)
+        copy.rotation_euler = (0.0, 0.0, yaw)
+        copy["cull"] = "prop"
+        copy["lod_hidden"] = 0
+
+    paved = 0
+    if asphalt is not None:
+        for x in range(-54, 120, 9):
+            for y in range(20, 140, 9):
+                if 14.0 < x < 26.0 and 18.0 < y < 36.0:
+                    continue
+                stamp(asphalt, x, y)
+                paved += 1
+        asphalt.location.z = -400.0
+    if walk is not None:
+        y = 67.2
+        for x in range(-36, 78, 3):
+            stamp(walk, x, y, 0.0, 0.05)
+            paved += 1
+        x = 31.5
+        for y in range(48, 78, 3):
+            stamp(walk, x, y, 1.5708, 0.05)
+            paved += 1
+        walk.location.z = -400.0
+    print(f"PAVE {paved}", flush=True)
+
+
 def dress_city(lod: bool = False):
     """Tile the NYC blocks, then the tower streets, sidewalk life, and One WTC."""
     import os
@@ -762,6 +833,7 @@ def dress_city(lod: bool = False):
     _wtc()
     _roads_and_cars()
     _crosswalks()
+    _pave_landing()
     _props()
     _commute()
     arms = _people()

@@ -349,18 +349,22 @@ def _penny(raw: dict) -> BEpisode:
         metric = f"{int(feet) * FT:,.0f} m"
         z_vis = alt_ft * FT
         ledge_xy = _penny_xy(drop)
-        ledge_penny = (ledge_xy[0], ledge_xy[1], drop + 0.12)
+        # Outer lip of the deck. The scan's roof is solid inside this point,
+        # so the coin and the camera have to sit in the air past it.
+        lip = (23.0, 26.8)
+        parapet = 373.9
+        ledge_penny = (lip[0], lip[1], parapet)
         if t < 0.57 or t >= 33.15:
             penny = ledge_penny
         else:
             xy = _penny_xy(z_vis)
-            penny = (xy[0], xy[1], z_vis + 0.08)
-            if 0.57 <= t < 2.4:
-                off = _fade(t, 0.57, 1.05)
+            penny = (xy[0], xy[1], z_vis)
+            if t < 2.4:
+                off = _fade(t, 0.7, 2.2)
                 penny = (
-                    ledge_xy[0] + off * 3.4 + 0.2 * _wind(t, 1.1, 2.4),
-                    ledge_xy[1] + off * 2.6 + 0.16 * _wind(t, 2.4, 2.1),
-                    penny[2],
+                    lip[0] + (xy[0] - lip[0]) * off + 0.08 * _wind(t, 1.1, 2.4),
+                    lip[1] + (xy[1] - lip[1]) * off + 0.06 * _wind(t, 2.4, 2.1),
+                    parapet + (min(z_vis, parapet) - parapet) * off,
                 )
             elif t < 20.2:
                 amp = _fade(t, 2.4, 3.2)
@@ -382,15 +386,17 @@ def _penny(raw: dict) -> BEpisode:
                 else:
                     hop = _fade(t, 21.07, 21.55)
                     penny = (MAN[0] + 0.7 * hop, MAN[1] - 0.4 * hop, penny[2])
-        # Shot 1: the camera stays on the deck and looks straight down.
-        hook_cam = (ledge_penny[0] + 2.2, ledge_penny[1] + 1.5, ledge_penny[2] + 1.55)
-        hook_tgt = (ledge_penny[0] - 22.0, ledge_penny[1] - 15.0, ledge_penny[2] - 20.5)
-        # Shot 2: beside the facade. XY ignores the flutter. Z lags the coin.
+        # Shot 1: on the deck, just inboard of the corner, looking over the rail
+        # at the city. The coin stays large and in front of the drop.
+        hook_cam = (28.4, 22.2, parapet + 3.2)
+        hook_tgt = (20.2, 31.0, parapet - 28.0)
+        # Shot 2: 24 mm, out in the air off the north-east corner so the
+        # limestone run and the street below are both in frame. Z lags the coin.
         mean_xy = _penny_xy(z_vis if t < 33.15 else drop)
         z_lag = _interp(altitude, max(0.0, t - 0.12)) * FT
-        z_follow = min(max(z_lag + 0.8, penny[2] + 0.85), penny[2] + 3.2)
-        drone_cam = (mean_xy[0] + 0.45, mean_xy[1] - 1.55, z_follow)
-        drone_tgt = (penny[0] - 0.8, penny[1] + 10.0, penny[2] - 12.0)
+        z_follow = min(max(z_lag + 0.6, penny[2] + 0.9), penny[2] + 3.2)
+        drone_cam = (mean_xy[0] + 2.8, mean_xy[1] + 2.1, z_follow)
+        drone_tgt = (mean_xy[0] - 1.4, mean_xy[1] - 1.1, penny[2] - 16.0)
         if 2.4 <= t < 19.07 and not (13.31 <= t < 15.10):
             drone_cam = (
                 drone_cam[0] + 0.16 * _wind(t, 8.2, 6.5),
@@ -400,12 +406,12 @@ def _penny(raw: dict) -> BEpisode:
         step = max(0.0, t - 23.9) * 0.9
         man_x, man_y = MAN[0] + step, MAN[1]
         # Shot 3 stays put and looks up the facade. He walks through the frame.
-        up_cam = (MAN[0] + 0.15, MAN[1] + 1.55, 1.62)
-        up_tgt = (MAN[0], MAN[1] - 0.05, 1.72)
+        up_cam = (MAN[0] + 0.35, MAN[1] + 2.9, 1.48)
+        up_tgt = (MAN[0] - 0.05, MAN[1] - 0.15, 1.38)
         face_cam = up_cam
         face_tgt = up_tgt
-        guy_cam = (MAN[0] + 0.15, MAN[1] - 0.2, 12.5)
-        guy_tgt = (MAN[0], MAN[1], 0.9)
+        guy_cam = (MAN[0] + 16.0, MAN[1] + 3.5, 9.5)
+        guy_tgt = (MAN[0] - 4.0, MAN[1] - 0.4, 0.3)
         if t < 2.4 or t >= 33.15:
             cam = hook_cam
             target = (penny[0], penny[1], penny[2] - 0.35)
@@ -451,11 +457,11 @@ def _penny(raw: dict) -> BEpisode:
             penny = clear_of_shaft(penny, 0.8)
         if t < 0.57 or t >= 33.15:
             spin, tilt, roll = 0.08, 0.15, 0.02
-        elif t < 1.15:
-            flick = _fade(t, 0.57, 1.15)
-            spin = 0.2 + flick * 3.4
-            tilt = 0.55 + flick * 5.5
-            roll = flick * 2.2
+        elif t < 1.35:
+            flick = _fade(t, 1.05, 1.35)
+            spin = 0.05 + flick * 1.2
+            tilt = 0.15 + flick * 1.4
+            roll = flick * 0.4
         else:
             damp = 1.0
             if t >= 21.07:

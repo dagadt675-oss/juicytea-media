@@ -23,7 +23,18 @@ Picture spec that is locked:
 - Frame 1001 is the same pose as frame 0. When assembling, **copy `frames/0000.png` over `frames/1001.png`** so the seam has no motion smear.
 - Physics, three-shot grammar, and the pedestrian reaction are in `whatif/scale_journey/engine/bformat.py` and `build_b.py`. See section 5.
 
-**Where this run stopped.** The 1002-frame film is **not** rendered locally and **not** committed as an mp4. Kristóf moved final frames to a Google Colab GPU (Tesla T4, OptiX). This VM builds, tests, and hands over a packed blend.
+**Where this run stopped.** Kristóf rendered review stills from the first Colab bundle and rejected them (grey scan slabs, empty sidewalk, identical reaction frames, a city edge and a ribbon). A corrected still set is in `/opt/cursor/artifacts/penny_stills_v2/` (1080×1920, 10 samples). The Colab bundle has **not** been rebuilt. Wait for his approval, then bake again with Blender 4.2.3.
+
+What changed for those stills:
+
+- The PeeJaa scan is loaded and then hidden. Its albedo is one 1024 aerial photo and its loose triangles were the grey slabs and the sky ribbon. The visible shaft is Quaternius `Brick_Inset_Window` courses plus a metal rail from the same downtown kit.
+- The coin is 9 cm across (was 17 cm) and sits on that parapet for the opening, then joins the real fall.
+- The drone camera is off the corner at 24 mm so the window wall and the street below are both in frame.
+- Quaternius sidewalk and asphalt pave the 34th/5th corner. The hero is no longer standing on nothing.
+- Reaction offsets sit on the captured idle pose (euler 0 on this rig is a T). Frame 633 and frame 700 are different poses.
+- City tiles reach 2.4 km and a light world haze fades the distance. Camera culling is off until a still proves it does not eat a shot.
+
+**Earlier stop, before that rejection.** The 1002-frame film was not rendered locally. Kristóf moved final frames to a Google Colab GPU (Tesla T4, OptiX). The first packed blend is the one he rejected.
 
 The bundle is ready:
 
