@@ -1,14 +1,16 @@
 """Reusable map VFX. Specs pass seconds, not frame numbers.
 
-Already in the engine, and left there: smoothstep and cubic-out in
-`moves.py`, the van Wijk flyTo in `flyto.py`, word clocks in `words.json`,
-a single wide glow stroke, pill measureText, a strong vignette, and an
-ortho atmosphere stroke in `jt/draw.py`.
+Three layers, in order:
 
-Camera moves elsewhere in the engine are long ease-in-out glides. Impact
-shake, Perlin sway, and motion jolts stay off: nothing here sways the
-camera. A snap may use the seconds-based spring integrator, which
-overshoots once and settles. Long dives stay on the eased exponential zoom.
+1. Core. Spring arrivals, zoom-aware strokes, a pixel or two of line
+   displacement. The camera does not sway.
+2. Lens and atmosphere. Adaptive blur and glow-reactive dust. A dark
+   single-accent focus mask is optional and only while a beat asks for it.
+3. Optical output. Barrel distortion on the map, then edge chromatic
+   aberration and dither on the finished frame.
+
+The default plate is the colourful satellite globe. Word timestamps drive
+the flashes. Impact shake, Perlin sway, and motion jolts stay off.
 """
 
 from __future__ import annotations
@@ -159,6 +161,50 @@ def neon_passes(core: float = 2.0) -> list[tuple[float, float]]:
 def stroke_for_zoom(base: float, zoom: float) -> float:
     """Thinner strokes when the camera is wider, so a border stays a border."""
     return float(base) / math.sqrt(max(0.25, float(zoom)))
+
+
+def displace_line(pts: list[tuple[float, float]], t: float, amp: float = 1.2) -> list[tuple[float, float]]:
+    """A slow, tiny offset along the normal. Enough to feel alive, not a shake."""
+    if len(pts) < 2 or amp <= 0.0:
+        return list(pts)
+    out = []
+    last = len(pts) - 1
+    for i, (x, y) in enumerate(pts):
+        if i == 0:
+            dx, dy = pts[1][0] - x, pts[1][1] - y
+        elif i == last:
+            dx, dy = x - pts[i - 1][0], y - pts[i - 1][1]
+        else:
+            dx = pts[i + 1][0] - pts[i - 1][0]
+            dy = pts[i + 1][1] - pts[i - 1][1]
+        length = math.hypot(dx, dy) or 1.0
+        wobble = math.sin(t * 1.4 + i * 0.8) * float(amp)
+        out.append((x - dy / length * wobble, y + dx / length * wobble))
+    return out
+
+
+def flash_envelope(t: float, words: list[dict], dur: float = 0.32) -> float:
+    """0..1. Every peak sits on a word start from words.json."""
+    hot = 0.0
+    for word in words:
+        t0 = float(word.get("t0", word.get("t", 0.0)))
+        age = float(t) - t0
+        if dur > 0.0 and 0.0 <= age <= dur:
+            hot = max(hot, math.sin(math.pi * age / dur))
+    return hot
+
+
+def focus_amount(t: float, beats: list[dict]) -> float:
+    """Dark single-accent mode. Zero unless a beat sets style to focus."""
+    hot = 0.0
+    for beat in beats:
+        if beat.get("type") != "focus" and beat.get("style") != "focus":
+            continue
+        dur = float(beat.get("dur", 0.9))
+        age = float(t) - float(beat["t"])
+        if dur > 0.0 and 0.0 <= age <= dur:
+            hot = max(hot, math.sin(math.pi * age / dur))
+    return hot
 
 
 def trim_polyline(pts: list[tuple[float, float]], u: float) -> list[tuple[float, float]]:
@@ -484,6 +530,45 @@ def apply_lens_dust(img: np.ndarray, glow: float) -> np.ndarray:
     return np.clip(out, 0, 255).astype(np.uint8)
 
 
+def lens_atmosphere(img: np.ndarray, sigma: float, glow: float, protect: np.ndarray | None = None,
+                    focus: float = 0.0, cx: float = 540.0, cy: float = 960.0,
+                    travel: float = 0.0, arrive: float = 1.0) -> np.ndarray:
+    """Layer 2. Blur and dust. The dark focus mask runs only while `focus` is up."""
+    out = img
+    if focus > 0.04:
+        out = apply_focus_mask(out, cx, cy, travel=max(travel, 0.2), arrive=max(arrive, focus))
+    out = adaptive_blur(out, sigma, protect)
+    return apply_lens_dust(out, glow)
+
+
+def edge_chromatic(img: np.ndarray) -> np.ndarray:
+    """One pixel of red shift, and only in the rim."""
+    h, w = img.shape[:2]
+    ys = np.linspace(-1.0, 1.0, h, dtype=np.float32)[:, None]
+    xs = np.linspace(-1.0, 1.0, w, dtype=np.float32)[None, :]
+    radius = np.sqrt(xs * xs * 0.85 + ys * ys)
+    edge = np.clip((radius - 0.72) / 0.28, 0.0, 1.0)
+    out = img.astype(np.float32)
+    red = out[:, :, 0]
+    shifted = np.roll(red, 1, axis=1)
+    out[:, :, 0] = red * (1.0 - edge * 0.45) + shifted * (edge * 0.45)
+    return out
+
+
+def dither_frame(img: np.ndarray, t: float) -> np.ndarray:
+    """One least-significant-bit of deterministic noise, against banding."""
+    rng = np.random.default_rng(int(float(t) * 1000.0) & 0xFFFFFFFF)
+    noise = rng.integers(-1, 2, size=img.shape, dtype=np.int16)
+    base = img if img.dtype != np.float32 else img
+    return np.clip(base.astype(np.float32) + noise, 0, 255).astype(np.uint8)
+
+
+def optical_output(img: np.ndarray, t: float, barrel: bool = False) -> np.ndarray:
+    """Layer 3. Barrel is opt-in because captions must not bend with the map."""
+    out = barrel_distort(img) if barrel else img
+    return dither_frame(edge_chromatic(out), t)
+
+
 def ink_color(color: tuple[int, int, int], paper: tuple[int, int, int] = (214, 186, 140), mix: float = 0.22) -> tuple[int, int, int]:
     """Pull the ink a little toward the paper so it looks soaked, not neon-pure."""
     mix = _clamp(mix)
@@ -584,18 +669,13 @@ def grade(img: np.ndarray, t: float) -> np.ndarray:
     out = img.astype(np.float32)
     out *= vig[..., None]
     out = (out - 8.0) * 1.04 + 8.0
-    # Edge chroma: red drifts one pixel toward the right, only in the rim.
-    edge = np.clip((r - 0.72) / 0.28, 0, 1).astype(np.float32)
-    red = out[:, :, 0]
-    shifted = np.roll(red, 1, axis=1)
-    out[:, :, 0] = red * (1.0 - edge * 0.45) + shifted * (edge * 0.45)
     # Saturation falls off with the vignette. The centre stays vivid.
     luma = 0.2126 * out[:, :, 0] + 0.7152 * out[:, :, 1] + 0.0722 * out[:, :, 2]
     fade = (np.clip((r - 0.62) / 0.55, 0.0, 1.0) ** 1.3) * 0.34
     out = out * (1.0 - fade[..., None]) + luma[..., None] * fade[..., None]
-    rng = np.random.default_rng(int(t * 1000.0) & 0xFFFFFFFF)
-    noise = rng.integers(-1, 2, size=out.shape, dtype=np.int16)
-    return np.clip(out + noise, 0, 255).astype(np.uint8)
+    # Optical output, without a second barrel pass. Captions are already in frame
+    # and the shift is one pixel at the rim only.
+    return optical_output(np.clip(out, 0, 255).astype(np.uint8), t, barrel=False)
 
 
 def spill_falloff(dist: float, radius: float = 80.0, gain: float = 1.0) -> float:

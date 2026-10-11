@@ -46,9 +46,13 @@ from jt.show.vfx_core import (  # noqa: E402
     draw_ink_bleed,
     exp_zoom,
     glitch_active,
+    displace_line,
+    flash_envelope,
+    focus_amount,
     glow_hillshade,
     grade,
     label_style,
+    lens_atmosphere,
     multiply_rgb,
     overlay_grain,
     overshoot,
@@ -94,6 +98,14 @@ class Proof:
         self.earth = build_earth()
         self.plates = build_plates(self.earth)
         self.open_span = float(spec["camera"][0]["span"])
+        words_path = spec.get("words")
+        if words_path:
+            path = Path(words_path)
+            if not path.is_absolute():
+                path = SPEC.parent / path
+            self.words = json.loads(path.read_text(encoding="utf-8")).get("words") or []
+        else:
+            self.words = []
 
     def cam(self, t: float) -> Cam:
         keys = self.spec["camera"]
@@ -156,6 +168,8 @@ class Proof:
                 age = t - float(beat["t"])
                 if dur > 0 and 0.0 <= age <= dur:
                     level = max(level, math.sin(math.pi * age / dur))
+        # Word timestamps own the flashes. A beat can still push a stress word higher.
+        level = max(level, 0.85 * flash_envelope(t, self.words))
         return level
 
     def _glow_gain(self, t: float) -> float:
@@ -213,13 +227,15 @@ class Proof:
         zoom = self.open_span / max(1e-3, cam.span)
         travel = _clamp(speed / 0.55)
         arrive = 1.0 - travel
-        focus = project_one(15.0, 62.5, view_for(cam, W, H)) if cam.proj else None
-        fx, fy = (focus if focus is not None else (W * 0.5, H * 0.46))
-        if self.spec.get("focus", True):
-            img = apply_focus_mask(img, fx, fy, travel, arrive * (1.0 if glow > 0.2 else 0.35))
-        sigma = travel_blur_sigma(speed, zoom)
-        if self.spec.get("dof", True):
-            img = adaptive_blur(img, sigma, protect if protect.any() else None)
+        focus_pt = project_one(15.0, 62.5, view_for(cam, W, H)) if cam.proj else None
+        fx, fy = (focus_pt if focus_pt is not None else (W * 0.5, H * 0.46))
+        # Dark focus is a dramatic beat, not the default colourful plate.
+        drama = focus_amount(t, self.spec["beats"])
+        sigma = travel_blur_sigma(speed, zoom) if self.spec.get("dof", True) else 0.0
+        img = lens_atmosphere(
+            img, sigma, glow, protect if protect.any() else None,
+            focus=drama, cx=fx, cy=fy, travel=travel, arrive=arrive,
+        )
         rgba = np.dstack([img, np.full((H, W), 255, np.uint8)])
         surface = skia.Surface(W, H)
         canvas = surface.getCanvas()
@@ -296,6 +312,7 @@ class Proof:
                 p = project_one(lon, lat, view)
                 if p is not None:
                     screen.append(p)
+            screen = displace_line(screen, t, amp=1.15)
             origins = int(beat.get("origins", 4))
             strands = border_strands(screen, origins=origins, progress=u)
             color = (80, 220, 255) if hot < 0.4 else (255, 220, 80)

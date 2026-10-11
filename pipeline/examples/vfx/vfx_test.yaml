@@ -9,9 +9,10 @@ barrel: true
 grain: true
 # 1/d^2 spill around extruded countries. The impact beat pulses it. No camera shake.
 spill: true
-# Radial focus opens while travelling. Background blur follows speed. Captions stay sharp.
-focus: true
+# Colourful satellite is the default. Focus mode is one dramatic beat below.
+# Travel blur follows speed. Captions are drawn after it.
 dof: true
+words: words.json
 camera:
   - {t: 0.0, proj: ortho, lon: 18, lat: 63, span: 100, ease: out, exp: true}
   - {t: 1.6, proj: ortho, lon: 10, lat: 58, span: 62, ease: out, exp: true}
@@ -40,7 +41,8 @@ beats:
   - {t: 8.70, type: badge, name: badge-finland, text: "FINLAND", x: 540, y: 420}
   # Three frames. Map only, so the badge does not tear.
   - {t: 9.10, type: glitch, name: glitch-hit, frames: 3}
-  - {t: 10.40, type: stress, name: stress-huge, word: HUGE, dur: 0.7}
+  # Optional dark accent. The rest of the clip stays the colourful globe.
+  - {t: 10.40, type: stress, name: stress-huge, word: HUGE, dur: 0.9, style: focus}
   # Light pulse only. The camera does not shake.
   - {t: 12.40, type: impact, name: impact, dur: 0.25, amp: 0}
   - {t: 14.20, type: laser, name: laser-second, dur: 1.6, ink: true, origins: 3}

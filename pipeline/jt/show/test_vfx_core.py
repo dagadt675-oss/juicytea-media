@@ -21,6 +21,9 @@ from jt.show.vfx_core import (  # noqa: E402
     apply_glitch,
     border_strands,
     camera_micro_offset,
+    displace_line,
+    flash_envelope,
+    focus_amount,
     dust_opacity,
     glitch_active,
     ink_color,
@@ -101,6 +104,14 @@ def main() -> None:
     assert lit[12, 12, 2] > lit[0, 0, 2]
     # Part 6 and 7. No constant sway. Effects stay small.
     assert camera_micro_offset(1.5) == (0.0, 0.0)
+    moved = displace_line([(0.0, 0.0), (10.0, 0.0), (20.0, 0.0)], 0.4, amp=1.2)
+    assert max(abs(p[1]) for p in moved) <= 1.21
+    assert displace_line([(0.0, 0.0), (10.0, 0.0)], 0.4, 1.2) == displace_line([(0.0, 0.0), (10.0, 0.0)], 0.4, 1.2)
+    words = [{"w": "HUGE", "t0": 1.0, "t1": 1.4}]
+    assert flash_envelope(0.5, words) == 0.0
+    assert flash_envelope(1.16, words) > 0.9
+    assert focus_amount(1.0, [{"t": 1.0, "type": "stress"}]) == 0.0
+    assert focus_amount(1.2, [{"t": 1.0, "type": "stress", "style": "focus", "dur": 0.8}]) > 0.5
     assert travel_blur_sigma(0.0) == 0.0
     assert travel_blur_sigma(2.0, zoom=1.0) > travel_blur_sigma(2.0, zoom=6.0) > 0.0
     assert travel_blur_sigma(2.0) <= 2.0
