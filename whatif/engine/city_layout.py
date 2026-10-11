@@ -15,12 +15,12 @@ import math
 # Positive yaw brings the near end down into the camera, onto the foreground road.
 BRIDGE_YAW = math.radians(11.0)
 DECK_ROT_Z = -BRIDGE_YAW
-DECK_ORIGIN = (8.0, 79.0)
-DECK_W = 16.0
+DECK_ORIGIN = (12.0, 79.0)
+DECK_W = 10.0
 DECK_HALF = DECK_W / 2.0
-DECK_Z = 8.5
+DECK_Z = 4.6
 SOUTH_Z = 0.62
-TOWER_W = 18.0
+TOWER_W = 12.2
 TOWER_LEG = 1.6
 # Both portals are over the water, on the level deck.
 TOWER_S = (32.0, 102.0)
@@ -36,44 +36,44 @@ FAR_Z = 1.8
 
 # Grey, white, light blue, and salmon. The back row is lifted toward blue in the scene.
 SKYLINE_COLORS = (
-    (0.78, 0.80, 0.83, 1),
-    (0.94, 0.94, 0.93, 1),
+    (0.82, 0.86, 0.90, 1),
+    (0.94, 0.95, 0.96, 1),
+    (0.70, 0.80, 0.90, 1),
+    (0.78, 0.82, 0.88, 1),
+    (0.90, 0.88, 0.84, 1),
+    (0.86, 0.55, 0.50, 1),
     (0.62, 0.74, 0.86, 1),
-    (0.70, 0.73, 0.78, 1),
-    (0.90, 0.86, 0.80, 1),
-    (0.84, 0.48, 0.42, 1),
-    (0.55, 0.66, 0.80, 1),
-    (0.80, 0.45, 0.40, 1),
-    (0.86, 0.62, 0.55, 1),
-    (0.73, 0.80, 0.88, 1),
+    (0.80, 0.50, 0.46, 1),
+    (0.86, 0.70, 0.64, 1),
+    (0.76, 0.84, 0.92, 1),
 )
-# y, hmin, hmax, x0, x1, (wmin, wmax). Heights stay inside the frame (88 m clips).
+# y, hmin, hmax, x0, x1, (wmin, wmax). Kept under the title at this camera.
 SKYLINE_ROWS = (
-    (208.0, 16.0, 50.0, -110.0, 150.0, (9.0, 18.0)),
-    (242.0, 22.0, 68.0, -120.0, 160.0, (8.0, 16.0)),
-    (278.0, 28.0, 84.0, -100.0, 150.0, (7.0, 14.0)),
+    (188.0, 16.0, 44.0, -140.0, 180.0, (5.2, 9.5)),
+    (210.0, 22.0, 60.0, -150.0, 190.0, (4.8, 8.5)),
+    (236.0, 28.0, 74.0, -130.0, 180.0, (4.4, 8.0)),
 )
 
 # Park paths. Cars must not sit on these.
 PATHS = (
-    ("promenade", -22.0, 55.0, 3.4, 44.0),
-    ("path_a", -8.0, 48.0, 36.0, 2.2),
-    ("path_b", -30.0, 64.0, 2.2, 28.0),
-    ("path_c", -4.0, 68.0, 28.0, 2.0),
-    ("plaza", -20.0, 58.0, 9.0, 9.0),
+    ("v1", -42.0, 58.0, 1.4, 18.0),
+    ("v2", -26.0, 58.0, 1.4, 18.0),
+    ("v3", -10.0, 58.0, 1.4, 16.0),
+    ("h1", -26.0, 42.0, 20.0, 1.2),
+    ("h2", -26.0, 56.0, 20.0, 1.2),
+    ("h3", -26.0, 70.0, 20.0, 1.2),
+    ("plaza", -38.0, 60.0, 4.5, 4.5),
 )
-FOUNTAIN = (-20.0, 58.0)
-# East-west traffic on the foreground road, clear of the park paths.
-# West of the bridge landing (center x about -3). Kept off the deck slab.
+FOUNTAIN = (-38.0, 60.0)
+# One eastbound row on the near road, clear of the bridge slab and the park paths.
 FOREGROUND_CARS = (
-    (-32.0, 21.0),
-    (-28.0, 27.0),
-    (-16.0, 19.0),
-    (-14.0, 26.0),
-    (-17.5, 23.0),
-    (-30.0, 16.5),
+    (-36.0, 17.6),
+    (-24.0, 17.4),
+    (-12.0, 17.8),
+    (14.0, 17.5),
+    (26.0, 17.7),
 )
-DECK_LANES = (-5.0, -2.2, 2.2, 5.0)
+DECK_LANES = (-2.4, -0.8, 0.8, 2.4)
 
 
 def deck_direction():

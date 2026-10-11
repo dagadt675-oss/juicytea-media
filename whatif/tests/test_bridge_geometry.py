@@ -33,7 +33,7 @@ class BridgeGeometryTest(unittest.TestCase):
 
     def test_skyline_keeps_height_and_color(self):
         heights = [row[2] for row in SKYLINE_ROWS]
-        self.assertGreaterEqual(max(heights), 60.0)
+        self.assertGreaterEqual(max(heights), 70.0)
         self.assertLessEqual(min(row[1] for row in SKYLINE_ROWS), 24.0)
         self.assertGreaterEqual(len(SKYLINE_ROWS), 3)
         blues = [color for color in SKYLINE_COLORS if color[2] > color[0] + 0.08]

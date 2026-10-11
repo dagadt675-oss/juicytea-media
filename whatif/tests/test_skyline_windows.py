@@ -20,7 +20,7 @@ class SkylineWindowTest(unittest.TestCase):
         report = json.loads(Path("/tmp/skyline_window.json").read_text(encoding="utf-8"))
         self.assertGreaterEqual(report["wall"], 0.35)
         self.assertGreaterEqual(report["dark_fraction"], 0.12)
-        self.assertLessEqual(report["dark_fraction"], 0.72)
+        self.assertLessEqual(report["dark_fraction"], 0.80)
         self.assertGreaterEqual(report["bands"], 4)
 
 

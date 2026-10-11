@@ -360,9 +360,9 @@ def make_facade_material():
         inside = _math(nt, "MULTIPLY", inside, _math(nt, "LESS_THAN", wrapped, period - margin))
         return inside
 
-    x_pane = pane(axes.outputs["X"], 3.15, 0.38)
-    y_pane = pane(axes.outputs["Y"], 3.15, 0.38)
-    z_pane = pane(axes.outputs["Z"], 3.65, 0.5)
+    x_pane = pane(axes.outputs["X"], 2.05, 0.22)
+    y_pane = pane(axes.outputs["Y"], 2.05, 0.22)
+    z_pane = pane(axes.outputs["Z"], 2.35, 0.28)
     window = _math(
         nt,
         "MAXIMUM",

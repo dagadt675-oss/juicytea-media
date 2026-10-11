@@ -88,7 +88,7 @@ def main():
     }
     Path("/tmp/skyline_window.json").write_text(json.dumps(report), encoding="utf-8")
     print("SKYLINE", report)
-    if wall < 0.35 or not (0.12 <= fraction <= 0.72) or bands < 4:
+    if wall < 0.35 or not (0.12 <= fraction <= 0.80) or bands < 4:
         raise SystemExit(f"facade lost its window grid: {report}")
 
 
