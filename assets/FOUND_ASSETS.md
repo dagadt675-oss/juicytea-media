@@ -79,3 +79,33 @@ Append-only log of files found on the web for this branch, so they can be mirror
 - Size: 1,988 bytes (license file 1,059 bytes)
 - For: the radial zoom-blur kernel used by `apply_zoom_blur` in `pipeline/jt/show/moves.py`
 - Copy: `assets/found/code/glfx-zoomblur.js`, `assets/found/code/glfx-LICENSE`
+
+## Poly Haven aerial rocks
+
+- Name: `aerial_rocks_02_diff_1k.jpg`
+- Direct download: https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/aerial_rocks_02/aerial_rocks_02_diff_1k.jpg
+- Source page: https://polyhaven.com/a/aerial_rocks_02
+- License: CC0. No on-screen credit required.
+- Size: 785,923 bytes
+- For: rocky texture on the Märket close-up, clipped to the islet, instead of a flat fill
+- Copy: `assets/found/aerial_rocks_02_diff_1k.jpg`
+
+## Natural Earth cross-blended hypso with shaded relief
+
+- Name: `HYP_50M_SR_W`
+- Direct download: https://naciscdn.org/naturalearth/50m/raster/HYP_50M_SR_W.zip
+- Source page: https://www.naturalearthdata.com/downloads/50m-raster-data/50m-cross-blend-hypso/
+- License: public domain (Natural Earth / Tom Patterson). No on-screen credit required.
+- Size: zip 102,197,904 bytes. The working JPEG copy is the 5400×2700 plate.
+- For: the regional LoD plate between Blue Marble and a local zoom
+- Copy: `assets/found/HYP_50M_SR_W.jpg`
+
+## EOX Sentinel-2 cloudless 2020, southern Scandinavia tiles
+
+- Name: `sentinel_local.jpg`
+- Direct download: `https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/g/7/{x}/{y}.jpg` for x=69–71, y=36–38
+- Source page: https://s2maps.eu/
+- License: CC BY 4.0 (Contains modified Copernicus Sentinel data 2020, processed by EOX). Attribution is required by the licence; it is not burned into the picture.
+- Size: 69 KB stitched preview, west 14.06, south 57.33, east 22.50, north 61.61
+- For: the deep-zoom LoD plate
+- Copy: `assets/found/sentinel_local.jpg`, `assets/found/sentinel_local.json`

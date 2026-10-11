@@ -1,0 +1,120 @@
+{
+  "cues": [
+    {
+      "t": 0.15,
+      "kind": "pop",
+      "name": "sweden"
+    },
+    {
+      "t": 1.65,
+      "kind": "pop",
+      "name": "finland"
+    },
+    {
+      "t": 3.15,
+      "kind": "draw",
+      "name": "sweden-block"
+    },
+    {
+      "t": 3.35,
+      "kind": "draw",
+      "name": "finland-block"
+    },
+    {
+      "t": 3.7,
+      "kind": "draw",
+      "name": "land-border"
+    },
+    {
+      "t": 4.7,
+      "kind": "draw",
+      "name": "sea-border"
+    },
+    {
+      "t": 5.55,
+      "kind": "pop",
+      "name": "arrow-a"
+    },
+    {
+      "t": 5.85,
+      "kind": "pop",
+      "name": "arrow-b"
+    },
+    {
+      "t": 6.3,
+      "kind": "whoosh",
+      "name": "magnifier"
+    },
+    {
+      "t": 8.05,
+      "kind": "whoosh",
+      "name": "snap-gulf"
+    },
+    {
+      "t": 9.25,
+      "kind": "whoosh",
+      "name": "snap-island"
+    },
+    {
+      "t": 10.2,
+      "kind": "draw",
+      "name": "zigzag"
+    },
+    {
+      "t": 10.9,
+      "kind": "pop",
+      "name": "question-1"
+    },
+    {
+      "t": 11.15,
+      "kind": "pop",
+      "name": "question-2"
+    },
+    {
+      "t": 11.4,
+      "kind": "pop",
+      "name": "question-3"
+    },
+    {
+      "t": 12.25,
+      "kind": "draw",
+      "name": "zigzag-glow"
+    },
+    {
+      "t": 13.35,
+      "kind": "pop",
+      "name": "parking-lot"
+    },
+    {
+      "t": 14.85,
+      "kind": "pop",
+      "name": "lot-thumb"
+    },
+    {
+      "t": 16.05,
+      "kind": "draw",
+      "name": "pencil-redraw"
+    },
+    {
+      "t": 17.7,
+      "kind": "draw",
+      "name": "slice-mid"
+    },
+    {
+      "t": 19.15,
+      "kind": "pop",
+      "name": "slice-done"
+    },
+    {
+      "t": 19.95,
+      "kind": "whoosh",
+      "name": "loop-tail"
+    },
+    {
+      "t": 21.05,
+      "kind": "whoosh",
+      "name": "return"
+    }
+  ],
+  "duration": 22.0
+}
