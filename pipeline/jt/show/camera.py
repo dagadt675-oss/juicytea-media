@@ -1,9 +1,9 @@
-"""Globe-to-map camera. Ease curves, snap segments, and a loop tail.
+"""Globe-to-map camera. Ease-in-out moves, projection cuts, and a loop tail.
 
-A segment whose projections differ is a whip, not a dissolve. Inside one
-segment the centre and the span move one way. The tail eases toward the
-opening and stops one frame short, so last→first is the next step of the
-same move rather than a repeated frame.
+A segment whose projections differ is a cut at the halfway mark, not a
+smear. Inside one segment the centre and the span ease one way. The tail
+eases toward the opening and stops one frame short, so last→first is the
+next step of the same move rather than a repeated frame.
 """
 
 from __future__ import annotations
@@ -59,7 +59,8 @@ def mix(a: Cam, b: Cam, u: float) -> Cam:
 class Key:
     t: float
     cam: Cam
-    ease: str = "linear"
+    # Long ease-in-out is the engine default. Linear is opt-in.
+    ease: str = "in_out"
 
 
 class CameraTrack:
@@ -83,9 +84,9 @@ class CameraTrack:
                 continue
             span = b.t - a.t
             u = 0.0 if span <= 1e-6 else (t - a.t) / span
-            # Linear on the busy moves. The outro key asks for an in-out ease
-            # so the wide return does not read as a cut.
-            s = _ease(u, a.ease or "linear")
+            # Ease-in-out unless a key asks for something else. A projection
+            # change is still a cut: the two maps do not smear together.
+            s = _ease(u, a.ease or "in_out")
             if a.cam.proj != b.cam.proj:
                 return CamState(a.cam, b.cam, s)
             return CamState(mix(a.cam, b.cam, s))

@@ -1,9 +1,9 @@
-"""Greenland vs Africa, silent, locked to the 42.411 s take.
+"""Greenland vs Africa, silent, retimed to the 52.428 s read.
 
-Frame 0 is the flat Mercator lie: Greenland painted as large as Africa,
-with the THIS MAP IS LYING pill already settled (the loop has to land on
-that frame, not on a pop). The globe snap, the three gag mouths, the
-16×→1× counter and the 14× tiles all hit the word times in words.json.
+Same framings as the approved polished short. The camera only glides:
+each move is a long ease-in-out on the word that used to own it, then it
+holds. No snaps, no shake, no idle drift, no motion blur. Frame 0 is the
+flat Mercator lie with the three settled pills, and the loop lands there.
 """
 
 from __future__ import annotations
@@ -37,8 +37,6 @@ from jt.show.truesize import (
     reproject_true,
     shoelace,
 )
-from style.gold import pop_scale
-
 FPS = 30
 WORDS_PATH = Path(__file__).resolve().parents[2] / "examples" / "greenland" / "words.json"
 CLOCK = load_clock(WORDS_PATH)
@@ -97,7 +95,7 @@ def _cues() -> list:
         (w("BIG"), "pop", "same-size"),
         (w("AFRICA"), "pop", "africa"),
         (w("NOT"), "stamp", "not"),
-        (2.50, "whoosh", "globe-snap"),
+        (w("IT") + 0.043, "whoosh", "globe"),
         (w("EVEN"), "draw", "algeria-outline"),
         (w("ALGERIA"), "pop", "algeria"),
         (b.excuse0, "boing", "excuse-me"),
@@ -107,7 +105,6 @@ def _cues() -> list:
         (w("MORE"), "tick", "more"),
         (w("POLES"), "pop", "poles"),
         (w("SITS", after=10), "pop", "greenland-sits"),
-        (11.46, "tick", "snap-punch"),
         (b.sixteen, "impact", "sixteen"),
         (w("TOO", after=b.sixteen), "tick", "too-big"),
         (w("LET"), "whoosh", "drag"),
@@ -204,94 +201,75 @@ def lat_for_display(d: float) -> float:
     return math.degrees(math.acos(min(1.0, max(0.0, cos_lat))))
 
 
-def _bump(t: float, t0: float, dur: float = 0.34) -> float:
-    """One-way snap. 0 before t0, 1 after t0+dur. Never comes back."""
-    if t <= t0:
-        return 0.0
-    if t >= t0 + dur:
-        return 1.0
-    x = (t - t0) / dur
-    return x * x * (3.0 - 2.0 * x)
-
-
 def apply_motion(cam: Cam, t: float) -> Cam:
-    """Extra push, drift, and snaps keyed off the word clock."""
+    """The approved explainer and drag drifts, as ramps.
+
+    The old snaps, the one-frame landing jolt, and the idle hold-zoom are gone.
+    The ramp eases back out so a later shot does not inherit it as a pop.
+    """
     if cam.proj != "merc":
         return cam
     b = CLOCK
     span, lon, lat = cam.span, cam.lon, cam.lat
-    # The 0–2.5 s push-in lives on the camera keys (4% span, one-way drift)
-    # so the loop seam and the opening are the same step.
-    # Mercator explainer: continuous 4.5% zoom/pan, then a 10% snap on SIXTEEN.
-    if b.heres - 0.05 <= t <= b.sixteen + 0.5:
-        dur = max(0.4, b.sixteen - b.heres)
-        u = _clamp((t - b.heres) / dur)
-        span *= 1.0 - 0.05 * u
+    if b.heres <= t <= b.drag:
+        inn = _smooth(_clamp((t - b.heres) / max(0.4, b.sixteen - b.heres)))
+        back = _smooth(_clamp((t - (b.sixteen + 0.35)) / max(0.4, b.drag - (b.sixteen + 0.35))))
+        u = inn * (1.0 - back)
+        span *= 1.0 - 0.13 * u
         lon -= 10.0 * u
         lat += 4.0 * u
-        # 6.9 s: a 7% snap with the round-earth inset. One way, so later beats stay put.
-        span *= 1.0 - 0.08 * _bump(t, 6.9, 0.28)
-        span *= 1.0 - 0.11 * _bump(t, b.sixteen, 0.36)
-    # Shrink/drag keeps moving, and sits higher so the tip clears the caption band.
-    if b.sixteen + 0.5 < t < b.drag:
-        u = (t - (b.sixteen + 0.5)) / max(0.3, b.drag - (b.sixteen + 0.5))
-        lon += 4.0 * u
-        lat -= 1.5 * u
-    if b.drag <= t <= b.drop + 0.4:
-        u = _clamp((t - b.drag) / max(0.4, b.drop - b.drag))
+    if b.drag <= t <= b.fourteen:
+        inn = _smooth(_clamp((t - b.drag) / max(0.4, b.drop - b.drag)))
+        back = _smooth(_clamp((t - (b.drop + 0.35)) / 1.2))
+        u = inn * (1.0 - back)
         span *= 1.0 - 0.06 * u
         lon += 5.0 * u
-    # Algeria / DR Congo: drift, snap on Algeria, snap on Congo.
-    if b.algeria - 0.25 <= t <= b.congo + 1.5:
-        dur = max(0.4, (b.congo + 1.5) - (b.algeria - 0.25))
-        u = _clamp((t - (b.algeria - 0.25)) / dur)
+    # The Algeria / Congo / Hi look. One ease in, a hold through the gag, one ease out.
+    if b.algeria - 0.4 <= t <= b.usa:
+        inn = _smooth(_clamp((t - (b.algeria - 0.4)) / 1.6))
+        back = _smooth(_clamp((t - (b.hi1 + 0.2)) / max(0.45, (b.usa - 0.2) - (b.hi1 + 0.2))))
+        u = inn * (1.0 - back)
+        span *= 1.0 - 0.16 * u
         lon += 7.0 * u
         lat -= 3.0 * u
-        span *= 1.0 - 0.05 * u
-        span *= 1.0 - 0.12 * _bump(t, b.algeria, 0.28)
-        span *= 1.0 - 0.12 * _bump(t, b.congo, 0.28)
-    # The pack holds a wide Africa. Drift it so those seconds are not a freeze.
-    if b.usa - 0.2 <= t <= b.outro:
-        u = _clamp((t - (b.usa - 0.2)) / max(0.4, b.outro - (b.usa - 0.2)))
-        lon += 8.0 * u
-        lat += 3.0 * u
-        span *= 1.0 - 0.03 * u
-    # Snap-zooms. Each one moves the coasts, so the structural meter sees an event.
-    # Negative amount is a pull-out. They settle before the loop tail.
-    for t0, amount, dlon, dur in (
-        # Sharp and early. A slower punch at 11.85 was swallowed by the
-        # SIXTEEN snap, which left 10.47–13.2 as one quiet stretch.
-        (11.46, 0.13, 2.2, 0.20),
-        (28.20, 0.10, -1.2, 0.42),
-        (b.usa, 0.10, 1.0, 0.42),
-        (b.china, 0.10, -1.0, 0.42),
-        (b.india, 0.10, 0.8, 0.42),
-        (b.europe, 0.10, -1.0, 0.42),
-        (b.europe + 1.35, -0.10, 0.0, 0.42),
-        (43.35, 0.09, -0.8, 0.42),
-    ):
-        p = _punch(t, t0, dur)
-        span *= 1.0 - amount * p
-        lon += dlon * p
-    # One frame at the landing: about 3 px, then the next frame is back.
-    if abs(t - b.drop) <= (0.5 / FPS):
-        deg = span * (3.0 / 1080.0)
-        lat -= deg
-        lon += deg * 0.4
-    # A 3% one-way zoom on the holds that would otherwise sit still.
-    # The loop tail is left alone so the last frame stays one step before frame 0.
-    if t < TAIL0:
-        for t0, t1 in (
-            (b.sixteen + 0.55, b.drag),
-            (b.drop + 0.5, b.algeria - 0.3),
-            (b.congo + 1.6, b.usa - 0.25),
-        ):
-            if t0 < t < t1:
-                u = (t - t0) / (t1 - t0)
-                span *= 1.0 - 0.03 * u
-                lon += 1.2 * u
-                break
     return Cam(cam.proj, lon, lat, max(12.0, span))
+
+
+def _glide_seconds(a: Cam, b: Cam) -> float:
+    """How long a glide needs so a big zoom does not rush."""
+    dspan = abs(math.log(max(b.span, 1e-3) / max(a.span, 1e-3)))
+    dpos = abs(b.lon - a.lon) + abs(b.lat - a.lat)
+    return max(1.4, min(3.4, 2.6 * dspan + 0.07 * dpos))
+
+
+def _glide_keys(rows: list[tuple]) -> list[Key]:
+    """Ease-in-out only. A long gap holds, then glides. A projection change cuts."""
+    out: list[Key] = []
+    for t, proj, lon, lat, span in rows:
+        cam = Cam(proj, lon, lat, float(span))
+        if not out:
+            out.append(Key(float(t), cam, ease="in_out"))
+            continue
+        prev = out[-1]
+        # The opening push is one curve from frame 0. It is the lie, not a fidget.
+        if len(out) == 1 and prev.t <= 1e-6 and prev.cam.proj == cam.proj:
+            out.append(Key(float(t), cam, ease="in_out"))
+            continue
+        if prev.cam.proj != cam.proj:
+            cut_at = float(t) - (1.0 / FPS)
+            if cut_at > prev.t + 1e-4:
+                out.append(Key(cut_at, prev.cam, ease="in_out"))
+            out.append(Key(float(t), cam, ease="in_out"))
+            continue
+        gap = float(t) - prev.t
+        need = _glide_seconds(prev.cam, cam)
+        if gap > need + 0.40:
+            out.append(Key(float(t) - need, prev.cam, ease="in_out"))
+        out.append(Key(float(t), cam, ease="in_out"))
+    for a, b in zip(out, out[1:]):
+        if b.t <= a.t + 1e-6:
+            raise RuntimeError(f"camera keys must increase ({a.t:.3f} then {b.t:.3f})")
+    return out
 
 
 def _journey(t: float) -> tuple[float, float, float, float]:
@@ -402,7 +380,7 @@ CUES = _cues()
 
 
 def _punch(t: float, t0: float, dur: float = 0.40) -> float:
-    """In and back. Used for snap-zooms, which have to return."""
+    """Soft in-and-out for a ring on a spoken word. Not a camera move."""
     if t < t0 or t > t0 + dur:
         return 0.0
     u = (t - t0) / dur
@@ -416,12 +394,12 @@ def _fourteen_cam() -> Cam:
 
 
 def _pickup_pop(t: float) -> tuple[float, float]:
-    """0.3 s sticker pickup. Scale peaks at 1.08 and the shape lifts off the map."""
+    """Gentle lift off the map. Scale stays put."""
     b = CLOCK
-    if t < b.drag or t > b.drag + 0.30:
+    if t < b.drag or t > b.drag + 0.50:
         return 1.0, 0.0
-    s = math.sin(math.pi * (t - b.drag) / 0.30)
-    return 1.0 + 0.08 * s, -42.0 * s
+    s = math.sin(math.pi * (t - b.drag) / 0.50)
+    return 1.0, -22.0 * s
 
 
 def _land_squash(t: float) -> tuple[float, float]:
@@ -445,7 +423,8 @@ def pose(t: float) -> dict:
         t = 0.0
     b = CLOCK
     disp, lon, lat, travel = _journey(t)
-    globe = 2.50
+    # The approved push landed 0.043 s after "It's".
+    globe = b.t("IT") + 0.043
     return {
         "t": t,
         "disp": disp,
@@ -459,20 +438,23 @@ def pose(t: float) -> dict:
         "lying": (1.0 if t < globe - 0.02 else (1.0 - ramp(t, globe - 0.02, globe + 0.42)) if t < globe + 0.5
                   else ramp(t, b.lying, b.lying + 0.31) if t >= b.lying else 0.0),
         "names": 1.0 if t < b.excuse1 + 0.18 or t >= b.outro + 2.05 else 0.0,
-        "same": hold(t, 1.55, globe - 0.08, 0.12),
+        "same": hold(t, b.t("BIG"), globe - 0.08, 0.12),
         "strike": hold(t, globe - 0.04, globe + 0.35, 0.06),
-        "algeria": max(hold(t, 3.30, 4.40, 0.15), hold(t, b.algeria - 0.26, b.congo + 1.7, 0.18)),
+        "algeria": max(
+            hold(t, b.t("ALGERIA") - 0.307, b.excuse0 - 0.042, 0.15),
+            hold(t, b.algeria - 0.26, b.congo + 1.7, 0.18),
+        ),
         "drc": hold(t, b.congo - 0.47, b.congo + 1.68, 0.16),
         "show16": hold(t, b.sixteen, b.drop - 0.25, 0.08),
-        "label3": hold(t, 8.70, b.sixteen - 0.35, 0.16),
+        "label3": hold(t, b.t("STRETCHES") + 0.697, b.sixteen - 0.35, 0.16),
         "inset": hold(t, b.heres + 1.1, b.heres + 5.0, 0.18),
         "peel": ramp(t, b.heres + 1.2, b.heres + 2.8),
-        "stretch": hold(t, 7.95, b.sixteen + 0.9, 0.2),
+        "stretch": hold(t, b.t("STRETCHES") - 0.053, b.sixteen + 0.9, 0.2),
         "path": ramp(t, b.drag, b.drag + 1.52) * (1.0 - ramp(t, b.drop - 0.25, b.drop + 0.15)),
         "dust": hold(t, b.drop, b.drop + 0.50, 0.02),
         "tiles": ramp(t, b.drop + 0.48, b.drop + 0.66) * (1.0 - ramp(t, b.fourteen + 1.05, b.algeria - 0.25)),
         "show14": hold(t, b.drop + 0.48, b.fourteen + 1.19, 0.08),
-        "equals": (1.0 if t < 2.25 else (1.0 - ramp(t, 2.25, 2.55)) if t < 2.6
+        "equals": (1.0 if t < globe - 0.25 else (1.0 - ramp(t, globe - 0.25, globe + 0.05)) if t < globe + 0.10
                    else ramp(t, b.lying - 0.23, b.lying + 0.17) if t >= b.lying - 0.23 else 0.0),
         "by_area": hold(t, b.fourteen + 0.19, b.fourteen + 1.54, 0.10),
         "areas": hold(t, b.fourteen, b.fourteen + 1.54, 0.10),
@@ -490,13 +472,24 @@ def pose(t: float) -> dict:
 
 
 def _arrive(t: float, t0: float) -> float:
+    """Soft scale-in. The number eases up to 1 and stays there."""
     if t < t0:
         return 0.0
-    return pop_scale(t - t0)
+    u = _clamp((t - t0) / 0.60)
+    e = u * u * (3.0 - 2.0 * u)
+    return 0.72 + 0.28 * e
 
 
 def _blink(t: float) -> float:
-    for t0 in (1.40, 8.10, 16.40, 27.80, 35.50):
+    b = CLOCK
+    marks = (
+        b.t("BIG") - 0.152,
+        b.t("STRETCHES") + 0.097,
+        b.t("EQUATOR") + 0.455,
+        b.t("THAN", after=b.algeria) + 0.153,
+        b.t("RUSSIA") + 0.035,
+    )
+    for t0 in marks:
         if 0.0 <= t - t0 <= 0.08:
             return 1.0
     return 0.0
@@ -599,13 +592,14 @@ def _paste(acc, covered, count, alpha, mcx, mcy, ox, oy, rgb, vis: float) -> Non
 
 
 def _grid_pop(t: float) -> float:
-    """A short brightening of the pole grid at 10.4 s. It fades back."""
-    if t < 10.25 or t > 10.7:
+    """A soft brightening of the pole grid, just after the word poles."""
+    t0 = CLOCK.t("POLES") + 0.435
+    if t < t0 or t > t0 + 0.45:
         return 0.0
-    if t < 10.45:
-        u = (t - 10.25) / 0.20
+    if t < t0 + 0.20:
+        u = (t - t0) / 0.20
     else:
-        u = 1.0 - (t - 10.45) / 0.25
+        u = 1.0 - (t - (t0 + 0.20)) / 0.25
     u = _clamp(u)
     return u * u * (3.0 - 2.0 * u)
 
@@ -630,39 +624,31 @@ def _bubble_tail(canvas, box, tip) -> None:
     canvas.drawPath(path, paint)
 
 
-def _zoom_blur(img: np.ndarray, amount: float) -> np.ndarray:
-    """Whip smear. The peak is a blur, not a second copy of the map."""
-    if amount < 0.08:
-        return img
-    from scipy.ndimage import uniform_filter
-    rad = int(8 + amount * 120)
-    rad = rad + 1 - (rad % 2)
-    blurred = uniform_filter(img.astype(np.float32), size=(rad, max(3, rad // 2), 1))
-    mix = min(1.0, amount * 1.35)
-    out = img.astype(np.float32) * (1.0 - mix) + blurred * mix
-    return np.clip(out, 0, 255).astype(np.uint8)
-
-
 def _keys() -> list[Key]:
+    """Approved framings, shifted onto this take's words.
+
+    Offsets are the 45.227 s cut: the push landed 0.043 s after "It's",
+    the globe cut 0.467 s after "even", and so on. The pictures match.
+    The times move with the voice.
+    """
     b = CLOCK
+    its = b.t("IT")
+    stretches = b.t("STRETCHES")
+    sits = b.t("SITS", after=10)
     rows = [
         (0.00, "merc", -12, 54, 152),
-        # 4% push-in, plus a slow one-way drift so the opening clears the motion floor.
-        (2.50, "merc", 2.5, 49.6, 145.9),
-        (2.55, "merc", 2.5, 49.6, 145.9),
-        (3.25, "ortho", -22, 34, 120),
-        (3.70, "ortho", -18, 36, 108),
-        (4.22, "ortho", -16, 33, 86),
-        (4.52, "ortho", -40, 68, 48),
-        (5.08, "ortho", -40, 70, 44),
-        (5.55, "merc", -14, 36, 90),
-        (8.50, "merc", -12, 46, 78),
-        (11.30, "merc", -30, 56, 62),
-        (13.50, "merc", -38, 62, 52),
-        (15.30, "merc", -40, 72, 68),
-        (18.20, "merc", -28, 50, 62),
-        (20.80, "merc", 2, 14, 54),
-        # From the drop onward the camera follows this take's words.
+        (its + 0.043, "merc", 2.5, 49.6, 145.9),
+        # Wide globe just after "It's", then one glide that arrives on
+        # "Excuse me?" and holds there until the flat map returns.
+        (its + 0.12, "ortho", -22, 34, 120),
+        (b.excuse0 - 0.08, "ortho", -40, 70, 44),
+        (b.heres + 0.228, "merc", -14, 36, 90),
+        (stretches + 0.497, "merc", -12, 46, 78),
+        (sits - 0.279, "merc", -30, 56, 62),
+        (b.sixteen + 0.795, "merc", -38, 62, 52),
+        (b.drag + 0.272, "merc", -40, 72, 68),
+        (b.shrinks[0] - 0.195, "merc", -28, 50, 62),
+        (b.wait0 - 0.263, "merc", 2, 14, 54),
         (b.drop + 0.95, "merc", 18, 6, 46),
         (b.algeria + 0.24, "merc", 10, 4, 62),
         (b.hi0 + 0.15, "merc", 12, 2, 58),
@@ -672,17 +658,11 @@ def _keys() -> list[Key]:
         (b.room + 0.45, "merc", 17, -20, 84),
         (b.outro + 1.30, "merc", -8, 44, 118),
         (b.lying - 0.45, "merc", -11, 50, 140),
-        (TAIL0, "merc", -12, 52, 146),
+        # Arrive on the opening frame before the loop tail, so the join is one
+        # step of the push and not a snap.
+        (TAIL0, "merc", -12, 54, 152),
     ]
-    keys = [Key(t, Cam(p, lon, lat, span)) for t, p, lon, lat, span in rows]
-    # Ease the leap from the packed Africa back to the wide map.
-    eased = []
-    for key in keys:
-        if abs(key.t - (b.room + 0.45)) < 0.08:
-            eased.append(Key(key.t, key.cam, ease="in_out"))
-        else:
-            eased.append(key)
-    return eased
+    return _glide_keys(rows)
 
 
 def _usa_shape(earth) -> Shape:
@@ -750,14 +730,26 @@ class Greenland:
         follow = hold(st["t"], CLOCK.drag + 1.05, CLOCK.outro - 0.2, 0.35) * (1.0 - st["compare"]) * (1.0 - packing)
         # Look south of the shape so Greenland's tip rides above the caption band.
         lift = 8.0 if CLOCK.drag <= st["t"] <= CLOCK.fourteen else 0.0
-        # The 14 copies are laid out on one wide frame of the whole continent.
-        if st["tiles"] > 0.08 and st["compare"] < 0.15 and state.b is None:
-            cam = _fourteen_cam()
-            # After the 14th piece, pull out so the finished jigsaw reads as one shape.
-            if st["t"] > CLOCK.fourteen + 0.2:
-                u = _smooth((st["t"] - (CLOCK.fourteen + 0.2)) / 0.45)
-                cam = Cam(cam.proj, cam.lon, cam.lat - 1.2 * u, cam.span * (1.0 + 0.12 * u))
-            return type(state)(cam)
+        # The 14 copies need the wide frame. Glide there and glide back.
+        tile_in = CLOCK.drop + 0.45
+        tile_out = CLOCK.fourteen + 1.70
+        if state.b is None and st["compare"] < 0.2 and tile_in <= st["t"] <= tile_out:
+            inn = _smooth(_clamp((st["t"] - tile_in) / 1.20))
+            out = _smooth(_clamp((st["t"] - (CLOCK.fourteen + 0.85)) / 0.80))
+            blend = inn * (1.0 - out)
+            if blend > 0.001:
+                wide = _fourteen_cam()
+                if st["t"] > CLOCK.fourteen + 0.2:
+                    u = _smooth((st["t"] - (CLOCK.fourteen + 0.2)) / 0.90)
+                    wide = Cam(wide.proj, wide.lon, wide.lat - 1.2 * u, wide.span * (1.0 + 0.12 * u))
+                base = state.a
+                cam = Cam(
+                    "merc",
+                    base.lon + (wide.lon - base.lon) * blend,
+                    base.lat + (wide.lat - base.lat) * blend,
+                    base.span + (wide.span - base.span) * blend,
+                )
+                return type(state)(cam)
         if follow > 0.02 and state.b is None and state.a.proj == "merc":
             cam = state.a
             state = type(state)(Cam("merc",
@@ -775,11 +767,10 @@ class Greenland:
             cam = state.a
             blend = 0.0
         else:
-            # Whip, not a dissolve: one map at a time, with a blur through the cut.
+            # Projection change is a cut. The map stays sharp.
             u = state.u
             cam = state.a if u < 0.5 else state.b
             base = self._land(cam, t, w, h)
-            base = _zoom_blur(base, math.sin(math.pi * u))
             blend = u
         rgba = np.dstack([base, np.full((h, w), 255, np.uint8)])
         surface = skia.Surface(w, h)
@@ -1116,11 +1107,12 @@ class Greenland:
         cam = Cam("ortho", -20, 48, 90)
         tile = paint_plate(self.plates["satellite"], cam, side, side)
         rgba = np.dstack([tile, np.full((side, side), 255, np.uint8)])
-        # The circle stays small, then draws in across 6.78–6.96 s.
-        if st["t"] < 6.78:
+        # Draws in on "round", half a second, no pop.
+        t0 = CLOCK.t("ROUND") - 0.05
+        if st["t"] < t0:
             pop = 0.12
-        elif st["t"] < 6.96:
-            u = (st["t"] - 6.78) / 0.18
+        elif st["t"] < t0 + 0.50:
+            u = (st["t"] - t0) / 0.50
             pop = 0.12 + 0.88 * (u * u * (3.0 - 2.0 * u))
         else:
             pop = 1.0
@@ -1235,9 +1227,15 @@ class Greenland:
             abox = self._bbox(cam, w, h)
             equal_brackets(canvas, gbox, abox, st["equals"])
         if st["lying"] > 0.05:
-            pop = 1.0 if st["t"] < 2.4 or st["t"] >= 41.7 else max(0.9, st["lying"])
+            globe = CLOCK.t("IT") + 0.043
+            remember = CLOCK.t("REMEMBER", after=CLOCK.outro)
+            pop = 1.0 if st["t"] < globe - 0.10 or st["t"] >= remember - 0.223 else max(0.9, st["lying"])
             pill(hud, "THIS MAP IS LYING", w * 0.5, 860, RED, size=92, pop=pop, glow=RED, kind="lying", nudge=False)
-        show_names = st["t"] < 2.15 or (3.05 < st["t"] < 5.20) or st["t"] >= 39.35
+        show_names = (
+            st["t"] < CLOCK.t("AFRICA") + 0.308
+            or (CLOCK.t("EVEN") + 0.267 < st["t"] < CLOCK.excuse1 + 0.178)
+            or st["t"] >= CLOCK.outro - 0.693
+        )
         if st["names"] > 0.4 and geo and show_names:
             gbox = self._box_of(cam, self.earth.rings.get("GRL") or [], w, h)
             abox = self._bbox(cam, w, h)
@@ -1255,9 +1253,8 @@ class Greenland:
         if st["gag_excuse"] > 0.2:
             pill(hud, "EXCUSE ME?", w * 0.5, h * 0.28, PAPER, ink=INK, size=72, pop=1.0, kind="gag")
         if st["label3"] > 0.1 and geo:
-            pulse = 1.0 + 0.08 * _punch(st["t"], 11.46, 0.20)
-            pill(hud, "~3× WIDER", w * 0.5, h * 0.24, (255, 214, 48), ink=INK, size=80, pop=pulse, kind="number")
-            pill(hud, "~9× AREA  70°N", w * 0.5, h * 0.34, (255, 214, 48), ink=INK, size=72, pop=pulse, kind="number")
+            pill(hud, "~3× WIDER", w * 0.5, h * 0.24, (255, 214, 48), ink=INK, size=80, pop=1.0, kind="number")
+            pill(hud, "~9× AREA  70°N", w * 0.5, h * 0.34, (255, 214, 48), ink=INK, size=72, pop=1.0, kind="number")
         if st["show16"] > 0.08 and st["t"] < CLOCK.drop:
             moving = CLOCK.drag < st["t"] < CLOCK.drop
             label = f"{st['disp']:.1f}×" if moving else f"{max(1, int(round(st['disp'])))}×"

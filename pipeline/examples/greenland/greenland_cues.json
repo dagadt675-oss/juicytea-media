@@ -1,13 +1,13 @@
 {
   "id": "greenland_africa",
   "take": "chris_f0+seg_a112",
-  "take_duration": 45.227,
-  "picture_duration": 45.233,
+  "take_duration": 52.428,
+  "picture_duration": 52.433,
   "fps": 30,
-  "frames": 1357,
+  "frames": 1573,
   "loop_tail": [
-    45.027,
-    45.2
+    52.347,
+    52.4
   ],
   "audio_targets": {
     "voice_wpm": 185,
@@ -19,307 +19,302 @@
   },
   "cues": [
     {
-      "t": 0.08,
+      "t": 0.15,
       "kind": "whoosh",
       "name": "open"
     },
     {
-      "t": 0.937,
+      "t": 1.098,
       "kind": "draw",
       "name": "greenland"
     },
     {
-      "t": 1.552,
+      "t": 2.085,
       "kind": "pop",
       "name": "same-size"
     },
     {
-      "t": 1.842,
+      "t": 2.618,
       "kind": "pop",
       "name": "africa"
     },
     {
-      "t": 2.5,
+      "t": 3.388,
       "kind": "whoosh",
-      "name": "globe-snap"
+      "name": "globe"
     },
     {
-      "t": 2.643,
+      "t": 3.738,
       "kind": "stamp",
       "name": "not"
     },
     {
-      "t": 2.783,
+      "t": 3.939,
       "kind": "draw",
       "name": "algeria-outline"
     },
     {
-      "t": 3.607,
+      "t": 4.639,
       "kind": "pop",
       "name": "algeria"
     },
     {
-      "t": 4.442,
+      "t": 5.63,
       "kind": "boing",
       "name": "excuse-me"
     },
     {
-      "t": 5.322,
+      "t": 6.897,
       "kind": "whoosh",
       "name": "heres-the-trick"
     },
     {
-      "t": 6.877,
+      "t": 8.932,
       "kind": "draw",
       "name": "round-earth"
     },
     {
-      "t": 8.003,
+      "t": 10.412,
       "kind": "draw",
       "name": "stretches"
     },
     {
-      "t": 8.944,
+      "t": 11.233,
       "kind": "tick",
       "name": "more"
     },
     {
-      "t": 9.815,
+      "t": 12.188,
       "kind": "pop",
       "name": "poles"
     },
     {
-      "t": 11.46,
-      "kind": "tick",
-      "name": "snap-punch"
-    },
-    {
-      "t": 11.579,
+      "t": 14.093,
       "kind": "pop",
       "name": "greenland-sits"
     },
     {
-      "t": 12.705,
+      "t": 15.294,
       "kind": "impact",
       "name": "sixteen"
     },
     {
-      "t": 13.623,
+      "t": 16.225,
       "kind": "tick",
       "name": "too-big"
     },
     {
-      "t": 14.83,
+      "t": 17.394,
       "kind": "whoosh",
       "name": "drag"
     },
     {
-      "t": 15.945,
+      "t": 18.995,
       "kind": "draw",
       "name": "equator"
     },
     {
-      "t": 17.477,
+      "t": 20.595,
       "kind": "tick",
       "name": "truth"
     },
     {
-      "t": 18.395,
+      "t": 22.095,
       "kind": "tick",
       "name": "shrink-1"
     },
     {
-      "t": 19.358,
+      "t": 23.296,
       "kind": "tick",
       "name": "shrink-2"
     },
     {
-      "t": 20.252,
+      "t": 24.556,
       "kind": "tick",
       "name": "shrink-3"
     },
     {
-      "t": 21.063,
+      "t": 25.498,
       "kind": "boing",
       "name": "wait-what"
     },
     {
-      "t": 22.553,
+      "t": 27.479,
       "kind": "thud",
       "name": "land-thud"
     },
     {
-      "t": 23.073,
+      "t": 27.999,
       "kind": "tick",
       "name": "fourteen-1"
     },
     {
-      "t": 23.273,
+      "t": 28.23,
       "kind": "tick",
       "name": "fourteen-2"
     },
     {
-      "t": 23.46,
+      "t": 28.445,
       "kind": "tick",
       "name": "fourteen-3"
     },
     {
-      "t": 23.634,
+      "t": 28.646,
       "kind": "tick",
       "name": "fourteen-4"
     },
     {
-      "t": 23.796,
+      "t": 28.832,
       "kind": "tick",
       "name": "fourteen-5"
     },
     {
-      "t": 23.894,
+      "t": 28.977,
       "kind": "pop",
       "name": "dust"
     },
     {
-      "t": 23.944,
+      "t": 29.003,
       "kind": "tick",
       "name": "fourteen-6"
     },
     {
-      "t": 24.08,
+      "t": 29.16,
       "kind": "tick",
       "name": "fourteen-7"
     },
     {
-      "t": 24.203,
+      "t": 29.302,
       "kind": "tick",
       "name": "fourteen-8"
     },
     {
-      "t": 24.313,
+      "t": 29.428,
       "kind": "tick",
       "name": "fourteen-9"
     },
     {
-      "t": 24.41,
+      "t": 29.54,
       "kind": "tick",
       "name": "fourteen-10"
     },
     {
-      "t": 24.494,
+      "t": 29.637,
       "kind": "tick",
       "name": "fourteen-11"
     },
     {
-      "t": 24.566,
+      "t": 29.72,
       "kind": "tick",
       "name": "fourteen-12"
     },
     {
-      "t": 24.624,
+      "t": 29.787,
       "kind": "tick",
       "name": "fourteen-13"
     },
     {
-      "t": 24.67,
+      "t": 29.84,
       "kind": "pop",
       "name": "fourteen"
     },
     {
-      "t": 25.594,
+      "t": 30.777,
       "kind": "tick",
       "name": "tiles"
     },
     {
-      "t": 26.816,
+      "t": 31.9,
       "kind": "pop",
       "name": "algeria-again"
     },
     {
-      "t": 27.647,
+      "t": 32.92,
       "kind": "tick",
       "name": "bigger-than"
     },
     {
-      "t": 27.838,
+      "t": 33.083,
       "kind": "tick",
       "name": "than-greenland"
     },
     {
-      "t": 29.0,
+      "t": 33.792,
       "kind": "tick",
       "name": "so-is-congo"
     },
     {
-      "t": 29.904,
+      "t": 34.701,
       "kind": "pop",
       "name": "dr-congo"
     },
     {
-      "t": 30.784,
+      "t": 35.53,
       "kind": "boing",
       "name": "hi-tiny"
     },
     {
-      "t": 32.419,
+      "t": 38.256,
       "kind": "pop",
       "name": "usa"
     },
     {
-      "t": 33.079,
+      "t": 39.057,
       "kind": "pop",
       "name": "china"
     },
     {
-      "t": 33.595,
+      "t": 39.697,
       "kind": "pop",
       "name": "india"
     },
     {
-      "t": 34.733,
+      "t": 40.917,
       "kind": "pop",
       "name": "europe"
     },
     {
-      "t": 35.767,
+      "t": 41.945,
       "kind": "tick",
       "name": "together"
     },
     {
-      "t": 37.296,
+      "t": 43.778,
       "kind": "pop",
       "name": "still-bigger"
     },
     {
-      "t": 38.763,
+      "t": 45.098,
       "kind": "pop",
       "name": "room-to-spare"
     },
     {
-      "t": 40.043,
+      "t": 46.639,
       "kind": "whoosh",
       "name": "outro"
     },
     {
-      "t": 41.923,
+      "t": 48.645,
       "kind": "tick",
       "name": "this-map"
     },
     {
-      "t": 43.088,
+      "t": 50.1,
       "kind": "tick",
       "name": "inflate"
     },
     {
-      "t": 43.32,
+      "t": 50.42,
       "kind": "whoosh",
       "name": "not-huge"
     },
     {
-      "t": 44.697,
+      "t": 51.84,
       "kind": "pop",
       "name": "lying"
     },
     {
-      "t": 45.027,
+      "t": 52.347,
       "kind": "whoosh",
       "name": "loop-tail"
     }

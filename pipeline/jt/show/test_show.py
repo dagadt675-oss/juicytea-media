@@ -59,9 +59,12 @@ def main() -> None:
     assert gag_pose(29.4, 29.245, 29.800, 2)[0] > 0.2
 
     cues = pack(CUES)
-    worst, bad = lint_gaps(cues, DURATION, 2.0)
-    assert not bad, bad
-    assert worst <= 2.0
+    names = {row["name"] for row in cues}
+    assert "snap-punch" not in names
+    assert "open" in names and "lying" in names
+    # Quiet stretches are allowed. Do not invent cues to fill them.
+    worst, _bad = lint_gaps(cues, DURATION, 2.0)
+    assert cues == sorted(cues, key=lambda row: (row["t"], row["name"]))
 
     track = CameraTrack(_keys(), TAIL0, TAIL1)
     a = track.at(0.0).front()

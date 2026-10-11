@@ -2,8 +2,13 @@
   "scale": {
     "start": 16.0,
     "end": 1.013,
-    "max_step": 0.3582,
-    "samples": 151,
+    "shrink_drops": [
+      3.677,
+      1.402,
+      1.471
+    ],
+    "counter_gap": 0.777,
+    "samples": 196,
     "pass": true
   },
   "fourteen": {
@@ -15,8 +20,8 @@
   },
   "pack": {
     "mode": "overlap",
-    "raw_overlap": 0.2375,
-    "raw_outside": 0.0141,
+    "raw_overlap": 0.2383,
+    "raw_outside": 0.0139,
     "painted_overlap": 0.0,
     "painted_outside": 0.0,
     "pass": true
