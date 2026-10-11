@@ -584,9 +584,9 @@ def _labels(root):
     font = bpy.data.fonts.load(str(font_path)) if font_path.is_file() else None
     # (text, color, location, em size)
     specs = {
-        "l38": ("38%", AMBER, (11.0, -6.2, 12.8), 3.4),
-        "l39": ("39%", AMBER, (0.4, -6.2, 12.8), 3.4),
-        "l32": ("32%", GREEN, (-10.2, -6.2, 12.8), 3.4),
+        "l38": ("38%", AMBER, (6.2, -7.0, 16.2), 2.5),
+        "l39": ("39%", AMBER, (0.0, -7.0, 16.2), 2.5),
+        "l32": ("32%", GREEN, (-6.2, -7.0, 16.2), 2.5),
         "l44": ("44%", RED, (1.2, -9.0, 13.5), 3.6),
         "l28": ("28%", BRIGHT, (-11.5, -4.2, 10.6), 2.8),
     }
@@ -648,9 +648,10 @@ def _peaks_object():
     elev.frombytes(raw)
     elev.byteswap()
     # Window around the 4,543 m summit. Row 0 of an HGT is the north edge.
-    r0, c0 = 0, 2680
-    nx = ny = 170
-    step = 3
+    # Tighter window so ridgelines stay sharp. Step is one arc-second (~31 m).
+    r0, c0 = 80, 3000
+    nx = ny = 200
+    step = 1
     metres = (111_320.0 / 3600.0) * step
     # Put the 4,543 m summit ahead and to the side, so the jet flies the valley.
     peak_i = (3133 - c0) / step
@@ -664,9 +665,9 @@ def _peaks_object():
             # Exaggerate the relief so a 500 m alpine ridge reads from the chase camera.
             rel = 0.0 if h < 0 else max(0.0, h - 1600.0)
             verts.append((
-                (i - peak_i) * metres + 900.0,
-                (j - peak_j) * metres - 200.0,
-                (rel - 2300.0) * 2.4,
+                (i - peak_i) * metres + 420.0,
+                (j - peak_j) * metres - 80.0,
+                (rel - 2100.0) * 2.8,
             ))
     faces = []
     for j in range(ny - 1):
@@ -692,18 +693,18 @@ def _peaks_object():
     nt.links.new(geom.outputs["Position"], sep.inputs["Vector"])
     span = nt.nodes.new("ShaderNodeMapRange")
     # Snow starts around a real 3,000 m and is solid by the 4,000 m ridges.
-    span.inputs["From Min"].default_value = 1400.0
-    span.inputs["From Max"].default_value = 2100.0
+    span.inputs["From Min"].default_value = 1200.0
+    span.inputs["From Max"].default_value = 1750.0
     span.clamp = True
     nt.links.new(sep.outputs["Z"], span.inputs["Value"])
     darkened = _mix_rgb(nt, None, rock.outputs["Color"], (0.22, 0.20, 0.18, 1))
-    darkened.inputs["Fac"].default_value = 0.35
+    darkened.inputs["Fac"].default_value = 0.72
     snow = _mix_rgb(nt, span.outputs["Result"], darkened.outputs["Color"], (0.93, 0.94, 0.96, 1))
     cam = nt.nodes.new("ShaderNodeCameraData")
     dist = nt.nodes.new("ShaderNodeMapRange")
-    dist.inputs["From Min"].default_value = 1500.0
-    dist.inputs["From Max"].default_value = 14000.0
-    dist.inputs["To Max"].default_value = 0.72
+    dist.inputs["From Min"].default_value = 2500.0
+    dist.inputs["From Max"].default_value = 18000.0
+    dist.inputs["To Max"].default_value = 0.28
     dist.clamp = True
     nt.links.new(cam.outputs["View Distance"], dist.inputs["Value"])
     haze = _mix_rgb(nt, dist.outputs["Result"], snow.outputs["Color"], (0.62, 0.68, 0.78, 1))
@@ -802,6 +803,21 @@ def _forest_trees(parent):
     meshes = []
     for _h, mesh in picked[:6]:
         copy = mesh.copy()
+        zs = [v.co.z for v in copy.vertices]
+        xs = [v.co.x for v in copy.vertices]
+        ys = [v.co.y for v in copy.vertices]
+        if not zs:
+            continue
+        cx = (min(xs) + max(xs)) * 0.5
+        cy = (min(ys) + max(ys)) * 0.5
+        z0 = min(zs)
+        height = max(zs) - z0
+        if height < 1e-4:
+            continue
+        for vert in copy.vertices:
+            vert.co.x = (vert.co.x - cx) / height
+            vert.co.y = (vert.co.y - cy) / height
+            vert.co.z = (vert.co.z - z0) / height
         copy.use_fake_user = True
         meshes.append(copy)
         if len(meshes) == 3:
@@ -815,20 +831,24 @@ def _forest_trees(parent):
         print("no tree meshes kept")
         return
     rng = math.pi
-    for i in range(72):
+    # Dense canopy from the downloaded tree meshes. Spacing is tighter than the crown.
+    cols = 36
+    for i in range(cols * 8):
         mesh = meshes[i % len(meshes)]
         obj = bpy.data.objects.new(f"Tree_{i}", mesh)
         obj.parent = parent
-        scale = 0.28 + (i % 5) * 0.03
+        # Mesh is normalized to 1 m tall, then scaled into a closed canopy.
+        scale = 38.0 + (i % 4) * 8.0
         obj.scale = (scale, scale, scale)
+        # Local X is shifted with the scrolling tile, so this strip stays under the jet.
         obj.location = (
-            ((i * 53) % 1400) - 500,
-            ((i * 89) % 1400) - 700,
+            (i % cols) * 24.0 + 700.0,
+            (i // cols) * 24.0 - 90.0,
             0.0,
         )
         obj.rotation_euler[2] = rng * (i % 7)
         _link(obj)
-    print("trees", len(meshes), "instances 72")
+    print("trees", len(meshes), "instances", cols * 8)
 
 
 def _enable_easy_clouds():
@@ -1214,6 +1234,7 @@ def apply_pose(state, pose):
 def render_job(job):
     state = build_scene()
     scene = state["scene"]
+    scene.cycles.samples = int(job.get("samples", 8))
     scene.render.resolution_percentage = int(job.get("scale", 100))
     tasks = []
     for segment in job.get("segments", []):

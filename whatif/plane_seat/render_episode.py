@@ -33,7 +33,7 @@ CACHE = Path("/tmp/plane_seat_cache")
 OUT = ROOT / "out"
 
 
-def _render_beauty(frames, scale, force):
+def _render_beauty(frames, scale, samples, force):
     segments = []
     pending = []
     for frame in frames:
@@ -45,7 +45,13 @@ def _render_beauty(frames, scale, force):
         pending.append(frame)
     if not pending:
         return CACHE / "beauty"
-    job = {"scale": scale, "frames": pending, "out": str(CACHE / "beauty"), "force": force}
+    job = {
+        "scale": scale,
+        "samples": samples,
+        "frames": pending,
+        "out": str(CACHE / "beauty"),
+        "force": force,
+    }
     # One Blender process. Segment folders below are the cache key for beats.
     path = CACHE / "job.json"
     path.write_text(json.dumps(job))
@@ -58,6 +64,22 @@ def _segment_dirs(scale):
     segments = plan_segments(spec, min_seconds=2.0, max_seconds=5.0, handles=1)
     (OUT / "segments.json").write_text(json.dumps(segments, indent=2))
     return segments
+
+
+def _grade(image):
+    """Same teal-and-orange grade and fine grain as the approval stills."""
+    import numpy as np
+    from PIL import Image
+
+    pixels = np.asarray(image).astype(np.float32)
+    luma = pixels.mean(axis=2, keepdims=True) / 255.0
+    teal = np.array([-6.0, 8.0, 14.0], dtype=np.float32)
+    orange = np.array([14.0, 6.0, -8.0], dtype=np.float32)
+    pixels += (1.0 - luma) * teal + luma * orange
+    rng = np.random.default_rng(11)
+    pixels += rng.normal(0.0, 2.4, pixels.shape)
+    np.clip(pixels, 0, 255, out=pixels)
+    return Image.fromarray(pixels.astype(np.uint8))
 
 
 def _composite(frames):
@@ -73,6 +95,7 @@ def _composite(frames):
         image = composite(Image.open(src), frame_time(frame))
         if image.size != (WIDTH, HEIGHT):
             image = image.resize((WIDTH, HEIGHT))
+        image = _grade(image)
         image.save(dest)
     return final
 
@@ -83,7 +106,7 @@ def _encode(final, dest):
         [
             "ffmpeg", "-y", "-framerate", str(FPS), "-start_number", "1",
             "-i", str(final / "f_%04d.png"), "-frames:v", str(FRAME_COUNT),
-            "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20",
+            "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "24",
             "-preset", "medium", "-movflags", "+faststart", "-an", str(raw),
         ]
     )
@@ -120,6 +143,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--frames", default="")
     parser.add_argument("--scale", type=int, default=100)
+    parser.add_argument("--samples", type=int, default=4)
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--beauty-only", action="store_true")
     args = parser.parse_args()
@@ -130,7 +154,7 @@ def main():
     else:
         frames = list(range(1, FRAME_COUNT + 1))
         _segment_dirs(args.scale)
-    _render_beauty(frames, args.scale, args.force)
+    _render_beauty(frames, args.scale, args.samples, args.force)
     if args.beauty_only:
         return
     final = _composite(frames)
