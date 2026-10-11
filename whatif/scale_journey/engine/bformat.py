@@ -170,15 +170,17 @@ def _held(rows, t):
 # Southeast corner the coin must clear, measured on the Free Standard
 # Empire State mesh after the tip is scaled to 443.2 m. The crown ledge
 # is the hook. Lower values step out so the fall stays in open air.
+# Local southeast corner of the tower shaft (scan junk farther out is ignored).
+# The coin stays a few metres outside this corner, so the windows stay in frame.
 _ESB_CORNERS = (
-    (443.0, 27.0, 25.0),
-    (381.0, 27.0, 25.0),
-    (330.0, 32.0, 30.0),
-    (250.0, 42.0, 42.0),
-    (180.0, 48.0, 82.0),
-    (120.0, 78.0, 128.0),
-    (50.0, 96.0, 148.0),
-    (0.0, 104.0, 154.0),
+    (443.0, 18.0, 16.0),
+    (381.0, 18.0, 16.0),
+    (300.0, 42.0, 40.0),
+    (200.0, 50.0, 48.0),
+    (120.0, 70.0, 62.0),
+    (60.0, 105.0, 95.0),
+    (20.0, 120.0, 108.0),
+    (0.0, 124.0, 102.0),
 )
 
 
@@ -228,19 +230,7 @@ def _penny(raw: dict) -> BEpisode:
         (36.25, 1250.0),
         (40.0, 1250.0),
     ]
-    # (t, feet, mph). Each row holds until the next, and every gap is ≥ 0.8 s.
-    shown = [
-        (0.0, 1250, 0),
-        (3.0, 1200, 25),
-        (6.0, 1000, 25),
-        (12.0, 700, 25),
-        (20.0, 600, 25),
-        (21.2, 450, 25),
-        (22.4, 305, 25),
-        (27.0, 150, 25),
-        (31.0, 0, 25),
-        (36.2, 1250, 0),
-    ]
+    # Speed reaches the ~25 mph terminal quickly, then holds. Height ticks with the picture.
     frames = []
     prev_feet, prev_mph = None, None
     feet_from, mph_from = "1,250", "0"
@@ -248,7 +238,15 @@ def _penny(raw: dict) -> BEpisode:
     for i in range(n):
         t = i / fps
         alt_ft = _interp(altitude, min(t, 40.0))
-        _t0, feet, speed_mph = _held(shown, t)
+        if t < 2.7 or t >= 36.2:
+            feet = 1250
+        else:
+            feet = max(0, int(round(alt_ft / 20.0)) * 20)
+        if t < 3.0 or t >= 36.2:
+            speed_mph = 0
+        else:
+            # Face-on terminal is ~25 mph and is reached in the first part of the fall.
+            speed_mph = int(round(25.0 * _fade(t, 3.05, 5.4)))
         if t < 3.0:
             phase = "hook"
         elif t < 6.0:
@@ -277,7 +275,7 @@ def _penny(raw: dict) -> BEpisode:
             mph_from = prev_mph or mph_s
             mph_change = t
             prev_mph = mph_s
-        feet_roll = 1.0 if feet_from == feet_s else _fade(t, feet_change, feet_change + 0.28)
+        feet_roll = 1.0
         mph_roll = 1.0 if mph_from == mph_s else _fade(t, mph_change, mph_change + 0.28)
         title_alpha = 1.0 if phase in ("hook", "hold") or t >= 36.2 else 1.0 - _fade(t, 2.6, 3.3)
         ending_alpha = 0.0
@@ -307,26 +305,35 @@ def _penny(raw: dict) -> BEpisode:
             penny = (xy[0], xy[1], z_vis + 0.08)
         hook_cam = (ledge_penny[0] + 6.5, ledge_penny[1] + 8.0, ledge_penny[2] + 8.0)
         hook_tgt = (ledge_penny[0] - 22.0, ledge_penny[1] - 18.0, ledge_penny[2] - 55.0)
-        chase_cam = (penny[0] + 0.45, penny[1] + 3.4, penny[2] + 1.55)
-        chase_tgt = (penny[0] + 0.1, penny[1] + 1.15, penny[2] - 1.15)
-        hit_cam = (penny[0] + 2.4, penny[1] + 3.6, max(2.4, penny[2] + 1.8))
-        hit_tgt = (penny[0] - 0.4, penny[1] - 0.2, max(0.4, penny[2] + 0.3))
+        # Close chase. The coin stays large, the facade is the scale reference.
+        # East of the coin, looking back at the facade and down the south street.
+        chase_cam = (penny[0] + 2.4, penny[1] + 0.3, penny[2] + 1.4)
+        chase_tgt = (penny[0] - 1.2, penny[1] + 2.2, penny[2] - 5.0)
+        tight_cam = (penny[0] + 1.6, penny[1] + 0.15, penny[2] + 1.05)
+        tight_tgt = (penny[0] - 0.6, penny[1] + 2.6, penny[2] - 4.2)
+        hit_cam = (penny[0] + 1.5, penny[1] + 2.0, max(1.6, penny[2] + 1.2))
+        hit_tgt = (penny[0] + 0.35, penny[1] + 0.7, max(0.7, penny[2] + 0.7))
         if t < 3.0 or t >= 36.2:
-            cam, target, lens = hook_cam, hook_tgt, 13.0
-        elif t < 4.2:
-            u = _fade(t, 3.0, 4.2)
+            cam, target, lens = hook_cam, hook_tgt, 16.0
+        elif t < 4.4:
+            u = _fade(t, 3.0, 4.4)
             cam = _lerp(hook_cam, chase_cam, u)
             target = _lerp(hook_tgt, chase_tgt, u)
-            lens = 13.0 + 0.0 * u
-        elif t < 31.2:
-            cam, target, lens = chase_cam, chase_tgt, 13.0
-        elif t < 33.4:
-            u = _fade(t, 31.2, 33.4)
-            cam = _lerp(chase_cam, hit_cam, u)
-            target = _lerp(chase_tgt, hit_tgt, u)
-            lens = 13.0 + (26.0 - 13.0) * u
+            lens = 16.0 + (24.0 - 16.0) * u
+        elif t < 18.0:
+            cam, target, lens = chase_cam, chase_tgt, 24.0
+        elif t < 31.0:
+            u = _fade(t, 18.0, 22.0)
+            cam = _lerp(chase_cam, tight_cam, u)
+            target = _lerp(chase_tgt, tight_tgt, u)
+            lens = 24.0 + (32.0 - 24.0) * u
+        elif t < 33.2:
+            u = _fade(t, 31.0, 33.2)
+            cam = _lerp(tight_cam, hit_cam, u)
+            target = _lerp(tight_tgt, hit_tgt, u)
+            lens = 32.0 + (28.0 - 32.0) * u
         else:
-            cam, target, lens = hit_cam, hit_tgt, 26.0
+            cam, target, lens = hit_cam, hit_tgt, 28.0
         if 33.2 <= t < 35.4:
             spin = (t - 33.2) * 16.0
             tilt = 0.35
