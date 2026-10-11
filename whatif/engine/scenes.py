@@ -1447,22 +1447,24 @@ def _mountains(kit, coll):
     cache = Path("/opt/cursor/asset-cache/private/mountains")
     # gaea_range imports about 2 m across and 0.23 m tall. 1800x is a 3.6 km range.
     placed = 0
-    span = _mesh_prop(coll, cache / "gaea_range.glb", (180.0, 6200.0, FAR_Z - 20.0), 0.08, 0.23 * 1800.0, "gaea_range")
+    # The locked camera looks up this axis, so the range is centered on it
+    # rather than on world x=0. Scale 2000 turns the 2 m Gaea mesh into a 4 km range.
+    span = _mesh_prop(coll, cache / "gaea_range.glb", (2100.0, 5600.0, FAR_Z - 25.0), 0.15, 0.23 * 2000.0, "gaea_range")
     if span is not None:
         kit.add(span, "mountain", sink=False)
         placed += 1
-    # Already about 2 km wide, with a snow peak. It flanks the main range.
-    snow = _mesh_prop(coll, cache / "free_textured_mountain.glb", (-1900.0, 5400.0, FAR_Z - 10.0), -0.3, 348.0, "snow_peak")
+    # Already about 2 km wide, with a snow peak. It sits in the left half of that range.
+    snow = _mesh_prop(coll, cache / "free_textured_mountain.glb", (700.0, 5000.0, FAR_Z - 10.0), -0.25, 348.0, "snow_peak")
     if snow is not None:
         kit.add(snow, "mountain", sink=False)
         placed += 1
-    # Snow-capped trio. Native height is 162 m; 2.2x keeps it in the same range.
-    trio = _mesh_prop(coll, cache / "three_peaked.glb", (2100.0, 5600.0, FAR_Z - 8.0), 0.4, 162.0 * 2.2, "three_peaks")
+    # Snow-capped trio on the right half. Native height is 162 m.
+    trio = _mesh_prop(coll, cache / "three_peaked.glb", (3200.0, 5300.0, FAR_Z - 8.0), 0.35, 162.0 * 2.2, "three_peaks")
     if trio is not None:
         kit.add(trio, "mountain", sink=False)
         placed += 1
-    # Photoscan peak, already about a kilometre across.
-    peak = _mesh_prop(coll, cache / "bk_peak.glb", (450.0, 4700.0, FAR_Z - 12.0), 0.2, 584.0, "bk_peak")
+    # Photoscan peak, already about a kilometre across, in front of the range.
+    peak = _mesh_prop(coll, cache / "bk_peak.glb", (1800.0, 4500.0, FAR_Z - 12.0), 0.2, 584.0, "bk_peak")
     if peak is not None:
         kit.add(peak, "mountain", sink=False)
         placed += 1
@@ -1474,8 +1476,8 @@ def _mountains(kit, coll):
     bm.free()
     haze = bpy.data.objects.new("distance_haze", mesh)
     coll.objects.link(haze)
-    haze.location = (200.0, 2800.0, 320.0)
-    haze.scale = (10000.0, 1400.0, 600.0)
+    haze.location = (1600.0, 2600.0, 280.0)
+    haze.scale = (12000.0, 1800.0, 700.0)
     mat = bpy.data.materials.new("DistanceHaze")
     mat.use_nodes = True
     tree = mat.node_tree
@@ -1483,7 +1485,7 @@ def _mountains(kit, coll):
     out = tree.nodes.new("ShaderNodeOutputMaterial")
     vol = tree.nodes.new("ShaderNodeVolumePrincipled")
     vol.inputs["Color"].default_value = (0.64, 0.74, 0.86, 1.0)
-    vol.inputs["Density"].default_value = 0.00028
+    vol.inputs["Density"].default_value = 0.00042
     tree.links.new(vol.outputs["Volume"], out.inputs["Volume"])
     haze.data.materials.append(mat)
     kit.add(haze, "mountain", sink=False)
@@ -2087,7 +2089,7 @@ def build_river_city(kit, mats, rng, pieces):
             if built is None and cc0_city.ready():
                 built = cc0_city.place_tower(col_c, x, y, FAR_Z, h)
             if built is not None:
-                kit.add(built, "building_base", sink=True, skeleton=False)
+                kit.add(built, "building_base", sink=True, skeleton=False, near_bank=True, topple=(int(x) % 110 < 22))
                 x += w + rng.uniform(4.0, 8.0)
                 continue
             if _library_tower(kit, col_c, x, y, FAR_Z, h, color):

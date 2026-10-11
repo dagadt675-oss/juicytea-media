@@ -245,7 +245,7 @@ def _structures(kit, ch, frame, fps):
             spectacular = smoother(0.68, 1.0, collapse)
             skeleton = bool(item.extra.get("skeleton"))
             topple = bool(item.extra.get("topple"))
-            near = bool(item.extra.get("near_bank")) or item.base_loc.y < 320.0
+            near = bool(item.extra.get("near_bank")) or item.base_loc.y < 800.0
             bury = _bury_scale(item, ch)
             obj.location = loc
             obj.hide_render = bury < 0.05
