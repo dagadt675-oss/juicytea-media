@@ -741,7 +741,7 @@ def _question(canvas, x, y, r):
     paint = skia.Paint(AntiAlias=True)
     paint.setColor(skia.ColorSetARGB(255, 255, 255, 255))
     canvas.drawCircle(x, y, r, paint)
-    _label(canvas, "?", x, y + r * 0.28, r)
+    _label(canvas, "?", x, y + r * 0.34, r * 0.95, (20, 24, 32))
 
 
 def _arrow(canvas, x, y, pop, rot):
