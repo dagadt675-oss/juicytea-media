@@ -17,9 +17,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
+from jt.show.fast_render import cpu_workers, rgba_of  # noqa: E402
 from jt.show.greenland_v5 import (  # noqa: E402
     FPS,
     H,
+    N,
     T_LAST,
     W,
     CLOCK,
@@ -44,8 +46,8 @@ STILLS = (
 
 def write_tables() -> None:
     payload = {
-        "picture_duration": round(CLOCK.duration, 3),
-        "frames": CLOCK.frames,
+        "picture_duration": round(N / FPS, 3),
+        "frames": N,
         "fps": FPS,
         "camera": beat_rows(),
         "elements": element_rows(),
@@ -54,7 +56,7 @@ def write_tables() -> None:
     lines = [
         "# Greenland vs Africa v5",
         "",
-        "A move starts on the word, eases in-out, then holds. Holds fill the voiceover.",
+        "The picture is 60 fps. A move starts on the word, eases in-out, then holds. Times below are seconds, so the motion matches the 30 fps staging and is only sampled finer. Holds fill the voiceover.",
         "The counter rides the 4.40 s slide from 16× (spoken SIXTEEN) down to 1×.",
         "Fourteen is the tile count, not the slide counter.",
         "",
@@ -84,9 +86,9 @@ def write_tables() -> None:
     (HERE / "greenland_v5_cues.json").write_text(
         json.dumps({
             "id": "greenland_africa_v5",
-            "picture_duration": round(T_LAST + 1.0 / FPS, 3),
+            "picture_duration": round(N / FPS, 3),
             "fps": FPS,
-            "frames": CLOCK.frames,
+            "frames": N,
             "cues": cues,
         }, indent=2) + "\n",
         encoding="utf-8",
@@ -106,23 +108,43 @@ def render_stills() -> None:
         print(name, show.qc, flush=True)
 
 
-def _segment(i0: int, i1: int, path: str) -> str:
+def _flags() -> dict:
+    path = HERE / "speedup_flags.json"
+    if not path.exists():
+        raise SystemExit("run prove_speedups.py before the full render")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _segment(i0: int, i1: int, path: str, duplicate: bool, cache: bool, rgba: bool) -> str:
     show = Episode()
+    show.cache_layers = cache
     dest = Path(path)
+    pix = "rgba" if rgba else "rgb24"
     cmd = [
         "ffmpeg", "-y", "-v", "error",
-        "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
+        "-f", "rawvideo", "-pix_fmt", pix, "-s", f"{W}x{H}",
         "-r", str(FPS), "-i", "-",
         "-an",
         "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "16", "-preset", "veryfast",
         "-movflags", "+faststart", str(dest),
     ]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+    prev = None
     try:
         for i in range(i0, i1):
-            proc.stdin.write(show.render(i / FPS).tobytes())
-            if i % 30 == 0:
-                print(f"frame {i}/{CLOCK.frames}", flush=True)
+            t = i / FPS
+            if duplicate:
+                state = show.scene_state(t)
+                if prev is not None and state == prev[0]:
+                    proc.stdin.write(prev[1])
+                    continue
+            rgb = show.render(t)
+            raw = rgba_of(rgb).tobytes() if rgba else rgb.tobytes()
+            proc.stdin.write(raw)
+            if duplicate:
+                prev = (state, raw)
+            if i % 60 == 0:
+                print(f"frame {i}/{N}", flush=True)
     finally:
         proc.stdin.close()
         code = proc.wait()
@@ -132,12 +154,17 @@ def _segment(i0: int, i1: int, path: str) -> str:
 
 
 def render_video() -> None:
-    frames = CLOCK.frames
-    workers = 4
+    flags = _flags()
+    frames = N
+    workers = cpu_workers() if flags.get("cores") else 3
     tmp = HERE / "_v5_seg"
     tmp.mkdir(parents=True, exist_ok=True)
     edges = [round(i * frames / workers) for i in range(workers + 1)]
-    jobs = [(edges[i], edges[i + 1], str(tmp / f"part_{i:02d}.mp4")) for i in range(workers)]
+    jobs = [
+        (edges[i], edges[i + 1], str(tmp / f"part_{i:02d}.mp4"),
+         bool(flags.get("duplicate")), bool(flags.get("cache")), bool(flags.get("rgba")))
+        for i in range(workers)
+    ]
     ctx = multiprocessing.get_context("spawn")
     with ctx.Pool(workers) as pool:
         parts = [Path(p) for p in pool.starmap(_segment, jobs)]
@@ -148,7 +175,10 @@ def render_video() -> None:
         ["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", str(listing), "-c", "copy", str(dest)],
         check=True,
     )
-    print(dest, dest.stat().st_size, flush=True)
+    for part in parts:
+        part.unlink(missing_ok=True)
+    listing.unlink(missing_ok=True)
+    print(dest, dest.stat().st_size, "workers", workers, flags, flush=True)
 
 
 def main() -> None:

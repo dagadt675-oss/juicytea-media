@@ -1,7 +1,7 @@
 {
   "picture_duration": 52.433,
-  "frames": 1573,
-  "fps": 30,
+  "frames": 3146,
+  "fps": 60,
   "camera": [
     {
       "word": "(open)",
@@ -120,11 +120,11 @@
       "t": 50.42,
       "move": "Greenland grows back into the lie",
       "duration": 0.85,
-      "hold": 0.63
+      "hold": 0.647
     },
     {
       "word": "LYING",
-      "t": 51.9,
+      "t": 51.917,
       "move": "last 0.50 s eases onto frame 0",
       "duration": 0.5,
       "hold": 0.0
@@ -269,14 +269,14 @@
       "t": 50.42,
       "move": "Greenland inflates back over 0.85 s",
       "duration": 0.85,
-      "hold": 0.63
+      "hold": 0.647
     },
     {
       "word": "LYING",
       "t": 51.84,
       "move": "THIS MAP IS LYING pill",
       "duration": 0.0,
-      "hold": 0.56
+      "hold": 0.577
     }
   ]
 }

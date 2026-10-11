@@ -37,6 +37,7 @@ from jt.show.greenland import (
     _usa_shape,
 )
 from jt.show.labels import Hud, leader_label, pill, strike
+from jt.show.fast_render import RasterCache, SlotCache
 from jt.show.lod import load_local, load_regional, paint_lod
 from jt.show.pack import layout
 from jt.show.polys import _path_of, group_shape, shape_from
@@ -60,10 +61,14 @@ from jt.show.vfx_core import (
     neon_passes,
 )
 
-FPS = 30
+# Pops were drawn as 18 frames at 30 fps, which is 0.6 s. Output frames are
+# 60 fps so the same second is smoother, not faster.
+MOTION_FPS = 30
+FPS = 60
 W, H = 1080, 1920
 CLOCK = load_clock(WORDS_PATH)
-T_LAST = (CLOCK.frames - 1) / FPS
+N = max(2, math.ceil(CLOCK.audio_duration * FPS - 1e-9))
+T_LAST = (N - 1) / FPS
 
 HOME = (GREENLAND_HOME_LON, GREENLAND_HOME_LAT)
 DEST = (17.0, 6.0)
@@ -415,15 +420,27 @@ class Episode:
         self._fit14 = None
         self._fit4 = None
         self.qc = {}
+        self.cache_layers = True
+        self._plate_cache = RasterCache()
+        self._border_cache: dict[str, SlotCache] = {}
 
     def render(self, t: float) -> np.ndarray:
         cam = camera_at(t)
         left, move, right = _move_at(t)
         if move is not None and left.proj == right.proj:
             u = 0.0 if move.dur <= 0 else (t - move.t) / move.dur
-            plate = paint_lod(cam, W, H, self.plates, u, left.span, right.span)
+            span_a, span_b = left.span, right.span
         else:
-            plate = paint_lod(cam, W, H, self.plates, 1.0, cam.span, cam.span)
+            u, span_a, span_b = 1.0, cam.span, cam.span
+        key = (cam.proj, cam.lon, cam.lat, cam.span, u, span_a, span_b)
+
+        def _plate():
+            return paint_lod(cam, W, H, self.plates, u, span_a, span_b)
+
+        if self.cache_layers:
+            plate = self._plate_cache.take(key, _plate)
+        else:
+            plate = _plate()
         rgba = np.dstack([plate, np.full((H, W), 255, np.uint8)])
         surface = skia.Surface(W, H)
         canvas = surface.getCanvas()
@@ -433,6 +450,96 @@ class Episode:
         bgra = surface.makeImageSnapshot().toarray()
         rgb = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
         return _sharp_grade(rgb)
+
+    def scene_state(self, t: float) -> tuple:
+        """Everything that can change a pixel. Equal states are the same picture."""
+        cam = camera_at(t)
+        lon, lat, ju = journey(t)
+        b = CLOCK
+        mouths = (
+            gag_pose(t, b.excuse0, b.excuse1, 2),
+            gag_pose(t, b.wait0, b.wait1, 2),
+            gag_pose(t, b.hi0, b.hi1, 2),
+        )
+        hand_age = t - b.drag
+        if 0.0 <= hand_age <= 1.15:
+            hand = (hand_age, icon_pop(hand_age * MOTION_FPS, 18), click_squash(hand_age - 0.20, 0.18))
+        else:
+            hand = None
+        dust_age = (t - b.drop) if b.drop <= t <= b.drop + 0.50 else None
+        strike = 0.0
+        if b.t("NOT") <= t < b.t("NOT") + 0.30:
+            strike = _smooth(min(1.0, (t - b.t("NOT")) / 0.28))
+        if _between(t, b.africa14 + D_AFRICA, b.algeria):
+            tiles = tuple(
+                icon_pop((t - hit) * MOTION_FPS, 18) if t >= hit else 0.0
+                for hit in _tile_times()
+            )
+            ntiles = sum(1 for hit in _tile_times() if t + 1e-6 >= hit)
+        else:
+            tiles, ntiles = (), 0
+        if _between(t, b.usa, b.outro):
+            packs = tuple(
+                icon_pop((t - t0) * MOTION_FPS, 18) if t >= t0 else 0.0
+                for t0 in (b.usa, b.china, b.india, b.europe)
+            )
+        else:
+            packs = ()
+        mult = display_multiplier(lat) if b.sixteen <= t < b.africa14 + D_AFRICA else None
+        if b.excuse0 <= t <= b.excuse1 + 0.2:
+            face = ("smug", mouths[0])
+        elif b.drag + 0.3 <= t < b.drop and not _between(t, b.africa14 + D_AFRICA, b.outro):
+            expr = "shocked" if (t >= b.shrinks[2] or b.wait0 <= t <= b.wait1) else "worried"
+            face = (expr, mouths[1])
+        elif b.hi0 - 0.05 <= t <= b.hi1 + 0.25:
+            face = ("hi", mouths[2])
+        elif _between(t, b.algeria, b.usa):
+            face = ("sad",)
+        else:
+            face = None
+        gates = (
+            t < b.t("NOT"),
+            t >= b.lying,
+            b.t("BIG") <= t < b.t("NOT") + 0.30,
+            b.excuse0 <= t <= b.excuse1 + 0.12,
+            b.t("POLES") <= t < b.sixteen,
+            b.sixteen <= t < b.africa14 + D_AFRICA,
+            b.t("TOO", after=b.sixteen) <= t < b.drag,
+            b.wait0 <= t <= b.wait1 + 0.1,
+            b.africa14 + D_AFRICA <= t < b.algeria,
+            _between(t, b.algeria, b.usa),
+            t >= b.congo and t < b.usa,
+            b.hi0 <= t <= b.hi1 + 0.2,
+            _between(t, b.usa, b.outro),
+            t >= b.still,
+            b.t("TOGETHER", after=b.europe - 1) <= t < b.still,
+            t >= b.room,
+            t < b.drag or t >= HUGE_T + D_HUGE,
+            b.drag <= t < HUGE_T + D_HUGE and not _between(t, b.africa14 + D_AFRICA, b.algeria)
+            and not _between(t, b.algeria, b.usa) and not _between(t, b.usa, b.outro),
+            _between(t, b.congo, b.usa),
+            cam.span >= 130 and cam.proj == "merc",
+            cam.proj == "ortho",
+            b.drag <= t <= b.drag + D_SLIDE + 0.25,
+            b.drag <= t < b.drop + 0.4,
+            tint_hi := (t < b.algeria or t >= b.outro),
+        )
+        return (
+            cam.proj, cam.lon, cam.lat, cam.span,
+            lon, lat, ju, self._lift(t), self._squash(t)[1],
+            mouths, hand, dust_age, strike, tiles, packs, mult, ntiles, face, gates,
+        )
+
+    def _border(self, name: str, cam, extra, build):
+        """Reuse a coast path while the camera and the extra parameters stay put."""
+        if not self.cache_layers:
+            return build()
+        slot = self._border_cache.get(name)
+        if slot is None:
+            slot = SlotCache()
+            self._border_cache[name] = slot
+        key = (cam.proj, cam.lon, cam.lat, cam.span, extra)
+        return slot.take(key, build)
 
     def _path(self, rings, cam) -> skia.Path:
         view = view_for(cam, W, H)
@@ -486,7 +593,10 @@ class Episode:
             view = view_for(cam, W, H)
             draw_atmosphere(canvas, view.cx, view.cy, view.r, 0.85)
 
-        africa = self._path([ring for iso in AFRICA for ring in (self.earth.rings.get(iso) or [])], cam)
+        africa = self._border(
+            "africa", cam, (),
+            lambda: self._path([ring for iso in AFRICA for ring in (self.earth.rings.get(iso) or [])], cam),
+        )
         tint = 96 if t < CLOCK.algeria or t >= CLOCK.outro else 70
         self._fill(canvas, africa, (255, 176, 48), tint)
         coast = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=3.0)
@@ -495,11 +605,11 @@ class Episode:
 
         compare = _between(t, CLOCK.algeria, CLOCK.usa)
         if compare:
-            alg = self._path(self.earth.rings.get("DZA") or [], cam)
+            alg = self._border("dza", cam, (), lambda: self._path(self.earth.rings.get("DZA") or [], cam))
             self._fill(canvas, alg, GREEN, 170)
             _neon(canvas, alg, (180, 255, 190), 2.4)
         if _between(t, CLOCK.congo, CLOCK.usa):
-            drc = self._path(self.earth.rings.get("COD") or [], cam)
+            drc = self._border("cod", cam, (), lambda: self._path(self.earth.rings.get("COD") or [], cam))
             self._fill(canvas, drc, BLUE, 170)
             _neon(canvas, drc, (170, 210, 255), 2.4)
 
@@ -509,12 +619,10 @@ class Episode:
         sticker = CLOCK.drag <= t < HUGE_T + D_HUGE and not tiles and not compare and not packing
         inplace = t < CLOCK.drag or t >= HUGE_T + D_HUGE
         if inplace:
-            rings = self.earth.rings.get("GRL") or []
-            path = self._path(rings, cam)
+            path = self._border("grl", cam, (), lambda: self._path(self.earth.rings.get("GRL") or [], cam))
             self._fill(canvas, path, RED, 188)
             _neon(canvas, path, (255, 230, 230), 3.2)
         if sticker:
-            moved = [reproject_true(ring, HOME[0], HOME[1], lon, lat) for ring in (self.earth.rings.get("GRL") or [])]
             anchor = self._project(cam, lon, lat)
             canvas.save()
             if anchor is not None:
@@ -522,7 +630,15 @@ class Episode:
                 sx, sy = self._squash(t)
                 canvas.scale(sx, sy)
                 canvas.translate(-anchor[0], -anchor[1])
-            path = self._path(moved, cam)
+
+            def _sticker_path():
+                moved = [
+                    reproject_true(ring, HOME[0], HOME[1], lon, lat)
+                    for ring in (self.earth.rings.get("GRL") or [])
+                ]
+                return self._path(moved, cam)
+
+            path = self._border("sticker", cam, (lon, lat), _sticker_path)
             self._fill(canvas, path, RED, 210)
             _neon(canvas, path, (255, 236, 236), 3.0)
             canvas.restore()
@@ -543,8 +659,13 @@ class Episode:
         if tiles:
             self._paint_fourteen(canvas, cam, t)
         if compare:
-            moved = [reproject_true(ring, HOME[0], HOME[1], CHIP[0], CHIP[1]) for ring in (self.earth.rings.get("GRL") or [])]
-            path = self._path(moved, cam)
+            path = self._border(
+                "chip", cam, CHIP,
+                lambda: self._path(
+                    [reproject_true(ring, HOME[0], HOME[1], CHIP[0], CHIP[1]) for ring in (self.earth.rings.get("GRL") or [])],
+                    cam,
+                ),
+            )
             self._fill(canvas, path, RED, 210)
             _neon(canvas, path, (255, 236, 236), 2.6)
         if packing:
@@ -626,9 +747,9 @@ class Episode:
         start = (anchor[0] + 280, anchor[1] - 220)
         u = age / 1.15
         x, y = bezier_ease_out(u, start, (start[0] + 40, start[1] + 80), (end[0] + 120, end[1] - 30), end)
-        prev = camera_at(t - 1.0 / FPS)
+        prev = camera_at(t - 1.0 / MOTION_FPS)
         px, py = icon_parallax((cam.lon - prev.lon) * 30.0, (cam.lat - prev.lat) * 30.0, 0.015)
-        pop = icon_pop(age * FPS, 18)
+        pop = icon_pop(age * MOTION_FPS, 18)
         squash = click_squash(age - 0.20, 0.18)
         shade = skia.Paint(AntiAlias=True)
         shade.setColor(skia.ColorSetARGB(46, 10, 14, 20))
@@ -717,7 +838,7 @@ class Episode:
             if t < hit or name not in places:
                 continue
             fx, fy, rot = places[name]
-            pop = icon_pop((t - hit) * FPS, 18)
+            pop = icon_pop((t - hit) * MOTION_FPS, 18)
             self.greenland.draw(
                 canvas, x0 + fx * bw, y0 + fy * bh, px, tones[index % 2], 220,
                 pop=pop, shadow=0.15, stroke=(255, 244, 236), stroke_w=2.0, rot=rot,
@@ -766,7 +887,7 @@ class Episode:
                 continue
             fx, fy, rot = places[name]
             ox, oy = x0 + fx * bw, y0 + fy * bh
-            pop = icon_pop((t - t0) * FPS, 18)
+            pop = icon_pop((t - t0) * MOTION_FPS, 18)
             shape.draw(
                 canvas, ox, oy, px, rgb, 215, pop=pop, shadow=0.2,
                 stroke=(255, 248, 244), stroke_w=2.2, rot=rot,

@@ -1,8 +1,8 @@
 {
   "id": "greenland_africa_v5",
   "picture_duration": 52.433,
-  "fps": 30,
-  "frames": 1573,
+  "fps": 60,
+  "frames": 3146,
   "cues": [
     {
       "t": 1.098,
@@ -155,7 +155,7 @@
       "name": "lying"
     },
     {
-      "t": 51.9,
+      "t": 51.917,
       "kind": "whoosh",
       "name": "loop"
     }

@@ -1,6 +1,6 @@
 # Greenland vs Africa v5
 
-A move starts on the word, eases in-out, then holds. Holds fill the voiceover.
+The picture is 60 fps. A move starts on the word, eases in-out, then holds. Times below are seconds, so the motion matches the 30 fps staging and is only sampled finer. Holds fill the voiceover.
 The counter rides the 4.40 s slide from 16× (spoken SIXTEEN) down to 1×.
 Fourteen is the tile count, not the slide counter.
 
@@ -24,8 +24,8 @@ Fourteen is the tile count, not the slide counter.
 | USA | 38.256 | widen to the whole of Africa | 0.95 | 7.43 |
 | NEXT | 46.639 | start the return | 1.00 | 1.01 |
 | REMEMBER | 48.645 | ease back toward the lie | 0.90 | 0.88 |
-| HUGE | 50.420 | Greenland grows back into the lie | 0.85 | 0.63 |
-| LYING | 51.900 | last 0.50 s eases onto frame 0 | 0.50 | 0.00 |
+| HUGE | 50.420 | Greenland grows back into the lie | 0.85 | 0.65 |
+| LYING | 51.917 | last 0.50 s eases onto frame 0 | 0.50 | 0.00 |
 
 ## Elements
 
@@ -50,5 +50,5 @@ Fourteen is the tile count, not the slide counter.
 | TOGETHER | 41.945 | ALL FOUR FIT pill | 0.00 | 1.83 |
 | STILL | 43.778 | STILL BIGGER pill, clear of the USA label | 0.00 | 1.32 |
 | ROOM | 45.098 | ROOM TO SPARE pill | 0.00 | 1.54 |
-| HUGE | 50.420 | Greenland inflates back over 0.85 s | 0.85 | 0.63 |
-| LYING | 51.840 | THIS MAP IS LYING pill | 0.00 | 0.56 |
+| HUGE | 50.420 | Greenland inflates back over 0.85 s | 0.85 | 0.65 |
+| LYING | 51.840 | THIS MAP IS LYING pill | 0.00 | 0.58 |
