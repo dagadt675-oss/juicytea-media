@@ -278,7 +278,10 @@ def _life(kit, ch, frame, fps, snow):
             grime_u = max(rust, smoother(0.05, 0.4, veg) * 0.7)
             flat = 1.0 - 0.62 * smoother(0.28, 0.92, rust)
             bury = 0.7 * smoother(0.5, 1.0, max(rust, veg if veg > 0.85 else 0.0))
-            gone = rust > 0.9 and (int(item.extra.get("index", 0)) % 4 != 0)
+            hero = int(item.extra.get("index", 0)) in (0, 2, 8)
+            gone = rust > 0.9 and not hero
+            if hero:
+                bury *= 0.35
             pos.z -= snow * 0.32 + bury
             pos.z += ch["gravity"] * item.extra.get("float", 0.0)
             obj.location = pos

@@ -1144,6 +1144,10 @@ def _place_hub_blocks(kit, coll, mats):
     # Height ~22 m keeps the block between the sidewalk and the river.
     sit("procedural_city_6.glb", 46.0, 58.0, PARK_Z, 22.0, 0.1, "east_mid_a")
     sit("procedural_city_6.glb", 92.0, 60.0, PARK_Z, 26.0, math.pi, "east_mid_b")
+    # Cover the lawn under those blocks so the gaps are a plaza, not grass.
+    _plane("east_plaza", coll, (68.0, 60.0, PARK_Z + 0.02), (108.0, 40.0), mats["concrete"])
+    _asphalt_plane("plaza_cross", coll, (62.0, 58.0, PARK_Z + 0.04), (3.2, 34.0), fallback=mats["road"])
+    _asphalt_plane("plaza_long", coll, (78.0, 70.0, PARK_Z + 0.04), (28.0, 3.2), fallback=mats["road"])
 
     for name, x, y, h, yaw in (("nyc_w", -110.0, 188.0, 52.0, 0.15), ("nyc_e", 95.0, 192.0, 46.0, -0.25)):
         sit("procedural_city_6.glb", x, y, FAR_Z, h, yaw, name)

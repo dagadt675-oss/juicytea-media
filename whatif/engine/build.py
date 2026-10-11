@@ -279,6 +279,7 @@ def _apply_shot_camera(scene, resolved):
             continue
         span = max(1.0, end - start)
         pose = _shot_camera(path, (frame - start) / span)
+        cam.data.type = "PERSP"
         cam.location = pose["location"]
         _look_at(cam, pose["target"])
         cam.data.lens = float(pose["lens"])
