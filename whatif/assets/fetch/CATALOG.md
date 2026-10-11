@@ -242,3 +242,9 @@ License: Sketchfab Free Standard = commercial use OK, no attribution required, N
 | Static Set Low-Poly 3D Characters "Tell Her" | 84303c5b957a45ac94233f7958258ba6 | 0 | crowds | https://sketchfab.com/3d-models/static-set-low-poly-3d-characters-tell-her-84303c5b957a45ac94233f7958258ba6 |
 
 Skipped: 03a34825490142a281e57f048f75b885 (Hello Neighbor: copyrighted game character); paid/non-downloadable items 0d38eb..., 7986af..., 2a3a3e...; Polygonal Putin, Little Trump, "yuge" (real-person likeness, not requested); CC-BY items by the same author (Poly-Art Wizard, Charles Darwin).
+
+## Private — ocean liner (do not redistribute)
+
+| Name | Author | License | Where | Real length | File | Use |
+|---|---|---|---|---|---|---|
+| RMS Queen Mary | PeeJaa | Sketchfab Free Standard. Rendered videos only. The GLB stays in the gitignored cache and is never committed or published. | oceans_drained, ice_melted, rain_million. Not the river-city episode. | 310.7 m overall | `/opt/cursor/asset-cache/private/ships/RMS_Queen_Mary.glb` (734,355 faces). Distant shots: `RMS_Queen_Mary_distant.glb` (49,980 faces), same scale. | Harbor photogrammetry tile (ship, pier, dome), about 826 m across in the file. Scale the hull axis, not that tile. The hull axis measures 260.7 units along +Y; placement multiplies by 310.7/260.7 and swings that axis onto +X. |

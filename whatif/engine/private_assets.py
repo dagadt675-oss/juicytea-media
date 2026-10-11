@@ -5,6 +5,7 @@ The files live in the gitignored cache. Branded models are never placed.
 
 from __future__ import annotations
 
+import math
 import os
 from pathlib import Path
 
@@ -152,3 +153,52 @@ def place_hydrant(coll, x, y, z, yaw=0.3):
 
 def place_cat(coll, x, y, z, yaw=1.1):
     return place(coll, "Domestic_cat_rigged__731d9ed6", (x, y, z), yaw, height=0.32, name="cat")
+
+
+# RMS Queen Mary, PeeJaa, Sketchfab Free Standard. Ocean episodes only.
+# The file is a harbor tile. This length is the hull axis, not the tile.
+QUEEN_MARY_LENGTH = 310.7
+QUEEN_MARY_NATIVE = 260.7
+# The hull runs along +Y. This swing lays that axis on +X.
+QUEEN_MARY_ALIGN = -math.pi / 2
+
+
+def queen_mary_scale() -> float:
+    return QUEEN_MARY_LENGTH / QUEEN_MARY_NATIVE
+
+
+def queen_mary_path(distant: bool = False):
+    name = "RMS_Queen_Mary_distant.glb" if distant else "RMS_Queen_Mary.glb"
+    path = PRIVATE / "ships" / name
+    return path if path.exists() else None
+
+
+def place_queen_mary(coll, loc, yaw=0.0, distant=False):
+    """Place the liner at 310.7 m. Distant shots use the decimated mesh.
+
+    Not used by the river-city episode.
+    """
+    path = queen_mary_path(distant=distant)
+    if path is None:
+        return None
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(path))
+    new = [obj for obj in bpy.data.objects if obj not in before]
+    roots = [obj for obj in new if obj.parent not in new]
+    empty = bpy.data.objects.new("queen_mary", None)
+    coll.objects.link(empty)
+    for obj in new:
+        try:
+            coll.objects.link(obj)
+        except RuntimeError:
+            pass
+    bpy.context.view_layer.update()
+    for root in roots:
+        world = root.matrix_world.copy()
+        root.parent = empty
+        root.matrix_world = world
+    scale = queen_mary_scale()
+    empty.scale = (scale, scale, scale)
+    empty.rotation_euler.z = float(yaw) + QUEEN_MARY_ALIGN
+    empty.location = loc
+    return empty
