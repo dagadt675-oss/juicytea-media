@@ -735,7 +735,7 @@ All of these were open drafts on 2026-10-11 unless noted. The map-Shorts camera 
 
 | PR | Head | Base | Title | Role |
 | --- | --- | --- | --- | --- |
-| v8 PR | `cursor/greenland-africa-v8-7e9d` | `cursor/greenland-africa-v7-7e9d` | One geometry for the Greenland zoom | **Current.** v8 picture plus this handoff. |
+| #22 | `cursor/greenland-africa-v8-7e9d` | `cursor/greenland-africa-v7-7e9d` | One geometry for the Greenland zoom | **Current.** v8 picture plus this handoff. |
 
 https://github.com/dagadt675-oss/juicytea-media/pull/19
 
@@ -755,7 +755,9 @@ https://github.com/dagadt675-oss/juicytea-media/pull/19
 | #3 | `cursor/gold-style-kit-7e9d` | `cursor/map-shorts-pipeline-7e9d` | Gold style kit. Camera sway removed. |
 | #1 | `cursor/map-shorts-pipeline-7e9d` | `cursor/post-dropbox-shorts-9137` | YAML map-Shorts pipeline. |
 
-The handoff belongs on the v8 pull request. Do not open a second PR for the document alone.
+https://github.com/dagadt675-oss/juicytea-media/pull/22
+
+The handoff belongs on #22. Do not open a second PR for the document alone.
 
 ### Other product lines (not this camera)
 
