@@ -17,6 +17,7 @@ from engine.city_layout import (
     SKYLINE_COLORS,
     SKYLINE_ROWS,
     city_water_top,
+    NEAR_BANK_S,
     deck_z,
     land_top,
     layout_errors,
@@ -29,8 +30,15 @@ class BridgeGeometryTest(unittest.TestCase):
         self.assertEqual(layout_errors(), [])
 
     def test_ramp_arrives_flat_on_the_level_deck(self):
-        slope = (deck_z(0.0) - deck_z(-0.4)) / 0.4
+        slope = (deck_z(NEAR_BANK_S) - deck_z(NEAR_BANK_S - 0.4)) / 0.4
         self.assertLess(slope, 0.04)
+
+    def test_ramp_meets_the_avenue_at_grade(self):
+        from engine.city_layout import RAMP_JOIN_S, RIBBON_TOP, ROAD_Z
+
+        surface = deck_z(RAMP_JOIN_S) + RIBBON_TOP
+        self.assertAlmostEqual(surface, ROAD_Z + 0.012, delta=0.02)
+        self.assertLess(deck_z(RAMP_JOIN_S), deck_z(NEAR_BANK_S))
 
     def test_scene_uses_the_shared_layout(self):
         text = (Path(__file__).resolve().parents[1] / "engine" / "scenes.py").read_text(encoding="utf-8")

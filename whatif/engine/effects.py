@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import math
 
+import bpy
 from mathutils import Euler, Vector
 
 from engine.city_layout import city_water_top
+from engine import decay_vfx
 from engine.meshkit import aim_z, clamp, lin, smoother
 
 
@@ -54,12 +56,161 @@ def _veg_scale(item, ch):
     return max(0.0, grow)
 
 
+def _set_building_decay(amount, forest=0.0):
+    """Broken windows and grime. Forest keeps rising after the grime has saturated."""
+    import bpy
+
+    for material in bpy.data.materials:
+        tree = material.node_tree
+        if tree is None:
+            continue
+        if material.get("decay_hook"):
+            node = tree.nodes.get("Decay")
+            if node is not None and node.type == "VALUE":
+                node.outputs[0].default_value = float(amount)
+        node = tree.nodes.get("Forest")
+        if node is not None and node.type == "VALUE":
+            node.outputs[0].default_value = float(forest)
+        node = tree.nodes.get("Wreck")
+        if node is not None and node.type == "VALUE" and not material.get("wreck_live"):
+            node.outputs[0].default_value = 0.0
+
+
+def _drive_tint(mesh, color):
+    """Write the rust color into the multiply node. Object Info does not update on these meshes."""
+    for slot in mesh.material_slots:
+        material = slot.material
+        if material is None or not material.get("object_tint") or material.node_tree is None:
+            continue
+        for node in material.node_tree.nodes:
+            if node.type != "MIX_RGB" or node.blend_type != "MULTIPLY":
+                continue
+            sock = node.inputs["Color2"]
+            while sock.is_linked:
+                material.node_tree.links.remove(sock.links[0])
+            sock.default_value = color
+
+
+def _paint_descendants(obj, color, drive_nodes=False):
+    if getattr(obj, "type", "") == "MESH":
+        obj.color = color
+        if drive_nodes:
+            _drive_tint(obj, color)
+    for child in obj.children:
+        _paint_descendants(child, color, drive_nodes)
+
+
+def _fade_mark(obj, amount):
+    """Push painted lines toward the dirty asphalt around them."""
+    if amount <= 0.01 or getattr(obj, "type", "") != "MESH":
+        return
+    dust = (0.42, 0.36, 0.28, 1.0)
+    for slot in obj.material_slots:
+        material = slot.material
+        if material is None or material.node_tree is None:
+            continue
+        bsdf = next((node for node in material.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+        if bsdf is None or "Base Color" not in bsdf.inputs:
+            continue
+        if "paint0" not in material:
+            material["paint0"] = list(bsdf.inputs["Base Color"].default_value)
+        base = material["paint0"]
+        bsdf.inputs["Base Color"].default_value = tuple(
+            base[i] + (dust[i] - base[i]) * amount for i in range(4)
+        )
+
+
+def _arm_fleet_rust(obj, amount):
+    """Mix a rust colour into shared car paints. Day 1 stays at zero."""
+    stack = [obj]
+    while stack:
+        item = stack.pop()
+        stack.extend(list(getattr(item, "children", ())))
+        if getattr(item, "type", "") != "MESH":
+            continue
+        for slot in item.material_slots:
+            material = slot.material
+            if material is None or material.node_tree is None or material.get("wreck_mix"):
+                continue
+            tree = material.node_tree
+            bsdf = next((node for node in tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+            if bsdf is None or "Base Color" not in bsdf.inputs:
+                continue
+            if not material.get("fleet_rust"):
+                color_in = bsdf.inputs["Base Color"]
+                mix = tree.nodes.new("ShaderNodeMixRGB")
+                if color_in.is_linked:
+                    source = color_in.links[0].from_socket
+                    tree.links.remove(color_in.links[0])
+                    tree.links.new(source, mix.inputs["Color1"])
+                else:
+                    mix.inputs["Color1"].default_value = tuple(color_in.default_value)
+                mix.inputs["Color2"].default_value = (0.42, 0.16, 0.07, 1.0)
+                value = tree.nodes.new("ShaderNodeValue")
+                value.name = "FleetRust"
+                value.label = "FleetRust"
+                tree.links.new(value.outputs[0], mix.inputs["Fac"])
+                tree.links.new(mix.outputs["Color"], color_in)
+                material["fleet_rust"] = True
+            node = tree.nodes.get("FleetRust")
+            if node is not None and node.type == "VALUE":
+                node.outputs[0].default_value = float(amount)
+
+
+def _crumple_nose(empty):
+    """Push the nose down and back. The mesh copy stays unique to this hero."""
+    nose = empty.matrix_world.to_quaternion() @ Vector((1.0, 0.0, 0.0))
+    for obj in empty.children_recursive:
+        if obj.type != "MESH" or obj.data is None:
+            continue
+        if "vine" in obj.name or "moss" in obj.name or "sapling" in obj.name:
+            continue
+        world_pts = [obj.matrix_world @ vert.co for vert in obj.data.vertices]
+        if not world_pts:
+            continue
+        projections = [(point - empty.matrix_world.translation).dot(nose) for point in world_pts]
+        lo, hi = min(projections), max(projections)
+        span = max(hi - lo, 1e-4)
+        inverse = obj.matrix_world.inverted()
+        right = empty.matrix_world.to_quaternion() @ Vector((0.0, 1.0, 0.0))
+        for vert, proj, point in zip(obj.data.vertices, projections, world_pts):
+            t = (proj - lo) / span
+            if t < 0.55:
+                continue
+            dent = t - 0.55
+            point = point - nose * dent * 1.35
+            point.z -= dent * 0.85
+            side = (point - empty.matrix_world.translation).dot(right)
+            if abs(side) > 0.35 and t > 0.45:
+                point -= right * (0.22 if side > 0 else -0.22) * dent
+            vert.co = inverse @ point
+
+
+def _kill_emission(obj, amount):
+    for mesh in [obj, *list(getattr(obj, "children_recursive", []))]:
+        if getattr(mesh, "type", "") != "MESH":
+            continue
+        for slot in mesh.material_slots:
+            material = slot.material
+            if material is None or material.node_tree is None:
+                continue
+            bsdf = next((node for node in material.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+            if bsdf is None or "Emission Strength" not in bsdf.inputs:
+                continue
+            socket = bsdf.inputs["Emission Strength"]
+            if "emit0" not in material:
+                material["emit0"] = float(socket.default_value)
+            socket.default_value = float(material["emit0"]) * (1.0 - amount)
+
+
 def apply(kit, ch, frame, fps):
     kind = kit.kind
     collapse = ch["collapse"]
     ice = ch["ice"]
     snow = max(ch["snow"], ice * 0.95)
     veg = ch["vegetation"]
+    # Grime and moss sit on the original textures. They never replace the facade with a flat colour.
+    _set_building_decay(min(0.58, smoother(0.14, 0.85, veg)), forest=min(0.4, max(0.0, veg - 0.4)))
     # Water.
     if kit.water is not None:
         z = water_surface(ch, kind)
@@ -88,17 +239,42 @@ def _structures(kit, ch, frame, fps):
         obj = item.obj
         if role == "building_base":
             loc = _sink(item, ch, item.base_loc.copy())
-            # Shrink to a concrete stump. A few marked skeletons stay standing.
-            ruin = smoother(0.40, 0.92, collapse)
-            stump = 1.0 - ruin * (0.55 if item.extra.get("skeleton") else 0.78)
+            # Year 100 loses roofs. Year 500 leaves stumps, shells, and a few towers on their sides.
+            # Nothing is deleted: the collapse has to stay readable.
+            ruin = smoother(0.22, 0.6, collapse)
+            spectacular = smoother(0.68, 1.0, collapse)
+            skeleton = bool(item.extra.get("skeleton"))
+            topple = bool(item.extra.get("topple"))
+            near = bool(item.extra.get("near_bank")) or item.base_loc.y < 800.0
             bury = _bury_scale(item, ch)
             obj.location = loc
-            obj.scale = (
-                item.base_scale.x * bury,
-                item.base_scale.y * bury,
-                item.base_scale.z * max(0.18, stump) * bury,
-            )
-            obj.hide_render = bury < 0.05
+            # Year 100 replaces the far skyline with ruin shells. Year 500
+            # removes every intact tower that is not already falling over.
+            far = item.base_loc.y > 150.0
+            block = obj.name.startswith("far_block") or obj.name.startswith("nyc") or obj.name.startswith("wtc")
+            gone = (not topple) and (spectacular > 0.5 or (far and collapse > 0.52) or (ruin > 0.8 and block))
+            obj.hide_render = bury < 0.05 or gone
+            if topple:
+                ang = min(1.45, ruin * 0.85 + spectacular * 0.7)
+                obj.rotation_euler = _euler(item.base_rot, dx=ang)
+                obj.scale = item.base_scale * bury
+            else:
+                roof = 0.48 if near else 0.36
+                stump = max(0.45, 1.0 - ruin * roof)
+                lean = ruin * (0.55 if near else 0.28)
+                obj.rotation_euler = _euler(item.base_rot, dx=lean * (0.0 if gone else 1.0))
+                obj.scale = (
+                    item.base_scale.x * bury,
+                    item.base_scale.y * bury,
+                    item.base_scale.z * stump * bury,
+                )
+            for child in obj.children_recursive:
+                child.hide_render = obj.hide_render
+            if gone and obj.name:
+                token = obj.name
+                for other in bpy.data.objects:
+                    if other.get("ruin_with") == token:
+                        other.hide_render = True
         elif role == "building_top":
             loc = item.base_loc.copy()
             fall = item.extra.get("fall_at")
@@ -193,6 +369,39 @@ def _structures(kit, ch, frame, fps):
             obj.scale = (1 + s * 2.0, 0.4 + s * 2.5, 1)
 
 
+def _along(points, dist, loop):
+    """Point and heading (nose along +X) at ``dist`` metres along a polyline."""
+    if not points:
+        return Vector((0.0, 0.0, 0.0)), 0.0
+    if len(points) == 1:
+        return Vector(points[0]), 0.0
+    spans = []
+    total = 0.0
+    for a, b in zip(points, points[1:]):
+        start = Vector(a)
+        end = Vector(b)
+        length = (end - start).length
+        spans.append((start, end, length))
+        total += length
+    if total < 0.05:
+        return Vector(points[0]), 0.0
+    if loop:
+        dist = dist % total
+    else:
+        dist = max(0.0, min(total - 0.01, dist))
+    for start, end, length in spans:
+        if dist <= length or length <= 0.0:
+            t = 0.0 if length <= 0.0 else dist / length
+            pos = start.lerp(end, t)
+            delta = end - start
+            yaw = math.atan2(delta.y, delta.x)
+            return pos, yaw
+        dist -= length
+    last = Vector(points[-1])
+    delta = last - Vector(points[-2])
+    return last, math.atan2(delta.y, delta.x)
+
+
 def _life(kit, ch, frame, fps, snow):
     cars = [item for item in kit.items if item.role == "car"]
     mounds = [item for item in kit.items if item.role == "mound"]
@@ -204,6 +413,8 @@ def _life(kit, ch, frame, fps, snow):
             ice = ch["ice"]
             s = grow * (1.0 - 0.94 * ice)
             obj.hide_render = s < 0.03
+            for child in obj.children:
+                child.hide_render = obj.hide_render
             obj.scale = item.base_scale * s
             leaf = Vector(item.extra.get("leaf", (0.3, 0.55, 0.2, 1))[:3])
             autumn = Vector(item.extra.get("autumn", (0.7, 0.4, 0.12, 1))[:3])
@@ -231,6 +442,8 @@ def _life(kit, ch, frame, fps, snow):
                 s = (1.0 - 0.94 * ch["wilt"]) * (1.0 - 0.8 * ch["heat"])
                 s *= 1.0 + 0.45 * ch["vegetation"] * (0 if role == "flower" else 0.2)
             obj.hide_render = s < 0.03
+            for child in obj.children:
+                child.hide_render = obj.hide_render
             obj.scale = item.base_scale * max(s, 0.001)
             if "leaf" in item.extra:
                 leaf = Vector(item.extra["leaf"][:3])
@@ -240,28 +453,126 @@ def _life(kit, ch, frame, fps, snow):
         elif role == "person":
             s = 1.0 - smoother(0.0, 0.2, ch["vanish"])
             obj.hide_render = s < 0.03
-            lift = ch["gravity"] * item.extra.get("float", 0.0)
-            bob = math.sin(frame * 0.18 + obj.location.x) * ch["gravity"] * item.extra.get("bob", 0.0)
-            loc = item.base_loc.copy()
-            loc.z += lift + bob
+            for child in obj.children_recursive:
+                child.hide_render = obj.hide_render
+            path = item.extra.get("path")
+            if path:
+                vanish = ch["vanish"]
+                if "walk_hold" not in obj:
+                    obj["walk_hold"] = (frame / max(fps, 1.0)) * float(item.extra.get("speed", 1.3)) + float(item.extra.get("phase", 0.0))
+                dist = obj["walk_hold"] if vanish > 0.01 else (
+                    (frame / max(fps, 1.0)) * float(item.extra.get("speed", 1.3)) + float(item.extra.get("phase", 0.0))
+                )
+                if vanish <= 0.01:
+                    obj["walk_hold"] = dist
+                loc, yaw = _along(path, dist, loop=True)
+                # Quaternius characters face +Y. Offset so they look along the path.
+                obj.rotation_euler.z = yaw - math.pi / 2.0
+            else:
+                loc = item.base_loc.copy()
+                yaw = None
+            loc.z += ch["gravity"] * item.extra.get("float", 0.0)
+            loc.z += math.sin(frame * 0.18 + obj.location.x) * ch["gravity"] * item.extra.get("bob", 0.0)
             obj.location = loc
             obj.scale = item.base_scale * max(s, 0.001)
+        elif role == "bike":
+            path = item.extra.get("path")
+            vanish = ch["vanish"]
+            if path:
+                if "walk_hold" not in obj:
+                    obj["walk_hold"] = (frame / max(fps, 1.0)) * float(item.extra.get("speed", 4.5)) + float(item.extra.get("phase", 0.0))
+                dist = obj["walk_hold"] if vanish > 0.01 else (
+                    (frame / max(fps, 1.0)) * float(item.extra.get("speed", 4.5)) + float(item.extra.get("phase", 0.0))
+                )
+                if vanish <= 0.01:
+                    obj["walk_hold"] = dist
+                loc, yaw = _along(path, dist, loop=True)
+            else:
+                loc = item.base_loc.copy()
+                yaw = item.base_rot.z
+            tip = smoother(0.04, 0.22, vanish) * 1.35
+            obj.location = loc
+            obj.rotation_euler = Euler((tip, 0.0, yaw))
+            obj.hide_render = False
         elif role == "car":
-            # People vanish. Cars roll to a stop and stay, then rust where they stopped.
-            u = smoother(0.0, 1.0, clamp(ch["vanish"] / 0.55))
-            a = Vector(item.extra["path_from"])
-            b = Vector(item.extra["path_to"])
-            pos = a.lerp(b, u)
+            # People vanish. Moving traffic coasts to a stop. Parked cars stay put.
+            vanish = ch["vanish"]
+            cruise = item.extra.get("cruise")
+            if cruise:
+                speed = float(item.extra.get("speed", 8.0))
+                if "cruise_hold" not in obj:
+                    obj["cruise_hold"] = (frame / max(fps, 1.0)) * speed + float(item.extra.get("phase", 0.0))
+                if vanish <= 0.015:
+                    dist = (frame / max(fps, 1.0)) * speed + float(item.extra.get("phase", 0.0))
+                    obj["cruise_hold"] = dist
+                    pos, travel = _along(cruise, dist, loop=not item.extra.get("stop_line"))
+                    drift = 0.0
+                else:
+                    coast = float(item.extra.get("coast", 7.0)) * smoother(0.0, 0.28, vanish)
+                    pos, travel = _along(cruise, obj["cruise_hold"] + coast, loop=False)
+                    drift = float(item.extra.get("drift", 0.0)) * smoother(0.05, 0.4, vanish)
+                item.extra["travel_yaw"] = travel + drift
+            else:
+                u = smoother(0.0, 1.0, clamp(vanish / 0.55))
+                a = Vector(item.extra["path_from"])
+                b = Vector(item.extra["path_to"])
+                pos = a.lerp(b, u)
             rust = ch["rust"]
-            pos.z -= snow * 0.32 + rust * 0.12
+            veg = ch["vegetation"]
+            hero = bool(item.extra.get("hero"))
+            grime_u = max(rust, smoother(0.05, 0.4, veg) * 0.7)
+            flat = 1.0 - (0.22 if hero else 0.62) * smoother(0.28, 0.92, rust)
+            bury = 0.7 * smoother(0.5, 1.0, max(rust, veg if veg > 0.85 else 0.0))
+            if hero:
+                bury = 0.04 * rust
+                if rust > 0.55 and not obj.get("nose_crumpled"):
+                    _crumple_nose(obj)
+                    obj["nose_crumpled"] = True
+                _kill_emission(obj, smoother(0.25, 0.6, rust))
+            gone = (not hero) and rust > 0.9
+            pos.z -= snow * 0.32 + bury
             pos.z += ch["gravity"] * item.extra.get("float", 0.0)
             obj.location = pos
-            obj.scale = item.base_scale
-            obj.hide_render = False
-            paint = Vector(item.extra.get("paint", (0.93, 0.93, 0.94))[:3])
-            grime = paint.lerp(Vector((0.28, 0.18, 0.12)), rust)
-            obj.color = (grime.x, grime.y, grime.z, 1.0)
-            yaw = item.base_rot.z + rust * (0.35 if item.extra.get("index", 0) % 2 == 0 else -0.28)
+            obj.scale = (item.base_scale.x, item.base_scale.y, item.base_scale.z * max(flat, 0.2))
+            obj.hide_render = gone
+            for child in obj.children:
+                if child.get("role") not in ("weed", "tree_canopy"):
+                    child.hide_render = gone
+            if hero:
+                for child in obj.children_recursive:
+                    low = child.name.lower()
+                    if "glass" in low or "light" in low or "lamp" in low:
+                        child.hide_render = rust > 0.45
+                    if "wheel" not in low or rust <= 0.6:
+                        continue
+                    if "wheel0" not in child:
+                        child["wheel0"] = [child.scale.x, child.scale.y, child.scale.z]
+                    base = child["wheel0"]
+                    # Keep the tire visible as a flat ring. Do not hide the wheel mesh.
+                    child.scale = (base[0], base[1], base[2] * 0.42)
+            paint = Vector(item.extra.get("paint", (1.0, 1.0, 1.0))[:3])
+            if hero:
+                # Almost all the way to the rust texture. A trace of the yellow stays.
+                husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.22, 0.12, 0.06)), min(1.0, grime_u * 0.95))
+                for material in bpy.data.materials:
+                    if not material.get("wreck_mix") or material.node_tree is None:
+                        continue
+                    material["wreck_live"] = True
+                    node = material.node_tree.nodes.get("Wreck")
+                    if node is not None:
+                        node.outputs[0].default_value = float(min(1.0, grime_u * 0.95))
+            else:
+                husk = Vector((1.0, 1.0, 1.0)).lerp(Vector((0.45, 0.18, 0.08)), min(1.0, grime_u * 1.25))
+            _paint_descendants(obj, (husk.x, husk.y, husk.z, 1.0), drive_nodes=hero)
+            _arm_fleet_rust(obj, min(1.0, max(rust * 1.6, smoother(0.04, 0.22, veg))))
+            if cruise:
+                yaw = float(item.extra.get("travel_yaw", item.base_rot.z))
+            else:
+                askew = 0.35 if veg > 0.15 and not hero else 0.08
+                yaw = item.base_rot.z + grime_u * (askew if item.extra.get("index", 0) % 2 == 0 else -askew)
+            if hero:
+                # A quarter turn so the low camera sees the flat tires and rims.
+                yaw -= 0.7 * smoother(0.55, 0.85, rust)
             obj.rotation_euler = _euler(item.base_rot, dz=yaw - item.base_rot.z)
         elif role == "bird":
             gone = max(ch["fauna"], smoother(0.15, 0.45, ch["vanish"]))
@@ -279,22 +590,107 @@ def _life(kit, ch, frame, fps, snow):
         elif role == "mascot":
             obj.hide_render = ch["vegetation"] > 0.65 or ch["ice"] > 0.2 or ch["geology"] > 0.15
         elif role == "road_mark":
-            # Lane paint fades after the meadow. Year 500 is forest, not a fresh street.
-            obj.hide_render = ch["vegetation"] > 0.92
+            # Year 1 starts fading the paint. Year 100 has worn most of it off.
+            veg = ch["vegetation"]
+            frag = smoother(0.06, 0.4, veg)
+            bucket = abs(hash(obj.name)) % 100
+            obj.hide_render = veg > 0.55 or bucket < frag * 92.0
+            for child in obj.children:
+                child.hide_render = obj.hide_render
+            _fade_mark(obj, smoother(0.12, 0.5, veg))
+        elif role == "blanket":
+            obj.hide_render = ch["vegetation"] < 0.7
+        elif role == "frontage":
+            # Keep the facade mesh. Year 100 only breaks the roof line. Year 500 swaps in ruin shells.
+            index = int(item.extra.get("index", 0))
+            ruin = smoother(0.26, 0.62, ch["collapse"])
+            spectacular = smoother(0.7, 0.92, ch["collapse"])
+            lean = ruin * (0.35 if index % 3 == 0 else 0.08)
+            obj.rotation_euler = _euler(item.base_rot, dx=lean)
+            stump = max(0.78, 1.0 - ruin * 0.22)
+            obj.scale = (
+                item.base_scale.x,
+                item.base_scale.y,
+                item.base_scale.z * stump,
+            )
+            obj.hide_render = spectacular > 0.55
+            for child in obj.children_recursive:
+                child.hide_render = obj.hide_render
+        elif role == "rubble":
+            s = smoother(0.3, 0.58, ch["collapse"])
+            obj.hide_render = s < 0.08
+            obj.scale = item.base_scale * max(s, 0.001)
+        elif role == "prop" and "signal" in obj.name:
+            u = smoother(0.35, 0.8, ch["vegetation"])
+            obj.rotation_euler = _euler(item.base_rot, dx=u * 1.35)
+            obj.location = item.base_loc
+            _kill_emission(obj, u)
         elif role == "forest_floor":
-            # Day 1 stays city-grey on the far bank. Meadow, then forest floor.
-            obj.hide_render = ch["vegetation"] < 0.22
+            # A full green sheet at year 1 repaints the bank. Trees and cracks come first.
+            obj.hide_render = True
+        elif role == "shell":
+            s = smoother(0.38, 0.6, ch["collapse"])
+            obj.hide_render = s < 0.12
+            obj.scale = item.base_scale * (0.72 + 0.28 * s)
+            for child in obj.children_recursive:
+                child.hide_render = obj.hide_render
+        elif role == "fracture100":
+            # Baked roof and floor shards. Up for year 100, gone once the tower falls.
+            obj.hide_render = not (0.48 < ch["collapse"] < 0.9)
+        elif role == "fracture500":
+            obj.hide_render = ch["collapse"] < 0.85
+        elif role == "hills":
+            obj.hide_render = ch["collapse"] < 0.85
+        elif role == "swallow":
+            obj.hide_render = ch["collapse"] < 0.82
+        elif role == "rubble_hill":
+            obj.hide_render = ch["collapse"] < 0.85
+        elif role == "fallen":
+            obj.hide_render = ch["collapse"] < 0.7
+            for child in obj.children_recursive:
+                child.hide_render = obj.hide_render
         elif role == "ruin":
-            s = smoother(0.28, 0.75, ch["collapse"])
+            # Broken shells are up by year 100 and stay through the collapse.
+            s = smoother(0.28, 0.52, ch["collapse"])
+            obj.hide_render = s < 0.08
+            obj.scale = item.base_scale
+            for child in obj.children:
+                child.hide_render = obj.hide_render
+        elif role == "wreckage":
+            s = smoother(0.4, 0.72, ch["rust"])
             obj.hide_render = s < 0.05
+            obj.scale = item.base_scale * max(s, 0.001)
+            for child in obj.children:
+                child.hide_render = obj.hide_render
+        elif role == "groundwear":
+            obj.hide_render = ch["vegetation"] < 0.1
+        elif role == "late_meadow":
+            obj.hide_render = ch["vegetation"] < 0.84
+        elif role == "year_green":
+            # Year 1 stays paved. Year 100 is already grass. Year 500 keeps it.
+            obj.hide_render = ch["vegetation"] < 0.42
+        elif role == "year_age":
+            # Dark windows and ivy. Off on day 1, on by year 100.
+            obj.hide_render = ch["vegetation"] < 0.48
+        elif role == "crack_sheet":
+            obj.hide_render = False
+        elif role == "segment_prop":
+            show = getattr(kit, "beat_id", "") == item.extra.get("only")
+            obj.hide_render = not show
+            for child in obj.children_recursive:
+                child.hide_render = not show
+        elif role == "wear":
+            s = smoother(0.06, 0.28, ch["vegetation"])
+            obj.hide_render = s < 0.04
             obj.scale = item.base_scale * max(s, 0.001)
         elif role == "prop":
             loc = item.base_loc.copy()
             loc.z += ch["gravity"] * item.extra.get("float", 0.0)
             tilt = smoother(0.45, 0.9, ch["collapse"])
             obj.location = loc
-            obj.rotation_euler = _euler(item.base_rot, dx=tilt * (1.15 if "lamp" in obj.name else 0.0))
-            obj.hide_render = "lamp" in obj.name and ch["collapse"] > 0.93
+            fallen = 1.25 if "lamp" in obj.name else 0.0
+            obj.rotation_euler = _euler(item.base_rot, dx=tilt * fallen)
+            obj.hide_render = False
     for mound, car in zip(mounds, cars):
         if snow < 0.18:
             mound.obj.hide_render = True
@@ -316,8 +712,8 @@ def _bridge(kit, ch):
         loc.z -= droop
         rot = _euler(item.base_rot)
         if i in (1, 2):
-            # Hidden while the continuous deck is whole. Later they are the wreckage in the river.
-            u = smoother(0.62 + (i - 1) * 0.04, 0.86 + (i - 1) * 0.03, ch["collapse"])
+            # In the river by year 100. They stay as the fallen span after the deck is gone.
+            u = smoother(0.32 + (i - 1) * 0.03, 0.58 + (i - 1) * 0.02, ch["collapse"])
             rot.x += u * (0.9 if i == 1 else -1.05)
             loc.z -= u * 9.2
             hidden = u < 0.08
@@ -325,21 +721,21 @@ def _bridge(kit, ch):
             for child in item.obj.children:
                 child.hide_render = hidden
         elif i == 0:
-            # The river span falls into the water. It does not stay a finished road.
-            u = smoother(0.70, 0.96, ch["collapse"])
-            rot.x += u * 0.55
-            loc.z -= u * 7.5
-            loc.y += u * 4.0
-            item.obj.hide_render = False
+            # Year 100 drops the river span into the water. Year 500 removes it.
+            u = smoother(0.28, 0.58, ch["collapse"])
+            rot.x += u * 0.85
+            loc.z = item.base_loc.z * (1.0 - u) + (-0.35) * u
+            gone = ch["collapse"] > 0.9
+            item.obj.hide_render = gone
             for child in item.obj.children:
-                child.hide_render = ch["vegetation"] > 0.55 or u > 0.35
+                kept = any(token in child.name for token in ("rebar", "rail", "asphalt_layer", "span_debris", "span_cell"))
+                child.hide_render = gone or ("car" not in child.name and not kept and u > 0.45)
         elif i == 4:
-            u = smoother(0.78, 0.98, ch["collapse"])
-            rot.x += u * 0.45
-            loc.z -= u * 4.0
+            u = smoother(0.75, 1.0, ch["collapse"])
+            loc.z -= u * 0.12
             item.obj.hide_render = False
             for child in item.obj.children:
-                child.hide_render = ch["vegetation"] > 0.5 or u > 0.3
+                child.hide_render = "car" not in child.name and ch["vegetation"] > 0.92
         else:
             item.obj.hide_render = False
             for child in item.obj.children:
@@ -357,20 +753,29 @@ def _bridge(kit, ch):
         loc = item.base_loc.copy()
         rot = _euler(item.base_rot)
         rot.z += ch["sag"] * (0.04 if i == 0 else -0.05)
+        # Year 100 shortens the portals. Year 500 leaves broken pylon stumps.
+        ruin = smoother(0.36, 0.66, ch["collapse"])
+        spectacular = smoother(0.74, 1.0, ch["collapse"])
+        # Year 100 keeps most of the portal. Year 500 is a broken stump.
+        height_left = max(0.32, 1.0 - ruin * 0.22 - spectacular * 0.4)
         if i == 1:
-            u = smoother(0.75, 0.98, ch["collapse"])
-            rot.x += u * 0.25
-            loc.z -= u * 6.0
+            rot.x += ruin * 0.12 + spectacular * 0.85
+            loc.z -= spectacular * 8.0
         else:
-            u = smoother(0.9, 1.0, ch["collapse"])
-            rot.z += u * 0.05
+            rot.z += spectacular * 0.2
+            rot.x += spectacular * 0.35
         if item.extra.get("sink"):
             loc.z -= ch["geology"] * 180.0
         item.obj.location = loc
         item.obj.rotation_euler = rot
-        item.obj.scale = item.base_scale * _bury_scale(item, ch)
+        bury = _bury_scale(item, ch)
+        item.obj.scale = (
+            item.base_scale.x * bury,
+            item.base_scale.y * bury,
+            item.base_scale.z * height_left * bury,
+        )
         q = rot.to_quaternion()
-        h = item.extra["height"]
+        h = item.extra["height"] * height_left
         w = item.extra["width"] / 2
         left = Vector(loc) + q @ Vector((-w, 0, h))
         right = Vector(loc) + q @ Vector((w, 0, h))
@@ -386,7 +791,7 @@ def _bridge(kit, ch):
     ya = bridge["towers"][0].base_loc.y
     yb = bridge["towers"][1].base_loc.y
     span = max(1.0, abs(yb - ya))
-    sag = span / 16.0
+    sag = span / 8.5
     snap = smoother(0.66, 0.9, ch["collapse"])
     half = float(bridge.get("half", 7.6))
     sides = []
@@ -535,18 +940,15 @@ def _sky(kit, ch, frame, fps):
     # 0.16 noon-ish, ~0.5 sunset, ~0.78 night.
     if dn < 0.42:
         u = clamp((dn - 0.12) / 0.3)
-        elev = _lerp(1.05, 1.22, u)
-        # The HDRI is the fill. The sun is a cooler, weaker key with a wide angle.
-        energy = _lerp(2.8, 1.5, u)
-        color = Vector(lin(0.95, 0.97, 1.0)[:3]).lerp(Vector(lin(1.0, 0.72, 0.48)[:3]), u)
-        sky = Vector(lin(0.56, 0.74, 0.96)[:3]).lerp(Vector(lin(0.98, 0.62, 0.38)[:3]), u * 0.75)
-        horizon = Vector(lin(0.78, 0.86, 0.94)[:3]).lerp(Vector(lin(0.98, 0.55, 0.32)[:3]), u)
-        sky_e = _lerp(1.55, 0.95, u)
-        fill = 0.18
-        # 0 keeps the sunny HDRI in the sky. Sunset mixes toward the gradient.
-        # A little of the blue gradient keeps the zenith cheerful. The HDRI
-        # still supplies the clouds and the light.
-        sky_mix = _lerp(0.34, 0.55, u)
+        elev = _lerp(0.72, 0.95, u)
+        # A low warm sun so the shadows have a direction. The camera sees the gradient.
+        energy = _lerp(7.5, 4.2, u)
+        color = Vector(lin(1.0, 0.86, 0.62)[:3]).lerp(Vector(lin(1.0, 0.62, 0.36)[:3]), u)
+        sky = Vector(lin(0.18, 0.38, 0.78)[:3]).lerp(Vector(lin(0.55, 0.32, 0.62)[:3]), u * 0.4)
+        horizon = Vector(lin(0.98, 0.74, 0.48)[:3]).lerp(Vector(lin(0.98, 0.5, 0.28)[:3]), u)
+        sky_e = _lerp(1.35, 1.05, u)
+        fill = 0.08
+        sky_mix = 0.0
     elif dn < 0.68:
         u = clamp((dn - 0.42) / 0.26)
         elev = _lerp(1.15, 1.72, u)
@@ -573,13 +975,15 @@ def _sky(kit, ch, frame, fps):
         sky_e *= 1.0 + ch["heat"] * 0.15
     if ch["dust"] > 0.01:
         sky = sky.lerp(Vector(lin(0.72, 0.62, 0.48)[:3]), ch["dust"] * 0.5)
-    kit.sun.rotation_euler = Euler((elev, 0.08, -0.85))
+    yaw = -0.85 + decay_vfx.spin_sun(kit, frame, fps, getattr(kit, "beat_id", ""))
+    kit.sun.rotation_euler = Euler((elev, 0.08, yaw))
     kit.sun.data.energy = energy
-    kit.sun.data.angle = 0.1 if dn > 0.68 else 0.36
+    kit.sun.data.angle = 0.025 if dn < 0.42 else (0.1 if dn > 0.68 else 0.2)
     kit.sun.data.color = (color.x, color.y, color.z)
     kit.fill.data.energy = fill * (1.0 - 0.3 * ch["ice"])
     if kit.world_bg:
         kit.world_bg.inputs[1].default_value = sky_e
+    decay_vfx.drive(kit, ch, frame, fps)
     if getattr(kit, "sky_zenith", None) is not None:
         kit.sky_zenith.outputs[0].default_value = (sky.x, sky.y, sky.z, 1)
         kit.sky_horizon.outputs[0].default_value = (horizon.x, horizon.y, horizon.z, 1)

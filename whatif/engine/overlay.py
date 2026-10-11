@@ -25,12 +25,14 @@ def _font(path: Path, size: int) -> ImageFont.FreeTypeFont:
     return ImageFont.truetype(str(path), size)
 
 
-def _shadow_text(base: Image.Image, xy, text, font, fill=(255, 255, 255, 255), anchor="lt", radius=8, opacity=150):
+def _shadow_text(base: Image.Image, xy, text, font, fill=(255, 255, 255, 255), anchor="lt", radius=2, opacity=110, offset=(1, 2)):
     layer = Image.new("RGBA", base.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(layer)
-    draw.text(xy, text, font=font, fill=(0, 0, 0, opacity), anchor=anchor)
-    blurred = layer.filter(ImageFilter.GaussianBlur(radius))
-    base.alpha_composite(blurred)
+    ox, oy = offset
+    draw.text((xy[0] + ox, xy[1] + oy), text, font=font, fill=(0, 0, 0, opacity), anchor=anchor)
+    if radius > 0:
+        layer = layer.filter(ImageFilter.GaussianBlur(radius))
+    base.alpha_composite(layer)
     draw2 = ImageDraw.Draw(base)
     draw2.text(xy, text, font=font, fill=fill, anchor=anchor)
 
@@ -150,25 +152,30 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
         a = state["title_alpha"]
         # Two centered lines in the sky, well above the caption band.
         lines = _wrap_title(state["title"])
-        # Large, in the open sky left of the portal. The portal's left leg
-        # is near x=0.49, so the block is centered in the sky pocket, not
-        # on the frame center and not jammed into the corner.
-        cx = int(width * 0.255)
-        y = int(height * 0.068)
-        gap = int(title_size * 1.08)
-        block_h = gap * max(0, len(lines) - 1)
-        y -= block_h // 2
-        _title_scrim(img, cx, y + block_h / 2.0, width * 0.23, gap * max(len(lines), 1) * 0.85, a)
+        # 60 px safe margin on a 1080×1920 frame, left-aligned in the sky
+        # pocket so the portal (near x=0.49) does not clip the words.
+        margin_x = width * (60.0 / 1080.0)
+        margin_y = height * (60.0 / 1920.0)
+        max_right = width * 0.46
+        size = title_size
+        title_font = _font(SERIF, size)
+        while size > 22 and max(_font(SERIF, size).getlength(line) for line in lines) > max_right - margin_x - 12:
+            size -= 1
+            title_font = _font(SERIF, size)
+        x = int(margin_x + 8)
+        y = int(margin_y)
+        gap = int(size * 1.15)
         for line in lines:
             _shadow_text(
                 img,
-                (cx, y),
+                (x, y),
                 line,
                 title_font,
                 fill=_alpha((255, 255, 255), 255 * a),
-                anchor="mm",
-                radius=14,
-                opacity=int(170 * a),
+                anchor="lt",
+                radius=1,
+                opacity=int(90 * a),
+                offset=(2, 2),
             )
             y += gap
 

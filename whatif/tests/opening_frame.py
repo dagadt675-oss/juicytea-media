@@ -21,15 +21,15 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from engine import build as build_mod  # noqa: E402
-from engine.city_layout import tower_pose  # noqa: E402
+from engine.city_layout import TOWER_S, tower_pose  # noqa: E402
 
 OUT = Path("/tmp/opening_frame")
 
 # Image y is 0 at the top. These are the registered landmarks.
 BANDS = {
-    "skyline_y": ((0.0, 168.0, 1.4), 0.38),
-    "bank_y": ((0.0, 82.0, 0.35), 0.55),
-    "promenade_y": ((-8.0, 36.0, 0.7), 0.77),
+    "skyline_y": ((0.0, 168.0, 1.4), 0.479),
+    "bank_y": ((0.0, 82.0, 0.35), 0.579),
+    "promenade_y": ((-8.0, 36.0, 0.7), 0.672),
 }
 
 
@@ -111,12 +111,12 @@ def main():
     for name, point, target in ((key, BANDS[key][0], BANDS[key][1]) for key in BANDS):
         sx, sy = project(point)
         landmarks[name] = {"x": sx, "y": sy, "target": target, "error": abs(sy - target)}
-    (px, py, _pz), _rot = tower_pose(32.0)
-    # The near portal leg runs from z=0 to z=64.5 on the pivot.
-    top = (px, py, 64.5)
+    (px, py, _pz), _rot = tower_pose(TOWER_S[0])
+    # The near portal leg runs from z=0 to z=58.6 on the pivot.
+    top = (px, py, 58.6)
     sx, sy = project(top)
-    landmarks["portal_x"] = {"x": sx, "y": sy, "target": 0.584, "error": abs(sx - 0.584)}
-    landmarks["portal_y"] = {"x": sx, "y": sy, "target": 0.057, "error": abs(sy - 0.057)}
+    landmarks["portal_x"] = {"x": sx, "y": sy, "target": 0.550, "error": abs(sx - 0.550)}
+    landmarks["portal_y"] = {"x": sx, "y": sy, "target": 0.315, "error": abs(sy - 0.315)}
 
     scene.render.filepath = str(OUT / "beauty.png")
     bpy.ops.render.render(write_still=True)
