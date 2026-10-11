@@ -1376,19 +1376,26 @@ def _seat_bottom(obj, z):
 
 
 def _mountains(kit, coll):
-    """The glacier scan is a flat sheet. Stood on edge, the rock rim is the horizon."""
+    """Rock ridges on the far ground. The glacier scan is a flat ice sheet, so it is not stood up."""
+    folder = Path("/opt/cursor/asset-cache/cc0/extracted/nature/quaternius_stylized_nature_megakit/glTF")
+    rocks = [folder / "Rock_Medium_1.gltf", folder / "Rock_Medium_2.gltf", folder / "Rock_Medium_3.gltf"]
     placed = 0
-    for i, x in enumerate((-480.0, -180.0, 80.0, 340.0, 600.0)):
-        ridge = private_assets.place(
-            coll, "Glacier_Photoscan_on_Mountain_d7f119cc",
-            (x, 920.0, FAR_Z), 0.2 * i, longest=340.0, name="ridge",
-        )
-        if ridge is None:
-            continue
-        ridge.rotation_euler.x = math.radians(72)
-        _seat_bottom(ridge, FAR_Z - 18.0)
-        kit.add(ridge, "mountain", sink=False)
-        placed += 1
+    x = -680.0
+    i = 0
+    while x < 740.0:
+        height = 42.0 + (i % 5) * 14.0
+        y = 530.0 + (i % 3) * 26.0
+        ridge = _mesh_prop(coll, rocks[i % 3], (x, y, FAR_Z), 0.7 * i, height, "ridge")
+        if ridge is not None:
+            kit.add(ridge, "mountain", sink=False)
+            placed += 1
+        if i % 2 == 0:
+            peak = _mesh_prop(coll, rocks[(i + 1) % 3], (x + 18.0, y + 55.0, FAR_Z), 1.4 + i, height * 1.45, "peak")
+            if peak is not None:
+                kit.add(peak, "mountain", sink=False)
+                placed += 1
+        x += 78.0
+        i += 1
     mesh = bpy.data.meshes.new("distance_haze")
     bm = bmesh.new()
     bmesh.ops.create_cube(bm, size=1.0)
@@ -1396,8 +1403,8 @@ def _mountains(kit, coll):
     bm.free()
     haze = bpy.data.objects.new("distance_haze", mesh)
     coll.objects.link(haze)
-    haze.location = (0.0, 860.0, 90.0)
-    haze.scale = (1800.0, 160.0, 140.0)
+    haze.location = (0.0, 780.0, 70.0)
+    haze.scale = (1800.0, 90.0, 80.0)
     mat = bpy.data.materials.new("DistanceHaze")
     mat.use_nodes = True
     tree = mat.node_tree
@@ -1405,7 +1412,7 @@ def _mountains(kit, coll):
     out = tree.nodes.new("ShaderNodeOutputMaterial")
     vol = tree.nodes.new("ShaderNodeVolumePrincipled")
     vol.inputs["Color"].default_value = (0.62, 0.72, 0.84, 1.0)
-    vol.inputs["Density"].default_value = 0.0022
+    vol.inputs["Density"].default_value = 0.004
     tree.links.new(vol.outputs["Volume"], out.inputs["Volume"])
     haze.data.materials.append(mat)
     kit.add(haze, "mountain", sink=False)
