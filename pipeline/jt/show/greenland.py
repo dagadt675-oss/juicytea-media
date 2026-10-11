@@ -276,7 +276,9 @@ def apply_motion(cam: Cam, t: float) -> Cam:
         # The pole snap sits between the grid and SIXTEEN, so that stretch
         # is three events instead of one quiet push.
         (sits, 0.13, 2.2, 0.20),
-        (b.algeria, 0.10, -1.2, 0.42),
+        (b.t("STRETCHES"), 0.14, 3.2, 0.36),
+        (b.algeria, 0.16, -3.0, 0.42),
+        (b.t("GREENLAND", after=b.algeria), 0.12, 2.4, 0.36),
         (b.usa, 0.10, 1.0, 0.42),
         (b.china, 0.10, -1.0, 0.42),
         (b.india, 0.10, 0.8, 0.42),
@@ -895,7 +897,15 @@ class Greenland:
         # The 14 copies are laid out on one wide frame of the whole continent.
         if st["tiles"] > 0.08 and st["compare"] < 0.15 and state.b is None:
             cam = _fourteen_cam()
-            # The finished jigsaw keeps drifting until Algeria, so those seconds are not a hold.
+            # Drift through the drops and after they land, so the jigsaw is not a hold.
+            age = st["t"] - (CLOCK.drop + 0.4)
+            if age > 0:
+                cam = Cam(
+                    cam.proj,
+                    cam.lon + 2.2 * math.sin(age * 1.6),
+                    cam.lat - 0.9 * age,
+                    cam.span * (1.0 + 0.05 * math.sin(age * 2.0)),
+                )
             if st["t"] > CLOCK.fourteen:
                 age = st["t"] - CLOCK.fourteen
                 cam = Cam(
