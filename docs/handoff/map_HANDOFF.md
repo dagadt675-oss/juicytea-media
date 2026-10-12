@@ -4,7 +4,7 @@ Last updated: 2026-10-12.
 
 This file is the only briefing a new agent gets, plus the git repo. Read it before editing. Update it at the end of every future run that changes the picture, the rules, the branches, or the next step, then commit it on the branch you are actually working on and copy it to `/opt/cursor/artifacts/handoff/map_HANDOFF.md`.
 
-Picture this document describes: `greenland_africa_v13.mp4` in commit `1363605` on `cursor/greenland-africa-v13-7e9d`. v12 is the parent (`4c9cf83` on `cursor/greenland-africa-v12-7e9d`, PR #28). PR #29.
+Picture this document describes: `greenland_africa_v14.mp4` in commit `dd60291` on `cursor/greenland-africa-v14-7e9d`. v13 is the parent (`1363605` on `cursor/greenland-africa-v13-7e9d`, PR #29). PR #30.
 
 ## Where the code actually is
 
@@ -12,14 +12,14 @@ Two checkouts exist on this machine. They are not the same branch.
 
 | Path | Branch at the time of this handoff | What it is |
 | --- | --- | --- |
-| `/tmp/vfx-smooth` | `cursor/greenland-africa-v13-7e9d` | The live map engine. Greenland v5 through v13 live here. Edit this tree, or a fresh checkout of this branch. |
+| `/tmp/vfx-smooth` | `cursor/greenland-africa-v14-7e9d` | The live map engine. Greenland v5 through v14 live here. Edit this tree, or a fresh checkout of this branch. |
 | `/workspace` | `cursor/greenland-vo-retime-7e9d` at `7ec07b0` | The rejected retime. Do not edit it thinking it is current. |
 
-Before every edit, run `git -C <dir> branch --show-current`. If you are not on `cursor/greenland-africa-v13-7e9d` or a new branch cut from it, you are in the wrong tree.
+Before every edit, run `git -C <dir> branch --show-current`. If you are not on `cursor/greenland-africa-v14-7e9d` or a new branch cut from it, you are in the wrong tree.
 
 Repo: `dagadt675-oss/juicytea-media`. New branches must match `cursor/<descriptive-name>-7e9d`, all lowercase. Open and update pull requests with the Cursor `ManagePullRequest` tool. Do not use `gh` to create or edit a PR. `gh` is read-only. `pipeline/.gitignore` ignores `*.mp4`; force-add a delivery with `git add -f`. GitHub rejects files over 100.00 MB (decimal). Warn above 50 MB. Do not commit `pipeline/examples/market/market_proof.txt`. Do not commit the hypso zip, the hypso tif, Blue Marble `.npy`, the Natural Earth shapefile, or anything under `pipeline/data/cache/`.
 
-Do not start a new episode, a Märket rebuild, or another Greenland render until Kristóf reviews v13. v13 passed the no-cut gate, the 5× whole-frame spike rule, the loop-seam check, the local-pop gate, and the ghost-coast gate. He has not approved it.
+Do not start a new episode, a Märket rebuild, or another Greenland render until Kristóf reviews v14. v14 keeps v13's clock. It passed the no-cut gate, the 5× whole-frame spike rule, the loop-seam check, the local-pop gate, and the ghost-coast gate. He has not approved it.
 
 ---
 
@@ -27,7 +27,7 @@ Do not start a new episode, a Märket rebuild, or another Greenland render until
 
 Juicy Tea map Shorts. Vertical 1080×1920 pictures of unbelievable geography, built from ready-made public-domain or CC0 imagery, timed to a recorded voice. The look Kristóf calls perfect is the GeoGlobeTales colourful satellite globe and flat maps. A dark single-accent focus mode is optional per beat. It is not the default.
 
-The active job is **Greenland vs Africa**, silent picture, timed to Kristóf's Brian voiceover (52.428 s). The delivered file waiting on his review is `pipeline/examples/greenland/greenland_africa_v13.mp4`.
+The active job is **Greenland vs Africa**, silent picture, timed to Kristóf's Brian voiceover (52.428 s). The delivered file waiting on his review is `pipeline/examples/greenland/greenland_africa_v14.mp4`.
 
 ### Greenland versions
 
@@ -44,11 +44,12 @@ The active job is **Greenland vs Africa**, silent picture, timed to Kristóf's B
 | v10 | `greenland_africa_v10.mp4` | v9 with frames 211–284 and 397–483 clipped to a convex outline. 60 fps, 3146 frames, 52.433 s, 89,788,561 bytes. No-cut gate: max diff 13.238, spikes 0, dead 0, pass. Ghost-coast gate: 223 samples, 0 fails. | He accepted the morph outline. The fourteen copies still vanished at about 31 s, and the loop popped. Keep the file; v11 copies every span except those fixes. |
 | v11 | `greenland_africa_v11.mp4` | v10 with the fourteen copies shrinking out over 0.64 s and the last half-second joined to frame 0. 60 fps, 3146 frames, 52.433 s, 87,815,180 bytes. Whole-frame gate passed and hid the local pops below. | Superseded. Kristóf scored the smoothness 2/10. Keep the file; v12 copies every span except the fixes. |
 | v12 | `greenland_africa_v12.mp4` | v11 with the eight review items fixed. 60 fps, 3146 frames, 52.433 s, 83,281,871 bytes. Gates passed, but frame 1680 snapped the framing and the shrink finished before the voice. | Superseded. Keep the file; v13 copies every span except the retimed ones. |
-| v13 | `greenland_africa_v13.mp4` | v12 with a continuous camera through 28 s, the three shrinks on the spoken words, and a visible push through 40–44 s. 60 fps, 3146 frames, 52.433 s, 82,359,454 bytes. Whole-frame gate: max diff 9.824, spikes 0, dead 0, pass. Loop seam 1.605 against a neighbour median of 0.533, pass. Local pops 0. Ghost-coast gate: 294 samples, 0 fails. | **Current delivery. Waiting on Kristóf.** |
+| v13 | `greenland_africa_v13.mp4` | Shrink timed to the three spoken words, 28 s splice closed, 40–44 s push. 60 fps, 3146 frames, 52.433 s, 82,359,454 bytes. Passed cuts and smoothness. | Superseded. Picture-only notes remained. Keep the file; v14 copies every span except those notes. |
+| v14 | `greenland_africa_v14.mp4` | Same clock as v13. No ~9× AREA pill. Label entrances scale and fade over 7 frames. The flat-to-globe morph stays full-bleed until it is a globe. Excuse gag contrast is 12.5% higher from 5.6–6.6 s. 60 fps, 3146 frames, 52.433 s, 80,295,556 bytes. Whole-frame gate: max diff 9.824, spikes 0, dead 0, pass. Loop seam 2.328 against a neighbour median of 0.530, pass. Local pops 0. Ghost-coast gate: 294 samples, 0 fails. | **Current delivery. Waiting on Kristóf.** |
 
-Raw v13:
+Raw v14:
 
-https://raw.githubusercontent.com/dagadt675-oss/juicytea-media/cursor/greenland-africa-v13-7e9d/pipeline/examples/greenland/greenland_africa_v13.mp4
+https://raw.githubusercontent.com/dagadt675-oss/juicytea-media/cursor/greenland-africa-v14-7e9d/pipeline/examples/greenland/greenland_africa_v14.mp4
 
 Raw v10:
 
@@ -616,9 +617,18 @@ The flat-to-globe morph is frames 211–284 (3.517–4.733 s), where `t < 6` and
 2. The counter is three stages from `words.json`: about 8× at 22.095 s ("shrink"), about 4× at 23.296 s ("shrink"), and 1.0× at 24.556 s ("SHRINK"). The drag counts down across 17.718–22.095 s. Each later leg eases across the gap to the next word, so the move is not stretched past the words and the holds keep drifting. The camera stays on the sticker.
 3. 40–44 s pushes in and back out (span about 84→65→86) so the four countries keep moving. Encoded diffs around 42 s are about 1.3, not 0.24.
 
+### v14 splice
+
+`render_v14.py` keeps the v13 clock and replaces only the picture notes.
+
+1. The ~9× AREA pill is gone. It sat on screen while the voice says 16× too big. ~3× WIDER stays.
+2. `16.0×`, TOO BIG, EXCUSE ME?, the comparison labels, the sad face, and DR CONGO scale from 30% and fade across 7 frames. The word times did not move.
+3. 3.8–4.2 s no longer cuts the map into a rounded card with black corners. Mesh holes show the flat map until the outline is a globe; space fills the corners only then.
+4. 5.6–6.6 s raises contrast 12.5%, ramped over 0.12 s at each end so the grade does not pop. The excuse pill is white with near-black ink.
+
 ### Open feedback
 
-Kristóf verified most of v12. The camera snap at 28 s, the early shrink, and the quiet stretch at 40–44 s are what v13 answers. It is waiting on him.
+Kristóf passed v13 on cuts and smoothness. The four picture notes above are what v14 answers. The clock is unchanged. It is waiting on him.
 
 v6's four bugs, which v7 fixed and v8 kept:
 
@@ -655,6 +665,8 @@ Fail if any of these:
 The cell floor of 10 is there because splicing a fresh render onto an already-encoded coast moves that coast by under 10. An element appearing, which is what v11 missed, clears 10. v11's 7.07 s jump was a cell diff of 59.7 against a median of 8.5, and the whole-frame gate did not flag it.
 
 Exit code 1 on failure. Default path if you omit the argument is `greenland_africa_v6.mp4`.
+
+v14 result: frames 3146, max 9.824, spikes 0, dead 0, pass. Loop seam 2.328 against a neighbour median of 0.530, pass. Local pops 0, pass. Ghost-coast gate: 294 samples, 0 fails.
 
 v13 result: frames 3146, max 9.824, spikes 0, dead 0, pass. Loop seam 1.605 against a neighbour median of 0.533, pass. Local pops 0, pass. Ghost-coast gate: 294 samples, 0 fails.
 
@@ -762,27 +774,27 @@ A graded morph frame costs about 0.8–1.9 s. A single plate is about 0.3–0.5 
 
 ### Known bugs and traps
 
-1. v13 is not approved. Gates passing does not close the visual review.
-2. v12 still snaps at frame 1680 and finishes the shrink before the voice. Do not ship v12 as the current picture.
+1. v14 is not approved. Gates passing does not close the visual review.
+2. v13 still has the ~9× AREA pill, the label pops, the black-corner card, and the washed-out excuse gag. Do not ship v13 as the current picture.
 3. Mercator Greenland at the top edge can look like a clipped polygon because the island continues past y = 0. See section 5. Do not "fix" it by closing a shorter path.
 4. `greenland_v5.py` docstring, `MOVES`, and `beats_v5.md` describe the retired discrete camera.
-5. `render_v5.py --video` overwrites v6. It does not write v13. `render_v13.py` writes the v13 splice.
+5. `render_v5.py --video` overwrites v6. It does not write v14. `render_v14.py` writes the v14 splice.
 6. `segments.py` is the old 30 fps splicer and blurs the drag.
 7. `speedup_flags.json` says cache and duplicate are on. The continuous-motion drivers turn them off in code. A future driver that trusts the JSON blindly will freeze frames.
 8. Four workers were slower than three on the 20-frame proof. They stay available because pixels matched.
 9. Decoded loop differs slightly from the renderer loop because of yuv420.
 10. `HAND_SVG` is an absolute path under `/workspace/asset_library/...`. A machine without that checkout cannot draw the hand until the SVG is there.
 11. Sentinel local is the wrong continent for Greenland.
-12. `/workspace` is a different branch. Editing it does not change v13.
+12. `/workspace` is a different branch. Editing it does not change v14.
 13. `pipeline/examples/market/market_proof.txt` is an untracked leftover. Do not commit it.
 14. Karaoke yellow versus cyan is unresolved. Greenland does not burn it.
 15. Module `greenland.py` still draws its own karaoke (`_draw_karaoke`) on the old episode. Leave that file's camera alone.
 
 ### Next steps, in order
 
-1. Stop. Wait for Kristóf's review of `greenland_africa_v13.mp4`. Do not render v14, do not start Märket, do not start a new episode.
+1. Stop. Wait for Kristóf's review of `greenland_africa_v14.mp4`. Do not render v15, do not start Märket, do not start a new episode. The v13 clock stays put.
 2. If he names a new visual bug, re-render only the keyframe-aligned span that contains it, splice with `-c copy`, re-run `gate_v6.py` and `gate_ghost.py`. Keep CRF 16 and the timescale. Every new element still needs at least 0.25 s of fade or scale. The shrink counter stays on the three spoken words.
-3. If he approves v13, the next map Short is designed on this spline style from the first frame: one continuous camera, one geometry when the projection changes, a convex outline during that blend, exits that keep moving for at least 0.4 s, a loop whose last half-second is the lead-in to frame 0, drift on holds, an element at least every 1.5 s, voice timed from a new `words.json`, public-domain plates, no clouds, no shadow ellipses, no stretched keyframes.
+3. If he approves v14, the next map Short is designed on this spline style from the first frame: one continuous camera, one geometry when the projection changes, a convex outline during that blend, exits that keep moving for at least 0.4 s, a loop whose last half-second is the lead-in to frame 0, drift on holds, an element at least every 1.5 s, voice timed from a new `words.json`, public-domain plates, no clouds, no shadow ellipses, no stretched keyframes.
 4. Märket, when he asks: replace the Poly Haven rock texture with a real orthophoto. Lantmäteriet was the candidate. Do not use Finnish NLS. The lighthouse should become a real asset from the hub or a CC0 download, not a drawn icon. Re-fetch the hub first.
 5. Countries-cut-in-two and a list/trivia format do not exist. Do not build them until he specifies the episode.
 6. Update this file before you finish, including the commit hash, the gate numbers, and which branch is live.
@@ -797,14 +809,15 @@ All of these were open drafts on 2026-10-11 unless noted. The map-Shorts camera 
 
 | PR | Head | Base | Title | Role |
 | --- | --- | --- | --- | --- |
-| #29 | `cursor/greenland-africa-v13-7e9d` | `cursor/greenland-africa-v12-7e9d` | Time the shrink to the voice, and close the 28 s camera snap | **Current.** v13 picture plus this handoff. |
+| #30 | `cursor/greenland-africa-v14-7e9d` | `cursor/greenland-africa-v13-7e9d` | Picture notes on the v13 clock | **Current.** v14 picture plus this handoff. |
 
-https://github.com/dagadt675-oss/juicytea-media/pull/29
+https://github.com/dagadt675-oss/juicytea-media/pull/30
 
 ### Map stack under it (ancestors, still open, not the place to edit)
 
 | PR | Head | Base | What it holds |
 | --- | --- | --- | --- |
+| #29 | `cursor/greenland-africa-v13-7e9d` | `cursor/greenland-africa-v12-7e9d` | Shrink lands on the three spoken words. Passed cuts and smoothness. Picture notes remained. |
 | #28 | `cursor/greenland-africa-v12-7e9d` | `cursor/greenland-africa-v11-7e9d` | The eight v11 pops are eased. Frame 1680 still snaps, and the shrink finishes early. |
 | #26 | `cursor/greenland-africa-v11-7e9d` | `cursor/greenland-africa-v10-7e9d` | Fourteen copies ease out, and the loop joins frame 0. The local pops Kristóf named are still in this file. |
 | #24 | `cursor/greenland-africa-v10-7e9d` | `cursor/greenland-africa-v9-7e9d` | Convex morph outline. The fourteen copies still vanish, and the loop still pops. |
@@ -822,7 +835,7 @@ https://github.com/dagadt675-oss/juicytea-media/pull/29
 | #3 | `cursor/gold-style-kit-7e9d` | `cursor/map-shorts-pipeline-7e9d` | Gold style kit. Camera sway removed. |
 | #1 | `cursor/map-shorts-pipeline-7e9d` | `cursor/post-dropbox-shorts-9137` | YAML map-Shorts pipeline. |
 
-The handoff belongs on #29. Do not open a second PR for the document alone.
+The handoff belongs on #30. Do not open a second PR for the document alone.
 
 ### Other product lines (not this camera)
 

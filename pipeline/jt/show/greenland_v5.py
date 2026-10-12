@@ -466,6 +466,13 @@ def _blink_open(t: float) -> float:
     return math.sin(math.pi * (phase - 0.46) / 0.08)
 
 
+def _frames_in(t: float, t0: float, frames: float = 7.0) -> float:
+    """0 before t0, then a smooth scale/opacity ramp across 6–8 frames."""
+    if t < t0:
+        return 0.0
+    return _smooth(min(1.0, (t - t0) * FPS / frames))
+
+
 def _window(t: float, a: float, b: float, edge: float = 0.30) -> float:
     """Fade in and out. Nothing hard-cuts on or off."""
     if t <= a or t >= b or b <= a:
@@ -834,14 +841,18 @@ class Episode:
         sx, sy, _cosc = _blend_xy(lon, lat, merc_view, ortho_view, s)
         mix = self._style_mix(self._merc.span)
         plate = self._lod_plate(mix)
-        # The close-up plate fills mesh gaps. Its weight eases in, so the
-        # light map does not swap for the satellite on a single frame.
-        weight = _smooth(min(1.0, max(0.0, (s - 0.42) / 0.50)))
-        under = None
-        if weight > 0.004:
+        # Holes stay the flat map while the projection is still opening.
+        # Stars only take the corners once this is actually a globe, so the
+        # early morph is not a rounded card with black corners.
+        flat = self._graded(self._merc).astype(np.float32)
+        globe_w = _smooth(min(1.0, max(0.0, (s - 0.70) / 0.18)))
+        if globe_w <= 0.004:
+            under = flat.astype(np.uint8)
+        else:
             stars = np.clip(_stars(H, W), 0, 255).astype(np.float32)
             ortho = self._graded(self._ortho).astype(np.float32)
-            under = np.clip(stars * (1.0 - weight) + ortho * weight, 0, 255).astype(np.uint8)
+            globe = stars * (1.0 - globe_w) + ortho * globe_w
+            under = np.clip(flat * (1.0 - globe_w) + globe * globe_w, 0, 255).astype(np.uint8)
         rgb = self._raster_mesh(sx, sy, lon, lat, plate, background=under)
         # The close globe sees around the pole, so a plain lon/lat box misses the
         # frame corners. A screen grid of the disk, run through the same blend,
@@ -973,12 +984,18 @@ class Episode:
             plate = self._graded(ortho)
         else:
             morph_s = _smooth(w)
-            plate = self._mask_to_silhouette(self._morph_plate(morph_s), morph_s)
+            plate = self._morph_plate(morph_s)
             # The mesh and the flat plate meet through a short blend, so the
             # join is not a single-frame swap at either end of the morph.
             if w < 0.16:
                 plate = crossfade(self._graded(merc), plate, _smooth(w / 0.16))
-            self._sil_path, _roundness = self._silhouette(morph_s)
+            # A rounded card with black corners reads as a cut before the globe.
+            # The disk only takes the corners once the outline is actually round.
+            disk = _smooth(min(1.0, max(0.0, (morph_s - 0.80) / 0.12)))
+            if disk > 0.02:
+                plate = crossfade(plate, self._mask_to_silhouette(plate, morph_s), disk)
+                if disk > 0.40:
+                    self._sil_path, _roundness = self._silhouette(morph_s)
         rgba = np.dstack([plate, np.full((H, W), 255, np.uint8)])
         surface = skia.Surface(W, H)
         canvas = surface.getCanvas()
@@ -993,7 +1010,14 @@ class Episode:
         self._lettering(canvas, cam, t)
         bgra = surface.makeImageSnapshot().toarray()
         rgb = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
-        return _sharp_grade(rgb)
+        rgb = _sharp_grade(rgb)
+        # The excuse gag sits on bright ice. A short extra contrast lift,
+        # ramped so the grade itself does not pop.
+        lift = _window(t, 5.48, 6.72, 0.12)
+        if lift > 0.02:
+            x = rgb.astype(np.float32)
+            rgb = np.clip((x - 128.0) * (1.0 + 0.125 * lift) + 128.0, 0, 255).astype(np.uint8)
+        return rgb
 
     def scene_state(self, t: float) -> tuple:
         """Everything that can change a pixel. Equal states are the same picture."""
@@ -1385,6 +1409,21 @@ class Episode:
         sx = 1.0 + (1.0 - sy) * 0.45
         return sx, sy
 
+    def _scaled_face(self, canvas, opacity: float, grow: float, cx: float, cy: float, draw) -> None:
+        if opacity <= 0.02:
+            return
+        if opacity >= 0.985 and grow >= 0.995:
+            draw()
+            return
+        paint = skia.Paint()
+        paint.setAlphaf(float(opacity))
+        canvas.saveLayer(None, paint)
+        canvas.translate(cx, cy)
+        canvas.scale(grow, grow)
+        canvas.translate(-cx, -cy)
+        draw()
+        canvas.restore()
+
     def _fade_draw(self, canvas, fade: float, draw) -> None:
         if fade <= 0.02:
             return
@@ -1433,14 +1472,17 @@ class Episode:
                 ))
                 self._mouth = (fx, fy + max(80.0, box[2] - box[0]) * 0.16)
         else:
-            sad = _window(t, CLOCK.algeria - 0.05, CLOCK.usa + 0.20, 0.32)
-            if sad > 0.02:
+            sad_t0 = CLOCK.algeria - 0.05
+            sad_t1 = CLOCK.usa + 0.20
+            if sad_t0 < t < sad_t1:
                 rings = [reproject_true(ring, HOME[0], HOME[1], CHIP[0], CHIP[1]) for ring in (self.earth.rings.get("GRL") or [])]
                 box = self._box(cam, rings)
                 if box and box[2] - box[0] > 40:
-                    self._fade_draw(canvas, sad, lambda: draw_face(
-                        canvas, (box[0] + box[2]) / 2, (box[1] + box[3]) / 2,
-                        box[2] - box[0], "sad", blink=_blink_open(t),
+                    fin = _frames_in(t, sad_t0, 7)
+                    fout = _smooth(min(1.0, (sad_t1 - t) / 0.32))
+                    cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+                    self._scaled_face(canvas, fin * fout, 0.30 + 0.70 * fin, cx, cy, lambda: draw_face(
+                        canvas, cx, cy, box[2] - box[0], "sad", blink=_blink_open(t),
                     ))
 
     def _hand(self, canvas, cam, t: float) -> None:
@@ -1645,6 +1687,22 @@ class Episode:
             if layered:
                 canvas.restore()
 
+        def scaled(opacity, grow, cx, cy, fn):
+            """Opacity plus a scale-in. Full size draws directly so a hold stays put."""
+            if opacity <= 0.02:
+                return
+            if opacity >= 0.985 and grow >= 0.995:
+                fn()
+                return
+            paint = skia.Paint()
+            paint.setAlphaf(float(opacity))
+            canvas.saveLayer(None, paint)
+            canvas.translate(cx, cy)
+            canvas.scale(grow, grow)
+            canvas.translate(-cx, -cy)
+            fn()
+            canvas.restore()
+
         # The opening fade is finished before frame 0, so a loop does not dim the titles.
         lie = _window(t, -0.60, b.t("NOT") + 0.15, 0.28)
         lie = max(lie, _window(t, b.lying - 1.10, T_LAST + 1.0, 0.35))
@@ -1659,29 +1717,62 @@ class Episode:
             faded(same, _same)
             if t >= b.t("NOT") and box_hold.get("box") is not None:
                 strike(canvas, box_hold["box"], _smooth(min(1.0, (t - b.t("NOT")) / 0.28)))
-        faded(_window(t, b.excuse0 - 0.08, b.excuse1 + 0.28, 0.22),
-              lambda: pill(hud, "EXCUSE ME?", W * 0.5, 340, PAPER, ink=INK, size=64, pop=1.0, kind="gag", nudge=False))
-        ratio = _window(t, b.t("POLES") - 0.08, b.sixteen + 0.05, 0.28)
-        faded(ratio, lambda: pill(hud, "~3× WIDER", W * 0.5, 300, GOLD, ink=INK, size=64, pop=1.0, kind="wide", nudge=False))
-        faded(ratio, lambda: pill(hud, "~9× AREA", W * 0.5, 420, GOLD, ink=INK, size=56, pop=1.0, kind="area", nudge=False))
-        count = _window(t, b.sixteen - 0.08, b.africa14 + D_AFRICA + 0.15, 0.28)
-        if count > 0.02:
+        excuse_t0 = b.excuse0 - 0.08
+        excuse_t1 = b.excuse1 + 0.28
+        if excuse_t0 < t < excuse_t1:
+            grow = 0.30 + 0.70 * _frames_in(t, excuse_t0, 7)
+            fin = _frames_in(t, excuse_t0, 7)
+            fout = _smooth(min(1.0, (excuse_t1 - t) / 0.22))
+            # Darker ink on a brighter chip, on top of the frame contrast lift.
+            scaled(fin * fout, grow, W * 0.5, 340.0, lambda: pill(
+                hud, "EXCUSE ME?", W * 0.5, 340, (255, 255, 255), ink=(8, 8, 12),
+                size=64, pop=1.0, kind="gag", nudge=False,
+            ))
+        wide_t0 = b.t("POLES") - 0.08
+        wide_t1 = b.sixteen + 0.05
+        if wide_t0 < t < wide_t1:
+            grow = 0.30 + 0.70 * _frames_in(t, wide_t0, 7)
+            fin = _frames_in(t, wide_t0, 7)
+            fout = _smooth(min(1.0, (wide_t1 - t) / 0.28))
+            # ~9× AREA is not drawn. It fights the spoken 16×.
+            scaled(fin * fout, grow, W * 0.5, 300.0, lambda: pill(
+                hud, "~3× WIDER", W * 0.5, 300, GOLD, ink=INK, size=64, pop=1.0, kind="wide", nudge=False,
+            ))
+        count_t0 = b.sixteen - 0.08
+        count_t1 = b.africa14 + D_AFRICA + 0.15
+        if count_t0 < t < count_t1:
             _lon, lat, _u = journey(t)
             mult = display_multiplier(lat)
             # One decimal the whole time, so 16× never jumps to 16.0×.
             text = f"{mult:.1f}×"
-            faded(count, lambda: pill(hud, text, W * 0.5, 360, (18, 16, 14), ink=GOLD, size=72, pop=1.0, glow=GOLD, kind="counter", nudge=False))
-            too = _window(t, b.t("TOO", after=b.sixteen) - 0.05, b.drag + 0.15, 0.22)
-            faded(too, lambda: pill(hud, "TOO BIG", W * 0.5, 490, RED, size=40, pop=1.0, kind="toobig", nudge=False))
+            grow = 0.30 + 0.70 * _frames_in(t, count_t0, 7)
+            fin = _frames_in(t, count_t0, 7)
+            fout = _smooth(min(1.0, (count_t1 - t) / 0.28))
+            scaled(fin * fout, grow, W * 0.5, 360.0, lambda: pill(
+                hud, text, W * 0.5, 360, (18, 16, 14), ink=GOLD, size=72, pop=1.0, glow=GOLD, kind="counter", nudge=False,
+            ))
+            too_t0 = b.t("TOO", after=b.sixteen) - 0.05
+            too_t1 = b.drag + 0.15
+            if too_t0 < t < too_t1:
+                tgrow = 0.30 + 0.70 * _frames_in(t, too_t0, 7)
+                tfin = _frames_in(t, too_t0, 7)
+                tfout = _smooth(min(1.0, (too_t1 - t) / 0.22))
+                scaled(tfin * tfout, tgrow, W * 0.5, 490.0, lambda: pill(
+                    hud, "TOO BIG", W * 0.5, 490, RED, size=40, pop=1.0, kind="toobig", nudge=False,
+                ))
         faded(_window(t, b.wait0 - 0.06, b.wait1 + 0.28, 0.22),
               lambda: pill(hud, "WAIT... WHAT?!", W * 0.5, 430, PAPER, ink=INK, size=52, pop=1.0, kind="gag", nudge=False))
         tile_label = _fourteen_amount(t)
         if tile_label > 0.02:
             n = sum(1 for hit in _tile_times() if t + 1e-6 >= hit)
             faded(tile_label, lambda: pill(hud, f"{max(1, n)}×", W * 0.5, 360, (18, 16, 14), ink=GOLD, size=72, pop=1.0, glow=GOLD, kind="fourteen", nudge=False))
-        compare_labels = _window(t, b.algeria - 0.35, b.usa + 0.55, 0.35)
-        if compare_labels > 0.02:
-            faded(compare_labels, lambda: self._compare_labels(hud, canvas, cam, t))
+        cmp_t0 = b.algeria - 0.35
+        cmp_t1 = b.usa + 0.55
+        if cmp_t0 < t < cmp_t1:
+            grow = 0.30 + 0.70 * _frames_in(t, cmp_t0, 7)
+            fin = _frames_in(t, cmp_t0, 7)
+            fout = _smooth(min(1.0, (cmp_t1 - t) / 0.35))
+            scaled(fin * fout, grow, W * 0.5, H * 0.42, lambda: self._compare_labels(hud, canvas, cam, t))
         hi = _window(t, b.hi0 - 0.06, b.hi1 + 0.30, 0.22)
         if hi > 0.02:
             mouth = getattr(self, "_mouth", (420.0, 640.0))
@@ -1719,11 +1810,16 @@ class Episode:
             leader_label(hud, canvas, "ALGERIA", "0.92M SQ MI", alg, avoid, GREEN, prefer="above", size=36)
         if chip:
             leader_label(hud, canvas, "GREENLAND", "0.84M SQ MI", chip, avoid, RED, prefer="right", size=36)
-        congo_label = _window(t, CLOCK.congo - 0.08, CLOCK.usa + 0.55, 0.32)
-        if drc and congo_label > 0.02:
+        congo_t0 = CLOCK.congo - 0.08
+        congo_t1 = CLOCK.usa + 0.55
+        if drc and congo_t0 < t < congo_t1:
             cx = min(W - 190.0, max(190.0, (drc[0] + drc[2]) / 2))
             cy = min(1080.0, max(480.0, drc[1] + 56.0))
-            self._fade_draw(canvas, congo_label, lambda: pill(hud, "DR CONGO", cx, cy, BLUE, size=34, pop=1.0, kind="drc", nudge=False))
+            fin = _frames_in(t, congo_t0, 7)
+            fout = _smooth(min(1.0, (congo_t1 - t) / 0.32))
+            self._scaled_face(canvas, fin * fout, 0.30 + 0.70 * fin, cx, cy, lambda: pill(
+                hud, "DR CONGO", cx, cy, BLUE, size=34, pop=1.0, kind="drc", nudge=False,
+            ))
 
     def _pack_labels(self, hud, canvas, t: float) -> None:
         b = CLOCK
