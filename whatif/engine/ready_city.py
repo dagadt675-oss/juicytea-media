@@ -19,6 +19,7 @@ from mathutils import Euler, Matrix, Vector
 from engine import cc0_city
 from engine.meshkit import smoother
 
+# Proof stills only. The film path in ready_city.yaml is eye height, 1.70 m.
 # Towers stay behind the shop row. The camera sits on x=0.
 # Inside the downloaded intersection, along the south avenue.
 # Past the bike rack, in the avenue, level so the facades stay upright.

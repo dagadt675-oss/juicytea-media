@@ -133,6 +133,48 @@ def narration_seconds(text: str) -> float:
     return word_count(text) / RATE + PAUSE
 
 
+def sample_camera_path(path, u):
+    """Pose at film fraction ``u``. Keys ease with smoothstep. No extra motion."""
+    keys = sorted(path, key=lambda item: float(item["u"]))
+    if not keys:
+        raise ValueError("camera path is empty")
+
+    def pose(item):
+        lens = item.get("lens")
+        fstop = item.get("fstop")
+        return {
+            "location": [float(v) for v in item["location"]],
+            "target": [float(v) for v in item["target"]],
+            "lens": 40.0 if lens is None else float(lens),
+            "fstop": 0.0 if fstop is None else float(fstop),
+        }
+
+    def mix(a, b, t):
+        def lerp(left, right):
+            return [left[i] + (right[i] - left[i]) * t for i in range(3)]
+
+        return {
+            "location": lerp(a["location"], b["location"]),
+            "target": lerp(a["target"], b["target"]),
+            "lens": a["lens"] + (b["lens"] - a["lens"]) * t,
+            "fstop": a["fstop"] + (b["fstop"] - a["fstop"]) * t,
+        }
+
+    u = float(u)
+    if u <= float(keys[0]["u"]):
+        return pose(keys[0])
+    if u >= float(keys[-1]["u"]):
+        return pose(keys[-1])
+    for left, right in zip(keys, keys[1:]):
+        u0, u1 = float(left["u"]), float(right["u"])
+        if u <= u1:
+            span = u1 - u0
+            t = 0.0 if span <= 0.0 else (u - u0) / span
+            t = t * t * (3.0 - 2.0 * t)
+            return mix(pose(left), pose(right), t)
+    return pose(keys[-1])
+
+
 def _as_keys(value, start: float, end: float, previous: float):
     """Turn a scalar or a list of {u, v} into (second, value) keys inside the beat."""
     if isinstance(value, (int, float)):

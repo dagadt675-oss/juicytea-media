@@ -14,13 +14,21 @@ scene:
 mascot: false
 format: A
 camera:
-  # Inside the downloaded city, eye height, looking down the street.
-  location: [0.0, -66.0, 3.0]
-  target: [0.0, -18.0, 5.8]
+  # Film camera: eye height, walking pace, eased. Proof stills stay on CAM_LOC in ready_city.py.
+  # One path for the whole film. Beat cameras are ignored while this path is set.
+  location: [0.0, -66.0, 1.70]
+  target: [0.0, -26.0, 2.40]
   lens: 28
   sensor_fit: HORIZONTAL
   sensor_width: 36
   clip_end: 800
+  path:
+    - {u: 0.00, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
+    - {u: 0.10, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
+    - {u: 0.4335, location: [0.30, -48.0, 1.70], target: [0.15, -10.0, 2.40], lens: 28}
+    - {u: 0.5669, location: [0.55, -47.2, 1.70], target: [-0.40, -8.0, 2.40], lens: 28}
+    - {u: 0.9003, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
+    - {u: 1.00, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
 ui:
   counter_y: 0.46
   # Zenith style: the title, and one counter (population, then the year).
@@ -130,7 +138,7 @@ beats:
       rust: 1.0
       collapse: 1.0
 
-  # Later beats stay in the same street. No aerial and no view from outside.
+  # These seconds stay in the street path above. They do not cut to another camera.
   - id: drone_husk
     seconds: 2.6
     time_label: "500 YEARS"
@@ -141,9 +149,6 @@ beats:
       rust: 1.0
       collapse: 1.0
       sag: 0.6
-    camera:
-      - {u: 0.0, location: [1.4, 18.0, 1.35], target: [2.2, 28.0, 0.7], lens: 32, fstop: 2.8}
-      - {u: 1.0, location: [1.1, 22.0, 1.2], target: [2.0, 32.0, 0.55], lens: 36, fstop: 2.2}
 
   - id: drone_facade
     seconds: 2.6
@@ -155,9 +160,6 @@ beats:
       rust: 1.0
       collapse: 1.0
       sag: 0.6
-    camera:
-      - {u: 0.0, location: [-2.4, 14.0, 1.7], target: [-6.8, 22.0, 6.0], lens: 28, fstop: 3.2}
-      - {u: 1.0, location: [-3.2, 16.5, 1.5], target: [-7.2, 24.0, 5.2], lens: 32, fstop: 2.4}
 
   - id: drone_span
     seconds: 2.6
@@ -169,9 +171,6 @@ beats:
       rust: 1.0
       collapse: 1.0
       sag: 0.6
-    camera:
-      - {u: 0.0, location: [0.2, 8.0, 1.6], target: [0.2, 40.0, 4.0], lens: 28, fstop: 3.2}
-      - {u: 1.0, location: [0.4, 16.0, 1.45], target: [0.3, 48.0, 3.2], lens: 32, fstop: 2.4}
 
   - id: drone_orbit
     seconds: 3.2
@@ -183,10 +182,6 @@ beats:
       rust: 1.0
       collapse: 1.0
       sag: 0.6
-    camera:
-      - {u: 0.0, location: [-1.2, 20.0, 2.2], target: [-6.5, 32.0, 10.0], lens: 28, fstop: 2.8}
-      - {u: 0.45, location: [1.6, 24.0, 2.4], target: [6.2, 36.0, 11.0], lens: 30, fstop: 3.2}
-      - {u: 1.0, location: [0.0, 1.4, 1.58], target: [0.15, 26.0, 8.4], lens: 26, fstop: 0}
 
   - id: relics
     time_label: "10,000 YEARS"

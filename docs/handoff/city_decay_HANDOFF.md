@@ -55,7 +55,11 @@ Two city versions exist. **Keep both.**
 
 ### What "continue" means
 
-Wait for Kristóf to review the four stills in `whatif/review/ready_city/four_stills.jpg`. Day 1 people walk, with their feet on the pavement. Year 100 is the halfway street: curb and centre weeds, young trees, lower-floor ivy, grime, broken glass, a stained dome, and rusted cars on flat tyres. Vanish and Year 500 are the previous stills. The camera path is `docs/handoff/ready_city_ANIMATION.md`. Do not rebuild the river, the bridge, or an aerial shot. Do not encode.
+Wait for Kristóf to review the four stills in `whatif/review/ready_city/four_stills.jpg`. The film camera is eye height, 1.70 m, a slow eased dolly and pan in `whatif/episodes/ready_city.yaml`. No drone shots and no rising moves. Proof stills stay on the 3 m frame. Do not rebuild the river, the bridge, or an aerial shot. Do not encode.
+
+### 2026-10-12 — street-level film camera
+
+Kristóf: the animation camera is street-level and slow only, eye height about 1.6–1.8 m, a gentle walking-speed dolly and pan, eased. No drone shots and no rising moves. The film path holds 1.70 m, walks 18 m up the avenue and back, and eases at each end. The old insert cameras on the four late beats are gone. A beat cannot override `camera.path`.
 
 ### 2026-10-12 — walking crowd and a real year 100
 

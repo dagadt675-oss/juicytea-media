@@ -1,20 +1,24 @@
 # Ready city animation plan
 
-The proof stills stay on one camera: `(0, -66, 3)` looking at `(0, -18, 5.8)`, 28 mm, sensor 36 mm horizontal, shift Y 0.06. The film uses that same street. It never leaves the avenue, never climbs above the first floors, and never looks back out of the city.
+Kristóf, 2026-10-12: the camera is street-level and slow only. Eye height about 1.6–1.8 m. A gentle walking-speed dolly and pan, eased. No drone shots. No rising moves.
+
+The proof stills stay on the higher frame in `ready_city.py` (`CAM_LOC` z = 3 m) so the buildings read in a single picture. The film does not use that height.
 
 ## Camera
 
-One slow move, no cuts. Height stays between 2.2 m and 3.2 m. Lateral position stays inside the roadway, x between -1.2 and 1.2. The lens stays 28 mm. The look direction stays down the avenue (toward +Y), with only a few degrees of yaw. Ease in and out. Nothing snaps.
+One move, no cuts. The path is `camera.path` in `whatif/episodes/ready_city.yaml`. While that path is set, a beat cannot take the camera anywhere else. The four later beats that used to be inserts no longer have a camera.
 
-| Time | Pose |
+Height is 1.70 m for the whole film. The look target stays at 2.40 m, so the tilt never climbs. The lens stays 28 mm. Nothing snaps. Each leg eases in and out.
+
+| Time | Move |
 | --- | --- |
-| 0–8 s | Hold at `(0, -66, 2.7)`, target `(0, -24, 4.4)`. The opening and the vanish. |
-| 8–22 s | Creep to `(0.4, -58, 2.6)`, target `(0.2, -16, 5.0)`. Curbs and the first weeds come closer. |
-| 22–40 s | Dolly to `(0.6, -50, 2.5)`, target `(0.3, -12, 5.4)`. The Miura and the sidewalk trees pass at street level. |
-| 40–52 s | Continue to `(0.2, -42, 2.4)`, target `(0.8, -8, 6.0)`. The fallen wall is in the mid-ground. Still inside the street. |
-| 52–60 s | Ease back to the opening pose as the city returns. |
+| 0–6 s | Hold at `(0, -66, 1.70)`, looking at `(0, -26, 2.40)`. Opening and the vanish. |
+| 6–26 s | Dolly 18 m up the avenue to `(0.30, -48, 1.70)`, looking at `(0.15, -10, 2.40)`. About 0.9 m/s on average, peak about 1.35 m/s. |
+| 26–34 s | A short pan toward the left sidewalk, less than a metre of travel. Same height. |
+| 34–54 s | Dolly back down the same line to the opening pose, same pace. |
+| 54–60 s | Hold on the opening pose while the city returns, so the loop matches. |
 
-The later episode beats that point the camera outside the block, or up at a facade from off the street, are not used.
+The camera stays inside the roadway. It does not climb, crane, orbit, or leave the street.
 
 ## Ground-up, then outward
 
