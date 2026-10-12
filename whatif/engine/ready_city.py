@@ -1749,6 +1749,50 @@ def _year500_set(kit):
     print("year500 pieces", made, flush=True)
 
 
+def _year100_set(kit):
+    """Young trees, curb weeds, and ivy. Hidden on day 1 and again at year 500."""
+    from engine.scenes import _plant
+
+    plants = kit.collection("Plants")
+    path = Path("/opt/cursor/asset-cache/cc0/polyhaven/tree_small_02/tree_small_02_1k.gltf")
+    mesh = _visual_mesh(path) if path.exists() else None
+    if mesh is not None and len(mesh.vertices) > 80000:
+        mesh = mesh.copy()
+        holder = bpy.data.objects.new("century_decimate", mesh)
+        bpy.context.scene.collection.objects.link(holder)
+        mod = holder.modifiers.new("Slim", "DECIMATE")
+        mod.ratio = 0.08
+        bpy.context.view_layer.objects.active = holder
+        bpy.ops.object.modifier_apply(modifier="Slim")
+        mesh = holder.data
+        bpy.data.objects.remove(holder, do_unlink=True)
+    native = max(_size(mesh)[2], 0.2) if mesh is not None else 1.0
+    spots = (
+        (-6.4, -54.0, 3.4), (-7.1, -44.0, 5.4), (-6.2, -34.0, 4.2), (-6.8, -26.0, 5.8),
+        (6.6, -52.0, 4.8), (7.2, -42.0, 3.6), (6.4, -32.0, 5.6), (6.8, -24.0, 4.4),
+    )
+    if mesh is not None:
+        for i, (x, y, height) in enumerate(spots):
+            tree = _spawn_mesh(plants, mesh, (x, y, 1.32), i * 0.8, height / native, "century_tree")
+            kit.add(tree, "century", sink=False)
+    clumps = []
+    for index, y in enumerate(range(-62, -22, 3)):
+        clumps.append((-5.6, float(y), "grass_medium_01" if index % 2 == 0 else "fern_02", 0.75 + (index % 3) * 0.15))
+        clumps.append((5.5, float(y) + 0.8, "grass_medium_02" if index % 2 == 0 else "fern_02", 0.7 + (index % 2) * 0.2))
+        clumps.append((0.15 * (1 if index % 2 == 0 else -1), float(y) + 0.4, "grass_medium_01", 0.55 + (index % 3) * 0.1))
+    for i, (x, y, slug, height) in enumerate(clumps):
+        _plant(kit, plants, slug, x, y, 1.36, height, delay=0.0, yaw=i * 0.4, role="century")
+    for i, (x, y) in enumerate(((-1.2, -54.6), (0.9, -53.2), (-2.8, -42.4), (2.6, -36.2), (-2.0, -30.4), (1.4, -28.0))):
+        _plant(kit, plants, "fern_02", x, y, 1.4, 0.7, delay=0.0, yaw=i, role="century")
+    for y in range(-56, -28, 6):
+        for z, height in ((2.1, 0.7), (4.8, 0.55), (7.4, 0.45)):
+            _plant(kit, plants, "fern_02", -14.6, float(y), z, height, delay=0.0, yaw=y, role="century")
+            _plant(kit, plants, "fern_02", 15.0, float(y) + 1.0, z, height, delay=0.0, yaw=y + 1.0, role="century")
+    for i, (x, y, z) in enumerate(((8.6, -45.2, 2.2), (10.2, -43.4, 3.4), (9.0, -42.2, 4.6), (10.6, -46.0, 2.6))):
+        _plant(kit, plants, "fern_02", x, y, z, 0.55, delay=0.0, yaw=i, role="century")
+    print("year100 pieces", flush=True)
+
+
 def build(kit, mats, rng):
     """One downloaded intersection. The handmade river city is not touched."""
     del mats, rng
@@ -1759,6 +1803,7 @@ def build(kit, mats, rng):
     _crowd(kit)
     _ground_cover(kit)
     _year500_set(kit)
+    _year100_set(kit)
     fog, density = _fog(kit.collection("Weather"))
     fog.location = (0.0, -44.0, 6.0)
     fog.scale = (22.0, 48.0, 9.0)
@@ -1871,6 +1916,60 @@ def _cloudy_sky(kit):
     kit.sky_horizon = None
 
 
+def _lowest_z(obj):
+    """Lowest posed vertex, so a foot or a seat can be set on the pavement."""
+    deps = bpy.context.evaluated_depsgraph_get()
+    meshes = [obj] if getattr(obj, "type", "") == "MESH" else []
+    meshes.extend(child for child in obj.children_recursive if getattr(child, "type", "") == "MESH")
+    lowest = None
+    for mesh in meshes:
+        posed = mesh.evaluated_get(deps)
+        world = posed.matrix_world
+        for vert in posed.data.vertices:
+            z = (world @ vert.co).z
+            if lowest is None or z < lowest:
+                lowest = z
+    return lowest
+
+
+def _flatten_wheels(obj):
+    """Parked cars sit on flat tyres once the decades have passed."""
+    for child in obj.children_recursive:
+        if "wheel" not in child.name.lower():
+            continue
+        if "wheel0" not in child:
+            child["wheel0"] = [child.scale.x, child.scale.y, child.scale.z]
+        base = child["wheel0"]
+        child.scale = (base[0], base[1], base[2] * 0.32)
+
+
+def _stain_dome(amount):
+    """Push the dome's own colour toward streaked concrete. Day 1 never calls this."""
+    dome = None
+    for obj in bpy.data.objects:
+        if obj.name.startswith("Store Circle"):
+            dome = obj
+            break
+    if dome is None:
+        return
+    dirty = Vector((0.48, 0.46, 0.38))
+    for slot in dome.material_slots:
+        mat = slot.material
+        if mat is None or mat.node_tree is None:
+            continue
+        bsdf = next((node for node in mat.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+        if bsdf is None:
+            continue
+        color = bsdf.inputs.get("Base Color")
+        if color is None or color.is_linked:
+            continue
+        if "clean_color" not in mat:
+            mat["clean_color"] = list(color.default_value)
+        clean = Vector(mat["clean_color"][:3])
+        mixed = clean.lerp(dirty, float(amount))
+        color.default_value = (mixed.x, mixed.y, mixed.z, 1.0)
+
+
 def _break_glass():
     for mat in bpy.data.materials:
         low = mat.name.lower()
@@ -1952,6 +2051,33 @@ def drive(kit, ch):
             _hide_tree(item.obj, not fallen)
     for shard in getattr(kit, "fallen_shards", ()) or ():
         shard.hide_render = not fallen
+    if float(ch.get("vanish", 0.0)) < 0.05:
+        bpy.context.view_layer.update()
+        for item in kit.items:
+            if item.role != "person" or item.obj.hide_render:
+                continue
+            low = _lowest_z(item.obj)
+            if low is None:
+                continue
+            item.obj.location.z += 1.35 - low
+    century = (not fallen) and float(ch.get("vegetation", 0.0)) >= 0.55
+    for item in kit.items:
+        if item.role == "century":
+            _hide_tree(item.obj, not century)
+    if century:
+        for obj in bpy.data.objects:
+            if obj.name == "buried_avenue":
+                obj.hide_render = True
+        _break_glass()
+        _push_decay(0.8, 0.55)
+        _set_ruin(0.92)
+        _stain_dome(0.7)
+        for item in kit.items:
+            if item.role == "bike":
+                _hide_tree(item.obj, True)
+            elif item.role == "car":
+                _flatten_wheels(item.obj)
+                item.obj.location.z -= 0.22
     if fallen:
         for item in kit.items:
             if item.role == "car" and item.extra.get("hero"):

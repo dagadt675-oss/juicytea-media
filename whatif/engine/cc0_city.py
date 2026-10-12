@@ -491,14 +491,35 @@ def _play(arm, action, offset):
         pass
 
 
+def _pick_action(actions, clip):
+    """Match Walk to Walk_CharacterArmature. Never fall through to the death clip."""
+    if clip in actions:
+        return actions[clip]
+    wanted = clip.lower()
+
+    def base_name(name):
+        short = name.split("|")[-1]
+        base = short.split("_Character")[0]
+        tail = base.rsplit(".", 1)
+        if len(tail) == 2 and tail[-1].isdigit():
+            base = tail[0]
+        return base.lower()
+
+    for name, action in actions.items():
+        if base_name(name) == wanted:
+            return action
+    for token in (wanted, "walking", "walk", "idle_neutral", "idle"):
+        for name, action in actions.items():
+            if base_name(name) == token or base_name(name).startswith(token):
+                return action
+    return next(iter(actions.values()))
+
+
 def place_actor(coll, path: Path, loc, yaw, target_height, clip, offset=0):
     proto = _actor(path)
     if proto is None or not proto["actions"]:
         return None
-    if clip not in proto["actions"]:
-        clip = next((name for name in ("Idle", "Idle_Loop", "Idle_Neutral", "Eating", "Take 001") if name in proto["actions"]), None)
-        if clip is None:
-            clip = next(iter(proto["actions"]))
+    action = _pick_action(proto["actions"], clip)
     root = _clone(proto["arm"], coll)
     # Scale an empty parent. Scaling the armature alone stretches the skin
     # into spikes because the mesh is bound to the bones.
@@ -514,7 +535,6 @@ def place_actor(coll, path: Path, loc, yaw, target_height, clip, offset=0):
     empty.scale = (scale, scale, scale)
     empty.location = loc
     empty.rotation_euler.z = yaw
-    action = proto["actions"].get(clip) or next(iter(proto["actions"].values()))
     _play(root, action, offset)
     return empty
 

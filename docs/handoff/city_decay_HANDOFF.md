@@ -55,7 +55,11 @@ Two city versions exist. **Keep both.**
 
 ### What "continue" means
 
-Wait for Kristóf to review the Day 1 and Year 500 stills in `whatif/review/ready_city/day1.png`, `year500.png`, and `two_stills.jpg`. Do not rebuild the river, the bridge, or an aerial shot. Do not encode.
+Wait for Kristóf to review the four stills in `whatif/review/ready_city/four_stills.jpg`. Day 1 people walk, with their feet on the pavement. Year 100 is the halfway street: curb and centre weeds, young trees, lower-floor ivy, grime, broken glass, a stained dome, and rusted cars on flat tyres. Vanish and Year 500 are the previous stills. The camera path is `docs/handoff/ready_city_ANIMATION.md`. Do not rebuild the river, the bridge, or an aerial shot. Do not encode.
+
+### 2026-10-12 — walking crowd and a real year 100
+
+The sidewalk figures were playing the Quaternius death clip, because the action is named `Walk_CharacterArmature` and the old lookup only accepted `Walk`. They read as people sitting in the air. The lookup now matches the clip name, so Day 1 is a walking crowd, and each posed foot is set on the pavement at z=1.35. Year 100, frame 860, adds grass and weeds through the curbs and the centre of the avenue, 3–6 m sidewalk trees, ivy on the lower floors, the ruin stain, broken window decals, a stained dome, and rust-brown cars dropped onto flat tyres. No tower has fallen yet. Stills are 1080×1920, 18 samples, OIDN, CPU. Day 1 and Year 100 were re-rendered. Vanish and Year 500 were kept.
 
 ### 2026-10-12 — same street, cloudy sky, year 500 in place
 
