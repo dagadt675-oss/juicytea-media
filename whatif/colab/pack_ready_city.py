@@ -98,6 +98,21 @@ def main():
             kit.sky_mix.inputs["Fac"].keyframe_insert(data_path="default_value", frame=frame)
         if getattr(kit, "fog_density", None) is not None:
             _key_node_value(kit.fog_density, frame, output=True)
+        for material in bpy.data.materials:
+            tree = material.node_tree
+            if tree is None:
+                continue
+            for node_name in ("Decay", "Forest", "Wreck"):
+                node = tree.nodes.get(node_name)
+                if node is not None and node.type == "VALUE":
+                    _key_node_value(node, frame, output=True)
+            if material.get("object_tint"):
+                for node in tree.nodes:
+                    if node.type == "MIX_RGB" and node.blend_type == "MULTIPLY":
+                        try:
+                            node.inputs["Color2"].keyframe_insert(data_path="default_value", frame=frame)
+                        except RuntimeError:
+                            pass
         for obj in precip:
             obj.keyframe_insert(data_path="location", frame=frame)
             _key_hide(obj, frame)
@@ -122,6 +137,11 @@ def main():
             token = obj.name
             if frame in (1, last) or prev.get(token) != state:
                 _key_xform(obj, frame)
+                if item.role == "car":
+                    try:
+                        obj.keyframe_insert(data_path="color", frame=frame)
+                    except RuntimeError:
+                        pass
                 for child in obj.children_recursive:
                     child.hide_render = obj.hide_render
                     _key_hide(child, frame)

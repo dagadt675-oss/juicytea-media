@@ -42,7 +42,7 @@ Two city versions exist. **Keep both.**
 - Episode: `whatif/episodes/ready_city.yaml` (`id: ready_city`, `scene.name: ready_city`).
 - Scene: `whatif/engine/ready_city.py`. `build()` does **not** call `build_river_city`.
 - Branch: `cursor/ready-city-f245`. Pull request: https://github.com/dagadt675-oss/juicytea-media/pull/21 (base `cursor/road-network-stills-f245`).
-- What it is: Procedural City 4 and 6, tiled as two rows with a street between them. The locked camera is at eye height in that street (`[0, 1.4, 1.58]` looking at `[0.1, 34, 5.2]`, 28 mm). No overview, no river, no bridge, no mountain range in frame. Day 1 has downloaded people, bikes, and cars. Year 100 keeps the same walls, shortened, with rubble in the road. Year 500 keeps broken near walls, ruin shells, and trees in the roadway.
+- What it is: Procedural City 4 and 6 behind a row of downtown storefronts. The locked camera is in the street at 3.6 m, level, 24 mm (`[0, 1.6, 3.6]` to `[0, 46, 3.6]`) with a small lens shift so the verticals stay straight and the buildings fill the frame. Sidewalks are grey concrete. The avenue is photographic asphalt with lane dashes and manhole covers. Day 1 has walkers, cyclists, moving traffic, and parked cars. Year 100 swaps in cracked asphalt, weeds, vines, and rusted cars. Year 500 lays storefronts across the street as slabs, with Poly Haven trees, ruin shells, debris, and 16 cell-fracture shards.
 - Kristóf, 2026-10-12: the camera must be inside the city, street level or low among the buildings, looking down a street. No aerial shot from outside. The separate ready-made city, the decay eras, and four test stills first still stand. Do not resume the SSIM speedup. Do not encode 1800 frames. Do not delete version A.
 - Kristóf, 2026-10-11, in Hungarian: do not delete the previous city; make a completely separate one about the same vanish; pick an existing city from Drive; do not build a city; everything else stays; the camera may look from a slightly better place.
 - Proof stills (half resolution, 8 samples, about 6 s/frame). Not owner-approved yet:
@@ -61,16 +61,18 @@ Wait for Kristóf to review the four street stills. Do not rebuild the river, th
 
 The previous Colab zip (909,833,606 bytes, parts `.00`–`.09`) is the rejected river overview. Do not render it.
 
-The current pack is `/opt/cursor/artifacts/colab_bundle/city_decay/city_decay.zip.00` through `.02`. Joined size **218,943,967** bytes. `JOIN.txt` is `cat city_decay.zip.00 city_decay.zip.01 city_decay.zip.02 > city_decay.zip` then `unzip`. Header `BLENDER-v402`. 205 images packed, 0 loose. Fracture shards: 14. Camera in the blend: `(0, 1.4, 1.58)`, lens 28.
+The current pack replaces the 218,943,967-byte street zip as well as the river zip. See the timing note below for the part count. Camera in the blend: `(0, 1.6, 3.6)`, lens 24, level.
+
+2026-10-12 later the same day: Kristóf kept the street camera and rejected the first stills (red curbs, empty asphalt, leaning verticals, a sparse day 1, a year 100 that matched day 1, and a year 500 that was three cartoon trees). The replacement stills are the four files in `whatif/review/ready_city/`. Camera is level at 3.6 m, 24 mm. Grey concrete sidewalks, worn-asphalt then cracked-asphalt, lane dashes, manholes. Poly Haven `island_tree_02`, `tree_small_02`, `fir_sapling`, and `street_lamp_01` live in `/opt/cursor/asset-cache/cc0/polyhaven/` (CC0, not committed). Decay and Forest shader values are keyed in the blend; a second asphalt strip is hidden until the ruin.
 
 Proof stills from that blend, 1080×1920, 64 samples, OIDN, this 4-thread CPU:
 
-- frame 1: 156 s
-- frame 90: 152 s
-- frame 871: 241 s
-- frame 1096: 252 s
+- frame 1: 219 s
+- frame 90: 217 s
+- frame 871: 270 s
+- frame 1096: 268 s
 
-Mean 200 s/frame. `est_sec_per_frame_t4` is 50 (mean divided by 4, not measured on a GPU). Manifest `edit_overlay` still names the title and the population/year counter as a later composite. Beauty only. No narration, no music.
+Mean 244 s/frame. `est_sec_per_frame_t4` is 61 (mean divided by 4, not measured on a GPU). Header `BLENDER-v402`. 16 cell-fracture shards. Manifest `edit_overlay` still names the title and the population/year counter as a later composite. Beauty only. No narration, no music. Do not render the older 219 MB or 909 MB zips.
 
 ### 2026-10-11 — Colab bundle for version B
 

@@ -19,11 +19,13 @@ from mathutils import Euler, Matrix, Vector
 from engine import cc0_city
 from engine.meshkit import smoother
 
-# Building meshes stay outside this half-width. The camera sits on x=0.
-CORRIDOR = 7.6
-CAM_LOC = (0.0, 1.4, 1.58)
-CAM_TARGET = (0.1, 34.0, 5.2)
-LENS = 28.0
+# Towers stay behind the shop row. The camera sits on x=0.
+CORRIDOR = 16.0
+# Level look so the verticals stay straight. Shift frames the buildings, not the asphalt.
+CAM_LOC = (0.0, 1.6, 3.6)
+CAM_TARGET = (0.0, 46.0, 3.6)
+LENS = 24.0
+SHIFT_Y = -0.16
 BLOCKS = {
     "c6": "procedural_city_6.glb",
     "c4": "procedural_city_4.glb",
@@ -148,95 +150,338 @@ def _place_blocks(kit):
     return y_cursor
 
 
+def _grey_concrete():
+    """Flat grey concrete. The downtown curb atlas has a red trim; this replaces it."""
+    path = Path(
+        "/opt/cursor/asset-cache/cc0/extracted/city_buildings/"
+        "quaternius_downtown_city_megakit/Textures/T_Concrete_BaseColor.png"
+    )
+    if not path.exists():
+        return None
+    mat = bpy.data.materials.new("GreyConcrete")
+    mat.use_nodes = True
+    tree = mat.node_tree
+    bsdf = next(node for node in tree.nodes if node.type == "BSDF_PRINCIPLED")
+    tex = tree.nodes.new("ShaderNodeTexImage")
+    tex.image = bpy.data.images.load(str(path), check_existing=True)
+    mapping = tree.nodes.new("ShaderNodeMapping")
+    mapping.inputs["Scale"].default_value = (2.5, 2.5, 2.5)
+    coord = tree.nodes.new("ShaderNodeTexCoord")
+    tree.links.new(coord.outputs["UV"], mapping.inputs["Vector"])
+    tree.links.new(mapping.outputs["Vector"], tex.inputs["Vector"])
+    tree.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+    bsdf.inputs["Roughness"].default_value = 0.86
+    return mat
+
+
+def _visual_mesh(path):
+    """Import a glTF and return one mesh. LOD copies and curves stay out."""
+    key = str(path)
+    cache = getattr(_visual_mesh, "cache", {})
+    if key in cache:
+        return cache[key]
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(path))
+    fresh = [obj for obj in bpy.data.objects if obj not in before]
+    meshes = [obj for obj in fresh if obj.type == "MESH" and "LOD" not in obj.name.upper()]
+    for obj in fresh:
+        if obj not in meshes:
+            obj.hide_render = True
+    if not meshes:
+        cache[key] = None
+        _visual_mesh.cache = cache
+        return None
+    bpy.ops.object.select_all(action="DESELECT")
+    for obj in meshes:
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
+    if len(meshes) > 1:
+        bpy.ops.object.join()
+    obj = bpy.context.view_layer.objects.active
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    xs = [vert.co.x for vert in obj.data.vertices]
+    ys = [vert.co.y for vert in obj.data.vertices]
+    zs = [vert.co.z for vert in obj.data.vertices]
+    dx = (min(xs) + max(xs)) * 0.5
+    dy = (min(ys) + max(ys)) * 0.5
+    dz = min(zs)
+    for vert in obj.data.vertices:
+        vert.co.x -= dx
+        vert.co.y -= dy
+        vert.co.z -= dz
+    mesh = obj.data
+    bpy.data.objects.remove(obj, do_unlink=True)
+    cache[key] = mesh
+    _visual_mesh.cache = cache
+    return mesh
+
+
+def _size(mesh):
+    xs = [vert.co.x for vert in mesh.vertices]
+    ys = [vert.co.y for vert in mesh.vertices]
+    zs = [vert.co.z for vert in mesh.vertices]
+    return (max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs))
+
+
+def _spawn_mesh(coll, mesh, loc, yaw, scale, name):
+    obj = bpy.data.objects.new(name, mesh)
+    coll.objects.link(obj)
+    obj.location = loc
+    obj.rotation_euler.z = yaw
+    if isinstance(scale, (int, float)):
+        obj.scale = (scale, scale, scale)
+    else:
+        obj.scale = scale
+    return obj
+
+
+def _tile(coll, mesh, x, y0, y1, z, along, name, mat=None):
+    """Repeat a ground piece along Y. ``along`` is the native length of one piece."""
+    made = []
+    cursor = y0
+    step = max(along * 0.98, 0.4)
+    while cursor < y1:
+        obj = _spawn_mesh(coll, mesh, (x, cursor + step * 0.5, z), 0.0, 1.0, name)
+        if mat is not None:
+            obj.data = obj.data.copy()
+            obj.data.materials.clear()
+            obj.data.materials.append(mat)
+        made.append(obj)
+        cursor += step
+    return made
+
+
+def _asphalt_strip(coll, mat, y0, y1, half):
+    """One photographic asphalt surface, so the avenue has no tile seam."""
+    mesh = bpy.data.meshes.new("avenue_asphalt")
+    bm = bmesh.new()
+    coords = ((-half, y0, 0.015), (half, y0, 0.015), (half, y1, 0.015), (-half, y1, 0.015))
+    verts = [bm.verts.new(co) for co in coords]
+    face = bm.faces.new(verts)
+    uv_layer = bm.loops.layers.uv.new("UVMap")
+    for loop in face.loops:
+        co = loop.vert.co
+        loop[uv_layer].uv = ((co.x + half) / 3.2, (co.y - y0) / 3.2)
+    bm.to_mesh(mesh)
+    bm.free()
+    if mat is not None:
+        mesh.materials.append(mat)
+    obj = bpy.data.objects.new("asphalt", mesh)
+    coll.objects.link(obj)
+    return obj
+
+
 def _roads(kit, end_y):
-    """Downloaded asphalt. The avenue runs under the camera and does not stop in empty ground."""
+    """Grey concrete sidewalks and photographic asphalt. The red curb kit stays out."""
+    from engine import found_assets
+
     roads = kit.collection("Terrain")
-    if not cc0_city.ready():
-        return
-    cc0_city.place_side_street(roads, 0.0, -48.0, end_y + 24.0, 0.02, width=12.0)
-    # Side streets leave the avenue and run into the next row of blocks.
-    y = -8.0
-    while y < end_y:
-        cc0_city.place_avenue(roads, y, 0.03, x0=-78.0, x1=-7.2, width=10.0)
-        cc0_city.place_avenue(roads, y, 0.03, x0=7.2, x1=78.0, width=10.0)
-        y += 52.0
+    kit_root = Path(
+        "/opt/cursor/asset-cache/cc0/extracted/city_buildings/"
+        "quaternius_downtown_city_megakit/Exports/glTF (Godot)"
+    )
+    asphalt = found_assets.pbr_material("AvenueAsphalt", "worn_asphalt", uv=0.55)
+    ruined = found_assets.pbr_material("AvenueCracked", "road_damaged", uv=0.55)
+    concrete = _grey_concrete()
+    sidewalk_mesh = _visual_mesh(kit_root / "Sidewalk_Straight_3m.gltf")
+    line_mesh = _visual_mesh(kit_root / "Decal_BrokenLine_Straight.gltf")
+    cross_mesh = _visual_mesh(kit_root / "Decal_Crosswalk.gltf")
+    hole_mesh = _visual_mesh(kit_root / "Prop_ManholeCover.gltf")
+    y0, y1 = -6.0, min(end_y, 220.0)
+    avenue = []
+    strip = _asphalt_strip(roads, asphalt, y0, y1, 3.6)
+    ruined_strip = _asphalt_strip(roads, ruined, y0, y1, 3.6)
+    if ruined_strip is not None:
+        ruined_strip.location.z = 0.008
+    if strip is not None:
+        kit.add(strip, "prop", sink=False)
+    if ruined_strip is not None:
+        kit.add(ruined_strip, "prop", sink=False)
+    kit.road_clean = strip
+    kit.road_ruined = ruined_strip
+    if sidewalk_mesh is not None:
+        size = _size(sidewalk_mesh)
+        long_axis = 0 if size[0] >= size[1] else 1
+        yaw = math.pi / 2.0 if long_axis == 0 else 0.0
+        length = max(size[long_axis], 0.5)
+        for side in (-1.0, 1.0):
+            cursor = y0
+            while cursor < y1:
+                obj = _spawn_mesh(
+                    roads, sidewalk_mesh, (side * 5.2, cursor + length * 0.5, 0.02),
+                    yaw + (0.0 if side > 0 else math.pi), 1.0, "sidewalk",
+                )
+                if concrete is not None and obj.data.users > 1:
+                    obj.data = obj.data.copy()
+                if concrete is not None:
+                    obj.data.materials.clear()
+                    obj.data.materials.append(concrete)
+                cursor += length * 0.98
+                del obj
+    if line_mesh is not None:
+        size = _size(line_mesh)
+        length = max(size[0], size[1], 0.4)
+        yaw = math.pi / 2.0 if size[0] >= size[1] else 0.0
+        for x in (-1.7, 1.7):
+            cursor = 6.0
+            while cursor < min(y1, 140.0):
+                mark = _spawn_mesh(roads, line_mesh, (x, cursor, 0.045), yaw, 1.0, "lane")
+                kit.add(mark, "road_mark", sink=False)
+                cursor += length * 1.15
+    if cross_mesh is not None:
+        mark = _spawn_mesh(roads, cross_mesh, (0.0, 22.0, 0.05), math.pi / 2.0, 1.2, "crosswalk")
+        kit.add(mark, "road_mark", sink=False)
+    if hole_mesh is not None:
+        for y in (14.0, 32.0, 54.0, 78.0, 104.0):
+            cover = _spawn_mesh(roads, hole_mesh, (0.4, y, 0.04), 0.2, 1.0, "manhole")
+            kit.add(cover, "prop", sink=False)
+    kit.avenue = avenue
+    kit.asphalt_clean = asphalt
+    kit.asphalt_ruined = ruined
+    print("avenue tiles", len(avenue), flush=True)
 
 
 def _life(kit):
-    """People, bikes, and cars in the street. They leave with the vanish channel."""
+    """A busy avenue: walkers, cyclists, moving lanes, and cars parked at the curb."""
     from engine.scenes import _bike, _traffic, _walker
 
     life = kit.collection("Life")
-    z = 0.05
-    # Near sidewalks first, so the opening frame has people at a readable size.
-    for index, (x, y0, direction) in enumerate((
-        (-5.2, 9.0, 1.0),
-        (5.2, 11.0, 1.0),
-        (-4.6, 18.0, -1.0),
-        (4.8, 16.0, 1.0),
-        (-5.4, 28.0, 1.0),
-        (5.5, 32.0, -1.0),
-        (-4.8, 48.0, 1.0),
-        (4.6, 55.0, 1.0),
-        (-5.1, 72.0, -1.0),
-        (5.3, 80.0, 1.0),
-    )):
+    z = 0.08
+    spots = []
+    for side in (-1.0, 1.0):
+        for step, y0 in enumerate((8.0, 14.0, 21.0, 29.0, 38.0, 48.0, 60.0, 74.0, 90.0)):
+            spots.append((side * (4.4 if step % 2 == 0 else 4.9), y0, 1.0 if step % 2 == 0 else -1.0))
+    for index, (x, y0, direction) in enumerate(spots):
         _walker(
             kit, life,
-            [(x, y0, z), (x, y0 + 14.0 * direction, z)],
-            1.25, index * 2.5, height=1.75,
+            [(x, y0, z), (x, y0 + 12.0 * direction, z)],
+            1.3, index * 1.7, height=1.75,
         )
-    for index, (x, y0) in enumerate(((-1.2, 34.0), (1.8, 52.0), (-2.0, 74.0))):
-        _bike(kit, life, [(x, y0, z), (x, y0 + 24.0, z)], index * 3.0)
+    for index, (x, y0) in enumerate(((-1.4, 26.0), (1.5, 38.0), (-0.6, 52.0), (2.0, 68.0), (-1.8, 84.0))):
+        _bike(kit, life, [(x, y0, z), (x, y0 + 20.0, z)], index * 2.4)
     lanes = (
-        ((-1.7, 15.0, z), (-1.7, 160.0, z), 6, 9.0),
-        ((2.0, 22.0, z), (2.0, 170.0, z), 7, 11.0),
-        ((1.6, 120.0, z), (1.6, 8.0, z), 8, 8.0),
-        ((-2.4, 90.0, z), (-2.4, 6.0, z), 9, 7.5),
-        ((2.5, 48.0, z), (2.5, 150.0, z), 10, 10.0),
-        ((-2.2, 140.0, z), (-2.2, 30.0, z), 11, 8.5),
+        ((-1.5, 12.0, z), (-1.5, 170.0, z), 6, 9.0),
+        ((1.6, 18.0, z), (1.6, 180.0, z), 7, 11.0),
+        ((-2.2, 40.0, z), (-2.2, 160.0, z), 8, 8.0),
+        ((2.3, 150.0, z), (2.3, 10.0, z), 9, 10.0),
+        ((1.2, 70.0, z), (1.2, 190.0, z), 10, 12.0),
+        ((-1.8, 130.0, z), (-1.8, 8.0, z), 11, 7.5),
+        ((2.0, 6.0, z), (2.0, 120.0, z), 4, 9.5),
+        ((-2.4, 24.0, z), (-2.4, 140.0, z), 5, 8.5),
     )
     for index, (start, end, car_index, speed) in enumerate(lanes):
-        item = _traffic(kit, life, [start, end], car_index, speed, index * 5.0, coast=6.0)
+        item = _traffic(kit, life, [start, end], car_index, speed, index * 6.0, coast=6.0)
         if item is not None:
             item.extra["hero"] = True
+    for index, (x, y) in enumerate(((-3.3, 16.0), (3.3, 20.0), (-3.3, 36.0), (3.3, 44.0), (-3.3, 62.0), (3.3, 70.0), (-3.3, 88.0), (3.3, 96.0))):
+        loc = (x, y, z)
+        built = cc0_city.place_fleet_car(life, loc, math.pi / 2.0 if x < 0 else -math.pi / 2.0, index=index + 3)
+        if built is None:
+            continue
+        item = kit.add(built, "car", path_from=loc, path_to=loc, index=20 + index, paint=(0.9, 0.9, 0.9, 1), sink=False)
+        item.extra["hero"] = True
+        item.extra["parked"] = True
+
+
+def _shops_and_lamps(kit):
+    """Storefronts, awnings, and lamp posts along both sidewalks."""
+    from engine import found_assets
+
+    coll = kit.collection("City")
+    godot = Path(
+        "/opt/cursor/asset-cache/cc0/extracted/city_buildings/"
+        "quaternius_downtown_city_megakit/Exports/glTF (Godot)"
+    )
+    kenney = Path(
+        "/opt/cursor/asset-cache/cc0/extracted/city_buildings/"
+        "kenney_city_kit_commercial/Models/GLB format"
+    )
+    names = ("Building_Small_1.gltf", "Building_Medium_2_001.gltf", "Building_Large_2.gltf")
+    meshes = []
+    for name in names:
+        mesh = _visual_mesh(godot / name)
+        if mesh is not None:
+            meshes.append(mesh)
+    awning = _visual_mesh(kenney / "detail-awning.glb")
+    lamp = _visual_mesh(Path("/opt/cursor/asset-cache/cc0/polyhaven/street_lamp_01/street_lamp_01_1k.gltf"))
+    hydrant = _visual_mesh(Path("/opt/cursor/asset-cache/cc0/polyhaven/fire_hydrant/fire_hydrant_1k.gltf"))
+    if meshes:
+        for index, y in enumerate(range(16, 140, 12)):
+            for side in (-1.0, 1.0):
+                mesh = meshes[(index + (0 if side < 0 else 1)) % len(meshes)]
+                native = _size(mesh)
+                # After a quarter turn the street-facing depth is the mesh's Y size.
+                half = native[1] * 0.5
+                yaw = math.pi / 2.0 if side > 0 else -math.pi / 2.0
+                shop = _spawn_mesh(coll, mesh, (side * (6.4 + half), float(y), 0.0), yaw, 1.15, "shop")
+                found_assets.stamp_object(shop, "moss")
+                kit.add(shop, "building_base", sink=False, shop=True, topple=True)
+                if awning is not None and index % 2 == 0:
+                    face = side * (6.4 + 0.15)
+                    _spawn_mesh(coll, awning, (face, float(y), 3.4), yaw, 1.4, "awning")
+    if lamp is not None:
+        native_h = max(_size(lamp)[2], 0.2)
+        scale = 6.2 / native_h
+        for y in range(10, 130, 16):
+            for side in (-1.0, 1.0):
+                obj = _spawn_mesh(coll, lamp, (side * 7.6, float(y), 0.0), 0.0, scale, "lamp")
+                kit.add(obj, "prop", sink=False)
+    if hydrant is not None:
+        native_h = max(_size(hydrant)[2], 0.2)
+        scale = 0.85 / native_h
+        for y in (18.0, 46.0, 78.0):
+            for side in (-1.0, 1.0):
+                obj = _spawn_mesh(coll, hydrant, (side * 5.1, y, 0.0), 0.4, scale, "hydrant")
+                kit.add(obj, "prop", sink=False)
 
 
 def _forest_and_weeds(kit):
-    """Saplings by year 100. A forest stands in the street at year 500."""
+    """Photographed trees. Saplings at year 100, a forest through the street at year 500."""
     from engine.scenes import _plant
 
     plants = kit.collection("Plants")
     rng = random.Random(19)
-    if cc0_city.ready():
-        for i in range(28):
-            x = rng.choice((-5.8, -4.2, 4.3, 5.9, rng.uniform(-2.2, 2.2)))
-            y = rng.uniform(22.0, 150.0)
-            kind = "pine" if i % 2 == 0 else "round"
-            tree = cc0_city.place_tree(plants, x, y, 0.0, rng.uniform(5.5, 11.0), kind)
-            if tree is None:
-                continue
-            kit.add(
-                tree, "swallow", sink=False,
-                leaf=(0.08, 0.32, 0.1, 1), autumn=(0.12, 0.3, 0.08, 1),
-            )
-        for i in range(14):
-            x = rng.choice((-6.2, 6.3))
-            y = 12.0 + i * 8.5
-            tree = cc0_city.place_tree(plants, x, y, 0.0, rng.uniform(3.5, 6.5), "round")
-            if tree is None:
-                continue
-            kit.add(
-                tree, "tree_canopy", future=True, delay=0.62, sink=False,
-                leaf=(0.1, 0.34, 0.12, 1), autumn=(0.16, 0.32, 0.1, 1),
-            )
-    for i in range(36):
+    sources = (
+        (Path("/opt/cursor/asset-cache/cc0/polyhaven/island_tree_02/island_tree_02_1k.gltf"), (9.0, 16.0)),
+        (Path("/opt/cursor/asset-cache/cc0/polyhaven/tree_small_02/tree_small_02_1k.gltf"), (6.0, 10.0)),
+        (Path("/workspace/assets/found/polyhaven/models/fir_sapling/fir_sapling_1k.gltf"), (4.0, 7.5)),
+    )
+    loaded = []
+    for path, span in sources:
+        if not path.exists():
+            continue
+        mesh = _visual_mesh(path)
+        if mesh is not None:
+            loaded.append((mesh, max(_size(mesh)[2], 0.2), span))
+    for i, (mesh, native_h, span) in enumerate(loaded * 12):
+        height = rng.uniform(*span)
+        scale = height / native_h
+        x = rng.choice((-2.4, -0.6, 0.8, 2.2, -4.6, 4.8))
+        y = 12.0 + (i * 7.5) % 110.0
+        tree = _spawn_mesh(plants, mesh, (x, y, 0.0), rng.random() * math.tau, scale, "real_tree")
+        kit.add(tree, "swallow", sink=False)
+    for i in range(10):
+        mesh, native_h, _span = loaded[-1] if loaded else (None, 1.0, (1, 1))
+        if mesh is None:
+            break
+        scale = rng.uniform(2.4, 4.2) / native_h
+        tree = _spawn_mesh(plants, mesh, (rng.choice((-5.4, 5.6)), 14.0 + i * 8.0, 0.0), i, scale, "sapling")
+        kit.add(tree, "tree_canopy", future=True, delay=0.5, sink=False, leaf=(0.15, 0.32, 0.1, 1), autumn=(0.2, 0.28, 0.08, 1))
+    for i in range(70):
         _plant(
             kit, plants,
-            ("grass_medium_01", "fern_02", "shrub_01", "weed_plant_02", "moss_01")[i % 5],
-            rng.uniform(-6.4, 6.4), rng.uniform(8.0, 120.0), 0.0,
-            rng.uniform(0.45, 1.15), delay=0.34, yaw=rng.random() * 6.0,
+            ("grass_medium_01", "fern_02", "shrub_01", "weed_plant_02", "moss_01", "grass_medium_02")[i % 6],
+            rng.uniform(-4.2, 4.2) if i % 3 else rng.choice((-6.2, 6.2)),
+            rng.uniform(8.0, 110.0), 0.0,
+            rng.uniform(0.35, 1.2), delay=0.22, yaw=rng.random() * 6.0,
         )
+    for i, y in enumerate((12.0, 24.0, 36.0, 50.0, 66.0, 82.0)):
+        for side in (-1.0, 1.0):
+            _plant(
+                kit, plants, "fern_02" if i % 2 == 0 else "moss_01",
+                side * 10.4, y, 1.4 + (i % 3) * 1.1,
+                1.1, delay=0.4, yaw=0.0, role="year_age",
+            )
 
 
 def _aabb(obj):
@@ -349,13 +594,13 @@ def _shells(kit):
     coll = kit.collection("City")
     made = 0
     rng = random.Random(31)
-    for i in range(10):
+    for i in range(14):
         side = -1.0 if i % 2 == 0 else 1.0
         shell = _ruin_piece(
             coll,
-            (side * rng.uniform(3.2, 6.4), 12.0 + i * 11.0, 0.0),
-            rng.random() * math.tau,
-            rng.uniform(8.0, 14.0),
+            (side * rng.uniform(0.4, 2.8), 24.0 + i * 8.0, 0.0),
+            rng.random() * 0.4,
+            rng.uniform(12.0, 20.0),
         )
         if shell is None:
             continue
@@ -430,15 +675,17 @@ def _fracture_a_few(kit):
 
     hosts = []
     for item in kit.items:
-        if item.role != "building_base" or item.extra.get("rank") != "inner":
+        if item.role != "building_base" or not item.extra.get("shop"):
             continue
-        if not (8.0 < item.base_loc.y < 90.0):
+        if not (20.0 < item.base_loc.y < 80.0):
             continue
-        for child in item.obj.children_recursive:
-            if child.type != "MESH" or child.data is None:
+        candidates = [item.obj] if item.obj.type == "MESH" else []
+        candidates.extend(child for child in item.obj.children_recursive if child.type == "MESH")
+        for child in candidates:
+            if child.data is None:
                 continue
             count = len(child.data.vertices)
-            if 200 < count < 6000 and max(child.dimensions) < 40.0:
+            if 200 < count < 40000 and max(child.dimensions) < 40.0:
                 hosts.append(child)
                 break
         if len(hosts) >= 2:
@@ -463,6 +710,7 @@ def build(kit, mats, rng):
     kit.water = None
     end_y = _place_blocks(kit)
     _roads(kit, end_y)
+    _shops_and_lamps(kit)
     _life(kit)
     _forest_and_weeds(kit)
     piles = _rubble(kit)
@@ -487,6 +735,8 @@ def _frame_camera(kit):
     cam.location = CAM_LOC
     _aim(cam, CAM_TARGET)
     cam.data.lens = LENS
+    cam.data.shift_x = 0.0
+    cam.data.shift_y = SHIFT_Y
     cam.data.clip_start = 0.08
     cam.data.clip_end = 800.0
 
@@ -501,43 +751,99 @@ def _sun_down_the_street(sun, collapse):
     sun.data.angle = 0.025
 
 
+def _lay_in_street(item, sign):
+    """Rotate a building about world Y so it lies across the avenue."""
+    origin = Vector(item.base_loc)
+    base = item.base_rot.to_matrix().to_4x4()
+    base.translation = origin
+    rot = Matrix.Rotation(1.52 * sign, 4, "Y")
+    new = Matrix.Translation(origin) @ rot @ Matrix.Translation(-origin) @ base
+    loc, quat, _scale = new.decompose()
+    item.obj.location = loc
+    item.obj.rotation_mode = "XYZ"
+    item.obj.rotation_euler = quat.to_euler("XYZ")
+    # The height falls across the street. Squash the other two axes so the tower is a slab, not a wall.
+    item.obj.scale = (item.base_scale.x * 0.16, item.base_scale.y * 0.16, item.base_scale.z)
+
+
+def _push_decay(amount, forest):
+    for material in bpy.data.materials:
+        tree = material.node_tree
+        if tree is None:
+            continue
+        for name, value in (("Decay", amount), ("Forest", forest)):
+            node = tree.nodes.get(name)
+            if node is not None and node.type == "VALUE":
+                node.outputs[0].default_value = float(value)
+
+
 def drive(kit, ch):
-    """Year 100 is still this street, broken. Year 500 is the same street fallen in."""
+    """Year 100 breaks this street. Year 500 drops the buildings across it."""
+    from engine.effects import _paint_descendants
+
     collapse = float(ch.get("collapse", 0.0))
+    veg = float(ch.get("vegetation", 0.0))
     heavy = 0.45 <= collapse < 0.85
     fallen = collapse >= 0.85
     _frame_camera(kit)
     if kit.volume is not None:
         kit.volume.hide_render = True
+    ruined = heavy or fallen or veg > 0.45
+    clean = getattr(kit, "road_clean", None)
+    cracked = getattr(kit, "road_ruined", None)
+    if clean is not None:
+        clean.hide_render = ruined
+    if cracked is not None:
+        cracked.hide_render = not ruined
     for item in kit.items:
-        if item.role == "building_base" and heavy:
+        shop = bool(item.extra.get("shop"))
+        sign = 1.0 if item.base_loc.x < 0.0 else -1.0
+        if item.role == "building_base" and shop and fallen:
             _hide_tree(item.obj, False)
-            sign = 1.0 if item.base_loc.x < 0.0 else -1.0
+            # The walls beside the lens stay as snapped stubs. Further ones lie across the road.
+            if item.base_loc.y < 22.0 or int(abs(item.base_loc.y)) % 3 == 0:
+                item.obj.location = item.base_loc.copy()
+                item.obj.rotation_euler = Euler((0.12, 0.42 * sign, item.base_rot.z))
+                item.obj.scale = (item.base_scale.x, item.base_scale.y, item.base_scale.z * 0.34)
+            else:
+                _lay_in_street(item, sign)
+        elif item.role == "building_base" and shop and heavy:
+            _hide_tree(item.obj, False)
             item.obj.location = item.base_loc.copy()
-            item.obj.rotation_euler = Euler((0.04, 0.14 * sign, item.base_rot.z))
-            item.obj.scale = (item.base_scale.x, item.base_scale.y, item.base_scale.z * 0.82)
+            item.obj.rotation_euler = Euler((0.06, 0.28 * sign, item.base_rot.z))
+            item.obj.scale = (item.base_scale.x, item.base_scale.y, item.base_scale.z * 0.52)
+        elif item.role == "building_base" and heavy:
+            _hide_tree(item.obj, False)
+            item.obj.location = item.base_loc.copy()
+            item.obj.rotation_euler = Euler((0.05, 0.2 * sign, item.base_rot.z))
+            item.obj.scale = (item.base_scale.x, item.base_scale.y, item.base_scale.z * 0.6)
         elif item.role == "building_base" and fallen:
-            sign = 1.0 if item.base_loc.x < 0.0 else -1.0
-            near = item.base_loc.y < 90.0
-            bucket = int(abs(item.base_loc.y) + (0.0 if item.base_loc.x < 0.0 else 11.0)) % 4
+            near = item.base_loc.y < 140.0
             item.obj.location = item.base_loc.copy()
-            # The two walls beside the camera stay, as broken stumps. Further blocks can fall away.
-            if near or bucket != 0:
+            if near:
                 _hide_tree(item.obj, False)
-                lean = 0.55 if bucket == 1 else 0.22
-                stump = 0.46 if near else 0.32
-                item.obj.rotation_euler = Euler((0.05, lean * sign, item.base_rot.z))
-                item.obj.scale = (item.base_scale.x, item.base_scale.y, item.base_scale.z * stump)
+                item.obj.rotation_euler = Euler((0.12, 0.7 * sign, item.base_rot.z))
+                item.obj.scale = (item.base_scale.x, item.base_scale.y, item.base_scale.z * 0.28)
             else:
                 _hide_tree(item.obj, True)
+        elif item.role == "shell" and fallen:
+            _hide_tree(item.obj, False)
+            _lay_in_street(item, sign)
         elif item.role == "shell":
-            _hide_tree(item.obj, not fallen)
+            _hide_tree(item.obj, True)
         elif item.role == "rubble":
-            _hide_tree(item.obj, collapse < 0.32)
+            _hide_tree(item.obj, collapse < 0.28)
         elif item.role == "rubble_hill":
             _hide_tree(item.obj, not fallen)
+        elif item.role == "car" and ruined:
+            _paint_descendants(item.obj, (0.32, 0.14, 0.07, 1.0), drive_nodes=True)
+            _hide_tree(item.obj, False)
+            if fallen:
+                item.obj.rotation_euler.x += 0.2
         elif item.role == "swallow" and heavy:
             item.obj.hide_render = True
+    if ruined:
+        _push_decay(0.95 if not fallen else 1.0, 0.72 if heavy else (1.0 if fallen else 0.35))
     node = getattr(kit, "fog_density", None)
     if node is not None:
         amount = 0.35 + 0.65 * smoother(0.35, 0.9, collapse)
