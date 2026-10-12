@@ -226,6 +226,10 @@ def apply(kit, ch, frame, fps):
     _bridge(kit, ch)
     _weather_fx(kit, ch, frame, fps, snow)
     _sky(kit, ch, frame, fps)
+    if getattr(kit, "kind", "") == "ready_city":
+        from engine.ready_city import drive as drive_ready_city
+
+        drive_ready_city(kit, ch)
     if getattr(kit, "format", "A") == "C":
         from engine.format_c import apply_format_c
 

@@ -813,10 +813,19 @@ def _link_cached(coll):
     if not FRACTURE_CACHE.exists():
         return []
     with bpy.data.libraries.load(str(FRACTURE_CACHE), link=False) as (src, dst):
-        dst.objects = list(src.objects)
+        # The cache file is ~2 GB. Loading every shard OOMs a 15 GB still.
+        # The locked camera only needs a handful of roof and tower pieces.
+        names = [name for name in src.objects if str(name).startswith("era")]
+        print("fracture cache names", len(src.objects), "era", len(names), flush=True)
+        if not names:
+            names = list(src.objects)
+        dst.objects = names[:48]
     loaded = []
     for obj in dst.objects:
         if obj is None or obj.type != "MESH":
+            continue
+        if max(obj.dimensions) > 80.0:
+            bpy.data.objects.remove(obj, do_unlink=True)
             continue
         coll.objects.link(obj)
         loaded.append(obj)
@@ -938,7 +947,7 @@ def ant_hills(kit):
                 tri_face=False,
                 water_plane=False,
             )
-        except RuntimeError as exc:
+        except (RuntimeError, AttributeError) as exc:
             print("ant", name, exc)
             continue
         created = [obj for obj in bpy.data.objects if obj not in before and obj.type == "MESH"]
