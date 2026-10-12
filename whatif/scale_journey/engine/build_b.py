@@ -1215,15 +1215,19 @@ _IDLE_BASIS: dict = {}
 def _shrug_frame(t):
     """Mixamo shrug, imported as 0..48 at 24 fps. Shoulders peak at frame 16.
 
-    That peak is held on the reaction still (t = 23.33). Before the clip
-    starts, and after it ends, the pose is the standing first frame.
+    The bonk still holds an early flinch (frame 8). The reaction still holds
+    the peak. Outside that window the pose is the standing first frame.
     """
-    peak_t = 23.33
-    peak_f = 16.0
-    start = peak_t - peak_f / 24.0
-    frame = (t - start) * 24.0
-    if frame < 0.0 or frame > 48.0:
+    if t < 21.07 or t > 25.4:
         return 0.0
+    if t < 22.15:
+        return 8.0
+    u = min(1.0, (t - 22.15) / (23.33 - 22.15))
+    u = u * u * (3.0 - 2.0 * u)
+    frame = 8.0 + (16.0 - 8.0) * u
+    if t > 23.33:
+        release = min(1.0, (t - 23.33) / 1.4)
+        frame = 16.0 + (48.0 - 16.0) * release
     return frame
 
 
@@ -1644,7 +1648,7 @@ def _deck_rail():
     height = max(span[2], 0.2)
     scale = 1.85 / height
     # Curved safety rail on the 86th-floor parapet, just outside the coin.
-    cx, cy, z = 16.9, 10.4, 294.15
+    cx, cy, z = 17.4, 13.7, 293.7
     count = 0
     for index in range(9):
         ang = 0.15 + index * 0.18
@@ -1724,7 +1728,7 @@ def pose_frame(scene, cam, penny, arms, fr, speed=None):
     cam.data.dof.use_dof = hook
     if hook:
         cam.data.dof.focus_distance = max(0.2, (mathutils.Vector(curr_penny) - mathutils.Vector(curr_cam)).length)
-        cam.data.dof.aperture_fstop = 5.6
+        cam.data.dof.aperture_fstop = 4.5
     _look(cam, target)
     rot = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
     # Local +Z is Lincoln. Point that face at the lens. The way down adds a tumble.

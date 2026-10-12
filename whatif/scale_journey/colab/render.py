@@ -71,7 +71,7 @@ def _apply_picture(scene):
         scene.view_settings.look = "AgX - Medium High Contrast"
     except Exception:
         pass
-    scene.view_settings.exposure = 0.35
+    scene.view_settings.exposure = 0.55
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGB"
     scene.render.image_settings.compression = 15

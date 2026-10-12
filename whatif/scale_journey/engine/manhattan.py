@@ -418,7 +418,9 @@ def _crosswalks():
     span = max(0.01, mx.x - mn.x)
     empty.scale = (26.0 / span, 8.0 / span, 1.0)
     empty.location = (0.0, 0.0, -800.0)
-    for x, y, yaw in ((-16.0, 71.5, 0.0), (22.0, 71.5, 0.0), (50.0, 74.0, 1.5708), (50.0, 90.0, 1.5708)):
+    # The kit zebra is a pale untextured slab. Keep it off the landing the
+    # street camera sees; the asphalt map already carries the lane paint.
+    for x, y, yaw in ((120.0, 96.0, 0.0), (50.0, 140.0, 1.5708)):
         bpy.ops.object.select_all(action="DESELECT")
         empty.select_set(True)
         for obj in meshes:
@@ -579,7 +581,8 @@ def _people():
     hero_empty, hero_arm = _pose_proto(SHRUG, "Star", 0)
     if hero_empty is not None:
         hero_empty.location = (MAN[0], MAN[1], hero_empty.location.z)
-        hero_empty.rotation_euler = (0.0, 0.0, math.pi)
+        # Face the street camera so the shrug reads from the front.
+        hero_empty.rotation_euler = (0.0, 0.0, 0.35)
         if hero_arm is not None:
             hero_arm["punchline"] = 1
             action = hero_arm.animation_data.action if hero_arm.animation_data else None
@@ -875,6 +878,21 @@ def _pave_landing():
         0.14,
         swap=True,
     )
+    def _thin(empty, thickness):
+        if empty is None:
+            return
+        bpy.context.view_layer.update()
+        meshes = [child for child in empty.children_recursive if child.type == "MESH"]
+        mn, mx = _bounds(meshes)
+        height = max(0.01, mx.z - mn.z)
+        empty.scale.z *= thickness / height
+        bpy.context.view_layer.update()
+        mn, _mx = _bounds(meshes)
+        empty.location.z -= mn.z
+
+    # The kit sidewalk is a 15 cm step. That riser read as a pale slab.
+    _thin(walk, 0.02)
+    _thin(asphalt, 0.02)
     if walk is not None:
         _paint(walk, concrete)
     if asphalt is not None:
@@ -908,9 +926,11 @@ def _pave_landing():
         asphalt.location.z = -400.0
     if walk is not None:
         # Sidewalk the man stands on, just north of the limestone base.
+        # Cover the ground in front of the street camera. A city-kit
+        # plane was showing through as a pale blue slab.
         for x in range(-18, 46, 3):
-            for y in (66.5, 68.4):
-                stamp(walk, x, y, 0.0, 0.07)
+            for y in (63.2, 66.2, 69.2):
+                stamp(walk, x, y, 0.0, 0.04)
                 paved += 1
         walk.location.z = -400.0
     print(f"PAVE {paved}", flush=True)

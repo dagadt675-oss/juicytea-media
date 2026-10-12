@@ -357,8 +357,8 @@ def _penny(raw: dict) -> BEpisode:
         ledge_xy = _penny_xy(drop)
         # North-east lip of the NanoRay 86th-floor parapet. Outside the shaft
         # box, on the stone coping, in front of the curved rail.
-        lip = (16.2, 9.6)
-        parapet = 294.0
+        lip = (18.4, 12.2)
+        parapet = 293.55
         ledge_penny = (lip[0], lip[1], parapet)
         if t < 0.57 or t >= 33.15:
             penny = ledge_penny
@@ -393,29 +393,35 @@ def _penny(raw: dict) -> BEpisode:
                         penny[2],
                     )
                 else:
-                    hop = _fade(t, 21.07, 21.55)
-                    penny = (MAN[0] - 0.18 + 0.45 * hop, MAN[1] - 0.22, penny[2])
+                    hop = math.sin(min(1.0, max(0.0, (t - 21.07) / 0.36)) * math.pi)
+                    if t < 21.55:
+                        penny = (MAN[0] - 0.16, MAN[1] - 0.20, 1.58 + 0.14 * hop)
+                    else:
+                        penny = (MAN[0] - 0.05, MAN[1] - 0.08, penny[2])
         # Shot 1: in the air just above the 86th-floor coping, looking out
         # and down so the coin is on the near ledge and the city is the drop.
         # Open air just outside the coping. Probed clear of the limestone.
-        hook_cam = (18.8, 12.2, parapet + 1.8)
-        hook_tgt = (5.8, -0.8, 283.6)
-        # Shot 2: same offset that puts the coin on the window bays.
-        drone_cam = (penny[0] + 2.6, penny[1] + 2.6, penny[2] + 1.65)
+        # 32 mm at about 0.9 m: the face fills roughly a third of the frame.
+        hook_cam = (18.87, 12.75, parapet + 0.6)
+        hook_tgt = (5.56, -2.71, 279.47)
+        # 24 mm at about 2 m: the face stays near a tenth of the frame.
+        drone_cam = (penny[0] + 1.21, penny[1] + 1.40, penny[2] + 0.70)
         if 2.4 <= t < 19.07 and not (13.31 <= t < 15.10):
             drone_cam = (
                 drone_cam[0] + 0.10 * _wind(t, 8.2, 6.5),
                 drone_cam[1] + 0.08 * _wind(t, 3.4, 7.1),
                 drone_cam[2] + 0.06 * _wind(t, 5.5, 5.4),
             )
-        drone_tgt = (penny[0] - 10.4, penny[1] - 10.4, penny[2] - 10.6)
+        drone_tgt = (penny[0] - 12.56, penny[1] - 14.59, penny[2] - 12.70)
         step = max(0.0, t - 23.9) * 0.9
         man_x, man_y = MAN[0] + step, MAN[1]
         # Street camera sits on the sidewalk, south of him, looking north
         # across the curb, the road, and the shopfronts.
         # On the north sidewalk, beside him, looking through him at the street.
-        up_cam = (man_x - 2.6, man_y - 1.05, 1.48)
-        up_tgt = (man_x + 0.2, man_y + 0.45, 1.28)
+        # South of him, a little to his right, so both palms face the lens
+        # and the brick blocks stay behind him.
+        up_cam = (man_x - 0.85, man_y - 2.55, 1.46)
+        up_tgt = (man_x + 0.05, man_y + 0.25, 1.38)
         face_cam = up_cam
         face_tgt = up_tgt
         guy_cam = (MAN[0] + 2.4, MAN[1] + 0.6, 4.6)
@@ -423,14 +429,14 @@ def _penny(raw: dict) -> BEpisode:
         if t < 2.4 or t >= 33.15:
             cam = hook_cam
             target = hook_tgt
-            lens = 22.0
+            lens = 32.0
         elif t < 2.9:
             u = _fade(t, 2.4, 2.9)
             cam = _lerp(hook_cam, drone_cam, u)
             target = _lerp(hook_tgt, drone_tgt, u)
             lens = 50.0 + (24.0 - 50.0) * u
         elif t < 13.31:
-            cam, target, lens = drone_cam, drone_tgt, 22.0
+            cam, target, lens = drone_cam, drone_tgt, 24.0
         elif t < 14.55:
             u = _fade(t, 13.31, 13.55)
             cam = _lerp(drone_cam, guy_cam, u)
@@ -442,7 +448,7 @@ def _penny(raw: dict) -> BEpisode:
             target = _lerp(guy_tgt, drone_tgt, u)
             lens = 24.0
         elif t < 19.07:
-            cam, target, lens = drone_cam, drone_tgt, 22.0
+            cam, target, lens = drone_cam, drone_tgt, 24.0
         elif t < 19.45:
             u = _fade(t, 19.07, 19.45)
             cam = _lerp(drone_cam, up_cam, u)
