@@ -1080,7 +1080,7 @@ def _penny():
     """Round Lincoln cent. 64-side disc, bevelled rim, both faces from the packed map.
 
     The map is johndh's CC-BY-SA penny (public-domain Mint photos). Local +Z is Lincoln.
-    Diameter is enlarged so a close camera still reads the relief; the rim proportions stay a cent's.
+    Real cent: 19.05 mm across, 1.52 mm thick. The close camera, not the scale, makes it fill the frame.
     """
     found = WHATIF.parent / "assets" / "found"
     tex_path = found / "penny_tex.png"
@@ -1152,9 +1152,9 @@ def _penny():
     world = obj.matrix_world.copy()
     obj.parent = empty
     obj.matrix_world = world
-    empty.scale = (0.12, 0.12, 0.12)
+    empty.scale = (0.01905, 0.01905, 0.01905)
     bpy.context.view_layer.update()
-    print("COIN lincoln disc 64 sides -> 0.12 m", flush=True)
+    print("COIN lincoln disc 64 sides -> 19.05 mm", flush=True)
     return empty
 
 
@@ -1710,9 +1710,9 @@ def pose_frame(scene, cam, penny, arms, fr, speed=None):
     prev_cam[1] += pgy
     prev_penny[0] += pgx
     prev_penny[1] += pgy
-    prev_penny[2] += 0.02
+    prev_penny[2] += 0.0015
     curr_cam = (fr["cam"][0] + gx, fr["cam"][1] + gy, fr["cam"][2])
-    curr_penny = (fr["penny"][0] + gx, fr["penny"][1] + gy, fr["penny"][2] + 0.02)
+    curr_penny = (fr["penny"][0] + gx, fr["penny"][1] + gy, fr["penny"][2] + 0.0015)
     target = (fr["target"][0] + gx, fr["target"][1] + gy, fr["target"][2])
     walk_frame = 12 + int(t * 24.0) % 40
     scene.cycles.seed = int(fr["frame"])
@@ -1725,21 +1725,33 @@ def pose_frame(scene, cam, penny, arms, fr, speed=None):
     )
     cam.data.lens = float(fr.get("lens") or 14)
     hook = float(fr.get("t") or 0.0) < 2.4 or float(fr.get("t") or 0.0) >= 33.15
-    cam.data.dof.use_dof = hook
+    cam.data.dof.use_dof = False
     if hook:
         cam.data.dof.focus_distance = max(0.2, (mathutils.Vector(curr_penny) - mathutils.Vector(curr_cam)).length)
-        cam.data.dof.aperture_fstop = 4.5
+        cam.data.dof.aperture_fstop = 8.0
     _look(cam, target)
     rot = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
     # Local +Z is Lincoln. Point that face at the lens. The way down adds a tumble.
     aim = mathutils.Vector(curr_cam) - mathutils.Vector(curr_penny)
-    if aim.length > 0.2:
+    if aim.length > 0.02:
         face = aim.to_track_quat("Z", "Y").to_euler()
-        if t < 2.4 or t >= 33.15:
+        # Macro, the bonk, and the loop stay face-on. The chase flutters.
+        if t < 2.4 or t >= 32.8 or (20.9 <= t < 21.7):
             rot = (face.x, face.y, face.z)
         else:
-            tumble = 0.0 if t >= 19.0 else (t - 6.67)
-            rot = (face.x + tumble * 0.15, face.y, face.z + tumble * 0.35)
+            def _flutter(seed, scale):
+                x = t * scale + seed
+                return (
+                    math.sin(x)
+                    + 0.62 * math.sin(x * 2.37 + 1.3)
+                    + 0.28 * math.sin(x * 5.05 + seed)
+                ) / 1.9
+
+            rot = (
+                face.x + 0.85 * _flutter(0.6, 3.4),
+                face.y + 0.45 * _flutter(2.1, 4.2),
+                face.z + t * 7.2 + 1.3 * _flutter(1.4, 2.6),
+            )
     penny.rotation_euler = rot
     penny.keyframe_insert("rotation_euler", frame=walk_frame)
     penny.keyframe_insert("rotation_euler", frame=walk_frame + 1)

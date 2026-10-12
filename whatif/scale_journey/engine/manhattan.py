@@ -890,8 +890,8 @@ def _pave_landing():
         mn, _mx = _bounds(meshes)
         empty.location.z -= mn.z
 
-    # Keep the sidewalk's concrete riser. The overhead plate uses that dark
-    # curb. Flatten only the asphalt so the road stays a sheet.
+    # A tall kit riser reads as a pale blue slab in the street shot.
+    _thin(walk, 0.03)
     _thin(asphalt, 0.02)
     if walk is not None:
         _paint(walk, concrete)

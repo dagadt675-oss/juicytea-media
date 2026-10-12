@@ -402,18 +402,19 @@ def _penny(raw: dict) -> BEpisode:
         # Shot 1: in the air just above the 86th-floor coping, looking out
         # and down so the coin is on the near ledge and the city is the drop.
         # Open air just outside the coping. Probed clear of the limestone.
-        # 32 mm at about 0.9 m: the face fills roughly a third of the frame.
-        hook_cam = (18.87, 12.75, parapet + 0.6)
-        hook_tgt = (5.56, -2.71, 279.47)
-        # 24 mm at about 2 m: the face stays near a tenth of the frame.
-        drone_cam = (penny[0] + 1.21, penny[1] + 1.40, penny[2] + 0.70)
+        # 40 mm at about 17 cm: a real 19 mm cent fills about a third of the frame.
+        # Just outside the coin, aimed through it and down the window bays.
+        hook_cam = (18.56, 12.38, parapet + 0.11)
+        hook_tgt = (18.32, 12.11, parapet - 0.16)
+        # Beside the coin, looking down the corner so the grid and the street read.
+        drone_cam = (penny[0] + 0.32, penny[1] + 0.18, penny[2] + 0.22)
         if 2.4 <= t < 19.07 and not (13.31 <= t < 15.10):
             drone_cam = (
                 drone_cam[0] + 0.10 * _wind(t, 8.2, 6.5),
                 drone_cam[1] + 0.08 * _wind(t, 3.4, 7.1),
                 drone_cam[2] + 0.06 * _wind(t, 5.5, 5.4),
             )
-        drone_tgt = (penny[0] - 12.56, penny[1] - 14.59, penny[2] - 12.70)
+        drone_tgt = (penny[0], penny[1], penny[2] - 0.25)
         step = max(0.0, t - 23.9) * 0.9
         man_x, man_y = MAN[0] + step, MAN[1]
         # Street camera sits on the sidewalk, south of him, looking north
@@ -421,8 +422,14 @@ def _penny(raw: dict) -> BEpisode:
         # On the north sidewalk, beside him, looking through him at the street.
         # South of him, a little to his right, so both palms face the lens
         # and the brick blocks stay behind him.
-        up_cam = (man_x - 0.85, man_y - 2.55, 1.46)
-        up_tgt = (man_x + 0.05, man_y + 0.25, 1.38)
+        life = max(0.0, t - 19.45)
+        swing = math.sin(life * 0.9) * 0.65
+        up_cam = (
+            man_x - 0.85 + swing,
+            man_y - 2.55 + min(life, 3.5) * 0.16,
+            1.46 + 0.18 * math.sin(life * 0.55),
+        )
+        up_tgt = (man_x + 0.05, man_y + 0.15, 1.35)
         face_cam = up_cam
         face_tgt = up_tgt
         guy_cam = (MAN[0] + 2.4, MAN[1] + 0.6, 4.6)
@@ -456,8 +463,17 @@ def _penny(raw: dict) -> BEpisode:
             cam = _lerp(drone_cam, up_cam, u)
             target = _lerp(drone_tgt, up_tgt, u)
             lens = 24.0 + (32.0 - 24.0) * u
+        elif t < 24.4:
+            cam, target, lens = up_cam, up_tgt, 50.0
         elif t < 27.71:
-            cam, target, lens = up_cam, up_tgt, 32.0
+            # Leave the locked portrait. Back up and look up so the tower
+            # and the walking man are both in the shot before the rise cut.
+            u = _fade(t, 24.4, 27.71)
+            pulled = (man_x - 1.6, man_y - 5.2, 2.4 + 3.5 * u)
+            pulled_tgt = (man_x + 0.1, man_y + 0.2, 1.6 + 8.0 * u)
+            cam = _lerp(up_cam, pulled, u)
+            target = _lerp(up_tgt, pulled_tgt, u)
+            lens = 50.0
         else:
             u = _fade(t, 30.2, 33.05)
             # Stay wide through the rise still, then meet the deck for the loop.

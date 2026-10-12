@@ -104,10 +104,10 @@ class PennyTest(unittest.TestCase):
     def test_hook_looks_out_over_the_city(self):
         hook = self._at(0.3)
         chase = self._at(8.0)
-        self.assertLess(hook.target[2], hook.cam[2] - 0.4)
-        self.assertGreater(hook.cam[2], hook.penny[2] + 0.4)
-        self.assertLess(chase.target[2], chase.penny[2] - 0.5)
-        self.assertGreater(chase.cam[2], chase.penny[2] + 0.4)
+        self.assertLess(hook.target[2], hook.cam[2] - 0.15)
+        self.assertGreater(hook.cam[2], hook.penny[2] + 0.04)
+        self.assertLess(chase.target[2], chase.penny[2] - 0.15)
+        self.assertGreater(chase.cam[2], chase.penny[2] + 0.05)
 
     def test_hook_does_not_spoil(self):
         hook = [fr for fr in self.ep.frames if fr.t < 0.5]
