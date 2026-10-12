@@ -1,6 +1,6 @@
 # City decay handoff
 
-Date: 2026-10-11. Writer: the agent that stopped on branch `cursor/ready-city-f245`.
+Date: 2026-10-12. Writer: the agent on branch `cursor/ready-city-f245`. The current picture is the street-level city in section 1, not the older river overview.
 
 If you have only this file plus the repo, continue from here. Do not restart the handmade city, and do not delete either version. Update this file at the end of every future run that touches the city, the stills, the render path, or Kristóf's rules. After you commit it, copy the same bytes to `/opt/cursor/artifacts/handoff/city_decay_HANDOFF.md` so it can be uploaded to Google Drive.
 
@@ -37,13 +37,13 @@ Two city versions exist. **Keep both.**
 - Earlier reviews the owner rejected, for history: `6977cc6` (roads ok, Quaternius boulder mountains, skyline "gone" at 500y), `3f60b18` (real snow peaks but small and washed out; 500y skyline standing again and tinted brown; 1y far bank neon green).
 - Full 1800-frame encode: **not started**. Do not start it.
 
-### Version B — downloaded city (where this agent stopped)
+### Version B — street inside a ready-made city (current)
 
 - Episode: `whatif/episodes/ready_city.yaml` (`id: ready_city`, `scene.name: ready_city`).
-- Scene: `whatif/engine/ready_city.py`, hooked from `build_scene` when `name == "ready_city"`.
-- Branch: `cursor/ready-city-f245` at `60c8318`, plus this handoff commit. Branched from `b33e88f`, so version A is still in the history.
-- Pull request: https://github.com/dagadt675-oss/juicytea-media/pull/21 (base `cursor/road-network-stills-f245`).
-- What it is: **Procedural City 6** dropped in whole as day 1 (about 248 × 196 × 113 m, 80 meshes, already has streets, crosswalks, trees, water towers). At collapse > 0.5 it is hidden and **Ruined City Free 5** is shown, scaled so its long side is 230 m and seated on z=0 at the same origin. Hub debris is scattered on that ground. A short Principled Volume fog sits on the streets. Two hub mountain meshes sit kilometres behind. The handmade river, bridge, and lot grid are not in this episode.
+- Scene: `whatif/engine/ready_city.py`. `build()` does **not** call `build_river_city`.
+- Branch: `cursor/ready-city-f245`. Pull request: https://github.com/dagadt675-oss/juicytea-media/pull/21 (base `cursor/road-network-stills-f245`).
+- What it is: Procedural City 4 and 6, tiled as two rows with a street between them. The locked camera is at eye height in that street (`[0, 1.4, 1.58]` looking at `[0.1, 34, 5.2]`, 28 mm). No overview, no river, no bridge, no mountain range in frame. Day 1 has downloaded people, bikes, and cars. Year 100 keeps the same walls, shortened, with rubble in the road. Year 500 keeps broken near walls, ruin shells, and trees in the roadway.
+- Kristóf, 2026-10-12: the camera must be inside the city, street level or low among the buildings, looking down a street. No aerial shot from outside. The separate ready-made city, the decay eras, and four test stills first still stand. Do not resume the SSIM speedup. Do not encode 1800 frames. Do not delete version A.
 - Kristóf, 2026-10-11, in Hungarian: do not delete the previous city; make a completely separate one about the same vanish; pick an existing city from Drive; do not build a city; everything else stays; the camera may look from a slightly better place.
 - Proof stills (half resolution, 8 samples, about 6 s/frame). Not owner-approved yet:
   - Strip: https://github.com/dagadt675-oss/juicytea-media/raw/60c8318/whatif/review/ready_city/three_stills.jpg
@@ -55,7 +55,22 @@ Two city versions exist. **Keep both.**
 
 ### What "continue" means
 
-Wait for Kristóf to say which version he wants next. If he says nothing, the open ask on version B is his review of those three stills. Likely follow-ups if he stays on B: closer camera so the grey ground does not fill the bottom half; god rays that read between the towers instead of one foreground bloom; 500y trees that read through the fog; the same living-city beats (people, traffic) only if a downloaded crowd already exists in the block. Do not go back to assembling towers from boxes.
+Wait for Kristóf to review the four street stills. Do not rebuild the river, the bridge, or an aerial shot. Do not encode. The open files are `whatif/review/ready_city/day1.png`, `vanish.png`, `year100.png`, `year500.png`, and `four_stills.jpg`. They were rendered from the Blender 4.2.3 pack with `render.py`.
+
+### 2026-10-12 — camera inside the street
+
+The previous Colab zip (909,833,606 bytes, parts `.00`–`.09`) is the rejected river overview. Do not render it.
+
+The current pack is `/opt/cursor/artifacts/colab_bundle/city_decay/city_decay.zip.00` through `.02`. Joined size **218,943,967** bytes. `JOIN.txt` is `cat city_decay.zip.00 city_decay.zip.01 city_decay.zip.02 > city_decay.zip` then `unzip`. Header `BLENDER-v402`. 205 images packed, 0 loose. Fracture shards: 14. Camera in the blend: `(0, 1.4, 1.58)`, lens 28.
+
+Proof stills from that blend, 1080×1920, 64 samples, OIDN, this 4-thread CPU:
+
+- frame 1: 156 s
+- frame 90: 152 s
+- frame 871: 241 s
+- frame 1096: 252 s
+
+Mean 200 s/frame. `est_sec_per_frame_t4` is 50 (mean divided by 4, not measured on a GPU). Manifest `edit_overlay` still names the title and the population/year counter as a later composite. Beauty only. No narration, no music.
 
 ### 2026-10-11 — Colab bundle for version B
 
@@ -100,7 +115,7 @@ These are standing. A later message does not cancel an earlier one unless he say
 1. **Zenith is the opening benchmark** for the handmade episode. Portal outer width 0.180 of frame, portal height 0.375, deck width 0.222 at image y=0.58 and 0.300 at y=0.78, deck centerline 56.9° from horizontal, deck asphalt about sRGB (33, 44, 66), foreground tree canopies in the 5–6% band. Relative error tolerance **0.05**. Code: `whatif/engine/opening_metrics.py`. The ready-city episode does not have that bridge, so this metric does not apply to it.
 2. **No narration and no music** on episode 1. `audio.narration: false`, `audio.music: false`. Beat `narration` strings time the picture. They are not spoken. `words.json` is empty.
 3. **SFX and title/counter only.** `audio.sfx: true`. `ui.text` is `[title, counter]`. Counter is population (8.2 billion, UN WPP 2024) and then the year label. No other type on screen.
-4. **The city is alive before the vanish.** Walking pedestrians, cyclists, buses, cars moving both ways. At `vanish` people disappear, cars coast or drift, bikes topple. Abandoned vehicles stay and age. On the handmade city this is `_alive` in `scenes.py`. On the ready city the block is used as shot; it was not repopulated. If you add life, use downloaded rigs, and they must vanish with the channel.
+4. **The city is alive before the vanish.** Walking pedestrians, cyclists, buses, cars moving both ways. At `vanish` people disappear, cars coast or drift, bikes topple. Abandoned vehicles stay and age. On the handmade city this is `_alive` in `scenes.py`. The street episode places downloaded walkers, bikes, and cars in the avenue. They vanish with the channel.
 5. **Mountains behind the city.** Real meshes, kilometres back, larger than the skyline, ridgelines and snow, atmospheric haze, same geometry every era. Seasons and light may change. Not a Quaternius boulder row. Not a cliff wall in the camera. Not a photoscan stood on edge (`bk_peak.glb` faces the camera as a slab; leave it out). The glacier photoscan is a flat sheet; do not stand it up.
 6. **No road ends in the river or in empty land.** Far-bank north-south streets meet a riverside drive. The bridge abutment meets an arterial. The near approach reads as a road over the park into the avenue. Verified in plan view for the handmade city as of `6977cc6` and still the layout in `b33e88f`.
 7. **Filled far bank.** Real blocks on lots along streets, not scattered cubes. Handmade city uses `procedural_city_*.glb`, `one_wtc.glb`, Kenney towers. The plan must show filled lots.
@@ -116,7 +131,7 @@ These are standing. A later message does not cancel an earlier one unless he say
     - Geometry Nodes proximity ivy/moss and crack-masked grass. Blender 4.5: connect scatter to the **`Density`** socket of `GeometryNodeDistributePointsOnFaces`, not `Density Factor` (that raises `KeyError`).
     - EXR beauty and Cryptomatte transitions: **not built.** `--format exr` writes a 16-bit ZIP EXR and refuses UI composite. Object indexes exist only for the opening metric (`INDEX_DECK=2`, `INDEX_CANOPY=3`, `INDEX_PORTAL=11`). Do not claim Cryptomatte works.
 12. **Thin volumetric fog, thicker at the ground.** Ready city only, and only after the 2026-10-11 proof. Principled Volume, street density about **0.008** when ruined and about **0.0016** on day 1 (`0.008 * (0.2 + 0.8 * age)`), anisotropy **0.4**, height falloff from z=0 (full) to z=34 (zero). Domain is 260 × 230 × 36 m centered on the block so the camera sits above it. Mountains stay outside that box. Sun lowers only when `collapse > 0.4` (`rotation_euler` x from 0.85 toward 1.13, yaw 2.35, energy 8) so a shaft shows in front of the ruins. `volume_bounces` is set to **1** per frame in `ready_city.drive`. Global `build.py` still sets `volume_bounces = 0` before the frame loop; the drive overrides it for this episode. Half-res cost was about **6 seconds** a frame, so it was kept live. If a later full-res frame is dominated by volume time, bake a volume pass at fewer samples or fall back to world mist. Do not use density 0.01–0.02 across a kilometre domain: optical depth becomes a white wall. That was tried and washed out the ruins.
-13. **Drone close-ups** stay on the 500-year picture, then the last shot eases back to the locked wide camera. Beats `drone_husk`, `drone_facade`, `drone_span`, `drone_orbit` in the handmade episode. The ready-city yaml still has those camera paths copied from the river city; they are **not** reframed for the downloaded block. Do not render them until the camera is retargeted.
+13. **Drone close-ups** on the ready-city episode stay inside the same street, at about eye height. They do not rise to an overview. The proof stills use the one locked street camera, which `ready_city.drive` sets on every frame.
 14. **Ready-made assets only. Do not build the city, people, trees, cars, or ruins from primitives.** Order: asset hub, then CC0 with no attribution (Poly Haven, ambientCG, Kenney, Quaternius, Sketchfab CC0), then stop and say what you checked. Box primitives as buildings are not allowed. A ground sheet under a placed city, so the block is not floating in the sky, is the only local surface the ready episode adds.
 15. **Realistic trees**, not neon lawn cards and not a flat green repaint. 1 year grass is cracks and verges only. The handmade `forest_floor` role is forced hidden because it painted the far bank neon green.
 16. **Nothing floating, nothing sunk.** Seat meshes on the ground from the world-space bbox (`matrix_world` after parenting). Photoscan mountains and the Gaea range have awkward origins; measure them. Do not bury a city in a ground plane. Do not leave a ruin parent un-updated: call `view_layer.update()` before reading bounds.
