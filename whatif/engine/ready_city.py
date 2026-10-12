@@ -930,65 +930,138 @@ def _slab(coll, loc, size):
     return obj
 
 
-def _fallen_corner(kit, src):
-    """Break one top corner off the right tower and lay those shards across the avenue."""
+def _corner_skin(point):
+    """The street face of the right tower, the piece that falls into the avenue."""
+    return 13.6 < point.x < 16.8 and -50.0 < point.y < -36.0 and 18.0 < point.z < 32.0
+
+
+def _bounds(obj):
+    xs, ys, zs = [], [], []
+    for vert in obj.data.vertices:
+        xs.append(vert.co.x)
+        ys.append(vert.co.y)
+        zs.append(vert.co.z)
+    return xs, ys, zs
+
+
+def _largest_island(obj):
+    """Keep the biggest connected piece so loose balcony slabs do not hang in the air."""
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bm.faces.ensure_lookup_table()
+    seen = set()
+    islands = []
+    for face in bm.faces:
+        if face.index in seen:
+            continue
+        stack = [face]
+        seen.add(face.index)
+        group = [face]
+        while stack:
+            current = stack.pop()
+            for edge in current.edges:
+                for other in edge.link_faces:
+                    if other.index not in seen:
+                        seen.add(other.index)
+                        stack.append(other)
+        islands.append(group)
+    print("facade islands", len(islands), "faces", len(bm.faces), flush=True)
+    if len(islands) > 1:
+        islands.sort(key=len, reverse=True)
+        doomed = [face for group in islands[1:] for face in group]
+        bmesh.ops.delete(bm, geom=doomed, context="FACES")
+    bm.to_mesh(obj.data)
+    bm.free()
+    obj.data.update()
+
+
+def _lay_fallen(obj, matrices):
+    for matrix in matrices:
+        obj.data.transform(matrix)
+    obj.parent = None
+    obj.matrix_world = Matrix.Identity(4)
+
+
+def _fallen_matrices(chunk):
+    """Point the street face (-X) toward the camera and lay the wall down."""
+    xs, ys, zs = _bounds(chunk)
+    center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, (min(zs) + max(zs)) * 0.5))
+    aim = Vector((0.0, -0.62, 0.78)).normalized()
+    turn = Vector((-1.0, 0.0, 0.0)).rotation_difference(aim).to_matrix().to_4x4()
+    spun = Matrix.Translation(center) @ turn @ Matrix.Translation(-center)
+    chunk.data.transform(spun)
+    xs, ys, zs = _bounds(chunk)
+    span = max(max(xs) - min(xs), max(ys) - min(ys), 0.01)
+    factor = 7.5 / span
+    center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, (min(zs) + max(zs)) * 0.5))
+    sized = Matrix.Translation(center) @ Matrix.Scale(factor, 4) @ Matrix.Translation(-center)
+    chunk.data.transform(sized)
+    xs, ys, zs = _bounds(chunk)
+    center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, (min(zs) + max(zs)) * 0.5))
+    shift = Matrix.Translation(Vector((0.2 - center.x, -46.0 - center.y, 0.0)))
+    chunk.data.transform(shift)
+    zs = sorted(vert.co.z for vert in chunk.data.vertices)
+    seat = zs[max(len(zs) // 8, 0)]
+    sink = Matrix.Translation((0.0, 0.0, 1.05 - seat))
+    chunk.data.transform(sink)
+    zs = [vert.co.z for vert in chunk.data.vertices]
+    bottom = min(zs)
+    height = max(zs) - bottom
+    squash = min(1.0, 1.25 / max(height, 0.01))
+    flat = Matrix.Translation((0.0, 0.0, bottom)) @ Matrix.Scale(squash, 4, Vector((0.0, 0.0, 1.0))) @ Matrix.Translation((0.0, 0.0, -bottom))
+    chunk.data.transform(flat)
+    zs = [vert.co.z for vert in chunk.data.vertices]
+    plant = Matrix.Translation((0.0, 0.0, 1.15 - min(zs)))
+    chunk.data.transform(plant)
+    # The concrete was moved while the matrices were built. Replay them on the decal.
+    return [spun, sized, shift, sink, flat, plant]
+
+
+def _fallen_corner(kit, src, decal):
+    """Lay the right tower's street face in the avenue, tilted and half buried."""
     coll = kit.collection("City")
     chunk = src.copy()
     chunk.data = src.data.copy()
     coll.objects.link(chunk)
     _bake_world(chunk)
-    _delete_where(
-        chunk,
-        lambda p: not (14.0 < p.x < 22.0 and -50.0 < p.y < -36.0 and 18.0 < p.z < 32.0),
-    )
+    _delete_where(chunk, lambda point: not _corner_skin(point))
+    _largest_island(chunk)
     if len(chunk.data.vertices) < 20:
         print("corner empty", flush=True)
         chunk.hide_render = True
         return
-    # Keep the tower's own facade. Fracturing it replaced the windows with grey caps.
     members = [chunk]
-    chunk.hide_render = False
-    xs, ys, zs = [], [], []
-    for shard in members:
-        for vert in shard.data.vertices:
-            xs.append(vert.co.x)
-            ys.append(vert.co.y)
-            zs.append(vert.co.z)
-    if not xs:
-        return
-    center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, (min(zs) + max(zs)) * 0.5))
-    tip = Matrix.Translation(center) @ Matrix.Rotation(math.pi / 2.0, 4, "X") @ Matrix.Translation(-center)
-    for shard in members:
-        shard.data.transform(tip)
-    xs, ys, zs = [], [], []
-    for shard in members:
-        for vert in shard.data.vertices:
-            xs.append(vert.co.x)
-            ys.append(vert.co.y)
-            zs.append(vert.co.z)
-    center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, (min(zs) + max(zs)) * 0.5))
-    diagonal = Matrix.Translation(center) @ Matrix.Rotation(0.7, 4, "Z") @ Matrix.Translation(-center)
-    for shard in members:
-        shard.data.transform(diagonal)
-    xs, ys, zs = [], [], []
-    for shard in members:
-        for vert in shard.data.vertices:
-            xs.append(vert.co.x)
-            ys.append(vert.co.y)
-            zs.append(vert.co.z)
-    height = max(zs) - min(zs)
-    squash = min(1.0, 1.6 / max(height, 0.01))
-    scale_z = Matrix.Identity(4)
-    scale_z[2][2] = squash
-    bottom = min(zs)
-    squat = Matrix.Translation((0.0, 0.0, bottom)) @ scale_z @ Matrix.Translation((0.0, 0.0, -bottom))
-    shift = Vector((-(min(xs) + max(xs)) * 0.5, -32.0 - (min(ys) + max(ys)) * 0.5, 1.45 - bottom))
-    place = Matrix.Translation(shift) @ squat
-    for shard in members:
-        shard.data.transform(place)
-    kit.corner_matrices = [tip, diagonal, place]
-    kit.fallen_shards = list(members)
-    print("tower corner shards", len(members), "z", round(height * squash, 1), flush=True)
+    if decal is not None:
+        piece = decal.copy()
+        piece.data = decal.data.copy()
+        coll.objects.link(piece)
+        _bake_world(piece)
+        _delete_where(piece, lambda point: not _corner_skin(point))
+        _largest_island(piece)
+        if len(piece.data.vertices) > 10:
+            members.append(piece)
+        else:
+            piece.hide_render = True
+        standing = decal.copy()
+        standing.data = decal.data.copy()
+        coll.objects.link(standing)
+        _bake_world(standing)
+        _delete_where(standing, _corner_skin)
+        standing.hide_render = True
+        kit.fallen_decal_original = decal
+        kit.fallen_decal_standing = standing
+    matrices = _fallen_matrices(chunk)
+    for extra in members[1:]:
+        _lay_fallen(extra, matrices)
+    chunk.parent = None
+    chunk.matrix_world = Matrix.Identity(4)
+    kit.fallen_shards = members
+    xs, ys, zs = _bounds(chunk)
+    print(
+        "fallen corner",
+        "span", round(max(xs) - min(xs), 1), round(max(ys) - min(ys), 1), round(max(zs) - min(zs), 1),
+        flush=True,
+    )
 
 
 def _cut_street_facades(kit, tall, windows, dome):
@@ -1016,10 +1089,36 @@ def _cut_street_facades(kit, tall, windows, dome):
         originals.append(src)
         ruins.append(copy)
     if right is not None:
-        _fallen_corner(kit, right)
+        decal = next((obj for obj in windows if "Block2" in obj.name and "Window" in obj.name), None)
+        _fallen_corner(kit, right, decal)
+    _crack_dome(kit)
     kit.facade_originals = originals
     kit.facade_ruins = ruins
     print("facade bites", len(ruins), flush=True)
+
+
+def _crack_dome(kit):
+    """A caved wedge on the camera side of the dome. Hidden until year 500."""
+    dome = getattr(kit, "dome", None)
+    if dome is None or dome.type != "MESH":
+        return
+    coll = kit.collection("City")
+    copy = dome.copy()
+    copy.data = dome.data.copy()
+    coll.objects.link(copy)
+    _bake_world(copy)
+    xs = [vert.co.x for vert in copy.data.vertices]
+    ys = [vert.co.y for vert in copy.data.vertices]
+    zs = [vert.co.z for vert in copy.data.vertices]
+    center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, (min(zs) + max(zs)) * 0.5))
+
+    def wedge(point):
+        angle = math.atan2(point.y - center.y, point.x - center.x)
+        return point.z > center.z and -2.2 < angle < -0.4
+
+    _delete_where(copy, wedge)
+    copy.hide_render = True
+    kit.dome_crack = copy
 
 
 def _ruin_sources():
@@ -1076,20 +1175,51 @@ def _grow_vines(kit):
         zs = [(block.matrix_world @ Vector(corner)).z for corner in block.bound_box]
         if block is dome:
             seeds = (
-                (9.0, -45.5, 2.4), (10.2, -42.5, 3.6), (8.4, -43.0, 4.8), (9.6, -46.5, 2.0),
+                (9.0, -45.5, 2.2), (10.4, -42.2, 3.4), (8.2, -43.2, 4.6),
+                (9.8, -46.6, 1.8), (8.8, -41.8, 3.0), (10.6, -44.8, 2.6),
             )
+            leaf = 0.32
         elif max(xs) < 0.0:
             face_x = max(xs) - 0.05
-            seeds = [(face_x, y, z) for y in range(-54, -30, 6) for z in (13.0, 17.0, 21.0)]
+            seeds = [(face_x, y, z) for y in range(-52, -32, 8) for z in (13.0, 18.0)]
+            leaf = 0.36
         else:
-            face_x = min(xs) + 0.05
-            seeds = [(face_x, y, z) for y in range(-50, -32, 6) for z in (13.0, 17.0)]
+            face_x = min(xs) + 0.15
+            seeds = [(face_x, y, z) for y in (-60.0, -56.0, -52.0, -48.0, -40.0, -34.0) for z in (12.5, 16.0, 20.0)]
+            leaf = 0.34
         for seed in seeds:
             grown.extend(found_assets.grow_ivy(
-                block, seed, length=8.0, leaf_size=0.32, ivy_size=0.2,
-                leaf_probability=0.9, float_length=0.05,
+                block, seed, length=7.0, leaf_size=leaf, ivy_size=0.24,
+                leaf_probability=0.94, float_length=0.04,
             ) or [])
+    kept = []
     for obj in grown:
+        if obj.type != "MESH":
+            kept.append(obj)
+            continue
+        xs = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+        center = sum(xs, Vector()) / max(len(xs), 1)
+        on_dome = (center.xy - Vector((9.4, -43.9))).length < 6.0 and center.z < 8.0
+        if center.x < 0.0:
+            on_wall = abs(center.x + 15.0) < 2.6 and -60.0 < center.y < -18.0 and 9.0 < center.z < 12.0
+        else:
+            on_wall = abs(center.x - 15.0) < 2.6 and -62.0 < center.y < -18.0 and 9.0 < center.z < 22.0
+        if on_dome or on_wall:
+            kept.append(obj)
+        else:
+            bpy.data.objects.remove(obj, do_unlink=True)
+    grown = kept
+    ivy_mat = bpy.data.materials.get("StreetIvy")
+    if ivy_mat is None:
+        ivy_mat = bpy.data.materials.new("StreetIvy")
+        ivy_mat.use_nodes = True
+        ivy_bsdf = next(node for node in ivy_mat.node_tree.nodes if node.type == "BSDF_PRINCIPLED")
+        ivy_bsdf.inputs["Base Color"].default_value = (0.13, 0.36, 0.11, 1.0)
+        ivy_bsdf.inputs["Roughness"].default_value = 0.62
+    for obj in grown:
+        if obj.type == "MESH" and obj.data is not None:
+            obj.data.materials.clear()
+            obj.data.materials.append(ivy_mat)
         try:
             plants.objects.link(obj)
         except RuntimeError:
@@ -1505,7 +1635,6 @@ def _lay_fractured_tower(kit, src):
 
 def _year500_set(kit):
     """The same street, with one fractured building lying across it and a taller forest."""
-    coll = kit.collection("City")
     plants = kit.collection("Plants")
     made = 0
     tree_paths = (
@@ -1531,10 +1660,14 @@ def _year500_set(kit):
     rng = random.Random(3)
     # Sidewalk lines, at least 15 m from the camera at y=-66, and off the axis.
     # 25–40 m in front of the camera at y=-66, trunks off the centre line.
+    # Further down the avenue and out toward the walls, so the near left
+    # facade and the dome stay in front of the canopy.
     spots = (
-        (-9.4, -44.0, 16.0), (-10.2, -34.0, 14.5), (-8.8, -26.0, 13.0),
-        (9.6, -46.0, 15.0), (10.4, -34.0, 16.5), (8.8, -26.0, 14.0),
-        (-8.6, -38.0, 12.0), (9.0, -30.0, 12.5),
+        (-13.2, -30.0, 13.0),
+        (-12.4, -22.0, 14.0),
+        (14.0, -28.0, 13.0),
+        (13.2, -21.0, 12.5),
+        (-13.6, -36.0, 11.0),
     )
     for i, (x, y, height) in enumerate(spots):
         if not loaded:
@@ -1547,28 +1680,13 @@ def _year500_set(kit):
         )
         kit.add(tree, "swallow", sink=False)
     if len(loaded) > 1:
-        for i, (x, y) in enumerate(((-2.4, -44.0), (1.6, -36.0), (-1.2, -30.0), (2.8, -26.0), (0.4, -50.0), (-3.2, -28.0))):
+        for i, (x, y) in enumerate(((-6.4, -40.0), (6.6, -38.0), (-7.0, -28.0), (7.4, -26.0), (-6.2, -48.0), (6.8, -46.0))):
             mesh, native = loaded[1]
             sap = _spawn_mesh(plants, mesh, (x, y, 1.35), i, rng.uniform(3.5, 6.0) / native, "sapling")
             kit.add(sap, "swallow", sink=False)
     from engine.scenes import _plant
-    for i, (x, y) in enumerate(((-4.0, -34.0), (-1.0, -32.0), (2.0, -33.0), (4.5, -31.0), (0.5, -36.0))):
-        _plant(kit, plants, "fern_02", x, y, 1.8, 0.7, delay=0.2, yaw=i, role="swallow")
-    # Dark concrete and wood only. The white scan boulders stay out.
-    for filename, size in (("lowpoly_concrete_debris.glb", 1.6), ("wood_planks_debris.glb", 1.3), ("asphalt_02.glb", 1.8)):
-        path = Path("/opt/cursor/asset-cache/private/debris") / filename
-        mesh = _visual_mesh(path) if path.exists() else None
-        if mesh is None:
-            continue
-        native = max(_size(mesh))
-        for i in range(4):
-            side = -1.0 if i % 2 == 0 else 1.0
-            pile = _spawn_mesh(
-                coll, mesh,
-                (rng.uniform(-2.5, 2.5), rng.uniform(-62.0, -54.0), 1.28),
-                rng.random() * 6.0, size / max(native, 0.2), "rubble_pile",
-            )
-            kit.add(pile, "rubble_hill", sink=False)
+    for i, (x, y) in enumerate(((0.2, -36.5), (2.4, -34.5), (-1.2, -35.0))):
+        _plant(kit, plants, "fern_02", x, y, 1.7, 0.55, delay=0.2, yaw=i, role="swallow")
     print("year500 pieces", made, flush=True)
 
 
@@ -1743,6 +1861,16 @@ def drive(kit, ch):
         decal.hide_render = False
         decal.location.z = 0.0
         decal.scale.z = 1.0
+    original_decal = getattr(kit, "fallen_decal_original", None)
+    standing_decal = getattr(kit, "fallen_decal_standing", None)
+    if original_decal is not None and standing_decal is not None:
+        original_decal.hide_render = fallen
+        standing_decal.hide_render = not fallen
+    dome = getattr(kit, "dome", None)
+    crack = getattr(kit, "dome_crack", None)
+    if dome is not None and crack is not None:
+        dome.hide_render = fallen
+        crack.hide_render = not fallen
     for obj in getattr(kit, "facade_originals", ()) or ():
         obj.hide_render = fallen
     for obj in getattr(kit, "facade_ruins", ()) or ():
@@ -1767,13 +1895,20 @@ def drive(kit, ch):
             if item.role in {"bike", "car", "person"}:
                 _hide_tree(item.obj, True)
         for obj in bpy.data.objects:
-            if obj.type != "MESH" or not obj.name.startswith("Plane"):
+            if obj.type != "MESH" or obj.hide_render:
                 continue
-            dims = obj.dimensions
-            if dims.z > 3.0 and min(dims.x, dims.y) < 0.5:
-                loc = obj.matrix_world.translation
-                if -40.0 < loc.x < 20.0 and -60.0 < loc.y < -12.0:
-                    obj.hide_render = True
+            if not (obj.name.startswith("Plane") or obj.name.startswith("Circle")):
+                continue
+            corners = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+            xs = [corner.x for corner in corners]
+            ys = [corner.y for corner in corners]
+            zs = [corner.z for corner in corners]
+            dx, dy, dz = max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)
+            center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, (min(zs) + max(zs)) * 0.5))
+            span = max(dx, dy, dz)
+            in_view = -30.0 < center.x < 30.0 and -18.0 < center.y < 140.0 and center.z > 1.6
+            if in_view and span < 28.0:
+                obj.hide_render = True
     node = getattr(kit, "fog_density", None)
     if node is not None:
         node.outputs[0].default_value = 0.0035 if fallen else 0.0
