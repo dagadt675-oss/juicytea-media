@@ -376,6 +376,8 @@ def _penny(raw: dict) -> BEpisode:
                     parapet + (min(z_vis, parapet) - parapet) * off,
                 )
             elif t < 20.2:
+                # Sit the coin above the setback coping so the disc is not clipped.
+                penny = (penny[0], penny[1], penny[2] + 0.12)
                 amp = _fade(t, 2.4, 3.2)
                 if t > 18.4:
                     amp *= 1.0 - _fade(t, 18.4, 20.2)

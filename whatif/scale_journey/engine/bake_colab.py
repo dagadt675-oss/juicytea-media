@@ -78,6 +78,11 @@ def _snapshot(cam, penny, hosts):
     return {
         "cam": _xf(cam),
         "lens": float(cam.data.lens),
+        "dof": (
+            bool(cam.data.dof.use_dof),
+            float(cam.data.dof.focus_distance),
+            float(cam.data.dof.aperture_fstop),
+        ),
         "penny": _xf(penny),
         "hosts": {name: _xf(bpy.data.objects[name]) for name in hosts if name in bpy.data.objects},
         "arms": arms,
@@ -100,12 +105,19 @@ def _write_keys(cam, penny, snaps, hosts):
         frame = snap["frame"]
         _put_xf(cam, snap["cam"])
         cam.data.lens = snap["lens"]
+        use_dof, focus, fstop = snap["dof"]
+        cam.data.dof.use_dof = use_dof
+        cam.data.dof.focus_distance = focus
+        cam.data.dof.aperture_fstop = fstop
         # Hold the camera still across the shutter. A linear key smears the
         # city; the python preview exposes the settled camera.
         for sample in (frame - 0.6, float(frame)):
             cam.keyframe_insert("location", frame=sample)
             cam.keyframe_insert("rotation_euler", frame=sample)
             cam.data.keyframe_insert("lens", frame=sample)
+            cam.data.dof.keyframe_insert("use_dof", frame=sample)
+            cam.data.dof.keyframe_insert("focus_distance", frame=sample)
+            cam.data.dof.keyframe_insert("aperture_fstop", frame=sample)
         # Same hold as the camera. A linear key across the shutter smears the
         # penny out of the close 24 mm frame; the preview exposes the settled coin.
         _put_xf(penny, snap["penny"])
