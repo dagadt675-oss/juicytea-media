@@ -13,15 +13,23 @@ scene:
   seed: 11
 format: A
 camera:
-  # 40 m up, about 18° down. Bands: skyline, wide river, park, road.
-  location: [-18.0, -22.0, 40.0]
-  target: [4.0, 95.0, 2.0]
-  lens: 58
+  # Far enough west that both tower pairs read, and low enough that the
+  # avenue intersection and the foreground cars sit inside the frame.
+  location: [-85.0, -90.0, 80.0]
+  target: [12.0, 130.0, 4.0]
+  lens: 57.2
   sensor_fit: HORIZONTAL
   sensor_width: 36
-  clip_end: 2500
+  clip_end: 14000
 ui:
-  counter_y: 0.445
+  counter_y: 0.46
+  # Zenith style: the title, and one counter (population, then the year).
+  text: [title, counter]
+# Sound effects only. The beat lines time the picture; they are not spoken.
+audio:
+  narration: false
+  music: false
+  sfx: true
 beats:
   - id: vanish
     title: true
@@ -121,6 +129,66 @@ beats:
       vegetation: 1.0
       rust: 1.0
       collapse: 1.0
+
+  # Drone passes stay on the 500-year city. The last one eases back to the
+  # locked wide camera so the cut into the next wide shot matches frame 0.
+  - id: drone_husk
+    seconds: 2.6
+    time_label: "500 YEARS"
+    ticker: "500 YEARS"
+    narration: "A low pass over a rusted car, with trees in the avenue."
+    channels:
+      vegetation: 1.0
+      rust: 1.0
+      collapse: 1.0
+      sag: 0.6
+    camera:
+      - {u: 0.0, location: [-41.0, 10.6, 1.55], target: [-35.8, 14.3, 0.55], lens: 36, fstop: 2.8}
+      - {u: 1.0, location: [-38.8, 11.4, 1.25], target: [-35.4, 14.5, 0.48], lens: 42, fstop: 2.2}
+
+  - id: drone_facade
+    seconds: 2.6
+    time_label: "500 YEARS"
+    ticker: "500 YEARS"
+    narration: "Through a broken window, into a room the vines have taken."
+    channels:
+      vegetation: 1.0
+      rust: 1.0
+      collapse: 1.0
+      sag: 0.6
+    camera:
+      - {u: 0.0, location: [-34.0, -11.2, 1.55], target: [-32.8, 0.2, 3.6], lens: 32, fstop: 3.2}
+      - {u: 1.0, location: [-33.2, -8.0, 1.2], target: [-32.8, 0.2, 3.0], lens: 36, fstop: 2.4}
+
+  - id: drone_span
+    seconds: 2.6
+    time_label: "500 YEARS"
+    ticker: "500 YEARS"
+    narration: "Along the span that now lies in the river."
+    channels:
+      vegetation: 1.0
+      rust: 1.0
+      collapse: 1.0
+      sag: 0.6
+    camera:
+      - {u: 0.0, location: [28.0, 108.0, 2.6], target: [18.5, 113.5, 1.15], lens: 28, fstop: 3.2}
+      - {u: 1.0, location: [24.5, 109.5, 1.8], target: [18.0, 113.2, 1.0], lens: 32, fstop: 2.4}
+
+  - id: drone_orbit
+    seconds: 3.2
+    time_label: "500 YEARS"
+    ticker: "500 YEARS"
+    narration: "Around a crumbling tower, then back to the wide view."
+    channels:
+      vegetation: 1.0
+      rust: 1.0
+      collapse: 1.0
+      sag: 0.6
+    camera:
+      - {u: 0.0, location: [-18.0, 142.0, 16.0], target: [-42.0, 164.0, 28.0], lens: 35, fstop: 2.8}
+      - {u: 0.4, location: [-78.0, 190.0, 26.0], target: [-42.0, 164.0, 40.0], lens: 32, fstop: 3.2}
+      - {u: 0.7, location: [-96.0, -16.0, 54.0], target: [2.0, 100.0, 8.0], lens: 42, fstop: 6.0}
+      - {u: 1.0, location: [-85.0, -90.0, 80.0], target: [12.0, 130.0, 4.0], lens: 57.2, fstop: 0}
 
   - id: relics
     time_label: "10,000 YEARS"

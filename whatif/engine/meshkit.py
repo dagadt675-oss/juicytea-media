@@ -255,7 +255,8 @@ def weather_color(nt, base, weights):
 
     color = base
     color = _mix(nt, _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", moss, weights.get("moss", 0.0)), low.outputs["Result"]), color, lin(0.28, 0.40, 0.16))
-    color = _mix(nt, _math(nt, "MULTIPLY", rust, weights.get("rust", 0.0)), color, lin(0.38, 0.16, 0.08))
+    rust_mix = _math(nt, "MINIMUM", _math(nt, "MULTIPLY", rust, weights.get("rust", 0.0) * 1.75), 1.0)
+    color = _mix(nt, rust_mix, color, lin(0.30, 0.13, 0.06))
     color = _mix(nt, _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", mud, weights.get("mud", 0.0)), low.outputs["Result"]), color, lin(0.28, 0.20, 0.12))
     color = _mix(nt, _math(nt, "MULTIPLY", scorch, weights.get("scorch", 0.0)), color, lin(0.10, 0.07, 0.05))
     color = _mix(nt, _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", snow, weights.get("snow", 0.0)), up), color, lin(0.93, 0.95, 0.97))
@@ -319,6 +320,48 @@ def make_surface(name, base, weights, roughness=0.55):
     return mat
 
 
+def make_canopy_material():
+    """Object color times a vertex-color gradient, so crowns are lighter on top."""
+    mat, nt = new_material("Canopy")
+    info = nt.nodes.new("ShaderNodeObjectInfo")
+    vcol = nt.nodes.new("ShaderNodeVertexColor")
+    vcol.layer_name = "Col"
+    tint = nt.nodes.new("ShaderNodeMixRGB")
+    tint.blend_type = "MULTIPLY"
+    tint.inputs["Fac"].default_value = 1.0
+    nt.links.new(info.outputs["Color"], tint.inputs["Color1"])
+    nt.links.new(vcol.outputs["Color"], tint.inputs["Color2"])
+    color, rough = weather_color(
+        nt,
+        tint.outputs["Color"],
+        {"moss": 0.1, "rust": 0.0, "mud": 0.15, "scorch": 0.8, "snow": 1.0, "wet": 0.25},
+    )
+    bsdf = principled(nt, color, rough)
+    finish(nt, bsdf)
+    return mat
+
+
+def make_block_material():
+    """Tower wall: object color, broken into blocks by vertex color. No window grid."""
+    mat, nt = new_material("Block")
+    info = nt.nodes.new("ShaderNodeObjectInfo")
+    vcol = nt.nodes.new("ShaderNodeVertexColor")
+    vcol.layer_name = "Col"
+    tint = nt.nodes.new("ShaderNodeMixRGB")
+    tint.blend_type = "MULTIPLY"
+    tint.inputs["Fac"].default_value = 1.0
+    nt.links.new(info.outputs["Color"], tint.inputs["Color1"])
+    nt.links.new(vcol.outputs["Color"], tint.inputs["Color2"])
+    color, rough = weather_color(
+        nt,
+        tint.outputs["Color"],
+        {"moss": 0.45, "rust": 0.15, "mud": 0.25, "scorch": 0.35, "snow": 0.75, "wet": 0.4},
+    )
+    bsdf = principled(nt, color, 0.58)
+    finish(nt, bsdf)
+    return mat
+
+
 def make_object_color_surface(name, weights):
     mat, nt = new_material(name)
     info = nt.nodes.new("ShaderNodeObjectInfo")
@@ -349,35 +392,33 @@ def make_facade_material():
     moved.operation = "ADD"
     nt.links.new(local.outputs["Vector"], moved.inputs[0])
     nt.links.new(rand.outputs["Vector"], moved.inputs[1])
-    scaled = nt.nodes.new("ShaderNodeVectorMath")
-    scaled.operation = "SCALE"
-    scaled.inputs["Scale"].default_value = 0.42
-    nt.links.new(moved.outputs["Vector"], scaled.inputs[0])
-    brick = nt.nodes.new("ShaderNodeTexBrick")
-    brick.inputs["Color1"].default_value = (0.0, 0.0, 0.0, 1.0)
-    brick.inputs["Color2"].default_value = (0.0, 0.0, 0.0, 1.0)
-    brick.inputs["Mortar"].default_value = (1.0, 1.0, 1.0, 1.0)
-    brick.inputs["Scale"].default_value = 1.0
-    brick.inputs["Mortar Size"].default_value = 0.18
-    brick.inputs["Mortar Smooth"].default_value = 0.0
-    brick.inputs["Bias"].default_value = 0.0
-    brick.inputs["Brick Width"].default_value = 0.85
-    brick.inputs["Row Height"].default_value = 0.48
-    nt.links.new(scaled.outputs["Vector"], brick.inputs["Vector"])
-    # Brick color is 0 on the pane and 1 on the wall.
-    wall_mask = nt.nodes.new("ShaderNodeSeparateColor")
-    try:
-        wall_mask.mode = "RGB"
-    except Exception:
-        pass
-    nt.links.new(brick.outputs["Color"], wall_mask.inputs[0])
-    window = _math(nt, "SUBTRACT", 1.0, wall_mask.outputs["Red"])
+    # Two projections. A face that sits on a mullion in X still shows the Y grid,
+    # so a tower cannot collapse to a blank wall the way a single brick volume can.
+    axes = nt.nodes.new("ShaderNodeSeparateXYZ")
+    nt.links.new(moved.outputs["Vector"], axes.inputs["Vector"])
+
+    def pane(coord, period, margin):
+        wrapped = _math(nt, "MODULO", _math(nt, "ADD", coord, 800.0), period)
+        inside = _math(nt, "GREATER_THAN", wrapped, margin)
+        inside = _math(nt, "MULTIPLY", inside, _math(nt, "LESS_THAN", wrapped, period - margin))
+        return inside
+
+    # Floors are about 3.5 m, columns about 3.2 m. Margins are the mullions.
+    x_pane = pane(axes.outputs["X"], 3.2, 0.42)
+    y_pane = pane(axes.outputs["Y"], 3.2, 0.42)
+    z_pane = pane(axes.outputs["Z"], 3.5, 0.72)
+    window = _math(
+        nt,
+        "MAXIMUM",
+        _math(nt, "MULTIPLY", x_pane, z_pane),
+        _math(nt, "MULTIPLY", y_pane, z_pane),
+    )
     wall_color, rough = weather_color(
         nt,
         info.outputs["Color"],
-        {"moss": 0.55, "rust": 0.2, "mud": 0.3, "scorch": 0.4, "snow": 0.8, "wet": 0.45},
+        {"moss": 0.85, "rust": 0.9, "mud": 0.45, "scorch": 0.4, "snow": 0.8, "wet": 0.45},
     )
-    glass = _const_rgb(nt, lin(0.10, 0.13, 0.16))
+    glass = _const_rgb(nt, lin(0.05, 0.07, 0.09))
     color = _mix(nt, window, wall_color, glass)
     # Patchy ivy once vegetation rises. Stays off the glass.
     veg = channel_value(nt, ("vegetation",), "vegetation")
@@ -387,10 +428,21 @@ def make_facade_material():
     nt.links.new(local.outputs["Vector"], ivy_noise.inputs["Vector"])
     ivy = _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", veg, ivy_noise.outputs["Fac"]), _math(nt, "SUBTRACT", 1.0, window))
     color = _mix(nt, ivy, color, lin(0.16, 0.32, 0.14))
+    # Collapse knocks panes out. Those read as dark holes, not a fresh grid.
+    collapse = channel_value(nt, ("collapse",), "collapse")
+    broken = _math(
+        nt,
+        "MULTIPLY",
+        window,
+        _math(nt, "MULTIPLY", collapse, _math(nt, "LESS_THAN", ivy_noise.outputs["Fac"], 0.48)),
+    )
+    color = _mix(nt, broken, color, lin(0.012, 0.012, 0.015))
     cam = nt.nodes.new("ShaderNodeCameraData")
-    haze = _math(nt, "DIVIDE", _math(nt, "SUBTRACT", cam.outputs["View Distance"], 90.0), 420.0)
-    haze = _math(nt, "MINIMUM", _math(nt, "MAXIMUM", haze, 0.0), 0.55)
-    color = _mix(nt, haze, color, lin(0.62, 0.70, 0.78))
+    # Far towers go lighter and bluer. The close window-grid test stays under the start distance.
+    # Fog only the far layer. Near towers keep their color; the window test is closer than this.
+    haze = _math(nt, "DIVIDE", _math(nt, "SUBTRACT", cam.outputs["View Distance"], 230.0), 90.0)
+    haze = _math(nt, "MINIMUM", _math(nt, "MAXIMUM", haze, 0.0), 0.62)
+    color = _mix(nt, haze, color, lin(0.78, 0.84, 0.90))
     night = channel_value(nt, ("day_night",), "clamp((day_night - 0.48) / 0.2, 0, 1)")
     power = channel_value(nt, ("power",), "power")
     lit = _math(nt, "GREATER_THAN", ivy_noise.outputs["Fac"], 0.42)
@@ -451,15 +503,17 @@ def make_water_material():
     noise.inputs["Detail"].default_value = 2.0
     nt.links.new(wave.outputs["Vector"], noise.inputs["Vector"])
     bump = nt.nodes.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.18
+    bump.inputs["Strength"].default_value = 0.42
     bump.inputs["Distance"].default_value = 0.35
     nt.links.new(noise.outputs["Fac"], bump.inputs["Height"])
     drive(bump.inputs["Strength"], "default_value", None, "0.12 + gravity * 0.55", ("gravity",))
     water_shift = channel_value(nt, ("water", "dust", "heat"), "clamp(-water, 0, 1) * 0.0 + dust * 0.35 + heat * 0.15")
-    deep = lin(0.07, 0.40, 0.68)
-    shallow = lin(0.20, 0.55, 0.72)
-    muddy = lin(0.30, 0.26, 0.16)
+    deep = lin(0.16, 0.38, 0.48)
+    muddy = lin(0.22, 0.20, 0.12)
     color = _mix(nt, water_shift, deep, muddy)
+    veg = channel_value(nt, ("vegetation",), "vegetation")
+    murk = lin(0.08, 0.16, 0.09)
+    color = _mix(nt, veg, color, murk)
     bsdf = principled(nt, color, 0.08)
     nt.links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
     finish(nt, bsdf)

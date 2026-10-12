@@ -1,7 +1,8 @@
-"""Crisp UI overlay: title, left counter, and a short year/day ticker.
+"""Crisp UI overlay: the title and the time counter.
 
-Drawn in screen space after the 3D render so type stays sharp. Nothing is
-placed in the caption band (normalized y 0.64–0.78).
+Drawn in screen space after the 3D render so type stays sharp. Episode 1
+shows those two only. Nothing is placed in the caption band (y 0.64–0.78),
+and the center ticker is not drawn.
 """
 
 from __future__ import annotations
@@ -24,12 +25,14 @@ def _font(path: Path, size: int) -> ImageFont.FreeTypeFont:
     return ImageFont.truetype(str(path), size)
 
 
-def _shadow_text(base: Image.Image, xy, text, font, fill=(255, 255, 255, 255), anchor="lt", radius=8, opacity=150):
+def _shadow_text(base: Image.Image, xy, text, font, fill=(255, 255, 255, 255), anchor="lt", radius=2, opacity=110, offset=(1, 2)):
     layer = Image.new("RGBA", base.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(layer)
-    draw.text(xy, text, font=font, fill=(0, 0, 0, opacity), anchor=anchor)
-    blurred = layer.filter(ImageFilter.GaussianBlur(radius))
-    base.alpha_composite(blurred)
+    ox, oy = offset
+    draw.text((xy[0] + ox, xy[1] + oy), text, font=font, fill=(0, 0, 0, opacity), anchor=anchor)
+    if radius > 0:
+        layer = layer.filter(ImageFilter.GaussianBlur(radius))
+    base.alpha_composite(layer)
     draw2 = ImageDraw.Draw(base)
     draw2.text(xy, text, font=font, fill=fill, anchor=anchor)
 
@@ -60,8 +63,9 @@ def ui_state(resolved: dict, frame: int) -> dict:
     if beat["index"] == len(resolved["beats"]) - 1 and beat.get("title"):
         title_alpha = 1.0
 
+    shown = set((resolved.get("ui") or {}).get("text") or ["title", "counter"])
     ticker_alpha = 0.0
-    ticker = beat.get("ticker")
+    ticker = beat.get("ticker") if "ticker" in shown else ""
     if ticker and beat["index"] != 0:
         # 0.18 in, 0.85 hold, 0.28 out.
         if local < 0.18:
@@ -136,7 +140,7 @@ def _alpha(color, a: float):
 
 def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Image.Image:
     img = image.convert("RGBA")
-    title_size = max(36, int(width * 0.046))
+    title_size = max(34, int(width * 0.040))
     title_font = _font(SERIF, title_size)
     label_font = _font(SANS, max(16, int(width * 0.020)))
     number_font = _font(SERIF, max(42, int(width * 0.052)))
@@ -148,20 +152,30 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
         a = state["title_alpha"]
         # Two centered lines in the sky, well above the caption band.
         lines = _wrap_title(state["title"])
-        y = int(height * 0.07)
-        gap = int(title_size * 1.05)
-        block_h = gap * (len(lines) - 1)
-        y -= block_h // 2
+        # 60 px safe margin on a 1080×1920 frame, left-aligned in the sky
+        # pocket so the portal (near x=0.49) does not clip the words.
+        margin_x = width * (60.0 / 1080.0)
+        margin_y = height * (60.0 / 1920.0)
+        max_right = width * 0.46
+        size = title_size
+        title_font = _font(SERIF, size)
+        while size > 22 and max(_font(SERIF, size).getlength(line) for line in lines) > max_right - margin_x - 12:
+            size -= 1
+            title_font = _font(SERIF, size)
+        x = int(margin_x + 8)
+        y = int(margin_y)
+        gap = int(size * 1.15)
         for line in lines:
             _shadow_text(
                 img,
-                (width / 2, y),
+                (x, y),
                 line,
                 title_font,
                 fill=_alpha((255, 255, 255), 255 * a),
-                anchor="mm",
-                radius=14,
-                opacity=int(170 * a),
+                anchor="lt",
+                radius=1,
+                opacity=int(90 * a),
+                offset=(2, 2),
             )
             y += gap
 
@@ -169,8 +183,8 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
         _draw_hud(img, state["hud"], width, height)
     else:
         # Left counter. Sits on the open water/park edge, above y=0.64.
-        x = int(width * 0.055)
-        y = int(height * 0.42)
+        x = int(width * 0.05)
+        y = int(height * 0.50)
         _shadow_text(img, (x, y), state["label"], label_font, fill=_alpha((255, 255, 255), 230), anchor="lt", radius=4, opacity=120)
         num_y = y + int(height * 0.022)
         _shadow_text(img, (x, num_y), state["number"], number_font, fill=_alpha((255, 255, 255), 255), anchor="lt", radius=6, opacity=140)
@@ -181,25 +195,6 @@ def draw_state(image: Image.Image, state: dict, width: int, height: int) -> Imag
             unit_y = bbox[3] - int(height * 0.012)
             _shadow_text(img, (unit_x, unit_y), state["unit"], unit_font, fill=_alpha((255, 255, 255), 235), anchor="ls", radius=4, opacity=120)
 
-    if not state.get("hud") and state["ticker_alpha"] > 0.01 and state["ticker"]:
-        a = state["ticker_alpha"]
-        parts = state["ticker"].split()
-        number = parts[0] if parts else state["ticker"]
-        unit = " ".join(parts[1:]) if len(parts) > 1 else ""
-        cx = width / 2
-        cy = height * 0.335
-        _shadow_text(img, (cx, cy), number, tick_num, fill=_alpha((255, 255, 255), 255 * a), anchor="mm", radius=12, opacity=int(150 * a))
-        if unit:
-            _shadow_text(
-                img,
-                (cx, cy + tick_num.size * 0.62),
-                unit,
-                tick_unit,
-                fill=_alpha((255, 255, 255), 240 * a),
-                anchor="mm",
-                radius=6,
-                opacity=int(130 * a),
-            )
     return img
 
 
@@ -237,6 +232,16 @@ def _draw_hud(img, hud, width, height):
             radius=8,
             opacity=40,
         )
+
+
+def _title_scrim(img: Image.Image, cx: float, cy: float, rx: float, ry: float, alpha: float) -> None:
+    layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(layer)
+    draw.ellipse(
+        (cx - rx, cy - ry, cx + rx, cy + ry),
+        fill=(6, 10, 18, int(150 * alpha)),
+    )
+    img.alpha_composite(layer.filter(ImageFilter.GaussianBlur(radius=max(18, int(img.size[0] * 0.028)))))
 
 
 def _wrap_title(title: str) -> list[str]:

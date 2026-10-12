@@ -1,0 +1,41 @@
+{
+  "name": "city_decay",
+  "episode": "ready_city",
+  "blender_version": "4.2.3",
+  "blender_compat": "4.2 LTS",
+  "frame_start": 1,
+  "frame_end": 1800,
+  "fps": 30,
+  "resolution_x": 1080,
+  "resolution_y": 1920,
+  "samples": 64,
+  "adaptive_threshold": 0.01,
+  "denoiser": "OPENIMAGEDENOISE",
+  "engine": "CYCLES",
+  "device": "OPTIX",
+  "device_fallback": [
+    "CUDA",
+    "CPU"
+  ],
+  "volume_bounces": 1,
+  "max_bounces": 6,
+  "output": "//frames/####.png",
+  "est_sec_per_frame_cpu": 244,
+  "est_sec_per_frame_t4": 61,
+  "edit_overlay": {
+    "beauty_only": true,
+    "title": "What if every human vanished\u2026 right now?",
+    "counter": "Population (8.2 billion) on the opening beat, then the year label. Composite after the beauty PNGs with whatif/engine/overlay.py. Not burned into these frames.",
+    "narration": false,
+    "music": false,
+    "sfx": "Cue sheet only (sfx.json). Not in this blend."
+  },
+  "notes": [
+    "Locked camera inside the street at 3.6 m, level, 24 mm, so the verticals stay straight.",
+    "The city is tiled hub blocks (Procedural City 4 and 6) with a street between them. No river and no bridge.",
+    "Poses are keyed on the opening (frames 1-95) and on channel keys after that. Tree sway is not keyed.",
+    "A low street fog throws shafts from a sun aimed down the avenue.",
+    "Year 100 is the same street, shortened and littered. Year 500 keeps broken walls, with trees and rubble in the roadway.",
+    "CPU timing on this 4-thread VM, 1080x1920, 64 samples, OpenImageDenoise, from the packed blend: frame 1 was 219 s, frame 90 was 217 s, frame 871 was 270 s, frame 1096 was 268 s. Mean 244 s. est_sec_per_frame_t4 is that mean divided by 4 and was not measured on a GPU."
+  ]
+}

@@ -1,4 +1,9 @@
 whatif/out/
+/opt/cursor/asset-cache/
+whatif/assets/cc0_cache/
+whatif/assets/private/**
+!whatif/assets/private/README.md
+/opt/cursor/asset-cache/private/
 *.blend
 *.blend1
 __pycache__/
