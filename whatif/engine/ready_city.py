@@ -986,8 +986,20 @@ def _fallen_matrices(chunk):
     """Point the street face (-X) toward the camera and lay the wall down."""
     xs, ys, zs = _bounds(chunk)
     center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, (min(zs) + max(zs)) * 0.5))
-    aim = Vector((0.0, -0.62, 0.78)).normalized()
-    turn = Vector((-1.0, 0.0, 0.0)).rotation_difference(aim).to_matrix().to_4x4()
+    bm = bmesh.new()
+    bm.from_mesh(chunk.data)
+    bm.faces.ensure_lookup_table()
+    normal = Vector()
+    for face in bm.faces:
+        normal += face.normal * face.calc_area()
+    bm.free()
+    if normal.length < 1e-5:
+        normal = Vector((-1.0, 0.0, 0.0))
+    else:
+        normal.normalize()
+    # The windowed side leans toward the camera instead of lying flat.
+    aim = Vector((0.0, -0.82, 0.57)).normalized()
+    turn = normal.rotation_difference(aim).to_matrix().to_4x4()
     spun = Matrix.Translation(center) @ turn @ Matrix.Translation(-center)
     chunk.data.transform(spun)
     xs, ys, zs = _bounds(chunk)
@@ -998,7 +1010,7 @@ def _fallen_matrices(chunk):
     chunk.data.transform(sized)
     xs, ys, zs = _bounds(chunk)
     center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, (min(zs) + max(zs)) * 0.5))
-    shift = Matrix.Translation(Vector((0.2 - center.x, -46.0 - center.y, 0.0)))
+    shift = Matrix.Translation(Vector((1.4 - center.x, -40.0 - center.y, 0.0)))
     chunk.data.transform(shift)
     zs = sorted(vert.co.z for vert in chunk.data.vertices)
     seat = zs[max(len(zs) // 8, 0)]
@@ -1007,7 +1019,7 @@ def _fallen_matrices(chunk):
     zs = [vert.co.z for vert in chunk.data.vertices]
     bottom = min(zs)
     height = max(zs) - bottom
-    squash = min(1.0, 1.25 / max(height, 0.01))
+    squash = min(1.0, 3.2 / max(height, 0.01))
     flat = Matrix.Translation((0.0, 0.0, bottom)) @ Matrix.Scale(squash, 4, Vector((0.0, 0.0, 1.0))) @ Matrix.Translation((0.0, 0.0, -bottom))
     chunk.data.transform(flat)
     zs = [vert.co.z for vert in chunk.data.vertices]
@@ -1037,7 +1049,6 @@ def _fallen_corner(kit, src, decal):
         coll.objects.link(piece)
         _bake_world(piece)
         _delete_where(piece, lambda point: not _corner_skin(point))
-        _largest_island(piece)
         if len(piece.data.vertices) > 10:
             members.append(piece)
         else:
@@ -1268,7 +1279,7 @@ def _crowd(kit):
     miura_loc = (-0.4, -54.0, road_z)
     miura = private_assets.place_hero_sports(life, miura_loc, -math.pi / 2.0)
     if miura is not None:
-        kit.add(miura, "car", path_from=miura_loc, path_to=miura_loc, index=11, sink=False)
+        kit.add(miura, "car", path_from=miura_loc, path_to=miura_loc, index=11, hero=True, sink=False)
 
 
 def _ground_patch(coll, mat, width, length):
@@ -1685,8 +1696,56 @@ def _year500_set(kit):
             sap = _spawn_mesh(plants, mesh, (x, y, 1.35), i, rng.uniform(3.5, 6.0) / native, "sapling")
             kit.add(sap, "swallow", sink=False)
     from engine.scenes import _plant
-    for i, (x, y) in enumerate(((0.2, -36.5), (2.4, -34.5), (-1.2, -35.0))):
-        _plant(kit, plants, "fern_02", x, y, 1.7, 0.55, delay=0.2, yaw=i, role="swallow")
+    for i, (x, y) in enumerate(((0.4, -39.0), (2.2, -41.0), (-0.6, -38.0))):
+        _plant(kit, plants, "fern_02", x, y, 1.6, 0.7, delay=0.2, yaw=i, role="swallow")
+    # The near half of the frame. Tall clumps, two saplings, and a little rubble.
+    near = (
+        (-3.4, -63.0, "grass_medium_01", 0.42),
+        (-1.2, -62.2, "grass_medium_02", 0.5),
+        (1.4, -63.4, "fern_02", 0.36),
+        (3.2, -61.2, "grass_medium_01", 0.48),
+        (-2.6, -59.4, "grass_medium_02", 0.7),
+        (0.4, -58.6, "fern_02", 0.5),
+        (2.6, -57.8, "grass_medium_01", 0.75),
+        (-3.6, -56.2, "grass_medium_02", 0.62),
+        (1.8, -55.0, "fern_02", 0.55),
+        (-0.6, -53.2, "grass_medium_01", 0.8),
+        (3.4, -54.4, "grass_medium_02", 0.68),
+        (-2.2, -51.6, "fern_02", 0.58),
+        (0.2, -64.2, "grass_medium_02", 0.38),
+        (-0.7, -61.4, "grass_medium_01", 0.48),
+        (0.9, -60.2, "fern_02", 0.4),
+        (-1.5, -57.6, "grass_medium_02", 0.58),
+        (0.6, -56.4, "grass_medium_01", 0.62),
+        (-2.2, -65.2, "grass_medium_01", 0.5),
+        (-0.4, -65.0, "fern_02", 0.42),
+        (1.6, -65.3, "grass_medium_02", 0.48),
+        (0.8, -64.2, "grass_medium_01", 0.55),
+        (-1.4, -64.0, "grass_medium_02", 0.52),
+    )
+    for i, (x, y, slug, height) in enumerate(near):
+        _plant(kit, plants, slug, x, y, 1.4, height, delay=0.2, yaw=i * 0.7, role="swallow")
+    if len(loaded) > 1:
+        mesh, native = loaded[1]
+        for i, (x, y, height) in enumerate(((-2.6, -57.5, 2.3), (3.0, -54.2, 2.7))):
+            sap = _spawn_mesh(plants, mesh, (x, y, 1.35), i * 1.4, height / native, "near_sapling")
+            kit.add(sap, "swallow", sink=False)
+    for filename, size, spots in (
+        ("lowpoly_concrete_debris.glb", 1.1, ((-3.5, -61.0), (2.4, -58.5), (-1.6, -55.5))),
+        ("wood_planks_debris.glb", 0.9, ((3.2, -60.5), (-2.8, -54.0))),
+    ):
+        path = Path("/opt/cursor/asset-cache/private/debris") / filename
+        mesh = _visual_mesh(path) if path.exists() else None
+        if mesh is None:
+            continue
+        native = max(_size(mesh))
+        for i, (x, y) in enumerate(spots):
+            pile = _spawn_mesh(
+                plants, mesh, (x, y, 1.32), i * 1.3, size / max(native, 0.2), "near_rubble",
+            )
+            kit.add(pile, "rubble_hill", sink=False)
+    for i, (x, y) in enumerate(((-1.1, -54.2), (0.8, -53.4), (-0.2, -55.2))):
+        _plant(kit, plants, "fern_02", x, y, 1.55, 0.65, delay=0.2, yaw=i, role="swallow")
     print("year500 pieces", made, flush=True)
 
 
@@ -1882,6 +1941,9 @@ def drive(kit, ch):
         _break_glass()
         _push_decay(1.0, 1.0)
         _set_ruin(1.0)
+    elif collapse > 0.25:
+        _set_ruin(min(0.55, collapse))
+        _push_decay(collapse * 0.55, max(0.0, float(ch.get("vegetation", 0.0)) - 0.35))
     else:
         _push_decay(0.0, 0.0)
         _set_ruin(0.0)
@@ -1892,7 +1954,14 @@ def drive(kit, ch):
         shard.hide_render = not fallen
     if fallen:
         for item in kit.items:
-            if item.role in {"bike", "car", "person"}:
+            if item.role == "car" and item.extra.get("hero"):
+                item.obj.hide_render = False
+                for child in item.obj.children_recursive:
+                    if "glass" not in child.name.lower() and "light" not in child.name.lower():
+                        child.hide_render = False
+                item.obj.location.z = 1.42
+                item.obj.rotation_euler.x += 0.16
+            elif item.role in {"bike", "car", "person"}:
                 _hide_tree(item.obj, True)
         for obj in bpy.data.objects:
             if obj.type != "MESH" or obj.hide_render:
@@ -1911,21 +1980,22 @@ def drive(kit, ch):
                 obj.hide_render = True
     node = getattr(kit, "fog_density", None)
     if node is not None:
-        node.outputs[0].default_value = 0.0035 if fallen else 0.0
+        node.outputs[0].default_value = 0.006 if fallen else 0.0
     fog_mat = bpy.data.materials.get("StreetFog")
     if fog_mat is not None and fog_mat.node_tree is not None:
         vol = next((n for n in fog_mat.node_tree.nodes if n.type == "VOLUME_PRINCIPLED"), None)
         if vol is not None:
             if "Anisotropy" in vol.inputs:
-                vol.inputs["Anisotropy"].default_value = 0.84 if fallen else 0.62
+                vol.inputs["Anisotropy"].default_value = 0.92 if fallen else 0.62
             vol.inputs["Color"].default_value = (0.93, 0.92, 0.9, 1)
     sun = getattr(kit, "sun", None)
     if sun is not None:
         _sun_down_the_street(sun, 1.0 if fallen else 0.0)
         if fallen:
-            sun.data.energy = 6.0
-            sun.data.angle = 0.02
-            sun.data.color = (1.0, 0.9, 0.76)
+            sun.rotation_euler = Vector((0.16, -0.48, -0.78)).to_track_quat("-Z", "Y").to_euler()
+            sun.data.energy = 4.6
+            sun.data.angle = 0.06
+            sun.data.color = (1.0, 0.64, 0.34)
     scene = bpy.context.scene
     scene.view_settings.exposure = 0.42
     try:
