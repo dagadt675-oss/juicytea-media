@@ -1663,6 +1663,29 @@ def _near_lens(x, y, reach=1.2):
     return best < reach
 
 
+def _hide_doorway_cards():
+    """Drop small loose cards in the dome opening. The shell itself stays."""
+    for obj in bpy.data.objects:
+        if obj.type != "MESH" or obj.hide_render or obj.data is None:
+            continue
+        if len(obj.data.vertices) > 600:
+            continue
+        pts = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+        cx = sum(point.x for point in pts) / 8.0
+        cy = sum(point.y for point in pts) / 8.0
+        cz = sum(point.z for point in pts) / 8.0
+        if not (7.2 < cx < 12.8 and -48.0 < cy < -40.0 and 1.15 < cz < 3.4):
+            continue
+        size = max(
+            max(point.x for point in pts) - min(point.x for point in pts),
+            max(point.y for point in pts) - min(point.y for point in pts),
+            max(point.z for point in pts) - min(point.z for point in pts),
+        )
+        if size < 1.8:
+            obj.hide_render = True
+            print("hid doorway", obj.name, round(size, 2), flush=True)
+
+
 def _clear_glide_foliage(kit):
     """Hide a plant when any corner of it enters the 1.2 m lens corridor."""
     for item in kit.items:
@@ -1672,6 +1695,7 @@ def _clear_glide_foliage(kit):
         points.append(item.obj.location)
         if any(_near_lens(point.x, point.y) for point in points):
             _hide_tree(item.obj, True)
+    _hide_doorway_cards()
 
 
 def _scatter_plants(kit):

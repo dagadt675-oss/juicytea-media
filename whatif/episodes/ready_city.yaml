@@ -33,7 +33,7 @@ camera:
     - {u: 0.6094, location: [-2.20, -57.8, 1.90], target: [-0.40, -54.0, 2.35], lens: 90, fstop: 16}
     - {u: 0.6528, location: [-1.60, -56.4, 1.84], target: [-0.25, -53.6, 2.20], lens: 96, fstop: 16}
     # 41.75 s facade. The cracked dome and its round opening, plants low in the frame.
-    - {u: 0.6961, location: [1.60, -57.0, 1.90], target: [9.20, -44.5, 3.60], lens: 165, fstop: 16}
+    - {u: 0.6961, location: [1.60, -57.0, 1.90], target: [9.20, -44.5, 3.60], lens: 200, fstop: 16}
     # 44.35 s span. The windowed chunk sharp in the middle of the frame.
     - {u: 0.7395, location: [3.20, -48.2, 1.90], target: [0.90, -38.2, 3.40], lens: 42, fstop: 16}
     # Back to the opening before the city reset at 55.8 s.
