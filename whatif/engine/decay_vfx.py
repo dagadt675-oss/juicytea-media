@@ -947,7 +947,7 @@ def ant_hills(kit):
                 tri_face=False,
                 water_plane=False,
             )
-        except RuntimeError as exc:
+        except (RuntimeError, AttributeError) as exc:
             print("ant", name, exc)
             continue
         created = [obj for obj in bpy.data.objects if obj not in before and obj.type == "MESH"]

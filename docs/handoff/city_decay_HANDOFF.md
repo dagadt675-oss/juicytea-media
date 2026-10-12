@@ -81,6 +81,10 @@ Stills, 1080×1920, 64 samples, adaptive threshold 0.01. Day 1 and the vanish us
 
 Do not upload or render the Colab zip from the previous commit. It is the rejected diorama. Rebuild that bundle only after these stills are approved.
 
+### 2026-10-12 — distant range and a readable 500y
+
+The mountainside tiles were one cliff in the sky, and each hub peak file is many slices. The range is now the full free-textured and three-peaked groups, several kilometres back, with a blue haze volume in front of them and sky above the peaks. Year 100 keeps the dark river and the standing ruin. Year 500 is a green field and forest, a few stumps, and the suspension deck lying in the water. Stills are the four files in `whatif/review/ready_city/`. Colab pack is Blender 4.2.3; newer BlendKit libraries are skipped because 4.2 cannot read them.
+
 ### 2026-10-11 — second still pass
 
 Kristóf rejected the first locked-camera stills: the river vanished under a white rubble carpet, 100y and 500y looked the same, the bridge was a red gate, and the mountain was a low-poly cone. This pass uses the hub suspension bridge (`Bridge_4cd69f5a`), the Poly Haven mountainside from `found_plane_terrain_models` as the range, a dark river with logs and reeds, and an earth/grass sheet on the land from year 100 on. Year 100 keeps the towers standing and sags the deck. Year 500 drops the deck into the river, leans the towers, and cuts the skyline down to stumps. New stills are the same four files under `whatif/review/ready_city/`. The bundle is still waiting.

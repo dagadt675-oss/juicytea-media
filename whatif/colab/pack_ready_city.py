@@ -21,7 +21,7 @@ from engine.spec import beat_at, channels_at  # noqa: E402
 RESOLVED = json.loads(Path("/tmp/ready_city_resolved.json").read_text(encoding="utf-8"))
 OUT = Path("/tmp/city_decay_bundle")
 OUT.mkdir(parents=True, exist_ok=True)
-SAMPLES = 32
+SAMPLES = 64
 
 
 def _key_hide(obj, frame):
@@ -60,9 +60,11 @@ def main():
     build_mod._camera(scene, RESOLVED)
     print("built", round(time.perf_counter() - t0, 1), "s", "items", len(kit.items), flush=True)
 
-    city_objs = [kit.ready_city, *list(kit.ready_city.children_recursive)]
-    ruin_objs = [kit.ready_ruin, *list(kit.ready_ruin.children_recursive)]
     precip = [obj for _kind, obj, _i in kit.precip]
+    rig = getattr(kit, "suspension", None)
+    rig_objs = []
+    if rig:
+        rig_objs = [rig["holder"], rig["deck"], *rig["towers"]]
     last = int(RESOLVED["frame_count"])
     fps = int(RESOLVED["fps"])
     prev = {}
@@ -89,19 +91,25 @@ def main():
             kit.sky_mix.inputs["Fac"].keyframe_insert(data_path="default_value", frame=frame)
         if getattr(kit, "fog_density", None) is not None:
             _key_node_value(kit.fog_density, frame, output=True)
-        for obj in city_objs + ruin_objs + precip:
-            state = obj.hide_render
-            if frame in (1, last) or prev.get(obj.name) != state:
-                _key_hide(obj, frame)
-                prev[obj.name] = state
-            if obj in precip:
-                obj.keyframe_insert(data_path="location", frame=frame)
+        for obj in precip:
+            obj.keyframe_insert(data_path="location", frame=frame)
+            _key_hide(obj, frame)
+        if kit.water is not None:
+            _key_xform(kit.water.obj, frame)
+        for obj in rig_objs:
+            _key_xform(obj, frame)
         for item in kit.items:
-            obj = item.obj
-            state = (obj.hide_render, round(obj.location.x, 3), round(obj.scale.x, 4))
-            if frame in (1, last) or prev.get("i" + obj.name) != state:
-                _key_xform(obj, frame)
-                prev["i" + obj.name] = state
+            for obj in (item.obj, *list(item.obj.children_recursive)):
+                state = (
+                    obj.hide_render,
+                    round(obj.location.x, 2),
+                    round(obj.rotation_euler.x, 3),
+                    round(obj.scale.z, 3),
+                )
+                token = obj.name
+                if frame in (1, last) or prev.get(token) != state:
+                    _key_xform(obj, frame)
+                    prev[token] = state
         if frame % 200 == 0:
             print("baked", frame, flush=True)
     print("bake", round(time.perf_counter() - t1, 1), "s", flush=True)

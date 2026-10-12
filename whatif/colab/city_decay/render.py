@@ -11,7 +11,7 @@ import sys
 
 import bpy
 
-SAMPLES = 32
+SAMPLES = 64
 WIDTH = 1080
 HEIGHT = 1920
 

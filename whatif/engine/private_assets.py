@@ -89,8 +89,14 @@ def _mesh(token: str):
     if path is None:
         _MESHES[token] = None
         return None
-    with bpy.data.libraries.load(str(path), link=False) as (src, dst):
-        dst.objects = [name for name in src.objects if _keep(name)]
+    try:
+        with bpy.data.libraries.load(str(path), link=False) as (src, dst):
+            dst.objects = [name for name in src.objects if _keep(name)]
+    except (OSError, RuntimeError) as exc:
+        # Blender 4.2 cannot read libraries saved by a newer Blender.
+        print("skip blend", path.name, exc, flush=True)
+        _MESHES[token] = None
+        return None
     objs = [obj for obj in dst.objects if obj is not None]
     col = bpy.data.collections.new("blend_src")
     bpy.context.scene.collection.children.link(col)

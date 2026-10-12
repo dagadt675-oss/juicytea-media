@@ -98,53 +98,138 @@ def _decimate(obj, ratio):
     bpy.ops.object.modifier_apply(modifier=mod.name)
 
 
-def _photoreal_range(kit):
-    """Poly Haven mountainside, repeated into one hazy range behind the skyline."""
-    _hide_old_peaks()
-    path = Path("/opt/cursor/asset-cache/private/found_plane/mountainside/mountainside_2k.gltf")
-    if not path.exists():
-        return 0
+def _import_group(path, coll):
+    """A peak is many mesh slices. Keep them under one empty."""
     fresh = _import_gltf(path)
-    meshes = [obj for obj in fresh if obj.type == "MESH"]
+    meshes = [obj for obj in fresh if obj.type == "MESH" and max(obj.dimensions) > 8.0]
     if not meshes:
-        return 0
-    bpy.ops.object.select_all(action="DESELECT")
-    for obj in meshes:
-        obj.select_set(True)
-    bpy.context.view_layer.objects.active = meshes[0]
-    if len(meshes) > 1:
-        bpy.ops.object.join()
-    src = bpy.context.view_layer.objects.active
-    coll = kit.collection("Horizon")
-    for holder in list(src.users_collection):
-        holder.objects.unlink(src)
-    coll.objects.link(src)
-    # The scan imports about 10 m across. Scale it into a kilometre-wide range.
-    # About 10 m native. This scale makes a ridge a few hundred metres tall,
-    # sitting just behind the far bank instead of a cliff in the sky.
-    src.scale = (42.0, 70.0, 36.0)
+        return None
+    root = bpy.data.objects.new(path.stem + "_root", None)
+    coll.objects.link(root)
     bpy.context.view_layer.update()
-    width = _span_x(src) or 1.0
+    for obj in meshes:
+        world = obj.matrix_world.copy()
+        for holder in list(obj.users_collection):
+            holder.objects.unlink(obj)
+        coll.objects.link(obj)
+        obj.parent = root
+        obj.matrix_world = world
+        count = len(obj.data.vertices)
+        if count > 12000:
+            _decimate(obj, 12000 / count)
+    return root
+
+
+def _duplicate_group(root, coll):
+    copies = {}
+    ordered = [root, *list(root.children_recursive)]
+    for obj in ordered:
+        copy = obj.copy()
+        if obj.data is not None:
+            copy.data = obj.data
+        copies[obj] = copy
+        coll.objects.link(copy)
+    for obj, copy in copies.items():
+        parent = copies.get(obj.parent)
+        if parent is not None:
+            copy.parent = parent
+            copy.matrix_parent_inverse = obj.matrix_parent_inverse.copy()
+    return copies[root]
+
+
+def _photoreal_range(kit):
+    """Distant peaks. They sit low on the horizon, several kilometres back."""
+    _hide_old_peaks()
+    coll = kit.collection("Horizon")
+    catalog = (
+        (Path("/opt/cursor/asset-cache/private/mountains/free_textured_mountain.glb"), "horizon_peak"),
+        (Path("/opt/cursor/asset-cache/private/mountains/three_peaked.glb"), "horizon_trio"),
+        (Path("/opt/cursor/asset-cache/private/found_plane/mountainside/mountainside_2k.gltf"), "horizon_ridge"),
+    )
+    sources = {}
+    for path, name in catalog:
+        if name == "horizon_ridge" or not path.exists():
+            continue
+        src = _import_group(path, coll)
+        if src is None:
+            continue
+        src.name = name
+        sources[name] = src
+    # Camera looks slightly down, so the horizon is already near the top of the
+    # frame. Peaks a few kilometres away stay in that band and leave sky above.
+    # No mountainside tiles: that scan has a hard cut edge. These two meshes
+    # are closed peaks. Overlap them so the frame never sees a silhouette edge.
+    # The locked view at this distance is centered near x=1600 and sees
+    # about x=200 to x=3200. Peaks extend past both sides so no edge is in frame.
+    layout = (
+        ("horizon_peak", (-200.0, 3600.0), 1.7, 0.4),
+        ("horizon_peak", (1600.0, 4100.0), 2.05, -0.35),
+        ("horizon_peak", (3400.0, 3500.0), 1.5, 0.9),
+        ("horizon_peak", (5200.0, 3900.0), 1.65, 0.15),
+        ("horizon_trio", (400.0, 3000.0), 2.8, 0.25),
+        ("horizon_trio", (1800.0, 3200.0), 3.3, -0.55),
+        ("horizon_trio", (3200.0, 3050.0), 2.4, 0.7),
+        ("horizon_trio", (-900.0, 3400.0), 2.1, 1.1),
+    )
     placed = 0
-    for index, x in enumerate((-1.3, -0.55, 0.15, 0.85, 1.55)):
-        obj = src if index == 0 else src.copy()
-        if obj is not src:
-            obj.data = src.data
-            obj.scale = src.scale
-            coll.objects.link(obj)
-        obj.name = "range_side"
-        obj.location = (480.0 + x * width * 0.62, 860.0 + (index % 2) * 70.0, FAR_Z)
-        obj.rotation_euler.z = 0.15 + index * 0.35
-        _bury(obj, FAR_Z, 50.0)
+    used = set()
+    for name, (x, y), scale, yaw in layout:
+        src = sources.get(name)
+        if src is None:
+            continue
+        if name in used:
+            obj = _duplicate_group(src, coll)
+        else:
+            obj = src
+            used.add(name)
+        obj.name = name
+        obj.scale = scale if isinstance(scale, tuple) else (scale, scale, scale)
+        obj.location = (x, y, 0.0)
+        obj.rotation_euler.z = yaw
+        _bury(obj, 0.0, 80.0)
         kit.add(obj, "mountain", sink=False)
         placed += 1
+    haze = _distance_haze(coll)
+    kit.add(haze, "mountain", sink=False)
+    print("horizon peaks", placed, flush=True)
     return placed
+
+
+def _distance_haze(coll):
+    """Bluish air in front of the range. The city and the river sit in front of it."""
+    mesh = bpy.data.meshes.new("horizon_haze")
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1.0)
+    bm.to_mesh(mesh)
+    bm.free()
+    obj = bpy.data.objects.new("horizon_haze", mesh)
+    coll.objects.link(obj)
+    obj.location = (1600.0, 2200.0, 180.0)
+    obj.scale = (9000.0, 2800.0, 520.0)
+    mat = bpy.data.materials.new("HorizonHaze")
+    mat.use_nodes = True
+    tree = mat.node_tree
+    tree.nodes.clear()
+    out = tree.nodes.new("ShaderNodeOutputMaterial")
+    vol = tree.nodes.new("ShaderNodeVolumePrincipled")
+    vol.inputs["Color"].default_value = (0.55, 0.66, 0.78, 1.0)
+    vol.inputs["Density"].default_value = 0.00035
+    vol.inputs["Anisotropy"].default_value = 0.15
+    tree.links.new(vol.outputs["Volume"], out.inputs["Volume"])
+    mesh.materials.append(mat)
+    return obj
 
 
 def _retint_horizon(mats):
     """Grass and soil out to the range, so the far ground is not a flat void."""
     grass = found_assets.pbr_material("HorizonGrass", "grass_ground", uv=0.04) or mats.get("park")
     soil = found_assets.pbr_material("HorizonSoil", "leaves_forest_ground", uv=0.03) or mats.get("dirt")
+    far = bpy.data.materials.new("FarPlain")
+    far.use_nodes = True
+    far_bsdf = next(node for node in far.node_tree.nodes if node.type == "BSDF_PRINCIPLED")
+    far_bsdf.inputs["Base Color"].default_value = (0.34, 0.40, 0.30, 1.0)
+    far_bsdf.inputs["Roughness"].default_value = 0.95
+    soil = far
     road = None
     try:
         from engine import private_assets
@@ -280,10 +365,9 @@ def _fog(coll):
     bm.free()
     obj = bpy.data.objects.new("street_fog", mesh)
     coll.objects.link(obj)
-    # Cube is 1 m, centered. Top is z = 14 so the towers stay above the mist.
-    # A taller box at density 0.02 hid the city: the locked camera looks along the streets.
-    obj.location = (10.0, 70.0, 7.0)
-    obj.scale = (480.0, 360.0, 14.0)
+    # Floats above the river so the water stays dark. Shafts live in this thin band.
+    obj.location = (10.0, 100.0, 16.0)
+    obj.scale = (420.0, 260.0, 18.0)
     mat = bpy.data.materials.new("StreetFog")
     mat.use_nodes = True
     tree = mat.node_tree
@@ -294,8 +378,8 @@ def _fog(coll):
     sep = tree.nodes.new("ShaderNodeSeparateXYZ")
     tree.links.new(geom.outputs["Position"], sep.inputs["Vector"])
     fall = tree.nodes.new("ShaderNodeMapRange")
-    fall.inputs["From Min"].default_value = 0.0
-    fall.inputs["From Max"].default_value = 12.0
+    fall.inputs["From Min"].default_value = 8.0
+    fall.inputs["From Max"].default_value = 24.0
     fall.inputs["To Min"].default_value = 1.0
     fall.inputs["To Max"].default_value = 0.0
     fall.clamp = True
@@ -308,8 +392,8 @@ def _fog(coll):
     tree.links.new(density.outputs[0], mul.inputs[0])
     tree.links.new(fall.outputs["Result"], mul.inputs[1])
     tree.links.new(mul.outputs[0], vol.inputs["Density"])
-    vol.inputs["Color"].default_value = (0.78, 0.80, 0.84, 1.0)
-    vol.inputs["Anisotropy"].default_value = 0.45
+    vol.inputs["Color"].default_value = (0.90, 0.86, 0.74, 1.0)
+    vol.inputs["Anisotropy"].default_value = 0.62
     tree.links.new(vol.outputs["Volume"], out.inputs["Volume"])
     mesh.materials.append(mat)
     return obj, density
@@ -325,11 +409,11 @@ def _murky_river(kit):
     mat = bpy.data.materials.new("MurkyRiver")
     mat.use_nodes = True
     bsdf = next(node for node in mat.node_tree.nodes if node.type == "BSDF_PRINCIPLED")
-    bsdf.inputs["Base Color"].default_value = (0.015, 0.045, 0.038, 1.0)
-    bsdf.inputs["Roughness"].default_value = 0.22
+    bsdf.inputs["Base Color"].default_value = (0.008, 0.022, 0.018, 1.0)
+    bsdf.inputs["Roughness"].default_value = 0.08
     for name in ("Transmission Weight", "Transmission"):
         if name in bsdf.inputs:
-            bsdf.inputs[name].default_value = 0.25
+            bsdf.inputs[name].default_value = 0.04
             break
     obj = kit.water.obj
     obj.data.materials.clear()
@@ -340,11 +424,20 @@ def _overgrowth(kit, mats):
     """Earthy cover on the land only. The river polygon stays open."""
     from engine.scenes import _ground_sheet, _plant
 
-    grass = found_assets.pbr_material("AgeGrass", "grass_ground", uv=0.18) or mats.get("park")
-    mud = found_assets.pbr_material("AgeMud", "leaves_forest_ground", uv=0.22) or mats.get("dirt")
+    def earth(name, color):
+        mat = bpy.data.materials.new(name)
+        mat.use_nodes = True
+        bsdf = next(node for node in mat.node_tree.nodes if node.type == "BSDF_PRINCIPLED")
+        bsdf.inputs["Base Color"].default_value = (*color, 1.0)
+        bsdf.inputs["Roughness"].default_value = 0.94
+        return mat
+
+    grass = earth("AgeGrass", (0.11, 0.20, 0.07))
+    mud = earth("AgeMud", (0.13, 0.22, 0.08))
     coll = kit.collection("Terrain")
-    south = _ground_sheet("south_earth", coll, (-10.0, -76.0, ROAD_Z + 0.12), (460.0, 160.0), mud, tile=6.0)
-    north = _ground_sheet("north_earth", coll, (20.0, 280.0, FAR_Z + 0.08), (520.0, 240.0), grass, tile=7.0)
+    # Stops at y=80 so it does not cover the river, which starts at y=86.
+    south = _ground_sheet("south_earth", coll, (-10.0, -50.0, ROAD_Z + 0.16), (640.0, 260.0), mud, tile=8.0)
+    north = _ground_sheet("north_earth", coll, (20.0, 320.0, FAR_Z + 0.12), (700.0, 340.0), grass, tile=8.0)
     kit.add(south, "year_green", sink=False)
     kit.add(north, "year_green", sink=False)
     plants = kit.collection("Plants")
@@ -397,8 +490,12 @@ def _place_suspension(kit):
     )
     if not path.exists():
         return
-    with bpy.data.libraries.load(str(path), link=False) as (src, dst):
-        dst.objects = list(src.objects)
+    try:
+        with bpy.data.libraries.load(str(path), link=False) as (src, dst):
+            dst.objects = list(src.objects)
+    except (OSError, RuntimeError) as exc:
+        print("suspension skip", exc, flush=True)
+        return
     fresh = [obj for obj in dst.objects if obj is not None]
     coll = kit.collection("Bridge")
     for obj in fresh:
@@ -532,6 +629,24 @@ def _forest_patches(kit):
                 continue
             kit.add(tree, "swallow", sink=False, leaf=(0.1, 0.36, 0.14, 1), autumn=(0.2, 0.38, 0.12, 1))
             placed += 1
+        for i in range(160):
+            x = rng.uniform(-150.0, 170.0)
+            y = rng.uniform(-80.0, 210.0)
+            if river_contains(x, y):
+                continue
+            tree = cc0_city.place_tree(coll, x, y, ROAD_Z if y < 80.0 else FAR_Z, rng.uniform(6.0, 14.0), "pine" if i % 3 else "round")
+            if tree is None:
+                continue
+            kit.add(tree, "swallow", sink=False, leaf=(0.08, 0.34, 0.1, 1), autumn=(0.12, 0.32, 0.1, 1))
+            placed += 1
+        for i in range(120):
+            x = rng.uniform(-120.0, 140.0)
+            y = rng.uniform(-110.0, 30.0)
+            tree = cc0_city.place_tree(coll, x, y, ROAD_Z, rng.uniform(5.0, 12.0), "round" if i % 2 == 0 else "pine")
+            if tree is None:
+                continue
+            kit.add(tree, "swallow", sink=False, leaf=(0.09, 0.36, 0.1, 1), autumn=(0.14, 0.34, 0.1, 1))
+            placed += 1
     return placed
 
 
@@ -631,31 +746,31 @@ def drive(kit, ch):
         elif item.role == "building_base" and heavy and item.base_loc.y < 420.0:
             _hide_tree(item.obj, False)
         elif item.role == "building_base" and fallen:
-            topple = bool(item.extra.get("topple"))
-            stump = item.base_loc.y < 80.0 and (int(item.base_loc.x) // 17) % 3 == 0
-            if topple:
+            # Four readable stumps in the middle of the frame. The rest is forest.
+            iconic = -60.0 < item.base_loc.x < 120.0 and 120.0 < item.base_loc.y < 300.0
+            if iconic and (int(item.base_loc.x + item.base_loc.y) // 30) % 2 == 0:
                 _hide_tree(item.obj, False)
-                item.obj.rotation_euler = Euler((1.25, 0.1, item.base_rot.z))
-            elif stump:
-                _hide_tree(item.obj, False)
-                item.obj.scale = (item.base_scale.x, item.base_scale.y, item.base_scale.z * 0.22)
+                item.obj.scale = (item.base_scale.x, item.base_scale.y, item.base_scale.z * 0.38)
             else:
                 _hide_tree(item.obj, True)
-        elif item.role in {"shell", "fallen", "rubble_hill"} and heavy:
-            _hide_tree(item.obj, True)
+        elif item.role in {"shell", "fallen", "rubble_hill", "ruin"} and heavy:
+            _hide_tree(item.obj, item.role != "ruin")
         elif item.role == "shell" and fallen:
-            # The ruin meshes are full towers. At 500 years they are stumps or they lie down.
-            if (int(item.base_loc.x) // 19) % 4 == 0:
-                item.obj.rotation_euler = Euler((1.2, 0.15, item.base_rot.z))
-                item.obj.location.z = max(0.2, item.base_loc.z)
+            keep = -20.0 < item.base_loc.x < 70.0 and 160.0 < item.base_loc.y < 280.0
+            if not keep:
+                _hide_tree(item.obj, True)
             else:
-                item.obj.scale = (item.base_scale.x, item.base_scale.y, item.base_scale.z * 0.26)
+                _hide_tree(item.obj, False)
+                item.obj.rotation_euler = Euler((0.7, 0.1, item.base_rot.z))
+                item.obj.scale = (item.base_scale.x * 1.3, item.base_scale.y * 1.3, item.base_scale.z * 0.55)
+        elif item.role in {"fallen", "rubble_hill", "ruin"} and fallen:
+            _hide_tree(item.obj, True)
         elif item.role == "swallow" and heavy:
             item.obj.hide_render = True
     node = getattr(kit, "fog_density", None)
     if node is not None:
-        amount = 0.15 + 0.85 * smoother(0.30, 0.70, collapse)
-        node.outputs[0].default_value = 0.005 * amount
+        amount = 0.05 + 0.95 * smoother(0.35, 0.8, collapse)
+        node.outputs[0].default_value = 0.0032 * amount
     scene = bpy.context.scene
     scene.cycles.volume_bounces = 1
     scene.cycles.volume_max_steps = 64
