@@ -31,7 +31,7 @@ SHIFT_Y = 0.06
 GLIDE_PATH = (
     (-2.2, -57.8),
     (-1.6, -56.4),
-    (1.6, -57.0),
+    (4.6, -54.0),
     (3.2, -48.2),
 )
 BLOCKS = {
@@ -1474,6 +1474,7 @@ def _crowd(kit):
     miura = private_assets.place_hero_sports(life, miura_loc, -math.pi / 2.0)
     if miura is not None:
         kit.add(miura, "car", path_from=miura_loc, path_to=miura_loc, index=11, hero=True, sink=False)
+        _arm_hero_rust(miura)
 
 
 def _ground_patch(coll, mat, width, length):
@@ -2246,6 +2247,260 @@ def _flatten_wheels(obj):
         child.scale = (base[0], base[1], base[2] * 0.32)
 
 
+def _hide_foreground_tube(root):
+    """The near tyre reads as a copper tube. It sits in front of the husk lens."""
+    near = GLIDE_PATH[0]
+    for child in root.children_recursive:
+        if getattr(child, "type", "") != "MESH":
+            continue
+        low = child.name.lower()
+        tube = "wheel" in low or any(token in low for token in ("exhaust", "pipe", "tube", "muffler"))
+        if not tube:
+            continue
+        pts = [child.matrix_world @ Vector(corner) for corner in child.bound_box]
+        cx = sum(point.x for point in pts) / 8.0
+        cy = sum(point.y for point in pts) / 8.0
+        if math.hypot(cx - near[0], cy - near[1]) < 3.5:
+            child.hide_render = True
+
+
+def _arm_hero_rust(root):
+    """Patch the Miura with downloaded rust and moss. Leftover paint shows through the mask."""
+    from engine import found_assets
+
+    rust = found_assets._map("rust_coarse_01", "diff")
+    rust_rough = found_assets._map("rust_coarse_01", "rough")
+    rust_nor = found_assets._map("rust_coarse_01", "nor_gl")
+    metal = found_assets._map("rusty_metal_02", "diff")
+    moss = found_assets._map("mossy_rock", "diff")
+    if root is None or rust is None:
+        print("hero rust missing", flush=True)
+        return
+    stack = [root]
+    while stack:
+        obj = stack.pop()
+        stack.extend(list(obj.children))
+        if getattr(obj, "type", "") != "MESH":
+            continue
+        low = obj.name.lower()
+        if any(token in low for token in ("glass", "light", "badge", "plate", "seat", "steering", "belt")):
+            continue
+        for slot in obj.material_slots:
+            material = slot.material
+            if material is None or material.get("hero_rust") or material.node_tree is None:
+                continue
+            name = material.name.lower()
+            if any(token in name for token in ("glass", "light", "badge", "window", "plate")):
+                continue
+            bsdf = next((node for node in material.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+            if bsdf is None or "Base Color" not in bsdf.inputs:
+                continue
+            tree = material.node_tree
+            wreck = found_assets._value(tree, "Wreck")
+            coord = tree.nodes.new("ShaderNodeTexCoord")
+            mapping = tree.nodes.new("ShaderNodeMapping")
+            mapping.inputs["Scale"].default_value = (2.4, 2.4, 2.4)
+            tree.links.new(coord.outputs["UV"], mapping.inputs["Vector"])
+
+            def tex(path, color):
+                node = tree.nodes.new("ShaderNodeTexImage")
+                node.image = found_assets._image(path, color)
+                tree.links.new(mapping.outputs["Vector"], node.inputs["Vector"])
+                return node
+
+            rust_col = tex(rust, True)
+            rust_mix = tree.nodes.new("ShaderNodeMixRGB")
+            rust_mix.inputs["Fac"].default_value = 0.45
+            tree.links.new(rust_col.outputs["Color"], rust_mix.inputs["Color1"])
+            if metal is not None:
+                tree.links.new(tex(metal, True).outputs["Color"], rust_mix.inputs["Color2"])
+            else:
+                rust_mix.inputs["Color2"].default_value = (0.15, 0.08, 0.04, 1.0)
+            patch = tree.nodes.new("ShaderNodeTexNoise")
+            patch.inputs["Scale"].default_value = 1.5
+            patch.inputs["Detail"].default_value = 6.0
+            tree.links.new(coord.outputs["Object"], patch.inputs["Vector"])
+            tree.links.new(patch.outputs["Fac"], rust_mix.inputs["Fac"])
+            grade = tree.nodes.new("ShaderNodeBrightContrast")
+            grade.inputs["Bright"].default_value = -0.22
+            grade.inputs["Contrast"].default_value = 0.22
+            tree.links.new(rust_mix.outputs["Color"], grade.inputs["Color"])
+            ao = tree.nodes.new("ShaderNodeAmbientOcclusion")
+            ao.samples = 8
+            ao.inputs["Distance"].default_value = 0.28
+            cavity = tree.nodes.new("ShaderNodeMath")
+            cavity.operation = "SUBTRACT"
+            cavity.inputs[0].default_value = 1.0
+            tree.links.new(ao.outputs["AO"], cavity.inputs[1])
+            bevel = tree.nodes.new("ShaderNodeBevel")
+            bevel.samples = 3
+            bevel.inputs["Radius"].default_value = 0.018
+            geom = tree.nodes.new("ShaderNodeNewGeometry")
+            dot = tree.nodes.new("ShaderNodeVectorMath")
+            dot.operation = "DOT_PRODUCT"
+            tree.links.new(bevel.outputs["Normal"], dot.inputs[0])
+            tree.links.new(geom.outputs["Normal"], dot.inputs[1])
+            edge = tree.nodes.new("ShaderNodeMath")
+            edge.operation = "SUBTRACT"
+            edge.inputs[0].default_value = 1.0
+            tree.links.new(dot.outputs["Value"], edge.inputs[1])
+            edge_gain = tree.nodes.new("ShaderNodeMath")
+            edge_gain.operation = "MULTIPLY"
+            edge_gain.inputs[1].default_value = 7.0
+            tree.links.new(edge.outputs[0], edge_gain.inputs[0])
+            flake = tree.nodes.new("ShaderNodeMath")
+            flake.operation = "ADD"
+            tree.links.new(edge_gain.outputs[0], flake.inputs[0])
+            flake_noise = tree.nodes.new("ShaderNodeMath")
+            flake_noise.operation = "GREATER_THAN"
+            flake_noise.inputs[1].default_value = 0.18
+            tree.links.new(patch.outputs["Fac"], flake_noise.inputs[0])
+            tree.links.new(flake_noise.outputs[0], flake.inputs[1])
+            flake_ao = tree.nodes.new("ShaderNodeMath")
+            flake_ao.operation = "MULTIPLY_ADD"
+            flake_ao.inputs[1].default_value = 0.55
+            tree.links.new(cavity.outputs[0], flake_ao.inputs[0])
+            tree.links.new(flake.outputs[0], flake_ao.inputs[2])
+            clamped = tree.nodes.new("ShaderNodeClamp")
+            tree.links.new(flake_ao.outputs[0], clamped.inputs["Value"])
+            lived = tree.nodes.new("ShaderNodeMath")
+            lived.operation = "MULTIPLY"
+            tree.links.new(wreck.outputs[0], lived.inputs[0])
+            tree.links.new(clamped.outputs["Result"], lived.inputs[1])
+            holes = tree.nodes.new("ShaderNodeTexNoise")
+            holes.inputs["Scale"].default_value = 3.4
+            holes.inputs["Detail"].default_value = 3.0
+            tree.links.new(coord.outputs["Object"], holes.inputs["Vector"])
+            paint_left = tree.nodes.new("ShaderNodeMath")
+            paint_left.operation = "GREATER_THAN"
+            paint_left.inputs[1].default_value = 0.46
+            tree.links.new(holes.outputs["Fac"], paint_left.inputs[0])
+            keep_rust = tree.nodes.new("ShaderNodeMath")
+            keep_rust.operation = "SUBTRACT"
+            keep_rust.inputs[0].default_value = 1.0
+            tree.links.new(paint_left.outputs[0], keep_rust.inputs[1])
+            flaked = tree.nodes.new("ShaderNodeMath")
+            flaked.operation = "MULTIPLY"
+            tree.links.new(lived.outputs[0], flaked.inputs[0])
+            tree.links.new(keep_rust.outputs[0], flaked.inputs[1])
+            dark = tree.nodes.new("ShaderNodeMixRGB")
+            dark.name = "RustGrade"
+            dark.blend_type = "MULTIPLY"
+            dark.inputs["Fac"].default_value = 1.0
+            dark.inputs["Color2"].default_value = (0.72, 0.42, 0.24, 1.0)
+            tree.links.new(grade.outputs["Color"], dark.inputs["Color1"])
+            paint = tree.nodes.new("ShaderNodeMixRGB")
+            color_in = bsdf.inputs["Base Color"]
+            kept = tree.nodes.new("ShaderNodeMixRGB")
+            kept.name = "PaintKeep"
+            kept.blend_type = "MULTIPLY"
+            kept.inputs["Fac"].default_value = 1.0
+            kept.inputs["Color2"].default_value = (0.82, 0.22, 0.06, 1.0)
+            if color_in.is_linked:
+                source = color_in.links[0].from_socket
+                tree.links.remove(color_in.links[0])
+                tree.links.new(source, kept.inputs["Color1"])
+            else:
+                kept.inputs["Color1"].default_value = tuple(color_in.default_value)
+            tree.links.new(kept.outputs["Color"], paint.inputs["Color1"])
+            tree.links.new(dark.outputs["Color"], paint.inputs["Color2"])
+            tree.links.new(flaked.outputs[0], paint.inputs["Fac"])
+            outgoing = paint.outputs["Color"]
+            if moss is not None:
+                moss_noise = tree.nodes.new("ShaderNodeTexNoise")
+                moss_noise.inputs["Scale"].default_value = 1.3
+                moss_noise.inputs["Detail"].default_value = 4.0
+                tree.links.new(coord.outputs["Object"], moss_noise.inputs["Vector"])
+                moss_fac = tree.nodes.new("ShaderNodeMath")
+                moss_fac.operation = "MULTIPLY"
+                tree.links.new(cavity.outputs[0], moss_fac.inputs[0])
+                tree.links.new(moss_noise.outputs["Fac"], moss_fac.inputs[1])
+                moss_lived = tree.nodes.new("ShaderNodeMath")
+                moss_lived.operation = "MULTIPLY"
+                moss_lived.inputs[1].default_value = 0.0
+                moss_patch = tree.nodes.new("ShaderNodeMath")
+                moss_patch.operation = "MULTIPLY"
+                moss_patch.inputs[1].default_value = 0.18
+                tree.links.new(moss_noise.outputs["Fac"], moss_patch.inputs[0])
+                moss_or = tree.nodes.new("ShaderNodeMath")
+                moss_or.operation = "MAXIMUM"
+                tree.links.new(moss_fac.outputs[0], moss_or.inputs[0])
+                tree.links.new(moss_patch.outputs[0], moss_or.inputs[1])
+                tree.links.new(wreck.outputs[0], moss_lived.inputs[0])
+                tree.links.new(moss_or.outputs[0], moss_lived.inputs[1])
+                moss_mix = tree.nodes.new("ShaderNodeMixRGB")
+                tree.links.new(outgoing, moss_mix.inputs["Color1"])
+                tree.links.new(tex(moss, True).outputs["Color"], moss_mix.inputs["Color2"])
+                tree.links.new(moss_lived.outputs[0], moss_mix.inputs["Fac"])
+                outgoing = moss_mix.outputs["Color"]
+            tree.links.new(outgoing, color_in)
+            if "Roughness" in bsdf.inputs and rust_rough is not None:
+                rough_mix = tree.nodes.new("ShaderNodeMixRGB")
+                rough_in = bsdf.inputs["Roughness"]
+                if rough_in.is_linked:
+                    source = rough_in.links[0].from_socket
+                    tree.links.remove(rough_in.links[0])
+                    tree.links.new(source, rough_mix.inputs["Color1"])
+                else:
+                    rough_mix.inputs["Color1"].default_value = (
+                        float(rough_in.default_value),
+                    ) * 3 + (1.0,)
+                tree.links.new(tex(rust_rough, False).outputs["Color"], rough_mix.inputs["Color2"])
+                tree.links.new(flaked.outputs[0], rough_mix.inputs["Fac"])
+                tree.links.new(rough_mix.outputs["Color"], rough_in)
+            if "Metallic" in bsdf.inputs and not bsdf.inputs["Metallic"].is_linked:
+                base_metal = float(bsdf.inputs["Metallic"].default_value)
+                scaled = tree.nodes.new("ShaderNodeMath")
+                scaled.operation = "MULTIPLY"
+                scaled.inputs[0].default_value = base_metal * 0.92
+                tree.links.new(flaked.outputs[0], scaled.inputs[1])
+                bare = tree.nodes.new("ShaderNodeMath")
+                bare.operation = "SUBTRACT"
+                bare.inputs[0].default_value = base_metal
+                tree.links.new(scaled.outputs[0], bare.inputs[1])
+                tree.links.new(bare.outputs[0], bsdf.inputs["Metallic"])
+            if rust_nor is not None and "Normal" in bsdf.inputs:
+                nmap = tree.nodes.new("ShaderNodeNormalMap")
+                tree.links.new(tex(rust_nor, False).outputs["Color"], nmap.inputs["Color"])
+                strength = tree.nodes.new("ShaderNodeMath")
+                strength.operation = "MULTIPLY"
+                strength.inputs[1].default_value = 0.8
+                tree.links.new(flaked.outputs[0], strength.inputs[0])
+                tree.links.new(strength.outputs[0], nmap.inputs["Strength"])
+                if not bsdf.inputs["Normal"].is_linked:
+                    tree.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
+            material["hero_rust"] = True
+            material["wreck_live"] = True
+            material["wreck_mix"] = True
+    print("hero rust armed", flush=True)
+
+
+def _set_hero_wreck(root, amount):
+    if root is None:
+        return
+    stack = [root]
+    while stack:
+        obj = stack.pop()
+        stack.extend(list(obj.children))
+        if getattr(obj, "type", "") != "MESH":
+            continue
+        for slot in obj.material_slots:
+            material = slot.material
+            if material is None or not material.get("hero_rust") or material.node_tree is None:
+                continue
+            node = material.node_tree.nodes.get("Wreck")
+            if node is not None and node.type == "VALUE":
+                node.outputs[0].default_value = float(amount)
+            if amount < 0.5:
+                continue
+            for mix in material.node_tree.nodes:
+                if mix.type != "MIX_RGB" or mix.blend_type != "MULTIPLY" or mix.name in {"RustGrade", "PaintKeep"}:
+                    continue
+                color = mix.inputs.get("Color2")
+                if color is not None and not color.is_linked:
+                    color.default_value = (1.0, 1.0, 1.0, 1.0)
+
+
 def _stain_dome(amount):
     """Push the dome's own colour toward streaked concrete. Day 1 never calls this."""
     dome = None
@@ -2381,6 +2636,10 @@ def drive(kit, ch):
             elif item.role == "car":
                 _flatten_wheels(item.obj)
                 item.obj.location.z -= 0.22
+    else:
+        for item in kit.items:
+            if item.role == "car" and item.extra.get("hero"):
+                _set_hero_wreck(item.obj, 0.0)
     if fallen:
         for item in kit.items:
             if item.role == "car" and item.extra.get("hero"):
@@ -2392,6 +2651,8 @@ def drive(kit, ch):
                 item.obj.rotation_euler.x += 0.05
                 item.obj.location.z = 1.32
                 _flatten_wheels(item.obj)
+                _hide_foreground_tube(item.obj)
+                _set_hero_wreck(item.obj, 1.0)
                 bpy.context.view_layer.update()
                 low = _lowest_z(item.obj)
                 if low is not None:
