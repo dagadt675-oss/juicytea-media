@@ -21,10 +21,11 @@ from engine.meshkit import smoother
 
 # Towers stay behind the shop row. The camera sits on x=0.
 # Inside the downloaded intersection, along the south avenue.
-CAM_LOC = (-3.2, -74.0, 2.6)
-CAM_TARGET = (-1.0, -12.0, 5.4)
+# Past the bike rack, in the avenue, level so the facades stay upright.
+CAM_LOC = (0.0, -66.0, 3.0)
+CAM_TARGET = (0.0, -18.0, 5.8)
 LENS = 28.0
-SHIFT_Y = 0.16
+SHIFT_Y = 0.06
 BLOCKS = {
     "c6": "procedural_city_6.glb",
     "c4": "procedural_city_4.glb",
@@ -724,7 +725,7 @@ def _darken_bike_lane():
         mix = tree.nodes.new("ShaderNodeMixRGB")
         mix.blend_type = "MULTIPLY"
         mix.inputs["Fac"].default_value = 1.0
-        mix.inputs["Color2"].default_value = (0.28, 0.29, 0.30, 1)
+        mix.inputs["Color2"].default_value = (0.62, 0.64, 0.66, 1)
         tree.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
         tree.links.new(mapping.outputs["Vector"], tex.inputs["Vector"])
         tree.links.new(tex.outputs["Color"], mix.inputs["Color1"])
@@ -738,16 +739,37 @@ def _import_intersection(kit):
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=str(path))
     fresh = [obj for obj in bpy.data.objects if obj not in before]
-    facades = []
+    bpy.context.view_layer.update()
+    tall = []
+    windows = []
     for obj in fresh:
-        if obj.name == "Plane.016" or obj.name.startswith("Ground"):
-            obj.hide_render = obj.name == "Plane.016"
+        if obj.name == "Plane.016":
+            obj.hide_render = True
             continue
-        obj["live_facade"] = True
-        facades.append(obj)
-    kit.live_facades = facades
+        if obj.type != "MESH":
+            continue
+        if "Window Decal" in obj.name:
+            windows.append(obj)
+        elif obj.name.startswith("Block") and obj.dimensions.z > 18.0:
+            zs = [(obj.matrix_world @ Vector(corner)).z for corner in obj.bound_box]
+            xs = [(obj.matrix_world @ Vector(corner)).x for corner in obj.bound_box]
+            ys = [(obj.matrix_world @ Vector(corner)).y for corner in obj.bound_box]
+            obj["floor_z"] = min(zs)
+            obj["mid_x"] = (min(xs) + max(xs)) * 0.5
+            obj["mid_y"] = (min(ys) + max(ys)) * 0.5
+            tall.append(obj)
+    kit.tall_blocks = tall
+    kit.window_decals = windows
+    # Right-hand row of this avenue (positive X, south of the crossing).
+    kit.collapsed_block = next(
+        (obj for obj in tall if obj.get("mid_x", 0.0) > 0.0 and obj.get("mid_y", 0.0) < 0.0),
+        None,
+    )
     _darken_bike_lane()
-    print("intersection objects", len(fresh), "facades", len(facades), flush=True)
+    from engine import found_assets
+    for obj in tall + windows:
+        found_assets.stamp_object(obj, "moss")
+    print("intersection objects", len(fresh), "tall", len(tall), "windows", len(windows), flush=True)
     return fresh
 
 
@@ -762,7 +784,10 @@ def _ruin_sources():
     kept = []
     for obj in fresh:
         obj.hide_render = True
-        if obj.dimensions.z >= 3.0 and max(obj.dimensions.x, obj.dimensions.y) > 1.0:
+        wide = min(obj.dimensions.x, obj.dimensions.y)
+        if obj.name.startswith("Plane"):
+            continue
+        if obj.dimensions.z >= 4.0 and wide > 2.0:
             kept.append(obj)
     kept.sort(key=lambda obj: obj.dimensions.z, reverse=True)
     print("ruin sources", len(kept), flush=True)
@@ -775,6 +800,7 @@ def _place_ruin(coll, src, loc, yaw, height, rot_y=0.0):
     coll.objects.link(copy)
     copy.parent = None
     copy.hide_render = False
+    copy.rotation_mode = "XYZ"
     copy.rotation_euler = (0.0, rot_y, yaw)
     factor = float(height) / max(src.dimensions.z, 0.01)
     copy.scale = (factor, factor, factor)
@@ -782,19 +808,99 @@ def _place_ruin(coll, src, loc, yaw, height, rot_y=0.0):
     return copy
 
 
+def _crowd(kit):
+    """Walkers, cyclists, and cars on the avenue the camera is looking down."""
+    from engine.scenes import _bike, _traffic, _walker
+
+    life = kit.collection("Life")
+    z = 1.22
+    spots = []
+    for side, x in ((-1.0, -6.2), (1.0, 5.4)):
+        for step, y0 in enumerate(range(-46, -16, 5)):
+            spots.append((x + (0.5 if step % 2 else 0.0), float(y0), 1.0 if step % 2 == 0 else -1.0))
+    for index, (x, y0, direction) in enumerate(spots):
+        _walker(kit, life, [(x, y0, z), (x, y0 + 8.0 * direction, z)], 1.25, index * 1.4)
+    for index, (x, y0) in enumerate(((-2.0, -44.0), (1.6, -36.0), (-0.8, -30.0), (2.0, -24.0))):
+        _bike(kit, life, [(x, y0, z), (x, y0 + 12.0, z)], index * 2.0)
+    lanes = (
+        ((-0.8, -48.0, z), (-0.8, -16.0, z), 6, 8.0),
+        ((1.6, -20.0, z), (1.6, -50.0, z), 7, 9.0),
+        ((-1.6, -46.0, z), (-1.6, -18.0, z), 8, 7.0),
+        ((2.4, -22.0, z), (2.4, -48.0, z), 9, 10.0),
+    )
+    for index, (start, end, car_index, speed) in enumerate(lanes):
+        item = _traffic(kit, life, [start, end], car_index, speed, index * 4.0, coast=5.0)
+        if item is not None:
+            item.extra["hero"] = True
+    for index, (x, y) in enumerate(((-2.6, -40.0), (3.0, -34.0), (-3.2, -28.0), (3.4, -22.0))):
+        loc = (x, y, z)
+        built = cc0_city.place_fleet_car(life, loc, math.pi / 2.0 if index % 2 == 0 else -math.pi / 2.0, index=index + 2)
+        if built is None:
+            continue
+        item = kit.add(built, "car", path_from=loc, path_to=loc, index=30 + index, sink=False)
+        item.extra["hero"] = True
+
+
+def _ground_patch(coll, mat, width, length):
+    """A small cover whose origin is its centre, so a tilt stays on the street."""
+    mesh = bpy.data.meshes.new("cover")
+    bm = bmesh.new()
+    hw, hl = width * 0.5, length * 0.5
+    verts = [bm.verts.new(co) for co in ((-hw, -hl, 0.0), (hw, -hl, 0.0), (hw, hl, 0.0), (-hw, hl, 0.0))]
+    face = bm.faces.new(verts)
+    uv = bm.loops.layers.uv.new("UVMap")
+    for loop in face.loops:
+        co = loop.vert.co
+        loop[uv].uv = ((co.x + hw) / 2.0, (co.y + hl) / 2.0)
+    bm.to_mesh(mesh)
+    bm.free()
+    if mat is not None:
+        mesh.materials.append(mat)
+    obj = bpy.data.objects.new("cover", mesh)
+    coll.objects.link(obj)
+    return obj
+
+
+def _ground_cover(kit):
+    """Cracked pavers, soil, and grass that appear once the street is abandoned."""
+    from engine import found_assets
+    from engine.scenes import _plant
+
+    coll = kit.collection("Terrain")
+    plants = kit.collection("Plants")
+    soil = found_assets.pbr_material("RuinSoil", "leaves_forest_ground", uv=0.4)
+    crack = found_assets.pbr_material("HeavedRoad", "road_damaged", uv=0.35)
+    concrete = found_assets.pbr_material("HeavedPaver", "cracked_concrete", uv=0.5)
+    rng = random.Random(9)
+    for i in range(10):
+        mat = (crack, soil, concrete)[i % 3]
+        if mat is None:
+            continue
+        slab = _ground_patch(coll, mat, rng.uniform(2.2, 5.5), rng.uniform(1.6, 4.0))
+        slab.location = (rng.uniform(-5.0, 6.0), rng.uniform(-60.0, -30.0), 1.24)
+        slab.rotation_euler = (rng.uniform(-0.04, 0.05), rng.uniform(-0.03, 0.03), rng.random() * 3.0)
+        kit.add(slab, "groundwear", sink=False)
+    for i in range(48):
+        _plant(
+            kit, plants,
+            ("grass_medium_01", "grass_medium_02", "fern_02", "weed_plant_02", "moss_01")[i % 5],
+            rng.uniform(-8.0, 9.0), rng.uniform(-64.0, -18.0), 1.2,
+            rng.uniform(0.4, 1.3), delay=0.2, yaw=rng.random() * 6.0,
+        )
+    for i, (x, y, z) in enumerate(((-6.5, -50, 3.0), (-6.2, -38, 6.0), (6.4, -46, 4.0), (6.0, -32, 8.0), (-5.5, -28, 2.2))):
+        _plant(kit, plants, "fern_02", x, y, z, 1.4, delay=0.35, yaw=i, role="year_age")
+
+
 def _year500_set(kit):
-    """Ruined-city shells, one tower across the avenue, rubble, and photographed trees."""
+    """A few ruin shells where a block actually fell, plus forest and debris on this street."""
     coll = kit.collection("City")
     plants = kit.collection("Plants")
     sources = _ruin_sources()
     made = 0
+    # Only the right-hand block of this avenue is fully replaced. The rest of the street decays in place.
     spots = (
-        (-7.0, -60.0, 14.0, 0.4),
-        (-8.0, -46.0, 20.0, 1.2),
-        (-6.0, -32.0, 12.0, 0.2),
-        (7.0, -56.0, 16.0, 2.4),
-        (8.0, -40.0, 22.0, 1.8),
-        (6.0, -26.0, 13.0, 0.6),
+        (14.0, -46.0, 16.0, 1.6),
+        (16.0, -34.0, 12.0, 2.2),
     )
     for index, (x, y, height, yaw) in enumerate(spots):
         if not sources:
@@ -803,7 +909,7 @@ def _year500_set(kit):
         kit.add(shell, "shell", sink=False)
         made += 1
     if sources:
-        tower = _place_ruin(coll, sources[0], (0.5, -44.0, 1.4), 1.1, 18.0, rot_y=1.5)
+        tower = _place_ruin(coll, sources[0], (0.4, -46.0, 2.2), 0.2, 16.0, rot_y=1.57)
         kit.add(tower, "shell", sink=False)
         made += 1
     tree_paths = (
@@ -818,23 +924,33 @@ def _year500_set(kit):
             if mesh is not None:
                 loaded.append((mesh, max(_size(mesh)[2], 0.2)))
     rng = random.Random(3)
-    for i in range(34):
+    for i in range(56):
         if not loaded:
             break
         mesh, native = loaded[i % len(loaded)]
-        height = rng.uniform(5.0, 9.5)
+        height = rng.uniform(4.5, 11.0)
+        x = rng.uniform(-9.0, 11.0)
+        y = rng.uniform(-44.0, -16.0)
+        if abs(x) < 5.0 and abs(y + 50.0) < 7.0:
+            x += 6.0
         tree = _spawn_mesh(
             plants, mesh,
-            (rng.uniform(-5.0, 7.0), rng.uniform(-60.0, -24.0), 1.15),
+            (x, y, 1.2),
             rng.random() * 6.2, height / native, "real_tree",
         )
         kit.add(tree, "swallow", sink=False)
-    rubble_path = Path("/opt/cursor/asset-cache/private/debris/lowpoly_concrete_debris.glb")
-    rubble = _visual_mesh(rubble_path) if rubble_path.exists() else None
-    if rubble is not None:
-        native = max(_size(rubble))
-        for i, (x, y) in enumerate(((-3, -55), (2, -48), (-1, -36), (4, -30), (0, -58))):
-            pile = _spawn_mesh(coll, rubble, (x, y, 1.15), i, 3.2 / max(native, 0.2), "rubble_pile")
+    for filename, size in (("lowpoly_concrete_debris.glb", 2.4), ("scan_pile_concrete.glb", 3.6), ("pbr_debris.glb", 2.8)):
+        path = Path("/opt/cursor/asset-cache/private/debris") / filename
+        mesh = _visual_mesh(path) if path.exists() else None
+        if mesh is None:
+            continue
+        native = max(_size(mesh))
+        for i in range(4):
+            pile = _spawn_mesh(
+                coll, mesh,
+                (rng.uniform(-6.0, 8.0), rng.uniform(-56.0, -22.0), 1.2),
+                rng.random() * 6.0, size / max(native, 0.2), "rubble_pile",
+            )
             kit.add(pile, "rubble_hill", sink=False)
     print("year500 pieces", made, flush=True)
 
@@ -845,7 +961,14 @@ def build(kit, mats, rng):
     kit.kind = "ready_city"
     kit.water = None
     _import_intersection(kit)
+    _crowd(kit)
+    _ground_cover(kit)
     _year500_set(kit)
+    fog, density = _fog(kit.collection("Weather"))
+    fog.location = (0.0, -44.0, 6.0)
+    fog.scale = (22.0, 48.0, 9.0)
+    kit.street_fog = fog
+    kit.fog_density = density
     _frame_camera(kit)
     print("intersection items", len(kit.items), flush=True)
     return kit
@@ -869,13 +992,13 @@ def _frame_camera(kit):
 
 
 def _sun_down_the_street(sun, collapse):
-    """Low sun along the avenue so the street fog throws shafts."""
-    drop = smoother(0.4, 0.85, collapse)
-    direction = Vector((0.22, 0.86, -0.42 - 0.12 * drop))
+    """Low sun down the avenue. Year 500 looks back toward it so the fog throws shafts."""
+    low = 1.0 if collapse > 0.5 else 0.0
+    direction = Vector((0.15, -0.78, -0.28 - 0.22 * low))
     sun.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
-    sun.data.energy = 8.0
-    sun.data.color = (1.0, 0.86, 0.68)
-    sun.data.angle = 0.025
+    sun.data.energy = 5.5 if low < 0.5 else 7.5
+    sun.data.color = (1.0, 0.93, 0.82) if low < 0.5 else (1.0, 0.72, 0.42)
+    sun.data.angle = 0.03
 
 
 def _lay_in_street(item, sign):
@@ -904,23 +1027,101 @@ def _push_decay(amount, forest):
                 node.outputs[0].default_value = float(value)
 
 
+def _cloudy_sky():
+    """Camera sees a cloudy Poly Haven sky. The flat blue gradient stays off."""
+    world = bpy.context.scene.world
+    if world is None or world.node_tree is None:
+        return
+    tree = world.node_tree
+    hdr = Path(
+        "/opt/cursor/asset-cache/cc0/extracted/hdri/polyhaven_hdris_2k/"
+        "kloofendal_48d_partly_cloudy_puresky/kloofendal_48d_partly_cloudy_puresky_2k.hdr"
+    )
+    if not hdr.exists():
+        return
+    image = bpy.data.images.load(str(hdr), check_existing=True)
+    try:
+        image.colorspace_settings.name = "Linear Rec.709"
+    except TypeError:
+        image.colorspace_settings.name = "Linear"
+    env = next((node for node in tree.nodes if node.type == "TEX_ENVIRONMENT"), None)
+    if env is None:
+        env = tree.nodes.new("ShaderNodeTexEnvironment")
+        coord = tree.nodes.new("ShaderNodeTexCoord")
+        mapping = tree.nodes.new("ShaderNodeMapping")
+        tree.links.new(coord.outputs["Generated"], mapping.inputs["Vector"])
+        tree.links.new(mapping.outputs["Vector"], env.inputs["Vector"])
+    env.image = image
+    for node in tree.nodes:
+        if node.type == "MAPPING":
+            node.inputs["Rotation"].default_value = (0.0, 0.0, 0.6)
+    bg = next((node for node in tree.nodes if node.type == "BACKGROUND"), None)
+    if bg is None:
+        return
+    if bg.inputs[0].is_linked:
+        tree.links.remove(bg.inputs[0].links[0])
+    tree.links.new(env.outputs["Color"], bg.inputs[0])
+    bg.inputs[1].default_value = 1.15
+
+
+def _break_glass():
+    for mat in bpy.data.materials:
+        low = mat.name.lower()
+        if not any(token in low for token in ("window", "glass", "blind")):
+            continue
+        if mat.node_tree is None:
+            continue
+        bsdf = next((node for node in mat.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+        if bsdf is None:
+            continue
+        color = bsdf.inputs.get("Base Color")
+        if color is not None and color.is_linked:
+            mat.node_tree.links.remove(color.links[0])
+        if color is not None:
+            color.default_value = (0.02, 0.025, 0.03, 1)
+        if "Roughness" in bsdf.inputs:
+            bsdf.inputs["Roughness"].default_value = 0.72
+        for name in ("Transmission Weight", "Transmission"):
+            if name in bsdf.inputs:
+                bsdf.inputs[name].default_value = 0.05
+
+
+def _shorten_block(obj, factor):
+    """Drop the upper floors. The foot of the mesh stays where it was."""
+    floor_z = float(obj.get("floor_z", 0.0))
+    obj.scale.z = factor
+    obj.location.z = floor_z * (1.0 - factor)
+
+
 def drive(kit, ch):
-    """Day 1 keeps the downloaded facades. Year 500 swaps in the ruined street."""
+    """The same facades age. A ruin shell appears only where one block has fallen."""
     collapse = float(ch.get("collapse", 0.0))
     fallen = collapse >= 0.85
     _frame_camera(kit)
-    for obj in getattr(kit, "live_facades", ()) or ():
-        obj.hide_render = fallen
-    grass = bpy.data.materials.get("Grass")
-    if grass is not None and grass.node_tree is not None and fallen:
-        bsdf = next((node for node in grass.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
-        if bsdf is not None:
-            if bsdf.inputs["Base Color"].is_linked:
-                grass.node_tree.links.remove(bsdf.inputs["Base Color"].links[0])
-            bsdf.inputs["Base Color"].default_value = (0.18, 0.16, 0.12, 1)
-            bsdf.inputs["Roughness"].default_value = 0.95
+    _cloudy_sky()
+    if kit.volume is not None:
+        kit.volume.hide_render = True
+    collapsed = getattr(kit, "collapsed_block", None)
+    for obj in getattr(kit, "tall_blocks", ()) or ():
+        obj.hide_render = fallen and obj is collapsed
+        obj.location.z = 0.0
+        obj.scale.z = 1.0
+        if fallen and obj is not collapsed:
+            _shorten_block(obj, 0.62)
+    for obj in getattr(kit, "window_decals", ()) or ():
+        same = collapsed is not None and obj.name.split("Window")[0].strip() in collapsed.name
+        obj.hide_render = fallen and same
+    if fallen:
+        _break_glass()
+        _push_decay(1.0, 0.85)
+    else:
+        _push_decay(0.0, 0.0)
     for item in kit.items:
         if item.role in {"shell", "swallow", "rubble_hill", "rubble"}:
             _hide_tree(item.obj, not fallen)
-    if kit.volume is not None:
-        kit.volume.hide_render = True
+    node = getattr(kit, "fog_density", None)
+    if node is not None:
+        node.outputs[0].default_value = 0.0045 if fallen else 0.0
+    sun = getattr(kit, "sun", None)
+    if sun is not None:
+        _sun_down_the_street(sun, 1.0 if fallen else 0.0)

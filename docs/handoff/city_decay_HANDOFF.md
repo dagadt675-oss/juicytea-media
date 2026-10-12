@@ -42,7 +42,7 @@ Two city versions exist. **Keep both.**
 - Episode: `whatif/episodes/ready_city.yaml` (`id: ready_city`, `scene.name: ready_city`).
 - Scene: `whatif/engine/ready_city.py`. `build()` does **not** call `build_river_city`.
 - Branch: `cursor/ready-city-f245`. Pull request: https://github.com/dagadt675-oss/juicytea-media/pull/21 (base `cursor/road-network-stills-f245`).
-- What it is: one CC0 intersection, Main_Intersection_v2.glb (Source City), camera [-3.2, -74, 2.6] to [-1, -12, 5.4], 28 mm. Day 1 is that scene. Year 500 hides those facades and shows Ruined City Free 5, one tower across the avenue, and Poly Haven trees. This round's test is only Day 1 and Year 500. Older vanish.png and year100.png are not this test. Procedural City 4 and 6 are no longer placed. The locked camera is in the street at 3.6 m, level, 24 mm (`[0, 1.6, 3.6]` to `[0, 46, 3.6]`) with a small lens shift so the verticals stay straight and the buildings fill the frame. Sidewalks are grey concrete. The avenue is photographic asphalt with lane dashes and manhole covers. Day 1 has walkers, cyclists, moving traffic, and parked cars. Year 100 swaps in cracked asphalt, weeds, vines, and rusted cars. Year 500 lays storefronts across the street as slabs, with Poly Haven trees, ruin shells, debris, and 16 cell-fracture shards.
+- What it is: one CC0 intersection, `Main_Intersection_v2.glb` (Source City). Camera `[0, -66, 3]` looking to `[0, -18, 5.8]`, 28 mm, small upward shift. Day 1 keeps those facades. The world camera ray sees Poly Haven `kloofendal_48d_partly_cloudy_puresky` plus a low sun. Walkers, cyclists, moving cars, and parked cars are on the avenue. Year 500 keeps the same blocks, shortens the upper floors, blacks out the glass, and hides only the right-hand block, which is the one replaced by a Ruined City shell. A volumetric ruin lies across the avenue. Soil and cracked-concrete patches, rubble, vines, and Poly Haven trees come in with the ruin. A low street volume (density 0.0045, anisotropy 0.62) is on only at year 500. This round's test is Day 1 and Year 500. Older `vanish.png` and `year100.png` are not this test.
 - Kristóf, 2026-10-12: the camera must be inside the city, street level or low among the buildings, looking down a street. No aerial shot from outside. The separate ready-made city, the decay eras, and four test stills first still stand. Do not resume the SSIM speedup. Do not encode 1800 frames. Do not delete version A.
 - Kristóf, 2026-10-11, in Hungarian: do not delete the previous city; make a completely separate one about the same vanish; pick an existing city from Drive; do not build a city; everything else stays; the camera may look from a slightly better place.
 - Proof stills (half resolution, 8 samples, about 6 s/frame). Not owner-approved yet:
@@ -55,7 +55,11 @@ Two city versions exist. **Keep both.**
 
 ### What "continue" means
 
-Wait for Kristóf to review the four street stills. Do not rebuild the river, the bridge, or an aerial shot. Do not encode. The open files are `whatif/review/ready_city/day1.png`, `vanish.png`, `year100.png`, `year500.png`, and `four_stills.jpg`. They were rendered from the Blender 4.2.3 pack with `render.py`.
+Wait for Kristóf to review the Day 1 and Year 500 stills in `whatif/review/ready_city/day1.png`, `year500.png`, and `two_stills.jpg`. Do not rebuild the river, the bridge, or an aerial shot. Do not encode.
+
+### 2026-10-12 — same street, cloudy sky, year 500 in place
+
+Kristóf: the Day 1 facades were finally real buildings. The sky was flat blue, the street was empty, a black bike rack filled the foreground, and Year 500 replaced the place instead of decaying it. This pass moves the camera forward to `(0, -66, 3)`, shows the partly-cloudy HDRI, and fills the avenue with people and traffic. Year 500 ages the same blocks (shorter upper floors, dark glass, grime). One right-hand block is the collapsed shell. A solid ruin lies across the avenue, with trees, rubble, and a thin street fog. Stills are 1080×1920, 28 samples, CPU, OIDN.
 
 ### 2026-10-12 — camera inside the street
 
