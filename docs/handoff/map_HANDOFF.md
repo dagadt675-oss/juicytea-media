@@ -4,7 +4,7 @@ Last updated: 2026-10-12.
 
 This file is the only briefing a new agent gets, plus the git repo. Read it before editing. Update it at the end of every future run that changes the picture, the rules, the branches, or the next step, then commit it on the branch you are actually working on and copy it to `/opt/cursor/artifacts/handoff/map_HANDOFF.md`.
 
-Picture this document describes: `greenland_africa_v15.mp4` on `cursor/greenland-africa-v15-7e9d`. v14 is the parent (`dd60291` on `cursor/greenland-africa-v14-7e9d`, PR #30).
+Picture this document describes: `greenland_africa_v15.mp4` in commit `1be096a` on `cursor/greenland-africa-v15-7e9d`. v14 is the parent (`dd60291` on `cursor/greenland-africa-v14-7e9d`, PR #30). PR #31.
 
 ## Where the code actually is
 
@@ -824,7 +824,9 @@ All of these were open drafts on 2026-10-11 unless noted. The map-Shorts camera 
 
 | PR | Head | Base | Title | Role |
 | --- | --- | --- | --- | --- |
-| (this branch) | `cursor/greenland-africa-v15-7e9d` | `cursor/greenland-africa-v14-7e9d` | Three picture notes on the v14 clock | **Current.** v15 picture plus this handoff. |
+| #31 | `cursor/greenland-africa-v15-7e9d` | `cursor/greenland-africa-v14-7e9d` | Three picture notes on the v14 clock | **Current.** v15 picture plus this handoff. |
+
+https://github.com/dagadt675-oss/juicytea-media/pull/31
 
 | #30 | `cursor/greenland-africa-v14-7e9d` | `cursor/greenland-africa-v13-7e9d` | Picture notes on the v13 clock | Parent of v15. |
 
