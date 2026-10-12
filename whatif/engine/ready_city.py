@@ -852,9 +852,33 @@ def _arm_ruin_stain(objects):
                 stained = moss_mix.outputs["Color"]
             else:
                 stained = dark.outputs["Color"]
+            ao = tree.nodes.new("ShaderNodeAmbientOcclusion")
+            ao.inputs["Distance"].default_value = 1.6
+            cavity = tree.nodes.new("ShaderNodeMath")
+            cavity.operation = "SUBTRACT"
+            cavity.inputs[0].default_value = 1.0
+            tree.links.new(ao.outputs["AO"], cavity.inputs[1])
+            grit = tree.nodes.new("ShaderNodeMath")
+            grit.operation = "MULTIPLY_ADD"
+            grit.inputs[1].default_value = 0.8
+            grit.inputs[2].default_value = 0.0
+            tree.links.new(cavity.outputs[0], grit.inputs[0])
+            add_streak = tree.nodes.new("ShaderNodeMath")
+            add_streak.operation = "MULTIPLY_ADD"
+            add_streak.inputs[1].default_value = 0.55
+            tree.links.new(streak.outputs["Fac"], add_streak.inputs[0])
+            tree.links.new(grit.outputs[0], add_streak.inputs[2])
+            capped = tree.nodes.new("ShaderNodeMath")
+            capped.operation = "MINIMUM"
+            capped.inputs[1].default_value = 0.72
+            tree.links.new(add_streak.outputs[0], capped.inputs[0])
+            fac = tree.nodes.new("ShaderNodeMath")
+            fac.operation = "MULTIPLY"
+            tree.links.new(ruin.outputs[0], fac.inputs[0])
+            tree.links.new(capped.outputs[0], fac.inputs[1])
             final = tree.nodes.new("ShaderNodeMixRGB")
             final.name = "RuinMix"
-            tree.links.new(ruin.outputs[0], final.inputs["Fac"])
+            tree.links.new(fac.outputs[0], final.inputs["Fac"])
             tree.links.new(source, final.inputs["Color1"])
             tree.links.new(stained, final.inputs["Color2"])
             tree.links.new(final.outputs["Color"], color_in)
@@ -899,20 +923,81 @@ def _slab(coll, loc, size):
     return obj
 
 
+def _fallen_corner(kit, src):
+    """Break one top corner off the right tower and lay those shards across the avenue."""
+    coll = kit.collection("City")
+    chunk = src.copy()
+    chunk.data = src.data.copy()
+    coll.objects.link(chunk)
+    _bake_world(chunk)
+    _delete_where(
+        chunk,
+        lambda p: not (14.0 < p.x < 22.0 and -50.0 < p.y < -36.0 and 18.0 < p.z < 32.0),
+    )
+    if len(chunk.data.vertices) < 20:
+        print("corner empty", flush=True)
+        chunk.hide_render = True
+        return
+    # Keep the tower's own facade. Fracturing it replaced the windows with grey caps.
+    members = [chunk]
+    chunk.hide_render = False
+    xs, ys, zs = [], [], []
+    for shard in members:
+        for vert in shard.data.vertices:
+            xs.append(vert.co.x)
+            ys.append(vert.co.y)
+            zs.append(vert.co.z)
+    if not xs:
+        return
+    center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, (min(zs) + max(zs)) * 0.5))
+    tip = Matrix.Translation(center) @ Matrix.Rotation(math.pi / 2.0, 4, "Y") @ Matrix.Translation(-center)
+    for shard in members:
+        shard.data.transform(tip)
+    xs, ys, zs = [], [], []
+    for shard in members:
+        for vert in shard.data.vertices:
+            xs.append(vert.co.x)
+            ys.append(vert.co.y)
+            zs.append(vert.co.z)
+    center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, (min(zs) + max(zs)) * 0.5))
+    diagonal = Matrix.Translation(center) @ Matrix.Rotation(0.7, 4, "Z") @ Matrix.Translation(-center)
+    for shard in members:
+        shard.data.transform(diagonal)
+    xs, ys, zs = [], [], []
+    for shard in members:
+        for vert in shard.data.vertices:
+            xs.append(vert.co.x)
+            ys.append(vert.co.y)
+            zs.append(vert.co.z)
+    height = max(zs) - min(zs)
+    squash = min(1.0, 2.4 / max(height, 0.01))
+    scale_z = Matrix.Identity(4)
+    scale_z[2][2] = squash
+    bottom = min(zs)
+    squat = Matrix.Translation((0.0, 0.0, bottom)) @ scale_z @ Matrix.Translation((0.0, 0.0, -bottom))
+    shift = Vector((-(min(xs) + max(xs)) * 0.5, -36.0 - (min(ys) + max(ys)) * 0.5, 1.35 - bottom))
+    place = Matrix.Translation(shift) @ squat
+    for shard in members:
+        shard.data.transform(place)
+    kit.corner_matrices = [tip, diagonal, place]
+    kit.fallen_shards = list(members)
+    print("tower corner shards", len(members), "z", round(height * squash, 1), flush=True)
+
+
 def _cut_street_facades(kit, tall, windows, dome):
-    """Damaged copies of the two street blocks and the dome. Hidden on day 1."""
+    """Full-height copies with a few missing panels. Only the right tower loses a top corner."""
+    del dome
     coll = kit.collection("City")
     left = next((obj for obj in tall if obj.get("mid_x", 0.0) < 0.0 and obj.get("mid_y", 0.0) < 0.0), None)
     right = next((obj for obj in tall if obj.get("mid_x", 0.0) > 0.0 and obj.get("mid_y", 0.0) < 0.0), None)
     originals = []
     ruins = []
-    bites = (
-        (left, lambda p: p.z > 24.0 or (-22.0 < p.x < -14.2 and -50.0 < p.y < -33.0 and 13.5 < p.z < 23.5)
-         or (-20.0 < p.x < -14.2 and -32.0 < p.y < -24.0 and 15.0 < p.z < 23.0)),
-        (right, lambda p: p.z > 22.0 or (14.2 < p.x < 22.0 and -54.0 < p.y < -36.0 and 13.5 < p.z < 21.5)
-         or (14.2 < p.x < 20.0 and -36.0 < p.y < -26.0 and 14.0 < p.z < 21.0)),
+    panels = (
+        (left, lambda p: (-18.0 < p.x < -14.2 and -47.0 < p.y < -42.0 and 15.0 < p.z < 22.0)
+         or (-17.5 < p.x < -14.2 and -34.0 < p.y < -30.0 and 24.0 < p.z < 31.0)),
+        (right, lambda p: 14.0 < p.x < 22.0 and -50.0 < p.y < -36.0 and 18.0 < p.z < 32.0),
     )
-    for src, pred in bites:
+    for src, pred in panels:
         if src is None:
             continue
         copy = src.copy()
@@ -923,24 +1008,56 @@ def _cut_street_facades(kit, tall, windows, dome):
         copy.hide_render = True
         originals.append(src)
         ruins.append(copy)
-        prefix = src.name.split("Window")[0].split("Nolight")[0].strip()
-        for decal in windows:
-            if prefix and prefix in decal.name:
-                originals.append(decal)
-    if dome is not None:
-        copy = dome.copy()
-        copy.data = dome.data.copy()
-        coll.objects.link(copy)
-        _bake_world(copy)
-        zs = [vert.co.z for vert in copy.data.vertices]
-        if zs:
-            cut = min(zs) + (max(zs) - min(zs)) * 0.62
-            _delete_where(copy, lambda p, cut=cut: p.z > cut)
-        copy.hide_render = True
-        originals.append(dome)
-        ruins.append(copy)
-    for obj in ruins:
-        obj.hide_render = True
+    if right is not None:
+        decal = next((obj for obj in windows if "Block2" in obj.name and "Window" in obj.name), None)
+        _fallen_corner(kit, right)
+        if decal is not None and getattr(kit, "fallen_shards", None):
+            piece = decal.copy()
+            piece.data = decal.data.copy()
+            coll.objects.link(piece)
+            _bake_world(piece)
+            _delete_where(
+                piece,
+                lambda p: not (14.0 < p.x < 22.0 and -50.0 < p.y < -36.0 and 18.0 < p.z < 32.0),
+            )
+            for matrix in kit.corner_matrices:
+                piece.data.transform(matrix)
+            piece.hide_render = True
+            kit.fallen_shards.append(piece)
+            xs, ys, zs = [], [], []
+            for shard in kit.fallen_shards:
+                for vert in shard.data.vertices:
+                    xs.append(vert.co.x)
+                    ys.append(vert.co.y)
+                    zs.append(vert.co.z)
+            if xs:
+                center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, 0.0))
+                if (max(ys) - min(ys)) > (max(xs) - min(xs)):
+                    turn = Matrix.Translation(center) @ Matrix.Rotation(math.pi / 2.0, 4, "Z") @ Matrix.Translation(-center)
+                    for shard in kit.fallen_shards:
+                        shard.data.transform(turn)
+                widen = Matrix.Identity(4)
+                widen[0][0] = 1.6
+                widen[1][1] = 1.6
+                for shard in kit.fallen_shards:
+                    shard.data.transform(Matrix.Translation(center) @ widen @ Matrix.Translation(-center))
+                zs = sorted(vert.co.z for shard in kit.fallen_shards for vert in shard.data.vertices)
+                level = zs[max(len(zs) // 8, 0)]
+                drop = Matrix.Translation((0.0, 0.0, 1.4 - level))
+                for shard in kit.fallen_shards:
+                    shard.data.transform(drop)
+            # The standing decal loses that same corner, and stays on the tower.
+            standing = decal.copy()
+            standing.data = decal.data.copy()
+            coll.objects.link(standing)
+            _bake_world(standing)
+            _delete_where(
+                standing,
+                lambda p: 14.0 < p.x < 22.0 and -50.0 < p.y < -36.0 and 18.0 < p.z < 32.0,
+            )
+            standing.hide_render = True
+            originals.append(decal)
+            ruins.append(standing)
     kit.facade_originals = originals
     kit.facade_ruins = ruins
     print("facade bites", len(ruins), flush=True)
@@ -997,8 +1114,8 @@ def _grow_vines(kit):
     for block in blocks:
         xs = [(block.matrix_world @ Vector(corner)).x for corner in block.bound_box]
         face_x = (max(xs) - 0.3) if block.get("mid_x", 0.0) < 0.0 else (min(xs) + 0.3)
-        for seed_y, seed_z in ((-46.0, 2.4), (-36.0, 5.5), (-28.0, 8.0)):
-            grown.extend(found_assets.grow_ivy(block, (face_x, seed_y, seed_z), length=7.0) or [])
+        for seed_y, seed_z in ((-48.0, 2.2), (-40.0, 8.0), (-34.0, 14.0), (-28.0, 20.0)):
+            grown.extend(found_assets.grow_ivy(block, (face_x, seed_y, seed_z), length=9.0) or [])
     for obj in grown:
         try:
             plants.objects.link(obj)
@@ -1111,9 +1228,10 @@ def _bury_material():
     mapping.inputs["Scale"].default_value = (1.0, 1.0, 1.0)
     tree.links.new(coord.outputs["UV"], mapping.inputs["Vector"])
 
-    def image_node(slug, color=True):
-        suffix = "diff" if color else "nor_gl"
-        path = Path(f"/workspace/assets/found/polyhaven/textures/{slug}/{slug}_{suffix}_1k.jpg")
+    root = Path("/opt/cursor/asset-cache/cc0/textures/ground4k")
+
+    def image_node(filename, color=True):
+        path = root / filename
         node = tree.nodes.new("ShaderNodeTexImage")
         if path.exists():
             node.image = bpy.data.images.load(str(path), check_existing=True)
@@ -1122,9 +1240,9 @@ def _bury_material():
         tree.links.new(mapping.outputs["Vector"], node.inputs["Vector"])
         return node
 
-    grass = image_node("grass_ground")
-    leaves = image_node("leaves_forest_ground")
-    moss = image_node("concrete_moss")
+    grass = image_node("aerial_grass_rock_diff_4k.jpg")
+    leaves = image_node("leaves_forest_ground_diff_4k.jpg")
+    mud = image_node("brown_mud_leaves_01_diff_4k.jpg")
     speckle = tree.nodes.new("ShaderNodeTexNoise")
     speckle.inputs["Scale"].default_value = 18.0
     speckle.inputs["Detail"].default_value = 10.0
@@ -1136,14 +1254,14 @@ def _bury_material():
     rich = tree.nodes.new("ShaderNodeMixRGB")
     rich.blend_type = "MULTIPLY"
     rich.inputs["Fac"].default_value = 0.55
-    rich.inputs["Color2"].default_value = (0.45, 0.95, 0.32, 1)
+    rich.inputs["Color2"].default_value = (0.72, 0.95, 0.55, 1)
     tree.links.new(floor.outputs["Color"], rich.inputs["Color1"])
     mossy = tree.nodes.new("ShaderNodeMixRGB")
-    mossy.inputs["Fac"].default_value = 0.35
+    mossy.inputs["Fac"].default_value = 0.28
     tree.links.new(rich.outputs["Color"], mossy.inputs["Color1"])
-    tree.links.new(moss.outputs["Color"], mossy.inputs["Color2"])
+    tree.links.new(mud.outputs["Color"], mossy.inputs["Color2"])
     tree.links.new(mossy.outputs["Color"], bsdf.inputs["Base Color"])
-    normal = image_node("grass_ground", color=False)
+    normal = image_node("leaves_forest_ground_nor_gl_4k.jpg", color=False)
     nmap = tree.nodes.new("ShaderNodeNormalMap")
     nmap.inputs["Strength"].default_value = 1.4
     tree.links.new(normal.outputs["Color"], nmap.inputs["Color"])
@@ -1158,20 +1276,19 @@ def _uneven_ground(kit):
     coll = kit.collection("Terrain")
     mesh = bpy.data.meshes.new("buried_avenue")
     bm = bmesh.new()
-    y0, y1 = -72.0, -14.0
-    step_y, step_x = 0.32, 0.32
+    y0, y1 = -72.0, -16.0
+    step_y, step_x = 0.22, 0.22
     rows = []
     y = y0
     while y <= y1:
-        left = _soil_edge(y, -1.0)
-        right = _soil_edge(y, 1.0)
+        left, right = -7.2, 7.2
         row = []
         x = left
         while x <= right:
             heave = _heave(x, y)
             edge = min(x - left, right - x)
             fade = min(1.0, edge / 1.1)
-            row.append(bm.verts.new((x, y, 1.2 + 0.42 * heave * fade)))
+            row.append(bm.verts.new((x, y, 1.22 + 0.12 * _heave(x, y))))
             x += step_x
         rows.append(row)
         y += step_y
@@ -1183,12 +1300,22 @@ def _uneven_ground(kit):
             face = bm.faces.new((row[i], row[i + 1], nxt[i + 1], nxt[i]))
             for loop in face.loops:
                 co = loop.vert.co
-                loop[uv].uv = (co.x * 0.9, co.y * 0.9)
+                loop[uv].uv = (co.x * 0.5, co.y * 0.5)
     bm.to_mesh(mesh)
     bm.free()
     mesh.materials.append(_bury_material())
     obj = bpy.data.objects.new("buried_avenue", mesh)
     coll.objects.link(obj)
+    disp_path = Path("/opt/cursor/asset-cache/cc0/textures/ground4k/leaves_forest_ground_disp_4k.jpg")
+    if disp_path.exists():
+        tex = bpy.data.textures.new("SoilDisp", type="IMAGE")
+        tex.image = bpy.data.images.load(str(disp_path), check_existing=True)
+        tex.image.colorspace_settings.name = "Non-Color"
+        mod = obj.modifiers.new("Heave", "DISPLACE")
+        mod.texture = tex
+        mod.texture_coords = "UV"
+        mod.strength = 0.16
+        mod.mid_level = 0.5
     kit.add(obj, "groundwear", sink=False)
     return obj
 
@@ -1205,48 +1332,90 @@ def _asphalt_slabs(kit):
     for i in range(11):
         slab = _ground_patch(coll, mat, rng.uniform(1.4, 2.8), rng.uniform(1.1, 2.4))
         x = rng.choice((-1.0, 1.0)) * rng.uniform(1.2, 4.8)
-        y = rng.uniform(-50.0, -24.0)
+        y = rng.uniform(-46.0, -26.0)
         slab.location = (x, y, 1.22 + 0.25 * _heave(x, y))
         slab.rotation_euler = (rng.uniform(-0.12, 0.14), rng.uniform(-0.1, 0.1), rng.random() * 6.0)
         kit.add(slab, "groundwear", sink=False)
 
 
 def _scatter_plants(kit):
-    """Tall grass, ferns and bushes along both edges. The centre of the avenue stays open."""
-    from engine.scenes import _plant
+    """Geometry Nodes scatter of real grass and ferns on the sidewalk lines."""
+    from engine import found_assets
 
     plants = kit.collection("Plants")
-    rng = random.Random(9)
-    clumps = (
-        "grass_medium_01", "grass_medium_02", "grass_bermuda_01",
-        "fern_02", "weed_plant_02", "shrub_01", "shrub_02",
-    )
-    for i in range(70):
-        slug = clumps[i % 3]
-        x = rng.uniform(-3.2, 3.2)
-        y = rng.uniform(-58.0, -22.0)
-        _plant(kit, plants, slug, x, y, 1.28 + 0.1 * _heave(x, y), rng.uniform(0.8, 1.7), delay=0.1, yaw=rng.random() * 6.0)
-    for i in range(110):
-        slug = clumps[i % len(clumps)]
-        side = -1.0 if i % 2 == 0 else 1.0
-        y = rng.uniform(-50.0, -20.0)
-        if "shrub" in slug or slug == "fern_02":
-            x = side * rng.uniform(4.2, 8.5)
-            height = rng.uniform(1.1, 2.2)
-        else:
-            x = side * rng.uniform(2.6, 6.5)
-            height = rng.uniform(0.9, 1.8)
-        _plant(kit, plants, slug, x, y, 1.35 + 0.15 * _heave(x, y), height, delay=0.12, yaw=rng.random() * 6.0)
-    # Ivy and ferns across the street faces, enough to read as a covered wall.
-    for side, x in ((-1.0, -14.2), (1.0, 14.8)):
-        for y in range(-50, -26, 6):
-            for z in (3.0, 8.0):
-                _plant(
-                    kit, plants, "fern_02",
-                    x, float(y), z, 2.4, delay=0.2, yaw=side, role="year_age",
-                )
-    for i, (x, y) in enumerate(((-8.2, -40.0), (-6.0, -34.0), (7.5, -42.0), (6.2, -32.0), (9.2, -44.0), (8.4, -40.0))):
-        _plant(kit, plants, "shrub_02", x, y, 1.6 if i < 4 else 3.2, 1.8, delay=0.25, yaw=i, role="year_age")
+    protos = bpy.data.collections.new("Year500Clumps")
+    bpy.context.scene.collection.children.link(protos)
+    for slug, height in (
+        ("grass_medium_01", 1.2),
+        ("grass_medium_02", 1.5),
+        ("grass_bermuda_01", 0.9),
+        ("fern_02", 1.3),
+        ("shrub_01", 1.4),
+    ):
+        obj = found_assets.place(plants, slug, (0.0, 0.0, -80.0), 0.0, height, name=f"proto_{slug}")
+        if obj is None:
+            continue
+        for owner in list(obj.users_collection):
+            owner.objects.unlink(obj)
+        protos.objects.link(obj)
+        obj.hide_render = True
+    if not protos.objects:
+        print("scatter empty", flush=True)
+        return
+    mesh = bpy.data.meshes.new("edge_scatter")
+    bm = bmesh.new()
+    for x0, x1 in ((-9.0, -4.5), (4.5, 9.0)):
+        y = -52.0
+        row_a = []
+        while y <= -20.0:
+            row_b = [bm.verts.new((x0, y, 1.3)), bm.verts.new((x1, y, 1.3))]
+            if row_a:
+                bm.faces.new((row_a[0], row_a[1], row_b[1], row_b[0]))
+            row_a = row_b
+            y += 1.2
+    bm.to_mesh(mesh)
+    bm.free()
+    obj = bpy.data.objects.new("edge_scatter", mesh)
+    plants.objects.link(obj)
+    tree = bpy.data.node_groups.new("EdgeScatter", "GeometryNodeTree")
+    tree.interface.new_socket("Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
+    tree.interface.new_socket("Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
+    nodes = tree.nodes
+    links = tree.links
+    group_in = nodes.new("NodeGroupInput")
+    group_out = nodes.new("NodeGroupOutput")
+    distribute = nodes.new("GeometryNodeDistributePointsOnFaces")
+    distribute.inputs["Density"].default_value = 2.4
+    collect = nodes.new("GeometryNodeCollectionInfo")
+    collect.inputs["Collection"].default_value = protos
+    collect.inputs["Separate Children"].default_value = True
+    collect.inputs["Reset Children"].default_value = True
+    collect.transform_space = "RELATIVE"
+    pick = nodes.new("FunctionNodeRandomValue")
+    pick.data_type = "INT"
+    pick.inputs["Min"].default_value = 0
+    pick.inputs["Max"].default_value = max(len(protos.objects), 1)
+    scale = nodes.new("FunctionNodeRandomValue")
+    scale.data_type = "FLOAT_VECTOR"
+    scale.inputs["Min"].default_value = (0.75, 0.75, 0.7)
+    scale.inputs["Max"].default_value = (1.25, 1.25, 1.45)
+    spin = nodes.new("FunctionNodeRandomValue")
+    spin.data_type = "FLOAT_VECTOR"
+    spin.inputs["Max"].default_value = (0.0, 0.0, 6.28)
+    inst = nodes.new("GeometryNodeInstanceOnPoints")
+    inst.inputs["Pick Instance"].default_value = True
+    links.new(group_in.outputs["Geometry"], distribute.inputs["Mesh"])
+    links.new(distribute.outputs["Points"], inst.inputs["Points"])
+    links.new(collect.outputs["Instances"], inst.inputs["Instance"])
+    links.new(pick.outputs["Value"], inst.inputs["Instance Index"])
+    links.new(spin.outputs["Value"], inst.inputs["Rotation"])
+    links.new(scale.outputs["Value"], inst.inputs["Scale"])
+    links.new(inst.outputs["Instances"], group_out.inputs["Geometry"])
+    mod = obj.modifiers.new("Scatter", "NODES")
+    mod.node_group = tree
+    kit.plant_scatter = obj
+    obj.hide_render = True
+    print("scatter protos", len(protos.objects), flush=True)
 
 
 def _ground_cover(kit):
@@ -1365,11 +1534,7 @@ def _year500_set(kit):
     """The same street, with one fractured building lying across it and a taller forest."""
     coll = kit.collection("City")
     plants = kit.collection("Plants")
-    sources = _ruin_sources()
     made = 0
-    if sources:
-        _lay_fractured_tower(kit, sources[0])
-        made += 1
     tree_paths = (
         Path("/opt/cursor/asset-cache/cc0/polyhaven/island_tree_02/island_tree_02_1k.gltf"),
         Path("/opt/cursor/asset-cache/cc0/polyhaven/tree_small_02/tree_small_02_1k.gltf"),
@@ -1383,7 +1548,7 @@ def _year500_set(kit):
     rng = random.Random(3)
     # Sidewalk lines, at least 15 m from the camera at y=-66, and off the axis.
     spots = []
-    for x0 in (-8.6, 9.0):
+    for x0 in (-7.0, 7.4):
         for y in range(-48, -22, 8):
             spots.append((x0 + rng.uniform(-0.3, 0.3), float(y)))
     for x, y in ((-6.8, -39.0), (7.2, -32.0)):
@@ -1392,7 +1557,7 @@ def _year500_set(kit):
         if not loaded:
             break
         mesh, native = loaded[0]
-        height = rng.uniform(14.0, 18.0)
+        height = rng.uniform(11.0, 17.0)
         tree = _spawn_mesh(
             plants, mesh,
             (x, y, 1.25),
@@ -1414,10 +1579,6 @@ def _year500_set(kit):
                 rng.random() * 6.0, size / max(native, 0.2), "rubble_pile",
             )
             kit.add(pile, "rubble_hill", sink=False)
-    for x, y, z in ((-5.5, -39.5, 2.6), (-1.0, -36.0, 3.1), (3.5, -33.0, 2.8), (6.5, -31.0, 2.3)):
-        slab = _slab(coll, (x, y, z), (3.4, 1.8, 0.2))
-        slab.rotation_euler = (0.35, 0.15, 0.62)
-        kit.add(slab, "fracture500", sink=False)
     print("year500 pieces", made, flush=True)
 
 
@@ -1588,19 +1749,17 @@ def drive(kit, ch):
             obj.hide_render = fallen
             continue
         obj.hide_render = False
-        if fallen and obj.get("mid_y", 0.0) > 0.0:
-            _shorten_block(obj, 0.45)
     for decal in getattr(kit, "window_decals", ()) or ():
+        decal.hide_render = False
         decal.location.z = 0.0
         decal.scale.z = 1.0
-        if decal in street or fallen:
-            decal.hide_render = fallen
-            continue
-        decal.hide_render = False
     for obj in getattr(kit, "facade_originals", ()) or ():
         obj.hide_render = fallen
     for obj in getattr(kit, "facade_ruins", ()) or ():
         obj.hide_render = not fallen
+    scatter = getattr(kit, "plant_scatter", None)
+    if scatter is not None:
+        scatter.hide_render = not fallen
     if fallen:
         _break_glass()
         _push_decay(1.0, 1.0)
@@ -1615,26 +1774,24 @@ def drive(kit, ch):
         shard.hide_render = not fallen
     node = getattr(kit, "fog_density", None)
     if node is not None:
-        node.outputs[0].default_value = 0.005 if fallen else 0.0
+        node.outputs[0].default_value = 0.0035 if fallen else 0.0
     fog_mat = bpy.data.materials.get("StreetFog")
     if fog_mat is not None and fog_mat.node_tree is not None:
         vol = next((n for n in fog_mat.node_tree.nodes if n.type == "VOLUME_PRINCIPLED"), None)
         if vol is not None:
             if "Anisotropy" in vol.inputs:
                 vol.inputs["Anisotropy"].default_value = 0.84 if fallen else 0.62
-            vol.inputs["Color"].default_value = (0.9, 0.93, 0.86, 1) if fallen else (0.92, 0.88, 0.78, 1)
+            vol.inputs["Color"].default_value = (0.93, 0.92, 0.9, 1)
     sun = getattr(kit, "sun", None)
     if sun is not None:
         _sun_down_the_street(sun, 1.0 if fallen else 0.0)
         if fallen:
-            sun.data.energy = 9.0
-            sun.data.angle = 0.015
-            sun.data.color = (1.0, 0.68, 0.38)
+            sun.data.energy = 6.0
+            sun.data.angle = 0.02
+            sun.data.color = (1.0, 0.9, 0.76)
     scene = bpy.context.scene
-    scene.view_settings.exposure = 0.22 if fallen else 0.42
+    scene.view_settings.exposure = 0.42
     try:
-        scene.view_settings.look = "AgX - Medium High Contrast" if fallen else "AgX - Base Contrast"
+        scene.view_settings.look = "AgX - Base Contrast"
     except TypeError:
         pass
-    if getattr(kit, "world_bg", None) is not None and fallen:
-        kit.world_bg.inputs[1].default_value = 0.85
