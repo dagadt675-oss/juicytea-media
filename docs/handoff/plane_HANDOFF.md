@@ -10,7 +10,7 @@ What exists now:
 
 - Approval stills in `v/plane_tests/` (`00_hook` through `07_forest`). City altitude and the mountain range were revised again on 12 Oct 2026. `01_city_flyover` and `03_mountains` were re-rendered at full resolution after that revision. The other six stills are from the previous fix pass (clouds, x-ray, 44% label, forest, jet cheatline) and were not invalidated by the altitude/range edit except that the film clock’s altitude is now higher.
 - There is no finished `plane_seat_silent.mp4` in git. A CPU film render was started and then stopped when Kristóf moved final frames to Colab. About 530 beauty frames of an older altitude existed in `/tmp/plane_seat_cache/beauty/` and must not be reused.
-- The deliverable for the picture is the Colab bundle at `/opt/cursor/artifacts/colab_bundle/plane_seat/`. Kristóf renders frames 1–984 on a Tesla T4 (OptiX). This VM does not render the full film.
+- The deliverable for the picture is the Colab bundle at `/opt/cursor/artifacts/colab_bundle/plane_seat_preview/`. Header `BLENDER-v402`. Kristóf renders frames 1–984 on a Tesla T4 (OptiX). This VM does not render the full film. The local CPU render stopped around frame 439/984 and those frames are not the master.
 - Working branch: `cursor/plane-seat-final-film-4316`. Draft PR: https://github.com/dagadt675-oss/juicytea-media/pull/25
 
 What the last session was doing: raising the flight so the city reads as a flyover, replacing the two floating cliff rocks with the downloaded `gaea_range` terrain plus two summit models, packing that scene as a Blender 4.2.3 blend, and rendering four full-resolution preview frames from the unpacked bundle (start, city, mountains, end).
@@ -35,7 +35,7 @@ Rules, in the order they were given. Later rules override earlier ones when they
 14. Flight altitude must be believable. The city beat is a flyover, not a rooftop scrape.
 15. Speedups are allowed only when the picture does not visibly change. The bar used in the bench was SSIM about 0.99. Adaptive sampling at 2 samples failed that bar. 4 samples with adaptive sampling and OpenImageDenoise was kept.
 16. Do not render the full 984-frame film on this VM. Final frames go to a Colab bundle. Kristóf renders them on a Tesla T4 with OptiX.
-17. The Colab bundle is a packed `scene.blend` (Blender 4.2.3, because Colab runs 4.2.3), `render.py START END`, and `manifest.json`. Cycles GPU, OptiX then CUDA, all non-CPU devices enabled, final samples, 1080×1920, PNG at `//frames/####`. Parts at most 1.9 GB, in `/opt/cursor/artifacts/colab_bundle/plane_seat/`. Verify 2 frames from the unpacked bundle. Include 4 preview stills (start, city, mountains, end) at 1080×1920 in `stills/`.
+17. The Colab bundle is a packed `scene.blend` saved in Blender 4.2.3 (file header `BLENDER-v402`, not a 4.5 file), `render.py START END`, and `manifest.json` with the edit/overlay block. Cycles GPU, OptiX then CUDA, all non-CPU devices enabled, final samples, 1080×1920, PNG at `//frames/####`. Parts at most 1.9 GB, in `/opt/cursor/artifacts/colab_bundle/plane_seat_preview/`. Two test stills are rendered from that exact unpacked file in 4.2.3.
 18. Licensed private assets (BlendKit, Sketchfab Free Standard, hub mountains) may be packed into that bundle and must never be committed to the public repo.
 19. Karaoke, pills, grade, SFX, and the retime stay outside Blender. The 3D percent labels are inside the beauty pass.
 20. Keep this handoff updated at the end of every future run. Copy it to `/opt/cursor/artifacts/handoff/`.
@@ -234,7 +234,7 @@ Segmented rendering (`whatif/engine/segments.py`) cuts a film into 2–5 s chunk
 
 Colab bundle contents after `cat` and `unzip`:
 
-- `scene.blend` — zstd-compressed file, header `BLENDER-v402`, 250,231,977 bytes. Written by Blender 4.2.3, not 4.5. Opening it in 4.2.3 keeps the camera: lens 28 mm, vertical sensor 24 mm, clip 0.05–50000, depth of field on, 1080×1920, AgX high contrast, exposure −0.55, samples 4. A 4.5 save was rejected on the penny bundle because 4.2.3 dropped data such as lens. All file images are packed. Sky HDRIs have fake users so they survive save. Paths were remade relative. No Alembic. The ocean is a live Ocean modifier. Clouds are Principled Volume cubes, not an add-on. Easy Clouds is not required. The four files in `stills/` were rendered from this exact unpacked blend with Blender 4.2.3.
+- `scene.blend` — zstd-compressed file, header `BLENDER-v402`, 250,231,977 bytes, in `/opt/cursor/artifacts/colab_bundle/plane_seat_preview/`. Written by Blender 4.2.3, not 4.5. Opening it in 4.2.3 keeps the camera: lens 28 mm, vertical sensor 24 mm, clip 0.05–50000, depth of field on, 1080×1920, AgX high contrast, exposure −0.55, samples 4. A 4.5 save was rejected on the penny bundle because 4.2.3 dropped data such as lens. All file images are packed. Sky HDRIs have fake users so they survive save. Paths were remade relative. No Alembic. The ocean is a live Ocean modifier. Clouds are Principled Volume cubes, not an add-on. Easy Clouds is not required. `stills/frame_0001.png` and `stills/frame_0061.png` were rendered from this exact unpacked blend with Blender 4.2.3.
 - `render.py` — `blender -b scene.blend -P render.py -- START END`. OptiX, then CUDA, every non-CPU device enabled, else CPU. Writes `//frames/####.png`. Vendored pose code is `py/plane_seat/` inside the zip. Nothing outside the bundle is required.
 - `manifest.json` — fps 30, frames 1–984, samples 4, adaptive 0.02, min samples 2, OIDN, resolution 1080×1920, `est_seconds_per_frame_on_your_cpu` 18 (median 17.5 s, mean 18.2 s, range 14.8–24.7 s on 530 frames of the previous altitude on this 4-core VM). Overlay notes: karaoke x 90–900 y 1120–1420, pills y 300–1050, then teal/orange grade and grain, silent H.264, then itsscale. 3D labels are already in the beauty frames. SFX are outside Blender.
 
@@ -242,14 +242,14 @@ Zip on disk:
 
 | File | Bytes |
 | --- | --- |
-| `plane_seat.zip.00` | 94,371,840 |
-| `plane_seat.zip.01` | 94,371,840 |
-| `plane_seat.zip.02` | 58,591,548 |
-| Reassembled zip | 247,335,228 |
+| `plane_seat_preview.zip.00` | 94,371,840 |
+| `plane_seat_preview.zip.01` | 94,371,840 |
+| `plane_seat_preview.zip.02` | 58,591,646 |
+| Reassembled zip | 247,335,326 |
 
 ```bash
-cat plane_seat.zip.* > plane_seat_full.zip
-unzip plane_seat_full.zip
+cat plane_seat_preview.zip.* > plane_seat_preview_full.zip
+unzip plane_seat_preview_full.zip
 blender -b scene.blend -P render.py -- 1 120
 ```
 
