@@ -59,7 +59,7 @@ Wait for Kristóf to review the four stills in `whatif/review/ready_city/four_st
 
 ### 2026-10-12 — street-level film camera
 
-The Year 500 glides stay low, about 1.5–1.6 m. Foliage inside the lens corridor is removed so the Miura, the ivy wall, and the fallen corner stay visible; plants outside it remain. Ivy leaves that leave the wall are dropped. The camera flies back to the 1.70 m opening pose by 55.5 s. Check stills are `drone_start.png`, `drone_mid.png`, `drone_end.png`, and `drone_return.png`. No full-film render on this machine.
+The Year 500 glides are at 1.84–1.90 m, with the look within 10° of level. Leaves inside 1.2 m of the lens are removed. The centre fern scatter starts further up the avenue so the subjects stay readable, and ferns remain on the sidewalks and around the ruin. The span subject is one Ruined City chunk (`node_0.006`), turned onto its side, rigid-body rested, then dropped so the windowed face sits on the avenue. Ivy leaves that leave the wall are dropped. The camera is back on the 1.70 m opening pose by 55.5 s. Check stills are `drone_start.png`, `drone_mid.png`, `drone_end.png`, and `drone_return.png`. No full-film render on this machine.
 
 ### 2026-10-12 — walking crowd and a real year 100
 

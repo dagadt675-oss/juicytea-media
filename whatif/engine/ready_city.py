@@ -29,10 +29,10 @@ LENS = 28.0
 SHIFT_Y = 0.06
 # Leaves inside 1.2 m of this line are removed. The meadow past that stays.
 GLIDE_PATH = (
-    (-1.85, -56.1),
-    (-1.35, -55.1),
-    (6.20, -49.6),
-    (0.20, -48.6),
+    (-2.2, -57.8),
+    (-1.6, -56.4),
+    (1.6, -57.0),
+    (3.2, -48.2),
 )
 BLOCKS = {
     "c6": "procedural_city_6.glb",
@@ -1120,37 +1120,121 @@ def _rest_shard(obj, ground=1.30):
     return True
 
 
+def _rest_rigid(obj, ground_z=1.28):
+    """Drop one mesh onto a passive floor and leave it where it settles."""
+    scene = bpy.context.scene
+    if scene.rigidbody_world is None:
+        bpy.ops.rigidbody.world_add()
+    world = scene.rigidbody_world
+    world.point_cache.frame_start = 1
+    world.point_cache.frame_end = 60
+    bpy.ops.mesh.primitive_plane_add(size=40, location=(0.6, -41.0, ground_z))
+    floor = bpy.context.active_object
+    floor.hide_render = True
+    bpy.ops.rigidbody.object_add()
+    floor.rigid_body.type = "PASSIVE"
+    floor.rigid_body.collision_shape = "BOX"
+    floor.rigid_body.friction = 0.95
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.rigidbody.object_add()
+    obj.rigid_body.type = "ACTIVE"
+    obj.rigid_body.collision_shape = "CONVEX_HULL"
+    obj.rigid_body.friction = 0.9
+    obj.rigid_body.linear_damping = 0.55
+    obj.rigid_body.angular_damping = 0.7
+    obj.rigid_body.collision_margin = 0.04
+    scene.frame_start = 1
+    scene.frame_end = 60
+    for frame in range(1, 61):
+        scene.frame_set(frame)
+    bpy.context.view_layer.update()
+    settled = obj.matrix_world.copy()
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.rigidbody.object_remove()
+    obj.matrix_world = settled
+    bpy.data.objects.remove(floor, do_unlink=True)
+    scene.frame_set(1)
+    bpy.context.view_layer.update()
+    pts = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+    obj.location.z += ground_z + 0.02 - min(point.z for point in pts)
+
+
+def _fallen_hub_chunk(coll):
+    """The tallest Ruined City block, turned onto its side so a windowed face shows."""
+    from engine.scenes import _ruin_shells
+
+    _ruin_shells()
+    src = None
+    best_h = 0.0
+    for obj in bpy.data.objects:
+        if obj.type != "MESH" or obj.data is None or not obj.name.startswith("node_0"):
+            continue
+        pts = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+        height = max(point.z for point in pts) - min(point.z for point in pts)
+        if height > best_h:
+            best_h = height
+            src = obj
+    if src is None:
+        return None
+    copy = src.copy()
+    coll.objects.link(copy)
+    copy.parent = None
+    copy.matrix_parent_inverse.identity()
+    copy.matrix_world = src.matrix_world.copy()
+    copy.rotation_mode = "XYZ"
+    # Laid across the avenue. This pose keeps a windowed wall toward the street.
+    copy.rotation_euler = (0.0, -math.pi / 2.0, 0.4)
+    copy.hide_render = False
+    copy.hide_viewport = False
+    return copy
+
+
 def _open_the_corner(kit, chunk, coll):
-    """Break the laid corner into hub-fractured chunks and rebar, across the avenue."""
-    shards = _fracture_host(chunk, 6)
-    pieces = []
-    if len(shards) >= 3:
-        chunk.hide_render = True
-        kit.fallen_shards = [item for item in kit.fallen_shards if item is not chunk]
-        for index, shard in enumerate(shards):
-            if shard.name not in coll.objects:
-                coll.objects.link(shard)
-            shard.location.x += (index - 2.5) * 1.6
-            shard.location.y += (index % 3 - 1) * 0.8
-            shard.rotation_euler.z += (index - 2) * 0.4
-            if _rest_shard(shard):
-                pieces.append(shard)
-    else:
-        pieces.append(chunk)
-    path = Path("/opt/cursor/asset-cache/private/debris/concrete_rubble_steel.glb")
-    mesh = _visual_mesh(path) if path.exists() else None
-    if mesh is not None:
-        native = max(_size(mesh))
-        for index, (x, y, yaw, height) in enumerate((
-            (0.4, -40.6, 0.6, 3.2),
-            (2.4, -39.2, 1.8, 2.4),
-            (-1.2, -41.4, 2.4, 2.8),
-        )):
-            rebar = _spawn_mesh(coll, mesh, (x, y, 1.3), yaw, height / max(native, 0.2), "rebar_chunk")
-            if _rest_shard(rebar):
-                pieces.append(rebar)
-    kit.fallen_shards = list(kit.fallen_shards) + pieces
-    print("corner pieces", len(pieces), flush=True)
+    """One hub floor chunk, rested flat across the avenue."""
+    for item in list(getattr(kit, "fallen_shards", ()) or ()):
+        item.hide_render = True
+    chunk.hide_render = True
+    piece = _fallen_hub_chunk(coll)
+    if piece is None:
+        kit.fallen_shards = []
+        print("hub ruin missing", flush=True)
+        return
+    piece.name = "hub_span"
+    bpy.context.view_layer.update()
+    pts = [piece.matrix_world @ Vector(corner) for corner in piece.bound_box]
+    piece.location.x += 0.6 - (min(p.x for p in pts) + max(p.x for p in pts)) * 0.5
+    piece.location.y += -36.0 - (min(p.y for p in pts) + max(p.y for p in pts)) * 0.5
+    piece.location.z += 1.30 - min(p.z for p in pts)
+    bpy.context.view_layer.update()
+    seated = piece.matrix_world.copy()
+    _rest_rigid(piece)
+    bpy.context.view_layer.update()
+    pts = [piece.matrix_world @ Vector(corner) for corner in piece.bound_box]
+    height = max(p.z for p in pts) - min(p.z for p in pts)
+    if height > 7.2 or height < 4.0:
+        piece.matrix_world = seated
+        bpy.context.view_layer.update()
+        pts = [piece.matrix_world @ Vector(corner) for corner in piece.bound_box]
+        piece.location.z += 1.30 - min(p.z for p in pts)
+        bpy.context.view_layer.update()
+        pts = [piece.matrix_world @ Vector(corner) for corner in piece.bound_box]
+    # The windowed face overhangs the lowest vertex. Drop it onto the avenue.
+    piece.location.z -= 1.8
+    bpy.context.view_layer.update()
+    pts = [piece.matrix_world @ Vector(corner) for corner in piece.bound_box]
+    print(
+        "hub span",
+        "x", round(min(p.x for p in pts), 1), round(max(p.x for p in pts), 1),
+        "y", round(min(p.y for p in pts), 1), round(max(p.y for p in pts), 1),
+        "z", round(min(p.z for p in pts), 1), round(max(p.z for p in pts), 1),
+        flush=True,
+    )
+    kit.fallen_shards = [piece]
+    kit.hub_span = piece
 
 
 def _cut_street_facades(kit, tall, windows, dome):
@@ -1262,7 +1346,7 @@ def _ivy_holds_the_wall(obj, host):
         if not found:
             doomed.append(vert)
             continue
-        if (point - (host.matrix_world @ hit)).length > 0.75:
+        if (point - (host.matrix_world @ hit)).length > 0.28:
             doomed.append(vert)
         else:
             kept.append(vert)
@@ -1616,8 +1700,10 @@ def _scatter_plants(kit):
         return
     mesh = bpy.data.meshes.new("edge_scatter")
     bm = bmesh.new()
-    for x0, x1 in ((-8.5, -3.5), (-3.5, 3.5), (3.5, 8.5)):
-        y = -60.0
+    # Sidewalks stay thick. The avenue centre starts further away so a glide
+    # can see its subject, with ferns still around the fallen chunk.
+    for x0, x1, y_start in ((-8.5, -3.5, -60.0), (-3.5, 3.5, -39.0), (3.5, 8.5, -60.0)):
+        y = y_start
         row_a = []
         while y <= -20.0:
             row_b = [bm.verts.new((x0, y, 1.3)), bm.verts.new((x1, y, 1.3))]
@@ -1862,7 +1948,7 @@ def _year500_set(kit):
             sap = _spawn_mesh(plants, mesh, (x, y, 1.35), i, rng.uniform(3.5, 6.0) / native, "sapling")
             kit.add(sap, "swallow", sink=False)
     from engine.scenes import _plant
-    for i, (x, y) in enumerate(((0.4, -39.0), (2.2, -41.0), (-0.6, -38.0))):
+    for i, (x, y) in enumerate(((-6.2, -36.0), (6.4, -34.5), (0.6, -30.5))):
         _plant(kit, plants, "fern_02", x, y, 1.6, 0.7, delay=0.2, yaw=i, role="swallow")
     # The near half of the frame. Tall clumps, two saplings, and a little rubble.
     near = (
@@ -1913,9 +1999,25 @@ def _year500_set(kit):
     for i, (x, y) in enumerate((
         (-1.1, -54.2), (0.8, -53.4), (-0.2, -55.2),
         (-0.5, -53.2), (0.4, -54.8), (-1.0, -54.8),
-        (0.2, -40.4), (1.8, -39.6), (-0.6, -41.0), (2.6, -41.2),
     )):
-        _plant(kit, plants, "fern_02", x, y, 1.32, 0.85 if y < -50 else 0.7, delay=0.2, yaw=i, role="swallow")
+        _plant(kit, plants, "fern_02", x, y, 1.32, 0.85, delay=0.2, yaw=i, role="swallow")
+    span = getattr(kit, "hub_span", None)
+    if span is not None:
+        bpy.context.view_layer.update()
+        pts = [span.matrix_world @ Vector(corner) for corner in span.bound_box]
+        cx = (min(p.x for p in pts) + max(p.x for p in pts)) * 0.5
+        cy = (min(p.y for p in pts) + max(p.y for p in pts)) * 0.5
+        top = max(p.z for p in pts)
+        for i, (dx, dy, slug, height, z) in enumerate((
+            (-5.4, 0.4, "fern_02", 0.9, 1.32),
+            (5.2, -0.6, "shrub_01", 1.1, 1.32),
+            (-4.6, 4.2, "fern_02", 0.8, 1.32),
+            (4.4, 3.6, "grass_medium_02", 0.7, 1.32),
+            (-5.8, 2.2, "fern_02", 0.7, 1.32),
+            (5.6, 2.4, "shrub_01", 0.8, 1.32),
+            (0.4, 5.2, "grass_medium_01", 0.55, 1.32),
+        )):
+            _plant(kit, plants, slug, cx + dx, cy + dy, z, height, delay=0.2, yaw=i * 0.7, role="swallow")
     print("year500 pieces", made, flush=True)
 
 

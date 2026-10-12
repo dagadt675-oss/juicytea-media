@@ -15,9 +15,9 @@ One eased move, no cuts. The street portion stays at 1.70 m. The three glides st
 | 0–6 s | Hold at `(0, -66, 1.70)`, looking at `(0, -26, 2.40)`, 28 mm. Opening and the vanish. | |
 | 6–24 s | Creep to `(0.4, -63, 1.70)`, still looking down the street. | |
 | 24–36.5 s | Drift to the right curb as the ruin finishes. Year 100 is still on this low walk. | |
-| 36.5–39.2 s | Low pass over the rusted Miura. Look stays within 10° of level. Leaves inside 1.2 m of the lens are removed. | `drone_husk` |
-| 39.2–41.8 s | Level look at the lower broken windows of the right tower. | `drone_facade` |
-| 41.8–44.4 s | The broken tower pieces lying in the avenue. | `drone_span` |
+| 36.5–39.2 s | Pass over the rusted Miura at 1.90 m. Look stays within 10° of level. Leaves inside 1.2 m of the lens are removed. | `drone_husk` |
+| 39.2–41.8 s | Level look at the cracked dome and its round opening, from the avenue. | `drone_facade` |
+| 41.8–44.4 s | The windowed hub ruin lying across the avenue, seated on the ground. | `drone_span` |
 | 44.4–55.5 s | Fly back to the opening pose. Speed is zero at both ends. | the old orbit's return, without the climb |
 | 55.5–60 s | Hold the opening pose. The city returns underneath it at 55.8 s, so the last frame is the first frame. | |
 
@@ -37,7 +37,7 @@ Decay starts on the ground and at the edges, then climbs. A later era only adds 
 | 20–50 years | streets, houses | Weeds reach the centre line. Cars dull and drop. Lower windows start to fail. Grime gathers at the base of walls, not the roofs. |
 | Year 100 | frame 860 | Grass and weeds through cracked asphalt on both curbs and down the centre. Young trees, 3–6 m, on the sidewalks. Ivy on the lower two or three floors. Heavy grime and rain streaks. Many broken windows. The dome is stained. Cars are rust-brown, on flat tyres, with plants around them. No fallen tower yet. |
 | 300 years | bridge beat | The same damage climbs. Upper floors stain. A few panels loosen. The street trees thicken. The tower is still standing. |
-| Year 500 | frame 1096, then the three low glides | The right-tower corner lies in the avenue. Ivy and the broadleaf trees fill the sidewalks. The dome is cracked. The Miura is the same car, rusted and half buried. The camera then glides low over that car, along the ivy and broken windows, and past the fallen corner. |
+| Year 500 | frame 1096, then the three low glides | One Ruined City chunk lies across the avenue, windowed face toward the street, bottom on the ground. Ivy and the broadleaf trees fill the sidewalks. The dome is cracked. The Miura is the same car, rusted, on flat tyres. The camera then glides over that car, along the dome, and past the fallen chunk. |
 
 Spatial order inside each era: curb and wall base first, then the centre of the road, then up the facade. The near foreground and the far end of the avenue decay together. Nothing clean is left beside something already overgrown, except the upper floors, which stay cleaner than the bases until year 500.
 
@@ -47,7 +47,7 @@ Frame 1 is t = 0. These are the ending checks, not a full render.
 
 | Still | Frame | Time | What it is |
 | --- | --- | --- | --- |
-| start | 1097 | 36.6 s | Low pass over the rusted Miura. Year 500 is fully on. |
-| mid | 1253 | 41.8 s | Along the right facade, low, looking at the ivy and the windows. |
-| end | 1331 | 44.4 s | Past the fallen tower corner in the avenue. |
+| start | 1097 | 36.6 s | The rusted Miura, camera at 1.90 m, look within 10° of level. |
+| mid | 1253 | 41.8 s | The cracked dome and its round opening, from the avenue. |
+| end | 1331 | 44.4 s | The hub ruin chunk lying across the avenue. |
 | return | 1681 | 56.0 s | Back on the opening pose. The city has returned, so this matches frame 1. |
