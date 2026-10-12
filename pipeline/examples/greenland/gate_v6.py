@@ -63,6 +63,46 @@ def from_video(path: Path) -> np.ndarray:
     return np.frombuffer(raw[:n * frame], np.uint8).reshape(n, H, W, 3)
 
 
+def local_spikes(frames: np.ndarray, rows: int = 6, cols: int = 4, fps: int = FPS) -> list[dict]:
+    """A pop in one part of the frame, even when the whole-frame average stays quiet."""
+    a = frames[:-1].astype(np.int16)
+    b = frames[1:].astype(np.int16)
+    diff = np.abs(a - b)
+    n, h, w, _ = diff.shape
+    bh, bw = h // rows, w // cols
+    cells = np.empty((n, rows, cols), np.float32)
+    for r in range(rows):
+        for c in range(cols):
+            cells[:, r, c] = diff[:, r * bh:(r + 1) * bh, c * bw:(c + 1) * bw].mean(axis=(1, 2, 3))
+    found = []
+    for i in range(n):
+        lo = max(0, i - 6)
+        hi = min(n, i + 7)
+        for r in range(rows):
+            for c in range(cols):
+                val = float(cells[i, r, c])
+                neigh = [float(cells[j, r, c]) for j in range(lo, hi) if j != i]
+                if not neigh:
+                    continue
+                med = float(np.median(neigh))
+                # 6x the local median, and an absolute floor of 10. A coast that
+                # is only re-encoded lands under 10. An element appearing, or the
+                # old single-frame style jump, clears it.
+                if val > 10.0 and val > 6.0 * max(med, 0.35):
+                    found.append({
+                        "frame": i + 1,
+                        "t": round((i + 1) / fps, 3),
+                        "cell": (r, c),
+                        "diff": round(val, 3),
+                        "median": round(med, 3),
+                    })
+                    break
+            else:
+                continue
+            break
+    return found
+
+
 def loop_seam(frames: np.ndarray) -> dict:
     """Last frame into frame 0. A pop is a seam much larger than the motion around it."""
     seam = float(np.abs(frames[-1].astype(np.int16) - frames[0].astype(np.int16)).mean())
@@ -80,13 +120,17 @@ def main() -> None:
     frames = from_video(path)
     report = gate(diffs_of(frames))
     seam = loop_seam(frames)
+    local = local_spikes(frames)
     print(f"frames {len(frames)} max {report['max']} spikes {len(report['spikes'])} dead {len(report['dead'])} pass {report['pass']}")
     print(f"loop seam {seam['seam']} median {seam['median']} pass {seam['pass']}")
+    print(f"local pops {len(local)} pass {not local}")
     for row in report["spikes"][:30]:
         print(" spike", row)
     for row in report["dead"][:20]:
         print(" dead", row)
-    if not report["pass"] or not seam["pass"]:
+    for row in local[:40]:
+        print(" local", row)
+    if not report["pass"] or not seam["pass"] or local:
         raise SystemExit(1)
 
 
