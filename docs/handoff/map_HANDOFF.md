@@ -4,7 +4,7 @@ Last updated: 2026-10-12.
 
 This file is the only briefing a new agent gets, plus the git repo. Read it before editing. Update it at the end of every future run that changes the picture, the rules, the branches, or the next step, then commit it on the branch you are actually working on and copy it to `/opt/cursor/artifacts/handoff/map_HANDOFF.md`.
 
-Picture this document describes: `greenland_africa_v12.mp4` on `cursor/greenland-africa-v12-7e9d`. v11 is the parent (`9562034` on `cursor/greenland-africa-v11-7e9d`).
+Picture this document describes: `greenland_africa_v12.mp4` in commit `4c9cf83` on `cursor/greenland-africa-v12-7e9d`. v11 is the parent (`9562034` on `cursor/greenland-africa-v11-7e9d`). PR #28.
 
 ## Where the code actually is
 
@@ -785,14 +785,15 @@ All of these were open drafts on 2026-10-11 unless noted. The map-Shorts camera 
 
 | PR | Head | Base | Title | Role |
 | --- | --- | --- | --- | --- |
-| (this branch) | `cursor/greenland-africa-v12-7e9d` | `cursor/greenland-africa-v11-7e9d` | v12 eases every pop the v11 review named | **Current.** v12 picture plus this handoff. |
+| #28 | `cursor/greenland-africa-v12-7e9d` | `cursor/greenland-africa-v11-7e9d` | Ease every pop the v11 review named | **Current.** v12 picture plus this handoff. |
 
-https://github.com/dagadt675-oss/juicytea-media/pull/26
+https://github.com/dagadt675-oss/juicytea-media/pull/28
 
 ### Map stack under it (ancestors, still open, not the place to edit)
 
 | PR | Head | Base | What it holds |
 | --- | --- | --- | --- |
+| #26 | `cursor/greenland-africa-v11-7e9d` | `cursor/greenland-africa-v10-7e9d` | Fourteen copies ease out, and the loop joins frame 0. The local pops Kristóf named are still in this file. |
 | #24 | `cursor/greenland-africa-v10-7e9d` | `cursor/greenland-africa-v9-7e9d` | Convex morph outline. The fourteen copies still vanish, and the loop still pops. |
 | #23 | `cursor/greenland-africa-v9-7e9d` | `cursor/greenland-africa-v8-7e9d` | Both projection blends are one geometry. The outline is still the raw mesh. |
 | #22 | `cursor/greenland-africa-v8-7e9d` | `cursor/greenland-africa-v7-7e9d` | Outbound zoom is one geometry. The way into the globe is still the old crossfade in that file. |
