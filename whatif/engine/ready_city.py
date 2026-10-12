@@ -52,6 +52,21 @@ def _hide_tree(obj, hide):
         child.hide_render = hide
 
 
+def _hide_for_glide(obj):
+    if "glide_hide0" not in obj:
+        obj["glide_hide0"] = bool(obj.hide_render)
+    obj["glide_hidden"] = True
+    _hide_tree(obj, True)
+
+
+def _release_glide_hides():
+    for obj in bpy.data.objects:
+        if not obj.get("glide_hidden"):
+            continue
+        _hide_tree(obj, bool(obj.get("glide_hide0")))
+        obj["glide_hidden"] = False
+
+
 def _aim(cam, target):
     direction = Vector(target) - cam.location
     cam.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
@@ -1475,6 +1490,7 @@ def _crowd(kit):
     if miura is not None:
         kit.add(miura, "car", path_from=miura_loc, path_to=miura_loc, index=11, hero=True, sink=False)
         _arm_hero_rust(miura)
+        _remember_hero(miura)
 
 
 def _ground_patch(coll, mat, width, length):
@@ -1557,7 +1573,11 @@ def _bury_material():
     speckle.inputs["Detail"].default_value = 10.0
     tree.links.new(coord.outputs["Object"], speckle.inputs["Vector"])
     floor = tree.nodes.new("ShaderNodeMixRGB")
-    tree.links.new(speckle.outputs["Fac"], floor.inputs["Fac"])
+    bias = tree.nodes.new("ShaderNodeMath")
+    bias.operation = "MULTIPLY"
+    bias.inputs[1].default_value = 0.28
+    tree.links.new(speckle.outputs["Fac"], bias.inputs[0])
+    tree.links.new(bias.outputs[0], floor.inputs["Fac"])
     tree.links.new(grass.outputs["Color"], floor.inputs["Color1"])
     tree.links.new(leaves.outputs["Color"], floor.inputs["Color2"])
     rich = tree.nodes.new("ShaderNodeMixRGB")
@@ -1566,7 +1586,7 @@ def _bury_material():
     rich.inputs["Color2"].default_value = (0.72, 0.95, 0.55, 1)
     tree.links.new(floor.outputs["Color"], rich.inputs["Color1"])
     mossy = tree.nodes.new("ShaderNodeMixRGB")
-    mossy.inputs["Fac"].default_value = 0.28
+    mossy.inputs["Fac"].default_value = 0.1
     tree.links.new(rich.outputs["Color"], mossy.inputs["Color1"])
     tree.links.new(mud.outputs["Color"], mossy.inputs["Color2"])
     tree.links.new(mossy.outputs["Color"], bsdf.inputs["Base Color"])
@@ -1683,6 +1703,9 @@ def _hide_doorway_cards():
             max(point.z for point in pts) - min(point.z for point in pts),
         )
         if size < 1.8:
+            if "glide_hide0" not in obj:
+                obj["glide_hide0"] = bool(obj.hide_render)
+            obj["glide_hidden"] = True
             obj.hide_render = True
             print("hid doorway", obj.name, round(size, 2), flush=True)
 
@@ -1695,7 +1718,7 @@ def _clear_glide_foliage(kit):
         points = [item.obj.matrix_world @ Vector(corner) for corner in item.obj.bound_box]
         points.append(item.obj.location)
         if any(_near_lens(point.x, point.y) for point in points):
-            _hide_tree(item.obj, True)
+            _hide_for_glide(item.obj)
     _hide_doorway_cards()
 
 
@@ -1707,11 +1730,11 @@ def _scatter_plants(kit):
     protos = bpy.data.collections.new("Year500Clumps")
     bpy.context.scene.collection.children.link(protos)
     for slug, height in (
-        ("grass_medium_01", 1.2),
-        ("grass_medium_02", 1.5),
-        ("grass_bermuda_01", 0.9),
-        ("fern_02", 1.3),
-        ("shrub_01", 1.4),
+        ("grass_bermuda_01", 0.45),
+        ("grass_medium_01", 0.75),
+        ("moss_01", 0.22),
+        ("fern_02", 0.55),
+        ("shrub_01", 0.85),
     ):
         obj = found_assets.place(plants, slug, (0.0, 0.0, -80.0), 0.0, height, name=f"proto_{slug}")
         if obj is None:
@@ -1725,17 +1748,17 @@ def _scatter_plants(kit):
         return
     mesh = bpy.data.meshes.new("edge_scatter")
     bm = bmesh.new()
-    # Sidewalks stay thick. The avenue centre starts further away so a glide
-    # can see its subject, with ferns still around the fallen chunk.
-    for x0, x1, y_start in ((-8.5, -3.5, -60.0), (-3.5, 3.5, -39.0), (3.5, 8.5, -60.0)):
+    # The whole soil sheet, including the avenue the glides look along.
+    # Points inside the lens corridor are deleted below.
+    for x0, x1, y_start in ((-7.4, 7.4, -70.0),):
         y = y_start
         row_a = []
-        while y <= -20.0:
+        while y <= -16.0:
             row_b = [bm.verts.new((x0, y, 1.3)), bm.verts.new((x1, y, 1.3))]
             if row_a:
                 bm.faces.new((row_a[0], row_a[1], row_b[1], row_b[0]))
             row_a = row_b
-            y += 1.2
+            y += 0.8
     bm.to_mesh(mesh)
     bm.free()
     obj = bpy.data.objects.new("edge_scatter", mesh)
@@ -1748,7 +1771,7 @@ def _scatter_plants(kit):
     group_in = nodes.new("NodeGroupInput")
     group_out = nodes.new("NodeGroupOutput")
     distribute = nodes.new("GeometryNodeDistributePointsOnFaces")
-    distribute.inputs["Density"].default_value = 1.5
+    distribute.inputs["Density"].default_value = 4.2
     collect = nodes.new("GeometryNodeCollectionInfo")
     collect.inputs["Collection"].default_value = protos
     collect.inputs["Separate Children"].default_value = True
@@ -1788,7 +1811,7 @@ def _scatter_plants(kit):
     gate = nodes.new("FunctionNodeCompare")
     gate.data_type = "FLOAT"
     gate.operation = "LESS_THAN"
-    gate.inputs["B"].default_value = 1.2
+    gate.inputs["B"].default_value = 0.4
     drop = nodes.new("GeometryNodeDeleteGeometry")
     drop.domain = "POINT"
     links.new(group_in.outputs["Geometry"], distribute.inputs["Mesh"])
@@ -2247,6 +2270,79 @@ def _flatten_wheels(obj):
         child.scale = (base[0], base[1], base[2] * 0.32)
 
 
+def _restore_wheels(obj):
+    for child in obj.children_recursive:
+        if "wheel" not in child.name.lower() or "wheel0" not in child:
+            continue
+        base = child["wheel0"]
+        child.scale = (base[0], base[1], base[2])
+
+
+_HERO_REST = {}
+
+
+def _remember_hero(root):
+    """Keep the showroom mesh so the loop can undo the year-500 crumple."""
+    if root is None:
+        return
+    for child in root.children_recursive:
+        if getattr(child, "type", "") != "MESH" or child.data is None:
+            continue
+        _HERO_REST[child.data.name] = [vert.co.copy() for vert in child.data.vertices]
+
+
+def _restore_hero_mesh(root):
+    if root is None:
+        return
+    for child in root.children_recursive:
+        if getattr(child, "type", "") != "MESH" or child.data is None:
+            continue
+        saved = _HERO_REST.get(child.data.name)
+        if not saved or len(saved) != len(child.data.vertices):
+            continue
+        for vert, co in zip(child.data.vertices, saved):
+            vert.co = co
+    root["nose_crumpled"] = False
+
+
+def _snap_opening_life(kit):
+    """The return beat uses the same poses as frame 1, so the loop closes."""
+    from engine.effects import _along
+
+    fps = 30.0
+    for item in kit.items:
+        obj = item.obj
+        if item.role == "person":
+            path = item.extra.get("path")
+            if not path:
+                continue
+            dist = (1.0 / fps) * float(item.extra.get("speed", 1.3)) + float(item.extra.get("phase", 0.0))
+            loc, yaw = _along(path, dist, loop=True)
+            loc.z = item.base_loc.z
+            obj.location = loc
+            obj.rotation_euler.z = yaw - math.pi / 2.0
+        elif item.role == "car" and item.extra.get("cruise"):
+            speed = float(item.extra.get("speed", 8.0))
+            dist = (1.0 / fps) * speed + float(item.extra.get("phase", 0.0))
+            loc, yaw = _along(item.extra["cruise"], dist, loop=not item.extra.get("stop_line"))
+            obj.location = loc
+            obj.rotation_euler = item.base_rot.copy()
+            obj.rotation_euler.z = yaw
+        elif item.role == "bike" and item.extra.get("path"):
+            dist = (1.0 / fps) * float(item.extra.get("speed", 4.5)) + float(item.extra.get("phase", 0.0))
+            loc, yaw = _along(item.extra["path"], dist, loop=True)
+            obj.location = loc
+            obj.rotation_euler.z = yaw
+
+
+def _restore_wheels(obj):
+    for child in obj.children_recursive:
+        if "wheel" not in child.name.lower() or "wheel0" not in child:
+            continue
+        base = child["wheel0"]
+        child.scale = (base[0], base[1], base[2])
+
+
 def _hide_foreground_tube(root):
     """The near tyre reads as a copper tube. It sits in front of the husk lens."""
     near = GLIDE_PATH[0]
@@ -2310,20 +2406,15 @@ def _arm_hero_rust(root):
 
             rust_col = tex(rust, True)
             rust_mix = tree.nodes.new("ShaderNodeMixRGB")
-            rust_mix.inputs["Fac"].default_value = 0.45
+            rust_mix.inputs["Fac"].default_value = 0.15
             tree.links.new(rust_col.outputs["Color"], rust_mix.inputs["Color1"])
             if metal is not None:
                 tree.links.new(tex(metal, True).outputs["Color"], rust_mix.inputs["Color2"])
             else:
-                rust_mix.inputs["Color2"].default_value = (0.15, 0.08, 0.04, 1.0)
-            patch = tree.nodes.new("ShaderNodeTexNoise")
-            patch.inputs["Scale"].default_value = 1.5
-            patch.inputs["Detail"].default_value = 6.0
-            tree.links.new(coord.outputs["Object"], patch.inputs["Vector"])
-            tree.links.new(patch.outputs["Fac"], rust_mix.inputs["Fac"])
+                rust_mix.inputs["Color2"].default_value = (0.35, 0.18, 0.08, 1.0)
             grade = tree.nodes.new("ShaderNodeBrightContrast")
-            grade.inputs["Bright"].default_value = -0.22
-            grade.inputs["Contrast"].default_value = 0.22
+            grade.inputs["Bright"].default_value = -0.08
+            grade.inputs["Contrast"].default_value = 0.08
             tree.links.new(rust_mix.outputs["Color"], grade.inputs["Color"])
             ao = tree.nodes.new("ShaderNodeAmbientOcclusion")
             ao.samples = 8
@@ -2353,8 +2444,8 @@ def _arm_hero_rust(root):
             tree.links.new(edge_gain.outputs[0], flake.inputs[0])
             flake_noise = tree.nodes.new("ShaderNodeMath")
             flake_noise.operation = "GREATER_THAN"
-            flake_noise.inputs[1].default_value = 0.18
-            tree.links.new(patch.outputs["Fac"], flake_noise.inputs[0])
+            flake_noise.inputs[0].default_value = 1.0
+            flake_noise.inputs[1].default_value = 0.02
             tree.links.new(flake_noise.outputs[0], flake.inputs[1])
             flake_ao = tree.nodes.new("ShaderNodeMath")
             flake_ao.operation = "MULTIPLY_ADD"
@@ -2368,12 +2459,12 @@ def _arm_hero_rust(root):
             tree.links.new(wreck.outputs[0], lived.inputs[0])
             tree.links.new(clamped.outputs["Result"], lived.inputs[1])
             holes = tree.nodes.new("ShaderNodeTexNoise")
-            holes.inputs["Scale"].default_value = 3.4
-            holes.inputs["Detail"].default_value = 3.0
+            holes.inputs["Scale"].default_value = 14.0
+            holes.inputs["Detail"].default_value = 2.0
             tree.links.new(coord.outputs["Object"], holes.inputs["Vector"])
             paint_left = tree.nodes.new("ShaderNodeMath")
             paint_left.operation = "GREATER_THAN"
-            paint_left.inputs[1].default_value = 0.46
+            paint_left.inputs[1].default_value = 0.84
             tree.links.new(holes.outputs["Fac"], paint_left.inputs[0])
             keep_rust = tree.nodes.new("ShaderNodeMath")
             keep_rust.operation = "SUBTRACT"
@@ -2387,22 +2478,28 @@ def _arm_hero_rust(root):
             dark.name = "RustGrade"
             dark.blend_type = "MULTIPLY"
             dark.inputs["Fac"].default_value = 1.0
-            dark.inputs["Color2"].default_value = (0.72, 0.42, 0.24, 1.0)
+            dark.inputs["Color2"].default_value = (0.95, 0.62, 0.32, 1.0)
             tree.links.new(grade.outputs["Color"], dark.inputs["Color1"])
             paint = tree.nodes.new("ShaderNodeMixRGB")
             color_in = bsdf.inputs["Base Color"]
-            kept = tree.nodes.new("ShaderNodeMixRGB")
-            kept.name = "PaintKeep"
-            kept.blend_type = "MULTIPLY"
-            kept.inputs["Fac"].default_value = 1.0
-            kept.inputs["Color2"].default_value = (0.82, 0.22, 0.06, 1.0)
+            fade = tree.nodes.new("ShaderNodeHueSaturation")
+            fade.inputs["Hue"].default_value = 0.5
+            fade.inputs["Saturation"].default_value = 0.12
+            fade.inputs["Value"].default_value = 0.42
+            fade.inputs["Fac"].default_value = 1.0
             if color_in.is_linked:
                 source = color_in.links[0].from_socket
                 tree.links.remove(color_in.links[0])
-                tree.links.new(source, kept.inputs["Color1"])
+                tree.links.new(source, fade.inputs["Color"])
             else:
-                kept.inputs["Color1"].default_value = tuple(color_in.default_value)
-            tree.links.new(kept.outputs["Color"], paint.inputs["Color1"])
+                solid = tree.nodes.new("ShaderNodeRGB")
+                solid.outputs[0].default_value = tuple(color_in.default_value)
+                tree.links.new(solid.outputs["Color"], fade.inputs["Color"])
+            dust = tree.nodes.new("ShaderNodeMixRGB")
+            dust.inputs["Fac"].default_value = 0.72
+            dust.inputs["Color2"].default_value = (0.36, 0.29, 0.22, 1.0)
+            tree.links.new(fade.outputs["Color"], dust.inputs["Color1"])
+            tree.links.new(dust.outputs["Color"], paint.inputs["Color1"])
             tree.links.new(dark.outputs["Color"], paint.inputs["Color2"])
             tree.links.new(flaked.outputs[0], paint.inputs["Fac"])
             outgoing = paint.outputs["Color"]
@@ -2414,13 +2511,13 @@ def _arm_hero_rust(root):
                 moss_fac = tree.nodes.new("ShaderNodeMath")
                 moss_fac.operation = "MULTIPLY"
                 tree.links.new(cavity.outputs[0], moss_fac.inputs[0])
-                tree.links.new(moss_noise.outputs["Fac"], moss_fac.inputs[1])
+                moss_fac.inputs[1].default_value = 1.6
                 moss_lived = tree.nodes.new("ShaderNodeMath")
                 moss_lived.operation = "MULTIPLY"
                 moss_lived.inputs[1].default_value = 0.0
                 moss_patch = tree.nodes.new("ShaderNodeMath")
                 moss_patch.operation = "MULTIPLY"
-                moss_patch.inputs[1].default_value = 0.18
+                moss_patch.inputs[1].default_value = 0.0
                 tree.links.new(moss_noise.outputs["Fac"], moss_patch.inputs[0])
                 moss_or = tree.nodes.new("ShaderNodeMath")
                 moss_or.operation = "MAXIMUM"
@@ -2445,20 +2542,30 @@ def _arm_hero_rust(root):
                     rough_mix.inputs["Color1"].default_value = (
                         float(rough_in.default_value),
                     ) * 3 + (1.0,)
-                tree.links.new(tex(rust_rough, False).outputs["Color"], rough_mix.inputs["Color2"])
-                tree.links.new(flaked.outputs[0], rough_mix.inputs["Fac"])
+                rough_mix.inputs["Color2"].default_value = (0.9, 0.9, 0.9, 1.0)
+                tree.links.new(wreck.outputs[0], rough_mix.inputs["Fac"])
                 tree.links.new(rough_mix.outputs["Color"], rough_in)
             if "Metallic" in bsdf.inputs and not bsdf.inputs["Metallic"].is_linked:
                 base_metal = float(bsdf.inputs["Metallic"].default_value)
                 scaled = tree.nodes.new("ShaderNodeMath")
                 scaled.operation = "MULTIPLY"
-                scaled.inputs[0].default_value = base_metal * 0.92
-                tree.links.new(flaked.outputs[0], scaled.inputs[1])
+                scaled.inputs[0].default_value = base_metal
+                tree.links.new(wreck.outputs[0], scaled.inputs[1])
                 bare = tree.nodes.new("ShaderNodeMath")
                 bare.operation = "SUBTRACT"
                 bare.inputs[0].default_value = base_metal
                 tree.links.new(scaled.outputs[0], bare.inputs[1])
                 tree.links.new(bare.outputs[0], bsdf.inputs["Metallic"])
+            for spec_name, spec_floor in (("Specular IOR Level", 0.15), ("Coat Weight", 0.0)):
+                if spec_name not in bsdf.inputs or bsdf.inputs[spec_name].is_linked:
+                    continue
+                base_spec = float(bsdf.inputs[spec_name].default_value)
+                dull = tree.nodes.new("ShaderNodeMath")
+                dull.operation = "MULTIPLY_ADD"
+                tree.links.new(wreck.outputs[0], dull.inputs[0])
+                dull.inputs[1].default_value = spec_floor - base_spec
+                dull.inputs[2].default_value = base_spec
+                tree.links.new(dull.outputs[0], bsdf.inputs[spec_name])
             if rust_nor is not None and "Normal" in bsdf.inputs:
                 nmap = tree.nodes.new("ShaderNodeNormalMap")
                 tree.links.new(tex(rust_nor, False).outputs["Color"], nmap.inputs["Color"])
@@ -2529,25 +2636,58 @@ def _stain_dome(amount):
 
 
 def _break_glass():
+    """Darken window glass. The mix stays, so the return beat can open it again."""
+    _set_broken_glass(True)
+
+
+def _set_broken_glass(broken):
     for mat in bpy.data.materials:
         low = mat.name.lower()
         if not any(token in low for token in ("window", "glass", "blind")):
             continue
-        if mat.node_tree is None:
+        if mat.node_tree is None or mat.get("hero_rust"):
             continue
-        bsdf = next((node for node in mat.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
-        if bsdf is None:
+        tree = mat.node_tree
+        bsdf = next((node for node in tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+        if bsdf is None or "Base Color" not in bsdf.inputs:
             continue
-        color = bsdf.inputs.get("Base Color")
-        if color is not None and color.is_linked:
-            mat.node_tree.links.remove(color.links[0])
-        if color is not None:
-            color.default_value = (0.02, 0.025, 0.03, 1)
-        if "Roughness" in bsdf.inputs:
-            bsdf.inputs["Roughness"].default_value = 0.72
-        for name in ("Transmission Weight", "Transmission"):
-            if name in bsdf.inputs:
-                bsdf.inputs[name].default_value = 0.05
+        if not mat.get("glass_armed"):
+            color = bsdf.inputs["Base Color"]
+            mix = tree.nodes.new("ShaderNodeMixRGB")
+            if color.is_linked:
+                source = color.links[0].from_socket
+                tree.links.remove(color.links[0])
+                tree.links.new(source, mix.inputs["Color1"])
+            else:
+                mix.inputs["Color1"].default_value = tuple(color.default_value)
+            mix.inputs["Color2"].default_value = (0.02, 0.025, 0.03, 1.0)
+            broken_value = tree.nodes.new("ShaderNodeValue")
+            broken_value.name = "Broken"
+            tree.links.new(broken_value.outputs[0], mix.inputs["Fac"])
+            tree.links.new(mix.outputs["Color"], color)
+            if "Roughness" in bsdf.inputs and not bsdf.inputs["Roughness"].is_linked:
+                rough = tree.nodes.new("ShaderNodeMath")
+                rough.operation = "MULTIPLY_ADD"
+                base_rough = float(bsdf.inputs["Roughness"].default_value)
+                tree.links.new(broken_value.outputs[0], rough.inputs[0])
+                rough.inputs[1].default_value = 0.72 - base_rough
+                rough.inputs[2].default_value = base_rough
+                tree.links.new(rough.outputs[0], bsdf.inputs["Roughness"])
+            for name in ("Transmission Weight", "Transmission"):
+                sock = bsdf.inputs.get(name)
+                if sock is None or sock.is_linked:
+                    continue
+                shut = tree.nodes.new("ShaderNodeMath")
+                shut.operation = "MULTIPLY_ADD"
+                base_trans = float(sock.default_value)
+                tree.links.new(broken_value.outputs[0], shut.inputs[0])
+                shut.inputs[1].default_value = 0.05 - base_trans
+                shut.inputs[2].default_value = base_trans
+                tree.links.new(shut.outputs[0], sock)
+            mat["glass_armed"] = True
+        node = tree.nodes.get("Broken")
+        if node is not None and node.type == "VALUE":
+            node.outputs[0].default_value = 1.0 if broken else 0.0
 
 
 def _shorten_block(obj, factor):
@@ -2561,6 +2701,7 @@ def drive(kit, ch):
     """The same facades age. A ruin shell appears only where one block has fallen."""
     collapse = float(ch.get("collapse", 0.0))
     fallen = collapse >= 0.85
+    _release_glide_hides()
     _frame_camera(kit)
     _cloudy_sky(kit)
     if kit.volume is not None:
@@ -2609,6 +2750,8 @@ def drive(kit, ch):
             _hide_tree(item.obj, not fallen)
     for shard in getattr(kit, "fallen_shards", ()) or ():
         shard.hide_render = not fallen
+    if getattr(kit, "beat_id", "") == "return":
+        _snap_opening_life(kit)
     if float(ch.get("vanish", 0.0)) < 0.05:
         bpy.context.view_layer.update()
         for item in kit.items:
@@ -2640,6 +2783,14 @@ def drive(kit, ch):
         for item in kit.items:
             if item.role == "car" and item.extra.get("hero"):
                 _set_hero_wreck(item.obj, 0.0)
+    if not fallen and not century:
+        for item in kit.items:
+            if item.role == "car":
+                _restore_wheels(item.obj)
+            if item.role == "car" and item.extra.get("hero"):
+                _restore_hero_mesh(item.obj)
+        _set_broken_glass(False)
+        _stain_dome(0.0)
     if fallen:
         for item in kit.items:
             if item.role == "car" and item.extra.get("hero"):
@@ -2674,7 +2825,7 @@ def drive(kit, ch):
             span = max(dx, dy, dz)
             in_view = -30.0 < center.x < 30.0 and -18.0 < center.y < 140.0 and center.z > 1.6
             if in_view and span < 28.0:
-                obj.hide_render = True
+                _hide_for_glide(obj)
     node = getattr(kit, "fog_density", None)
     if node is not None:
         node.outputs[0].default_value = 0.006 if fallen else 0.0

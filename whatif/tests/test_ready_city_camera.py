@@ -69,6 +69,19 @@ class ReadyCityCameraTest(unittest.TestCase):
         self.assertLess(math.dist(self.poses[0]["location"], self.poses[landed]["location"]), 0.05)
         self.assertLess(math.dist(self.poses[0]["target"], self.poses[landed]["target"]), 0.05)
 
+    def test_the_last_frame_resets_the_city(self):
+        from engine.spec import channels_at
+
+        opening = channels_at(self.resolved, 1)
+        last = channels_at(self.resolved, self.frames)
+        for name in ("collapse", "vegetation", "rust", "vanish"):
+            self.assertAlmostEqual(opening[name], last[name], places=3, msg=name)
+        return_at = next(beat["start_frame"] for beat in self.resolved["beats"] if beat["id"] == "return")
+        seam = channels_at(self.resolved, return_at - 1)
+        self.assertGreater(seam["collapse"], 0.5)
+        self.assertEqual(return_at, 1676)
+        self.assertEqual(self.frames, 1800)
+
     def test_the_move_stays_slow(self):
         peak = 0.0
         for left, right in zip(self.poses, self.poses[1:]):

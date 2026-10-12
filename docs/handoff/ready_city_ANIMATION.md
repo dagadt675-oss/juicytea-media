@@ -47,7 +47,7 @@ Frame 1 is t = 0. These are the ending checks, not a full render.
 
 | Still | Frame | Time | What it is |
 | --- | --- | --- | --- |
-| start | 1097 | 36.6 s | The rusted Miura. Downloaded rust and moss textures, with the original paint left in flakes. The near tyre that read as a copper tube is hidden. |
+| start | 1097 | 36.6 s | The Miura. About 80% dull brown rust, small faded paint flakes, roughness near 0.9. The near tyre is hidden. |
 | mid | 1253 | 41.8 s | The sunlit window wall and the cracked dome. The tree trunk is at the left edge, not the middle of the frame. |
 | end | 1331 | 44.4 s | The hub ruin chunk lying across the avenue. |
-| return | 1681 | 56.0 s | Back on the opening pose. The city has returned, so this matches frame 1. |
+| return | 1800 | 60.0 s | The last frame. The reset has snapped the city back, so this matches frame 1. Frame 1674 is still the seam and is not the return. |
