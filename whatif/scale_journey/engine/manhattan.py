@@ -831,7 +831,22 @@ def _map_ground(name, color_name, rough_name, normal_name, scale_x, scale_y, swa
 
     color = tex(color_name, "sRGB")
     rough = tex(rough_name, "Non-Color")
-    nt.links.new(color.outputs["Color"], bsdf.inputs["Base Color"])
+    # Vertical kit faces were catching the sky and reading as a pale blue slab.
+    sep_n = nt.nodes.new("ShaderNodeSeparateXYZ")
+    nt.links.new(geo.outputs["Normal"], sep_n.inputs["Vector"])
+    abs_n = nt.nodes.new("ShaderNodeMath")
+    abs_n.operation = "ABSOLUTE"
+    nt.links.new(sep_n.outputs["Z"], abs_n.inputs[0])
+    flat = nt.nodes.new("ShaderNodeMath")
+    flat.operation = "GREATER_THAN"
+    flat.inputs[1].default_value = 0.65
+    nt.links.new(abs_n.outputs[0], flat.inputs[0])
+    tone = nt.nodes.new("ShaderNodeMix")
+    tone.data_type = "RGBA"
+    nt.links.new(flat.outputs[0], tone.inputs[0])
+    tone.inputs[6].default_value = (0.40, 0.39, 0.37, 1.0)
+    nt.links.new(color.outputs["Color"], tone.inputs[7])
+    nt.links.new(tone.outputs[2], bsdf.inputs["Base Color"])
     nt.links.new(rough.outputs["Color"], bsdf.inputs["Roughness"])
     bump = nt.nodes.new("ShaderNodeBump")
     bump.inputs["Strength"].default_value = 0.25
@@ -890,8 +905,7 @@ def _pave_landing():
         mn, _mx = _bounds(meshes)
         empty.location.z -= mn.z
 
-    # A tall kit riser reads as a pale blue slab in the street shot.
-    _thin(walk, 0.03)
+    _thin(walk, 0.02)
     _thin(asphalt, 0.02)
     if walk is not None:
         _paint(walk, concrete)
@@ -925,12 +939,11 @@ def _pave_landing():
             paved += 1
         asphalt.location.z = -400.0
     if walk is not None:
-        # Two overlapping rows under the man. That overlap is the dark curb
-        # in the overhead plate. One more row south covers the street camera.
-        for x in range(-18, 46, 3):
-            stamp(walk, x, 63.5, 0.0, 0.04)
-            for y in (66.5, 68.4):
-                stamp(walk, x, y, 0.0, 0.07)
+        # One flat field under the camera and the man, so no near riser
+        # sits in the lower frame. The storefronts stay north of this.
+        for x in range(-18, 48, 3):
+            for y in range(54, 75, 3):
+                stamp(walk, x, y, 0.0, 0.01)
                 paved += 1
         walk.location.z = -400.0
     print(f"PAVE {paved}", flush=True)

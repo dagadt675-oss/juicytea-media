@@ -167,7 +167,7 @@ def _world(hdr_path: str):
 def _sun():
     # Clear daytime, sun about 40 degrees up, small disc so shadows stay crisp.
     light = bpy.data.lights.new("Sun", "SUN")
-    light.energy = 3.2
+    light.energy = 4.4
     light.color = (1.0, 0.97, 0.90)
     light.angle = 0.009
     obj = _link(bpy.data.objects.new("Sun", light))
@@ -177,7 +177,7 @@ def _sun():
     obj.rotation_euler = direction.to_track_quat("Z", "Y").to_euler()
     fill = bpy.data.lights.new("Fill", "SUN")
     fill.energy = 2.2
-    fill.color = (0.75, 0.82, 1.0)
+    fill.color = (0.92, 0.90, 0.84)
     fill.use_shadow = False
     fill.angle = 0.4
     fill_obj = _link(bpy.data.objects.new("Fill", fill))
@@ -582,7 +582,7 @@ def _nanoray_role(color):
 def _dress_nanoray(meshes):
     """Limestone piers, aluminium mullions and spandrels, dark glass bays."""
     mats = {
-        "limestone": _limestone_mat(),
+        "limestone": _triplanar_facade(),
         "frame": _metal_mat("AluminiumFrame", (0.74, 0.73, 0.70), 0.38),
         "spandrel": _metal_mat("AluminiumSpandrel", (0.58, 0.59, 0.57), 0.30),
         "glass": _glass_mat(),
@@ -1648,7 +1648,7 @@ def _deck_rail():
     height = max(span[2], 0.2)
     scale = 1.85 / height
     # Curved safety rail on the 86th-floor parapet, just outside the coin.
-    cx, cy, z = 17.4, 13.7, 293.7
+    cx, cy, z = 12.15, 4.45, 317.2
     count = 0
     for index in range(9):
         ang = 0.15 + index * 0.18

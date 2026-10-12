@@ -186,6 +186,7 @@ _ESB_CORNERS = (
     (365.0, 6.2, -5.5),
     (340.0, 8.0, -4.0),
     (325.0, 11.5, 3.2),
+    (317.0, 11.30, 3.55),
     (311.35, 12.35, 4.85),
     (300.0, 14.8, 8.2),
     (280.0, 17.2, 11.0),
@@ -357,8 +358,9 @@ def _penny(raw: dict) -> BEpisode:
         ledge_xy = _penny_xy(drop)
         # North-east lip of the NanoRay 86th-floor parapet. Outside the shaft
         # box, on the stone coping, in front of the curved rail.
-        lip = (18.4, 12.2)
-        parapet = 293.55
+        # Outer lip of the setback where the shaft steps in, about the 86th floor.
+        lip = (11.30, 3.55)
+        parapet = 317.05
         ledge_penny = (lip[0], lip[1], parapet)
         if t < 0.57 or t >= 33.15:
             penny = ledge_penny
@@ -402,19 +404,27 @@ def _penny(raw: dict) -> BEpisode:
         # Shot 1: in the air just above the 86th-floor coping, looking out
         # and down so the coin is on the near ledge and the city is the drop.
         # Open air just outside the coping. Probed clear of the limestone.
-        # 40 mm at about 17 cm: a real 19 mm cent fills about a third of the frame.
-        # Just outside the coin, aimed through it and down the window bays.
-        hook_cam = (18.56, 12.38, parapet + 0.11)
-        hook_tgt = (18.32, 12.11, parapet - 0.16)
-        # Beside the coin, looking down the corner so the grid and the street read.
-        drone_cam = (penny[0] + 0.32, penny[1] + 0.18, penny[2] + 0.22)
+        # Close on the cent, aimed across the setback so the step and the drop read.
+        hook_cam = (11.74, 4.02, parapet + 0.28)
+        hook_tgt = (9.1, 1.15, parapet - 2.2)
+        # Look along the facade, through the cent. The downward pitch eases
+        # as the cent drops, so the window rows move through the frame.
+        pitch = max(8.0, min(34.0, penny[2] * 0.12))
+        face = (penny[0] - 30.0, penny[1] - 0.7, penny[2] - pitch)
+        dx, dy, dz = penny[0] - face[0], penny[1] - face[1], penny[2] - face[2]
+        span = math.sqrt(dx * dx + dy * dy + dz * dz) or 1.0
+        drone_cam = (
+            penny[0] + dx / span * 0.34,
+            penny[1] + dy / span * 0.34,
+            penny[2] + dz / span * 0.34,
+        )
         if 2.4 <= t < 19.07 and not (13.31 <= t < 15.10):
             drone_cam = (
                 drone_cam[0] + 0.10 * _wind(t, 8.2, 6.5),
                 drone_cam[1] + 0.08 * _wind(t, 3.4, 7.1),
                 drone_cam[2] + 0.06 * _wind(t, 5.5, 5.4),
             )
-        drone_tgt = (penny[0], penny[1], penny[2] - 0.25)
+        drone_tgt = face
         step = max(0.0, t - 23.9) * 0.9
         man_x, man_y = MAN[0] + step, MAN[1]
         # Street camera sits on the sidewalk, south of him, looking north
@@ -437,13 +447,12 @@ def _penny(raw: dict) -> BEpisode:
         if t < 2.4 or t >= 33.15:
             cam = hook_cam
             target = hook_tgt
-            lens = 32.0
+            lens = 55.0
         elif t < 2.9:
             u = _fade(t, 2.4, 2.9)
             cam = _lerp(hook_cam, drone_cam, u)
             target = _lerp(hook_tgt, drone_tgt, u)
-            # Start on the hook's 32 mm. The old 50 mm start made frame 72 a cut.
-            lens = 32.0 + (24.0 - 32.0) * u
+            lens = 55.0 + (24.0 - 55.0) * u
         elif t < 13.31:
             cam, target, lens = drone_cam, drone_tgt, 24.0
         elif t < 14.55:
@@ -476,15 +485,15 @@ def _penny(raw: dict) -> BEpisode:
             lens = 50.0
         else:
             u = _fade(t, 30.2, 33.05)
-            # Stay wide through the rise still, then meet the deck for the loop.
-            wide = (175.0, 330.0, 72.0)
-            wide_tgt = (0.0, -8.0, 175.0)
+            # Southeast, sun on the east and south faces, far enough for the
+            # whole mast. The line back to the deck stays outside the shaft.
+            wide = (520.0, -180.0, 95.0)
+            wide_tgt = (2.0, -6.0, 210.0)
             cam = _lerp(wide, hook_cam, u)
             target = _lerp(wide_tgt, hook_tgt, u)
-            cam = (cam[0] + math.sin(u * math.pi) * 16.0, cam[1], cam[2])
-            lens = 28.0 + (50.0 - 28.0) * u
+            lens = 24.0 + (55.0 - 24.0) * u
         if t >= 33.15:
-            cam, target, penny, lens = hook_cam, hook_tgt, ledge_penny, 50.0
+            cam, target, penny, lens = hook_cam, hook_tgt, ledge_penny, 55.0
         cam = clear_of_shaft(cam, 1.2)
         if t < 0.57 or t >= 33.15:
             penny = ledge_penny
