@@ -85,7 +85,7 @@ Do not upload or render the Colab zip from the previous commit. It is the reject
 
 The mountainside tiles were one cliff in the sky, and each hub peak file is many slices. The range is now the full free-textured and three-peaked groups, several kilometres back, with a blue haze volume in front of them and sky above the peaks. Year 100 keeps the dark river and the standing ruin. Year 500 is a green field and forest, a few stumps, and the suspension deck lying in the water. Stills are the four files in `whatif/review/ready_city/`.
 
-Colab bundle, Blender 4.2.3, packed, 64 samples: `/opt/cursor/artifacts/colab_bundle/city_decay/city_decay.zip.00` through `city_decay.zip.09`. Joined zip **909,833,606** bytes. `cat` the parts in order, then `unzip`. A clean unpack rendered frame 1 in 431 s and frame 1096 in 423 s on this 4-thread CPU (`frames/0001.png` and `frames/1096.png`). `est_sec_per_frame_t4` is 107, that mean divided by 4, not a GPU measurement. Newer BlendKit `.blend` libraries are skipped because 4.2 cannot read them.
+Colab bundle, Blender 4.2.3, packed, 64 samples: `/opt/cursor/artifacts/colab_bundle/city_decay/city_decay.zip.00` through `city_decay.zip.09`. Joined zip **909,833,606** bytes. `cat` the parts in order, then `unzip`. The file header is `BLENDER-v402`. A clean unpack with that same `render.py` produced the review stills: frame 1 in 431 s, frame 90 in 416 s, frame 871 in 670 s, and frame 1096 in 423 s (`frames/0001.png`, `0090.png`, `0871.png`, `1096.png`). Those four PNGs are `whatif/review/ready_city/`. `est_sec_per_frame_t4` is 107, that mean divided by 4, not a GPU measurement. Newer BlendKit `.blend` libraries are skipped because 4.2 cannot read them.
 
 ### 2026-10-11 — second still pass
 
