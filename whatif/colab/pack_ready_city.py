@@ -105,6 +105,10 @@ def main():
             _key_xform(kit.water.obj, frame)
         for obj in rig_objs:
             _key_xform(obj, frame)
+        cam = scene.camera
+        if cam is not None:
+            _key_xform(cam, frame)
+            cam.data.keyframe_insert(data_path="lens", frame=frame)
         for item in kit.items:
             obj = item.obj
             # Coarse on purpose. Tree sway is not baked; era hides and collapses are.
@@ -129,14 +133,8 @@ def main():
     scene.frame_start = 1
     scene.frame_end = last
     scene.frame_set(1)
+    kit.beat_id = beat_at(RESOLVED, 1)["id"]
     apply(kit, channels_at(RESOLVED, 1), 1, fps)
-    cam = scene.camera
-    cam.keyframe_insert(data_path="location", frame=1)
-    cam.keyframe_insert(data_path="rotation_euler", frame=1)
-    cam.data.keyframe_insert(data_path="lens", frame=1)
-    cam.keyframe_insert(data_path="location", frame=last)
-    cam.keyframe_insert(data_path="rotation_euler", frame=last)
-    cam.data.keyframe_insert(data_path="lens", frame=last)
 
     scene.render.engine = "CYCLES"
     scene.cycles.device = "CPU"
