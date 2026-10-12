@@ -829,13 +829,22 @@ def _alps_range(parent):
     Every footprint stays off the camera (near x=0, y=0) so the jet flies a valley
     instead of sitting inside a scaled mesh.
     """
+    gaea, gaea_z = _import_mountain("gaea_range.glb", "GaeaRange")
+    peaks, peaks_z = _import_mountain("three_peaked.glb", "ThreePeaks")
     textured, textured_z = _import_mountain("free_textured_mountain.glb", "TexturedPeak")
-    cliff, cliff_z = _import_mountain("bk_snow_cliff.glb", "SnowCliff")
-    # Same yaw on both so the camera sees the snowy face, not a paper-thin edge.
-    _place_mountain(parent, cliff, cliff_z, 1200.0, -800.0, 2.6, 0.45, z_scale=4.4)
-    _place_mountain(parent, cliff, cliff_z, 2800.0, -1500.0, 3.0, 0.45, z_scale=4.8)
-    _place_mountain(parent, textured, textured_z, 7000.0, 1800.0, 1.2, 0.45, z_scale=2.4)
-    print("hub mountains placed")
+    # gaea_range is a 2 m terrain centered on the origin. Scale keeps the near
+    # edge about 2 km ahead of the jet so the camera is not inside the mesh.
+    # Height stays in the same proportion as the source, only lifted enough to read.
+    # Cover the camera as well as the view ahead. A heightfield edge reads as a cliff
+    # if the chase lens can see the rim. Interior of the mesh is the snowfield.
+    near = _place_mountain(parent, gaea, gaea_z, 2500.0, 0.0, 5500.0, 0.15, z_scale=4800.0)
+    far = _place_mountain(parent, gaea, gaea_z, 11000.0, 1600.0, 6000.0, 0.9, z_scale=4200.0)
+    # Summits sit on that terrain. three_peaked's origin is a corner (X 0..1024, Y -1024..0).
+    left = _place_mountain(parent, peaks, peaks_z, 3800.0, -900.0, 2.0, 0.35, z_scale=7.0)
+    right = _place_mountain(parent, textured, textured_z, 6200.0, 1400.0, 1.4, -0.25, z_scale=3.6)
+    for inst in (left, right):
+        inst.location.z += 700.0
+    print("hub mountains placed", near.name, far.name)
 
 
 REAL_TREES = Path("/workspace/assets/found/trees/realistic")
