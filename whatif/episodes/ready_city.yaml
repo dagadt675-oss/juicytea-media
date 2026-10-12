@@ -14,10 +14,11 @@ scene:
 mascot: false
 format: A
 camera:
-  # Film camera stays at eye height. Year 500 ends on a slow push-in to the rusted Miura.
-  # Proof stills stay on CAM_LOC in ready_city.py. Beat cameras are ignored while this path is set.
-  # u is a fraction of the 59.98 s film. Times: 0, 6, 11, 20, 33, 44, 50, 53.5, 55.5, 60.
-  # The Miura sits at (-0.4, -54). The glide runs along the right curb, clear of the ferns.
+  # Street walk, then the first episode's low ending glides, then back to the opening.
+  # Those glides are drone_husk, drone_facade, and drone_span in humans_disappeared.yaml:
+  # a few metres, a slight drop, a longer lens. The old orbit's climb to z=80 is not used.
+  # Proof stills stay on CAM_LOC. Beat cameras stay empty; this path is the only move.
+  # u is a fraction of the 59.98 s film.
   location: [0.0, -66.0, 1.70]
   target: [0.0, -26.0, 2.40]
   lens: 28
@@ -25,16 +26,19 @@ camera:
   sensor_width: 36
   clip_end: 800
   path:
-    - {u: 0.0000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
-    - {u: 0.1000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
-    - {u: 0.1834, location: [2.40, -66.4, 1.70], target: [0.40, -28.0, 2.20], lens: 28}
-    - {u: 0.3334, location: [4.20, -63.8, 1.70], target: [0.00, -36.0, 2.00], lens: 28}
-    - {u: 0.5502, location: [4.20, -61.0, 1.70], target: [-0.40, -54.0, 1.35], lens: 28}
-    - {u: 0.7336, location: [3.60, -56.6, 1.70], target: [-0.40, -54.0, 1.25], lens: 28}
-    - {u: 0.8336, location: [4.20, -63.6, 1.70], target: [0.20, -32.0, 1.90], lens: 28}
-    - {u: 0.8919, location: [2.20, -66.6, 1.70], target: [0.00, -28.0, 2.20], lens: 28}
-    - {u: 0.9253, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
-    - {u: 1.0000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
+    - {u: 0.0000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28, fstop: 0}
+    - {u: 0.1000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28, fstop: 0}
+    - {u: 0.4001, location: [0.40, -63.0, 1.70], target: [0.10, -24.0, 2.30], lens: 28, fstop: 0}
+    # 36.55 s husk: low pass over the rusted Miura. Same drop and lens tighten as the old shot.
+    - {u: 0.6094, location: [4.00, -58.2, 1.55], target: [-0.40, -54.6, 1.15], lens: 36, fstop: 2.8}
+    - {u: 0.6528, location: [3.30, -56.2, 1.28], target: [-0.25, -53.8, 1.05], lens: 42, fstop: 2.2}
+    # 41.75 s facade: still low, looking along the ivy and the broken windows.
+    - {u: 0.6961, location: [5.10, -50.6, 1.25], target: [9.80, -47.2, 3.20], lens: 36, fstop: 2.4}
+    # 44.35 s span: along the fallen tower corner in the avenue.
+    - {u: 0.7395, location: [2.40, -45.2, 1.90], target: [1.40, -40.2, 1.20], lens: 32, fstop: 2.8}
+    # Back to the opening before the city reset at 55.8 s.
+    - {u: 0.9253, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28, fstop: 0}
+    - {u: 1.0000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28, fstop: 0}
 ui:
   counter_y: 0.46
   # Zenith style: the title, and one counter (population, then the year).
