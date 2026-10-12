@@ -466,6 +466,44 @@ def _blink_open(t: float) -> float:
     return math.sin(math.pi * (phase - 0.46) / 0.08)
 
 
+# Deep ocean, not black space. Luma stays above 15 even after a light encode.
+OCEAN = np.array([18, 58, 102], np.float32)
+
+
+def _ocean(h: int, w: int) -> np.ndarray:
+    img = np.empty((h, w, 3), np.float32)
+    img[:] = OCEAN
+    return img
+
+
+def _scale_cover(img: np.ndarray, scale: float) -> np.ndarray:
+    """Grow the plate about the frame center so a map edge falls outside the picture."""
+    if scale <= 1.001:
+        return img
+    from PIL import Image
+    h, w = img.shape[:2]
+    nh, nw = int(round(h * scale)), int(round(w * scale))
+    big = np.asarray(Image.fromarray(np.ascontiguousarray(img)).resize((nw, nh), Image.Resampling.BILINEAR))
+    y0 = max(0, (nh - h) // 2)
+    x0 = max(0, (nw - w) // 2)
+    return np.ascontiguousarray(big[y0:y0 + h, x0:x0 + w])
+
+
+def _lift_dark_corners(img: np.ndarray, k: int = 24) -> np.ndarray:
+    """Corner pixels stay at ocean blue. Nothing in the corner drops under luma 15."""
+    out = img.copy()
+    h, w = out.shape[:2]
+    ocean = OCEAN.astype(np.uint8)
+    for y0, x0 in ((0, 0), (0, w - k), (h - k, 0), (h - k, w - k)):
+        patch = out[y0:y0 + k, x0:x0 + k]
+        luma = 0.2126 * patch[:, :, 0] + 0.7152 * patch[:, :, 1] + 0.0722 * patch[:, :, 2]
+        # Source sits well above 15 so a CRF 16 encode cannot crush the corner under it.
+        dark = luma < 36.0
+        if np.any(dark):
+            patch[dark] = ocean
+    return out
+
+
 def _frames_in(t: float, t0: float, frames: float = 7.0) -> float:
     """0 before t0, then a smooth scale/opacity ramp across 6–8 frames."""
     if t < t0:
@@ -782,8 +820,9 @@ class Episode:
         paint.setColor(skia.ColorWHITE)
         canvas.drawPath(path, paint)
         alpha = surf.makeImageSnapshot().toarray()[:, :, 3].astype(np.float32) * (1.0 / 255.0)
-        stars = np.clip(_stars(H, W), 0, 255).astype(np.float32)
-        out = plate.astype(np.float32) * alpha[..., None] + stars * (1.0 - alpha[..., None])
+        # Outside the disk is deep-ocean blue, never a black corner.
+        space = _ocean(H, W)
+        out = plate.astype(np.float32) * alpha[..., None] + space * (1.0 - alpha[..., None])
         return np.clip(out, 0, 255).astype(np.uint8)
 
     def _stroke_silhouette(self, canvas, s: float) -> None:
@@ -845,13 +884,15 @@ class Episode:
         # Stars only take the corners once this is actually a globe, so the
         # early morph is not a rounded card with black corners.
         flat = self._graded(self._merc).astype(np.float32)
+        # 1.15× so the flat plate's own edge cannot sit inside the frame.
+        flat = _scale_cover(np.clip(flat, 0, 255).astype(np.uint8), 1.15).astype(np.float32)
         globe_w = _smooth(min(1.0, max(0.0, (s - 0.70) / 0.18)))
         if globe_w <= 0.004:
             under = flat.astype(np.uint8)
         else:
-            stars = np.clip(_stars(H, W), 0, 255).astype(np.float32)
+            space = _ocean(H, W)
             ortho = self._graded(self._ortho).astype(np.float32)
-            globe = stars * (1.0 - globe_w) + ortho * globe_w
+            globe = space * (1.0 - globe_w) + ortho * globe_w
             under = np.clip(flat * (1.0 - globe_w) + globe * globe_w, 0, 255).astype(np.uint8)
         rgb = self._raster_mesh(sx, sy, lon, lat, plate, background=under)
         # The close globe sees around the pole, so a plain lon/lat box misses the
@@ -977,6 +1018,7 @@ class Episode:
         self._merc, self._ortho, self._pw = merc, ortho, w
         cam = ortho if w >= 0.5 else merc
         self._sil_path = None
+        self._cover = 1.0
         morph_s = 0.0
         if w <= 0.004:
             plate = self._graded(merc)
@@ -985,20 +1027,35 @@ class Episode:
         else:
             morph_s = _smooth(w)
             plate = self._morph_plate(morph_s)
-            # The mesh and the flat plate meet through a short blend, so the
-            # join is not a single-frame swap at either end of the morph.
-            if w < 0.16:
-                plate = crossfade(self._graded(merc), plate, _smooth(w / 0.16))
-            # A rounded card with black corners reads as a cut before the globe.
+            # At least 12 frames from the moment the blend leaves the flat map.
+            intro = _frames_in(t, 3.50, 12)
+            geo = 1.0 if w >= 0.16 else _smooth(w / 0.16)
+            plate = crossfade(self._graded(merc), plate, min(intro, geo))
+            # While the map is still flat-ish, grow plate and vectors together
+            # so the flat map's edge falls outside the frame.
+            # 1.28× so the flat plate's edge is outside the frame.
+            # 18 frames each way, or one cell of the picture pops.
+            rise = _frames_in(t, 3.90, 18)
+            fall = 1.0 - _frames_in(t, 4.28, 18)
+            self._cover = 1.0 + 0.28 * max(0.0, min(rise, fall))
             # The disk only takes the corners once the outline is actually round.
             disk = _smooth(min(1.0, max(0.0, (morph_s - 0.80) / 0.12)))
             if disk > 0.02:
                 plate = crossfade(plate, self._mask_to_silhouette(plate, morph_s), disk)
-                if disk > 0.40:
-                    self._sil_path, _roundness = self._silhouette(morph_s)
+            # Hand the disk to the full ortho plate before the branch switches,
+            # so w crossing 0.996 is not a cut.
+            if w > 0.84:
+                plate = crossfade(plate, self._graded(self._ortho), _smooth((w - 0.84) / 0.14))
+            if disk > 0.40 and w < 0.90:
+                self._sil_path, _roundness = self._silhouette(morph_s)
         rgba = np.dstack([plate, np.full((H, W), 255, np.uint8)])
         surface = skia.Surface(W, H)
         canvas = surface.getCanvas()
+        if self._cover > 1.01:
+            canvas.save()
+            canvas.translate(W * 0.5, H * 0.5)
+            canvas.scale(self._cover, self._cover)
+            canvas.translate(-W * 0.5, -H * 0.5)
         canvas.drawImage(skia.Image.fromarray(rgba), 0, 0)
         if self._sil_path is not None:
             canvas.save()
@@ -1007,10 +1064,14 @@ class Episode:
         if self._sil_path is not None:
             canvas.restore()
             self._stroke_silhouette(canvas, morph_s)
+        if self._cover > 1.01:
+            canvas.restore()
         self._lettering(canvas, cam, t)
         bgra = surface.makeImageSnapshot().toarray()
         rgb = np.ascontiguousarray(bgra[:, :, [2, 1, 0]])
         rgb = _sharp_grade(rgb)
+        if 4.10 <= t <= 4.90:
+            rgb = _lift_dark_corners(rgb)
         # The excuse gag sits on bright ice. A short extra contrast lift,
         # ramped so the grade itself does not pop.
         lift = _window(t, 5.48, 6.72, 0.12)
