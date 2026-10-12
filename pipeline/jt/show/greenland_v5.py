@@ -329,26 +329,40 @@ def _hermite(u: float, p0: float, m0: float, p1: float, m1: float) -> float:
     )
 
 
-def camera_channels(t: float) -> tuple[float, float, float, float]:
-    """The last half-second is the lead-in to frame 0, so the loop keeps moving."""
-    if t <= LOOP_T or t >= T_LAST:
-        return _spline_channels(0.0 if t >= T_LAST else t)
-    u = (t - LOOP_T) / D_LOOP
+def _loop_bounds() -> tuple[float, float]:
+    """Ease across the last 30 frames. Frame 0 is the frame after the last one."""
     dt = 1.0 / FPS
-    start = _spline_channels(LOOP_T)
-    prev = _spline_channels(LOOP_T - dt)
+    arrive = T_LAST + dt
+    return arrive - 30.0 * dt, arrive
+
+
+def _loop_ease(t: float) -> float | None:
+    """Ease-out 0..1. None outside the window. 1 only on the frame after the last."""
+    t0, arrive = _loop_bounds()
+    if t <= t0:
+        return None
+    if t >= arrive:
+        return 1.0
+    u = (t - t0) / (arrive - t0)
+    # Ease-out, but not so flat that the last frame is a copy of frame 0.
+    return 1.0 - (1.0 - u) ** 1.65
+
+
+def camera_channels(t: float) -> tuple[float, float, float, float]:
+    """The last 30 frames ease out toward frame 0, and land on it one frame later."""
+    ease = _loop_ease(t)
+    if ease is None:
+        return _spline_channels(t)
+    if ease >= 1.0:
+        return _spline_channels(0.0)
+    t0, _arrive = _loop_bounds()
+    start = _spline_channels(t0)
     end = _spline_channels(0.0)
-    nxt = _spline_channels(dt)
     out = []
     for i in range(4):
-        v0 = (start[i] - prev[i]) / dt
-        v1 = (nxt[i] - end[i]) / dt
-        value = start[i] if i != 3 else math.log(start[i])
-        target = end[i] if i != 3 else math.log(end[i])
-        if i == 3:
-            v0 = (math.log(start[i]) - math.log(prev[i])) / dt
-            v1 = (math.log(nxt[i]) - math.log(end[i])) / dt
-        got = _hermite(u, value, v0 * D_LOOP, target, v1 * D_LOOP)
+        a = start[i] if i != 3 else math.log(start[i])
+        b = end[i] if i != 3 else math.log(end[i])
+        got = a + (b - a) * ease
         out.append(math.exp(got) if i == 3 else got)
     w, lon, lat, span = out
     span = max(28.0, min(170.0, span))
@@ -441,21 +455,19 @@ def _fourteen_amount(t: float) -> float:
 
 
 def _africa_breath(t: float) -> float:
-    """A slow pulse that meets itself at the loop, including the rate of change."""
+    """A slow pulse. It eases onto the frame-0 value on the frame after the last."""
     omega = 1.35
 
     def raw(time: float) -> float:
         return math.sin(time * omega)
 
-    if LOOP_T < t < T_LAST:
-        u = (t - LOOP_T) / D_LOOP
-        dt = 1.0 / FPS
-        p0 = raw(LOOP_T)
-        v0 = (raw(LOOP_T) - raw(LOOP_T - dt)) / dt
-        p1 = raw(0.0)
-        v1 = (raw(dt) - raw(0.0)) / dt
-        return 1.0 + 0.07 * _hermite(u, p0, v0 * D_LOOP, p1, v1 * D_LOOP)
-    return 1.0 + 0.07 * raw(0.0 if t >= T_LAST else t)
+    ease = _loop_ease(t)
+    if ease is None:
+        return 1.0 + 0.07 * raw(t)
+    if ease >= 1.0:
+        return 1.0 + 0.07 * raw(0.0)
+    t0, _arrive = _loop_bounds()
+    return 1.0 + 0.07 * (raw(t0) + (raw(0.0) - raw(t0)) * ease)
 
 
 def _blink_open(t: float) -> float:
@@ -566,14 +578,15 @@ def _curl(img: np.ndarray, w: float) -> np.ndarray:
 
 
 def check_moves() -> None:
-    """The picture is one move. No one-frame scale jump, and the loop closes."""
-    end = camera_at(T_LAST)
+    """The picture is one move. The frame after the last one is frame 0."""
+    dt = 1.0 / FPS
+    end = camera_at(T_LAST + dt)
     start = camera_at(0.0)
     if (end.proj, round(end.lon, 4), round(end.lat, 4), round(end.span, 3)) != (
         start.proj, round(start.lon, 4), round(start.lat, 4), round(start.span, 3)
     ):
-        raise AssertionError("last frame is not the opening camera")
-    if abs(camera_channels(0.0)[0]) > 1e-6 or abs(camera_channels(T_LAST)[0]) > 1e-6:
+        raise AssertionError("the frame after the last is not the opening camera")
+    if abs(camera_channels(0.0)[0]) > 1e-6 or abs(camera_channels(T_LAST + dt)[0]) > 1e-6:
         raise AssertionError("the loop must open and close on the flat map")
     dt = 1.0 / FPS
     prev_w, _lon, _lat, prev_span = camera_channels(0.0)
