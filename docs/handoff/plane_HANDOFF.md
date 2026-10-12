@@ -137,4 +137,4 @@ Judged at full 1080×1920 in `v/plane_tests/` after the fixes below.
 
 `00_hook`, `01_city_flyover`, and `06_ocean` were re-rendered with the same jet.
 
-Film beauty is Cycles, 4 samples, adaptive threshold 0.02, OIDN, culling, distant tree LOD. `python whatif/plane_seat/render_episode.py --samples 4 --force` writes `v/plane_seat_silent.mp4`. On this 4-core CPU a frame is about 22 s, so the 984-frame pass is several hours. Do not reuse an old `/tmp/plane_seat_cache/beauty` from a previous scene.
+Final frames are not rendered on this machine. The Colab bundle is `/opt/cursor/artifacts/colab_bundle/plane_seat/`. It was saved with Blender 4.2.3. Reassemble with `cat plane_seat.zip.* > plane_seat_full.zip && unzip plane_seat_full.zip`, then `blender -b scene.blend -P render.py -- START END`. Cycles, OptiX then CUDA, 4 samples, adaptive threshold 0.02, OIDN, 1080×1920, AgX high contrast. On this 4-core CPU the median frame was 18 s (530 frames, 14.8–24.7 s). Unpacked check, skies hidden: frames 1 and 200 match the CPU preview (SSIM 0.961 and 0.969). The blend is private and stays out of git.
