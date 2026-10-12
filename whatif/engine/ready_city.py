@@ -183,7 +183,14 @@ def _visual_mesh(path):
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=str(path))
     fresh = [obj for obj in bpy.data.objects if obj not in before]
-    meshes = [obj for obj in fresh if obj.type == "MESH" and "LOD" not in obj.name.upper()]
+    meshes = []
+    for obj in fresh:
+        if obj.type != "MESH":
+            continue
+        upper = obj.name.upper()
+        if "LOD" in upper and "LOD0" not in upper:
+            continue
+        meshes.append(obj)
     for obj in fresh:
         if obj not in meshes:
             obj.hide_render = True
@@ -861,7 +868,7 @@ def _arm_ruin_stain(objects):
             grit = tree.nodes.new("ShaderNodeMath")
             grit.operation = "MULTIPLY_ADD"
             grit.inputs[1].default_value = 0.8
-            grit.inputs[2].default_value = 0.0
+            grit.inputs[2].default_value = 0.5
             tree.links.new(cavity.outputs[0], grit.inputs[0])
             add_streak = tree.nodes.new("ShaderNodeMath")
             add_streak.operation = "MULTIPLY_ADD"
@@ -870,7 +877,7 @@ def _arm_ruin_stain(objects):
             tree.links.new(grit.outputs[0], add_streak.inputs[2])
             capped = tree.nodes.new("ShaderNodeMath")
             capped.operation = "MINIMUM"
-            capped.inputs[1].default_value = 0.72
+            capped.inputs[1].default_value = 0.84
             tree.links.new(add_streak.outputs[0], capped.inputs[0])
             fac = tree.nodes.new("ShaderNodeMath")
             fac.operation = "MULTIPLY"
@@ -950,7 +957,7 @@ def _fallen_corner(kit, src):
     if not xs:
         return
     center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, (min(zs) + max(zs)) * 0.5))
-    tip = Matrix.Translation(center) @ Matrix.Rotation(math.pi / 2.0, 4, "Y") @ Matrix.Translation(-center)
+    tip = Matrix.Translation(center) @ Matrix.Rotation(math.pi / 2.0, 4, "X") @ Matrix.Translation(-center)
     for shard in members:
         shard.data.transform(tip)
     xs, ys, zs = [], [], []
@@ -970,12 +977,12 @@ def _fallen_corner(kit, src):
             ys.append(vert.co.y)
             zs.append(vert.co.z)
     height = max(zs) - min(zs)
-    squash = min(1.0, 2.4 / max(height, 0.01))
+    squash = min(1.0, 1.6 / max(height, 0.01))
     scale_z = Matrix.Identity(4)
     scale_z[2][2] = squash
     bottom = min(zs)
     squat = Matrix.Translation((0.0, 0.0, bottom)) @ scale_z @ Matrix.Translation((0.0, 0.0, -bottom))
-    shift = Vector((-(min(xs) + max(xs)) * 0.5, -36.0 - (min(ys) + max(ys)) * 0.5, 1.35 - bottom))
+    shift = Vector((-(min(xs) + max(xs)) * 0.5, -32.0 - (min(ys) + max(ys)) * 0.5, 1.45 - bottom))
     place = Matrix.Translation(shift) @ squat
     for shard in members:
         shard.data.transform(place)
@@ -993,8 +1000,8 @@ def _cut_street_facades(kit, tall, windows, dome):
     originals = []
     ruins = []
     panels = (
-        (left, lambda p: (-18.0 < p.x < -14.2 and -47.0 < p.y < -42.0 and 15.0 < p.z < 22.0)
-         or (-17.5 < p.x < -14.2 and -34.0 < p.y < -30.0 and 24.0 < p.z < 31.0)),
+        (left, lambda p: (-20.0 < p.x < -14.2 and -54.0 < p.y < -40.0 and 13.0 < p.z < 26.0)
+         or (-19.0 < p.x < -14.2 and -38.0 < p.y < -28.0 and 18.0 < p.z < 32.0)),
         (right, lambda p: 14.0 < p.x < 22.0 and -50.0 < p.y < -36.0 and 18.0 < p.z < 32.0),
     )
     for src, pred in panels:
@@ -1009,55 +1016,7 @@ def _cut_street_facades(kit, tall, windows, dome):
         originals.append(src)
         ruins.append(copy)
     if right is not None:
-        decal = next((obj for obj in windows if "Block2" in obj.name and "Window" in obj.name), None)
         _fallen_corner(kit, right)
-        if decal is not None and getattr(kit, "fallen_shards", None):
-            piece = decal.copy()
-            piece.data = decal.data.copy()
-            coll.objects.link(piece)
-            _bake_world(piece)
-            _delete_where(
-                piece,
-                lambda p: not (14.0 < p.x < 22.0 and -50.0 < p.y < -36.0 and 18.0 < p.z < 32.0),
-            )
-            for matrix in kit.corner_matrices:
-                piece.data.transform(matrix)
-            piece.hide_render = True
-            kit.fallen_shards.append(piece)
-            xs, ys, zs = [], [], []
-            for shard in kit.fallen_shards:
-                for vert in shard.data.vertices:
-                    xs.append(vert.co.x)
-                    ys.append(vert.co.y)
-                    zs.append(vert.co.z)
-            if xs:
-                center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, 0.0))
-                if (max(ys) - min(ys)) > (max(xs) - min(xs)):
-                    turn = Matrix.Translation(center) @ Matrix.Rotation(math.pi / 2.0, 4, "Z") @ Matrix.Translation(-center)
-                    for shard in kit.fallen_shards:
-                        shard.data.transform(turn)
-                widen = Matrix.Identity(4)
-                widen[0][0] = 1.6
-                widen[1][1] = 1.6
-                for shard in kit.fallen_shards:
-                    shard.data.transform(Matrix.Translation(center) @ widen @ Matrix.Translation(-center))
-                zs = sorted(vert.co.z for shard in kit.fallen_shards for vert in shard.data.vertices)
-                level = zs[max(len(zs) // 8, 0)]
-                drop = Matrix.Translation((0.0, 0.0, 1.4 - level))
-                for shard in kit.fallen_shards:
-                    shard.data.transform(drop)
-            # The standing decal loses that same corner, and stays on the tower.
-            standing = decal.copy()
-            standing.data = decal.data.copy()
-            coll.objects.link(standing)
-            _bake_world(standing)
-            _delete_where(
-                standing,
-                lambda p: 14.0 < p.x < 22.0 and -50.0 < p.y < -36.0 and 18.0 < p.z < 32.0,
-            )
-            standing.hide_render = True
-            originals.append(decal)
-            ruins.append(standing)
     kit.facade_originals = originals
     kit.facade_ruins = ruins
     print("facade bites", len(ruins), flush=True)
@@ -1099,23 +1058,37 @@ def _place_ruin(coll, src, loc, yaw, height, rot_y=0.0):
 
 
 def _grow_vines(kit):
-    """Ivy on the street face of the left block. Hidden until the years pass."""
+    """Dense Ivy Gen on the lower floors of the left block, the right tower, and the dome."""
     from engine import found_assets
 
-    blocks = [
-        obj for obj in getattr(kit, "tall_blocks", ())
-        if obj.get("mid_y", 0.0) < 0.0
-    ]
-    if not blocks:
-        return
-    bpy.context.view_layer.update()
     plants = kit.collection("Plants")
     grown = []
-    for block in blocks:
+    hosts = list(getattr(kit, "facade_ruins", ()) or ())
+    dome = getattr(kit, "dome", None)
+    if dome is not None:
+        hosts.append(dome)
+    bpy.context.view_layer.update()
+    for block in hosts:
+        if block.type != "MESH":
+            continue
         xs = [(block.matrix_world @ Vector(corner)).x for corner in block.bound_box]
-        face_x = (max(xs) - 0.3) if block.get("mid_x", 0.0) < 0.0 else (min(xs) + 0.3)
-        for seed_y, seed_z in ((-48.0, 2.2), (-40.0, 8.0), (-34.0, 14.0), (-28.0, 20.0)):
-            grown.extend(found_assets.grow_ivy(block, (face_x, seed_y, seed_z), length=9.0) or [])
+        ys = [(block.matrix_world @ Vector(corner)).y for corner in block.bound_box]
+        zs = [(block.matrix_world @ Vector(corner)).z for corner in block.bound_box]
+        if block is dome:
+            seeds = (
+                (9.0, -45.5, 2.4), (10.2, -42.5, 3.6), (8.4, -43.0, 4.8), (9.6, -46.5, 2.0),
+            )
+        elif max(xs) < 0.0:
+            face_x = max(xs) - 0.05
+            seeds = [(face_x, y, z) for y in range(-54, -30, 6) for z in (13.0, 17.0, 21.0)]
+        else:
+            face_x = min(xs) + 0.05
+            seeds = [(face_x, y, z) for y in range(-50, -32, 6) for z in (13.0, 17.0)]
+        for seed in seeds:
+            grown.extend(found_assets.grow_ivy(
+                block, seed, length=8.0, leaf_size=0.32, ivy_size=0.2,
+                leaf_probability=0.9, float_length=0.05,
+            ) or [])
     for obj in grown:
         try:
             plants.objects.link(obj)
@@ -1364,8 +1337,8 @@ def _scatter_plants(kit):
         return
     mesh = bpy.data.meshes.new("edge_scatter")
     bm = bmesh.new()
-    for x0, x1 in ((-9.0, -4.5), (4.5, 9.0)):
-        y = -52.0
+    for x0, x1 in ((-8.5, -3.5), (-3.5, 3.5), (3.5, 8.5)):
+        y = -60.0
         row_a = []
         while y <= -20.0:
             row_b = [bm.verts.new((x0, y, 1.3)), bm.verts.new((x1, y, 1.3))]
@@ -1385,7 +1358,7 @@ def _scatter_plants(kit):
     group_in = nodes.new("NodeGroupInput")
     group_out = nodes.new("NodeGroupOutput")
     distribute = nodes.new("GeometryNodeDistributePointsOnFaces")
-    distribute.inputs["Density"].default_value = 2.4
+    distribute.inputs["Density"].default_value = 1.5
     collect = nodes.new("GeometryNodeCollectionInfo")
     collect.inputs["Collection"].default_value = protos
     collect.inputs["Separate Children"].default_value = True
@@ -1543,27 +1516,44 @@ def _year500_set(kit):
     for path in tree_paths:
         if path.exists():
             mesh = _visual_mesh(path)
+            if mesh is not None and len(mesh.vertices) > 120000:
+                holder = bpy.data.objects.new("tree_decimate", mesh)
+                bpy.context.scene.collection.objects.link(holder)
+                mod = holder.modifiers.new("Slim", "DECIMATE")
+                mod.ratio = 0.045
+                bpy.context.view_layer.objects.active = holder
+                bpy.ops.object.modifier_apply(modifier="Slim")
+                mesh = holder.data
+                bpy.data.objects.remove(holder, do_unlink=True)
+                print("tree decimated", path.name, len(mesh.vertices), flush=True)
             if mesh is not None:
                 loaded.append((mesh, max(_size(mesh)[2], 0.2)))
     rng = random.Random(3)
     # Sidewalk lines, at least 15 m from the camera at y=-66, and off the axis.
-    spots = []
-    for x0 in (-7.0, 7.4):
-        for y in range(-48, -22, 8):
-            spots.append((x0 + rng.uniform(-0.3, 0.3), float(y)))
-    for x, y in ((-6.8, -39.0), (7.2, -32.0)):
-        spots.append((x, y))
-    for i, (x, y) in enumerate(spots):
+    # 25–40 m in front of the camera at y=-66, trunks off the centre line.
+    spots = (
+        (-9.4, -44.0, 16.0), (-10.2, -34.0, 14.5), (-8.8, -26.0, 13.0),
+        (9.6, -46.0, 15.0), (10.4, -34.0, 16.5), (8.8, -26.0, 14.0),
+        (-8.6, -38.0, 12.0), (9.0, -30.0, 12.5),
+    )
+    for i, (x, y, height) in enumerate(spots):
         if not loaded:
             break
         mesh, native = loaded[0]
-        height = rng.uniform(11.0, 17.0)
         tree = _spawn_mesh(
             plants, mesh,
-            (x, y, 1.25),
-            rng.random() * 6.2, height / native, "broadleaf",
+            (x, y, 1.3),
+            i * 0.9, height / native, "broadleaf",
         )
         kit.add(tree, "swallow", sink=False)
+    if len(loaded) > 1:
+        for i, (x, y) in enumerate(((-2.4, -44.0), (1.6, -36.0), (-1.2, -30.0), (2.8, -26.0), (0.4, -50.0), (-3.2, -28.0))):
+            mesh, native = loaded[1]
+            sap = _spawn_mesh(plants, mesh, (x, y, 1.35), i, rng.uniform(3.5, 6.0) / native, "sapling")
+            kit.add(sap, "swallow", sink=False)
+    from engine.scenes import _plant
+    for i, (x, y) in enumerate(((-4.0, -34.0), (-1.0, -32.0), (2.0, -33.0), (4.5, -31.0), (0.5, -36.0))):
+        _plant(kit, plants, "fern_02", x, y, 1.8, 0.7, delay=0.2, yaw=i, role="swallow")
     # Dark concrete and wood only. The white scan boulders stay out.
     for filename, size in (("lowpoly_concrete_debris.glb", 1.6), ("wood_planks_debris.glb", 1.3), ("asphalt_02.glb", 1.8)):
         path = Path("/opt/cursor/asset-cache/private/debris") / filename
@@ -1575,7 +1565,7 @@ def _year500_set(kit):
             side = -1.0 if i % 2 == 0 else 1.0
             pile = _spawn_mesh(
                 coll, mesh,
-                (side * rng.uniform(2.2, 6.5), rng.uniform(-46.0, -24.0), 1.25),
+                (rng.uniform(-2.5, 2.5), rng.uniform(-62.0, -54.0), 1.28),
                 rng.random() * 6.0, size / max(native, 0.2), "rubble_pile",
             )
             kit.add(pile, "rubble_hill", sink=False)
@@ -1772,6 +1762,18 @@ def drive(kit, ch):
             _hide_tree(item.obj, not fallen)
     for shard in getattr(kit, "fallen_shards", ()) or ():
         shard.hide_render = not fallen
+    if fallen:
+        for item in kit.items:
+            if item.role in {"bike", "car", "person"}:
+                _hide_tree(item.obj, True)
+        for obj in bpy.data.objects:
+            if obj.type != "MESH" or not obj.name.startswith("Plane"):
+                continue
+            dims = obj.dimensions
+            if dims.z > 3.0 and min(dims.x, dims.y) < 0.5:
+                loc = obj.matrix_world.translation
+                if -40.0 < loc.x < 20.0 and -60.0 < loc.y < -12.0:
+                    obj.hide_render = True
     node = getattr(kit, "fog_density", None)
     if node is not None:
         node.outputs[0].default_value = 0.0035 if fallen else 0.0
