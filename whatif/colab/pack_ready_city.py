@@ -69,9 +69,16 @@ def main():
     fps = int(RESOLVED["fps"])
     prev = {}
 
-    print("baking", last, "frames", flush=True)
+    keyframes = {1, last}
+    for keys in RESOLVED["channels"].values():
+        for fr, _value in keys:
+            keyframes.add(int(fr))
+    # People and traffic move through the opening. After that, poses hold.
+    keyframes.update(range(1, 96))
+    frames = sorted(frame for frame in keyframes if 1 <= frame <= last)
+    print("baking", len(frames), "poses of", last, flush=True)
     t1 = time.perf_counter()
-    for frame in range(1, last + 1):
+    for frame in frames:
         ch = channels_at(RESOLVED, frame)
         kit.beat_id = beat_at(RESOLVED, frame)["id"]
         apply(kit, ch, frame, fps)
@@ -99,18 +106,23 @@ def main():
         for obj in rig_objs:
             _key_xform(obj, frame)
         for item in kit.items:
-            for obj in (item.obj, *list(item.obj.children_recursive)):
-                state = (
-                    obj.hide_render,
-                    round(obj.location.x, 2),
-                    round(obj.rotation_euler.x, 3),
-                    round(obj.scale.z, 3),
-                )
-                token = obj.name
-                if frame in (1, last) or prev.get(token) != state:
-                    _key_xform(obj, frame)
-                    prev[token] = state
-        if frame % 200 == 0:
+            obj = item.obj
+            # Coarse on purpose. Tree sway is not baked; era hides and collapses are.
+            state = (
+                obj.hide_render,
+                round(obj.location.x, 1),
+                round(obj.location.z, 2),
+                round(obj.rotation_euler.x, 1),
+                round(obj.scale.z, 2),
+            )
+            token = obj.name
+            if frame in (1, last) or prev.get(token) != state:
+                _key_xform(obj, frame)
+                for child in obj.children_recursive:
+                    child.hide_render = obj.hide_render
+                    _key_hide(child, frame)
+                prev[token] = state
+        if frame % 30 == 0 or frame == frames[-1]:
             print("baked", frame, flush=True)
     print("bake", round(time.perf_counter() - t1, 1), "s", flush=True)
 

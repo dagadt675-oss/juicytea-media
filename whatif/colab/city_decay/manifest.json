@@ -13,28 +13,29 @@
   "denoiser": "OPENIMAGEDENOISE",
   "engine": "CYCLES",
   "device": "OPTIX",
-  "device_fallback": ["CUDA", "CPU"],
+  "device_fallback": [
+    "CUDA",
+    "CPU"
+  ],
   "volume_bounces": 1,
   "max_bounces": 6,
   "output": "//frames/####.png",
-  "est_sec_per_frame_cpu": 63,
-  "est_sec_per_frame_t4": 16,
+  "est_sec_per_frame_cpu": 427,
+  "est_sec_per_frame_t4": 107,
   "edit_overlay": {
     "beauty_only": true,
-    "title": "What if every human vanished… right now?",
+    "title": "What if every human vanished\u2026 right now?",
     "counter": "Population (8.2 billion) on the opening beat, then the year label. Composite after the beauty PNGs with whatif/engine/overlay.py. Not burned into these frames.",
     "narration": false,
     "music": false,
     "sfx": "Cue sheet only (sfx.json). Not in this blend."
   },
   "notes": [
-    "Ready-made Procedural City 6 for day 1. Ruined City Free 5 replaces it when collapse passes 0.5. Both are meshes in the blend.",
-    "Street fog is a Principled Volume with height falloff. No fluid cache.",
-    "No rigid-body simulation. Era hides, sun, fog density, and weather cards are keyframed for frames 1-1800.",
-    "No add-on is required on Colab. Cell Fracture, Ivy Gen, and A.N.T. Landscape are not used in this scene.",
-    "Drone beats (frames 1097-1426) stay on the wide camera. Those paths still target the old river city and were not retargeted.",
-    "The handmade river-city episode is a different blend and is not in this bundle.",
-    "CPU timing is the mean wall clock of a clean unpack on this 4-thread VM (no GPU): frame 1 was 54 s (Cycles 53.0 s), frame 871 was 72 s (Cycles 70.4 s). Both PNGs are 1080x1920 RGB. Textures were packed; neither frame is missing-texture magenta.",
-    "est_sec_per_frame_t4 is that 63 s mean divided by 4. It is not a measurement. This machine has no OptiX device. Split the 1800 frames with START END if a free Colab session is shorter than the guess."
+    "Locked camera. Hub suspension bridge, river, park, far-bank blocks, distant mountain range.",
+    "Poses are keyed on the opening (frames 1-95) and on channel keys after that. Tree sway is not keyed.",
+    "Street fog sits above the river. A separate blue haze sits in front of the mountains.",
+    "BlendKit libraries saved by a newer Blender were skipped. Cities, the bridge, mountains, and trees are glTF or a gzip blend 4.2 can read.",
+    "Year 100 keeps the towers. Year 500 is forest, a few stumps, and the deck in the river.",
+    "CPU timing is the mean wall clock of a clean unpack on this 4-thread VM: frame 1 was 431 s, frame 1096 was 423 s, both 1080x1920, 64 samples, OpenImageDenoise. est_sec_per_frame_t4 is that mean divided by 4 and was not measured on a GPU."
   ]
 }
