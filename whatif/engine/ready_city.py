@@ -808,37 +808,73 @@ def _place_ruin(coll, src, loc, yaw, height, rot_y=0.0):
     return copy
 
 
+def _grow_vines(kit):
+    """Ivy on the street face of the left block. Hidden until the years pass."""
+    from engine import found_assets
+
+    left = next(
+        (obj for obj in getattr(kit, "tall_blocks", ()) if obj.get("mid_x", 0.0) < 0.0 and obj.get("mid_y", 0.0) < 0.0),
+        None,
+    )
+    if left is None:
+        return
+    bpy.context.view_layer.update()
+    xs = [(left.matrix_world @ Vector(corner)).x for corner in left.bound_box]
+    face_x = max(xs) - 0.3
+    plants = kit.collection("Plants")
+    grown = []
+    for seed_y, seed_z in ((-52.0, 2.2), (-42.0, 4.5), (-34.0, 7.0)):
+        grown.extend(found_assets.grow_ivy(left, (face_x, seed_y, seed_z), length=8.0) or [])
+    for obj in grown:
+        try:
+            plants.objects.link(obj)
+        except RuntimeError:
+            pass
+        kit.add(obj, "year_age", sink=False)
+    print("ivy", len(grown), flush=True)
+
+
 def _crowd(kit):
-    """Walkers, cyclists, and cars on the avenue the camera is looking down."""
+    """Walkers on both sidewalks, and hub sedans plus the Miura in the avenue."""
+    from engine import private_assets
     from engine.scenes import _bike, _traffic, _walker
 
     life = kit.collection("Life")
-    z = 1.22
+    z = 1.35
     spots = []
-    for side, x in ((-1.0, -6.2), (1.0, 5.4)):
-        for step, y0 in enumerate(range(-46, -16, 5)):
-            spots.append((x + (0.5 if step % 2 else 0.0), float(y0), 1.0 if step % 2 == 0 else -1.0))
+    sidewalks = ((-4.6, 3.5), (-6.4, 4.0), (3.8, 3.5), (5.6, 4.0))
+    for x, step in sidewalks:
+        direction = 1.0 if x < 0 else -1.0
+        y0 = -58.0
+        index = 0
+        while y0 < -18.0:
+            spots.append((x + (0.35 if index % 2 else 0.0), y0, direction))
+            y0 += step
+            index += 1
     for index, (x, y0, direction) in enumerate(spots):
-        _walker(kit, life, [(x, y0, z), (x, y0 + 8.0 * direction, z)], 1.25, index * 1.4)
-    for index, (x, y0) in enumerate(((-2.0, -44.0), (1.6, -36.0), (-0.8, -30.0), (2.0, -24.0))):
-        _bike(kit, life, [(x, y0, z), (x, y0 + 12.0, z)], index * 2.0)
-    lanes = (
-        ((-0.8, -48.0, z), (-0.8, -16.0, z), 6, 8.0),
-        ((1.6, -20.0, z), (1.6, -50.0, z), 7, 9.0),
-        ((-1.6, -46.0, z), (-1.6, -18.0, z), 8, 7.0),
-        ((2.4, -22.0, z), (2.4, -48.0, z), 9, 10.0),
+        _walker(kit, life, [(x, y0, z), (x, y0 + 7.0 * direction, z)], 1.2, index * 1.1)
+    for index, (x, y0) in enumerate(((-2.2, -50.0), (1.8, -42.0), (-1.2, -34.0), (2.2, -26.0), (0.4, -22.0))):
+        _bike(kit, life, [(x, y0, z), (x, y0 + 10.0, z)], index * 2.0)
+    # Hub sedans and the Miura. Nose yaw is from +X, so pi/2 drives away up the avenue.
+    road_z = 1.28
+    moving = (
+        ((-1.0, -50.0, road_z), (-1.0, -22.0, road_z), 0, 7.0),
+        ((1.4, -24.0, road_z), (1.4, -48.0, road_z), 1, 8.0),
+        ((0.2, -44.0, road_z), (0.2, -20.0, road_z), 2, 6.5),
     )
-    for index, (start, end, car_index, speed) in enumerate(lanes):
-        item = _traffic(kit, life, [start, end], car_index, speed, index * 4.0, coast=5.0)
-        if item is not None:
-            item.extra["hero"] = True
-    for index, (x, y) in enumerate(((-2.6, -40.0), (3.0, -34.0), (-3.2, -28.0), (3.4, -22.0))):
-        loc = (x, y, z)
-        built = cc0_city.place_fleet_car(life, loc, math.pi / 2.0 if index % 2 == 0 else -math.pi / 2.0, index=index + 2)
+    for index, (start, end, car_index, speed) in enumerate(moving):
+        _traffic(kit, life, [start, end], car_index, speed, index * 6.0, coast=5.0)
+    parked = ((-2.2, -42.0, math.pi / 2.0), (2.2, -36.0, -math.pi / 2.0), (-2.4, -30.0, math.pi / 2.0))
+    for index, (x, y, yaw) in enumerate(parked):
+        loc = (x, y, road_z)
+        built = private_assets.place_avenue_car(life, loc, yaw, index=4 + index)
         if built is None:
             continue
-        item = kit.add(built, "car", path_from=loc, path_to=loc, index=30 + index, sink=False)
-        item.extra["hero"] = True
+        kit.add(built, "car", path_from=loc, path_to=loc, index=4 + index, sink=False)
+    miura_loc = (-0.4, -54.0, road_z)
+    miura = private_assets.place_hero_sports(life, miura_loc, -math.pi / 2.0)
+    if miura is not None:
+        kit.add(miura, "car", path_from=miura_loc, path_to=miura_loc, index=11, sink=False)
 
 
 def _ground_patch(coll, mat, width, length):
@@ -861,56 +897,163 @@ def _ground_patch(coll, mat, width, length):
     return obj
 
 
+def _puddle(coll):
+    mat = bpy.data.materials.get("StreetPuddle")
+    if mat is None:
+        mat = bpy.data.materials.new("StreetPuddle")
+        mat.use_nodes = True
+        bsdf = next(node for node in mat.node_tree.nodes if node.type == "BSDF_PRINCIPLED")
+        bsdf.inputs["Base Color"].default_value = (0.04, 0.05, 0.045, 1)
+        bsdf.inputs["Roughness"].default_value = 0.06
+        if "Specular IOR Level" in bsdf.inputs:
+            bsdf.inputs["Specular IOR Level"].default_value = 0.8
+    return _ground_patch(coll, mat, 1.0, 1.0)
+
+
 def _ground_cover(kit):
-    """Cracked pavers, soil, and grass that appear once the street is abandoned."""
+    """Soil, moss, grass, leaves and puddles that bury the asphalt at year 500."""
     from engine import found_assets
     from engine.scenes import _plant
 
     coll = kit.collection("Terrain")
     plants = kit.collection("Plants")
-    soil = found_assets.pbr_material("RuinSoil", "leaves_forest_ground", uv=0.4)
-    crack = found_assets.pbr_material("HeavedRoad", "road_damaged", uv=0.35)
-    concrete = found_assets.pbr_material("HeavedPaver", "cracked_concrete", uv=0.5)
+    sheets = [mat for mat in (
+        found_assets.pbr_material("RuinSoil", "brown_mud_leaves_01", uv=3.5),
+        found_assets.pbr_material("RuinMoss", "concrete_moss", uv=3.2),
+        found_assets.pbr_material("RuinGrass", "grass_ground", uv=2.8),
+        found_assets.pbr_material("RuinLeaves", "leaves_forest_ground", uv=3.0),
+        found_assets.pbr_material("RuinCracks", "road_damaged", uv=2.4),
+        found_assets.pbr_material("RuinSparse", "sparse_grass", uv=2.6),
+    ) if mat is not None]
     rng = random.Random(9)
-    for i in range(10):
-        mat = (crack, soil, concrete)[i % 3]
-        if mat is None:
-            continue
-        slab = _ground_patch(coll, mat, rng.uniform(2.2, 5.5), rng.uniform(1.6, 4.0))
-        slab.location = (rng.uniform(-5.0, 6.0), rng.uniform(-60.0, -30.0), 1.24)
-        slab.rotation_euler = (rng.uniform(-0.04, 0.05), rng.uniform(-0.03, 0.03), rng.random() * 3.0)
-        kit.add(slab, "groundwear", sink=False)
-    for i in range(48):
+    for row, y in enumerate(range(-62, -18, 5)):
+        for col, x in enumerate((-1.6, 0.6, 2.4)):
+            if not sheets:
+                break
+            slab = _ground_patch(coll, sheets[(row + col) % len(sheets)], rng.uniform(3.4, 5.2), rng.uniform(5.5, 7.5))
+            slab.location = (x + rng.uniform(-0.3, 0.3), float(y) + rng.uniform(-0.4, 0.4), 1.26)
+            slab.rotation_euler = (rng.uniform(-0.03, 0.04), rng.uniform(-0.02, 0.03), rng.random() * 6.2)
+            kit.add(slab, "groundwear", sink=False)
+    for _i in range(8):
+        puddle = _puddle(coll)
+        puddle.scale = (rng.uniform(0.7, 1.8), rng.uniform(1.2, 3.2), 1.0)
+        puddle.location = (rng.uniform(-1.8, 2.2), rng.uniform(-58.0, -24.0), 1.3)
+        puddle.rotation_euler.z = rng.random() * 6.0
+        kit.add(puddle, "groundwear", sink=False)
+    ground_plants = (
+        "grass_medium_01", "grass_medium_02", "grass_bermuda_01", "fern_02",
+        "weed_plant_02", "moss_01", "dandelion_01", "shrub_01", "shrub_02",
+    )
+    for i in range(90):
+        slug = ground_plants[i % len(ground_plants)]
+        height = rng.uniform(0.8, 1.6) if "shrub" in slug else rng.uniform(0.35, 0.9)
         _plant(
-            kit, plants,
-            ("grass_medium_01", "grass_medium_02", "fern_02", "weed_plant_02", "moss_01")[i % 5],
-            rng.uniform(-8.0, 9.0), rng.uniform(-64.0, -18.0), 1.2,
-            rng.uniform(0.4, 1.3), delay=0.2, yaw=rng.random() * 6.0,
+            kit, plants, slug,
+            rng.uniform(-3.2, 3.4), rng.uniform(-62.0, -18.0), 1.22,
+            height, delay=0.15, yaw=rng.random() * 6.0,
         )
-    for i, (x, y, z) in enumerate(((-6.5, -50, 3.0), (-6.2, -38, 6.0), (6.4, -46, 4.0), (6.0, -32, 8.0), (-5.5, -28, 2.2))):
-        _plant(kit, plants, "fern_02", x, y, z, 1.4, delay=0.35, yaw=i, role="year_age")
+    for i, (x, y, z, height) in enumerate((
+        (-8.5, -54, 1.4, 1.8), (-8.2, -48, 3.2, 2.2), (-8.0, -42, 5.5, 2.0),
+        (-7.8, -36, 2.4, 1.6), (-8.4, -30, 7.0, 2.4), (-7.6, -24, 4.0, 1.8),
+        (6.2, -44, 1.6, 1.5), (7.0, -38, 3.4, 1.8), (6.6, -32, 2.2, 1.4),
+    )):
+        slug = "fern_02" if i % 2 == 0 else "shrub_02"
+        _plant(kit, plants, slug, x, y, z, height, delay=0.3, yaw=i, role="year_age")
+
+
+def _fracture_host(obj, limit):
+    import addon_utils
+
+    try:
+        addon_utils.enable("bl_ext.user_default.cell_fracture", default_set=False, persistent=False)
+    except Exception as exc:
+        print("fracture addon", exc, flush=True)
+        return []
+    if not hasattr(bpy.ops.object, "add_fracture_cell_objects"):
+        print("fracture op missing", flush=True)
+        return []
+    from engine.decay_vfx import _cell_fracture
+
+    return _cell_fracture(obj, limit)
+
+
+def _drop_group(empty, members, ground_z):
+    bpy.context.view_layer.update()
+    zs = []
+    for obj in members:
+        for corner in obj.bound_box:
+            zs.append((obj.matrix_world @ Vector(corner)).z)
+    if zs:
+        empty.location.z += ground_z - min(zs)
+
+
+def _lay_fractured_tower(kit, src):
+    """Cell-fracture one ruined building and tip the pieces across the avenue."""
+    coll = kit.collection("City")
+    host = src.copy()
+    host.data = src.data.copy()
+    coll.objects.link(host)
+    host.parent = None
+    host.hide_render = False
+    host.rotation_mode = "XYZ"
+    host.rotation_euler = (0.0, 0.0, 0.4)
+    factor = 16.0 / max(src.dimensions.z, 0.01)
+    host.scale = (factor, factor, factor)
+    host.location = (0.0, -52.0, 1.3)
+    bpy.context.view_layer.update()
+    shards = _fracture_host(host, 14) if len(host.data.vertices) < 80000 else []
+    members = shards or [host]
+    if shards:
+        host.hide_render = True
+    bpy.context.view_layer.update()
+    # Bake the world transform, then tip the chunks onto their side in the mesh
+    # itself so a later parent or rotation mode cannot stand them back up.
+    for shard in members:
+        shard.parent = None
+        baked = shard.data.copy()
+        baked.transform(shard.matrix_world.copy())
+        shard.data = baked
+        shard.matrix_world = Matrix.Identity(4)
+        shard.hide_render = False
+    origin = Vector((0.0, -52.0, 8.0))
+    tip = Matrix.Translation(origin) @ Matrix.Rotation(1.5, 4, "Y") @ Matrix.Translation(-origin)
+    # Smaller, and to the right, so the left apartments and the dome stay in frame.
+    settle = Matrix.Translation((5.5, 2.0, 0.0)) @ Matrix.Translation(origin) @ Matrix.Scale(0.62, 4) @ Matrix.Translation(-origin)
+    for shard in members:
+        shard.data.transform(settle @ tip)
+    bpy.context.view_layer.update()
+    zs = []
+    for shard in members:
+        for corner in shard.bound_box:
+            zs.append((shard.matrix_world @ Vector(corner)).z)
+    if zs:
+        drop = Matrix.Translation((0.0, 0.0, 1.28 - min(zs)))
+        for shard in members:
+            shard.data.transform(drop)
+    bpy.context.view_layer.update()
+    xs, zs2 = [], []
+    for shard in members:
+        for corner in shard.bound_box:
+            point = shard.matrix_world @ Vector(corner)
+            xs.append(point.x)
+            zs2.append(point.z)
+    if xs:
+        print("fallen span x", round(max(xs) - min(xs), 1), "z", round(max(zs2) - min(zs2), 1), flush=True)
+    kit.fallen_shards = list(members)
+    for shard in members:
+        kit.add(shard, "fracture500", sink=False)
+    print("fallen shards", len(members), flush=True)
+    return members[0]
 
 
 def _year500_set(kit):
-    """A few ruin shells where a block actually fell, plus forest and debris on this street."""
+    """The same street, with one fractured building lying across it and a taller forest."""
     coll = kit.collection("City")
     plants = kit.collection("Plants")
     sources = _ruin_sources()
     made = 0
-    # Only the right-hand block of this avenue is fully replaced. The rest of the street decays in place.
-    spots = (
-        (14.0, -46.0, 16.0, 1.6),
-        (16.0, -34.0, 12.0, 2.2),
-    )
-    for index, (x, y, height, yaw) in enumerate(spots):
-        if not sources:
-            break
-        shell = _place_ruin(coll, sources[index % len(sources)], (x, y, 1.2), yaw, height)
-        kit.add(shell, "shell", sink=False)
-        made += 1
     if sources:
-        tower = _place_ruin(coll, sources[0], (0.4, -46.0, 2.2), 0.2, 16.0, rot_y=1.57)
-        kit.add(tower, "shell", sink=False)
+        _lay_fractured_tower(kit, sources[0])
         made += 1
     tree_paths = (
         Path("/opt/cursor/asset-cache/cc0/polyhaven/island_tree_02/island_tree_02_1k.gltf"),
@@ -924,31 +1067,49 @@ def _year500_set(kit):
             if mesh is not None:
                 loaded.append((mesh, max(_size(mesh)[2], 0.2)))
     rng = random.Random(3)
-    for i in range(56):
+    for i in range(78):
         if not loaded:
             break
         mesh, native = loaded[i % len(loaded)]
-        height = rng.uniform(4.5, 11.0)
-        x = rng.uniform(-9.0, 11.0)
-        y = rng.uniform(-44.0, -16.0)
-        if abs(x) < 5.0 and abs(y + 50.0) < 7.0:
-            x += 6.0
+        height = rng.uniform(10.0, 16.0) if i % 3 else rng.uniform(6.0, 10.0)
+        x = rng.uniform(-7.0, 7.0)
+        y = rng.uniform(-46.0, -18.0)
+        # The camera sits at y=-66. Trunks in the first 18 m swallow the lens.
+        if y < -46.0:
+            y = -46.0 + rng.uniform(0.0, 6.0)
+        # Leave the fallen section and the white dome readable.
+        if abs(x) < 4.0 and abs(y + 52.0) < 7.0:
+            x = 6.0 if x >= 0 else -6.0
+        # Near left stays open so the day-1 apartments still read.
+        if x < -1.2 and y < -34.0:
+            x = rng.uniform(-0.5, 3.5)
+            y = min(y, -32.0)
+        if x > 3.2 and -50.0 < y < -28.0:
+            x = rng.uniform(0.5, 3.0)
         tree = _spawn_mesh(
             plants, mesh,
             (x, y, 1.2),
             rng.random() * 6.2, height / native, "real_tree",
         )
         kit.add(tree, "swallow", sink=False)
-    for filename, size in (("lowpoly_concrete_debris.glb", 2.4), ("scan_pile_concrete.glb", 3.6), ("pbr_debris.glb", 2.8)):
+    from engine.scenes import _plant
+    for i in range(16):
+        _plant(
+            kit, plants, "shrub_01" if i % 2 == 0 else "shrub_02",
+            rng.uniform(-4.0, 4.0), rng.uniform(-58.0, -20.0), 1.22,
+            rng.uniform(1.1, 2.2), delay=0.2, yaw=rng.random() * 6.0, role="swallow",
+        )
+    # Dark concrete and wood only. The white scan boulders stay out.
+    for filename, size in (("lowpoly_concrete_debris.glb", 1.6), ("wood_planks_debris.glb", 1.3), ("asphalt_02.glb", 1.8)):
         path = Path("/opt/cursor/asset-cache/private/debris") / filename
         mesh = _visual_mesh(path) if path.exists() else None
         if mesh is None:
             continue
         native = max(_size(mesh))
-        for i in range(4):
+        for i in range(5):
             pile = _spawn_mesh(
                 coll, mesh,
-                (rng.uniform(-6.0, 8.0), rng.uniform(-56.0, -22.0), 1.2),
+                (rng.uniform(-2.4, 2.8), rng.uniform(-58.0, -22.0), 1.22),
                 rng.random() * 6.0, size / max(native, 0.2), "rubble_pile",
             )
             kit.add(pile, "rubble_hill", sink=False)
@@ -961,6 +1122,7 @@ def build(kit, mats, rng):
     kit.kind = "ready_city"
     kit.water = None
     _import_intersection(kit)
+    _grow_vines(kit)
     _crowd(kit)
     _ground_cover(kit)
     _year500_set(kit)
@@ -1027,41 +1189,43 @@ def _push_decay(amount, forest):
                 node.outputs[0].default_value = float(value)
 
 
-def _cloudy_sky():
-    """Camera sees a cloudy Poly Haven sky. The flat blue gradient stays off."""
-    world = bpy.context.scene.world
-    if world is None or world.node_tree is None:
-        return
-    tree = world.node_tree
-    hdr = Path(
-        "/opt/cursor/asset-cache/cc0/extracted/hdri/polyhaven_hdris_2k/"
-        "kloofendal_48d_partly_cloudy_puresky/kloofendal_48d_partly_cloudy_puresky_2k.hdr"
-    )
+def _cloudy_sky(kit):
+    """A 4K partly-cloudy sky, rotated so the cumulus sit in the frame."""
+    hdr = Path("/opt/cursor/asset-cache/cc0/hdri/kloofendal_48d_partly_cloudy_puresky_4k.hdr")
     if not hdr.exists():
         return
+    world = bpy.context.scene.world
+    if world is None:
+        world = bpy.data.worlds.new("Sky")
+        bpy.context.scene.world = world
+    world.use_nodes = True
+    tree = world.node_tree
+    tree.nodes.clear()
+    out = tree.nodes.new("ShaderNodeOutputWorld")
+    bg = tree.nodes.new("ShaderNodeBackground")
+    env = tree.nodes.new("ShaderNodeTexEnvironment")
+    coord = tree.nodes.new("ShaderNodeTexCoord")
+    mapping = tree.nodes.new("ShaderNodeMapping")
     image = bpy.data.images.load(str(hdr), check_existing=True)
     try:
         image.colorspace_settings.name = "Linear Rec.709"
     except TypeError:
         image.colorspace_settings.name = "Linear"
-    env = next((node for node in tree.nodes if node.type == "TEX_ENVIRONMENT"), None)
-    if env is None:
-        env = tree.nodes.new("ShaderNodeTexEnvironment")
-        coord = tree.nodes.new("ShaderNodeTexCoord")
-        mapping = tree.nodes.new("ShaderNodeMapping")
-        tree.links.new(coord.outputs["Generated"], mapping.inputs["Vector"])
-        tree.links.new(mapping.outputs["Vector"], env.inputs["Vector"])
     env.image = image
-    for node in tree.nodes:
-        if node.type == "MAPPING":
-            node.inputs["Rotation"].default_value = (0.0, 0.0, 0.6)
-    bg = next((node for node in tree.nodes if node.type == "BACKGROUND"), None)
-    if bg is None:
-        return
-    if bg.inputs[0].is_linked:
-        tree.links.remove(bg.inputs[0].links[0])
+    env.projection = "EQUIRECTANGULAR"
+    env.interpolation = "Linear"
+    # Pitch brings the sharp cloud band down into the street view. The mirrored
+    # lower half of a puresky HDR stays below the buildings.
+    mapping.inputs["Rotation"].default_value = (0.2, 0.0, 0.2)
+    bg.inputs[1].default_value = 1.0
+    tree.links.new(coord.outputs["Generated"], mapping.inputs["Vector"])
+    tree.links.new(mapping.outputs["Vector"], env.inputs["Vector"])
     tree.links.new(env.outputs["Color"], bg.inputs[0])
-    bg.inputs[1].default_value = 1.15
+    tree.links.new(bg.outputs["Background"], out.inputs["Surface"])
+    kit.world_bg = bg
+    kit.sky_mix = None
+    kit.sky_zenith = None
+    kit.sky_horizon = None
 
 
 def _break_glass():
@@ -1098,7 +1262,7 @@ def drive(kit, ch):
     collapse = float(ch.get("collapse", 0.0))
     fallen = collapse >= 0.85
     _frame_camera(kit)
-    _cloudy_sky()
+    _cloudy_sky(kit)
     if kit.volume is not None:
         kit.volume.hide_render = True
     collapsed = getattr(kit, "collapsed_block", None)
@@ -1107,7 +1271,7 @@ def drive(kit, ch):
         obj.location.z = 0.0
         obj.scale.z = 1.0
         if fallen and obj is not collapsed:
-            _shorten_block(obj, 0.62)
+            _shorten_block(obj, 0.8)
     for obj in getattr(kit, "window_decals", ()) or ():
         same = collapsed is not None and obj.name.split("Window")[0].strip() in collapsed.name
         obj.hide_render = fallen and same
@@ -1119,6 +1283,8 @@ def drive(kit, ch):
     for item in kit.items:
         if item.role in {"shell", "swallow", "rubble_hill", "rubble"}:
             _hide_tree(item.obj, not fallen)
+    for shard in getattr(kit, "fallen_shards", ()) or ():
+        shard.hide_render = not fallen
     node = getattr(kit, "fog_density", None)
     if node is not None:
         node.outputs[0].default_value = 0.0045 if fallen else 0.0
