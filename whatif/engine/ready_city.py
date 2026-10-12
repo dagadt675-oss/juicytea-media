@@ -29,11 +29,12 @@ LENS = 28.0
 SHIFT_Y = 0.06
 # Year-500 glides. Plants inside this corridor are removed so the lens is clear.
 # Plants outside it stay, and they still cast shadows.
-GLIDE_SIGHTS = (
-    ((-3.20, -57.6), (-0.40, -54.2)),
-    ((-2.60, -55.8), (-0.25, -53.6)),
-    ((5.10, -50.6), (9.80, -47.2)),
-    ((5.40, -46.5), (1.40, -40.0)),
+# Only the lens itself. A wider cut was erasing the Year 500 meadow.
+GLIDE_CAMERAS = (
+    (-2.30, -56.6),
+    (-1.70, -55.4),
+    (4.40, -48.8),
+    (0.00, -62.0),
 )
 BLOCKS = {
     "c6": "procedural_city_6.glb",
@@ -941,7 +942,7 @@ def _slab(coll, loc, size):
 
 def _corner_skin(point):
     """The street face of the right tower, the piece that falls into the avenue."""
-    return 13.6 < point.x < 16.8 and -50.0 < point.y < -36.0 and 18.0 < point.z < 32.0
+    return 12.2 < point.x < 18.8 and -50.0 < point.y < -36.0 and 16.0 < point.z < 34.0
 
 
 def _bounds(obj):
@@ -1013,7 +1014,7 @@ def _fallen_matrices(chunk):
     chunk.data.transform(spun)
     xs, ys, zs = _bounds(chunk)
     span = max(max(xs) - min(xs), max(ys) - min(ys), 0.01)
-    factor = 7.5 / span
+    factor = 12.0 / span
     center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, (min(zs) + max(zs)) * 0.5))
     sized = Matrix.Translation(center) @ Matrix.Scale(factor, 4) @ Matrix.Translation(-center)
     chunk.data.transform(sized)
@@ -1025,17 +1026,12 @@ def _fallen_matrices(chunk):
     seat = zs[max(len(zs) // 8, 0)]
     sink = Matrix.Translation((0.0, 0.0, 1.05 - seat))
     chunk.data.transform(sink)
-    zs = [vert.co.z for vert in chunk.data.vertices]
-    bottom = min(zs)
-    height = max(zs) - bottom
-    squash = min(1.0, 3.2 / max(height, 0.01))
-    flat = Matrix.Translation((0.0, 0.0, bottom)) @ Matrix.Scale(squash, 4, Vector((0.0, 0.0, 1.0))) @ Matrix.Translation((0.0, 0.0, -bottom))
-    chunk.data.transform(flat)
     zs = sorted(vert.co.z for vert in chunk.data.vertices)
-    # Seat the mass on the avenue. Using the lowest vertex leaves the floors floating.
-    seat = zs[max(len(zs) // 5, 0)]
-    plant = Matrix.Translation((0.0, 0.0, 1.35 - seat))
+    # Keep the volume. Squashing this into a slab is what made it a flat board.
+    seat = zs[max(len(zs) // 8, 0)]
+    plant = Matrix.Translation((0.0, 0.0, 1.30 - seat))
     chunk.data.transform(plant)
+    flat = Matrix.Identity(4)
     xs, ys, _zs = _bounds(chunk)
     # Lie the long side across the avenue so the street camera sees a wall, not floor edges.
     if (max(ys) - min(ys)) > (max(xs) - min(xs)):
@@ -1086,12 +1082,55 @@ def _fallen_corner(kit, src, decal):
     chunk.parent = None
     chunk.matrix_world = Matrix.Identity(4)
     kit.fallen_shards = members
+    _open_the_corner(kit, chunk, coll)
     xs, ys, zs = _bounds(chunk)
     print(
         "fallen corner",
         "span", round(max(xs) - min(xs), 1), round(max(ys) - min(ys), 1), round(max(zs) - min(zs), 1),
         flush=True,
     )
+
+
+def _seat_on_avenue(obj, ground=1.30):
+    bpy.context.view_layer.update()
+    pts = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+    if not pts:
+        return
+    obj.location.z += ground - min(point.z for point in pts)
+
+
+def _open_the_corner(kit, chunk, coll):
+    """Break the laid corner into hub-fractured chunks and rebar, across the avenue."""
+    shards = _fracture_host(chunk, 6)
+    pieces = []
+    if len(shards) >= 3:
+        chunk.hide_render = True
+        kit.fallen_shards = [item for item in kit.fallen_shards if item is not chunk]
+        for index, shard in enumerate(shards):
+            if shard.name not in coll.objects:
+                coll.objects.link(shard)
+            shard.location.x += (index - 2.5) * 1.35
+            shard.location.y += (index % 3 - 1) * 1.1
+            shard.rotation_euler.z += (index - 2) * 0.35
+            shard.rotation_euler.x += 0.25 if index % 2 == 0 else -0.15
+            _seat_on_avenue(shard)
+            pieces.append(shard)
+    else:
+        pieces.append(chunk)
+    path = Path("/opt/cursor/asset-cache/private/debris/concrete_rubble_steel.glb")
+    mesh = _visual_mesh(path) if path.exists() else None
+    if mesh is not None:
+        native = max(_size(mesh))
+        for index, (x, y, yaw, height) in enumerate((
+            (0.4, -40.6, 0.6, 3.2),
+            (2.4, -39.2, 1.8, 2.4),
+            (-1.2, -41.4, 2.4, 2.8),
+        )):
+            rebar = _spawn_mesh(coll, mesh, (x, y, 1.3), yaw, height / max(native, 0.2), "rebar_chunk")
+            _seat_on_avenue(rebar)
+            pieces.append(rebar)
+    kit.fallen_shards = list(kit.fallen_shards) + pieces
+    print("corner pieces", len(pieces), flush=True)
 
 
 def _cut_street_facades(kit, tall, windows, dome):
@@ -1504,29 +1543,17 @@ def _asphalt_slabs(kit):
 
 
 def _blocks_glide(x, y):
-    """True when a plant would sit in the lens of a year-500 glide."""
-    for (cam, aim) in GLIDE_SIGHTS:
-        if math.hypot(x - cam[0], y - cam[1]) < 3.2:
-            return True
-        dx, dy = aim[0] - cam[0], aim[1] - cam[1]
-        length = math.hypot(dx, dy) or 1.0
-        dx, dy = dx / length, dy / length
-        along = (x - cam[0]) * dx + (y - cam[1]) * dy
-        side = abs((x - cam[0]) * dy - (y - cam[1]) * dx)
-        # Near the lens only. Plants on the car and against the wall stay.
-        if 0.2 < along < 6.5 and side < 2.6:
-            return True
-    return False
+    """A plant stem in the lens. Everything past half a metre stays."""
+    return any(math.hypot(x - cam[0], y - cam[1]) < 0.5 for cam in GLIDE_CAMERAS)
 
 
 def _clear_glide_foliage(kit):
-    """Hide clumps the glide would fly through. The rest keep their shadows."""
+    """Hide only the clump the lens is inside. The meadow around it stays."""
     for item in kit.items:
         if item.role not in {"swallow", "century", "weed"}:
             continue
-        points = [item.obj.matrix_world @ Vector(corner) for corner in item.obj.bound_box]
-        points.append(item.obj.location)
-        if any(_blocks_glide(point.x, point.y) for point in points):
+        loc = item.obj.location
+        if _blocks_glide(loc.x, loc.y):
             _hide_tree(item.obj, True)
 
 
@@ -1562,13 +1589,7 @@ def _scatter_plants(kit):
         while y <= -20.0:
             row_b = [bm.verts.new((x0, y, 1.3)), bm.verts.new((x1, y, 1.3))]
             if row_a:
-                y0 = row_a[0].co.y
-                samples = (
-                    (x0, y0), (x1, y0), (x0, y), (x1, y),
-                    ((x0 + x1) * 0.5, (y0 + y) * 0.5),
-                )
-                if not any(_blocks_glide(sx, sy) for sx, sy in samples):
-                    bm.faces.new((row_a[0], row_a[1], row_b[1], row_b[0]))
+                bm.faces.new((row_a[0], row_a[1], row_b[1], row_b[0]))
             row_a = row_b
             y += 1.2
     bm.to_mesh(mesh)
@@ -1828,8 +1849,12 @@ def _year500_set(kit):
                 plants, mesh, (x, y, 1.32), i * 1.3, size / max(native, 0.2), "near_rubble",
             )
             kit.add(pile, "rubble_hill", sink=False)
-    for i, (x, y) in enumerate(((-1.1, -54.2), (0.8, -53.4), (-0.2, -55.2))):
-        _plant(kit, plants, "fern_02", x, y, 1.55, 0.65, delay=0.2, yaw=i, role="swallow")
+    for i, (x, y) in enumerate((
+        (-1.1, -54.2), (0.8, -53.4), (-0.2, -55.2),
+        (-0.5, -53.2), (0.4, -54.8), (-1.0, -54.8),
+        (0.2, -40.4), (1.8, -39.6), (-0.6, -41.0), (2.6, -41.2),
+    )):
+        _plant(kit, plants, "fern_02", x, y, 1.32, 0.85 if y < -50 else 0.7, delay=0.2, yaw=i, role="swallow")
     print("year500 pieces", made, flush=True)
 
 
@@ -2176,8 +2201,14 @@ def drive(kit, ch):
                 for child in item.obj.children_recursive:
                     if "glass" not in child.name.lower() and "light" not in child.name.lower():
                         child.hide_render = False
-                item.obj.location.z = 1.42
-                item.obj.rotation_euler.x += 0.16
+                item.obj.rotation_euler = item.base_rot.copy()
+                item.obj.rotation_euler.x += 0.05
+                item.obj.location.z = 1.32
+                _flatten_wheels(item.obj)
+                bpy.context.view_layer.update()
+                low = _lowest_z(item.obj)
+                if low is not None:
+                    item.obj.location.z += 1.30 - low
             elif item.role in {"bike", "car", "person"}:
                 _hide_tree(item.obj, True)
         _clear_glide_foliage(kit)

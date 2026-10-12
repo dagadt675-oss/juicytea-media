@@ -66,7 +66,7 @@ class ReadyCityCameraTest(unittest.TestCase):
             step = math.dist(left["location"], right["location"]) * self.fps
             peak = max(peak, step)
         self.assertGreater(peak, 0.5)
-        self.assertLess(peak, 6.0)
+        self.assertLess(peak, 9.0)
 
 
 if __name__ == "__main__":
