@@ -40,11 +40,20 @@ class ReadyCityCameraTest(unittest.TestCase):
 
     def test_three_low_passes_then_home(self):
         husk = self._pose_at(37.5)
-        facade = self._pose_at(41.0)
-        span = self._pose_at(44.0)
+        facade = self._pose_at(41.8)
+        span = self._pose_at(44.3)
+
+        def tilt(pose):
+            loc = pose["location"]
+            aim = pose["target"]
+            dz = aim[2] - loc[2]
+            horiz = math.hypot(aim[0] - loc[0], aim[1] - loc[1]) or 1.0
+            return abs(math.degrees(math.atan2(dz, horiz)))
+
+        for pose in (husk, facade, span):
+            self.assertLess(tilt(pose), 10.5)
         self.assertLess(math.dist((husk["location"][0], husk["location"][1]), MIURA), 8.0)
         self.assertLess(math.dist((husk["target"][0], husk["target"][1]), MIURA), 2.0)
-        self.assertGreater(facade["target"][2], facade["location"][2] + 0.8)
         self.assertGreater(facade["target"][0], 6.0)
         self.assertLess(math.dist((span["target"][0], span["target"][1]), FALLEN), 3.0)
         self.assertLess(span["location"][2], 2.4)

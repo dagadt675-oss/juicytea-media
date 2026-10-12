@@ -15,9 +15,9 @@ One eased move, no cuts. The street portion stays at 1.70 m. The three glides st
 | 0–6 s | Hold at `(0, -66, 1.70)`, looking at `(0, -26, 2.40)`, 28 mm. Opening and the vanish. | |
 | 6–24 s | Creep to `(0.4, -63, 1.70)`, still looking down the street. | |
 | 24–36.5 s | Drift to the right curb as the ruin finishes. Year 100 is still on this low walk. | |
-| 36.5–39.2 s | Low pass over the rusted Miura from the open side, `(−3.2, −57.6, 1.60)` to `(−2.6, −55.8, 1.50)`, lens 36 to 42. Foliage in the lens corridor is removed; the rest stays. | `drone_husk` |
-| 39.2–41.8 s | Along the right tower at 1.60 m, looking at the ivy on the wall and the broken windows, lens 36. Leaves off the wall are not kept. | `drone_facade` |
-| 41.8–44.4 s | The fallen tower corner lying in the avenue, from `(5.4, -46.5, 1.60)`, lens 28, so the chunk sits on the ground in frame. | `drone_span` |
+| 36.5–39.2 s | Low pass over the rusted Miura. Look stays within 10° of level. Leaves inside 1.2 m of the lens are removed. | `drone_husk` |
+| 39.2–41.8 s | Level look at the lower broken windows of the right tower. | `drone_facade` |
+| 41.8–44.4 s | The broken tower pieces lying in the avenue. | `drone_span` |
 | 44.4–55.5 s | Fly back to the opening pose. Speed is zero at both ends. | the old orbit's return, without the climb |
 | 55.5–60 s | Hold the opening pose. The city returns underneath it at 55.8 s, so the last frame is the first frame. | |
 

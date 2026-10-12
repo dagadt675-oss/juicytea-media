@@ -27,14 +27,12 @@ CAM_LOC = (0.0, -66.0, 3.0)
 CAM_TARGET = (0.0, -18.0, 5.8)
 LENS = 28.0
 SHIFT_Y = 0.06
-# Year-500 glides. Plants inside this corridor are removed so the lens is clear.
-# Plants outside it stay, and they still cast shadows.
-# Only the lens itself. A wider cut was erasing the Year 500 meadow.
-GLIDE_CAMERAS = (
-    (-2.30, -56.6),
-    (-1.70, -55.4),
-    (4.40, -48.8),
-    (0.00, -62.0),
+# Leaves inside 1.2 m of this line are removed. The meadow past that stays.
+GLIDE_PATH = (
+    (-1.85, -56.1),
+    (-1.35, -55.1),
+    (6.20, -49.6),
+    (0.20, -48.6),
 )
 BLOCKS = {
     "c6": "procedural_city_6.glb",
@@ -1014,7 +1012,7 @@ def _fallen_matrices(chunk):
     chunk.data.transform(spun)
     xs, ys, zs = _bounds(chunk)
     span = max(max(xs) - min(xs), max(ys) - min(ys), 0.01)
-    factor = 12.0 / span
+    factor = 7.5 / span
     center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, (min(zs) + max(zs)) * 0.5))
     sized = Matrix.Translation(center) @ Matrix.Scale(factor, 4) @ Matrix.Translation(-center)
     chunk.data.transform(sized)
@@ -1099,6 +1097,29 @@ def _seat_on_avenue(obj, ground=1.30):
     obj.location.z += ground - min(point.z for point in pts)
 
 
+def _rest_shard(obj, ground=1.30):
+    """Lay a loose piece on its side and sit it on the avenue. Drop it if it still floats."""
+    bpy.context.view_layer.update()
+    if obj.dimensions.z > max(obj.dimensions.x, obj.dimensions.y) * 0.8:
+        obj.rotation_euler.x += math.pi / 2.0
+        bpy.context.view_layer.update()
+    pts = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+    if not pts:
+        obj.hide_render = True
+        return False
+    obj.location.z += ground - min(point.z for point in pts)
+    bpy.context.view_layer.update()
+    pts = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+    low = min(point.z for point in pts)
+    high = max(point.z for point in pts)
+    dims = obj.dimensions
+    paper = min(dims) < 0.2 and max(dims) > 2.5
+    if low > 1.7 or high > 5.0 or paper:
+        obj.hide_render = True
+        return False
+    return True
+
+
 def _open_the_corner(kit, chunk, coll):
     """Break the laid corner into hub-fractured chunks and rebar, across the avenue."""
     shards = _fracture_host(chunk, 6)
@@ -1109,12 +1130,11 @@ def _open_the_corner(kit, chunk, coll):
         for index, shard in enumerate(shards):
             if shard.name not in coll.objects:
                 coll.objects.link(shard)
-            shard.location.x += (index - 2.5) * 1.35
-            shard.location.y += (index % 3 - 1) * 1.1
-            shard.rotation_euler.z += (index - 2) * 0.35
-            shard.rotation_euler.x += 0.25 if index % 2 == 0 else -0.15
-            _seat_on_avenue(shard)
-            pieces.append(shard)
+            shard.location.x += (index - 2.5) * 1.6
+            shard.location.y += (index % 3 - 1) * 0.8
+            shard.rotation_euler.z += (index - 2) * 0.4
+            if _rest_shard(shard):
+                pieces.append(shard)
     else:
         pieces.append(chunk)
     path = Path("/opt/cursor/asset-cache/private/debris/concrete_rubble_steel.glb")
@@ -1127,8 +1147,8 @@ def _open_the_corner(kit, chunk, coll):
             (-1.2, -41.4, 2.4, 2.8),
         )):
             rebar = _spawn_mesh(coll, mesh, (x, y, 1.3), yaw, height / max(native, 0.2), "rebar_chunk")
-            _seat_on_avenue(rebar)
-            pieces.append(rebar)
+            if _rest_shard(rebar):
+                pieces.append(rebar)
     kit.fallen_shards = list(kit.fallen_shards) + pieces
     print("corner pieces", len(pieces), flush=True)
 
@@ -1542,18 +1562,31 @@ def _asphalt_slabs(kit):
         kit.add(slab, "groundwear", sink=False)
 
 
-def _blocks_glide(x, y):
-    """A plant stem in the lens. Everything past half a metre stays."""
-    return any(math.hypot(x - cam[0], y - cam[1]) < 0.5 for cam in GLIDE_CAMERAS)
+def _near_lens(x, y, reach=1.2):
+    """Distance from a point to the glide, in the ground plane."""
+    best = reach + 1.0
+    points = GLIDE_PATH
+    for x0, y0 in points:
+        best = min(best, math.hypot(x - x0, y - y0))
+    for (x0, y0), (x1, y1) in zip(points, points[1:]):
+        dx, dy = x1 - x0, y1 - y0
+        length = math.hypot(dx, dy) or 1.0
+        along = ((x - x0) * dx + (y - y0) * dy) / length
+        if along < 0.0 or along > length:
+            continue
+        side = abs((x - x0) * dy - (y - y0) * dx) / length
+        best = min(best, side)
+    return best < reach
 
 
 def _clear_glide_foliage(kit):
-    """Hide only the clump the lens is inside. The meadow around it stays."""
+    """Hide a plant when any corner of it enters the 1.2 m lens corridor."""
     for item in kit.items:
         if item.role not in {"swallow", "century", "weed"}:
             continue
-        loc = item.obj.location
-        if _blocks_glide(loc.x, loc.y):
+        points = [item.obj.matrix_world @ Vector(corner) for corner in item.obj.bound_box]
+        points.append(item.obj.location)
+        if any(_near_lens(point.x, point.y) for point in points):
             _hide_tree(item.obj, True)
 
 
@@ -1623,8 +1656,36 @@ def _scatter_plants(kit):
     spin.inputs["Max"].default_value = (0.0, 0.0, 6.28)
     inst = nodes.new("GeometryNodeInstanceOnPoints")
     inst.inputs["Pick Instance"].default_value = True
+    clear = bpy.data.meshes.new("glide_clear")
+    bm = bmesh.new()
+    previous = None
+    for x, y in GLIDE_PATH:
+        vert = bm.verts.new((x, y, 1.4))
+        if previous is not None:
+            bm.edges.new((previous, vert))
+        previous = vert
+    bm.to_mesh(clear)
+    bm.free()
+    clear_obj = bpy.data.objects.new("glide_clear", clear)
+    plants.objects.link(clear_obj)
+    clear_obj.hide_render = True
+    info = nodes.new("GeometryNodeObjectInfo")
+    info.transform_space = "RELATIVE"
+    info.inputs["Object"].default_value = clear_obj
+    near = nodes.new("GeometryNodeProximity")
+    near.target_element = "EDGES"
+    gate = nodes.new("FunctionNodeCompare")
+    gate.data_type = "FLOAT"
+    gate.operation = "LESS_THAN"
+    gate.inputs["B"].default_value = 1.2
+    drop = nodes.new("GeometryNodeDeleteGeometry")
+    drop.domain = "POINT"
     links.new(group_in.outputs["Geometry"], distribute.inputs["Mesh"])
-    links.new(distribute.outputs["Points"], inst.inputs["Points"])
+    links.new(distribute.outputs["Points"], drop.inputs["Geometry"])
+    links.new(info.outputs["Geometry"], near.inputs["Target"])
+    links.new(near.outputs["Distance"], gate.inputs["A"])
+    links.new(gate.outputs["Result"], drop.inputs["Selection"])
+    links.new(drop.outputs["Geometry"], inst.inputs["Points"])
     links.new(collect.outputs["Instances"], inst.inputs["Instance"])
     links.new(pick.outputs["Value"], inst.inputs["Instance Index"])
     links.new(spin.outputs["Value"], inst.inputs["Rotation"])

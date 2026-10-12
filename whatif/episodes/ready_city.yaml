@@ -29,13 +29,13 @@ camera:
     - {u: 0.0000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28, fstop: 0}
     - {u: 0.1000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28, fstop: 0}
     - {u: 0.4001, location: [0.40, -63.0, 1.70], target: [0.10, -24.0, 2.30], lens: 28, fstop: 0}
-    # 36.55 s husk: low pass over the rusted Miura, tilted up so the car fills the frame.
-    - {u: 0.6094, location: [-2.30, -56.6, 1.55], target: [-0.40, -54.0, 2.50], lens: 38, fstop: 8}
-    - {u: 0.6528, location: [-1.70, -55.4, 1.48], target: [-0.25, -53.6, 2.30], lens: 44, fstop: 8}
-    # 41.75 s facade: low, looking up the ivy and the broken windows.
-    - {u: 0.6961, location: [4.40, -48.8, 1.55], target: [10.4, -46.2, 6.80], lens: 32, fstop: 8}
-    # 44.35 s span: the broken tower chunk across the avenue.
-    - {u: 0.7395, location: [0.00, -62.0, 1.60], target: [1.00, -40.0, 5.00], lens: 24, fstop: 8}
+    # 36.55 s husk. Look is within 10° of level, close enough that the car fills the frame.
+    - {u: 0.6094, location: [-1.85, -56.1, 1.50], target: [-0.40, -54.0, 1.62], lens: 40, fstop: 8}
+    - {u: 0.6528, location: [-1.35, -55.1, 1.48], target: [-0.25, -53.7, 1.58], lens: 46, fstop: 8}
+    # 41.75 s facade. Level look at the lower windows, not up the roof.
+    - {u: 0.6961, location: [6.20, -49.6, 1.55], target: [11.2, -47.8, 1.90], lens: 32, fstop: 8}
+    # 44.35 s span. The broken chunk is the subject, about a third of the frame.
+    - {u: 0.7395, location: [0.20, -48.6, 1.55], target: [0.80, -41.2, 2.10], lens: 28, fstop: 8}
     # Back to the opening before the city reset at 55.8 s.
     - {u: 0.9253, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28, fstop: 0}
     - {u: 1.0000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28, fstop: 0}
