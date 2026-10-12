@@ -301,13 +301,51 @@ def _spline_channel(t: float, values: list[float]) -> float:
     return _catmull(u, values[i0], values[i1], values[i2], values[i3])
 
 
-def camera_channels(t: float) -> tuple[float, float, float, float]:
+def _spline_channels(t: float) -> tuple[float, float, float, float]:
     """Globe blend, longitude, latitude, span. The blend never steps."""
     w = _spline_channel(t, [row[1] for row in _ANCHORS])
     lon = _spline_channel(t, _UNWRAP_LON)
     lat = _spline_channel(t, [row[3] for row in _ANCHORS])
     log_span = _spline_channel(t, [math.log(row[4]) for row in _ANCHORS])
     span = math.exp(log_span)
+    span = max(28.0, min(170.0, span))
+    w = 0.0 if w < 0.0 else 1.0 if w > 1.0 else w
+    return w, lon, lat, span
+
+
+def _hermite(u: float, p0: float, m0: float, p1: float, m1: float) -> float:
+    u2 = u * u
+    u3 = u2 * u
+    return (
+        (2.0 * u3 - 3.0 * u2 + 1.0) * p0
+        + (u3 - 2.0 * u2 + u) * m0
+        + (-2.0 * u3 + 3.0 * u2) * p1
+        + (u3 - u2) * m1
+    )
+
+
+def camera_channels(t: float) -> tuple[float, float, float, float]:
+    """The last half-second is the lead-in to frame 0, so the loop keeps moving."""
+    if t <= LOOP_T or t >= T_LAST:
+        return _spline_channels(0.0 if t >= T_LAST else t)
+    u = (t - LOOP_T) / D_LOOP
+    dt = 1.0 / FPS
+    start = _spline_channels(LOOP_T)
+    prev = _spline_channels(LOOP_T - dt)
+    end = _spline_channels(0.0)
+    nxt = _spline_channels(dt)
+    out = []
+    for i in range(4):
+        v0 = (start[i] - prev[i]) / dt
+        v1 = (nxt[i] - end[i]) / dt
+        value = start[i] if i != 3 else math.log(start[i])
+        target = end[i] if i != 3 else math.log(end[i])
+        if i == 3:
+            v0 = (math.log(start[i]) - math.log(prev[i])) / dt
+            v1 = (math.log(nxt[i]) - math.log(end[i])) / dt
+        got = _hermite(u, value, v0 * D_LOOP, target, v1 * D_LOOP)
+        out.append(math.exp(got) if i == 3 else got)
+    w, lon, lat, span = out
     span = max(28.0, min(170.0, span))
     w = 0.0 if w < 0.0 else 1.0 if w > 1.0 else w
     return w, lon, lat, span
@@ -352,6 +390,46 @@ def journey(t: float) -> tuple[float, float, float]:
 
 def _between(t: float, a: float, b: float) -> bool:
     return a <= t < b
+
+
+TILE_EXIT = 0.64
+
+
+def _fourteen_exit(t: float) -> float:
+    """1 while the fourteen copies hold, then an eased shrink down to 0."""
+    out0 = CLOCK.algeria - TILE_EXIT
+    if t < out0:
+        return 1.0
+    u = (t - out0) / TILE_EXIT
+    if u >= 1.0:
+        return 0.0
+    return 1.0 - _smooth(u)
+
+
+def _fourteen_amount(t: float) -> float:
+    a = CLOCK.africa14 + D_AFRICA - 0.05
+    if t <= a:
+        return 0.0
+    appear = _smooth(min(1.0, (t - a) / 0.35))
+    return appear * _fourteen_exit(t)
+
+
+def _africa_breath(t: float) -> float:
+    """A slow pulse that meets itself at the loop, including the rate of change."""
+    omega = 1.35
+
+    def raw(time: float) -> float:
+        return math.sin(time * omega)
+
+    if LOOP_T < t < T_LAST:
+        u = (t - LOOP_T) / D_LOOP
+        dt = 1.0 / FPS
+        p0 = raw(LOOP_T)
+        v0 = (raw(LOOP_T) - raw(LOOP_T - dt)) / dt
+        p1 = raw(0.0)
+        v1 = (raw(dt) - raw(0.0)) / dt
+        return 1.0 + 0.07 * _hermite(u, p0, v0 * D_LOOP, p1, v1 * D_LOOP)
+    return 1.0 + 0.07 * raw(0.0 if t >= T_LAST else t)
 
 
 def _blink_open(t: float) -> float:
@@ -1122,7 +1200,7 @@ class Episode:
             view = view_for(self._ortho, W, H)
             draw_atmosphere(canvas, view.cx, view.cy, view.r, 0.85)
 
-        breath = 1.0 + 0.07 * math.sin(t * 1.35)
+        breath = _africa_breath(t)
         base_tint = 96.0 if t < CLOCK.algeria - 0.2 or t >= CLOCK.outro else 78.0
         if CLOCK.algeria - 0.55 <= t <= CLOCK.algeria + 0.45:
             u = _smooth((t - (CLOCK.algeria - 0.55)) / 1.0)
@@ -1139,7 +1217,7 @@ class Episode:
             self._draw_fill(canvas, self.earth.rings.get("COD") or [], BLUE, int(170 * congo), (170, 210, 255), 2.4 * congo)
 
         lon, lat, _u = journey(t)
-        tiles = _window(t, CLOCK.africa14 + D_AFRICA - 0.05, CLOCK.algeria + 0.20, 0.45)
+        tiles = _fourteen_amount(t)
         packing = _window(t, CLOCK.usa - 0.05, CLOCK.outro + 0.85, 0.20)
         sticker = CLOCK.drag <= t < HUGE_T + D_HUGE and not tiles and not compare and not packing
         if t < CLOCK.drag or t >= HUGE_T + D_HUGE:
@@ -1357,6 +1435,10 @@ class Episode:
             canvas.clipPath(path, doAntiAlias=True)
         times = _tile_times()
         tones = ((186, 32, 48), (214, 72, 78))
+        exit = _fourteen_exit(t)
+        spread = 1.0 - exit
+        cx = (x0 + x1) * 0.5
+        cy = (y0 + y1) * 0.5
         for index, hit in enumerate(times):
             name = f"g{index:02d}"
             if t < hit or name not in places:
@@ -1365,8 +1447,17 @@ class Episode:
             pop = icon_pop((t - hit) * MOTION_FPS, 18) * fade
             if pop <= 0.04:
                 continue
+            ox = x0 + fx * bw
+            oy = y0 + fy * bh
+            # Gather toward the middle while shrinking, so the exit keeps moving.
+            ox = cx + (ox - cx) * (1.0 - 0.62 * spread)
+            oy = cy + (oy - cy) * (1.0 - 0.62 * spread)
+            if exit < 0.999:
+                ink = int(220 * min(1.0, exit / 0.18))
+            else:
+                ink = int(220 * min(1.0, fade))
             self.greenland.draw(
-                canvas, x0 + fx * bw, y0 + fy * bh, px, tones[index % 2], int(220 * min(1.0, fade)),
+                canvas, ox, oy, px, tones[index % 2], ink,
                 pop=pop, shadow=0.15, stroke=(255, 244, 236), stroke_w=2.0, rot=rot,
             )
         canvas.restore()
@@ -1440,10 +1531,11 @@ class Episode:
             if layered:
                 canvas.restore()
 
-        lie = _window(t, -0.2, b.t("NOT") + 0.15, 0.28) 
+        # The opening fade is finished before frame 0, so a loop does not dim the titles.
+        lie = _window(t, -0.60, b.t("NOT") + 0.15, 0.28)
         lie = max(lie, _window(t, b.lying - 0.25, T_LAST + 1.0, 0.28))
         faded(lie, lambda: pill(hud, "THIS MAP IS LYING", W * 0.5, 300, RED, size=54, pop=1.0, glow=RED, kind="lying", nudge=False))
-        name_fade = max(_window(t, -0.2, b.t("NOT"), 0.30), _window(t, b.lying - 0.2, T_LAST + 1.0, 0.30))
+        name_fade = max(_window(t, -0.60, b.t("NOT"), 0.30), _window(t, b.lying - 0.2, T_LAST + 1.0, 0.30))
         faded(name_fade, lambda: self._country_pills(hud, cam, t))
         same = _window(t, b.t("BIG") - 0.05, b.t("NOT") + 0.45, 0.25)
         if same > 0.02:
@@ -1469,7 +1561,7 @@ class Episode:
             faded(too, lambda: pill(hud, "TOO BIG", W * 0.5, 490, RED, size=40, pop=1.0, kind="toobig", nudge=False))
         faded(_window(t, b.wait0 - 0.06, b.wait1 + 0.28, 0.22),
               lambda: pill(hud, "WAIT... WHAT?!", W * 0.5, 430, PAPER, ink=INK, size=52, pop=1.0, kind="gag", nudge=False))
-        tile_label = _window(t, b.africa14 + D_AFRICA - 0.05, b.algeria + 0.25, 0.35)
+        tile_label = _fourteen_amount(t)
         if tile_label > 0.02:
             n = sum(1 for hit in _tile_times() if t + 1e-6 >= hit)
             faded(tile_label, lambda: pill(hud, f"{max(1, n)}×", W * 0.5, 360, (18, 16, 14), ink=GOLD, size=72, pop=1.0, glow=GOLD, kind="fourteen", nudge=False))

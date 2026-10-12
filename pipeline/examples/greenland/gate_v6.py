@@ -63,16 +63,30 @@ def from_video(path: Path) -> np.ndarray:
     return np.frombuffer(raw[:n * frame], np.uint8).reshape(n, H, W, 3)
 
 
+def loop_seam(frames: np.ndarray) -> dict:
+    """Last frame into frame 0. A pop is a seam much larger than the motion around it."""
+    seam = float(np.abs(frames[-1].astype(np.int16) - frames[0].astype(np.int16)).mean())
+    d = diffs_of(frames)
+    neigh = [float(v) for v in list(d[-8:]) + list(d[:8])]
+    med = float(np.median(neigh)) if neigh else 0.0
+    spike = seam > 8.0 and seam > 3.0 * max(med, 1e-6)
+    # yuv420 leaves about 1.5 on a perfect loop. Anything past that, against a quiet neighbour, is a pop.
+    pop = seam > max(2.4, 2.5 * med)
+    return {"seam": round(seam, 3), "median": round(med, 3), "pass": not spike and not pop}
+
+
 def main() -> None:
     path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parent / "greenland_africa_v6.mp4"
     frames = from_video(path)
     report = gate(diffs_of(frames))
+    seam = loop_seam(frames)
     print(f"frames {len(frames)} max {report['max']} spikes {len(report['spikes'])} dead {len(report['dead'])} pass {report['pass']}")
+    print(f"loop seam {seam['seam']} median {seam['median']} pass {seam['pass']}")
     for row in report["spikes"][:30]:
         print(" spike", row)
     for row in report["dead"][:20]:
         print(" dead", row)
-    if not report["pass"]:
+    if not report["pass"] or not seam["pass"]:
         raise SystemExit(1)
 
 
