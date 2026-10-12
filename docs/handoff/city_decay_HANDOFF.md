@@ -59,7 +59,7 @@ Wait for Kristóf to review the four stills in `whatif/review/ready_city/four_st
 
 ### 2026-10-12 — street-level film camera
 
-The Year 500 ending reuses the first episode's low glides (`drone_husk`, `drone_facade`, `drone_span` in `humans_disappeared.yaml`): a few metres over the rusted Miura, along the ivy and broken windows, then past the fallen corner. The old orbit's climb to z=80 is not used. The camera flies back to the 1.70 m opening pose by 55.5 s, and the city reset at 55.8 s lands on that pose. Check stills are `drone_start.png`, `drone_mid.png`, `drone_end.png`, and `drone_return.png`. No full-film render on this machine.
+The Year 500 glides stay low, about 1.5–1.6 m. Foliage inside the lens corridor is removed so the Miura, the ivy wall, and the fallen corner stay visible; plants outside it remain. Ivy leaves that leave the wall are dropped. The camera flies back to the 1.70 m opening pose by 55.5 s. Check stills are `drone_start.png`, `drone_mid.png`, `drone_end.png`, and `drone_return.png`. No full-film render on this machine.
 
 ### 2026-10-12 — walking crowd and a real year 100
 

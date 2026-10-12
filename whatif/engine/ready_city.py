@@ -27,6 +27,14 @@ CAM_LOC = (0.0, -66.0, 3.0)
 CAM_TARGET = (0.0, -18.0, 5.8)
 LENS = 28.0
 SHIFT_Y = 0.06
+# Year-500 glides. Plants inside this corridor are removed so the lens is clear.
+# Plants outside it stay, and they still cast shadows.
+GLIDE_SIGHTS = (
+    ((-3.20, -57.6), (-0.40, -54.2)),
+    ((-2.60, -55.8), (-0.25, -53.6)),
+    ((5.10, -50.6), (9.80, -47.2)),
+    ((5.40, -46.5), (1.40, -40.0)),
+)
 BLOCKS = {
     "c6": "procedural_city_6.glb",
     "c4": "procedural_city_4.glb",
@@ -1023,11 +1031,21 @@ def _fallen_matrices(chunk):
     squash = min(1.0, 3.2 / max(height, 0.01))
     flat = Matrix.Translation((0.0, 0.0, bottom)) @ Matrix.Scale(squash, 4, Vector((0.0, 0.0, 1.0))) @ Matrix.Translation((0.0, 0.0, -bottom))
     chunk.data.transform(flat)
-    zs = [vert.co.z for vert in chunk.data.vertices]
-    plant = Matrix.Translation((0.0, 0.0, 1.15 - min(zs)))
+    zs = sorted(vert.co.z for vert in chunk.data.vertices)
+    # Seat the mass on the avenue. Using the lowest vertex leaves the floors floating.
+    seat = zs[max(len(zs) // 5, 0)]
+    plant = Matrix.Translation((0.0, 0.0, 1.35 - seat))
     chunk.data.transform(plant)
+    xs, ys, _zs = _bounds(chunk)
+    # Lie the long side across the avenue so the street camera sees a wall, not floor edges.
+    if (max(ys) - min(ys)) > (max(xs) - min(xs)):
+        center = Vector(((min(xs) + max(xs)) * 0.5, (min(ys) + max(ys)) * 0.5, 0.0))
+        across = Matrix.Translation(center) @ Matrix.Rotation(math.pi / 2.0, 4, "Z") @ Matrix.Translation(-center)
+        chunk.data.transform(across)
+    else:
+        across = Matrix.Identity(4)
     # The concrete was moved while the matrices were built. Replay them on the decal.
-    return [spun, sized, shift, sink, flat, plant]
+    return [spun, sized, shift, sink, flat, plant, across]
 
 
 def _fallen_corner(kit, src, decal):
@@ -1168,6 +1186,38 @@ def _place_ruin(coll, src, loc, yaw, height, rot_y=0.0):
     return copy
 
 
+def _ivy_holds_the_wall(obj, host):
+    """Drop leaf cards that are not sitting on the wall."""
+    if obj.type != "MESH" or obj.data is None or host.type != "MESH":
+        return False
+    world = obj.matrix_world
+    inverse = host.matrix_world.inverted()
+    kept = []
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bm.verts.ensure_lookup_table()
+    doomed = []
+    for vert in bm.verts:
+        point = world @ vert.co
+        found, hit, _normal, _index = host.closest_point_on_mesh(inverse @ point)
+        if not found:
+            doomed.append(vert)
+            continue
+        if (point - (host.matrix_world @ hit)).length > 0.75:
+            doomed.append(vert)
+        else:
+            kept.append(vert)
+    if len(kept) < 4:
+        bm.free()
+        return False
+    if doomed:
+        bmesh.ops.delete(bm, geom=doomed, context="VERTS")
+        bm.to_mesh(obj.data)
+        obj.data.update()
+    bm.free()
+    return len(obj.data.polygons) > 0
+
+
 def _grow_vines(kit):
     """Dense Ivy Gen on the lower floors of the left block, the right tower, and the dome."""
     from engine import found_assets
@@ -1186,6 +1236,7 @@ def _grow_vines(kit):
         ys = [(block.matrix_world @ Vector(corner)).y for corner in block.bound_box]
         zs = [(block.matrix_world @ Vector(corner)).z for corner in block.bound_box]
         if block is dome:
+            face_x = None
             seeds = (
                 (9.0, -45.5, 2.2), (10.4, -42.2, 3.4), (8.2, -43.2, 4.6),
                 (9.8, -46.6, 1.8), (8.8, -41.8, 3.0), (10.6, -44.8, 2.6),
@@ -1197,13 +1248,16 @@ def _grow_vines(kit):
             leaf = 0.36
         else:
             face_x = min(xs) + 0.15
-            seeds = [(face_x, y, z) for y in (-60.0, -56.0, -52.0, -48.0, -40.0, -34.0) for z in (12.5, 16.0, 20.0)]
-            leaf = 0.34
+            seeds = [(face_x, y, z) for y in (-58.0, -52.0, -46.0, -40.0) for z in (2.4, 4.4, 6.2)]
+            leaf = 0.28
         for seed in seeds:
-            grown.extend(found_assets.grow_ivy(
+            made = found_assets.grow_ivy(
                 block, seed, length=7.0, leaf_size=leaf, ivy_size=0.24,
                 leaf_probability=0.94, float_length=0.04,
-            ) or [])
+            ) or []
+            for obj in made:
+                obj["ivy_host"] = block.name
+            grown.extend(made)
     kept = []
     for obj in grown:
         if obj.type != "MESH":
@@ -1211,15 +1265,11 @@ def _grow_vines(kit):
             continue
         xs = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
         center = sum(xs, Vector()) / max(len(xs), 1)
-        on_dome = (center.xy - Vector((9.4, -43.9))).length < 6.0 and center.z < 8.0
-        if center.x < 0.0:
-            on_wall = abs(center.x + 15.0) < 2.6 and -60.0 < center.y < -18.0 and 9.0 < center.z < 12.0
-        else:
-            on_wall = abs(center.x - 15.0) < 2.6 and -62.0 < center.y < -18.0 and 9.0 < center.z < 22.0
-        if on_dome or on_wall:
-            kept.append(obj)
-        else:
+        host = bpy.data.objects.get(obj.get("ivy_host", ""))
+        if host is None or not _ivy_holds_the_wall(obj, host):
             bpy.data.objects.remove(obj, do_unlink=True)
+            continue
+        kept.append(obj)
     grown = kept
     ivy_mat = bpy.data.materials.get("StreetIvy")
     if ivy_mat is None:
@@ -1453,6 +1503,33 @@ def _asphalt_slabs(kit):
         kit.add(slab, "groundwear", sink=False)
 
 
+def _blocks_glide(x, y):
+    """True when a plant would sit in the lens of a year-500 glide."""
+    for (cam, aim) in GLIDE_SIGHTS:
+        if math.hypot(x - cam[0], y - cam[1]) < 3.2:
+            return True
+        dx, dy = aim[0] - cam[0], aim[1] - cam[1]
+        length = math.hypot(dx, dy) or 1.0
+        dx, dy = dx / length, dy / length
+        along = (x - cam[0]) * dx + (y - cam[1]) * dy
+        side = abs((x - cam[0]) * dy - (y - cam[1]) * dx)
+        # Near the lens only. Plants on the car and against the wall stay.
+        if 0.2 < along < 6.5 and side < 2.6:
+            return True
+    return False
+
+
+def _clear_glide_foliage(kit):
+    """Hide clumps the glide would fly through. The rest keep their shadows."""
+    for item in kit.items:
+        if item.role not in {"swallow", "century", "weed"}:
+            continue
+        points = [item.obj.matrix_world @ Vector(corner) for corner in item.obj.bound_box]
+        points.append(item.obj.location)
+        if any(_blocks_glide(point.x, point.y) for point in points):
+            _hide_tree(item.obj, True)
+
+
 def _scatter_plants(kit):
     """Geometry Nodes scatter of real grass and ferns on the sidewalk lines."""
     from engine import found_assets
@@ -1485,7 +1562,13 @@ def _scatter_plants(kit):
         while y <= -20.0:
             row_b = [bm.verts.new((x0, y, 1.3)), bm.verts.new((x1, y, 1.3))]
             if row_a:
-                bm.faces.new((row_a[0], row_a[1], row_b[1], row_b[0]))
+                y0 = row_a[0].co.y
+                samples = (
+                    (x0, y0), (x1, y0), (x0, y), (x1, y),
+                    ((x0 + x1) * 0.5, (y0 + y) * 0.5),
+                )
+                if not any(_blocks_glide(sx, sy) for sx, sy in samples):
+                    bm.faces.new((row_a[0], row_a[1], row_b[1], row_b[0]))
             row_a = row_b
             y += 1.2
     bm.to_mesh(mesh)
@@ -2097,6 +2180,7 @@ def drive(kit, ch):
                 item.obj.rotation_euler.x += 0.16
             elif item.role in {"bike", "car", "person"}:
                 _hide_tree(item.obj, True)
+        _clear_glide_foliage(kit)
         for obj in bpy.data.objects:
             if obj.type != "MESH" or obj.hide_render:
                 continue
