@@ -14,10 +14,10 @@ scene:
 mascot: false
 format: A
 camera:
-  # Film camera. Eye height until Year 500, then one eased rise, then back to the opening.
+  # Film camera stays at eye height. Year 500 ends on a slow push-in to the rusted Miura.
   # Proof stills stay on CAM_LOC in ready_city.py. Beat cameras are ignored while this path is set.
-  # u is a fraction of the 59.98 s film. Times: 0, 6, 14, 33, 44, 47, 55.5, 60.
-  # The walk stops south of the Miura (y=-54). The rise starts in that open view.
+  # u is a fraction of the 59.98 s film. Times: 0, 6, 11, 20, 33, 44, 50, 53.5, 55.5, 60.
+  # The Miura sits at (-0.4, -54). The glide runs along the right curb, clear of the ferns.
   location: [0.0, -66.0, 1.70]
   target: [0.0, -26.0, 2.40]
   lens: 28
@@ -27,10 +27,12 @@ camera:
   path:
     - {u: 0.0000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
     - {u: 0.1000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
-    - {u: 0.2334, location: [0.10, -59.0, 1.70], target: [0.05, -18.0, 2.40], lens: 28}
-    - {u: 0.5502, location: [0.00, -63.0, 1.70], target: [0.02, -20.0, 2.40], lens: 28}
-    - {u: 0.7336, location: [0.00, -66.0, 14.00], target: [0.05, -20.0, 5.50], lens: 28}
-    - {u: 0.7836, location: [0.00, -66.0, 14.00], target: [0.05, -20.0, 5.50], lens: 28}
+    - {u: 0.1834, location: [2.40, -66.4, 1.70], target: [0.40, -28.0, 2.20], lens: 28}
+    - {u: 0.3334, location: [4.20, -63.8, 1.70], target: [0.00, -36.0, 2.00], lens: 28}
+    - {u: 0.5502, location: [4.20, -61.0, 1.70], target: [-0.40, -54.0, 1.35], lens: 28}
+    - {u: 0.7336, location: [3.60, -56.6, 1.70], target: [-0.40, -54.0, 1.25], lens: 28}
+    - {u: 0.8336, location: [4.20, -63.6, 1.70], target: [0.20, -32.0, 1.90], lens: 28}
+    - {u: 0.8919, location: [2.20, -66.6, 1.70], target: [0.00, -28.0, 2.20], lens: 28}
     - {u: 0.9253, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
     - {u: 1.0000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
 ui:

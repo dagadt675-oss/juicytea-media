@@ -1,4 +1,4 @@
-"""Street-level walk, one Year 500 rise, then a matched return to the opening."""
+"""Eye-height walk, a Year 500 push-in on the Miura, then the opening pose."""
 
 import math
 import unittest
@@ -8,6 +8,8 @@ from engine.spec import load_resolved, sample_camera_path
 
 ROOT = Path(__file__).resolve().parents[1]
 EYE = 1.70
+# The hero car, placed in ready_city._crowd.
+MIURA = (-0.4, -54.0)
 
 
 class ReadyCityCameraTest(unittest.TestCase):
@@ -26,53 +28,42 @@ class ReadyCityCameraTest(unittest.TestCase):
         for beat in self.resolved["beats"]:
             self.assertIsNone(beat.get("camera"), beat["id"])
 
-    def test_street_stays_low_until_year_500(self):
-        # Year 100 is frame 860. The rise starts after the ruin is on, about 33 s.
-        for frame in range(1, int(32.5 * self.fps) + 2):
-            self.assertAlmostEqual(self.poses[frame - 1]["location"][2], EYE, places=2)
-        top = max(pose["location"][2] for pose in self.poses)
-        self.assertGreater(top, 12.0)
-        self.assertLess(top, 18.0)
+    def test_the_camera_never_rises(self):
+        for pose in self.poses:
+            self.assertAlmostEqual(pose["location"][2], EYE, places=2)
+            self.assertAlmostEqual(pose["lens"], 28.0, places=2)
 
-    def test_rise_then_ease_home(self):
-        heights = [pose["location"][2] for pose in self.poses]
-        peak_at = heights.index(max(heights))
-        self.assertGreater(peak_at, int(33 * self.fps))
-        self.assertLess(peak_at, int(48 * self.fps))
-        # One rise, one descent. No second climb.
-        rising = True
-        for earlier, later in zip(heights[: peak_at + 1], heights[1 : peak_at + 1]):
-            self.assertGreaterEqual(later + 1e-6, earlier)
-        for earlier, later in zip(heights[peak_at:], heights[peak_at + 1 :]):
-            self.assertLessEqual(later, earlier + 1e-6)
-            rising = False
-        self.assertFalse(rising)
-        return_at = next(beat["start"] for beat in self.resolved["beats"] if beat["id"] == "return")
-        landed = int(return_at * self.fps)
-        self.assertAlmostEqual(heights[landed], EYE, places=2)
-        self.assertAlmostEqual(heights[-1], EYE, places=2)
+    def test_year_500_pushes_in_on_the_car(self):
+        def gap(pose):
+            loc = pose["location"]
+            return math.dist((loc[0], loc[1]), MIURA)
+
+        start = self.poses[int(33 * self.fps)]
+        close = min(self.poses[int(40 * self.fps) : int(49 * self.fps)], key=gap)
+        self.assertGreater(gap(start), 6.0)
+        self.assertLess(gap(close), 5.0)
+        self.assertGreater(gap(close), 3.0)
+        # The close look stays on the car, not up the facade.
+        aim = close["target"]
+        self.assertLess(math.dist((aim[0], aim[1]), MIURA), 1.5)
+        self.assertLess(aim[2], EYE)
 
     def test_loop_matches_the_opening_pose(self):
         self.assertLess(math.dist(self.poses[0]["location"], self.poses[-1]["location"]), 0.01)
         self.assertLess(math.dist(self.poses[0]["target"], self.poses[-1]["target"]), 0.01)
         self.assertAlmostEqual(self.poses[0]["lens"], self.poses[-1]["lens"])
-        # The hold after landing is long enough that the city reset happens on this pose.
         return_at = next(beat["start"] for beat in self.resolved["beats"] if beat["id"] == "return")
         landed = int((return_at - 0.4) * self.fps)
         self.assertLess(math.dist(self.poses[0]["location"], self.poses[landed]["location"]), 0.05)
+        self.assertLess(math.dist(self.poses[0]["target"], self.poses[landed]["target"]), 0.05)
 
     def test_the_move_stays_slow(self):
         peak = 0.0
-        street_peak = 0.0
-        street_until = int(33 * self.fps)
-        for index, (left, right) in enumerate(zip(self.poses, self.poses[1:])):
-            speed = math.dist(left["location"], right["location"]) * self.fps
-            peak = max(peak, speed)
-            if index < street_until:
-                street_peak = max(street_peak, speed)
-        self.assertGreater(street_peak, 1.0)
-        self.assertLess(street_peak, 1.6)
-        self.assertLess(peak, 2.6)
+        for left, right in zip(self.poses, self.poses[1:]):
+            step = math.dist(left["location"], right["location"]) * self.fps
+            peak = max(peak, step)
+        self.assertGreater(peak, 0.8)
+        self.assertLess(peak, 1.8)
 
 
 if __name__ == "__main__":
