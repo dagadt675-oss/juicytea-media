@@ -14,8 +14,10 @@ scene:
 mascot: false
 format: A
 camera:
-  # Film camera: eye height, walking pace, eased. Proof stills stay on CAM_LOC in ready_city.py.
-  # One path for the whole film. Beat cameras are ignored while this path is set.
+  # Film camera. Eye height until Year 500, then one eased rise, then back to the opening.
+  # Proof stills stay on CAM_LOC in ready_city.py. Beat cameras are ignored while this path is set.
+  # u is a fraction of the 59.98 s film. Times: 0, 6, 14, 33, 44, 47, 55.5, 60.
+  # The walk stops south of the Miura (y=-54). The rise starts in that open view.
   location: [0.0, -66.0, 1.70]
   target: [0.0, -26.0, 2.40]
   lens: 28
@@ -23,12 +25,14 @@ camera:
   sensor_width: 36
   clip_end: 800
   path:
-    - {u: 0.00, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
-    - {u: 0.10, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
-    - {u: 0.4335, location: [0.30, -48.0, 1.70], target: [0.15, -10.0, 2.40], lens: 28}
-    - {u: 0.5669, location: [0.55, -47.2, 1.70], target: [-0.40, -8.0, 2.40], lens: 28}
-    - {u: 0.9003, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
-    - {u: 1.00, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
+    - {u: 0.0000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
+    - {u: 0.1000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
+    - {u: 0.2334, location: [0.10, -59.0, 1.70], target: [0.05, -18.0, 2.40], lens: 28}
+    - {u: 0.5502, location: [0.00, -63.0, 1.70], target: [0.02, -20.0, 2.40], lens: 28}
+    - {u: 0.7336, location: [0.00, -66.0, 14.00], target: [0.05, -20.0, 5.50], lens: 28}
+    - {u: 0.7836, location: [0.00, -66.0, 14.00], target: [0.05, -20.0, 5.50], lens: 28}
+    - {u: 0.9253, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
+    - {u: 1.0000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28}
 ui:
   counter_y: 0.46
   # Zenith style: the title, and one counter (population, then the year).

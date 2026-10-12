@@ -59,7 +59,7 @@ Wait for Kristóf to review the four stills in `whatif/review/ready_city/four_st
 
 ### 2026-10-12 — street-level film camera
 
-Kristóf: the animation camera is street-level and slow only, eye height about 1.6–1.8 m, a gentle walking-speed dolly and pan, eased. No drone shots and no rising moves. The film path holds 1.70 m, walks 18 m up the avenue and back, and eases at each end. The old insert cameras on the four late beats are gone. A beat cannot override `camera.path`.
+Kristóf approved the four stills and the street-level walk, then asked for one rise at the end. The film stays at 1.70 m until Year 500. From 33 s to 44 s it eases up to 14 m inside the avenue, holds, and eases back to the opening pose by 55.5 s. The city reset is at 55.8 s, so the last frame matches the first. Check stills are `drone_start.png`, `drone_mid.png`, `drone_end.png`, and `drone_return.png`. No full-film render on this machine.
 
 ### 2026-10-12 — walking crowd and a real year 100
 
