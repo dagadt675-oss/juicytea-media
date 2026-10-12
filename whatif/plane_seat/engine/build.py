@@ -153,7 +153,7 @@ def _mix_rgb(nt, fac_socket, color_a, color_b):
     return mix
 
 
-def _terrain(name, image, roughness=0.92, tint=(1, 1, 1), warmth=0.22):
+def _terrain(name, image, roughness=0.92, tint=(1, 1, 1), warmth=0.22, scale=0.00085, shade=0.62):
     """Large-scale photo ground. Mapping location scrolls the texture."""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
@@ -164,7 +164,7 @@ def _terrain(name, image, roughness=0.92, tint=(1, 1, 1), warmth=0.22):
     tex.image = bpy.data.images.load(str(image), check_existing=True)
     tex.extension = "REPEAT"
     mapping = nt.nodes.new("ShaderNodeMapping")
-    mapping.inputs["Scale"].default_value = (0.00085, 0.00085, 0.00085)
+    mapping.inputs["Scale"].default_value = (scale, scale, scale)
     coord = nt.nodes.new("ShaderNodeTexCoord")
     nt.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
     nt.links.new(mapping.outputs["Vector"], tex.inputs["Vector"])
@@ -172,7 +172,7 @@ def _terrain(name, image, roughness=0.92, tint=(1, 1, 1), warmth=0.22):
     warm.inputs["Fac"].default_value = warmth
     # Keep the photo dark enough that a sunset sky and a city skyline read on top.
     dark = _mix_rgb(nt, None, warm.outputs["Color"], (0.02, 0.015, 0.012, 1))
-    dark.inputs["Fac"].default_value = 0.62
+    dark.inputs["Fac"].default_value = shade
     cam = nt.nodes.new("ShaderNodeCameraData")
     span = nt.nodes.new("ShaderNodeMapRange")
     span.inputs["From Min"].default_value = 3500.0
@@ -271,7 +271,7 @@ def _seat_material():
     nt.links.new(info.outputs["Color"], dark.inputs["Color1"])
     nt.links.new(dark.outputs["Color"], bsdf.inputs["Base Color"])
     nt.links.new(info.outputs["Color"], bsdf.inputs["Emission Color"])
-    bsdf.inputs["Emission Strength"].default_value = 5.0
+    bsdf.inputs["Emission Strength"].default_value = 8.0
     bsdf.inputs["Roughness"].default_value = 0.45
     return mat
 
@@ -423,6 +423,74 @@ def _polish_paint(mat):
     nt.links.new(link.from_socket, mix.inputs["Color1"])
     nt.links.new(ao.outputs["Color"], mix.inputs["Color2"])
     nt.links.new(mix.outputs["Color"], bsdf.inputs["Base Color"])
+    _panel_lines(nt, bsdf)
+
+
+def _math(nt, op, a, b):
+    node = nt.nodes.new("ShaderNodeMath")
+    node.operation = op
+    if isinstance(a, (int, float)):
+        node.inputs[0].default_value = a
+    else:
+        nt.links.new(a, node.inputs[0])
+    if isinstance(b, (int, float)):
+        node.inputs[1].default_value = b
+    else:
+        nt.links.new(b, node.inputs[1])
+    return node.outputs["Value"]
+
+
+def _panel_lines(nt, bsdf):
+    """Circumferential rings, a few long seams, and a generic cheatline.
+
+    The fuselage axis on this mesh is local Y. No airline name, no tail mark.
+    """
+    if "Base Color" not in bsdf.inputs or not bsdf.inputs["Base Color"].is_linked:
+        return
+    src = bsdf.inputs["Base Color"].links[0].from_socket
+    coord = nt.nodes.new("ShaderNodeTexCoord")
+    sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+    nt.links.new(coord.outputs["Object"], sep.inputs["Vector"])
+    # Sparse rings, and only on the tube. A full grid reads as a wireframe.
+    rings = _math(nt, "LESS_THAN", _math(nt, "FRACT", _math(nt, "DIVIDE", sep.outputs["Y"], 3.4), 0.0), 0.018)
+    abs_x = _math(nt, "ABSOLUTE", sep.outputs["X"], 0.0)
+    on_tube = _math(
+        nt, "MULTIPLY",
+        _math(nt, "LESS_THAN", abs_x, 3.35),
+        _math(nt, "MULTIPLY", _math(nt, "GREATER_THAN", sep.outputs["Z"], 4.2), _math(nt, "LESS_THAN", sep.outputs["Z"], 11.2)),
+    )
+    lines = _math(nt, "MULTIPLY", rings, on_tube)
+    grain = nt.nodes.new("ShaderNodeTexNoise")
+    grain.inputs["Scale"].default_value = 9.0
+    grain.inputs["Detail"].default_value = 6.0
+    grain.inputs["Roughness"].default_value = 0.62
+    nt.links.new(coord.outputs["Object"], grain.inputs["Vector"])
+    grain_amt = _math(nt, "MULTIPLY", _math(nt, "SUBTRACT", grain.outputs["Fac"], 0.5), 0.05)
+    shade = _math(nt, "SUBTRACT", 1.0, _math(nt, "MULTIPLY", lines, 0.42))
+    shade = _math(nt, "ADD", shade, grain_amt)
+    grey = nt.nodes.new("ShaderNodeCombineColor")
+    nt.links.new(shade, grey.inputs["Red"])
+    nt.links.new(shade, grey.inputs["Green"])
+    nt.links.new(shade, grey.inputs["Blue"])
+    broken = nt.nodes.new("ShaderNodeMixRGB")
+    broken.blend_type = "MULTIPLY"
+    broken.inputs["Fac"].default_value = 1.0
+    nt.links.new(src, broken.inputs["Color1"])
+    nt.links.new(grey.outputs["Color"], broken.inputs["Color2"])
+    # Narrow navy cheatline. Generic, not a carrier livery.
+    above = _math(nt, "GREATER_THAN", sep.outputs["Z"], 7.08)
+    below = _math(nt, "LESS_THAN", sep.outputs["Z"], 7.38)
+    stripe = _math(nt, "MULTIPLY", above, below)
+    band = nt.nodes.new("ShaderNodeMixRGB")
+    band.blend_type = "MIX"
+    nt.links.new(stripe, band.inputs["Fac"])
+    nt.links.new(broken.outputs["Color"], band.inputs["Color1"])
+    band.inputs["Color2"].default_value = (0.07, 0.16, 0.34, 1.0)
+    nt.links.remove(bsdf.inputs["Base Color"].links[0])
+    nt.links.new(band.outputs["Color"], bsdf.inputs["Base Color"])
+    if "Roughness" in bsdf.inputs and not bsdf.inputs["Roughness"].is_linked:
+        rough = _math(nt, "ADD", bsdf.inputs["Roughness"].default_value, _math(nt, "MULTIPLY", lines, 0.18))
+        nt.links.new(rough, bsdf.inputs["Roughness"])
 
 
 def _shade_airliner(body):
@@ -597,12 +665,13 @@ def _labels(root):
     font_path = WHATIF / "scale_journey/assets/fonts/Anton-Regular.ttf"
     font = bpy.data.fonts.load(str(font_path)) if font_path.is_file() else None
     # (text, color, location, em size)
+    # Inboard of the tube so a 3/4 view keeps every plate inside the portrait frame.
     specs = {
-        "l38": ("38%", AMBER, (8.0, -3.4, 11.2), 1.15),
-        "l39": ("39%", AMBER, (0.0, -3.4, 11.2), 1.15),
-        "l32": ("32%", GREEN, (-8.0, -3.4, 11.2), 1.15),
-        "l44": ("44%", RED, (-1.5, -1.6, 8.2), 1.05),
-        "l28": ("28%", BRIGHT, (-11.5, -4.2, 10.6), 2.8),
+        "l38": ("38%", AMBER, (7.0, -3.2, 12.6), 3.6),
+        "l39": ("39%", AMBER, (0.2, -3.2, 12.6), 3.6),
+        "l32": ("32%", GREEN, (-6.2, -3.2, 12.6), 3.6),
+        "l44": ("44%", RED, (0.0, 0.15, 8.7), 0.62),
+        "l28": ("28%", BRIGHT, (-7.4, 0.15, 9.0), 0.78),
     }
     out = {}
     for key, (text, color, loc, size) in specs.items():
@@ -736,16 +805,17 @@ def _import_mountain(filename, name):
     return col, min(zs)
 
 
-def _place_mountain(parent, col, z0, x, y, scale, yaw, mirror=False):
+def _place_mountain(parent, col, z0, x, y, scale, yaw, mirror=False, z_scale=None):
     inst = bpy.data.objects.new(col.name + "_inst", None)
     inst.instance_type = "COLLECTION"
     inst.instance_collection = col
     inst.parent = parent
+    zs = scale if z_scale is None else z_scale
     sx = -scale if mirror else scale
-    inst.scale = (sx, scale, scale)
+    inst.scale = (sx, scale, zs)
     inst.rotation_euler[2] = yaw
     # Seat the lowest vertex on z=0 so peaks stay a known height below the jet.
-    inst.location = (x, y, -z0 * scale)
+    inst.location = (x, y, -z0 * zs)
     inst["cull"] = 1
     inst["cull_radius"] = abs(scale) * (1.15 if abs(scale) > 40 else 520.0)
     _link(inst)
@@ -753,19 +823,18 @@ def _place_mountain(parent, col, z0, x, y, scale, yaw, mirror=False):
 
 
 def _alps_range(parent):
-    """Hub mountain models. Raw files stay out of git. Two to four copies, kilometres out."""
-    gaea, gaea_z = _import_mountain("gaea_range.glb", "GaeaRange")
-    peaks, peaks_z = _import_mountain("three_peaked.glb", "ThreePeaks")
+    """Hub mountain models. Raw files stay out of git.
+
+    three_peaked occupies X 0..1024, Y -1024..0. The others are roughly centered.
+    Every footprint stays off the camera (near x=0, y=0) so the jet flies a valley
+    instead of sitting inside a scaled mesh.
+    """
     textured, textured_z = _import_mountain("free_textured_mountain.glb", "TexturedPeak")
     cliff, cliff_z = _import_mountain("bk_snow_cliff.glb", "SnowCliff")
-    # Snowy peaks sit a few kilometres ahead and rise toward the jet.
-    # Gaea fills the valley so the horizon is land, not a cut tile edge.
-    # Peaks begin about 2 km ahead and rise toward a jet at ~1.2 km.
-    _place_mountain(parent, peaks, peaks_z, 2800.0, -200.0, 4.2, 0.2)
-    _place_mountain(parent, textured, textured_z, 5200.0, 900.0, 2.2, -0.35)
-    _place_mountain(parent, gaea, gaea_z, 9000.0, -2200.0, 1600.0, 0.5)
-    _place_mountain(parent, gaea, gaea_z, 12000.0, 1800.0, 1500.0, 2.1, mirror=True)
-    _place_mountain(parent, cliff, cliff_z, 3600.0, 700.0, 2.6, 0.5)
+    # Same yaw on both so the camera sees the snowy face, not a paper-thin edge.
+    _place_mountain(parent, cliff, cliff_z, 1200.0, -800.0, 2.6, 0.45, z_scale=4.4)
+    _place_mountain(parent, cliff, cliff_z, 2800.0, -1500.0, 3.0, 0.45, z_scale=4.8)
+    _place_mountain(parent, textured, textured_z, 7000.0, 1800.0, 1.2, 0.45, z_scale=2.4)
     print("hub mountains placed")
 
 
@@ -796,10 +865,11 @@ def _forest_trees(parent):
     # The strip sits ahead of the nose across the forest scroll (phase ~400–1,200 m).
     # A close stand under the chase camera at t≈7.4 (the tile has scrolled ~1 km).
     ground_z = -2.0
-    cols = 26
-    rows = 16
-    spacing = 12.0
-    x0 = 980.0
+    # Wide enough that the chase at t≈7.4 (scroll ~1.08 km) sees canopy, not one clump.
+    cols = 64
+    rows = 72
+    spacing = 22.0
+    x0 = 280.0
     lods = {}
 
     def lod_for(mesh):
@@ -823,8 +893,9 @@ def _forest_trees(parent):
         obj.data = src.data
         obj.parent = parent
         obj.hide_render = False
-        metres = 28.0 + (i % 7) * 2.8
+        metres = 22.0 + (i % 7) * 3.4
         scale = metres / max(height, 0.1)
+        base = min(vert.co.z for vert in src.data.vertices) if src.data.vertices else 0.0
         # Break the rows so the canopy is not a plantation grid.
         jitter_x = ((i * 17) % 9) - 4
         jitter_y = ((i * 13) % 9) - 4
@@ -832,7 +903,7 @@ def _forest_trees(parent):
         obj.location = (
             x0 + (i % cols) * spacing + jitter_x,
             (i // cols) * spacing - (rows * spacing) * 0.5 + jitter_y,
-            ground_z,
+            ground_z - base * scale,
         )
         obj.rotation_euler[2] = (i % 11) * 0.57
         low = lod_for(src.data)
@@ -851,23 +922,61 @@ def _enable_easy_clouds():
     print("easy clouds", module)
 
 
-def _easy_cloud(parent, loc, scale, density, kind):
-    before = set(bpy.data.objects)
-    bpy.ops.easyclouds.create_sphere()
-    obj = next(item for item in bpy.data.objects if item not in before)
+def _cumulus_mat(density):
+    """White sunlit puff. Noise breaks the cube into a cumulus, anisotropy lights the rim."""
+    mat = bpy.data.materials.new("Cumulus")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    vol = nt.nodes.new("ShaderNodeVolumePrincipled")
+    coord = nt.nodes.new("ShaderNodeTexCoord")
+    noise = nt.nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 4.2
+    noise.inputs["Detail"].default_value = 5.0
+    noise.inputs["Roughness"].default_value = 0.55
+    nt.links.new(coord.outputs["Object"], noise.inputs["Vector"])
+    length = nt.nodes.new("ShaderNodeVectorMath")
+    length.operation = "LENGTH"
+    nt.links.new(coord.outputs["Object"], length.inputs[0])
+    fall = nt.nodes.new("ShaderNodeMapRange")
+    fall.inputs["From Min"].default_value = 0.05
+    fall.inputs["From Max"].default_value = 0.62
+    fall.inputs["To Min"].default_value = 1.0
+    fall.inputs["To Max"].default_value = 0.0
+    fall.clamp = True
+    nt.links.new(length.outputs["Value"], fall.inputs["Value"])
+    carved = nt.nodes.new("ShaderNodeMapRange")
+    carved.inputs["From Min"].default_value = 0.38
+    carved.inputs["From Max"].default_value = 0.72
+    carved.clamp = True
+    nt.links.new(noise.outputs["Fac"], carved.inputs["Value"])
+    shaped = _math(nt, "MULTIPLY", fall.outputs["Result"], carved.outputs["Result"])
+    dense = _math(nt, "MULTIPLY", shaped, density)
+    nt.links.new(dense, vol.inputs["Density"])
+    vol.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
+    if "Absorption Color" in vol.inputs:
+        vol.inputs["Absorption Color"].default_value = (0.97, 0.98, 1.0, 1.0)
+    if "Anisotropy" in vol.inputs:
+        vol.inputs["Anisotropy"].default_value = 0.62
+    nt.links.new(vol.outputs["Volume"], out.inputs["Volume"])
+    return mat
+
+
+def _cumulus(parent, loc, scale, density, kind):
+    bpy.ops.mesh.primitive_cube_add(size=2.0)
+    obj = bpy.context.active_object
     obj.parent = parent
     obj.location = loc
     obj.scale = scale
     obj["kind"] = kind
-    mat = obj.active_material
-    if mat and mat.node_tree:
-        for node in mat.node_tree.nodes:
-            if node.type == "GROUP" and node.node_tree and "Realistic" in node.node_tree.name:
-                if "Color" in node.inputs:
-                    node.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
-                if "Density" in node.inputs:
-                    node.inputs["Density"].default_value = density
+    obj.data.materials.append(_cumulus_mat(density))
+    obj.visible_shadow = True
     return obj
+
+
+def _easy_cloud(parent, loc, scale, density, kind):
+    return _cumulus(parent, loc, scale, density, kind)
 
 
 def _godrays():
@@ -996,30 +1105,32 @@ def _biome_tiles():
         else:
             image, tint = photos[name]
             ground = _big_plane(name + "Ground", 22000.0)
-            mat, _mapping = _terrain(name + "M", image, tint=tint)
+            if name == "forest":
+                mat, _mapping = _terrain(name + "M", image, tint=(0.2, 0.42, 0.12), warmth=0.42, scale=0.01, shade=0.12)
+            else:
+                mat, _mapping = _terrain(name + "M", image, tint=tint)
             ground.data.materials.append(mat)
         _link(ground, a)
         copies[name] = (a, b)
     _alps_range(copies["mountains"][0])
     _city_instances(copies["city"][0])
     _forest_trees(copies["forest"][0])
-    _enable_easy_clouds()
     cloud_root = bpy.data.objects.new("CloudField", None)
     _link(cloud_root)
-    # Easy Clouds volumes. A gap along the fuselage lets the jet read through the wisps.
-    # Low density so the volumes stay sunlit white, with grey only in the shade.
+    # Puffy cumulus around the jet, with a gap along the fuselage and open sky between them.
+    # Density is per metre on a Principled Volume. A 16 m puff at 0.12 is optically thick
+    # enough to hold a shaded underside without turning into black smoke.
+    # Camera for the punch still sits near x=-70. These puffs stay in front of that eye.
     bank = [
-        ((-4, -16, 9), (48, 26, 18), 0.07),
-        ((12, 14, 12), (40, 28, 16), 0.05),
-        ((-16, 6, 6), (32, 20, 14), 0.08),
-        ((20, -8, 10), (36, 22, 16), 0.045),
-        ((2, -24, 15), (26, 16, 11), 0.04),
-        ((-22, -2, 16), (22, 14, 10), 0.06),
+        ((-22, -6, 10), (9, 7, 6), 0.32),
+        ((-6, 8, 14), (8, 6, 6), 0.26),
+        ((4, -8, 11), (9, 7, 6), 0.3),
+        ((16, 2, 16), (7, 6, 5), 0.2),
+        ((-12, 2, 18), (6, 5, 5), 0.18),
+        ((8, 12, 8), (7, 6, 5), 0.24),
     ]
     for loc, scale, density in bank:
-        _easy_cloud(cloud_root, loc, scale, density, "punch")
-    _easy_cloud(cloud_root, (-16, -27, 5.2), (22, 2.2, 2.2), 0.04, "vortex")
-    _easy_cloud(cloud_root, (-16, 27, 5.2), (22, 2.2, 2.2), 0.04, "vortex")
+        _cumulus(cloud_root, loc, scale, density, "punch")
     shaft = _godrays()
     shaft.parent = cloud_root
     copies["_godrays"] = (shaft, shaft)
@@ -1041,8 +1152,8 @@ def build_scene():
     scene.cycles.transmission_bounces = 4
     scene.cycles.transparent_max_bounces = 8
     scene.cycles.volume_bounces = 2
-    scene.cycles.volume_max_steps = 24
-    scene.cycles.volume_step_rate = 1.8
+    scene.cycles.volume_max_steps = 28
+    scene.cycles.volume_step_rate = 1.6
     scene.cycles.light_sampling_threshold = 0.01
     scene.render.use_persistent_data = True
     scene.cycles.use_light_tree = False
@@ -1191,9 +1302,9 @@ def apply_pose(state, pose):
             sun.data.energy = 8.0
             sun.data.color = (1.0, 0.86, 0.62)
         elif pose.get("clouds") == "punch":
-            sun.rotation_euler = (math.radians(55), math.radians(-6), math.radians(-20))
-            sun.data.energy = 14.0
-            sun.data.color = (1.0, 0.97, 0.92)
+            sun.rotation_euler = (math.radians(42), math.radians(-8), math.radians(-18))
+            sun.data.energy = 22.0
+            sun.data.color = (1.0, 0.99, 0.96)
         elif biome == "forest":
             sun.rotation_euler = (math.radians(58), math.radians(-10), math.radians(-30))
             sun.data.energy = 9.0
@@ -1228,7 +1339,7 @@ def apply_pose(state, pose):
         a.location.x = -phase
         b.location.x = -phase + TILE
     xray = max(0.0, min(1.0, float(pose.get("xray", 0.0))))
-    alpha = 1.0 - 0.9 * xray
+    alpha = 1.0 - 0.96 * xray
     glassy = (0.62, 0.78, 0.88)
     for node in state.get("skin_nodes") or []:
         if "Alpha" in node.inputs:
@@ -1253,6 +1364,9 @@ def apply_pose(state, pose):
             obj.hide_render = True
             continue
         if obj is body or obj is opened:
+            continue
+        if obj.name.startswith("Fan"):
+            obj.hide_render = interior or xray > 0.08
             continue
         obj.hide_render = interior
     if body is not None:
@@ -1377,6 +1491,9 @@ def _configure_cycles(scene, job):
         scene.cycles.transparent_max_bounces = int(job.get("transparent_bounces", 6))
     if "persistent" in job:
         scene.render.use_persistent_data = bool(job["persistent"])
+    if "volume_step_rate" in job:
+        scene.cycles.volume_step_rate = float(job["volume_step_rate"])
+        scene.cycles.volume_max_steps = int(job.get("volume_steps", scene.cycles.volume_max_steps))
     print(
         "cycles",
         scene.cycles.samples,

@@ -124,21 +124,17 @@ Inventory: `assets/FOUND_ASSETS.md`.
 
 CC0 (Poly Haven trees and ground/HDRIs, Kenney and OpenGameArt SFX) can live under `assets/found/`. Sketchfab Free Standard and BlendKit files (405-FLA, cabin, city, hub mountains, lago HDR) stay in the private cache. Render them. Do not commit the raw files or the packed blend.
 
-## Still open on the picture
+## Last still pass
 
-The preview bundle was packed before another fix pass, on purpose. The approval stills in `v/plane_tests/` still miss the bar:
+Judged at full 1080×1920 in `v/plane_tests/` after the fixes below.
 
-- `02_cloud_punch`: the volumes read as a pale fog veil, not bright sunlit cumulus with shaded grey undersides. The jet’s tail is in the fog.
-- `03_mountains`: a steep textured wall fills the left of frame. It does not yet read as an oblique flight along a snowy alpine range with valleys.
-- `04_xray_seats` / `05_cabin_heatmap`: the cutaway and the 44% label still need a framing pass so the thirds and the 44% read inside the safe area. Labels were scaled down in `build._labels`; the stills have not been re-judged since this pack.
-- `07_forest`: one photoscanned clump sits in the lower left. The rest of the ground reads as flat water. The stand needs to be the forest the jet is over, bases on the terrain, not a single edge of trees.
-- The jet still reads as a smooth white model. Paint maps, clearcoat, and AO are in the shader; panel breakup and livery detail are not enough at this camera distance.
-- Frame 61 of the film clock (the verify frame) puts the wing close to rooftops. Altitude in the city beat is still low for a cruise look.
+- `02_cloud_punch`: white cumulus against blue sky, jet tail and wing in frame. Volumes are Principled Volume puffs (the Easy Clouds density was either fog or black). The punch camera looks up so the ground plane stays out of frame.
+- `03_mountains`: oblique pass of two snow-capped rock ridges (`bk_snow_cliff`), jet beside them. `three_peaked` and the huge gaea instances were dropped from the valley because their ground faces became floating slabs.
+- `04_xray_seats`: whole jet in a front 3/4, fuselage transparent, 32% / 39% / 38% plates readable and inside the frame.
+- `05_cabin_heatmap`: `44%` sits in the aisle, fully inside the frame, not on the top edge.
+- `07_forest`: photoscanned fir and pine fill the view under the wing. Bases are seated on the ground.
+- Jet: navy cheatline, window rows, engine nacelles, clearcoat and a light circumferential ring on the tube only. A full panel grid read as a wireframe and was removed.
 
-`00_hook`, `01_city_flyover`, and `06_ocean` were the stills called close on the last review. They were not re-rendered for this pack.
+`00_hook`, `01_city_flyover`, and `06_ocean` were re-rendered with the same jet.
 
-## Suggested next pass
-
-1. Fix the five open stills in `build.py` / `render_stills.py` / `flight.py`, render each still, and look at the JPEG before the next one.
-2. Pack a final Colab bundle the same way as this preview (packed blend, `render.py START END`, `manifest.json`, zip parts). Raise samples only after the stills hold; this preview’s 64 is the “see it now” count.
-3. Beauty frames, then `overlay.composite`, then the grade, then the silent 32.81 s master. Do not bake captions into the blend.
+Film beauty is Cycles, 4 samples, adaptive threshold 0.02, OIDN, culling, distant tree LOD. `python whatif/plane_seat/render_episode.py --samples 4 --force` writes `v/plane_seat_silent.mp4`. On this 4-core CPU a frame is about 22 s, so the 984-frame pass is several hours. Do not reuse an old `/tmp/plane_seat_cache/beauty` from a previous scene.
