@@ -4,7 +4,7 @@ Last updated: 2026-10-12.
 
 This file is the only briefing a new agent gets, plus the git repo. Read it before editing. Update it at the end of every future run that changes the picture, the rules, the branches, or the next step, then commit it on the branch you are actually working on and copy it to `/opt/cursor/artifacts/handoff/map_HANDOFF.md`.
 
-Picture this document describes: `greenland_africa_v16.mp4` on `cursor/greenland-africa-v16-7e9d`. v15 is the parent (`1be096a` on `cursor/greenland-africa-v15-7e9d`, PR #31).
+Picture this document describes: `greenland_africa_v16.mp4` in commit `69125d1` on `cursor/greenland-africa-v16-7e9d`. v15 is the parent (`1be096a` on `cursor/greenland-africa-v15-7e9d`, PR #31). PR #32.
 
 ## Where the code actually is
 
@@ -695,6 +695,8 @@ The cell floor of 10 is there because splicing a fresh render onto an already-en
 
 Exit code 1 on failure. Default path if you omit the argument is `greenland_africa_v6.mp4`.
 
+v16 result: frames 3146, max 10.827, spikes 0, dead 0, pass. Local pops 0, pass. Ghost-coast gate: 294 samples, 0 fails. Encoded full-res tblend YAVG: last-frame step 0.131, map-zone seam 0.774.
+
 v15 result: frames 3146, max 10.827, spikes 0, dead 0, pass. Loop seam 0.949 against a neighbour median of 0.604, pass. Local pops 0, pass. Ghost-coast gate: 294 samples, 0 fails. Max diff in 3.30–3.40 s is 1.349. Min corner luma in 4.1–4.9 s is 31.67.
 
 v14 result: frames 3146, max 9.824, spikes 0, dead 0, pass. Loop seam 2.328 against a neighbour median of 0.530, pass. Local pops 0, pass. Ghost-coast gate: 294 samples, 0 fails.
@@ -840,7 +842,9 @@ All of these were open drafts on 2026-10-11 unless noted. The map-Shorts camera 
 
 | PR | Head | Base | Title | Role |
 | --- | --- | --- | --- | --- |
-| (this branch) | `cursor/greenland-africa-v16-7e9d` | `cursor/greenland-africa-v15-7e9d` | Ease the loop onto frame 0 | **Current.** v16 picture plus this handoff. |
+| #32 | `cursor/greenland-africa-v16-7e9d` | `cursor/greenland-africa-v15-7e9d` | Ease the loop onto frame 0 | **Current.** v16 picture plus this handoff. |
+
+https://github.com/dagadt675-oss/juicytea-media/pull/32
 
 | #31 | `cursor/greenland-africa-v15-7e9d` | `cursor/greenland-africa-v14-7e9d` | Three picture notes on the v14 clock | Parent of v16. |
 
