@@ -44,6 +44,8 @@ IDLE = (
     / "Idle_1_Male_Free_Animation_200_frames_loop_4add87eb"
     / "Idle_1_Male_Free_Animation_200_frames_loop_4add87eb.glb"
 )
+# Mixamo Shrugging by Rida.Sidi.Ben.Ali (CC-BY). The hero wears this clip.
+SHRUG = PRIVATE / "shrug.glb"
 WALKS = (
     PEOPLE / "animations" / "sketchfab_free_standard" / "Male_Basic_Walk_30_frames_loop_2e17b141" / "Male_Basic_Walk_30_frames_loop_2e17b141.glb",
     PEOPLE / "animations" / "sketchfab_free_standard" / "Basic_Walk_Free_Animation_30_frames_loop_7355f061" / "Basic_Walk_Free_Animation_30_frames_loop_7355f061.glb",
@@ -340,6 +342,7 @@ def _commute():
         spots.append((x, 43.5 if i % 2 == 0 else 47.2, 0.4 if i % 2 else -0.6))
         spots.append((x + 6.0, 36.2, 1.2))
     for index, (x, y, yaw) in enumerate(spots):
+        x, y = _outside_base(x, y)
         proto = protos[index % len(protos)]
         bpy.ops.object.select_all(action="DESELECT")
 
@@ -386,6 +389,7 @@ def _props():
         )
     )
     for x, y, proto, yaw in spots:
+        x, y = _outside_base(x, y)
         bpy.ops.object.select_all(action="DESELECT")
         proto.select_set(True)
         bpy.context.view_layer.objects.active = proto
@@ -414,7 +418,7 @@ def _crosswalks():
     span = max(0.01, mx.x - mn.x)
     empty.scale = (26.0 / span, 8.0 / span, 1.0)
     empty.location = (0.0, 0.0, -800.0)
-    for x, y, yaw in ((-20.0, 46.0, 0.0), (40.0, 46.0, 0.0), (68.0, 10.0, 1.5708), (68.0, -20.0, 1.5708)):
+    for x, y, yaw in ((-16.0, 71.5, 0.0), (22.0, 71.5, 0.0), (50.0, 74.0, 1.5708), (50.0, 90.0, 1.5708)):
         bpy.ops.object.select_all(action="DESELECT")
         empty.select_set(True)
         for obj in meshes:
@@ -459,6 +463,10 @@ def _roads_and_cars():
                     spots.append((cx, y))
                     y += 14.0
         for x, y in spots:
+            if -48.0 < x < 48.0 and y < 70.0:
+                continue
+            if -50.0 < x < 90.0 and 64.0 < y < 120.0:
+                continue
             bpy.ops.object.select_all(action="DESELECT")
             empty.select_set(True)
             for obj in meshes:
@@ -477,6 +485,7 @@ def _roads_and_cars():
         ("sedan.glb", 110.0, 56.0, -1.5708, -7.5, "x"),
         ("taxi.glb", 150.0, 48.0, 1.5708, 6.5, "x"),
         ("sedan.glb", 190.0, 56.0, -1.5708, -8.0, "x"),
+        ("taxi.glb", 4.5, 73.2, 1.5708, 0.0, "x"),
         ("taxi.glb", -8.0, 74.0, 1.5708, 5.5, "x"),
         ("sedan.glb", 16.0, 82.0, -1.5708, -6.5, "x"),
         ("taxi.glb", 34.0, 76.0, 1.5708, 7.0, "x"),
@@ -511,16 +520,31 @@ def _roads_and_cars():
         bpy.context.view_layer.objects.active = proto
         bpy.ops.object.duplicate(linked=True)
         copy = bpy.context.view_layer.objects.active
+        x, y = _outside_base(x, y)
         copy.location = (x, y, 0.05)
         copy.rotation_euler = (0.0, 0.0, yaw)
         copy.scale = (1.7, 1.7, 1.7)
         MOVERS.append((copy, axis, x if axis == "x" else y, speed, 280.0))
 
 
+def _outside_base(x, y):
+    """Push a spot that would sit inside the NanoRay podium onto 34th Street."""
+    if -46.0 < x < 46.0 and -84.0 < y < 66.2:
+        return x, 74.2 + (abs(y) % 5.0) * 0.35
+    return x, y
+
+
 def _pose_proto(path: Path, name: str, frame: int):
     if not path.exists():
         return None, None
     objs = _drop_helpers(_imported(path))
+    kept = []
+    for obj in objs:
+        if obj.type == "MESH" and obj.name.startswith("Icosphere"):
+            bpy.data.objects.remove(obj, do_unlink=True)
+            continue
+        kept.append(obj)
+    objs = kept
     meshes = [obj for obj in objs if obj.type == "MESH"]
     arms = [obj for obj in objs if obj.type == "ARMATURE"]
     empty = _link(bpy.data.objects.new(name, None))
@@ -552,12 +576,15 @@ def _pose_proto(path: Path, name: str, frame: int):
 def _people():
     hero_arm = None
     protos = []
-    hero_empty, hero_arm = _pose_proto(IDLE, "Star", 40)
+    hero_empty, hero_arm = _pose_proto(SHRUG, "Star", 0)
     if hero_empty is not None:
         hero_empty.location = (MAN[0], MAN[1], hero_empty.location.z)
         hero_empty.rotation_euler = (0.0, 0.0, math.pi)
         if hero_arm is not None:
             hero_arm["punchline"] = 1
+            action = hero_arm.animation_data.action if hero_arm.animation_data else None
+            if action is not None:
+                hero_arm["clip"] = action.name
     for index, path in enumerate(WALKS):
         empty, arm = _pose_proto(path, f"Walker{index}", 8 + index * 6)
         if empty is None:
@@ -566,8 +593,10 @@ def _people():
     if not protos:
         return []
     spots = [(x, 52.0, 0.2) for x in range(-30, 90, 18)]
+    spots += [(2.0, 74.0, 0.4), (16.0, 78.5, 2.6), (-8.0, 82.0, 1.2)]
     crowd = [proto for proto in protos if proto.location.x < 40.0] or protos
     for index, (x, y, yaw) in enumerate(spots):
+        x, y = _outside_base(x, y)
         proto = crowd[index % len(crowd)]
         bpy.ops.object.select_all(action="DESELECT")
 
@@ -760,8 +789,65 @@ def _grounded_proto(path: Path, name: str):
     return empty
 
 
+def _map_ground(name, color_name, rough_name, normal_name, scale_x, scale_y, swap=False):
+    """World-space PBR so tiled kit pieces share one concrete or asphalt look."""
+    found = ROOT.parent.parent / "assets" / "found"
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = nt.nodes["Principled BSDF"]
+    bsdf.inputs["Metallic"].default_value = 0.0
+    bsdf.inputs["Roughness"].default_value = 0.85
+    geo = nt.nodes.new("ShaderNodeNewGeometry")
+    sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+    nt.links.new(geo.outputs["Position"], sep.inputs["Vector"])
+    comb = nt.nodes.new("ShaderNodeCombineXYZ")
+    sx = nt.nodes.new("ShaderNodeMath")
+    sy = nt.nodes.new("ShaderNodeMath")
+    sx.operation = "MULTIPLY"
+    sy.operation = "MULTIPLY"
+    sx.inputs[1].default_value = scale_x
+    sy.inputs[1].default_value = scale_y
+    if swap:
+        nt.links.new(sep.outputs["Y"], sx.inputs[0])
+        nt.links.new(sep.outputs["X"], sy.inputs[0])
+    else:
+        nt.links.new(sep.outputs["X"], sx.inputs[0])
+        nt.links.new(sep.outputs["Y"], sy.inputs[0])
+    nt.links.new(sx.outputs[0], comb.inputs["X"])
+    nt.links.new(sy.outputs[0], comb.inputs["Y"])
+
+    def tex(filename, colorspace):
+        node = nt.nodes.new("ShaderNodeTexImage")
+        node.image = bpy.data.images.load(str(found / filename))
+        node.image.colorspace_settings.name = colorspace
+        node.interpolation = "Smart"
+        node.extension = "REPEAT"
+        nt.links.new(comb.outputs["Vector"], node.inputs["Vector"])
+        return node
+
+    color = tex(color_name, "sRGB")
+    rough = tex(rough_name, "Non-Color")
+    nt.links.new(color.outputs["Color"], bsdf.inputs["Base Color"])
+    nt.links.new(rough.outputs["Color"], bsdf.inputs["Roughness"])
+    bump = nt.nodes.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value = 0.25
+    bump.inputs["Distance"].default_value = 0.02
+    nt.links.new(rough.outputs["Color"], bump.inputs["Height"])
+    nt.links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
+    return mat
+
+
+def _paint(root, mat):
+    meshes = [root] if root.type == "MESH" else []
+    meshes.extend(child for child in root.children_recursive if child.type == "MESH")
+    for mesh in meshes:
+        mesh.data.materials.clear()
+        mesh.data.materials.append(mat)
+
+
 def _pave_landing():
-    """Quaternius sidewalk and asphalt on the 34th/5th corner. The plaza had no ground."""
+    """Concrete flags, a grey curb, and a marked asphalt road. Not the red kit stripe."""
     kit = (
         CACHE
         / "assets_cc0_city_buildings"
@@ -772,6 +858,27 @@ def _pave_landing():
     )
     walk = _grounded_proto(kit / "Sidewalk_Straight_3m.gltf", "WalkProto")
     asphalt = _grounded_proto(kit / "Street_Asphalt_9x9.gltf", "AsphaltProto")
+    concrete = _map_ground(
+        "SidewalkConcrete",
+        "Concrete010_2K-JPG_Color.jpg",
+        "Concrete010_2K-JPG_Roughness.jpg",
+        "Concrete010_2K-JPG_NormalGL.jpg",
+        0.09,
+        0.09,
+    )
+    road = _map_ground(
+        "RoadAsphalt",
+        "Road007_1K-JPG_Color.jpg",
+        "Road007_1K-JPG_Roughness.jpg",
+        "Road007_1K-JPG_NormalGL.jpg",
+        0.12,
+        0.14,
+        swap=True,
+    )
+    if walk is not None:
+        _paint(walk, concrete)
+    if asphalt is not None:
+        _paint(asphalt, road)
     if walk is None and asphalt is None:
         return
 
@@ -790,24 +897,21 @@ def _pave_landing():
 
     paved = 0
     if asphalt is not None:
-        # 34th Street north of the tower, plus the avenue the camera can see.
-        for x in range(-30, 80, 9):
-            for y in range(70, 120, 9):
+        # 34th Street north of the tower, clear of the podium.
+        for x in range(-24, 72, 9):
+            for y in range(72, 114, 9):
                 stamp(asphalt, x, y, 0.0, 0.02)
                 paved += 1
-        for y in range(40, 120, 9):
-            stamp(asphalt, 42.0, y, 1.5708, 0.02)
+        for y in range(72, 114, 9):
+            stamp(asphalt, 50.0, y, 1.5708, 0.02)
             paved += 1
         asphalt.location.z = -400.0
     if walk is not None:
-        # Sidewalk the man stands on, and the strip under the street camera.
-        for x in range(-18, 48, 3):
-            for y in (64.8, 67.6):
+        # Sidewalk the man stands on, just north of the limestone base.
+        for x in range(-18, 46, 3):
+            for y in (66.5, 68.4):
                 stamp(walk, x, y, 0.0, 0.07)
                 paved += 1
-        for y in range(62, 78, 3):
-            stamp(walk, 36.5, y, 1.5708, 0.07)
-            paved += 1
         walk.location.z = -400.0
     print(f"PAVE {paved}", flush=True)
 

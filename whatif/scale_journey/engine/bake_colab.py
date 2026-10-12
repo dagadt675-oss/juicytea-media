@@ -224,6 +224,21 @@ def main():
     print("UNPACKED", unpacked, flush=True)
     shutil.copyfile(ROOT / "colab" / "render.py", BUILD / "render.py")
     print(f"BLEND {blend} bytes {blend.stat().st_size}", flush=True)
+    manifest = {
+        "blender_version": "4.2.3",
+        "frame_start": 0,
+        "frame_end": 1001,
+        "fps": 30,
+        "resolution": [1080, 1920],
+        "samples": 24,
+        "est_seconds_per_frame_on_your_cpu": 38,
+        "description": (
+            "Empire State Building by NanoRay (CC-BY, Sketchfab). "
+            "Shrugging by Rida.Sidi.Ben.Ali (CC-BY, Sketchfab)."
+        ),
+    }
+    (BUILD / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    print("MANIFEST description credits NanoRay and Rida.Sidi.Ben.Ali", flush=True)
     print("BAKE_DONE", flush=True)
 
 

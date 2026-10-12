@@ -178,32 +178,38 @@ def _held(rows, t):
     return chosen
 
 
-# North-east corner of the centered scan. The penny rides this corner from
-# the observation ledge down to the north sidewalk, where the man stands.
+# North-east skin of the NanoRay tower. The penny rides this corner from the
+# 86th-floor parapet down to the north sidewalk, where the man stands.
 _ESB_CORNERS = (
-    (443.0, 1.8, 1.6),
-    (410.0, 2.6, 2.4),
-    (381.0, 3.35, 3.75),
-    (360.0, 7.6, 7.2),
-    (340.0, 14.0, 16.0),
-    (310.0, 18.5, 26.5),
-    (250.0, 27.0, 37.0),
-    (120.0, 29.0, 42.0),
-    (70.0, 16.0, 66.8),
-    (20.0, 8.0, 66.6),
-    (0.0, 6.0, 66.6),
+    (443.0, 2.0, -15.5),
+    (400.0, 5.5, -11.5),
+    (365.0, 6.2, -5.5),
+    (340.0, 8.0, -4.0),
+    (325.0, 11.5, 3.2),
+    (311.35, 12.35, 4.85),
+    (300.0, 14.8, 8.2),
+    (280.0, 17.2, 11.0),
+    (250.0, 19.6, 13.6),
+    (180.0, 20.2, 14.2),
+    (100.0, 21.0, 15.0),
+    (92.0, 30.0, 66.6),
+    (40.0, 14.0, 68.4),
+    (0.0, 8.0, 67.8),
 )
 
-# Solid shaft the camera is not allowed to enter. The bottom band is the
-# lot, so a point in the roadway is not what this pushes; it pushes points
-# inside the building. The coin path above stays outside every band.
+# Solid the camera is not allowed to enter. Bands above the lot follow the
+# NanoRay setbacks, inset so the parapet and the coin stay outside. The
+# bottom band is the lot, so a point in the roadway is not what this pushes.
 _SHAFT_BANDS = (
-    (450.0, 410.0, -1.0, 1.0, -1.0, 1.0),
-    (410.0, 374.0, -2.0, 2.0, -2.0, 2.0),
-    (374.0, 352.0, -5.2, 5.2, -5.2, 5.2),
-    (352.0, 325.0, -6.4, 6.4, -12.4, 12.4),
-    (325.0, 295.0, -16.0, 16.0, -24.0, 24.0),
-    (295.0, 90.0, -18.0, 18.0, -26.0, 26.0),
+    (450.0, 400.0, -2.0, 1.2, -20.2, -16.2),
+    (400.0, 365.0, -6.0, 4.6, -24.0, -12.2),
+    (365.0, 340.0, -7.5, 5.2, -27.0, -8.5),
+    (340.0, 325.0, -11.0, 9.0, -39.0, 0.6),
+    (325.0, 312.0, -14.5, 11.0, -42.0, 3.2),
+    (312.0, 300.0, -16.5, 11.4, -44.5, 4.2),
+    (300.0, 280.0, -18.5, 15.4, -47.0, 9.2),
+    (280.0, 250.0, -20.5, 17.4, -49.0, 11.4),
+    (250.0, 90.01, -22.0, 19.2, -56.0, 13.6),
     (90.0, 0.0, -28.5, 28.5, -64.5, 64.5),
 )
 
@@ -349,12 +355,10 @@ def _penny(raw: dict) -> BEpisode:
         metric = f"{int(feet) * FT:,.0f} m"
         z_vis = alt_ft * FT
         ledge_xy = _penny_xy(drop)
-        # North-east lip of the 86th-floor setback. Outside the shaft box
-        # so the coin sits on the parapet instead of inside the crown.
-        # On the scanned setback. The mesh only reaches about (10, 17) here,
-        # so the coin sits on that corner instead of in the air past it.
-        lip = (8.8, 15.2)
-        parapet = 338.85
+        # North-east lip of the NanoRay 86th-floor parapet. Outside the shaft
+        # box, on the stone coping, in front of the curved rail.
+        lip = (16.2, 9.6)
+        parapet = 294.0
         ledge_penny = (lip[0], lip[1], parapet)
         if t < 0.57 or t >= 33.15:
             penny = ledge_penny
@@ -390,40 +394,28 @@ def _penny(raw: dict) -> BEpisode:
                     )
                 else:
                     hop = _fade(t, 21.07, 21.55)
-                    penny = (MAN[0] + 0.7 * hop, MAN[1] - 0.4 * hop, penny[2])
-        # Shot 1: macro on the parapet, just above the coin, looking out
-        # over the curved rail at the city. 50 mm, shallow focus on the coin.
-        # Outside the corner, looking back onto the parapet and down the drop.
-        hook_cam = (11.6, 18.6, parapet + 1.15)
-        # Through the coin on the parapet, with a small extra drop so the city
-        # sits under it and the coin stays inside a 50 mm frame.
-        _hx = lip[0] - hook_cam[0]
-        _hy = lip[1] - hook_cam[1]
-        _hz = parapet - hook_cam[2]
-        hook_tgt = (lip[0] + _hx * 2.4, lip[1] + _hy * 2.4, parapet + _hz * 2.4 - 0.55)
-        # Shot 2: 24 mm, close enough that the coin is about a tenth of the
-        # frame, with the window wall behind it and the street below.
-        z_follow = penny[2] + 0.62
-        # Sit just outside the coin. The aim is rebuilt after the buffet so
-        # the coin stays near the middle of the 24 mm frame.
-        drone_cam = (penny[0] + 0.92, penny[1] + 0.64, z_follow)
+                    penny = (MAN[0] - 0.18 + 0.45 * hop, MAN[1] - 0.22, penny[2])
+        # Shot 1: in the air just above the 86th-floor coping, looking out
+        # and down so the coin is on the near ledge and the city is the drop.
+        # Open air just outside the coping. Probed clear of the limestone.
+        hook_cam = (18.8, 12.2, parapet + 1.8)
+        hook_tgt = (5.8, -0.8, 283.6)
+        # Shot 2: same offset that puts the coin on the window bays.
+        drone_cam = (penny[0] + 2.6, penny[1] + 2.6, penny[2] + 1.65)
         if 2.4 <= t < 19.07 and not (13.31 <= t < 15.10):
             drone_cam = (
-                drone_cam[0] + 0.16 * _wind(t, 8.2, 6.5),
-                drone_cam[1] + 0.12 * _wind(t, 3.4, 7.1),
-                drone_cam[2] + 0.10 * _wind(t, 5.5, 5.4),
+                drone_cam[0] + 0.10 * _wind(t, 8.2, 6.5),
+                drone_cam[1] + 0.08 * _wind(t, 3.4, 7.1),
+                drone_cam[2] + 0.06 * _wind(t, 5.5, 5.4),
             )
-        _dx = penny[0] - drone_cam[0]
-        _dy = penny[1] - drone_cam[1]
-        _dz = penny[2] - drone_cam[2]
-        drone_tgt = (penny[0] + _dx * 2.6, penny[1] + _dy * 2.6, penny[2] + _dz * 2.6 - 1.1)
+        drone_tgt = (penny[0] - 10.4, penny[1] - 10.4, penny[2] - 10.6)
         step = max(0.0, t - 23.9) * 0.9
         man_x, man_y = MAN[0] + step, MAN[1]
         # Street camera sits on the sidewalk, south of him, looking north
         # across the curb, the road, and the shopfronts.
-        # Just north of the lot line, on the sidewalk, looking through him at the street.
-        up_cam = (9.2, 65.15, 1.58)
-        up_tgt = (man_x, man_y + 0.2, 1.32)
+        # On the north sidewalk, beside him, looking through him at the street.
+        up_cam = (man_x - 2.6, man_y - 1.05, 1.48)
+        up_tgt = (man_x + 0.2, man_y + 0.45, 1.28)
         face_cam = up_cam
         face_tgt = up_tgt
         guy_cam = (MAN[0] + 2.4, MAN[1] + 0.6, 4.6)
@@ -431,14 +423,14 @@ def _penny(raw: dict) -> BEpisode:
         if t < 2.4 or t >= 33.15:
             cam = hook_cam
             target = hook_tgt
-            lens = 50.0
+            lens = 22.0
         elif t < 2.9:
             u = _fade(t, 2.4, 2.9)
             cam = _lerp(hook_cam, drone_cam, u)
             target = _lerp(hook_tgt, drone_tgt, u)
             lens = 50.0 + (24.0 - 50.0) * u
         elif t < 13.31:
-            cam, target, lens = drone_cam, drone_tgt, 24.0
+            cam, target, lens = drone_cam, drone_tgt, 22.0
         elif t < 14.55:
             u = _fade(t, 13.31, 13.55)
             cam = _lerp(drone_cam, guy_cam, u)
@@ -450,7 +442,7 @@ def _penny(raw: dict) -> BEpisode:
             target = _lerp(guy_tgt, drone_tgt, u)
             lens = 24.0
         elif t < 19.07:
-            cam, target, lens = drone_cam, drone_tgt, 24.0
+            cam, target, lens = drone_cam, drone_tgt, 22.0
         elif t < 19.45:
             u = _fade(t, 19.07, 19.45)
             cam = _lerp(drone_cam, up_cam, u)
@@ -459,10 +451,10 @@ def _penny(raw: dict) -> BEpisode:
         elif t < 27.71:
             cam, target, lens = up_cam, up_tgt, 32.0
         else:
-            u = _fade(t, 27.71, 33.05)
-            # Back up and rise so the tower itself stays in frame, then meet the deck.
-            wide = (72.0, 155.0, 36.0)
-            wide_tgt = (0.0, 8.0, 210.0)
+            u = _fade(t, 30.2, 33.05)
+            # Stay wide through the rise still, then meet the deck for the loop.
+            wide = (175.0, 330.0, 72.0)
+            wide_tgt = (0.0, -8.0, 175.0)
             cam = _lerp(wide, hook_cam, u)
             target = _lerp(wide_tgt, hook_tgt, u)
             cam = (cam[0] + math.sin(u * math.pi) * 16.0, cam[1], cam[2])
@@ -579,6 +571,10 @@ def _penny(raw: dict) -> BEpisode:
         "liberty_ft": 305.0,
         "bonk_s": 21.073,
         "empire": {k: v for k, v in outline("empire").items() if k != "source"},
+        "description": (
+            "Empire State Building by NanoRay (CC-BY, Sketchfab). "
+            "Shrugging by Rida.Sidi.Ben.Ali (CC-BY, Sketchfab)."
+        ),
     }
     return ep
 

@@ -34,7 +34,7 @@ All Python, and every mesh built in `engine/build.py` (rice grain, pile, person,
 
 ## Hero models kept out of git
 
-The Empire State Building mesh (Sketchfab Free Standard, PeeJaa, model `47187dafbafa47948f9af4e140e72582`) and the Statue of Liberty mesh (Sketchfab Free Standard, vikramart2001, model `6cb75e326e784acb8e40d192281a93fe`) are commercial-use and not redistributed. `engine/build_b.py` reads them from `cache/private/`, which is gitignored. Do not commit the glb files.
+The Empire State Building mesh used for the penny episode is NanoRay's model (CC-BY, Sketchfab), file `cache/private/empire_nanoray.glb`. Credit: "Empire State Building" by NanoRay. The pedestrian reaction is the Mixamo clip Shrugging by Rida.Sidi.Ben.Ali (CC-BY, Sketchfab), file `cache/private/shrug.glb`. Credit: "Shrugging" by Rida.Sidi.Ben.Ali. Both stay out of git. The older PeeJaa scan (`empire_state.glb`, Sketchfab Free Standard, model `47187dafbafa47948f9af4e140e72582`) is no longer the hero. The Statue of Liberty mesh (Sketchfab Free Standard, vikramart2001, model `6cb75e326e784acb8e40d192281a93fe`) is unchanged. `engine/build_b.py` reads them from `cache/private/`, which is gitignored. Do not commit the glb files.
 
 City blocks, roads, taxis, and pedestrians start from the asset hub. CC0 packs fetched by `tools/fetch_library.py` stay in `cache/library/`. Sketchfab Free Standard files (Procedural City blocks, One WTC, the commute pack, the Empire State scan, the Statue of Liberty) stay in gitignored `cache/private/`. Do not commit them.
 

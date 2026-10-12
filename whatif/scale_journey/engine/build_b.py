@@ -28,8 +28,10 @@ from engine.landmarks import ESB_LOT
 
 CACHE = ROOT / "cache" / "library" / "extracted"
 PRIVATE = ROOT / "cache" / "private"
-# Sketchfab Free Standard. Not redistributed; the fetch/cache holds the files.
-ESB_GLB = PRIVATE / "empire_state.glb"
+# Hub files. Not redistributed; the fetch/cache holds them.
+# Empire State Building by NanoRay (CC-BY). Shrugging by Rida.Sidi.Ben.Ali (CC-BY).
+ESB_GLB = PRIVATE / "empire_nanoray.glb"
+SHRUG_GLB = PRIVATE / "shrug.glb"
 LIBERTY_GLB = PRIVATE / "statue_liberty.glb"
 
 
@@ -149,31 +151,29 @@ def _world(hdr_path: str):
     nt.links.new(mapping.outputs["Vector"], env.inputs["Vector"])
     bg = nt.nodes.new("ShaderNodeBackground")
     nt.links.new(env.outputs["Color"], bg.inputs["Color"])
-    bg.inputs["Strength"].default_value = 0.85
+    bg.inputs["Strength"].default_value = 1.35
     dark = nt.nodes.new("ShaderNodeBackground")
     nt.links.new(env.outputs["Color"], dark.inputs["Color"])
-    dark.inputs["Strength"].default_value = 0.45
+    dark.inputs["Strength"].default_value = 0.85
     mix = nt.nodes.new("ShaderNodeMixShader")
     light = nt.nodes.new("ShaderNodeLightPath")
     nt.links.new(light.outputs["Is Camera Ray"], mix.inputs["Fac"])
     nt.links.new(dark.outputs["Background"], mix.inputs[1])
     nt.links.new(bg.outputs["Background"], mix.inputs[2])
     nt.links.new(mix.outputs["Shader"], out.inputs["Surface"])
-    haze = nt.nodes.new("ShaderNodeVolumePrincipled")
-    haze.inputs["Color"].default_value = (0.62, 0.68, 0.74, 1.0)
-    haze.inputs["Density"].default_value = 0.00028
-    haze.inputs["Anisotropy"].default_value = 0.15
-    nt.links.new(haze.outputs["Volume"], out.inputs["Volume"])
+    # No world volume. It was turning the clear sky grey.
 
 
 def _sun():
-    # Late afternoon, high enough that shadows stay short and soft.
+    # Clear daytime, sun about 40 degrees up, small disc so shadows stay crisp.
     light = bpy.data.lights.new("Sun", "SUN")
-    light.energy = 5.0
-    light.color = (1.0, 0.78, 0.55)
-    light.angle = 0.045
+    light.energy = 3.2
+    light.color = (1.0, 0.97, 0.90)
+    light.angle = 0.009
     obj = _link(bpy.data.objects.new("Sun", light))
-    direction = mathutils.Vector((0.45, -0.25, 0.86))
+    elev = math.radians(40.0)
+    azim = math.radians(-35.0)
+    direction = mathutils.Vector((math.cos(elev) * math.cos(azim), math.cos(elev) * math.sin(azim), math.sin(elev)))
     obj.rotation_euler = direction.to_track_quat("Z", "Y").to_euler()
     fill = bpy.data.lights.new("Fill", "SUN")
     fill.energy = 2.2
@@ -190,7 +190,7 @@ CARS = CACHE / "assets_cc0_vehicles" / "vehicles" / "kenney_car_kit" / "Models" 
 FOOD = CACHE / "assets_cc0_food" / "food" / "kenney_food_kit" / "Models" / "GLB format"
 MEN = CACHE / "assets_cc0_characters" / "characters" / "quaternius_animated_men" / "glb"
 DANCE = CACHE / "assets_cc0_animations" / "animations" / "quaternius_universal_animation_library" / "Universal Animation Library[Standard]" / "Unreal-Godot" / "UAL1_Standard.glb"
-HDRI = CACHE / "assets_cc0_hdri" / "hdri" / "polyhaven_hdris_2k" / "belfast_sunset_puresky" / "belfast_sunset_puresky_2k.hdr"
+HDRI = CACHE / "assets_cc0_hdri" / "hdri" / "polyhaven_hdris_2k" / "kloofendal_43d_clear_puresky" / "kloofendal_43d_clear_puresky_2k.hdr"
 
 
 def _imported(path):
@@ -291,10 +291,11 @@ def _clip_low(meshes, zcut):
             # Long edges are the ribbon. Low flat lids are the scan's ground sheet.
             # The setback roofs stay so the deck is still there.
             flat_lid = abs(normal.z) > 0.84 and area > 14.0 and center.z < 80.0
-            # Loose triangles around the mast read as white shards above the crown.
+            # Loose triangles around the mast, and the broken white setback slabs.
             crown_junk = center.z > 408.0 and (edge > 5.0 or area > 3.0)
+            white_slab = abs(normal.z) > 0.55 and center.z > 40.0
             # Ribbons span hundreds of metres. A real facade triangle is shorter than that.
-            if outside or stray or edge > 48.0 or flat_lid or crown_junk or center.z < zcut:
+            if outside or stray or edge > 48.0 or flat_lid or crown_junk or white_slab or center.z < zcut:
                 dead.append(face)
             else:
                 kept_n += 1
@@ -473,32 +474,172 @@ def _dress_facade(meshes):
     print(f"FACADE {dressed} meshes", flush=True)
 
 
+def _found_image(name, colorspace):
+    path = WHATIF.parent / "assets" / "found" / name
+    image = bpy.data.images.load(str(path), check_existing=True)
+    image.colorspace_settings.name = colorspace
+    return image
+
+
+def _principled(name, color, rough, metallic):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+    bsdf.inputs["Base Color"].default_value = (*color, 1.0)
+    bsdf.inputs["Roughness"].default_value = rough
+    bsdf.inputs["Metallic"].default_value = metallic
+    return mat
+
+
+def _limestone_mat():
+    mat = _principled("Limestone", (0.62, 0.56, 0.46), 0.72, 0.0)
+    nt = mat.node_tree
+    bsdf = nt.nodes["Principled BSDF"]
+    coord = nt.nodes.new("ShaderNodeTexCoord")
+    mapping = nt.nodes.new("ShaderNodeMapping")
+    mapping.inputs["Scale"].default_value = (2.2, 2.2, 2.2)
+    nt.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
+    color = nt.nodes.new("ShaderNodeTexImage")
+    color.image = _found_image("Plaster001_1K-JPG_Color.jpg", "sRGB")
+    color.interpolation = "Smart"
+    color.extension = "REPEAT"
+    nt.links.new(mapping.outputs["Vector"], color.inputs["Vector"])
+    tint = nt.nodes.new("ShaderNodeMix")
+    tint.data_type = "RGBA"
+    tint.blend_type = "MULTIPLY"
+    tint.inputs[0].default_value = 1.0
+    nt.links.new(color.outputs["Color"], tint.inputs[6])
+    tint.inputs[7].default_value = (1.15, 1.02, 0.86, 1.0)
+    nt.links.new(tint.outputs[2], bsdf.inputs["Base Color"])
+    rough = nt.nodes.new("ShaderNodeTexImage")
+    rough.image = _found_image("Plaster001_1K-JPG_Roughness.jpg", "Non-Color")
+    rough.interpolation = "Smart"
+    rough.extension = "REPEAT"
+    nt.links.new(mapping.outputs["Vector"], rough.inputs["Vector"])
+    nt.links.new(rough.outputs["Color"], bsdf.inputs["Roughness"])
+    normal = nt.nodes.new("ShaderNodeTexImage")
+    normal.image = _found_image("Plaster001_1K-JPG_NormalGL.jpg", "Non-Color")
+    normal.interpolation = "Smart"
+    normal.extension = "REPEAT"
+    nt.links.new(mapping.outputs["Vector"], normal.inputs["Vector"])
+    nmap = nt.nodes.new("ShaderNodeNormalMap")
+    nmap.inputs["Strength"].default_value = 0.35
+    nt.links.new(normal.outputs["Color"], nmap.inputs["Color"])
+    nt.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
+    return mat
+
+
+def _metal_mat(name, color, rough):
+    mat = _principled(name, color, rough, 1.0)
+    nt = mat.node_tree
+    bsdf = nt.nodes["Principled BSDF"]
+    coord = nt.nodes.new("ShaderNodeTexCoord")
+    mapping = nt.nodes.new("ShaderNodeMapping")
+    mapping.inputs["Scale"].default_value = (1.4, 1.4, 1.4)
+    nt.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
+    rough_tex = nt.nodes.new("ShaderNodeTexImage")
+    rough_tex.image = _found_image("Concrete034_1K-JPG_Roughness.jpg", "Non-Color")
+    rough_tex.interpolation = "Smart"
+    rough_tex.extension = "REPEAT"
+    nt.links.new(mapping.outputs["Vector"], rough_tex.inputs["Vector"])
+    mix = nt.nodes.new("ShaderNodeMix")
+    mix.data_type = "FLOAT"
+    mix.inputs[0].default_value = 0.35
+    mix.inputs[2].default_value = rough
+    nt.links.new(rough_tex.outputs["Color"], mix.inputs[3])
+    nt.links.new(mix.outputs[0], bsdf.inputs["Roughness"])
+    return mat
+
+
+def _glass_mat():
+    mat = _principled("WindowGlass", (0.045, 0.062, 0.078), 0.18, 0.04)
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+    if "Specular IOR Level" in bsdf.inputs:
+        bsdf.inputs["Specular IOR Level"].default_value = 0.55
+    return mat
+
+
+def _nanoray_role(color):
+    """Flat Sketchfab colours are material ids, not the finished look."""
+    palette = (
+        ((0.683, 0.535, 0.376), "limestone"),
+        ((0.846, 0.846, 0.846), "frame"),
+        ((0.636, 0.210, 0.173), "spandrel"),
+        ((0.084, 0.155, 0.218), "glass"),
+        ((0.069, 0.011, 0.011), "glass"),
+        ((0.015, 0.026, 0.042), "glass"),
+        ((0.003, 0.003, 0.003), "granite"),
+        ((0.183, 0.352, 0.499), "frame"),
+    )
+    best, role = 1e9, "trim"
+    for src, name in palette:
+        dist = sum((color[i] - src[i]) ** 2 for i in range(3))
+        if dist < best:
+            best, role = dist, name
+    return role if best <= 0.02 else "trim"
+
+
+def _dress_nanoray(meshes):
+    """Limestone piers, aluminium mullions and spandrels, dark glass bays."""
+    mats = {
+        "limestone": _limestone_mat(),
+        "frame": _metal_mat("AluminiumFrame", (0.74, 0.73, 0.70), 0.38),
+        "spandrel": _metal_mat("AluminiumSpandrel", (0.58, 0.59, 0.57), 0.30),
+        "glass": _glass_mat(),
+        "granite": _principled("GraniteBase", (0.22, 0.21, 0.20), 0.84, 0.0),
+    }
+    counts = {}
+    for obj in meshes:
+        if obj.type != "MESH" or not obj.material_slots:
+            continue
+        color = (0.5, 0.5, 0.5)
+        slot = obj.material_slots[0].material
+        if slot and slot.use_nodes:
+            bsdf = slot.node_tree.nodes.get("Principled BSDF")
+            if bsdf is not None:
+                color = tuple(bsdf.inputs["Base Color"].default_value[:3])
+        role = _nanoray_role(color)
+        if role == "trim":
+            key = "trim_%d_%d_%d" % tuple(int(channel * 255) for channel in color)
+            if key not in mats:
+                mats[key] = _principled(key, color, 0.58, 0.0)
+            role = key
+        obj.data.materials.clear()
+        obj.data.materials.append(mats[role])
+        counts[role.split("_")[0]] = counts.get(role.split("_")[0], 0) + 1
+    print("NANORAY " + " ".join(f"{name} {count}" for name, count in sorted(counts.items())), flush=True)
+
+
 def _empire():
+    """NanoRay Empire State. Re-centred, long side north, tip at 443.2 m."""
     if not ESB_GLB.exists():
         raise RuntimeError(f"missing hero model {ESB_GLB}")
     objs = _imported(ESB_GLB)
     meshes = [obj for obj in objs if obj.type == "MESH"]
+    _dress_nanoray(meshes)
     mn, mx = _bounds(meshes)
-    height = mx.z - mn.z
-    scale = 443.2 / height
+    anchor = mathutils.Vector(((mn.x + mx.x) * 0.5, (mn.y + mx.y) * 0.5, mn.z))
     empty = _link(bpy.data.objects.new("EmpireState", None))
+    empty.location = anchor
+    bpy.context.view_layer.update()
     roots = [obj for obj in objs if obj.parent is None or obj.parent not in objs]
     _parent_keep(roots, empty)
-    empty.scale = (scale, scale, scale)
-    empty.rotation_euler = (0.0, 0.0, 0.0)
-    empty.location = (0.0, 0.0, -mn.z * scale)
+    empty.location = (0.0, 0.0, 0.0)
     bpy.context.view_layer.update()
-    _align_to_lot(empty, meshes)
+    scale = 443.2 / max(0.01, mx.z - mn.z)
+    empty.rotation_euler = (0.0, 0.0, math.pi * 0.5)
+    empty.scale = (scale, scale, scale)
     bpy.context.view_layer.update()
     mn2, mx2 = _bounds(meshes)
+    empty.location.x -= (mn2.x + mx2.x) * 0.5
+    empty.location.y += 64.5 - mx2.y
+    empty.location.z -= mn2.z
+    bpy.context.view_layer.update()
+    mn3, mx3 = _bounds(meshes)
     print(
-        f"ESB tip {mx2.z:.1f} m base {mn2.z:.1f} m footprint {mx2.x - mn2.x:.0f} x {mx2.y - mn2.y:.0f} yaw {empty.rotation_euler.z:.2f}",
+        f"ESB tip {mx3.z:.1f} m base {mn3.z:.1f} m footprint {mx3.x - mn3.x:.0f} x {mx3.y - mn3.y:.0f} scale {scale:.4f}",
         flush=True,
     )
-    _clip_low(meshes, -1.0)
-    # The scan albedo is one 1024 aerial photo. The massing stays; the walls
-    # wear a tileable CC0 facade so the limestone piers and window strips read.
-    _dress_facade(meshes)
     return empty
 
 
@@ -936,34 +1077,84 @@ def _copper(name, roughness):
 
 
 def _penny():
-    """Kenney bronze coin from the hub CC0 library. Not a generated disc."""
-    path = (
-        CACHE
-        / "assets_cc0_vehicles"
-        / "vehicles"
-        / "kenney_toy_car_kit"
-        / "Models"
-        / "GLB format"
-        / "item-coin-bronze.glb"
-    )
-    if not path.exists():
-        raise RuntimeError(f"missing hub coin {path}")
-    objs = _imported(path)
-    meshes = [obj for obj in objs if obj.type == "MESH"]
+    """Round Lincoln cent. 64-side disc, bevelled rim, both faces from the packed map.
+
+    The map is johndh's CC-BY-SA penny (public-domain Mint photos). Local +Z is Lincoln.
+    Diameter is enlarged so a close camera still reads the relief; the rim proportions stay a cent's.
+    """
+    found = WHATIF.parent / "assets" / "found"
+    tex_path = found / "penny_tex.png"
+    if not tex_path.exists():
+        raise RuntimeError(f"missing penny texture {tex_path}")
+    bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=0.5, depth=0.08, location=(0.0, 0.0, 0.0))
+    obj = bpy.context.object
+    obj.name = "PennyDisc"
+    bevel = obj.modifiers.new("Rim", "BEVEL")
+    bevel.width = 0.016
+    bevel.segments = 2
+    bevel.limit_method = "ANGLE"
+    bevel.angle_limit = math.radians(35.0)
+    bpy.ops.object.modifier_apply(modifier=bevel.name)
+
+    import bmesh
+
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    layer = bm.loops.layers.uv.new("UVMap")
+    for face in bm.faces:
+        normal = face.normal
+        if normal.z > 0.45:
+            center = (0.50, 0.75)
+        elif normal.z < -0.45:
+            center = (0.50, 0.25)
+        else:
+            center = None
+        for loop in face.loops:
+            if center is None:
+                loop[layer].uv = (0.02, 0.50)
+                continue
+            co = loop.vert.co
+            # The photo is twice as tall as it is wide, and each face sits in one half.
+            loop[layer].uv = (center[0] + co.x * 0.86, center[1] + co.y * 0.43)
+    bm.to_mesh(obj.data)
+    bm.free()
+    obj.data.materials.clear()
+
+    def copper(name, image):
+        mat = bpy.data.materials.new(name)
+        mat.use_nodes = True
+        nt = mat.node_tree
+        bsdf = nt.nodes["Principled BSDF"]
+        bsdf.inputs["Metallic"].default_value = 1.0
+        bsdf.inputs["Roughness"].default_value = 0.38
+        bsdf.inputs["Base Color"].default_value = (0.78, 0.38, 0.20, 1.0)
+        if image is None:
+            return mat
+        tex = nt.nodes.new("ShaderNodeTexImage")
+        tex.image = image
+        tex.interpolation = "Smart"
+        nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+        bump = nt.nodes.new("ShaderNodeBump")
+        bump.inputs["Strength"].default_value = 0.18
+        bump.inputs["Distance"].default_value = 0.0015
+        nt.links.new(tex.outputs["Color"], bump.inputs["Height"])
+        nt.links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
+        return mat
+
+    image = bpy.data.images.load(str(tex_path))
+    image.colorspace_settings.name = "sRGB"
+    obj.data.materials.append(copper("PennyFace", image))
+    obj.data.materials.append(copper("PennyRim", None))
+    for poly in obj.data.polygons:
+        poly.material_index = 0 if abs(poly.normal.z) > 0.45 else 1
+
     empty = _link(bpy.data.objects.new("Penny", None))
-    roots = [obj for obj in objs if obj.parent is None or obj.parent not in objs]
-    _parent_keep(roots, empty)
+    world = obj.matrix_world.copy()
+    obj.parent = empty
+    obj.matrix_world = world
+    empty.scale = (0.12, 0.12, 0.12)
     bpy.context.view_layer.update()
-    mn, mx = _bounds(meshes)
-    span = max(mx.x - mn.x, mx.y - mn.y, 1e-4)
-    empty.scale = (0.13 / span,) * 3
-    bpy.context.view_layer.update()
-    mn, mx = _bounds(meshes)
-    mid = (mn + mx) * 0.5
-    for obj in roots:
-        obj.matrix_world.translation -= mid
-    bpy.context.view_layer.update()
-    print(f"COIN kenney bronze span {span:.3f} -> 0.13 m", flush=True)
+    print("COIN lincoln disc 64 sides -> 0.12 m", flush=True)
     return empty
 
 
@@ -1021,12 +1212,106 @@ def _head(arm, t):
 _IDLE_BASIS: dict = {}
 
 
+def _shrug_frame(t):
+    """Mixamo shrug, imported as 0..48 at 24 fps. Shoulders peak at frame 16.
+
+    That peak is held on the reaction still (t = 23.33). Before the clip
+    starts, and after it ends, the pose is the standing first frame.
+    """
+    peak_t = 23.33
+    peak_f = 16.0
+    start = peak_t - peak_f / 24.0
+    frame = (t - start) * 24.0
+    if frame < 0.0 or frame > 48.0:
+        return 0.0
+    return frame
+
+
+def _play_clip(arm, frame):
+    name = arm.get("clip")
+    action = bpy.data.actions.get(str(name)) if name else None
+    arm.animation_data_clear()
+    for bone in arm.pose.bones:
+        bone.rotation_mode = "QUATERNION"
+        bone.location = (0.0, 0.0, 0.0)
+        bone.rotation_quaternion = (1.0, 0.0, 0.0, 0.0)
+        bone.scale = (1.0, 1.0, 1.0)
+    if action is None:
+        return
+    touched = {}
+    for curve in action.fcurves:
+        path = curve.data_path
+        if not path.startswith('pose.bones["'):
+            continue
+        bone_name = path.split('"')[1]
+        attr = path.rsplit(".", 1)[-1]
+        if arm.pose.bones.get(bone_name) is None:
+            continue
+        slot = touched.setdefault((bone_name, attr), {})
+        slot[curve.array_index] = curve.evaluate(frame)
+    for (bone_name, attr), slot in touched.items():
+        bone = arm.pose.bones[bone_name]
+        if attr == "rotation_quaternion":
+            values = [bone.rotation_quaternion[i] for i in range(4)]
+            for index, value in slot.items():
+                values[index] = value
+            bone.rotation_quaternion = values
+        elif attr == "location":
+            values = [bone.location[i] for i in range(3)]
+            for index, value in slot.items():
+                if index < 3:
+                    values[index] = value
+            bone.location = values
+        elif attr == "scale":
+            values = [bone.scale[i] for i in range(3)]
+            for index, value in slot.items():
+                if index < 3:
+                    values[index] = value
+            bone.scale = values
+        elif attr == "rotation_euler":
+            bone.rotation_mode = "XYZ"
+            values = [bone.rotation_euler[i] for i in range(3)]
+            for index, value in slot.items():
+                if index < 3:
+                    values[index] = value
+            bone.rotation_euler = values
+
+
+def _key_pose(arm, frame):
+    for bone in arm.pose.bones:
+        bone.keyframe_insert("location", frame=frame)
+        bone.keyframe_insert("scale", frame=frame)
+        if bone.rotation_mode == "QUATERNION":
+            bone.keyframe_insert("rotation_quaternion", frame=frame)
+        else:
+            bone.keyframe_insert("rotation_euler", frame=frame)
+
+
+def _slide_host(arm, t):
+    host = arm.parent or arm
+    if "home_x" not in host:
+        host["home_x"] = host.location.x
+        host["home_y"] = host.location.y
+    if 23.9 < t < 27.6:
+        host.location.x = float(host["home_x"]) + (t - 23.9) * 0.9
+    else:
+        host.location.x = float(host["home_x"])
+        host.location.y = float(host["home_y"])
+
+
 def _punchline(arm, t):
     """Four beats after the coin taps his head. Offsets are applied on top of the idle pose.
 
     Euler 0 on this rig is a T, so the idle matrices are captured before the curves are muted.
+    The Mixamo shrug clip replaces that procedural pose when the hero carries it.
     """
-    if arm is None or t < 21.0 or t >= 27.6:
+    if arm is None:
+        return
+    if arm.get("clip"):
+        _play_clip(arm, _shrug_frame(t))
+        _slide_host(arm, t)
+        return
+    if t < 21.0 or t >= 27.6:
         return
     if arm.name not in _IDLE_BASIS:
         _IDLE_BASIS[arm.name] = {bone.name: bone.matrix.copy() for bone in arm.pose.bones}
@@ -1239,7 +1524,7 @@ def configure_cycles(scene, job, speed=None):
         scene.view_settings.look = "AgX - Medium High Contrast"
     except Exception:
         pass
-    scene.view_settings.exposure = 0.35
+    scene.view_settings.exposure = 0.55
     try:
         prefs = bpy.context.preferences.addons["cycles"].preferences
         prefs.get_devices()
@@ -1304,6 +1589,41 @@ def _stamp(proto, location, yaw=0.0, scale=1.0):
     return copy
 
 
+def _stone_cap(name, w, d, h, location):
+    """Concrete parapet piece. The scan's setback roofs were the white slabs."""
+    found = WHATIF.parent / "assets" / "found"
+    mat = bpy.data.materials.get("ParapetStone")
+    if mat is None:
+        mat = bpy.data.materials.new("ParapetStone")
+        mat.use_nodes = True
+        bsdf = mat.node_tree.nodes["Principled BSDF"]
+        tex = mat.node_tree.nodes.new("ShaderNodeTexImage")
+        tex.image = bpy.data.images.load(str(found / "Concrete034_1K-JPG_Color.jpg"))
+        tex.image.colorspace_settings.name = "sRGB"
+        coord = mat.node_tree.nodes.new("ShaderNodeTexCoord")
+        mapping = mat.node_tree.nodes.new("ShaderNodeMapping")
+        mapping.inputs["Scale"].default_value = (0.55, 0.55, 0.55)
+        mat.node_tree.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
+        mat.node_tree.links.new(mapping.outputs["Vector"], tex.inputs["Vector"])
+        mat.node_tree.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+        bsdf.inputs["Roughness"].default_value = 0.72
+    bpy.ops.mesh.primitive_cube_add(size=1, location=location)
+    obj = bpy.context.object
+    obj.name = name
+    obj.scale = (w, d, h)
+    bpy.ops.object.transform_apply(scale=True)
+    obj.data.materials.append(mat)
+    return obj
+
+
+def _deck_parapet():
+    """L-shaped stone lip the coin rests on, at the 86th-floor corner."""
+    z = 338.67
+    _stone_cap("ParapetN", 4.6, 0.42, 0.36, (8.4, 15.55, z))
+    _stone_cap("ParapetE", 0.42, 3.8, 0.36, (10.45, 13.8, z))
+    print("PARAPET stone lip", flush=True)
+
+
 def _deck_rail():
     """Curved run of the downtown metal rail around the 86th-floor parapet."""
     path = (
@@ -1323,13 +1643,13 @@ def _deck_rail():
         return
     height = max(span[2], 0.2)
     scale = 1.85 / height
-    # Just past the coin, so the rail crosses the macro as the camera looks out.
-    cx, cy, z = 9.6, 16.0, 339.05
+    # Curved safety rail on the 86th-floor parapet, just outside the coin.
+    cx, cy, z = 16.9, 10.4, 294.15
     count = 0
-    for index in range(10):
-        ang = -0.35 + index * 0.22
-        x = cx + math.cos(ang) * 1.15
-        y = cy + math.sin(ang) * 1.15
+    for index in range(9):
+        ang = 0.15 + index * 0.18
+        x = cx + math.cos(ang) * 2.4
+        y = cy + math.sin(ang) * 2.4
         _stamp(proto, (x, y, z), ang + math.pi * 0.5, scale)
         count += 1
     proto.location.z = -400.0
@@ -1407,12 +1727,15 @@ def pose_frame(scene, cam, penny, arms, fr, speed=None):
         cam.data.dof.aperture_fstop = 5.6
     _look(cam, target)
     rot = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
-    # Motion blur reads the keyframes, so the face-on disc has to be keyed.
-    if 2.5 < t < 17.5:
-        aim = mathutils.Vector(curr_cam) - mathutils.Vector(curr_penny)
-        if aim.length > 0.2:
-            face = aim.to_track_quat("Y", "Z").to_euler()
-            rot = (face.x + (t - 6.67) * 0.35, face.y, face.z + (t - 6.67) * 0.8)
+    # Local +Z is Lincoln. Point that face at the lens. The way down adds a tumble.
+    aim = mathutils.Vector(curr_cam) - mathutils.Vector(curr_penny)
+    if aim.length > 0.2:
+        face = aim.to_track_quat("Z", "Y").to_euler()
+        if t < 2.4 or t >= 33.15:
+            rot = (face.x, face.y, face.z)
+        else:
+            tumble = 0.0 if t >= 19.0 else (t - 6.67)
+            rot = (face.x + tumble * 0.15, face.y, face.z + tumble * 0.35)
     penny.rotation_euler = rot
     penny.keyframe_insert("rotation_euler", frame=walk_frame)
     penny.keyframe_insert("rotation_euler", frame=walk_frame + 1)
@@ -1420,6 +1743,9 @@ def pose_frame(scene, cam, penny, arms, fr, speed=None):
     for arm in arms:
         if arm.get("punchline"):
             _punchline(arm, t)
+            if arm.get("clip"):
+                _key_pose(arm, walk_frame)
+                _key_pose(arm, walk_frame + 1)
         else:
             _head(arm, t)
     tick_city(t)

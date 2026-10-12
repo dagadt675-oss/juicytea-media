@@ -14,8 +14,8 @@ SIDEWALK = 4.5
 STREET_W = 18.0
 
 # 5th Avenue and 34th Street corner, on the sidewalk, not in the roadway.
-# The man the penny taps stands here.
-MAN = (6.0, 66.6)
+# The man the penny taps stands here, just north of the NanoRay base.
+MAN = (8.0, 67.8)
 
 
 def _street_centers():
