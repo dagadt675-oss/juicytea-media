@@ -366,7 +366,7 @@ def clear_sky() -> Path | None:
     return found[0] if found else None
 
 
-def grow_ivy(obj, seed, length=5.0):
+def grow_ivy(obj, seed, length=5.0, leaf_size=0.22, ivy_size=0.15, leaf_probability=0.72, float_length=0.35):
     """Blender's Ivy Gen, grown on obj from seed. Returns the new objects, or none."""
     addon = ROOT / "addons" / "add_curve_ivygen.py"
     if obj is None or not addon.exists():
@@ -381,15 +381,15 @@ def grow_ivy(obj, seed, length=5.0):
             module.register()
         props = bpy.context.window_manager.ivy_gen_props
         props.maxIvyLength = float(length)
-        props.ivySize = 0.15
-        props.ivyLeafSize = 0.22
-        props.ivyBranchSize = 0.01
-        props.leafProbability = 0.72
+        props.ivySize = float(ivy_size)
+        props.ivyLeafSize = float(leaf_size)
+        props.ivyBranchSize = 0.02
+        props.leafProbability = float(leaf_probability)
         props.branchingProbability = 0.18
         props.gravityWeight = 0.55
-        props.adhesionWeight = 0.85
-        props.maxAdhesionDistance = 1.4
-        props.maxFloatLength = 0.35
+        props.adhesionWeight = 0.95
+        props.maxAdhesionDistance = 2.2
+        props.maxFloatLength = float(float_length)
         bpy.context.scene.cursor.location = Vector(seed)
         for selected in bpy.context.view_layer.objects:
             selected.select_set(False)

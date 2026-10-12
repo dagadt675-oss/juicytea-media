@@ -17,11 +17,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from engine.effects import apply  # noqa: E402
-from engine.meshkit import set_linear_keys, smoother  # noqa: E402
+from engine.meshkit import set_linear_keys  # noqa: E402
 from engine.pov import apply_pov, attach_pov  # noqa: E402
 from engine.scenes import build_scene  # noqa: E402
 from engine.segments import MOTION_BLUR_SHUTTER, frame_seed  # noqa: E402
-from engine.spec import CHANNELS, DEFAULTS, beat_at, channels_at  # noqa: E402
+from engine.spec import CHANNELS, DEFAULTS, beat_at, channels_at, sample_camera_path  # noqa: E402
 
 KIT = None
 RESOLVED = None
@@ -262,39 +262,29 @@ def _render_settings(scene, resolved, samples, scale, image_format="png", motion
     scene.frame_end = int(resolved["frame_count"])
 
 
-def _blend_camera(a, b, t):
-    def mix(left, right):
-        return [left[i] + (right[i] - left[i]) * t for i in range(3)]
-
-    fstop_a = float(a.get("fstop") or 0.0)
-    fstop_b = float(b.get("fstop") or 0.0)
-    return {
-        "location": mix(a["location"], b["location"]),
-        "target": mix(a["target"], b["target"]),
-        "lens": float(a.get("lens") or 40) + (float(b.get("lens") or 40) - float(a.get("lens") or 40)) * t,
-        "fstop": fstop_a + (fstop_b - fstop_a) * t,
-    }
-
-
-def _shot_camera(path, u):
-    keys = sorted(path, key=lambda item: float(item["u"]))
-    if u <= float(keys[0]["u"]):
-        return keys[0]
-    if u >= float(keys[-1]["u"]):
-        return keys[-1]
-    for left, right in zip(keys, keys[1:]):
-        u0, u1 = float(left["u"]), float(right["u"])
-        if u <= u1:
-            t = smoother(0.0, 1.0, 0.0 if u1 <= u0 else (u - u0) / (u1 - u0))
-            return _blend_camera(left, right, t)
-    return keys[-1]
+def _pose_camera(cam, pose):
+    cam.data.type = "PERSP"
+    cam.location = pose["location"]
+    _look_at(cam, pose["target"])
+    cam.data.lens = float(pose["lens"])
+    fstop = float(pose.get("fstop") or 0.0)
+    cam.data.dof.use_dof = fstop > 0.05
+    if fstop > 0.05:
+        cam.data.dof.aperture_fstop = fstop
+        cam.data.dof.focus_distance = (Vector(pose["target"]) - Vector(pose["location"])).length
 
 
 def _apply_shot_camera(scene, resolved):
-    """Drone beats carry their own camera. Every other frame returns to the locked wide camera."""
-    frame = float(scene.frame_current)
+    """A film path stays on the street. Without one, a beat may still carry its own camera."""
+    frame = _frame_float(scene)
     cam = scene.camera
     if cam is None:
+        return
+    spec = resolved.get("camera") or {}
+    path = spec.get("path")
+    if path:
+        span = max(1, int(resolved.get("frame_count") or 1) - 1)
+        _pose_camera(cam, sample_camera_path(path, (frame - 1.0) / span))
         return
     for beat in resolved.get("beats") or []:
         path = beat.get("camera")
@@ -305,16 +295,7 @@ def _apply_shot_camera(scene, resolved):
         if frame < start or frame > end + 0.01:
             continue
         span = max(1.0, end - start)
-        pose = _shot_camera(path, (frame - start) / span)
-        cam.data.type = "PERSP"
-        cam.location = pose["location"]
-        _look_at(cam, pose["target"])
-        cam.data.lens = float(pose["lens"])
-        fstop = float(pose.get("fstop") or 0.0)
-        cam.data.dof.use_dof = fstop > 0.05
-        if fstop > 0.05:
-            cam.data.dof.aperture_fstop = fstop
-            cam.data.dof.focus_distance = (Vector(pose["target"]) - Vector(pose["location"])).length
+        _pose_camera(cam, sample_camera_path(path, (frame - start) / span))
         return
     spec = resolved.get("camera") or {}
     if spec.get("location") and spec.get("target"):

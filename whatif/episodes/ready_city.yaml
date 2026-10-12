@@ -14,13 +14,31 @@ scene:
 mascot: false
 format: A
 camera:
-  # Inside the downloaded city, eye height, looking down the street.
-  location: [-3.2, -74.0, 2.6]
-  target: [-1.0, -12.0, 5.4]
+  # Street walk, then the first episode's low ending glides, then back to the opening.
+  # Those glides are drone_husk, drone_facade, and drone_span in humans_disappeared.yaml:
+  # a few metres, a slight drop, a longer lens. The old orbit's climb to z=80 is not used.
+  # Proof stills stay on CAM_LOC. Beat cameras stay empty; this path is the only move.
+  # u is a fraction of the 59.98 s film.
+  location: [0.0, -66.0, 1.70]
+  target: [0.0, -26.0, 2.40]
   lens: 28
   sensor_fit: HORIZONTAL
   sensor_width: 36
   clip_end: 800
+  path:
+    - {u: 0.0000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28, fstop: 0}
+    - {u: 0.1000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28, fstop: 0}
+    - {u: 0.4001, location: [0.40, -63.0, 1.70], target: [0.10, -24.0, 2.30], lens: 28, fstop: 0}
+    # 36.55 s husk. Look is within 10° of level, close enough that the car fills the frame.
+    - {u: 0.6094, location: [-1.85, -56.1, 1.50], target: [-0.40, -54.0, 1.62], lens: 40, fstop: 8}
+    - {u: 0.6528, location: [-1.35, -55.1, 1.48], target: [-0.25, -53.7, 1.58], lens: 46, fstop: 8}
+    # 41.75 s facade. Level look at the lower windows, not up the roof.
+    - {u: 0.6961, location: [6.20, -49.6, 1.55], target: [11.2, -47.8, 1.90], lens: 32, fstop: 8}
+    # 44.35 s span. The broken chunk is the subject, about a third of the frame.
+    - {u: 0.7395, location: [0.20, -48.6, 1.55], target: [0.80, -41.2, 2.10], lens: 28, fstop: 8}
+    # Back to the opening before the city reset at 55.8 s.
+    - {u: 0.9253, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28, fstop: 0}
+    - {u: 1.0000, location: [0.00, -66.0, 1.70], target: [0.00, -26.0, 2.40], lens: 28, fstop: 0}
 ui:
   counter_y: 0.46
   # Zenith style: the title, and one counter (population, then the year).
@@ -130,7 +148,7 @@ beats:
       rust: 1.0
       collapse: 1.0
 
-  # Later beats stay in the same street. No aerial and no view from outside.
+  # These seconds stay in the street path above. They do not cut to another camera.
   - id: drone_husk
     seconds: 2.6
     time_label: "500 YEARS"
@@ -141,9 +159,6 @@ beats:
       rust: 1.0
       collapse: 1.0
       sag: 0.6
-    camera:
-      - {u: 0.0, location: [1.4, 18.0, 1.35], target: [2.2, 28.0, 0.7], lens: 32, fstop: 2.8}
-      - {u: 1.0, location: [1.1, 22.0, 1.2], target: [2.0, 32.0, 0.55], lens: 36, fstop: 2.2}
 
   - id: drone_facade
     seconds: 2.6
@@ -155,9 +170,6 @@ beats:
       rust: 1.0
       collapse: 1.0
       sag: 0.6
-    camera:
-      - {u: 0.0, location: [-2.4, 14.0, 1.7], target: [-6.8, 22.0, 6.0], lens: 28, fstop: 3.2}
-      - {u: 1.0, location: [-3.2, 16.5, 1.5], target: [-7.2, 24.0, 5.2], lens: 32, fstop: 2.4}
 
   - id: drone_span
     seconds: 2.6
@@ -169,9 +181,6 @@ beats:
       rust: 1.0
       collapse: 1.0
       sag: 0.6
-    camera:
-      - {u: 0.0, location: [0.2, 8.0, 1.6], target: [0.2, 40.0, 4.0], lens: 28, fstop: 3.2}
-      - {u: 1.0, location: [0.4, 16.0, 1.45], target: [0.3, 48.0, 3.2], lens: 32, fstop: 2.4}
 
   - id: drone_orbit
     seconds: 3.2
@@ -183,10 +192,6 @@ beats:
       rust: 1.0
       collapse: 1.0
       sag: 0.6
-    camera:
-      - {u: 0.0, location: [-1.2, 20.0, 2.2], target: [-6.5, 32.0, 10.0], lens: 28, fstop: 2.8}
-      - {u: 0.45, location: [1.6, 24.0, 2.4], target: [6.2, 36.0, 11.0], lens: 30, fstop: 3.2}
-      - {u: 1.0, location: [0.0, 1.4, 1.58], target: [0.15, 26.0, 8.4], lens: 26, fstop: 0}
 
   - id: relics
     time_label: "10,000 YEARS"
