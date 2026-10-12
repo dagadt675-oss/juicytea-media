@@ -4,7 +4,7 @@ Last updated: 2026-10-12.
 
 This file is the only briefing a new agent gets, plus the git repo. Read it before editing. Update it at the end of every future run that changes the picture, the rules, the branches, or the next step, then commit it on the branch you are actually working on and copy it to `/opt/cursor/artifacts/handoff/map_HANDOFF.md`.
 
-Picture this document describes: `greenland_africa_v13.mp4` on `cursor/greenland-africa-v13-7e9d`. v12 is the parent (`4c9cf83` on `cursor/greenland-africa-v12-7e9d`, PR #28).
+Picture this document describes: `greenland_africa_v13.mp4` in commit `1363605` on `cursor/greenland-africa-v13-7e9d`. v12 is the parent (`4c9cf83` on `cursor/greenland-africa-v12-7e9d`, PR #28). PR #29.
 
 ## Where the code actually is
 
@@ -797,9 +797,9 @@ All of these were open drafts on 2026-10-11 unless noted. The map-Shorts camera 
 
 | PR | Head | Base | Title | Role |
 | --- | --- | --- | --- | --- |
-| (this branch) | `cursor/greenland-africa-v13-7e9d` | `cursor/greenland-africa-v12-7e9d` | Time the shrink to the voice, and close the 28 s camera snap | **Current.** v13 picture plus this handoff. |
+| #29 | `cursor/greenland-africa-v13-7e9d` | `cursor/greenland-africa-v12-7e9d` | Time the shrink to the voice, and close the 28 s camera snap | **Current.** v13 picture plus this handoff. |
 
-https://github.com/dagadt675-oss/juicytea-media/pull/28
+https://github.com/dagadt675-oss/juicytea-media/pull/29
 
 ### Map stack under it (ancestors, still open, not the place to edit)
 
@@ -822,7 +822,7 @@ https://github.com/dagadt675-oss/juicytea-media/pull/28
 | #3 | `cursor/gold-style-kit-7e9d` | `cursor/map-shorts-pipeline-7e9d` | Gold style kit. Camera sway removed. |
 | #1 | `cursor/map-shorts-pipeline-7e9d` | `cursor/post-dropbox-shorts-9137` | YAML map-Shorts pipeline. |
 
-The handoff belongs on the v13 pull request. Do not open a second PR for the document alone.
+The handoff belongs on #29. Do not open a second PR for the document alone.
 
 ### Other product lines (not this camera)
 
