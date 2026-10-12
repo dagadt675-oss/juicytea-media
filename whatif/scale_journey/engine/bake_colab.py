@@ -106,10 +106,13 @@ def _write_keys(cam, penny, snaps, hosts):
             cam.keyframe_insert("location", frame=sample)
             cam.keyframe_insert("rotation_euler", frame=sample)
             cam.data.keyframe_insert("lens", frame=sample)
+        # Same hold as the camera. A linear key across the shutter smears the
+        # penny out of the close 24 mm frame; the preview exposes the settled coin.
         _put_xf(penny, snap["penny"])
-        penny.keyframe_insert("location", frame=frame)
-        penny.keyframe_insert("rotation_euler", frame=frame)
-        penny.keyframe_insert("scale", frame=frame)
+        for sample in (frame - 0.6, float(frame)):
+            penny.keyframe_insert("location", frame=sample)
+            penny.keyframe_insert("rotation_euler", frame=sample)
+            penny.keyframe_insert("scale", frame=sample)
         for name, rec in snap["hosts"].items():
             obj = bpy.data.objects.get(name)
             if obj is None:
@@ -212,10 +215,13 @@ def main():
         bpy.ops.file.pack_all()
     except Exception as exc:
         print(f"PACK_ALL {exc}", flush=True)
-    bpy.ops.file.make_paths_relative()
+    for image in bpy.data.images:
+        if image.packed_file is not None:
+            image.filepath = "//" + image.name.replace(" ", "_")
+            image.filepath_raw = image.filepath
     BUILD.mkdir(parents=True, exist_ok=True)
     blend = BUILD / "scene.blend"
-    bpy.ops.wm.save_as_mainfile(filepath=str(blend), compress=True, relative_remap=True)
+    bpy.ops.wm.save_as_mainfile(filepath=str(blend), compress=True, relative_remap=False)
     unpacked = [
         f"{image.name} {image.filepath}"
         for image in bpy.data.images
@@ -225,6 +231,7 @@ def main():
     shutil.copyfile(ROOT / "colab" / "render.py", BUILD / "render.py")
     print(f"BLEND {blend} bytes {blend.stat().st_size}", flush=True)
     manifest = {
+        "episode": "penny_empire",
         "blender_version": "4.2.3",
         "frame_start": 0,
         "frame_end": 1001,
@@ -232,10 +239,40 @@ def main():
         "resolution": [1080, 1920],
         "samples": 24,
         "est_seconds_per_frame_on_your_cpu": 38,
+        "cpu_note": "4-core VM, Cycles CPU, same settings as this file. Median 38 s, p90 40 s, over 82 measured frames. Two frames spiked (619 s and 1560 s).",
+        "engine": "CYCLES",
+        "device": "OPTIX, else CUDA. render.py enables every non-CPU device.",
+        "adaptive_threshold": 0.01,
+        "adaptive_min_samples": 1,
+        "denoiser": "OPENIMAGEDENOISE",
+        "bounces": 12,
+        "motion_blur_shutter": 0.6,
+        "motion_blur_position": "END",
+        "view_transform": "AgX",
+        "look": "AgX - Medium High Contrast",
+        "exposure": 0.55,
+        "duration_sec": 33.4,
+        "output": "frames/####.png beside scene.blend (frames/0000.png through frames/1001.png)",
+        "command": "blender -b scene.blend -P render.py -- START END",
         "description": (
             "Empire State Building by NanoRay (CC-BY, Sketchfab). "
             "Shrugging by Rida.Sidi.Ben.Ali (CC-BY, Sketchfab)."
         ),
+        "audio": {
+            "narration": "Brian, Eleven v4, single take. Align penny_words.json. Duration 33.400 s.",
+            "words": "penny_words.json",
+            "sfx": "penny_empire_sfx.json",
+            "music": False,
+        },
+        "edit": {
+            "plates": "Silent 3D only. The counter, word-by-word karaoke, the red ring on the pedestrian, and the NO AIR ~200 MPH pill are composited after these plates.",
+            "loop": "Frame 1001 is the opening pose. Copy frames/0000.png over frames/1001.png so the seam has no motion smear.",
+            "hud": "Height stays 1,250 ft until 15.44 s, then 500, 200, 100, 80, 40, and 0 ft on those words. Speed stays 0 until 5.34 s, then 10, 20, and 25 mph. The 25 mph lock is the 40.3 km/h terminal velocity.",
+            "shots": "0-2.40 s macro on the deck, 32 mm, camera holds. 2.40-2.90 s blend to the 24 mm drone. Drone follows down the facade until 19.07 s, with the overhead pedestrian insert at 13.31-15.10 s. 19.07-19.45 s blend to the static street shot. That shot holds through the bonk at 21.073 s and the reaction until 27.71 s, then the camera rises back to the opening.",
+            "reaction": "Flinch at 21.07 s, look around at 21.85 s, scratch at 22.55 s, shrug at 23.27 s, walk from 23.85 s.",
+            "captions": "Karaoke from penny_words.json, in the safe band around 68% down the frame.",
+        },
+        "camera_motion": "Camera keys hold still across the 0.6 shutter so the city stays as sharp as the preview. The coin is held across that same shutter so the close 24 mm frame keeps it. Between frames the coin still advances.",
     }
     (BUILD / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print("MANIFEST description credits NanoRay and Rida.Sidi.Ben.Ali", flush=True)

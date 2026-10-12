@@ -395,7 +395,8 @@ def _penny(raw: dict) -> BEpisode:
                 else:
                     hop = math.sin(min(1.0, max(0.0, (t - 21.07) / 0.36)) * math.pi)
                     if t < 21.55:
-                        penny = (MAN[0] - 0.16, MAN[1] - 0.20, 1.58 + 0.14 * hop)
+                        # On the forehead, toward the street camera, with a short hop.
+                        penny = (MAN[0] - 0.02, MAN[1] - 0.16, 1.68 + 0.05 * hop)
                     else:
                         penny = (MAN[0] - 0.05, MAN[1] - 0.08, penny[2])
         # Shot 1: in the air just above the 86th-floor coping, looking out

@@ -890,8 +890,8 @@ def _pave_landing():
         mn, _mx = _bounds(meshes)
         empty.location.z -= mn.z
 
-    # The kit sidewalk is a 15 cm step. That riser read as a pale slab.
-    _thin(walk, 0.02)
+    # Keep the sidewalk's concrete riser. The overhead plate uses that dark
+    # curb. Flatten only the asphalt so the road stays a sheet.
     _thin(asphalt, 0.02)
     if walk is not None:
         _paint(walk, concrete)
@@ -925,12 +925,12 @@ def _pave_landing():
             paved += 1
         asphalt.location.z = -400.0
     if walk is not None:
-        # Sidewalk the man stands on, just north of the limestone base.
-        # Cover the ground in front of the street camera. A city-kit
-        # plane was showing through as a pale blue slab.
+        # Two overlapping rows under the man. That overlap is the dark curb
+        # in the overhead plate. One more row south covers the street camera.
         for x in range(-18, 46, 3):
-            for y in (63.2, 66.2, 69.2):
-                stamp(walk, x, y, 0.0, 0.04)
+            stamp(walk, x, 63.5, 0.0, 0.04)
+            for y in (66.5, 68.4):
+                stamp(walk, x, y, 0.0, 0.07)
                 paved += 1
         walk.location.z = -400.0
     print(f"PAVE {paved}", flush=True)

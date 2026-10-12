@@ -1752,6 +1752,11 @@ def pose_frame(scene, cam, penny, arms, fr, speed=None):
                 _key_pose(arm, walk_frame + 1)
         else:
             _head(arm, t)
+    # Overhead insert faces north, matching the approved plate. The street
+    # shot turns him toward the lens so both shrug palms read.
+    star = bpy.data.objects.get("Star")
+    if star is not None:
+        star.rotation_euler = (0.0, 0.0, math.pi if t < 19.07 else 0.35)
     tick_city(t)
     bpy.context.view_layer.update()
     _clear_camera(cam, {penny, bpy.data.objects.get("Rim") or penny})
