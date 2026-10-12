@@ -237,18 +237,23 @@ def _anchors() -> list[tuple]:
         (12.95, 0.0, -40.0, 70.0, 49.0),
         (14.55, 0.0, -41.0, 71.0, 45.0),
         (16.40, 0.0, -42.0, 72.0, 40.0),
-        (18.50, 0.0, -8.0, 46.0, 62.0),
-        (20.50, 0.0, 8.0, 18.0, 76.0),
-        (22.40, 0.0, 17.0, 5.0, 90.0),
-        (24.50, 0.0, 17.6, 3.4, 86.0),
-        (26.70, 0.0, 17.3, 2.0, 83.0),
+        # Aim at the sticker on each spoken shrink, then settle over Africa.
+        (22.095, 0.0, -33.9, 66.5, 48.0),
+        (23.296, 0.0, -25.8, 56.5, 58.0),
+        (24.05, 0.0, -2.0, 28.0, 72.0),
+        (24.556, 0.0, 17.0, 7.0, 86.0),
+        (26.30, 0.0, 17.2, 4.2, 76.0),
+        (27.48, 0.0, 17.1, 2.6, 70.0),
         (28.80, 0.0, 17.0, 1.0, 81.0),
         (30.70, 0.0, 17.4, 5.0, 72.0),
         (32.80, 0.0, 18.0, 12.0, 62.0),
         (35.50, 0.0, 20.0, 8.0, 66.0),
         (37.30, 0.0, 18.4, 4.0, 74.0),
         (39.70, 0.0, 17.0, 0.0, 84.0),
-        (42.50, 0.0, 16.4, -0.8, 80.0),
+        # A visible push and pull while the four countries sit, so 40–44 s does not freeze.
+        (41.15, 0.0, 16.2, -0.9, 74.0),
+        (42.65, 0.0, 15.5, -1.8, 65.0),
+        (44.15, 0.0, 16.6, -0.3, 76.0),
         (45.30, 0.0, 17.0, 0.5, 86.0),
         (47.40, 0.0, 2.0, 18.0, 108.0),
         (49.30, 0.0, -4.0, 30.0, 130.0),
@@ -367,19 +372,40 @@ def _move_at(t: float) -> tuple[Cam, Move | None, Cam]:
     return cam, None, cam
 
 
+def _journey_u(t: float) -> float:
+    """Three spoken shrinks. The drag counts down to about 8×, then 4×, then 1×.
+
+    1× arrives on the last SHRINK. Each leg eases across the whole gap, so the
+    picture does not stop between the words and the move is not stretched past them.
+    """
+    b = CLOCK
+    marks = (
+        (b.drag, 0.0),
+        (b.shrinks[0], 0.097),  # about 8×
+        (b.shrinks[1], 0.241),  # about 4×
+        (b.shrinks[2], 1.0),    # 1×
+    )
+    if t <= marks[0][0]:
+        return 0.0
+    if t >= marks[-1][0]:
+        return 1.0
+    for (t0, v0), (t1, v1) in zip(marks, marks[1:]):
+        if t <= t1:
+            x = 0.0 if t1 <= t0 else (t - t0) / (t1 - t0)
+            return v0 + (v1 - v0) * _smooth(x)
+    return 1.0
+
+
 def journey(t: float) -> tuple[float, float, float]:
-    """Sticker lon, lat, and slide progress 0..1. Holds still between moves."""
-    slide_end = CLOCK.drag + D_SLIDE
+    """Sticker lon, lat, and slide progress 0..1. Holds drift between the shrinks."""
     huge_end = HUGE_T + D_HUGE
     if t < CLOCK.drag:
         return HOME[0], HOME[1], 0.0
-    if t < slide_end:
-        u = _smooth((t - CLOCK.drag) / D_SLIDE)
+    if t < HUGE_T:
+        u = _journey_u(t)
         lon = ang_lerp(HOME[0], DEST[0], u)
         lat = HOME[1] + (DEST[1] - HOME[1]) * u
         return lon, lat, u
-    if t < HUGE_T:
-        return DEST[0], DEST[1], 1.0
     if t < huge_end:
         u = _smooth((t - HUGE_T) / D_HUGE)
         lon = ang_lerp(DEST[0], HOME[0], u)
@@ -1275,8 +1301,9 @@ class Episode:
         sticker_on = sticker_in > 0.02
         if t < CLOCK.drag:
             home = 1.0
-        elif t < CLOCK.drag + 0.32 and sticker_on:
-            home = 1.0 - sticker_in
+        elif t < CLOCK.drag + 0.32:
+            # Crossfade with the sticker. Do not drop the map shape while the fade is still at zero.
+            home = 1.0 - slide_amt
         elif t >= HUGE_T + D_HUGE:
             home = 1.0
         elif t >= CLOCK.outro - 0.35:

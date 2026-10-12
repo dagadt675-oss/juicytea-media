@@ -31,7 +31,11 @@ def gate(d: np.ndarray, fps: int = FPS) -> dict:
         if not neigh:
             continue
         med = float(np.median(neigh))
-        if val > 8.0 and val > 3.0 * med:
+        hot = val > 8.0 and val > 3.0 * med
+        # A single frame can jump the framing while staying under 8. 5× the
+        # neighbouring median catches that. The floor ignores sub-pixel noise.
+        quiet = val > 1.5 and val > 5.0 * max(med, 0.05)
+        if hot or quiet:
             spikes.append({"frame": i + 1, "t": round((i + 1) / fps, 3), "diff": round(float(val), 3), "median": round(med, 3)})
     zeros = []
     run = 0
