@@ -1757,12 +1757,12 @@ def _year100_set(kit):
     plants = kit.collection("Plants")
     path = Path("/opt/cursor/asset-cache/cc0/polyhaven/tree_small_02/tree_small_02_1k.gltf")
     mesh = _visual_mesh(path) if path.exists() else None
-    if mesh is not None and len(mesh.vertices) > 80000:
+    if mesh is not None and len(mesh.vertices) > 120000:
         mesh = mesh.copy()
         holder = bpy.data.objects.new("century_decimate", mesh)
         bpy.context.scene.collection.objects.link(holder)
         mod = holder.modifiers.new("Slim", "DECIMATE")
-        mod.ratio = 0.08
+        mod.ratio = 0.45
         bpy.context.view_layer.objects.active = holder
         bpy.ops.object.modifier_apply(modifier="Slim")
         mesh = holder.data
@@ -1777,20 +1777,27 @@ def _year100_set(kit):
             tree = _spawn_mesh(plants, mesh, (x, y, 1.32), i * 0.8, height / native, "century_tree")
             kit.add(tree, "century", sink=False)
     clumps = []
-    for index, y in enumerate(range(-62, -22, 3)):
-        clumps.append((-5.6, float(y), "grass_medium_01" if index % 2 == 0 else "fern_02", 0.75 + (index % 3) * 0.15))
-        clumps.append((5.5, float(y) + 0.8, "grass_medium_02" if index % 2 == 0 else "fern_02", 0.7 + (index % 2) * 0.2))
-        clumps.append((0.15 * (1 if index % 2 == 0 else -1), float(y) + 0.4, "grass_medium_01", 0.55 + (index % 3) * 0.1))
+    for index, y in enumerate(range(-64, -22, 2)):
+        side = "grass_medium_01" if index % 2 == 0 else "fern_02"
+        clumps.append((-5.4, float(y), side, 0.9 + (index % 3) * 0.2))
+        clumps.append((5.2, float(y) + 0.6, "grass_medium_02" if index % 2 else "fern_02", 0.85 + (index % 2) * 0.25))
+        clumps.append((-0.7, float(y) + 0.3, "grass_medium_01", 0.8 + (index % 3) * 0.15))
+        clumps.append((0.8, float(y) - 0.2, "fern_02" if index % 2 == 0 else "grass_medium_02", 0.75 + (index % 2) * 0.2))
     for i, (x, y, slug, height) in enumerate(clumps):
-        _plant(kit, plants, slug, x, y, 1.36, height, delay=0.0, yaw=i * 0.4, role="century")
-    for i, (x, y) in enumerate(((-1.2, -54.6), (0.9, -53.2), (-2.8, -42.4), (2.6, -36.2), (-2.0, -30.4), (1.4, -28.0))):
-        _plant(kit, plants, "fern_02", x, y, 1.4, 0.7, delay=0.0, yaw=i, role="century")
-    for y in range(-56, -28, 6):
-        for z, height in ((2.1, 0.7), (4.8, 0.55), (7.4, 0.45)):
-            _plant(kit, plants, "fern_02", -14.6, float(y), z, height, delay=0.0, yaw=y, role="century")
-            _plant(kit, plants, "fern_02", 15.0, float(y) + 1.0, z, height, delay=0.0, yaw=y + 1.0, role="century")
-    for i, (x, y, z) in enumerate(((8.6, -45.2, 2.2), (10.2, -43.4, 3.4), (9.0, -42.2, 4.6), (10.6, -46.0, 2.6))):
-        _plant(kit, plants, "fern_02", x, y, z, 0.55, delay=0.0, yaw=i, role="century")
+        _plant(kit, plants, slug, x, y, 1.34, height, delay=0.0, yaw=i * 0.4, role="century")
+    # Plants crowd the cars that are left in the avenue.
+    for i, (x, y) in enumerate((
+        (-1.2, -54.6), (0.6, -53.4), (-0.2, -55.4), (1.1, -52.6),
+        (-2.8, -42.4), (-1.4, -41.2), (2.6, -36.2), (1.6, -35.2),
+        (-2.0, -30.4), (-3.2, -29.2), (1.4, -28.0),
+    )):
+        _plant(kit, plants, "fern_02" if i % 2 == 0 else "grass_medium_02", x, y, 1.36, 0.85, delay=0.0, yaw=i, role="century")
+    for y in range(-58, -26, 4):
+        for z, height in ((1.8, 0.9), (3.4, 0.8), (5.2, 0.7), (6.8, 0.55)):
+            _plant(kit, plants, "fern_02", -8.4, float(y), z, height, delay=0.0, yaw=y, role="century")
+            _plant(kit, plants, "fern_02", -10.2, float(y) + 1.2, z + 0.4, height * 0.85, delay=0.0, yaw=y + 0.4, role="century")
+            _plant(kit, plants, "fern_02", 8.2, float(y) + 0.5, z, height, delay=0.0, yaw=y + 1.0, role="century")
+            _plant(kit, plants, "fern_02", 10.0, float(y) + 1.6, z + 0.3, height * 0.8, delay=0.0, yaw=y + 1.4, role="century")
     print("year100 pieces", flush=True)
 
 

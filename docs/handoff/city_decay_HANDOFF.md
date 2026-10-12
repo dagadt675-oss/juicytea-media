@@ -63,7 +63,7 @@ Kristóf: the animation camera is street-level and slow only, eye height about 1
 
 ### 2026-10-12 — walking crowd and a real year 100
 
-The sidewalk figures were playing the Quaternius death clip, because the action is named `Walk_CharacterArmature` and the old lookup only accepted `Walk`. They read as people sitting in the air. The lookup now matches the clip name, so Day 1 is a walking crowd, and each posed foot is set on the pavement at z=1.35. Year 100, frame 860, adds grass and weeds through the curbs and the centre of the avenue, 3–6 m sidewalk trees, ivy on the lower floors, the ruin stain, broken window decals, a stained dome, and rust-brown cars dropped onto flat tyres. No tower has fallen yet. Stills are 1080×1920, 18 samples, OIDN, CPU. Day 1 and Year 100 were re-rendered. Vanish and Year 500 were kept.
+The sidewalk figures were playing the Quaternius death clip, because the action is named `Walk_CharacterArmature` and the old lookup only accepted `Walk`. They read as people sitting in the air. The lookup now matches the clip name, so Day 1 is a walking crowd, and each posed foot is set on the pavement at z=1.35. Year 100, frame 860, puts weeds and ferns through the curbs and down the centre of the asphalt, 3–6 m sidewalk trees with their canopies kept, ivy ferns on the lower floors of both blocks, the ruin stain, broken window decals, a stained dome, and rust-brown cars on flat tyres with plants around them. No tower has fallen yet. Stills are 1080×1920, 18 samples, OIDN, CPU. Day 1 and Year 100 were re-rendered. Vanish and Year 500 were kept.
 
 ### 2026-10-12 — same street, cloudy sky, year 500 in place
 
