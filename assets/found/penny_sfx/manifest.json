@@ -1,0 +1,104 @@
+{
+  "episode": "penny_empire",
+  "sample_rate": 48000,
+  "channels": 2,
+  "bit_depth": 24,
+  "duration_sec": 33.4,
+  "fps": 30,
+  "stem": "assets/found/penny_sfx/penny_empire_sfx_stem.wav",
+  "stem_bytes": 9619302,
+  "note": "Stem is exactly 33.400 s. Deck wind is up at the first and last sample so the loop has no tail of silence. Narration is not in this stem.",
+  "cues": [
+    {
+      "t": 0.0,
+      "id": "deck_wind",
+      "also_at": 27.71,
+      "cue": "cues/deck_wind.wav",
+      "source_file": "sources/deck_wind_182123.mp3",
+      "source_page": "https://freesound.org/people/Julien%20Nicolas/sounds/182123/",
+      "download": "https://cdn.freesound.org/previews/182/182123_1688566-hq.mp3",
+      "license": "CC0",
+      "what": "Field recording, mega wind 01, Julien Nicolas. Freesound high-quality preview of the CC0 original."
+    },
+    {
+      "t": 0.573,
+      "id": "flick",
+      "cue": "cues/flick.wav",
+      "source_file": "sources/coinflip-01.wav",
+      "source_page": "https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx",
+      "download": "https://opengameart.org/sites/default/files/tinysized.zip",
+      "license": "CC0",
+      "what": "Coin flip, recorded, Jan Schupke / Tinysized SFX."
+    },
+    {
+      "t": 2.4,
+      "id": "rush",
+      "cue": "cues/rush.wav",
+      "source_file": "sources/compressed-air-spray-02.wav",
+      "source_page": "https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx",
+      "download": "https://opengameart.org/sites/default/files/tinysized.zip",
+      "license": "CC0",
+      "what": "Compressed air, recorded, looped under the fall."
+    },
+    {
+      "t": 11.26,
+      "id": "ghost",
+      "cue": "cues/ghost.wav",
+      "source_file": "sources/tube-plastic-whoosh-01.wav",
+      "source_page": "https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx",
+      "download": "https://opengameart.org/sites/default/files/tinysized.zip",
+      "license": "CC0",
+      "what": "Plastic tube whoosh, recorded, the thin no-air myth."
+    },
+    {
+      "t": 19.07,
+      "id": "rush_close",
+      "cue": "cues/rush_close.wav",
+      "source_file": "sources/street_723607.mp3",
+      "source_page": "https://freesound.org/people/visionear/sounds/723607/",
+      "download": "https://cdn.freesound.org/previews/723/723607_10869493-hq.mp3",
+      "license": "CC0",
+      "what": "Mexico City street ambience, visionear. Layered with the air rush."
+    },
+    {
+      "t": 21.073,
+      "id": "bonk",
+      "cue": "cues/bonk.wav",
+      "source_file": "sources/knock_alt_594389.mp3",
+      "source_page": "https://freesound.org/people/Elandre01/sounds/594389/",
+      "download": "https://cdn.freesound.org/previews/594/594389_13391684-hq.mp3",
+      "license": "CC0",
+      "what": "Knock on wood, Elandre01."
+    },
+    {
+      "t": 21.35,
+      "id": "bounce",
+      "cue": "cues/bounce.wav",
+      "source_file": "sources/coinflip-01.wav",
+      "source_page": "https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx",
+      "download": "https://opengameart.org/sites/default/files/tinysized.zip",
+      "license": "CC0",
+      "what": "Shorter coin tick from the same flip."
+    },
+    {
+      "t": 22.4,
+      "id": "scratch",
+      "cue": "cues/scratch.wav",
+      "source_file": "sources/scratch_head_790896.mp3",
+      "source_page": "https://freesound.org/people/RinshiFox/sounds/790896/",
+      "download": "https://cdn.freesound.org/previews/790/790896_16253943-hq.mp3",
+      "license": "CC0",
+      "what": "Head rubbing, RinshiFox."
+    },
+    {
+      "t": 23.28,
+      "id": "shrug",
+      "cue": "cues/shrug.wav",
+      "source_file": "sources/Cloth_02.wav",
+      "source_page": "https://opengameart.org/content/202-more-sound-effects",
+      "download": "https://opengameart.org/sites/default/files/MoreSounds.zip",
+      "license": "CC0",
+      "what": "Cloth rustle recorded at home, OwlishMedia."
+    }
+  ]
+}

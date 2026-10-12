@@ -376,8 +376,6 @@ def _penny(raw: dict) -> BEpisode:
                     parapet + (min(z_vis, parapet) - parapet) * off,
                 )
             elif t < 20.2:
-                # Sit the coin above the setback coping so the disc is not clipped.
-                penny = (penny[0], penny[1], penny[2] + 0.12)
                 amp = _fade(t, 2.4, 3.2)
                 if t > 18.4:
                     amp *= 1.0 - _fade(t, 18.4, 20.2)
@@ -437,7 +435,8 @@ def _penny(raw: dict) -> BEpisode:
             u = _fade(t, 2.4, 2.9)
             cam = _lerp(hook_cam, drone_cam, u)
             target = _lerp(hook_tgt, drone_tgt, u)
-            lens = 50.0 + (24.0 - 50.0) * u
+            # Start on the hook's 32 mm. The old 50 mm start made frame 72 a cut.
+            lens = 32.0 + (24.0 - 32.0) * u
         elif t < 13.31:
             cam, target, lens = drone_cam, drone_tgt, 24.0
         elif t < 14.55:
@@ -527,6 +526,45 @@ def _penny(raw: dict) -> BEpisode:
             opening = frame
         frames.append(frame)
     if opening is not None and frames:
+        # The rise is already on the deck by frame 985, but at 50 mm with the
+        # coin still off the lip. Ease that pose into frame 0 so the loop
+        # does not pop the penny or the lens.
+        anchor = frames[985]
+        end_i = len(frames) - 2
+        t0 = anchor.t
+        t1 = frames[end_i].t
+        for i in range(985, len(frames)):
+            src = frames[i]
+            u = 1.0 if i >= end_i else _fade(src.t, t0, t1)
+            frames[i] = BFrame(
+                frame=src.frame,
+                t=src.t,
+                phase="hold" if u >= 1.0 else src.phase,
+                primary=opening.primary if u >= 1.0 else src.primary,
+                primary_unit=src.primary_unit,
+                secondary=opening.secondary if u >= 1.0 else src.secondary,
+                secondary_unit=src.secondary_unit,
+                label_primary=src.label_primary,
+                label_secondary=src.label_secondary,
+                title_alpha=opening.title_alpha if u >= 1.0 else src.title_alpha,
+                ending_alpha=0.0 if u >= 1.0 else src.ending_alpha,
+                dissolve=src.dissolve,
+                pill_title="" if u >= 1.0 else src.pill_title,
+                pill_sub="" if u >= 1.0 else src.pill_sub,
+                pill_alpha=0.0 if u >= 1.0 else src.pill_alpha,
+                penny=_lerp(anchor.penny, opening.penny, u),
+                cam=_lerp(anchor.cam, opening.cam, u),
+                target=_lerp(anchor.target, opening.target, u),
+                speed_mps=0.0 if u >= 1.0 else src.speed_mps,
+                fallen_m=0.0 if u >= 1.0 else src.fallen_m,
+                metric=opening.metric if u >= 1.0 else src.metric,
+                roll=src.roll,
+                primary_prev=src.primary_prev,
+                secondary_roll=src.secondary_roll,
+                secondary_prev=src.secondary_prev,
+                rot=_lerp(anchor.rot, opening.rot, u),
+                lens=anchor.lens + (opening.lens - anchor.lens) * u,
+            )
         last = frames[-1]
         frames[-1] = BFrame(
             frame=last.frame,
