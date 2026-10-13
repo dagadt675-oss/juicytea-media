@@ -642,6 +642,33 @@ def tick_city(t: float):
             empty.location.y = coord
 
 
+def _fill_plaza(hero_pack):
+    """Roof the missing center tile with the same block, clear of the tower and the landing."""
+    if not hero_pack:
+        return
+    col, size = hero_pack
+    scale = 0.34
+    sx, sy = size[0] * scale, size[1] * scale
+    placed = 0
+    x = -96.0
+    while x < 100.0:
+        y = -96.0
+        while y < 100.0:
+            cx, cy = x + sx * 0.5, y + sy * 0.5
+            if -40.0 < cx < 42.0 and -78.0 < cy < 58.0:
+                y += sy * 0.85
+                continue
+            if -30.0 < cx < 90.0 and 46.0 < cy < 130.0:
+                y += sy * 0.85
+                continue
+            empty = _instance(col, (cx, cy, 0.0), (placed % 4) * 1.5708, 1.0, dist=math.hypot(cx, cy))
+            empty.scale = (scale, scale, scale)
+            placed += 1
+            y += sy * 0.85
+        x += sx * 0.85
+    print(f"PLAZA roofs {placed}", flush=True)
+
+
 def _place_canyon(hero_pack):
     if not hero_pack:
         return
@@ -847,22 +874,7 @@ def _map_ground(name, color_name, rough_name, normal_name, scale_x, scale_y, swa
 
     color = tex(color_name, "sRGB")
     rough = tex(rough_name, "Non-Color")
-    # Vertical kit faces were catching the sky and reading as a pale blue slab.
-    sep_n = nt.nodes.new("ShaderNodeSeparateXYZ")
-    nt.links.new(geo.outputs["Normal"], sep_n.inputs["Vector"])
-    abs_n = nt.nodes.new("ShaderNodeMath")
-    abs_n.operation = "ABSOLUTE"
-    nt.links.new(sep_n.outputs["Z"], abs_n.inputs[0])
-    flat = nt.nodes.new("ShaderNodeMath")
-    flat.operation = "GREATER_THAN"
-    flat.inputs[1].default_value = 0.65
-    nt.links.new(abs_n.outputs[0], flat.inputs[0])
-    tone = nt.nodes.new("ShaderNodeMix")
-    tone.data_type = "RGBA"
-    nt.links.new(flat.outputs[0], tone.inputs[0])
-    tone.inputs[6].default_value = (0.40, 0.39, 0.37, 1.0)
-    nt.links.new(color.outputs["Color"], tone.inputs[7])
-    nt.links.new(tone.outputs[2], bsdf.inputs["Base Color"])
+    nt.links.new(color.outputs["Color"], bsdf.inputs["Base Color"])
     nt.links.new(rough.outputs["Color"], bsdf.inputs["Roughness"])
     bump = nt.nodes.new("ShaderNodeBump")
     bump.inputs["Strength"].default_value = 0.25
@@ -897,8 +909,8 @@ def _pave_landing():
         "Concrete010_2K-JPG_Color.jpg",
         "Concrete010_2K-JPG_Roughness.jpg",
         "Concrete010_2K-JPG_NormalGL.jpg",
-        0.55,
-        0.55,
+        0.08,
+        0.08,
     )
     road = _map_ground(
         "RoadAsphalt",
@@ -949,7 +961,9 @@ def _pave_landing():
         # The tower shaft itself stays clear.
         for x in range(-81, 162, 8):
             for y in range(-18, 171, 8):
-                if -36.0 < x < 48.0 and -78.0 < y < 58.0:
+                # Leave the tower footprint clear. The rest of the old plaza
+                # hole gets asphalt so the deck is not looking at empty sky.
+                if -24.0 < x < 30.0 and -62.0 < y < 36.0:
                     continue
                 stamp(asphalt, x, y, 0.0, 0.05)
                 paved += 1
@@ -957,11 +971,30 @@ def _pave_landing():
     if walk is not None:
         # One flat field under the camera and the man, so no near riser
         # sits in the lower frame. The storefronts stay north of this.
-        for x in range(-18, 48, 3):
-            for y in range(54, 75, 3):
-                stamp(walk, x, y, 0.0, 0.01)
+        for x in range(-42, 84, 3):
+            for y in range(28, 114, 3):
+                stamp(walk, x, y, 0.0, 0.22)
                 paved += 1
         walk.location.z = -400.0
+    # Any leftover flat kit piece in the landing gets the same concrete,
+    # so the overhead chase is not a bare grey slab.
+    if walk is not None and bpy.data.materials.get("SidewalkConcrete") is not None:
+        concrete = bpy.data.materials["SidewalkConcrete"]
+        painted = 0
+        for obj in list(bpy.data.objects):
+            if obj.type != "MESH" or obj.dimensions.z > 1.2:
+                continue
+            loc = obj.matrix_world.translation
+            if not (-50.0 < loc.x < 90.0 and 24.0 < loc.y < 120.0 and loc.z < 1.5):
+                continue
+            if obj.data.materials and obj.data.materials[0] == concrete:
+                continue
+            if obj.data.users > 1:
+                obj.data = obj.data.copy()
+            obj.data.materials.clear()
+            obj.data.materials.append(concrete)
+            painted += 1
+        print(f"LANDING paint {painted}", flush=True)
     print(f"PAVE {paved}", flush=True)
 
 
@@ -984,6 +1017,7 @@ def dress_city(lod: bool = False):
         if loaded[2] is not None:
             canyon = loaded[2]
     _place_canyon(canyon)
+    _fill_plaza(canyon)
     if blocks:
         _tile(blocks)
     else:

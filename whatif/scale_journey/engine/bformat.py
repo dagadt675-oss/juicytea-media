@@ -145,6 +145,12 @@ def _lerp(a, b, u):
     return tuple(a[i] + (b[i] - a[i]) * u for i in range(len(a)))
 
 
+def _bez(a, b, c, u):
+    """One quadratic ease. The middle point keeps the path out of the tower."""
+    o = 1.0 - u
+    return tuple(o * o * a[i] + 2.0 * o * u * b[i] + u * u * c[i] for i in range(len(a)))
+
+
 def _interp(keys, t) -> float:
     if t <= keys[0][0]:
         return float(keys[0][1])
@@ -404,10 +410,12 @@ def _penny(raw: dict) -> BEpisode:
         # Shot 1: in the air just above the 86th-floor coping, looking out
         # and down so the coin is on the near ledge and the city is the drop.
         # Open air just outside the coping. Probed clear of the limestone.
-        # On the roof side of the lip, close enough that the cent fills the frame,
-        # looking out and down so the rail, the drop, and the grid are below it.
-        hook_cam = (11.21, 3.44, 317.30)
-        hook_tgt = (11.42, 3.72, parapet - 0.15)
+        # 0.30 m at 50 mm fills about a quarter of the 9:16 frame (13.5 mm wide).
+        # Just above the lip, aimed down so the plaza roofs sit behind the cent.
+        # The v3 viewpoint, which clears the stone. A longer lens makes the
+        # cent a quarter of the frame without moving into the wall.
+        hook_cam = (11.21, 3.44, parapet + 0.34)
+        hook_tgt = (11.33, 3.60, parapet - 0.02)
         # Look along the facade, through the cent. The downward pitch eases
         # as the cent drops, so the window rows move through the frame.
         pitch = max(8.0, min(34.0, penny[2] * 0.12))
@@ -445,15 +453,15 @@ def _penny(raw: dict) -> BEpisode:
         face_tgt = up_tgt
         guy_cam = (MAN[0] + 2.4, MAN[1] + 0.6, 4.6)
         guy_tgt = (MAN[0], MAN[1], 1.15)
-        if t < 2.4 or t >= 33.15:
+        if t < 2.4:
             cam = hook_cam
             target = hook_tgt
-            lens = 36.0
+            lens = 64.0
         elif t < 2.9:
             u = _fade(t, 2.4, 2.9)
             cam = _lerp(hook_cam, drone_cam, u)
             target = _lerp(hook_tgt, drone_tgt, u)
-            lens = 36.0 + (24.0 - 36.0) * u
+            lens = 64.0 + (24.0 - 64.0) * u
         elif t < 13.31:
             cam, target, lens = drone_cam, drone_tgt, 24.0
         elif t < 14.55:
@@ -466,41 +474,40 @@ def _penny(raw: dict) -> BEpisode:
             cam = _lerp(guy_cam, drone_cam, u)
             target = _lerp(guy_tgt, drone_tgt, u)
             lens = 24.0
-        elif t < 19.07:
+        elif t < 20.55:
             cam, target, lens = drone_cam, drone_tgt, 24.0
-        elif t < 19.45:
-            u = _fade(t, 19.07, 19.45)
+        elif t < 21.05:
+            u = _fade(t, 20.55, 21.05)
             cam = _lerp(drone_cam, up_cam, u)
             target = _lerp(drone_tgt, up_tgt, u)
-            lens = 24.0 + (32.0 - 24.0) * u
-        elif t < 22.5:
+            lens = 24.0 + (50.0 - 24.0) * u
+        elif t < 23.05:
+            # Bonk through "that's it": the man is on screen for three seconds.
             cam, target, lens = up_cam, up_tgt, 50.0
-        elif t < 27.71:
-            # The close reaction is about three seconds. Then the camera
-            # drifts back and up instead of holding the same portrait.
-            u = _fade(t, 22.5, 27.71)
-            pulled = (man_x - 1.6, man_y - 5.2, 2.4 + 3.5 * u)
-            pulled_tgt = (man_x + 0.1, man_y + 0.2, 1.6 + 8.0 * u)
-            cam = _lerp(up_cam, pulled, u)
-            target = _lerp(up_tgt, pulled_tgt, u)
-            lens = 50.0
+        elif t < 24.05:
+            u = _fade(t, 23.05, 24.05)
+            cam = _lerp(up_cam, (520.0, -180.0, 95.0), u)
+            target = _lerp(up_tgt, (2.0, -6.0, 210.0), u)
+            lens = 50.0 + (24.0 - 50.0) * u
         else:
-            u = _fade(t, 29.6, 32.85)
-            # Hold the lit silhouette, then spend the last two seconds
-            # arriving on the deck. The final half-second is that arrival.
             wide = (520.0, -180.0, 95.0)
             wide_tgt = (2.0, -6.0, 210.0)
-            cam = _lerp(wide, hook_cam, u)
-            target = _lerp(wide_tgt, hook_tgt, u)
-            lens = 24.0 + (36.0 - 24.0) * u
-        if t >= 33.15:
-            cam, target, penny, lens = hook_cam, hook_tgt, ledge_penny, 36.0
+            # Rise and glide for 2.4 s. The bend stays southeast of the shaft.
+            u = _fade(t, 30.90, 33.30)
+            ctrl = (240.0, -70.0, 240.0)
+            ctrl_tgt = (6.0, -4.0, 260.0)
+            cam = _bez(wide, ctrl, hook_cam, u)
+            target = _bez(wide_tgt, ctrl_tgt, hook_tgt, u)
+            lens = 24.0 + (64.0 - 24.0) * u
+            penny = _lerp(penny, ledge_penny, u)
+        if t >= 33.30:
+            cam, target, penny, lens = hook_cam, hook_tgt, ledge_penny, 64.0
         cam = clear_of_shaft(cam, 1.2)
-        if t < 0.57 or t >= 33.15:
+        if t < 0.57 or t >= 33.30:
             penny = ledge_penny
         else:
             penny = clear_of_shaft(penny, 0.8)
-        if t < 0.57 or t >= 33.15:
+        if t < 0.57 or t >= 33.30:
             spin, tilt, roll = 0.08, 0.15, 0.02
         elif t < 1.35:
             flick = _fade(t, 1.05, 1.35)
@@ -552,45 +559,8 @@ def _penny(raw: dict) -> BEpisode:
             opening = frame
         frames.append(frame)
     if opening is not None and frames:
-        # The rise is already on the deck by frame 985, but at 50 mm with the
-        # coin still off the lip. Ease that pose into frame 0 so the loop
-        # does not pop the penny or the lens.
-        anchor = frames[985]
-        end_i = len(frames) - 2
-        t0 = anchor.t
-        t1 = frames[end_i].t
-        for i in range(985, len(frames)):
-            src = frames[i]
-            u = 1.0 if i >= end_i else _fade(src.t, t0, t1)
-            frames[i] = BFrame(
-                frame=src.frame,
-                t=src.t,
-                phase="hold" if u >= 1.0 else src.phase,
-                primary=opening.primary if u >= 1.0 else src.primary,
-                primary_unit=src.primary_unit,
-                secondary=opening.secondary if u >= 1.0 else src.secondary,
-                secondary_unit=src.secondary_unit,
-                label_primary=src.label_primary,
-                label_secondary=src.label_secondary,
-                title_alpha=opening.title_alpha if u >= 1.0 else src.title_alpha,
-                ending_alpha=0.0 if u >= 1.0 else src.ending_alpha,
-                dissolve=src.dissolve,
-                pill_title="" if u >= 1.0 else src.pill_title,
-                pill_sub="" if u >= 1.0 else src.pill_sub,
-                pill_alpha=0.0 if u >= 1.0 else src.pill_alpha,
-                penny=_lerp(anchor.penny, opening.penny, u),
-                cam=_lerp(anchor.cam, opening.cam, u),
-                target=_lerp(anchor.target, opening.target, u),
-                speed_mps=0.0 if u >= 1.0 else src.speed_mps,
-                fallen_m=0.0 if u >= 1.0 else src.fallen_m,
-                metric=opening.metric if u >= 1.0 else src.metric,
-                roll=src.roll,
-                primary_prev=src.primary_prev,
-                secondary_roll=src.secondary_roll,
-                secondary_prev=src.secondary_prev,
-                rot=_lerp(anchor.rot, opening.rot, u),
-                lens=anchor.lens + (opening.lens - anchor.lens) * u,
-            )
+        # The glide already arrives on the deck. Lock the last frame so the
+        # loop matches frame 0 exactly, including the counter.
         last = frames[-1]
         frames[-1] = BFrame(
             frame=last.frame,

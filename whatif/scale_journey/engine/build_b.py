@@ -1735,9 +1735,6 @@ def pose_frame(scene, cam, penny, arms, fr, speed=None):
     cam.data.lens = float(fr.get("lens") or 14)
     hook = float(fr.get("t") or 0.0) < 2.4 or float(fr.get("t") or 0.0) >= 33.15
     cam.data.dof.use_dof = False
-    if hook:
-        cam.data.dof.focus_distance = max(0.2, (mathutils.Vector(curr_penny) - mathutils.Vector(curr_cam)).length)
-        cam.data.dof.aperture_fstop = 8.0
     _look(cam, target)
     rot = tuple(fr.get("rot") or (0.2, 0.4, 0.0))
     # Local +Z is Lincoln. Point that face at the lens. The way down adds a tumble.

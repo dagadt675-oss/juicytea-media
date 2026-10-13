@@ -124,6 +124,30 @@ class PennyTest(unittest.TestCase):
     def test_loop_frame(self):
         self.assertEqual(self.ep.frames[-1].phase, "hold")
         self.assertEqual(self.ep.frames[-1].primary, self.ep.frames[0].primary)
+        opening = self.ep.frames[0]
+        last = self.ep.frames[-1]
+        for i in range(3):
+            self.assertAlmostEqual(last.cam[i], opening.cam[i], delta=0.02)
+            self.assertAlmostEqual(last.penny[i], opening.penny[i], delta=0.02)
+
+    def test_man_is_on_screen_for_three_seconds(self):
+        # The portrait is the bonk. By 24 s the wide shot has taken over.
+        self.assertLess(self._at(22.0).cam[2], 3.0)
+        self.assertGreater(self._at(25.0).cam[2], 40.0)
+
+    def test_glide_lasts_two_seconds(self):
+        opening = self.ep.frames[0]
+
+        def dist(fr):
+            return sum((fr.cam[i] - opening.cam[i]) ** 2 for i in range(3)) ** 0.5
+
+        far = self._at(30.9)
+        mid = self._at(32.1)
+        near = self._at(33.0)
+        self.assertGreater(dist(far), 200.0)
+        self.assertLess(dist(mid), dist(far))
+        self.assertLess(dist(near), dist(mid))
+        self.assertLess(dist(self._at(33.25)), 15.0)
 
 
 class SlateTest(unittest.TestCase):
