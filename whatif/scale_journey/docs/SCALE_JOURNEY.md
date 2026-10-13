@@ -1,5 +1,15 @@
 # Scale-journey
 
+## Standing asset rule
+
+Permanent, for every episode. Every visual element — the coin, buildings, people, street props, textures, and effects — is a downloaded ready-made asset. A complete pre-built scene (Procedural City blocks, a ruined city, an airport) comes first. Do not model placeholders.
+
+1. **Asset hub first.** Re-fetch `ASSET_HUB.json` (Drive id `1KamSsZFG8L8ZJviGNzjLQM-jNg8g9idV`; readable copy `ASSET_HUB.md`, id `1ICoBrOKT-tJa_PqtI--LoJ59TiGsOk2T`) before building. Private Sketchfab Free Standard and BlendKit files stay in gitignored `cache/private/` and are never committed.
+2. **Then the web, only if the hub lacks it.** Commercial use, no attribution: CC0 or public domain from Poly Haven, ambientCG, Kenney, Quaternius, Poly Pizza (CC0), OpenGameArt (CC0), or Sketchfab’s CC0 filter via the API. Download it and append a row to `assets/FOUND_ASSETS.md` (name, direct download URL, source page, license, size, what it is for). Files under 50 MB that are CC0 or otherwise redistributable also go in `assets/found/`. The owner mirrors that log into the shared Drive hub.
+3. **If neither source has a fit, leave that element out.** Name the hub entries and the web sources you checked, and why each one failed. Do not replace it with geometry you build.
+
+Never use CC-BY, NC, or ND, and never use game or brand IP. People come from the hub’s rigged animation packs. The hub’s airport scene has a Malaysia Airlines livery; leave that livery unused, and if the scene is placed, repaint those aircraft plain white. Ruined city and the airport are optional, not the default street.
+
 A Short is one question, one zoom, and a counter that is the same math as the zoom.
 
 ```

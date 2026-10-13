@@ -13,6 +13,20 @@ The older zoom path is still here: one dolly that only moves out or in, and an e
 
 This package lives beside the headless what-if engine (`whatif/engine`, episode 1 “all humans disappeared”). It does not import or edit that code. When that engine is merged, a spec with `module: scale_journey` can be handed here. See `docs/ADOPTION.md`.
 
+## Standing asset rule
+
+Permanent. It applies to every episode, not only the penny fall. Every visual element — the coin, buildings, people, street props, textures, and effects — is a downloaded ready-made asset. Prefer a complete pre-built scene (the Procedural City blocks, a ruined city, an airport). Do not model, and do not drop in a cube, plane, cylinder, or other placeholder.
+
+Check sources in this order:
+
+1. **The asset hub.** Re-fetch `ASSET_HUB.json` before building (Drive id `1KamSsZFG8L8ZJviGNzjLQM-jNg8g9idV`; the readable catalog is `ASSET_HUB.md`, id `1ICoBrOKT-tJa_PqtI--LoJ59TiGsOk2T`). Hub packs already include the CC0 library and the private Sketchfab Free Standard / BlendKit files. Private raw files stay in the gitignored `cache/private/` and are never committed.
+2. **A free ready-made file from the web, only if the hub does not have it.** It must be commercial-use with no attribution required: CC0 or public domain. Search Poly Haven, ambientCG, Kenney, Quaternius, Poly Pizza (CC0), OpenGameArt (CC0), or Sketchfab with the CC0 filter via the API. Download it, then append a row to `assets/FOUND_ASSETS.md` (name, direct download URL, source page, license, size, what it is for). Files under 50 MB that are CC0 or otherwise redistributable also go in `assets/found/`. The owner mirrors that log into the shared Drive hub. Also log the license in `LICENSES.md` when the file is committed.
+3. **If neither source has a fit, leave that element out.** Name the hub entries and the web sources you checked, and why each one did not fit. Do not replace it with geometry you build.
+
+Never use CC-BY, NC, or ND, and never use game or brand IP. Sketchfab Free Standard and BlendKit are allowed only when they come from the hub (renders OK, no redistribution of the raw file). People are rigged and animated from the hub’s people and animation packs. A static placeholder or a silhouette is not a person.
+
+The airport city scene in the hub includes a Malaysia Airlines livery. That livery stays unused. If that scene is ever placed, repaint the airline aircraft plain white first. The ruined-city pack and that airport are optional scenery, not a default set.
+
 ```
 whatif/scale_journey/
   render_episode.py      # host CLI

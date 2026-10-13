@@ -16,7 +16,7 @@ The sibling engine (locked-camera decay time-lapse, `whatif/engine/`) was still 
 | Encode | Silent H.264, yuv420p, bt709 |
 | Timeline | `timeline.json` with `id`, `title`, `fps`, `width`, `height`, `duration_sec`, `frame_count`, `beats` |
 | Caption band | y 1229–1382 left free of type and leader lines (the decay episode uses the same band for karaoke) |
-| Assets | CC0, public domain, or OFL. Procedural meshes. Listed in `LICENSES.md` |
+| Assets | Hub first, then CC0/public-domain with no attribution, hand-built only if both fail. See the standing asset rule in `README.md`. Catalog: `LICENSES.md` |
 | Dispatch | `module: scale_journey` |
 
 ## How the parent should call it

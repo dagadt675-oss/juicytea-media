@@ -342,6 +342,8 @@ def parse_args(argv=None):
     parser.add_argument("--blender", default="")
     parser.add_argument("--no-video", action="store_true")
     parser.add_argument("--keep-frames", action="store_true")
+    parser.add_argument("--no-segments", action="store_true", help="render the episode in one pass")
+    parser.add_argument("--plate-format", choices=("png", "exr"), default="png")
     args = parser.parse_args(argv)
     if args.out is None:
         import yaml

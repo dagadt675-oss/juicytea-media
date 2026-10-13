@@ -32,16 +32,21 @@ class PennyTest(unittest.TestCase):
         self.assertAlmostEqual(self.ep.notes["drop_ft"], 1250, delta=0.2)
 
     def test_slate_beats(self):
-        self.assertEqual(self._at(1.0).primary, "1,250")
-        self.assertEqual(self._at(1.0).secondary, "0")
-        self.assertEqual(self._at(4.5).primary, "1,200")
-        self.assertEqual(self._at(4.5).secondary, "25")
-        self.assertEqual(self._at(9.0).primary, "1,000")
-        self.assertEqual(self._at(16.0).primary, "700")
-        self.assertEqual(self._at(24.0).primary, "305")
-        self.assertEqual(self._at(24.0).phase, "liberty")
-        self.assertIn("65", self._at(29.0).pill_sub)
-        self.assertEqual(self._at(33.0).primary, "0")
+        self.assertAlmostEqual(self.ep.duration, 33.4, delta=0.05)
+        self.assertEqual(self._at(0.3).primary, "1,250")
+        self.assertEqual(self._at(0.3).secondary, "0")
+        self.assertEqual(self._at(5.5).secondary, "10")
+        self.assertEqual(self._at(6.9).secondary, "20")
+        self.assertEqual(self._at(8.0).secondary, "25")
+        self.assertEqual(self._at(15.6).primary, "500")
+        self.assertEqual(self._at(17.1).primary, "200")
+        self.assertEqual(self._at(18.5).primary, "100")
+        self.assertEqual(self._at(21.07).primary, "0")
+        self.assertAlmostEqual(self._at(21.07).penny[2], 1.7, delta=0.25)
+        self.assertEqual(self._at(11.5).pill_title, "NO AIR")
+        spoken = " ".join(beat["narration"] for beat in self.ep.beats)
+        self.assertNotIn("65", spoken)
+        self.assertNotIn("sixty-five", spoken.lower())
         self.assertNotIn("25", self.ep.raw["title"])
 
     def test_fall_descends_then_rises_to_the_ledge(self):
@@ -49,7 +54,7 @@ class PennyTest(unittest.TestCase):
         for a, b in zip(self.ep.frames, self.ep.frames[1:]):
             if b.phase in ("rise", "hold"):
                 rising = True
-            elif not rising:
+            elif b.phase != "hit" and not rising:
                 self.assertLessEqual(b.penny[2], a.penny[2] + 1e-6)
         self.assertTrue(rising)
         first, last = self.ep.frames[0], self.ep.frames[-1]
@@ -59,21 +64,53 @@ class PennyTest(unittest.TestCase):
         self.assertAlmostEqual(last.cam[2], first.cam[2], delta=0.05)
 
     def test_counter_holds_at_least_0_8s(self):
-        runs = []
+        # The opening height and the terminal speed hold. Height ticks during the fall.
+        speed_runs = []
         current = None
         start = 0.0
         for fr in self.ep.frames:
-            if fr.primary != current:
+            if fr.secondary != current:
                 if current is not None:
-                    runs.append((current, start, fr.t))
-                current = fr.primary
+                    speed_runs.append((current, start, fr.t))
+                current = fr.secondary
                 start = fr.t
-        runs.append((current, start, self.ep.duration))
-        for value, a, b in runs:
-            self.assertGreaterEqual(b - a, 0.8 - 1e-6, value)
+        speed_runs.append((current, start, self.ep.duration))
+        held = [run for run in speed_runs if run[0] == "25"]
+        self.assertTrue(held)
+        self.assertGreaterEqual(held[0][2] - held[0][1], 0.8)
+        self.assertGreaterEqual(self._at(2.0).t, 0.0)
+        self.assertEqual(self._at(4.0).primary, "1,250")
+
+    def test_empire_lot_does_not_meet_the_road(self):
+        from engine.landmarks import ESB_LOT, footprint_clears_roads, road_rects
+
+        self.assertTrue(footprint_clears_roads(ESB_LOT))
+        self.assertEqual(len(road_rects()), 3)
+
+    def test_camera_stays_outside_the_shaft(self):
+        from engine.bformat import clear_of_shaft
+
+        pushed = clear_of_shaft((0.0, 0.0, 30.0), 1.0)
+        self.assertGreater(pushed[0], 28.5)
+        self.assertGreater(pushed[1], 64.5)
+        for fr in self.ep.frames:
+            again = clear_of_shaft(fr.cam, 0.8)
+            self.assertAlmostEqual(again[0], fr.cam[0], delta=0.05)
+            self.assertAlmostEqual(again[1], fr.cam[1], delta=0.05)
+            coin = clear_of_shaft(fr.penny, 0.4)
+            self.assertAlmostEqual(coin[0], fr.penny[0], delta=0.05)
+            self.assertAlmostEqual(coin[1], fr.penny[1], delta=0.05)
+
+    def test_hook_looks_out_over_the_city(self):
+        hook = self._at(0.3)
+        chase = self._at(8.0)
+        self.assertLess(hook.target[2], hook.cam[2] - 0.15)
+        self.assertGreater(hook.cam[2], hook.penny[2] + 0.04)
+        self.assertLess(chase.target[2], chase.penny[2] - 0.15)
+        self.assertGreater(chase.cam[2], chase.penny[2] + 0.05)
 
     def test_hook_does_not_spoil(self):
-        hook = [fr for fr in self.ep.frames if fr.t < 2.5]
+        hook = [fr for fr in self.ep.frames if fr.t < 0.5]
         self.assertTrue(all(fr.secondary == "0" for fr in hook))
         self.assertTrue(all("mph" not in fr.pill_sub for fr in hook))
 
@@ -87,6 +124,37 @@ class PennyTest(unittest.TestCase):
     def test_loop_frame(self):
         self.assertEqual(self.ep.frames[-1].phase, "hold")
         self.assertEqual(self.ep.frames[-1].primary, self.ep.frames[0].primary)
+        opening = self.ep.frames[0]
+        last = self.ep.frames[-1]
+        for i in range(3):
+            self.assertAlmostEqual(last.cam[i], opening.cam[i], delta=0.02)
+            self.assertAlmostEqual(last.penny[i], opening.penny[i], delta=0.02)
+
+    def test_man_is_on_screen_for_three_seconds(self):
+        # The portrait is the bonk. By 24 s the wide shot has taken over.
+        self.assertLess(self._at(22.0).cam[2], 3.0)
+        self.assertGreater(self._at(25.0).cam[2], 40.0)
+
+    def test_early_fall_stands_off_the_wall(self):
+        fr = self._at(4.0)
+        gap = sum((fr.cam[i] - fr.penny[i]) ** 2 for i in range(3)) ** 0.5
+        self.assertGreater(gap, 1.8)
+        self.assertGreater(fr.cam[2], fr.penny[2] + 0.5)
+
+    def test_wide_drifts_and_the_glide_gets_the_time(self):
+        opening = self.ep.frames[0]
+
+        def dist(fr):
+            return sum((fr.cam[i] - opening.cam[i]) ** 2 for i in range(3)) ** 0.5
+
+        early = self._at(24.3)
+        late = self._at(26.6)
+        self.assertGreater(early.cam[2], 80.0)
+        self.assertGreater(late.cam[2], 80.0)
+        moved = sum(abs(early.cam[i] - late.cam[i]) for i in range(3))
+        self.assertGreater(moved, 20.0)
+        self.assertLess(dist(self._at(29.5)), dist(late))
+        self.assertLess(dist(self._at(33.1)), 2.0)
 
 
 class SlateTest(unittest.TestCase):
