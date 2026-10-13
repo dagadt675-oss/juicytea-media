@@ -94,8 +94,8 @@ Eight v5 stills are in `pipeline/examples/greenland/stills_v5/` (`00_lie` throug
 | Episode | Where | Status |
 | --- | --- | --- |
 | Märket proof | `pipeline/examples/market/` (`market.json`, `render_proof.py`, `geoglobe.py`). 22 s, 30 fps, id `market_proof`. | Not the current task. Close-up is Poly Haven `aerial_rocks_02` (CC0), not a real Märket orthophoto. The lighthouse is still a small icon. Swedish Lantmäteriet WMS is the intended ortho source (layer 401 was the one under discussion). Do not use Finnish NLS ortokuva (CC BY 4.0). `market_proof.txt` is untracked; do not commit it. |
-| Countries cut in two | Nowhere in this repo. | No spec, no script, no branch. Do not invent one. |
-| List / trivia format | Nowhere in this repo. | No spec. The old YAML pipeline is one sentence per beat, not a list show. |
+| Countries cut in two | Script v2 in the agent store at `cut_in_two/script_v2.md`. Benchmark spec: `docs/refs/geoglobetales_spec.md`. | Script only. Do not render until Kristóf passes the words. |
+| List / trivia format | Same script. The shape is theirs: paradox, pivot, dated beats, turn, number, gag, loop. | No picture yet. |
 | LA–Tokyo | `pipeline/examples/lax_tokyo/`, `pipeline/specs/lax_tokyo.yaml`, PR #4. | Silent 24.2 s, 30 fps, no burned karaoke. Sentence starts 0.03, 3.93, 7.24, 8.14, 10.81, 14.28, 20.25, 23.05. The spoken lines say the flight curves toward Alaska and that the shortest path is a great circle that bends north. They do not say the flight flies over Alaska. |
 | Gold Canada / Rome | `pipeline/examples/canada_rome/`, `pipeline/style/gold_canada.md`, PR #3. | Silent. Scored 7.5/10 against the gold reference. Karaoke is absent on purpose. |
 | Model-drop bridges | `pipeline/examples/model_drop/`, PR #13. | Temburong and Pelješac. Camera grammar in `moves.py`. Flight curve is the van Wijk port in `flyto.py` (d3-interpolate zoom.js, ISC). These shots use zoom blur. Greenland must not. |
@@ -136,6 +136,20 @@ Numbered so a later run can cite them. When two rules conflict, the later Greenl
 21. **Fills follow the real coastline.** Never close a chopped globe limb into a chord. Never clip a polygon to the frame and then close it. The v6 ruler-cut across northern Greenland and the vertical cut on West Africa came from that.
 22. **Segment the render.** Do not keep every raw frame. One 1080×1920 frame is about 6.2 MB; 3146 of them are about 19 GB. Encode spans to mp4, then concat on keyframes.
 23. **Git and review hygiene.** Draft PRs. Do not overwrite polished or v2. Do not commit caches, shapefiles, or private blends. Update this handoff before you finish.
+
+### GeoGlobeTales benchmark
+
+The channel spec is saved verbatim at `docs/refs/geoglobetales_spec.md` (commit `86d6b7c`, PR #34). It is the benchmark for the engine and for the list format. Our rules override it where they differ:
+
+- No hard cuts and no cutaways. Their six Louisiana cuts and the motion-blur whip become one eased camera move and in-shot basemap crossfades.
+- No AI or stock plates. Ready-made assets only, hub first.
+- A true seamless loop. Their films stop dead. Ours do not.
+- Brian narrates.
+- Moves are smooth and eased, never jumpy. Do not add blur whips to chase their motion mean.
+- No texture blobs. No paper grain, hatch, or flag texture. Their parchment colors may be used as flat fills.
+- Captions are higher contrast, with a stroke or a shadow. Theirs are small and often muddy.
+
+"Countries cut in two" script v2 applies that shape (paradox, pivot, dated beats, a "So" turn, a number, a gag, a loop into the first line) inside 45–70 seconds. Their 250–320 word lint is for a film the length of Louisiana. Do not pad this episode to hit it.
 
 ### Rejected attempts, and why
 
@@ -829,7 +843,7 @@ A graded morph frame costs about 0.8–1.9 s. A single plate is about 0.3–0.5 
 2. If he names a new visual bug, re-render only the keyframe-aligned span that contains it, splice with `-c copy`, re-run `gate_v6.py` and `gate_ghost.py`. Keep CRF 16 and the timescale. Every new element still needs at least 0.25 s of fade or scale. The shrink counter stays on the three spoken words. Re-encoding a GOP re-encodes its neighbours; heal the next GOP the same way or the keyframe boundary fails the 5× rule, and if frame 0 is in that GOP, stamp the last frame with the decoded opening frame or the seam climbs back over 1.0.
 3. If he approves v16, the next map Short is designed on this spline style from the first frame: one continuous camera, one geometry when the projection changes, a convex outline during that blend, exits that keep moving for at least 0.4 s, a loop whose last half-second is the lead-in to frame 0, drift on holds, an element at least every 1.5 s, voice timed from a new `words.json`, public-domain plates, no clouds, no shadow ellipses, no stretched keyframes.
 4. Märket, when he asks: replace the Poly Haven rock texture with a real orthophoto. Lantmäteriet was the candidate. Do not use Finnish NLS. The lighthouse should become a real asset from the hub or a CC0 download, not a drawn icon. Re-fetch the hub first.
-5. Countries-cut-in-two and a list/trivia format do not exist. Do not build them until he specifies the episode.
+5. Countries cut in two is specified. The script is v2. Do not render it until Kristóf passes the words. The benchmark spec is `docs/refs/geoglobetales_spec.md`, and the overrides in the GeoGlobeTales section win.
 6. Update this file before you finish, including the commit hash, the gate numbers, and which branch is live.
 
 ---
@@ -842,7 +856,10 @@ All of these were open drafts on 2026-10-11 unless noted. The map-Shorts camera 
 
 | PR | Head | Base | Title | Role |
 | --- | --- | --- | --- | --- |
-| #32 | `cursor/greenland-africa-v16-7e9d` | `cursor/greenland-africa-v15-7e9d` | Ease the loop onto frame 0 | **Current.** v16 picture plus this handoff. |
+| #34 | `cursor/geoglobetales-spec-7e9d` | `cursor/greenland-africa-v16-7e9d` | Save the GeoGlobeTales spec | Benchmark spec and the cut-in-two script v2. Picture is still v16. |
+| #32 | `cursor/greenland-africa-v16-7e9d` | `cursor/greenland-africa-v15-7e9d` | Ease the loop onto frame 0 | v16 picture. Still waiting on Kristóf. |
+
+https://github.com/dagadt675-oss/juicytea-media/pull/34
 
 https://github.com/dagadt675-oss/juicytea-media/pull/32
 
