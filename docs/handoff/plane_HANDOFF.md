@@ -1,6 +1,6 @@
 # Plane-seat handoff
 
-This file is the state of the silent Short “The back of the plane had the best odds” as of 12 Oct 2026. A new agent with this file and the repo can continue without the chat.
+This file is the state of the silent Short “The back of the plane had the best odds” as of 13 Oct 2026. A new agent with this file and the repo can continue without the chat.
 
 ## 1. Mission and current state
 
@@ -9,8 +9,9 @@ Mission: a photoreal, shaded, silent 32.81 s YouTube Short, 1080×1920, 30 fps, 
 What exists now:
 
 - Kristóf rejected the Colab frames 493–984 (sideways horizon, black frames, fuselage close-ups, upside-down 32% card, the jet diving into the city, faceted snow). Those frames and the 1–492 chunk from that bundle are scrapped. Do not resume that render.
-- The camera aim no longer uses a shortest-arc quaternion. The horizon stays level, and a steep top-down blends continuously toward nose-up so the fuselage runs up the 9:16 frame. The lens stays above the wing and off the fin. It never enters the cabin. The 44% and 28% beats stay on the rear 3/4 so the fuselage, seats, and the ground or sky stay in frame. Percent cards are billboarded after the camera matrix updates, at a size that is at least 5% of the frame height. The snow uses the hub peak’s baked colour, softened, instead of the high-contrast Gaea albedo. The cutaway keeps the aircraft’s parent inverse so the opened mesh does not scale up and swallow the lens.
-- Check stills, 540×960 Cycles, in `/opt/cursor/artifacts/plane_seat_reframe/stills/` and `v/plane_tests/checks/`: frames 1, 110, 230, 430, 530, 710, 830, 984. Self-check is in the PR. The near snow on 430 and 530 still shows triangles. Subdivision of the heightfield ran out of memory.
+- The camera aim no longer uses a shortest-arc quaternion. The horizon stays level, and a steep top-down blends continuously toward nose-up so the fuselage runs up the 9:16 frame. The lens stays above the wing and off the fin. It never enters the cabin. The 44% and 28% beats stay on the rear 3/4 so the fuselage, seats, and the ground or sky stay in frame. Percent cards are billboarded after the camera matrix updates, at a size that is at least 5% of the frame height. The cutaway keeps the aircraft’s parent inverse so the opened mesh does not scale up and swallow the lens.
+- Review v6 (no final render): distance haze starts much farther out, so the 1600 m chase is not an orange wash. The same city block is repeated out to about 140 km, street-scale nearby and larger copies at the horizon. Ocean stays blue water. Desert uses the aerial sand photo plus broad dune noise. Mountain snow is a soft low-frequency sheet plus the textured hub peak; the Gaea satellite albedo and the square-based peak prop are out of frame because both flickered black and white at phone size.
+- Check stills for v6 are 540×960 Cycles JPEGs, frames 1, 110, 230, 430, 530, 710, 830, 984, in the `plane_review_v6` artifact folder. Do not start the final 984-frame render until Kristóf confirms.
 - A clay Workbench animatic of all 984 frames at 540×960, 30 fps, 32.80 s, is `v/plane_seat_animatic.mp4` (19 MB). It is the camera path, not the beauty pass. Finals are not packed. Wait for approval.
 - Older approval stills remain in `v/plane_tests/` (`00_hook` through `07_forest`). They were shot with the old aim and are not the film path.
 - Working branch: `cursor/plane-seat-final-film-4316`. Draft PR: https://github.com/dagadt675-oss/juicytea-media/pull/25

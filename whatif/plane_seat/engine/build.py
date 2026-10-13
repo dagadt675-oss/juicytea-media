@@ -109,8 +109,8 @@ def _mist(scene):
     """Distance haze settings. Ground shaders fade on their own; a full-frame
     mist mix would paint the sky grey because the world sits at infinity."""
     mist = scene.world.mist_settings
-    mist.start = 100.0
-    mist.depth = 5000.0
+    mist.start = 14000.0
+    mist.depth = 50000.0
     mist.falloff = "QUADRATIC"
     scene.view_layers[0].use_pass_mist = True
 
@@ -153,7 +153,7 @@ def _mix_rgb(nt, fac_socket, color_a, color_b):
     return mix
 
 
-def _terrain(name, image, roughness=0.92, tint=(1, 1, 1), warmth=0.22, scale=0.00085, shade=0.62):
+def _terrain(name, image, roughness=0.92, tint=(1, 1, 1), warmth=0.22, scale=0.00085, shade=0.62, dunes=False):
     """Large-scale photo ground. Mapping location scrolls the texture."""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
@@ -168,17 +168,37 @@ def _terrain(name, image, roughness=0.92, tint=(1, 1, 1), warmth=0.22, scale=0.0
     coord = nt.nodes.new("ShaderNodeTexCoord")
     nt.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
     nt.links.new(mapping.outputs["Vector"], tex.inputs["Vector"])
-    warm = _mix_rgb(nt, None, tex.outputs["Color"], (*tint, 1))
+    source = tex.outputs["Color"]
+    if dunes:
+        # The sand photo is a fine grain that disappears at 1600 m. Large
+        # noise blotches read as dunes without a high-frequency shimmer.
+        noise = nt.nodes.new("ShaderNodeTexNoise")
+        noise.inputs["Scale"].default_value = 0.0016
+        noise.inputs["Detail"].default_value = 1.0
+        noise.inputs["Roughness"].default_value = 0.45
+        nt.links.new(coord.outputs["Generated"], noise.inputs["Vector"])
+        noise.inputs["Scale"].default_value = 220.0
+        dunes_col = _mix_rgb(nt, noise.outputs["Fac"], (0.45, 0.28, 0.16, 1), (0.93, 0.78, 0.55, 1))
+        mixed = _mix_rgb(nt, None, tex.outputs["Color"], dunes_col.outputs["Color"])
+        mixed.inputs["Fac"].default_value = 0.88
+        source = mixed.outputs["Color"]
+        bump = nt.nodes.new("ShaderNodeBump")
+        bump.inputs["Strength"].default_value = 0.55
+        bump.inputs["Distance"].default_value = 260.0
+        nt.links.new(noise.outputs["Fac"], bump.inputs["Height"])
+        nt.links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
+    warm = _mix_rgb(nt, None, source, (*tint, 1))
     warm.inputs["Fac"].default_value = warmth
-    # Keep the photo dark enough that a sunset sky and a city skyline read on top.
-    dark = _mix_rgb(nt, None, warm.outputs["Color"], (0.02, 0.015, 0.012, 1))
+    # A light touch only. A heavy darken plus an early orange fade turned the
+    # 1600 m chase into a flat haze with no landscape.
+    dark = _mix_rgb(nt, None, warm.outputs["Color"], (0.15, 0.12, 0.1, 1))
     dark.inputs["Fac"].default_value = shade
     cam = nt.nodes.new("ShaderNodeCameraData")
     span = nt.nodes.new("ShaderNodeMapRange")
-    span.inputs["From Min"].default_value = 3500.0
-    span.inputs["From Max"].default_value = 16000.0
+    span.inputs["From Min"].default_value = 14000.0
+    span.inputs["From Max"].default_value = 48000.0
     span.inputs["To Min"].default_value = 0.0
-    span.inputs["To Max"].default_value = 0.55
+    span.inputs["To Max"].default_value = 0.18
     span.clamp = True
     nt.links.new(cam.outputs["View Distance"], span.inputs["Value"])
     haze = _mix_rgb(nt, span.outputs["Result"], dark.outputs["Color"], (*HAZE, 1))
@@ -824,28 +844,36 @@ def _hub_peak_material():
         bsdf.inputs["Specular IOR Level"].default_value = 0.25
     coord = nt.nodes.new("ShaderNodeTexCoord")
     mapping = nt.nodes.new("ShaderNodeMapping")
-    mapping.inputs["Scale"].default_value = (0.45, 0.45, 0.45)
+    mapping.inputs["Scale"].default_value = (0.12, 0.12, 0.12)
     tex = nt.nodes.new("ShaderNodeTexImage")
     tex.image = image
     tex.interpolation = "Smart"
     nt.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
     nt.links.new(mapping.outputs["Vector"], tex.inputs["Vector"])
-    # Keep the hub photo, but pull it toward a light grey so the
-    # small-scale black/white contrast does not shimmer on a phone.
+    # The hub photo is a high-contrast satellite shade. Crush that range,
+    # then sit it on a light grey so a phone does not flicker between
+    # black crevices and white ridges.
+    flat = nt.nodes.new("ShaderNodeBrightContrast")
+    flat.inputs["Bright"].default_value = 0.08
+    flat.inputs["Contrast"].default_value = -0.75
+    nt.links.new(tex.outputs["Color"], flat.inputs["Color"])
     soften = nt.nodes.new("ShaderNodeMixRGB")
-    soften.inputs["Fac"].default_value = 0.62
-    soften.inputs["Color2"].default_value = (0.78, 0.80, 0.82, 1.0)
-    nt.links.new(tex.outputs["Color"], soften.inputs["Color1"])
+    soften.inputs["Fac"].default_value = 0.72
+    soften.inputs["Color2"].default_value = (0.84, 0.86, 0.88, 1.0)
+    nt.links.new(flat.outputs["Color"], soften.inputs["Color1"])
     nt.links.new(soften.outputs["Color"], bsdf.inputs["Base Color"])
-    # Blend the shading normal toward world up so crease shadows stay soft.
+    bsdf.inputs["Roughness"].default_value = 1.0
+    if "Specular IOR Level" in bsdf.inputs:
+        bsdf.inputs["Specular IOR Level"].default_value = 0.0
+    # Almost no shading normal. Fine ridge shadows are what shimmer.
     geom = nt.nodes.new("ShaderNodeNewGeometry")
     scaled = nt.nodes.new("ShaderNodeVectorMath")
     scaled.operation = "SCALE"
-    scaled.inputs["Scale"].default_value = 0.35
+    scaled.inputs["Scale"].default_value = 0.04
     nt.links.new(geom.outputs["Normal"], scaled.inputs[0])
     lifted = nt.nodes.new("ShaderNodeVectorMath")
     lifted.operation = "ADD"
-    lifted.inputs[1].default_value = (0.0, 0.0, 0.65)
+    lifted.inputs[1].default_value = (0.0, 0.0, 1.0)
     nt.links.new(scaled.outputs["Vector"], lifted.inputs[0])
     nt.links.new(lifted.outputs["Vector"], bsdf.inputs["Normal"])
     return mat
@@ -935,8 +963,8 @@ def _import_mountain(filename, name, grade=True):
             for poly in mesh.polygons:
                 poly.use_smooth = True
         soften = obj.modifiers.new("Soften", "SMOOTH")
-        soften.factor = 0.8
-        soften.iterations = 6
+        soften.factor = 0.85
+        soften.iterations = 24
     col = bpy.data.collections.new(name)
     for obj in fresh:
         for holder in list(obj.users_collection):
@@ -963,49 +991,93 @@ def _place_mountain(parent, col, z0, x, y, scale, yaw, mirror=False, z_scale=Non
     return inst
 
 
-def _alps_range(parent):
-    """Hub mountain models. Raw files stay out of git.
+def _soft_snow_material():
+    """Broad snow colour. No satellite albedo, so the phone does not flicker."""
+    mat = bpy.data.materials.new("SoftSnow")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = next(node for node in nt.nodes if node.type == "BSDF_PRINCIPLED")
+    bsdf.inputs["Roughness"].default_value = 1.0
+    if "Specular IOR Level" in bsdf.inputs:
+        bsdf.inputs["Specular IOR Level"].default_value = 0.04
+    coord = nt.nodes.new("ShaderNodeTexCoord")
+    noise = nt.nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 3.2
+    noise.inputs["Detail"].default_value = 1.0
+    noise.inputs["Roughness"].default_value = 0.4
+    nt.links.new(coord.outputs["Generated"], noise.inputs["Vector"])
+    tint = _mix_rgb(nt, noise.outputs["Fac"], (0.76, 0.79, 0.83, 1), (0.90, 0.91, 0.93, 1))
+    soft = _mix_rgb(nt, None, (0.84, 0.86, 0.88, 1), tint.outputs["Color"])
+    soft.inputs["Fac"].default_value = 0.35
+    nt.links.new(soft.outputs["Color"], bsdf.inputs["Base Color"])
+    geom = nt.nodes.new("ShaderNodeNewGeometry")
+    scaled = nt.nodes.new("ShaderNodeVectorMath")
+    scaled.operation = "SCALE"
+    scaled.inputs["Scale"].default_value = 0.22
+    nt.links.new(geom.outputs["Normal"], scaled.inputs[0])
+    lifted = nt.nodes.new("ShaderNodeVectorMath")
+    lifted.operation = "ADD"
+    lifted.inputs[1].default_value = (0.0, 0.0, 0.85)
+    nt.links.new(scaled.outputs["Vector"], lifted.inputs[0])
+    nt.links.new(lifted.outputs["Vector"], bsdf.inputs["Normal"])
+    return mat
 
-    three_peaked occupies X 0..1024, Y -1024..0. The others are roughly centered.
-    Every footprint stays off the camera (near x=0, y=0) so the jet flies a valley
-    instead of sitting inside a scaled mesh.
+
+def _snow_sheet(parent, mat):
+    """Low-frequency hills. The downloaded heightfield's fine ridges shimmered."""
+    bpy.ops.mesh.primitive_grid_add(x_subdivisions=56, y_subdivisions=56, size=42000.0)
+    obj = bpy.context.active_object
+    obj.name = "SnowSheet"
+    obj.parent = parent
+    obj.location = (4000.0, 0.0, 120.0)
+    sub = obj.modifiers.new("Sub", "SUBSURF")
+    sub.levels = 1
+    sub.render_levels = 2
+    tex = bpy.data.textures.new("SnowHills", "CLOUDS")
+    tex.noise_scale = 2400.0
+    tex.noise_depth = 1
+    tex.noise_type = "SOFT_NOISE"
+    disp = obj.modifiers.new("Hills", "DISPLACE")
+    disp.texture = tex
+    disp.texture_coords = "OBJECT"
+    disp.direction = "Z"
+    disp.strength = 520.0
+    disp.mid_level = 0.5
+    obj.data.materials.append(mat)
+    for poly in obj.data.polygons:
+        poly.use_smooth = True
+    obj["ground"] = 1
+    return obj
+
+
+def _alps_range(parent):
+    """Soft snow hills plus the textured peak model.
+
+    The Gaea satellite shade and the square-based peak prop both read as
+    black-and-white noise at phone size, so they stay out of frame.
     """
-    gaea, gaea_z = _import_mountain("gaea_range.glb", "GaeaRange", grade=False)
-    calm = _hub_peak_material()
-    refined = 0
-    for obj in gaea.objects:
+    calm = _soft_snow_material()
+    _snow_sheet(parent, calm)
+    textured, textured_z = _import_mountain("free_textured_mountain.glb", "TexturedPeak", grade=False)
+    for obj in textured.objects:
         if obj.type != "MESH":
             continue
         obj.data.materials.clear()
         obj.data.materials.append(calm)
-        refined += _refine_near_snow(obj)
         _drop_custom_normals(obj.data)
-    print("near snow verts", refined)
-    peaks, peaks_z = _import_mountain("three_peaked.glb", "ThreePeaks")
-    textured, textured_z = _import_mountain("free_textured_mountain.glb", "TexturedPeak")
-    # gaea_range is a 2 m terrain centered on the origin. Scale keeps the near
-    # edge about 2 km ahead of the jet so the camera is not inside the mesh.
-    # Height stays in the same proportion as the source, only lifted enough to read.
-    # Cover the camera as well as the view ahead. A heightfield edge reads as a cliff
-    # if the chase lens can see the rim. Interior of the mesh is the snowfield.
-    near = _place_mountain(parent, gaea, gaea_z, 2500.0, 0.0, 5500.0, 0.15, z_scale=4800.0)
-    far = _place_mountain(parent, gaea, gaea_z, 11000.0, 1600.0, 6000.0, 0.9, z_scale=4200.0)
-    bpy.context.view_layer.update()
-    deps = bpy.context.evaluated_depsgraph_get()
-
-    def ground_z(x, y):
-        hit, loc, _normal, _idx, _obj, _mx = bpy.context.scene.ray_cast(
-            deps, mathutils.Vector((x, y, 4000.0)), mathutils.Vector((0.0, 0.0, -1.0))
-        )
-        return loc.z if hit else 0.0
-
-    # Summits sit on the snow, not a few hundred metres above it.
-    # three_peaked's origin is a corner (X 0..1024, Y -1024..0).
-    left = _place_mountain(parent, peaks, peaks_z, 3200.0, -700.0, 2.4, 0.35, z_scale=3.2)
-    right = _place_mountain(parent, textured, textured_z, 4800.0, 900.0, 1.6, -0.25, z_scale=2.2)
-    left.location.z += ground_z(3600.0, -400.0)
-    right.location.z += ground_z(4800.0, 900.0)
-    print("hub mountains placed", near.name, far.name, "seats", round(left.location.z, 1), round(right.location.z, 1))
+        for mod in list(obj.modifiers):
+            if mod.type == "SMOOTH":
+                mod.iterations = 16
+                mod.factor = 1.0
+    seats = [
+        (5200.0, -1400.0, 1.8, 0.4, 2.2),
+        (7800.0, 1600.0, 2.4, -0.5, 2.8),
+        (11000.0, -400.0, 3.0, 0.8, 3.4),
+        (3600.0, 2200.0, 1.4, 1.2, 1.8),
+    ]
+    for x, y, scale, yaw, zs in seats:
+        _place_mountain(parent, textured, textured_z, x, y, scale, yaw, z_scale=zs)
+    print("soft peaks", len(seats))
 
 
 REAL_TREES = Path("/workspace/assets/found/trees/realistic")
@@ -1181,11 +1253,13 @@ def _ocean_mat():
         bsdf.inputs["Coat Weight"].default_value = 0.15
     cam = nt.nodes.new("ShaderNodeCameraData")
     span = nt.nodes.new("ShaderNodeMapRange")
-    span.inputs["From Min"].default_value = 500.0
-    span.inputs["From Max"].default_value = 10000.0
+    span.inputs["From Min"].default_value = 9000.0
+    span.inputs["From Max"].default_value = 36000.0
+    span.inputs["To Min"].default_value = 0.0
+    span.inputs["To Max"].default_value = 0.28
     span.clamp = True
     nt.links.new(cam.outputs["View Distance"], span.inputs["Value"])
-    haze = _mix_rgb(nt, span.outputs["Result"], (0.02, 0.08, 0.12, 1), (*HAZE, 1))
+    haze = _mix_rgb(nt, span.outputs["Result"], (0.04, 0.16, 0.22, 1), (0.55, 0.62, 0.68, 1))
     nt.links.new(haze.outputs["Color"], bsdf.inputs["Base Color"])
     noise = nt.nodes.new("ShaderNodeTexNoise")
     noise.inputs["Scale"].default_value = 2.2
@@ -1220,18 +1294,42 @@ def _city_instances(parent):
     fresh = [obj for obj in bpy.data.objects if obj not in before]
     col = bpy.data.collections.new("CityBlock")
     _move_to_collection(fresh, col)
-    for ix in range(-1, 5):
-        for iy in range(-3, 4):
+    # The block is a few hundred metres across. From 1600 m the chase sees
+    # many kilometres, so the same ready-made block is repeated out to the view.
+    # From 1600 m a nearly level ray hits the ground past 100 km. The near
+    # blocks stay at street scale. A larger copy of the same block fills
+    # the distance so the horizon is city, not a dirt band.
+    step_x, step_y = 640.0, 540.0
+    count = 0
+    for ix in range(-6, 24):
+        for iy in range(-14, 15):
             inst = bpy.data.objects.new(f"City_{ix}_{iy}", None)
             inst.instance_type = "COLLECTION"
             inst.instance_collection = col
             inst.parent = parent
-            inst.location = (ix * 560.0 - 200.0, iy * 460.0, 0.0)
+            inst.location = (ix * step_x, iy * step_y, 0.0)
             inst.scale = (3.8, 3.8, 3.8)
-            inst.rotation_euler[2] = (ix * 0.35 + iy * 0.55)
+            inst.rotation_euler[2] = ((ix * 3 + iy * 5) % 7) * 0.45
             inst["cull"] = 1
-            inst["cull_radius"] = 700.0
+            inst["cull_radius"] = 900.0
             _link(inst)
+            count += 1
+    far_scale = 12.0
+    far_x, far_y = 1700.0, 1600.0
+    for ix in range(0, 72):
+        for iy in range(-10, 11):
+            inst = bpy.data.objects.new(f"CityFar_{ix}_{iy}", None)
+            inst.instance_type = "COLLECTION"
+            inst.instance_collection = col
+            inst.parent = parent
+            inst.location = (16000.0 + ix * far_x, iy * far_y, 0.0)
+            inst.scale = (far_scale, far_scale, far_scale)
+            inst.rotation_euler[2] = ((ix * 2 + iy * 3) % 6) * 0.5
+            inst["cull"] = 1
+            inst["cull_radius"] = 2200.0
+            _link(inst)
+            count += 1
+    print("city blocks", count)
 
 
 def _ocean_object():
@@ -1258,7 +1356,7 @@ def _biome_tiles():
     photos = {
         "city": (TEX / "aerial_ground_rock_diff_1k.jpg", (0.55, 0.50, 0.45)),
         "forest": (TEX / "forest_ground_04_diff_1k.jpg", (0.25, 0.45, 0.18)),
-        "desert": (TEX / "red_sand_diff_1k.jpg", (0.72, 0.42, 0.18)),
+        "desert": (TEX / "aerial_sand_diff_1k.jpg", (0.82, 0.55, 0.32)),
         "cloudsea": (TEX / "aerial_sand_diff_1k.jpg", (0.75, 0.78, 0.82)),
     }
     copies = {}
@@ -1274,11 +1372,15 @@ def _biome_tiles():
             ground = bpy.data.objects.new("MountainAnchor", None)
         else:
             image, tint = photos[name]
-            ground = _big_plane(name + "Ground", 22000.0)
+            ground = _big_plane(name + "Ground", 160000.0 if name == "city" else 48000.0)
             if name == "forest":
                 mat, _mapping = _terrain(name + "M", image, tint=(0.2, 0.42, 0.12), warmth=0.42, scale=0.01, shade=0.12)
+            elif name == "desert":
+                mat, _mapping = _terrain(
+                    name + "M", image, tint=tint, warmth=0.15, scale=0.0012, shade=0.0, dunes=True
+                )
             else:
-                mat, _mapping = _terrain(name + "M", image, tint=tint)
+                mat, _mapping = _terrain(name + "M", image, tint=tint, warmth=0.08, scale=0.0035, shade=0.08)
             ground.data.materials.append(mat)
         _link(ground, a)
         copies[name] = (a, b)
@@ -1507,10 +1609,18 @@ def apply_pose(state, pose):
             sun.rotation_euler = (math.radians(58), math.radians(-10), math.radians(-30))
             sun.data.energy = 9.0
             sun.data.color = (1.0, 0.9, 0.72)
+        elif biome == "desert":
+            sun.rotation_euler = (math.radians(58), math.radians(-10), math.radians(-28))
+            sun.data.energy = 7.0
+            sun.data.color = (1.0, 0.72, 0.48)
+        elif biome == "ocean":
+            sun.rotation_euler = (math.radians(58), math.radians(-8), math.radians(-24))
+            sun.data.energy = 6.0
+            sun.data.color = (1.0, 0.82, 0.64)
         else:
-            sun.rotation_euler = (math.radians(62), math.radians(-12), math.radians(-35))
-            sun.data.energy = 6.5
-            sun.data.color = (1.0, 0.48, 0.18)
+            sun.rotation_euler = (math.radians(55), math.radians(-8), math.radians(-24))
+            sun.data.energy = 6.0
+            sun.data.color = (1.0, 0.86, 0.7)
     cloud_mode = pose.get("clouds") or ("punch" if pose.get("cloud", 0.0) > 0.72 else "deck")
     if pose.get("inside") or pose.get("interior") or state.get("fast"):
         cloud_mode = "off"
