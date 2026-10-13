@@ -139,7 +139,7 @@ Numbered so a later run can cite them. When two rules conflict, the later Greenl
 
 ### GeoGlobeTales benchmark
 
-The channel spec is saved verbatim at `docs/refs/geoglobetales_spec.md`. It is the benchmark for the engine and for the list format. Our rules override it where they differ:
+The channel spec is saved verbatim at `docs/refs/geoglobetales_spec.md` (commit `86d6b7c`, PR #34). It is the benchmark for the engine and for the list format. Our rules override it where they differ:
 
 - No hard cuts and no cutaways. Their six Louisiana cuts and the motion-blur whip become one eased camera move and in-shot basemap crossfades.
 - No AI or stock plates. Ready-made assets only, hub first.
@@ -856,7 +856,10 @@ All of these were open drafts on 2026-10-11 unless noted. The map-Shorts camera 
 
 | PR | Head | Base | Title | Role |
 | --- | --- | --- | --- | --- |
-| #32 | `cursor/greenland-africa-v16-7e9d` | `cursor/greenland-africa-v15-7e9d` | Ease the loop onto frame 0 | **Current.** v16 picture plus this handoff. |
+| #34 | `cursor/geoglobetales-spec-7e9d` | `cursor/greenland-africa-v16-7e9d` | Save the GeoGlobeTales spec | Benchmark spec and the cut-in-two script v2. Picture is still v16. |
+| #32 | `cursor/greenland-africa-v16-7e9d` | `cursor/greenland-africa-v15-7e9d` | Ease the loop onto frame 0 | v16 picture. Still waiting on Kristóf. |
+
+https://github.com/dagadt675-oss/juicytea-media/pull/34
 
 https://github.com/dagadt675-oss/juicytea-media/pull/32
 
