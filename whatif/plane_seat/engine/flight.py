@@ -37,21 +37,22 @@ CAM_KEYS = [
     (32.55, (-64.0, -8.0, 30.0), (0.0, 0.0, 6.2), 0.0, 26.0),
 ]
 
-# Metres above the ground. Flat biomes stay a flyover. The mountain beat
-# stays above the range. Nothing descends into the city at the loop.
+# Metres above the ground. City roofs top out near 200 m, so 1,600 m is a
+# high approach rather than a rooftop pass. The mountain beat stays above
+# the range. The opening and the end match.
 ALT_KEYS = [
-    (0.00, 640.0),
-    (3.20, 680.0),
-    (4.20, 980.0),
-    (6.60, 320.0),
-    (9.60, 340.0),
-    (10.40, 2200.0),
-    (16.80, 2100.0),
-    (18.40, 720.0),
-    (24.00, 680.0),
-    (28.40, 700.0),
-    (31.40, 660.0),
-    (32.55, 640.0),
+    (0.00, 1600.0),
+    (3.20, 1680.0),
+    (4.20, 1900.0),
+    (6.60, 700.0),
+    (9.60, 760.0),
+    (10.40, 2700.0),
+    (16.80, 2600.0),
+    (18.40, 1700.0),
+    (24.00, 1620.0),
+    (28.40, 1650.0),
+    (31.40, 1600.0),
+    (32.55, 1600.0),
 ]
 
 PITCH_KEYS = [

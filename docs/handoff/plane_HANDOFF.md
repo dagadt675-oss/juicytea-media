@@ -165,7 +165,7 @@ Beats (`clock._shot_beats`):
 
 Biome under the jet (`flight.biome_at`): city to 4.08, forest to 10.02, mountains to 18.05, ocean to 24.38, desert to 28.55, cloudsea to 31.85, city again. Swaps sit on cloud peaks.
 
-Altitude (metres) in `flight.ALT_KEYS`: city about 640–680, cloud punch about 980, forest about 320–340, mountains about 2100–2200 (above the range), ocean and desert about 680–720, back to 640 at the seam. Nothing descends into the city. The camera is a periodic centripetal spline. Nose is +X. Eyes stay on the rear 3/4, above the wing. The 44% and 28% beats look down the open roof. `pose["interior"]` is false for the whole film.
+Altitude (metres) in `flight.ALT_KEYS`: city and the loop about 1600–1680, cloud punch about 1900, forest about 700–760, mountains about 2600–2700 (above the range), ocean and desert about 1620–1700. City roofs are about 200 m, so this is a high approach, not a rooftop pass. Nothing descends into the city. The camera is a periodic centripetal spline. Nose is +X. Eyes stay on the rear 3/4, above the wing. The 44% and 28% beats look down the open roof. `pose["interior"]` is false for the whole film. The snow under the chase is subdivided once; the far Gaea chunks are not.
 
 X-ray is on from about 10.9 s to 18.0 s (the 38 / 39 / 32 line), not the whole flight. The roof opens from about 19.2 s to 28.5 s for the 44% and 28% beats. `44%` shows around word 44 (t=22.81). `28%` around word 54 (t=27.27). Cards billboard to the camera’s up axis.
 

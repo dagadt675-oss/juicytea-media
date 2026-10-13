@@ -851,6 +851,62 @@ def _hub_peak_material():
     return mat
 
 
+def _refine_near_snow(obj):
+    """Subdivide the heightfield under the chase. The far ridges stay coarse.
+
+    A full subdivision of every Gaea chunk exhausted memory. The triangles
+    that read on a phone are the ones below and just ahead of the jet.
+    """
+    import bmesh
+
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    edges = set()
+    for face in bm.faces:
+        center = face.calc_center_median()
+        if -0.95 <= center.x <= 0.45 and abs(center.y) <= 0.8:
+            edges.update(face.edges)
+    if len(edges) < 12:
+        bm.free()
+        return 0
+    bmesh.ops.subdivide_edges(
+        bm,
+        edges=list(edges),
+        cuts=1,
+        use_grid_fill=True,
+        smooth=0.55,
+    )
+    verts = [vert for vert in bm.verts if -1.0 <= vert.co.x <= 0.5 and abs(vert.co.y) <= 0.85]
+    for _ in range(3):
+        bmesh.ops.smooth_vert(
+            bm,
+            verts=verts,
+            factor=0.55,
+            use_axis_x=True,
+            use_axis_y=True,
+            use_axis_z=True,
+        )
+    bm.to_mesh(obj.data)
+    obj.data.update()
+    count = len(obj.data.vertices)
+    bm.free()
+    _drop_custom_normals(obj.data)
+    return count
+
+
+def _drop_custom_normals(mesh):
+    """glTF split normals keep every face flat even after shade_smooth."""
+    for name in ("custom_normal", "sharp_face", "sharp_edge"):
+        attr = mesh.attributes.get(name)
+        if attr is not None:
+            mesh.attributes.remove(attr)
+    try:
+        mesh.shade_smooth()
+    except (AttributeError, RuntimeError):
+        for poly in mesh.polygons:
+            poly.use_smooth = True
+
+
 def _import_mountain(filename, name, grade=True):
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=str(MOUNTAINS / filename))
@@ -916,11 +972,15 @@ def _alps_range(parent):
     """
     gaea, gaea_z = _import_mountain("gaea_range.glb", "GaeaRange", grade=False)
     calm = _hub_peak_material()
+    refined = 0
     for obj in gaea.objects:
         if obj.type != "MESH":
             continue
         obj.data.materials.clear()
         obj.data.materials.append(calm)
+        refined += _refine_near_snow(obj)
+        _drop_custom_normals(obj.data)
+    print("near snow verts", refined)
     peaks, peaks_z = _import_mountain("three_peaked.glb", "ThreePeaks")
     textured, textured_z = _import_mountain("free_textured_mountain.glb", "TexturedPeak")
     # gaea_range is a 2 m terrain centered on the origin. Scale keeps the near
