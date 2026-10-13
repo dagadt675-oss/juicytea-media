@@ -271,7 +271,7 @@ def _seat_material():
     nt.links.new(info.outputs["Color"], dark.inputs["Color1"])
     nt.links.new(dark.outputs["Color"], bsdf.inputs["Base Color"])
     nt.links.new(info.outputs["Color"], bsdf.inputs["Emission Color"])
-    bsdf.inputs["Emission Strength"].default_value = 8.0
+    bsdf.inputs["Emission Strength"].default_value = 2.2
     bsdf.inputs["Roughness"].default_value = 0.45
     return mat
 
@@ -617,6 +617,10 @@ def _load_plane(root):
         if "gear" in low:
             obj.hide_render = True
             continue
+        # Nav-light meshes are starbursts. Unlit, they read as a black glitch.
+        if obj.type == "MESH" and any(key in low for key in ("light", "lamp", "beacon", "strobe", "bulb")):
+            obj.hide_render = True
+            continue
         if obj.type == "MESH" and obj.name == "Body":
             body = obj
     glass_facs = []
@@ -630,7 +634,13 @@ def _load_plane(root):
                     # Wings and tail stay the white paint. Only the tube fades.
                     if mat.name in ("FuselageSkin", "BellyGrey"):
                         skin_nodes.append(node)
-            if "glass" in mat.name.lower() or "frost" in mat.name.lower():
+            low = mat.name.lower()
+            if "glass" in low or "frost" in low or "window" in low:
+                for node in mat.node_tree.nodes:
+                    if node.type == "BSDF_PRINCIPLED" and "Emission Strength" in node.inputs:
+                        if not node.inputs["Emission Strength"].is_linked:
+                            node.inputs["Emission Strength"].default_value = 0.0
+            if "glass" in low or "frost" in low:
                 fac = _fade_glass(mat)
                 if fac is not None:
                     glass_facs.append(fac)
@@ -667,11 +677,13 @@ def _labels(root):
     # (text, color, location, em size)
     # Inboard of the tube so a 3/4 view keeps every plate inside the portrait frame.
     specs = {
-        "l38": ("38%", AMBER, (7.0, -3.2, 12.6), 3.6),
-        "l39": ("39%", AMBER, (0.2, -3.2, 12.6), 3.6),
-        "l32": ("32%", GREEN, (-6.2, -3.2, 12.6), 3.6),
-        "l44": ("44%", RED, (0.0, 0.15, 8.7), 0.62),
-        "l28": ("28%", BRIGHT, (-7.4, 0.15, 9.0), 0.78),
+        # Camera stays on the -Y side. Cards sit just off the tube, above the
+        # crown, so a level 3/4 sees them upright and inside the safe zone.
+        "l38": ("38%", AMBER, (12.0, -3.4, 13.6), 2.35),
+        "l39": ("39%", AMBER, (1.2, -3.4, 13.6), 2.35),
+        "l32": ("32%", GREEN, (-9.0, -3.4, 13.6), 2.35),
+        "l44": ("44%", RED, (2.2, -2.4, 11.8), 1.25),
+        "l28": ("28%", BRIGHT, (-8.4, -2.4, 11.8), 1.25),
     }
     out = {}
     for key, (text, color, loc, size) in specs.items():
@@ -796,6 +808,18 @@ def _import_mountain(filename, name):
             zs.append(world.z)
         for mat in obj.data.materials:
             _alpine_grade(mat)
+        # The heightfield is dense enough. Flat normals are what read as facets.
+        mesh = obj.data
+        if "sharp_face" in getattr(mesh, "attributes", {}):
+            mesh.attributes.remove(mesh.attributes["sharp_face"])
+        try:
+            mesh.shade_smooth()
+        except (AttributeError, RuntimeError):
+            for poly in mesh.polygons:
+                poly.use_smooth = True
+        soften = obj.modifiers.new("Soften", "SMOOTH")
+        soften.factor = 0.8
+        soften.iterations = 6
     col = bpy.data.collections.new(name)
     for obj in fresh:
         for holder in list(obj.users_collection):
@@ -839,12 +863,22 @@ def _alps_range(parent):
     # if the chase lens can see the rim. Interior of the mesh is the snowfield.
     near = _place_mountain(parent, gaea, gaea_z, 2500.0, 0.0, 5500.0, 0.15, z_scale=4800.0)
     far = _place_mountain(parent, gaea, gaea_z, 11000.0, 1600.0, 6000.0, 0.9, z_scale=4200.0)
-    # Summits sit on that terrain. three_peaked's origin is a corner (X 0..1024, Y -1024..0).
-    left = _place_mountain(parent, peaks, peaks_z, 3800.0, -900.0, 2.0, 0.35, z_scale=7.0)
-    right = _place_mountain(parent, textured, textured_z, 6200.0, 1400.0, 1.4, -0.25, z_scale=3.6)
-    for inst in (left, right):
-        inst.location.z += 700.0
-    print("hub mountains placed", near.name, far.name)
+    bpy.context.view_layer.update()
+    deps = bpy.context.evaluated_depsgraph_get()
+
+    def ground_z(x, y):
+        hit, loc, _normal, _idx, _obj, _mx = bpy.context.scene.ray_cast(
+            deps, mathutils.Vector((x, y, 4000.0)), mathutils.Vector((0.0, 0.0, -1.0))
+        )
+        return loc.z if hit else 0.0
+
+    # Summits sit on the snow, not a few hundred metres above it.
+    # three_peaked's origin is a corner (X 0..1024, Y -1024..0).
+    left = _place_mountain(parent, peaks, peaks_z, 3200.0, -700.0, 2.4, 0.35, z_scale=3.2)
+    right = _place_mountain(parent, textured, textured_z, 4800.0, 900.0, 1.6, -0.25, z_scale=2.2)
+    left.location.z += ground_z(3600.0, -400.0)
+    right.location.z += ground_z(4800.0, 900.0)
+    print("hub mountains placed", near.name, far.name, "seats", round(left.location.z, 1), round(right.location.z, 1))
 
 
 REAL_TREES = Path("/workspace/assets/found/trees/realistic")
@@ -875,10 +909,10 @@ def _forest_trees(parent):
     # A close stand under the chase camera at t≈7.4 (the tile has scrolled ~1 km).
     ground_z = -2.0
     # Wide enough that the chase at t≈7.4 (scroll ~1.08 km) sees canopy, not one clump.
-    cols = 64
-    rows = 72
-    spacing = 22.0
-    x0 = 280.0
+    cols = 110
+    rows = 42
+    spacing = 26.0
+    x0 = -500.0
     lods = {}
 
     def lod_for(mesh):
@@ -1218,7 +1252,7 @@ def build_scene():
     cam_data = bpy.data.cameras.new("Cam")
     cam_data.sensor_fit = "VERTICAL"
     cam_data.sensor_height = 24.0
-    cam_data.clip_start = 0.05
+    cam_data.clip_start = 0.25
     cam_data.clip_end = 50000.0
     cam = _link(bpy.data.objects.new("Cam", cam_data))
     scene.camera = cam
@@ -1246,14 +1280,42 @@ def build_scene():
 
 
 def _aim(cam, eye, target, roll_deg):
+    """Point the lens at target with the horizon level.
+
+    Blender's camera looks down local -Z and keeps local +Y up. A shortest-arc
+    quaternion from (0, 0, -1) leaves that up-axis lying on its side whenever
+    the view is horizontal, which rolled the Short onto its side. Build the
+    basis so camera-up stays world-up, then apply only the small authored roll.
+    """
     direction = mathutils.Vector(target) - mathutils.Vector(eye)
     if direction.length < 1e-5:
         return
-    direction.normalize()
-    quat = mathutils.Vector((0.0, 0.0, -1.0)).rotation_difference(direction)
-    roll = mathutils.Quaternion(direction, math.radians(roll_deg))
+    forward = direction.normalized()
+    world_up = mathutils.Vector((0.0, 0.0, 1.0))
+    # Chase shots level against the horizon. Only a steep top-down blends
+    # toward nose-up, and the blend is continuous so the horizon never snaps.
+    nose = mathutils.Vector((1.0, 0.0, 0.0))
+    steep = (abs(forward.dot(world_up)) - 0.55) / 0.30
+    steep = max(0.0, min(1.0, steep))
+    steep = steep * steep * (3.0 - 2.0 * steep)
+    up_hint = world_up * (1.0 - steep) + nose * steep
+    if up_hint.length < 1e-4:
+        up_hint = world_up
+    up = up_hint - forward * forward.dot(up_hint)
+    if up.length < 1e-4:
+        up = nose - forward * forward.dot(nose)
+    up.normalize()
+    right = forward.cross(up).normalized()
+    up = right.cross(forward).normalized()
+    z_axis = -forward
+    rot = mathutils.Matrix((
+        (right.x, up.x, z_axis.x),
+        (right.y, up.y, z_axis.y),
+        (right.z, up.z, z_axis.z),
+    )).to_quaternion()
+    twist = mathutils.Quaternion(forward, math.radians(roll_deg))
     cam.rotation_mode = "QUATERNION"
-    cam.rotation_quaternion = roll @ quat
+    cam.rotation_quaternion = twist @ rot
 
 
 def _paint(seats, pose):
@@ -1323,11 +1385,11 @@ def apply_pose(state, pose):
             sun.data.energy = 6.5
             sun.data.color = (1.0, 0.48, 0.18)
     cloud_mode = pose.get("clouds") or ("punch" if pose.get("cloud", 0.0) > 0.72 else "deck")
-    if pose.get("inside") or pose.get("interior"):
+    if pose.get("inside") or pose.get("interior") or state.get("fast"):
         cloud_mode = "off"
     for name, (a, b) in state["biomes"].items():
         if name == "_godrays":
-            a.hide_render = not bool(pose.get("cutaway"))
+            a.hide_render = state.get("fast") or not bool(pose.get("cutaway"))
             continue
         if name == "_clouds":
             # Stay with the jet (the jet itself does not translate). Deck vs punch.
@@ -1375,7 +1437,8 @@ def apply_pose(state, pose):
         if obj is body or obj is opened:
             continue
         if obj.name.startswith("Fan"):
-            obj.hide_render = interior or xray > 0.08
+            # The blade disc reads as a black starburst once the nacelle is out of frame.
+            obj.hide_render = interior or cutaway or xray > 0.08
             continue
         obj.hide_render = interior
     if body is not None:
@@ -1387,7 +1450,7 @@ def apply_pose(state, pose):
     light = state.get("cabin_light")
     if light is not None:
         light.energy = 1800.0 if interior else 0.0
-    show_seats = interior or xray > 0.05
+    show_seats = interior or cutaway or xray > 0.05
     for seat in state["seats"]:
         seat.hide_render = not show_seats
     # Seat X is rebuilt from the row index each frame.
@@ -1426,13 +1489,19 @@ def apply_pose(state, pose):
         direction = cam.location - (root.matrix_world @ mathutils.Vector(obj.location))
         if direction.length < 0.1:
             continue
-        # Local +Z points at the camera, local +Y stays as upright as possible.
+        # Face the camera and match its up, so the percent stays upright in frame.
+        cam_q = cam.matrix_world.to_quaternion()
+        cam_up = cam_q @ mathutils.Vector((0.0, 1.0, 0.0))
+        cam_right = cam_q @ mathutils.Vector((1.0, 0.0, 0.0))
         z_axis = direction.normalized()
-        up = mathutils.Vector((0.0, 0.0, 1.0))
-        if abs(z_axis.dot(up)) > 0.92:
-            up = mathutils.Vector((1.0, 0.0, 0.0))
-        x_axis = up.cross(z_axis).normalized()
-        y_axis = z_axis.cross(x_axis).normalized()
+        y_axis = cam_up - z_axis * cam_up.dot(z_axis)
+        if y_axis.length < 1e-4:
+            y_axis = cam_right.cross(z_axis)
+        y_axis.normalize()
+        x_axis = y_axis.cross(z_axis).normalized()
+        if x_axis.dot(cam_right) < 0.0:
+            x_axis = -x_axis
+            y_axis = -y_axis
         rot = mathutils.Matrix((
             (x_axis.x, y_axis.x, z_axis.x),
             (x_axis.y, y_axis.y, z_axis.y),
@@ -1516,12 +1585,56 @@ def _configure_cycles(scene, job):
     )
 
 
+def _use_eevee(scene, samples):
+    for name in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE"):
+        try:
+            scene.render.engine = name
+            break
+        except TypeError:
+            continue
+    eevee = getattr(scene, "eevee", None)
+    if eevee is not None:
+        if hasattr(eevee, "taa_render_samples"):
+            eevee.taa_render_samples = samples
+        if hasattr(eevee, "use_raytracing"):
+            eevee.use_raytracing = False
+        if hasattr(eevee, "volumetric_samples"):
+            eevee.volumetric_samples = 16
+        if hasattr(eevee, "volumetric_tile_size"):
+            try:
+                eevee.volumetric_tile_size = "8"
+            except TypeError:
+                pass
+    scene.render.use_motion_blur = False
+    print("engine", scene.render.engine, "samples", samples, flush=True)
+
+
+def _use_workbench(scene):
+    scene.render.engine = "BLENDER_WORKBENCH"
+    shading = scene.display.shading
+    shading.light = "STUDIO"
+    shading.color_type = "MATERIAL"
+    try:
+        scene.display.render_aa = "FXAA"
+    except TypeError:
+        pass
+    scene.render.use_motion_blur = False
+    print("engine", scene.render.engine, flush=True)
+
+
 def render_job(job):
     state = build_scene()
     state["cull"] = bool(job.get("cull"))
     state["lod"] = bool(job.get("lod"))
     scene = state["scene"]
-    _configure_cycles(scene, job)
+    state["fast"] = bool(job.get("fast"))
+    engine = str(job.get("engine", "")).upper()
+    if engine == "EEVEE":
+        _use_eevee(scene, int(job.get("samples", 8)))
+    elif engine == "WORKBENCH":
+        _use_workbench(scene)
+    else:
+        _configure_cycles(scene, job)
     scene.render.resolution_percentage = int(job.get("scale", 100))
     tasks = []
     for segment in job.get("segments", []):

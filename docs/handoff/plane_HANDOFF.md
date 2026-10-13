@@ -8,12 +8,12 @@ Mission: a photoreal, shaded, silent 32.81 s YouTube Short, 1080×1920, 30 fps, 
 
 What exists now:
 
-- Approval stills in `v/plane_tests/` (`00_hook` through `07_forest`). City altitude and the mountain range were revised again on 12 Oct 2026. `01_city_flyover` and `03_mountains` were re-rendered at full resolution after that revision. The other six stills are from the previous fix pass (clouds, x-ray, 44% label, forest, jet cheatline) and were not invalidated by the altitude/range edit except that the film clock’s altitude is now higher.
-- There is no finished `plane_seat_silent.mp4` in git. A CPU film render was started and then stopped when Kristóf moved final frames to Colab. About 530 beauty frames of an older altitude existed in `/tmp/plane_seat_cache/beauty/` and must not be reused.
-- The Colab bundle is `/opt/cursor/artifacts/colab_bundle/plane_seat_preview/`. Header `BLENDER-v402`. Colab had no GPU, so this VM rendered frames 1–492 from that exact bundle with Blender 4.2.3. Chunks of 24 are zipped in `/opt/cursor/artifacts/plane_frames_1_492/` with `SHA256SUMS`. Kristóf’s machine renders 493–984. There is still no graded master mp4.
+- Kristóf rejected the Colab frames 493–984 (sideways horizon, black frames, fuselage close-ups, upside-down 32% card, the jet diving into the city, faceted snow). Those frames and the 1–492 chunk from that bundle are scrapped. Do not resume that render.
+- The camera aim no longer uses a shortest-arc quaternion. The horizon stays level, and a steep top-down blends continuously toward nose-up so the fuselage runs up the 9:16 frame. The lens stays above the wing and off the fin. It never enters the cabin. Seat beats are an open roof from outside.
+- Check stills, 540×960 Cycles, in `/opt/cursor/artifacts/plane_seat_reframe/stills/` and `v/plane_tests/checks/`: frames 1, 110, 230, 430, 530, 710, 830, 984. Self-check is in the PR. The near snow on 430 and 530 still shows triangles. Subdivision of the heightfield ran out of memory.
+- A clay Workbench animatic of all 984 frames at 540×960 is the camera-path check, not the beauty pass. When the encode finishes it is `v/plane_seat_animatic.mp4`. Finals are not packed. Wait for approval.
+- Older approval stills remain in `v/plane_tests/` (`00_hook` through `07_forest`). They were shot with the old aim and are not the film path.
 - Working branch: `cursor/plane-seat-final-film-4316`. Draft PR: https://github.com/dagadt675-oss/juicytea-media/pull/25
-
-What the last session was doing: raising the flight so the city reads as a flyover, replacing the two floating cliff rocks with the downloaded `gaea_range` terrain plus two summit models, packing that scene as a Blender 4.2.3 blend, and rendering four full-resolution preview frames from the unpacked bundle (start, city, mountains, end).
 
 ## 2. Kristóf’s rules and rejected attempts
 
@@ -165,9 +165,9 @@ Beats (`clock._shot_beats`):
 
 Biome under the jet (`flight.biome_at`): city to 4.08, forest to 10.02, mountains to 18.05, ocean to 24.38, desert to 28.55, cloudsea to 31.85, city again. Swaps sit on cloud peaks.
 
-Altitude (metres), after the 12 Oct lift, in `flight.ALT_KEYS`: city about 420–480, climb to 900 into the cloud punch, forest about 340–380, mountains about 1100–1280, ocean/desert about 360–520, back to about 480 at the seam. Camera is a periodic centripetal spline (`CAM_KEYS`) plus a small drift. Nose is +X. Chase eyes sit behind the tail. Interior eyes are in the aisle roughly 22.5–27.8 s.
+Altitude (metres) in `flight.ALT_KEYS`: city about 640–680, cloud punch about 980, forest about 320–340, mountains about 2100–2200 (above the range), ocean and desert about 680–720, back to 640 at the seam. Nothing descends into the city. The camera is a periodic centripetal spline. Nose is +X. Eyes stay on the rear 3/4, above the wing. The 44% and 28% beats look down the open roof. `pose["interior"]` is false for the whole film.
 
-X-ray is a short gaussian on words 26 (t=11.37, “thirty-eight”), 31 (t=14.19), and 34 (t=16.58), not the whole flight. `44%` shows around word 44 (t=22.81). `28%` around word 54 (t=27.27).
+X-ray is on from about 10.9 s to 18.0 s (the 38 / 39 / 32 line), not the whole flight. The roof opens from about 19.2 s to 28.5 s for the 44% and 28% beats. `44%` shows around word 44 (t=22.81). `28%` around word 54 (t=27.27). Cards billboard to the camera’s up axis.
 
 Seat map in the picture (not the unused constants in `aircraft.py`): 36 rows, pitch 0.80 m, 3-4-3, 360 seats, instanced from one cabin seat. Front 12 amber, mid 12 amber, back 12 green. Aisle seats in the middle third go red on the 44% line. Middle seats in the back go bright green on the 28% line.
 
