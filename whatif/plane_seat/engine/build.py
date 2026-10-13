@@ -648,7 +648,12 @@ def _load_plane(root):
         import bmesh
         opened = body.copy()
         opened.data = body.data.copy()
+        # The copy already carries the parent's inverse scale. Assigning
+        # parent again drops that inverse and blows the mesh up by ~15x,
+        # which put the lens inside a black shell on the seat beats.
+        parent_inverse = body.matrix_parent_inverse.copy()
         opened.parent = empty
+        opened.matrix_parent_inverse = parent_inverse
         _link(opened)
         bm = bmesh.new()
         bm.from_mesh(opened.data)
@@ -679,11 +684,13 @@ def _labels(root):
     specs = {
         # Camera stays on the -Y side. Cards sit just off the tube, above the
         # crown, so a level 3/4 sees them upright and inside the safe zone.
-        "l38": ("38%", AMBER, (12.0, -3.4, 13.6), 2.35),
-        "l39": ("39%", AMBER, (1.2, -3.4, 13.6), 2.35),
-        "l32": ("32%", GREEN, (-9.0, -3.4, 13.6), 2.35),
-        "l44": ("44%", RED, (2.2, -2.4, 11.8), 1.25),
-        "l28": ("28%", BRIGHT, (-8.4, -2.4, 11.8), 1.25),
+        # Em size 3.2 is about 3.7 m of card height, over 5% of the 9:16 frame
+        # from the rear 3/4 (about 50 m away, 22 mm lens).
+        "l38": ("38%", AMBER, (12.0, -5.2, 15.0), 3.2),
+        "l39": ("39%", AMBER, (1.2, -5.2, 15.0), 3.2),
+        "l32": ("32%", GREEN, (-9.0, -5.2, 15.0), 3.2),
+        "l44": ("44%", RED, (2.2, -5.2, 14.4), 3.2),
+        "l28": ("28%", BRIGHT, (-8.4, -5.2, 14.4), 3.2),
     }
     out = {}
     for key, (text, color, loc, size) in specs.items():
@@ -791,7 +798,60 @@ def _alpine_grade(mat):
     mat["alpine_grade"] = 1
 
 
-def _import_mountain(filename, name):
+def _hub_peak_material():
+    """Baked terrain colour from the hub peak, stretched across the range.
+
+    The Gaea albedo is a high-contrast satellite shade. At Shorts size it
+    flickers. This keeps a downloaded hub texture and drops its normal map.
+    """
+    before_obj = set(bpy.data.objects)
+    before_img = set(bpy.data.images)
+    bpy.ops.import_scene.gltf(filepath=str(MOUNTAINS / "bk_peak.glb"))
+    images = [im for im in bpy.data.images if im not in before_img]
+    if len(images) < 2:
+        raise RuntimeError("bk_peak base color")
+    image = images[1]
+    image.pack()
+    for obj in list(bpy.data.objects):
+        if obj not in before_obj:
+            bpy.data.objects.remove(obj, do_unlink=True)
+    mat = bpy.data.materials.new("HubPeakTerrain")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = next(node for node in nt.nodes if node.type == "BSDF_PRINCIPLED")
+    bsdf.inputs["Roughness"].default_value = 0.92
+    if "Specular IOR Level" in bsdf.inputs:
+        bsdf.inputs["Specular IOR Level"].default_value = 0.25
+    coord = nt.nodes.new("ShaderNodeTexCoord")
+    mapping = nt.nodes.new("ShaderNodeMapping")
+    mapping.inputs["Scale"].default_value = (0.45, 0.45, 0.45)
+    tex = nt.nodes.new("ShaderNodeTexImage")
+    tex.image = image
+    tex.interpolation = "Smart"
+    nt.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
+    nt.links.new(mapping.outputs["Vector"], tex.inputs["Vector"])
+    # Keep the hub photo, but pull it toward a light grey so the
+    # small-scale black/white contrast does not shimmer on a phone.
+    soften = nt.nodes.new("ShaderNodeMixRGB")
+    soften.inputs["Fac"].default_value = 0.62
+    soften.inputs["Color2"].default_value = (0.78, 0.80, 0.82, 1.0)
+    nt.links.new(tex.outputs["Color"], soften.inputs["Color1"])
+    nt.links.new(soften.outputs["Color"], bsdf.inputs["Base Color"])
+    # Blend the shading normal toward world up so crease shadows stay soft.
+    geom = nt.nodes.new("ShaderNodeNewGeometry")
+    scaled = nt.nodes.new("ShaderNodeVectorMath")
+    scaled.operation = "SCALE"
+    scaled.inputs["Scale"].default_value = 0.35
+    nt.links.new(geom.outputs["Normal"], scaled.inputs[0])
+    lifted = nt.nodes.new("ShaderNodeVectorMath")
+    lifted.operation = "ADD"
+    lifted.inputs[1].default_value = (0.0, 0.0, 0.65)
+    nt.links.new(scaled.outputs["Vector"], lifted.inputs[0])
+    nt.links.new(lifted.outputs["Vector"], bsdf.inputs["Normal"])
+    return mat
+
+
+def _import_mountain(filename, name, grade=True):
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=str(MOUNTAINS / filename))
     bpy.context.view_layer.update()
@@ -806,8 +866,9 @@ def _import_mountain(filename, name):
             xs.append(world.x)
             ys.append(world.y)
             zs.append(world.z)
-        for mat in obj.data.materials:
-            _alpine_grade(mat)
+        if grade:
+            for mat in obj.data.materials:
+                _alpine_grade(mat)
         # The heightfield is dense enough. Flat normals are what read as facets.
         mesh = obj.data
         if "sharp_face" in getattr(mesh, "attributes", {}):
@@ -853,7 +914,13 @@ def _alps_range(parent):
     Every footprint stays off the camera (near x=0, y=0) so the jet flies a valley
     instead of sitting inside a scaled mesh.
     """
-    gaea, gaea_z = _import_mountain("gaea_range.glb", "GaeaRange")
+    gaea, gaea_z = _import_mountain("gaea_range.glb", "GaeaRange", grade=False)
+    calm = _hub_peak_material()
+    for obj in gaea.objects:
+        if obj.type != "MESH":
+            continue
+        obj.data.materials.clear()
+        obj.data.materials.append(calm)
     peaks, peaks_z = _import_mountain("three_peaked.glb", "ThreePeaks")
     textured, textured_z = _import_mountain("free_textured_mountain.glb", "TexturedPeak")
     # gaea_range is a 2 m terrain centered on the origin. Scale keeps the near
@@ -1466,6 +1533,9 @@ def apply_pose(state, pose):
     look = mw @ mathutils.Vector(pose["look"])
     cam.location = eye
     _aim(cam, eye, look, pose["cam_roll"])
+    # The billboard reads the camera matrix. Without this update it still
+    # holds the previous frame, and the cards come out on their side.
+    bpy.context.view_layer.update()
     cam.data.lens = pose["lens"]
     focus = (mathutils.Vector(pose["look"]) - mathutils.Vector(pose["eye"])).length
     cam.data.dof.use_dof = True
