@@ -11,7 +11,7 @@ What exists now:
 - Kristóf rejected the Colab frames 493–984 (sideways horizon, black frames, fuselage close-ups, upside-down 32% card, the jet diving into the city, faceted snow). Those frames and the 1–492 chunk from that bundle are scrapped. Do not resume that render.
 - The camera aim no longer uses a shortest-arc quaternion. The horizon stays level, and a steep top-down blends continuously toward nose-up so the fuselage runs up the 9:16 frame. The lens stays above the wing and off the fin. It never enters the cabin. Seat beats are an open roof from outside.
 - Check stills, 540×960 Cycles, in `/opt/cursor/artifacts/plane_seat_reframe/stills/` and `v/plane_tests/checks/`: frames 1, 110, 230, 430, 530, 710, 830, 984. Self-check is in the PR. The near snow on 430 and 530 still shows triangles. Subdivision of the heightfield ran out of memory.
-- A clay Workbench animatic of all 984 frames at 540×960 is the camera-path check, not the beauty pass. When the encode finishes it is `v/plane_seat_animatic.mp4`. Finals are not packed. Wait for approval.
+- A clay Workbench animatic of all 984 frames at 540×960, 30 fps, 32.80 s, is `v/plane_seat_animatic.mp4` (19 MB). It is the camera path, not the beauty pass. Finals are not packed. Wait for approval.
 - Older approval stills remain in `v/plane_tests/` (`00_hook` through `07_forest`). They were shot with the old aim and are not the film path.
 - Working branch: `cursor/plane-seat-final-film-4316`. Draft PR: https://github.com/dagadt675-oss/juicytea-media/pull/25
 
