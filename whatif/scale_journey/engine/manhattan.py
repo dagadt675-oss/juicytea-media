@@ -680,8 +680,15 @@ def _apply_hide(obj, hide: bool):
         _apply_hide(child, hide)
 
 
+_LOD_APPLIED = False
+
+
 def set_distant_lod(enabled: bool):
     """Swap in the decimated block only past LOD_DISTANCE. Off keeps every near mesh."""
+    global _LOD_APPLIED
+    if _LOD_APPLIED:
+        return
+    _LOD_APPLIED = True
     for obj in bpy.data.objects:
         kind = obj.get("lod")
         if kind not in ("near", "far"):
@@ -699,7 +706,14 @@ def restore_cull():
         _apply_hide(obj, bool(obj["lod_hidden"]))
 
 
+_CORNERS: dict = {}
+
+
 def _corners(obj):
+    moving = "Cab" in obj.name or "Sedan" in obj.name
+    cached = None if moving else _CORNERS.get(obj.name)
+    if cached is not None:
+        return cached
     pts = []
     col = getattr(obj, "instance_collection", None)
     if col is not None:
@@ -724,6 +738,8 @@ def _corners(obj):
                 for y in (-100.0, 100.0)
                 for z in (0.0, 80.0)
             ]
+    if "Cab" not in obj.name and "Sedan" not in obj.name:
+        _CORNERS[obj.name] = pts
     return pts
 
 
