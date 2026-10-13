@@ -492,22 +492,31 @@ def _penny(raw: dict) -> BEpisode:
         else:
             wide = (520.0, -180.0, 95.0)
             wide_tgt = (2.0, -6.0, 210.0)
-            # Rise and glide for 2.4 s. The bend stays southeast of the shaft.
-            u = _fade(t, 30.90, 33.30)
-            ctrl = (240.0, -70.0, 240.0)
-            ctrl_tgt = (6.0, -4.0, 260.0)
-            cam = _bez(wide, ctrl, hook_cam, u)
-            target = _bez(wide_tgt, ctrl_tgt, hook_tgt, u)
-            lens = 24.0 + (64.0 - 24.0) * u
-            penny = _lerp(penny, ledge_penny, u)
-        if t >= 33.30:
+            # Two and a half seconds. The long travel happens first; the last
+            # second only settles onto the deck, so the picture does not whip.
+            keys = (
+                (30.80, wide, wide_tgt, 24.0),
+                (31.60, (90.0, -28.0, 190.0), (8.0, 0.0, 270.0), 32.0),
+                (32.80, hook_cam, hook_tgt, 64.0),
+            )
+            cam, target, lens = keys[-1][1], keys[-1][2], keys[-1][3]
+            span_u = 1.0
+            for (t0, c0, g0, l0), (t1, c1, g1, l1) in zip(keys, keys[1:]):
+                if t <= t1:
+                    span_u = _fade(t, t0, t1)
+                    cam = _lerp(c0, c1, span_u)
+                    target = _lerp(g0, g1, span_u)
+                    lens = l0 + (l1 - l0) * span_u
+                    break
+            penny = _lerp(penny, ledge_penny, _fade(t, 30.80, 32.80))
+        if t >= 32.80:
             cam, target, penny, lens = hook_cam, hook_tgt, ledge_penny, 64.0
         cam = clear_of_shaft(cam, 1.2)
-        if t < 0.57 or t >= 33.30:
+        if t < 0.57 or t >= 32.80:
             penny = ledge_penny
         else:
             penny = clear_of_shaft(penny, 0.8)
-        if t < 0.57 or t >= 33.30:
+        if t < 0.57 or t >= 32.80:
             spin, tilt, roll = 0.08, 0.15, 0.02
         elif t < 1.35:
             flick = _fade(t, 1.05, 1.35)
