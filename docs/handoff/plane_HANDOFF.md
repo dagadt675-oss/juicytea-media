@@ -14,7 +14,7 @@ What exists now:
 - Check stills for v6 are 540×960 Cycles JPEGs, frames 1, 110, 230, 430, 530, 710, 830, 984, in the `plane_review_v6` artifact folder. Do not start the final 984-frame render until Kristóf confirms.
 - A clay Workbench animatic of all 984 frames at 540×960, 30 fps, 32.80 s, is `v/plane_seat_animatic.mp4` (19 MB). It is the camera path, not the beauty pass. Finals are not packed. Wait for approval.
 - Older approval stills remain in `v/plane_tests/` (`00_hook` through `07_forest`). They were shot with the old aim and are not the film path.
-- Working branch: `cursor/plane-seat-final-film-4316`. Draft PR: https://github.com/dagadt675-oss/juicytea-media/pull/25
+- Working branch: `cursor/plane-seat-review-v6-4316`. Final 984-frame render is still waiting on confirmation.
 
 ## 2. Kristóf’s rules and rejected attempts
 
