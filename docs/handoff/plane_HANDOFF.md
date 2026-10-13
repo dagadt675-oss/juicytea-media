@@ -10,7 +10,7 @@ What exists now:
 
 - Approval stills in `v/plane_tests/` (`00_hook` through `07_forest`). City altitude and the mountain range were revised again on 12 Oct 2026. `01_city_flyover` and `03_mountains` were re-rendered at full resolution after that revision. The other six stills are from the previous fix pass (clouds, x-ray, 44% label, forest, jet cheatline) and were not invalidated by the altitude/range edit except that the film clock’s altitude is now higher.
 - There is no finished `plane_seat_silent.mp4` in git. A CPU film render was started and then stopped when Kristóf moved final frames to Colab. About 530 beauty frames of an older altitude existed in `/tmp/plane_seat_cache/beauty/` and must not be reused.
-- The deliverable for the picture is the Colab bundle at `/opt/cursor/artifacts/colab_bundle/plane_seat_preview/`. Header `BLENDER-v402`. Kristóf renders frames 1–984 on a Tesla T4 (OptiX). This VM does not render the full film. The local CPU render stopped around frame 439/984 and those frames are not the master.
+- The Colab bundle is `/opt/cursor/artifacts/colab_bundle/plane_seat_preview/`. Header `BLENDER-v402`. Colab had no GPU, so this VM rendered frames 1–492 from that exact bundle with Blender 4.2.3. Chunks of 24 are zipped in `/opt/cursor/artifacts/plane_frames_1_492/` with `SHA256SUMS`. Kristóf’s machine renders 493–984. There is still no graded master mp4.
 - Working branch: `cursor/plane-seat-final-film-4316`. Draft PR: https://github.com/dagadt675-oss/juicytea-media/pull/25
 
 What the last session was doing: raising the flight so the city reads as a flyover, replacing the two floating cliff rocks with the downloaded `gaea_range` terrain plus two summit models, packing that scene as a Blender 4.2.3 blend, and rendering four full-resolution preview frames from the unpacked bundle (start, city, mountains, end).
@@ -270,7 +270,7 @@ Do not commit `scene.blend` or the zip.
 
 Priority order:
 
-1. Render 1–984 on Colab with the bundle above. Do not mix in `/tmp/plane_seat_cache/beauty/` from any earlier CPU run.
+1. Frames 1–492 are already rendered from the 4.2.3 bundle and zipped in `/opt/cursor/artifacts/plane_frames_1_492/`. Reassemble a split chunk with `cat frames_AAAA_BBBB.zip.* > frames_AAAA_BBBB.zip`. Kristóf renders 493–984. Do not mix in `/tmp/plane_seat_cache/beauty/` from the older 4.5 CPU run.
 2. Bring the PNGs back and run overlay, grade, silent encode, and itsscale. Target file `v/plane_seat_silent.mp4`. Then a raw link if it is committed. GitHub rejects files over 100 MB; check the mp4 size first.
 3. The gaea mesh is coarse up close. If a Colab contact sheet shows faceted ridges, swap in a denser source or ease the camera off the slope. Do not go back to scaled cliff rocks.
 4. City blocks do not cover the whole ground tile. The photo plane shows at the edge of the flyover. More city instances, or a tighter lens, if Kristóf flags it.
