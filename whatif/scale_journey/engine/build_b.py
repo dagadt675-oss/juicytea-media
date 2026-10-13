@@ -1083,7 +1083,7 @@ def _penny():
     Real cent: 19.05 mm across, 1.52 mm thick. The close camera, not the scale, makes it fill the frame.
     """
     found = WHATIF.parent / "assets" / "found"
-    tex_path = found / "penny_tex.png"
+    tex_path = found / "penny_lincoln.png"
     if not tex_path.exists():
         raise RuntimeError(f"missing penny texture {tex_path}")
     bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=0.5, depth=0.08, location=(0.0, 0.0, 0.0))
@@ -1100,24 +1100,22 @@ def _penny():
 
     bm = bmesh.new()
     bm.from_mesh(obj.data)
+    bm.verts.ensure_lookup_table()
+    radius = max(abs(v.co.x) for v in bm.verts) or 0.5
     layer = bm.loops.layers.uv.new("UVMap")
     for face in bm.faces:
         normal = face.normal
-        if normal.z > 0.45:
-            center = (0.50, 0.75)
-        elif normal.z < -0.45:
-            center = (0.50, 0.25)
-        else:
-            center = None
+        face_uv = abs(normal.z) > 0.45
         for loop in face.loops:
-            if center is None:
+            if not face_uv:
                 loop[layer].uv = (0.02, 0.50)
                 continue
             co = loop.vert.co
-            # The photo is twice as tall as it is wide, and each face sits in one half.
-            loop[layer].uv = (center[0] + co.x * 0.86, center[1] + co.y * 0.43)
+            # Square Lincoln map. Keep the whole portrait inside the disc.
+            loop[layer].uv = (0.5 + (co.x / radius) * 0.46, 0.5 + (co.y / radius) * 0.46)
     bm.to_mesh(obj.data)
     bm.free()
+    obj.data.uv_layers.active = obj.data.uv_layers[0]
     obj.data.materials.clear()
 
     def copper(name, image):
@@ -1133,6 +1131,12 @@ def _penny():
         tex = nt.nodes.new("ShaderNodeTexImage")
         tex.image = image
         tex.interpolation = "Smart"
+        coord = nt.nodes.new("ShaderNodeTexCoord")
+        mapping = nt.nodes.new("ShaderNodeMapping")
+        mapping.inputs["Location"].default_value = (0.5, 0.5, 0.0)
+        mapping.inputs["Scale"].default_value = (1.0, 1.0, 1.0)
+        nt.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
+        nt.links.new(mapping.outputs["Vector"], tex.inputs["Vector"])
         nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
         bump = nt.nodes.new("ShaderNodeBump")
         bump.inputs["Strength"].default_value = 0.18
