@@ -13,82 +13,62 @@ from .aircraft import AMBER, BRIGHT, GREEN, RED, TRAVEL, TILE
 from .clock import DURATION, word_end, word_time
 
 # Camera keys: t, eye (plane-local metres), look-at, roll deg, lens mm.
-# The path is periodic. t=0 is the chase out of the cloud deck.
-# Nose is +X, tail is -X, fuselage about 66 m, tube center near z=6.
-# Chase cameras sit behind the tail. Interior eyes sit in the aisle.
+# Nose is +X, tail is -X, tube center near z=6. The path is periodic.
+# Every eye stays on the -Y side and above the wing, so the spline cannot
+# pass through the fuselage, the fin, or a wing. Roll stays 0: the horizon
+# is level and the jet sits upright in the 9:16 frame. t=0 matches the end.
 CAM_KEYS = [
-    (0.00, (-46.0, 16.0, 12.0), (-10.0, 0.0, 5.5), 0.0, 28.0),
-    (1.25, (-36.0, 22.0, 12.0), (-6.0, 0.5, 6.2), -2.0, 30.0),
-    (2.15, (-18.0, 18.0, 11.0), (2.0, 0.0, 6.0), -1.0, 30.0),
-    (2.85, (6.0, 14.0, 10.0), (18.0, 0.0, 6.4), 4.0, 28.0),
-    (3.30, (24.0, 8.0, 9.0), (32.0, 0.2, 6.5), 8.0, 26.0),
-    (3.75, (8.0, 20.0, 14.0), (4.0, 0.0, 6.0), 18.0, 28.0),
-    (4.70, (-4.0, 36.0, 16.0), (-2.0, 0.0, 5.0), 4.0, 26.0),
-    (7.50, (-10.0, 42.0, 18.0), (-6.0, 0.0, 5.5), -3.0, 24.0),
-    (9.80, (-22.0, 28.0, 20.0), (-16.0, 0.0, 6.0), -14.0, 26.0),
-    (10.80, (-8.0, 48.0, 22.0), (-4.0, 0.0, 6.0), -4.0, 24.0),
-    (13.80, (-14.0, 40.0, 18.0), (-12.0, 0.0, 5.8), -2.0, 26.0),
-    (15.60, (-28.0, 26.0, 14.0), (-18.0, 0.5, 6.0), 2.0, 28.0),
-    (16.80, (-24.0, 16.0, 10.0), (-16.0, 0.4, 6.2), 0.0, 30.0),
-    (17.90, (-12.0, 18.0, 16.0), (-8.0, 0.0, 6.0), 6.0, 28.0),
-    (18.70, (-2.0, 0.6, 16.0), (-2.0, 0.0, 5.5), 0.0, 24.0),
-    (19.60, (-4.0, 0.2, 24.0), (-4.0, 0.0, 5.5), 0.0, 22.0),
-    (20.40, (-8.0, 0.4, 20.0), (-14.0, 0.0, 5.5), 1.0, 24.0),
-    (21.70, (-14.0, 0.6, 16.0), (-20.0, 0.0, 5.5), -1.0, 26.0),
-    (23.00, (-12.0, 1.2, 14.0), (-16.0, 0.2, 5.5), 2.0, 28.0),
-    (24.30, (-22.0, 0.4, 7.2), (-30.0, 0.0, 6.2), 8.0, 26.0),
-    (25.10, (-40.0, 16.0, 12.0), (-18.0, 0.2, 6.2), 6.0, 28.0),
-    (26.30, (-16.0, 1.6, 12.0), (-16.2, 0.2, 5.5), -4.0, 30.0),
-    (27.50, (-16.4, 0.8, 9.5), (-16.6, 0.1, 5.5), 0.0, 34.0),
-    (28.90, (-30.0, 18.0, 14.0), (-12.0, 0.0, 6.0), -3.0, 26.0),
-    (30.60, (-48.0, 24.0, 16.0), (-10.0, 0.4, 6.0), 1.0, 24.0),
-    (31.90, (-50.0, 21.0, 14.5), (-12.0, 0.6, 6.0), 0.4, 26.0),
-    (32.45, (-44.5, 15.2, 11.6), (-10.2, 0.2, 5.4), 0.1, 28.0),
+    # High rear 3/4. The fuselage runs up the phone, the horizon stays level.
+    # Eyes stay above the wing (z >= 18) and off the fin (|y| >= 10).
+    (0.00, (-64.0, -8.0, 30.0), (0.0, 0.0, 6.2), 0.0, 26.0),
+    (2.60, (-60.0, -10.0, 28.0), (8.0, 0.0, 6.0), 0.0, 26.0),
+    (4.50, (-60.0, -9.0, 32.0), (8.0, 0.0, 6.0), 0.0, 24.0),
+    (7.20, (-58.0, -8.0, 28.0), (2.0, 0.0, 5.0), 0.0, 24.0),
+    (9.40, (-60.0, -8.0, 26.0), (4.0, 0.0, 5.5), 0.0, 24.0),
+    (11.40, (-50.0, -11.0, 42.0), (2.0, 0.0, 6.2), 0.0, 24.0),
+    (14.40, (-48.0, -10.0, 40.0), (1.0, 0.0, 6.4), 0.0, 24.0),
+    (17.40, (-50.0, -10.0, 38.0), (0.0, 0.0, 6.4), 0.0, 24.0),
+    # Stay on the rear 3/4 through the seat beats. A closer lens dropped the
+    # fuselage and left the chart on an empty ground colour.
+    (20.40, (-46.0, -12.0, 34.0), (1.0, 0.0, 6.5), 0.0, 22.0),
+    (23.40, (-42.0, -13.0, 32.0), (2.0, 0.0, 6.6), 0.0, 20.0),
+    (27.10, (-48.0, -13.0, 32.0), (-7.0, 0.0, 6.6), 0.0, 20.0),
+    (29.50, (-52.0, -11.0, 34.0), (0.0, 0.0, 6.4), 0.0, 24.0),
+    (32.55, (-64.0, -8.0, 30.0), (0.0, 0.0, 6.2), 0.0, 26.0),
 ]
 
+# Metres above the ground. City roofs top out near 200 m, so 1,600 m is a
+# high approach rather than a rooftop pass. The mountain beat stays above
+# the range. The opening and the end match.
 ALT_KEYS = [
-    (0.00, 168.0),
-    (1.30, 136.0),
-    (3.50, 152.0),
-    (4.15, 220.0),
-    (6.80, 170.0),
-    (9.80, 210.0),
-    (10.20, 1400.0),
-    (12.50, 1650.0),
-    (16.20, 1480.0),
-    (18.15, 320.0),
-    (19.20, 168.0),
-    (23.00, 150.0),
-    (24.50, 198.0),
-    (26.80, 118.0),
-    (29.40, 390.0),
-    (31.50, 300.0),
-    (32.40, 200.0),
+    (0.00, 1600.0),
+    (3.20, 1680.0),
+    (4.20, 1900.0),
+    (6.60, 700.0),
+    (9.60, 760.0),
+    (10.40, 2700.0),
+    (16.80, 2600.0),
+    (18.40, 1700.0),
+    (24.00, 1620.0),
+    (28.40, 1650.0),
+    (31.40, 1600.0),
+    (32.55, 1600.0),
 ]
 
 PITCH_KEYS = [
-    (0.00, 7.0),
-    (1.40, 2.0),
-    (6.00, 0.5),
-    (16.00, -1.5),
-    (24.00, 1.0),
-    (29.20, -2.0),
-    (31.70, 9.0),
-    (32.45, 8.0),
+    (0.00, 2.0),
+    (4.20, 1.0),
+    (12.00, 0.4),
+    (24.00, 0.8),
+    (32.55, 2.0),
 ]
 
 ROLL_KEYS = [
     (0.00, 0.0),
-    (3.10, 2.0),
-    (3.65, 26.0),
-    (4.60, 6.0),
-    (9.40, -4.0),
-    (10.05, -20.0),
-    (10.90, -4.0),
-    (24.10, 6.0),
-    (24.90, 16.0),
-    (25.80, 3.0),
-    (32.40, 0.4),
+    (8.00, 1.5),
+    (16.00, -1.0),
+    (24.00, 0.8),
+    (32.55, 0.0),
 ]
 
 
@@ -188,9 +168,24 @@ def cloud_cover(t: float) -> float:
     return max(0.0, min(1.0, value))
 
 
-def _inside(eye) -> bool:
+def _blocked(eye) -> bool:
+    """True when a point is inside the tube, the fin, or a wing."""
     x, y, z = eye
-    return abs(y) < 2.4 and 8.5 < z < 20.0 and -22.0 < x < 12.0
+    in_tube = -38.0 < x < 36.0 and abs(y) < 7.2 and 0.5 < z < 14.5
+    in_fin = -38.0 < x < -2.0 and abs(y) < 5.0 and 0.5 < z < 21.5
+    in_wing = -40.0 < x < 12.0 and abs(y) < 31.0 and 0.5 < z < 11.0
+    return in_tube or in_fin or in_wing
+
+
+def _keep_clear(eye):
+    """Push a spline overshoot out past the wing and above the fin."""
+    x, y, z = (float(v) for v in eye)
+    if not _blocked((x, y, z)):
+        return (x, y, z)
+    side = -1.0 if y <= 0.0 else 1.0
+    y = side * max(abs(y), 20.0)
+    z = max(z, 20.0)
+    return (x, y, z)
 
 
 def biome_at(t: float) -> str:
@@ -232,17 +227,14 @@ def pose_at(t: float) -> dict:
     t = t % DURATION
     eye, look, cam_roll, lens = _sample_cam(t)
     # A slow periodic drift so a key with a flat tangent still moves.
-    drift = (
-        0.35 * math.sin(2.0 * math.pi * t / DURATION),
-        0.22 * math.sin(4.0 * math.pi * t / DURATION),
-        0.12 * math.cos(2.0 * math.pi * t / DURATION),
-    )
-    eye = tuple(eye[i] + drift[i] for i in range(3))
+    # Vertical only: a sideways drift can tuck the lens into a wing.
+    drift_z = 0.18 * math.sin(2.0 * math.pi * t / DURATION)
+    eye = (eye[0], eye[1], eye[2] + drift_z)
+    eye = _keep_clear(eye)
     alt = _sample([(k[0], (k[1],)) for k in ALT_KEYS], t)[0]
     pitch = _sample([(k[0], (k[1],)) for k in PITCH_KEYS], t)[0]
     roll = _sample([(k[0], (k[1],)) for k in ROLL_KEYS], t)[0]
-    roll += 1.15 * math.sin(2.0 * math.pi * t / DURATION)
-    yaw = 1.4 * math.sin(2.0 * math.pi * t / DURATION)
+    yaw = 0.35 * math.sin(2.0 * math.pi * t / DURATION)
 
     shake_amp = _gauss(t, word_time(44), 0.08, 1.0)
     shake = (
@@ -250,17 +242,14 @@ def pose_at(t: float) -> dict:
         shake_amp * 0.03 * math.sin(t * 74.0 + 1.7),
         shake_amp * 0.02 * math.sin(t * 91.0 + 0.4),
     )
-    eye = tuple(eye[i] + shake[i] for i in range(3))
+    eye = _keep_clear(tuple(eye[i] + shake[i] for i in range(3)))
 
     cover = cloud_cover(t)
-    inside = _inside(eye)
-    # X-ray is a short beat on each third, not the whole flight.
-    xray = max(
-        _gauss(t, word_time(26), 1.05),
-        _gauss(t, word_time(31), 1.05),
-        _gauss(t, word_time(34), 1.15),
-    )
-    interior = _smooth(22.45, 22.75, t) * (1.0 - _smooth(27.45, 27.85, t))
+    # The lens never enters the cabin. Seat beats are an open roof seen from
+    # outside, which is the only way to show the rows without a black frame.
+    inside = False
+    xray = _window(t, 10.90, 17.95, 0.30, 0.35)
+    cutaway = _window(t, 19.20, 28.45, 0.30, 0.40) > 0.5
     scatter = _smooth(word_time(59), word_time(59) + 0.10, t) * (1.0 - _smooth(word_time(63), word_time(63) + 0.05, t))
     colors = _zone_colors(t)
     distance = TRAVEL * (t / DURATION)
@@ -284,9 +273,10 @@ def pose_at(t: float) -> dict:
         "lens": lens,
         "biome": biome_at(t),
         "cloud": cover,
-        "inside": inside or interior > 0.5,
-        "xray": 0.0 if interior > 0.4 else xray,
-        "interior": interior > 0.5,
+        "inside": inside,
+        "xray": xray,
+        "interior": False,
+        "cutaway": cutaway,
         "scroll": distance % TILE,
         "distance": distance,
         "explode": 0.50 * _smooth(10.55, 11.20, t) * (1.0 - _smooth(17.20, 17.80, t)),
