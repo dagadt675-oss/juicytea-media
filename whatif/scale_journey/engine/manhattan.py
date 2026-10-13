@@ -780,9 +780,14 @@ def _in_frame(corners, cam, scene, margin):
     return False
 
 
+_CULL_LIST = None
+
+
 def cull_to_camera(cam, margin=0.22, shadow_m=80.0, near_m=120.0):
     """Hide blocks and props outside the frame. Keep a margin and up-sun shadow casters."""
-    restore_cull()
+    global _CULL_LIST
+    if _CULL_LIST is None:
+        _CULL_LIST = [obj for obj in bpy.data.objects if obj.get("cull") in ("block", "prop") and not obj.get("lod_hidden")]
     scene = bpy.context.scene
     incoming = (-_SUN_AIM).normalized()
     shadow = mathutils.Vector((incoming.x, incoming.y, 0.0))
@@ -791,24 +796,25 @@ def cull_to_camera(cam, margin=0.22, shadow_m=80.0, near_m=120.0):
     hidden = 0
     kept = 0
     origin = cam.matrix_world.translation
-    for obj in bpy.data.objects:
-        if obj.hide_render or obj.get("cull") not in ("block", "prop"):
-            continue
+    for obj in _CULL_LIST:
         corners = _corners(obj)
         if not corners:
+            want = False
+        else:
+            center = sum(corners, mathutils.Vector()) / len(corners)
+            want = not (
+                (center - origin).length < near_m
+                or _in_frame(corners, cam, scene, margin)
+                or _in_frame([corner + shadow * shadow_m for corner in corners], cam, scene, margin)
+            )
+        if bool(obj.hide_render) != want:
+            _apply_hide(obj, want)
+        if want:
+            hidden += 1
+        else:
             kept += 1
-            continue
-        center = sum(corners, mathutils.Vector()) / len(corners)
-        if (center - origin).length < near_m or _in_frame(corners, cam, scene, margin):
-            kept += 1
-            continue
-        shifted = [corner + shadow * shadow_m for corner in corners]
-        if _in_frame(shifted, cam, scene, margin):
-            kept += 1
-            continue
-        _apply_hide(obj, True)
-        hidden += 1
-    print(f"CULL hide {hidden} keep {kept}", flush=True)
+    if (hidden + kept) % 400 == 0:
+        print(f"CULL hide {hidden} keep {kept}", flush=True)
 
 
 def _fresh_meshes(path: Path):

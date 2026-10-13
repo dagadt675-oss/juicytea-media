@@ -1784,7 +1784,6 @@ def pose_frame(scene, cam, penny, arms, fr, speed=None):
         cull_to_camera(cam)
     else:
         restore_cull()
-    bpy.context.view_layer.update()
 
 
 def render_frame(scene, cam, penny, arms, fr, dest: Path, speed=None):
