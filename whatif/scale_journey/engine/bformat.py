@@ -419,14 +419,14 @@ def _penny(raw: dict) -> BEpisode:
         # Off the corner, in open air. The old mount was 34 cm from the
         # setback and filled the frame with bare limestone.
         drone_cam = (
-            penny[0] + 2.9 + 0.12 * _wind(t, 8.2, 6.5),
-            penny[1] + 2.3 + 0.1 * _wind(t, 3.4, 7.1),
-            penny[2] + 1.0 + 0.05 * _wind(t, 5.5, 5.4),
+            penny[0] + 4.2 + 0.15 * _wind(t, 8.2, 6.5),
+            penny[1] + 3.3 + 0.12 * _wind(t, 3.4, 7.1),
+            penny[2] + 1.35 + 0.06 * _wind(t, 5.5, 5.4),
         )
         drone_tgt = (
-            penny[0] - 0.5,
-            penny[1] - 0.15,
-            penny[2] - 1.6,
+            penny[0] - 0.35,
+            penny[1] - 0.1,
+            penny[2] - 4.8,
         )
         step = max(0.0, t - 23.9) * 0.9
         man_x, man_y = MAN[0] + step, MAN[1]
@@ -455,13 +455,13 @@ def _penny(raw: dict) -> BEpisode:
             u = _fade(t, 2.4, 2.9)
             cam = _lerp(hook_cam, drone_cam, u)
             target = _lerp(hook_tgt, drone_tgt, u)
-            lens = 64.0 + (28.0 - 64.0) * u
+            lens = 64.0 + (16.0 - 64.0) * u
         elif t < 8.0:
-            cam, target, lens = drone_cam, drone_tgt, 28.0
+            cam, target, lens = drone_cam, drone_tgt, 16.0
         elif t < 8.7:
             u = _fade(t, 8.0, 8.7)
             cam, target = drone_cam, drone_tgt
-            lens = 28.0 + (24.0 - 28.0) * u
+            lens = 16.0 + (24.0 - 16.0) * u
         elif t < 13.31:
             cam, target, lens = drone_cam, drone_tgt, 24.0
         elif t < 14.55:
