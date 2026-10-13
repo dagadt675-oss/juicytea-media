@@ -416,24 +416,18 @@ def _penny(raw: dict) -> BEpisode:
         # cent a quarter of the frame without moving into the wall.
         hook_cam = (11.21, 3.44, parapet + 0.34)
         hook_tgt = (11.33, 3.60, parapet - 0.02)
-        # Look along the facade, through the cent. The downward pitch eases
-        # as the cent drops, so the window rows move through the frame.
-        pitch = max(8.0, min(34.0, penny[2] * 0.12))
-        face = (penny[0] - 30.0, penny[1] - 0.7, penny[2] - pitch)
-        dx, dy, dz = penny[0] - face[0], penny[1] - face[1], penny[2] - face[2]
-        span = math.sqrt(dx * dx + dy * dy + dz * dz) or 1.0
+        # Off the corner, in open air. The old mount was 34 cm from the
+        # setback and filled the frame with bare limestone.
         drone_cam = (
-            penny[0] + dx / span * 0.34,
-            penny[1] + dy / span * 0.34,
-            penny[2] + dz / span * 0.34,
+            penny[0] + 2.9 + 0.12 * _wind(t, 8.2, 6.5),
+            penny[1] + 2.3 + 0.1 * _wind(t, 3.4, 7.1),
+            penny[2] + 1.0 + 0.05 * _wind(t, 5.5, 5.4),
         )
-        if 2.4 <= t < 19.07 and not (13.31 <= t < 15.10):
-            drone_cam = (
-                drone_cam[0] + 0.10 * _wind(t, 8.2, 6.5),
-                drone_cam[1] + 0.08 * _wind(t, 3.4, 7.1),
-                drone_cam[2] + 0.06 * _wind(t, 5.5, 5.4),
-            )
-        drone_tgt = face
+        drone_tgt = (
+            penny[0] - 0.5,
+            penny[1] - 0.15,
+            penny[2] - 1.6,
+        )
         step = max(0.0, t - 23.9) * 0.9
         man_x, man_y = MAN[0] + step, MAN[1]
         # Street camera sits on the sidewalk, south of him, looking north
@@ -461,7 +455,13 @@ def _penny(raw: dict) -> BEpisode:
             u = _fade(t, 2.4, 2.9)
             cam = _lerp(hook_cam, drone_cam, u)
             target = _lerp(hook_tgt, drone_tgt, u)
-            lens = 64.0 + (24.0 - 64.0) * u
+            lens = 64.0 + (28.0 - 64.0) * u
+        elif t < 8.0:
+            cam, target, lens = drone_cam, drone_tgt, 28.0
+        elif t < 8.7:
+            u = _fade(t, 8.0, 8.7)
+            cam, target = drone_cam, drone_tgt
+            lens = 28.0 + (24.0 - 28.0) * u
         elif t < 13.31:
             cam, target, lens = drone_cam, drone_tgt, 24.0
         elif t < 14.55:
@@ -490,25 +490,30 @@ def _penny(raw: dict) -> BEpisode:
             target = _lerp(up_tgt, (2.0, -6.0, 210.0), u)
             lens = 50.0 + (24.0 - 50.0) * u
         else:
-            wide = (520.0, -180.0, 95.0)
-            wide_tgt = (2.0, -6.0, 210.0)
-            # Two and a half seconds. The long travel happens first; the last
-            # second only settles onto the deck, so the picture does not whip.
-            keys = (
-                (30.80, wide, wide_tgt, 24.0),
-                (31.60, (90.0, -28.0, 190.0), (8.0, 0.0, 270.0), 32.0),
-                (32.80, hook_cam, hook_tgt, 64.0),
-            )
-            cam, target, lens = keys[-1][1], keys[-1][2], keys[-1][3]
-            span_u = 1.0
-            for (t0, c0, g0, l0), (t1, c1, g1, l1) in zip(keys, keys[1:]):
-                if t <= t1:
-                    span_u = _fade(t, t0, t1)
-                    cam = _lerp(c0, c1, span_u)
-                    target = _lerp(g0, g1, span_u)
-                    lens = l0 + (l1 - l0) * span_u
-                    break
-            penny = _lerp(penny, ledge_penny, _fade(t, 30.80, 32.80))
+            # About three seconds on the tower, and the camera is already
+            # pushing in. The time that used to be a locked hold is the glide.
+            drift = _fade(t, 24.05, 27.0)
+            wide = _lerp((520.0, -180.0, 95.0), (400.0, -145.0, 140.0), drift)
+            wide_tgt = _lerp((2.0, -6.0, 210.0), (5.0, -1.0, 255.0), drift)
+            wide_lens = 24.0 + (28.0 - 24.0) * drift
+            if t < 27.0:
+                cam, target, lens = wide, wide_tgt, wide_lens
+            else:
+                keys = (
+                    (27.0, _lerp((520.0, -180.0, 95.0), (400.0, -145.0, 140.0), 1.0),
+                     _lerp((2.0, -6.0, 210.0), (5.0, -1.0, 255.0), 1.0), 28.0),
+                    (29.6, (130.0, -36.0, 230.0), (8.0, 1.0, 290.0), 36.0),
+                    (32.80, hook_cam, hook_tgt, 64.0),
+                )
+                cam, target, lens = keys[-1][1], keys[-1][2], keys[-1][3]
+                for (t0, c0, g0, l0), (t1, c1, g1, l1) in zip(keys, keys[1:]):
+                    if t <= t1:
+                        span_u = _fade(t, t0, t1)
+                        cam = _lerp(c0, c1, span_u)
+                        target = _lerp(g0, g1, span_u)
+                        lens = l0 + (l1 - l0) * span_u
+                        break
+            penny = _lerp(penny, ledge_penny, _fade(t, 27.60, 32.80))
         if t >= 32.80:
             cam, target, penny, lens = hook_cam, hook_tgt, ledge_penny, 64.0
         cam = clear_of_shaft(cam, 1.2)

@@ -135,19 +135,26 @@ class PennyTest(unittest.TestCase):
         self.assertLess(self._at(22.0).cam[2], 3.0)
         self.assertGreater(self._at(25.0).cam[2], 40.0)
 
-    def test_glide_lasts_two_seconds(self):
+    def test_early_fall_stands_off_the_wall(self):
+        fr = self._at(4.0)
+        gap = sum((fr.cam[i] - fr.penny[i]) ** 2 for i in range(3)) ** 0.5
+        self.assertGreater(gap, 1.8)
+        self.assertGreater(fr.cam[2], fr.penny[2] + 0.5)
+
+    def test_wide_drifts_and_the_glide_gets_the_time(self):
         opening = self.ep.frames[0]
 
         def dist(fr):
             return sum((fr.cam[i] - opening.cam[i]) ** 2 for i in range(3)) ** 0.5
 
-        far = self._at(30.9)
-        mid = self._at(32.1)
-        near = self._at(33.0)
-        self.assertGreater(dist(far), 200.0)
-        self.assertLess(dist(mid), dist(far))
-        self.assertLess(dist(near), dist(mid))
-        self.assertLess(dist(self._at(33.25)), 15.0)
+        early = self._at(24.3)
+        late = self._at(26.6)
+        self.assertGreater(early.cam[2], 80.0)
+        self.assertGreater(late.cam[2], 80.0)
+        moved = sum(abs(early.cam[i] - late.cam[i]) for i in range(3))
+        self.assertGreater(moved, 20.0)
+        self.assertLess(dist(self._at(29.5)), dist(late))
+        self.assertLess(dist(self._at(33.1)), 2.0)
 
 
 class SlateTest(unittest.TestCase):
