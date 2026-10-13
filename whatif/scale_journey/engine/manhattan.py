@@ -881,16 +881,16 @@ def _pave_landing():
         "Concrete010_2K-JPG_Color.jpg",
         "Concrete010_2K-JPG_Roughness.jpg",
         "Concrete010_2K-JPG_NormalGL.jpg",
-        0.09,
-        0.09,
+        0.55,
+        0.55,
     )
     road = _map_ground(
         "RoadAsphalt",
         "Road007_1K-JPG_Color.jpg",
         "Road007_1K-JPG_Roughness.jpg",
         "Road007_1K-JPG_NormalGL.jpg",
-        0.12,
-        0.14,
+        0.42,
+        0.42,
         swap=True,
     )
     def _thin(empty, thickness):
@@ -929,14 +929,14 @@ def _pave_landing():
 
     paved = 0
     if asphalt is not None:
-        # 34th Street north of the tower, clear of the podium.
-        for x in range(-24, 72, 9):
-            for y in range(72, 114, 9):
-                stamp(asphalt, x, y, 0.0, 0.02)
+        # Cover the plaza and the streets the low chase looks down on.
+        # The tower shaft itself stays clear.
+        for x in range(-81, 162, 8):
+            for y in range(-18, 171, 8):
+                if -36.0 < x < 48.0 and -78.0 < y < 58.0:
+                    continue
+                stamp(asphalt, x, y, 0.0, 0.05)
                 paved += 1
-        for y in range(72, 114, 9):
-            stamp(asphalt, 50.0, y, 1.5708, 0.02)
-            paved += 1
         asphalt.location.z = -400.0
     if walk is not None:
         # One flat field under the camera and the man, so no near riser

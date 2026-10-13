@@ -1648,12 +1648,12 @@ def _deck_rail():
     height = max(span[2], 0.2)
     scale = 1.85 / height
     # Curved safety rail on the 86th-floor parapet, just outside the coin.
-    cx, cy, z = 12.15, 4.45, 317.2
+    cx, cy, z = 10.7, 3.85, 317.25
     count = 0
-    for index in range(9):
-        ang = 0.15 + index * 0.18
-        x = cx + math.cos(ang) * 2.4
-        y = cy + math.sin(ang) * 2.4
+    for index in range(7):
+        ang = 0.35 + index * 0.22
+        x = cx + math.cos(ang) * 0.85
+        y = cy + math.sin(ang) * 0.85
         _stamp(proto, (x, y, z), ang + math.pi * 0.5, scale)
         count += 1
     proto.location.z = -400.0
@@ -1715,7 +1715,12 @@ def pose_frame(scene, cam, penny, arms, fr, speed=None):
     curr_penny = (fr["penny"][0] + gx, fr["penny"][1] + gy, fr["penny"][2] + 0.0015)
     target = (fr["target"][0] + gx, fr["target"][1] + gy, fr["target"][2])
     walk_frame = 12 + int(t * 24.0) % 40
-    scene.cycles.seed = int(fr["frame"])
+    if int(fr["frame"]) in (0, 1001):
+        prev_cam = [curr_cam[0], curr_cam[1], curr_cam[2]]
+        prev_penny = [curr_penny[0], curr_penny[1], curr_penny[2]]
+        walk_frame = 12
+    # Frame 0 and the last frame share a seed so the loop diff is the picture, not the noise.
+    scene.cycles.seed = 7 if int(fr["frame"]) in (0, 1001) else int(fr["frame"])
     _blur(
         scene,
         cam,
