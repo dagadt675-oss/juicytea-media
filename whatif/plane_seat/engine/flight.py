@@ -9,50 +9,34 @@ from __future__ import annotations
 
 import math
 
-from .aircraft import AMBER, BRIGHT, GREEN, RED, TRAVEL, TILE
+from .aircraft import AMBER, BRIGHT, GREEN, RED, ROUTE, TILE
 from .clock import DURATION, word_end, word_time
 
 # Camera keys: t, eye (plane-local metres), look-at, roll deg, lens mm.
-# Nose is +X, tail is -X, tube center near z=6. The path is periodic.
-# Every eye stays on the -Y side and above the wing, so the spline cannot
-# pass through the fuselage, the fin, or a wing. Roll stays 0: the horizon
-# is level and the jet sits upright in the 9:16 frame. t=0 matches the end.
+# One eased orbit, periodic: top-down hook → rear 3/4 → side → top-down
+# seat map → front 3/4 → the same top-down hook. Look targets sit below the
+# fuselage so the jet lands in the upper-middle; the bottom quarter is UI.
+# Roll stays 0. The first key matches the last key.
 CAM_KEYS = [
-    # High rear 3/4. The fuselage runs up the phone, the horizon stays level.
-    # Eyes stay above the wing (z >= 18) and off the fin (|y| >= 10).
-    (0.00, (-64.0, -8.0, 30.0), (0.0, 0.0, 6.2), 0.0, 26.0),
-    (2.60, (-60.0, -10.0, 28.0), (8.0, 0.0, 6.0), 0.0, 26.0),
-    (4.50, (-60.0, -9.0, 32.0), (8.0, 0.0, 6.0), 0.0, 24.0),
-    (7.20, (-58.0, -8.0, 28.0), (2.0, 0.0, 5.0), 0.0, 24.0),
-    (9.40, (-60.0, -8.0, 26.0), (4.0, 0.0, 5.5), 0.0, 24.0),
-    (11.40, (-50.0, -11.0, 42.0), (2.0, 0.0, 6.2), 0.0, 24.0),
-    (14.40, (-48.0, -10.0, 40.0), (1.0, 0.0, 6.4), 0.0, 24.0),
-    (17.40, (-50.0, -10.0, 38.0), (0.0, 0.0, 6.4), 0.0, 24.0),
-    # Stay on the rear 3/4 through the seat beats. A closer lens dropped the
-    # fuselage and left the chart on an empty ground colour.
-    (20.40, (-46.0, -12.0, 34.0), (1.0, 0.0, 6.5), 0.0, 22.0),
-    (23.40, (-42.0, -13.0, 32.0), (2.0, 0.0, 6.6), 0.0, 20.0),
-    (27.10, (-48.0, -13.0, 32.0), (-7.0, 0.0, 6.6), 0.0, 20.0),
-    (29.50, (-52.0, -11.0, 34.0), (0.0, 0.0, 6.4), 0.0, 24.0),
-    (32.55, (-64.0, -8.0, 30.0), (0.0, 0.0, 6.2), 0.0, 26.0),
+    (0.00, (-4.0, -2.0, 58.0), (-6.0, 0.0, 0.2), 0.0, 26.0),
+    (1.40, (-10.0, -8.0, 46.0), (-12.0, 0.0, 0.4), 0.0, 24.0),
+    (4.40, (-34.0, -20.0, 16.0), (2.0, 0.0, 0.5), 0.0, 22.0),
+    (8.20, (-26.0, -28.0, 16.0), (2.0, 0.0, 0.0), 0.0, 22.0),
+    (11.60, (-4.0, -3.0, 52.0), (-12.0, 0.0, 0.3), 0.0, 24.0),
+    (18.40, (-2.0, -2.5, 50.0), (-10.0, 0.0, 0.3), 0.0, 24.0),
+    (24.20, (38.0, -22.0, 15.0), (-4.0, 0.0, 1.0), 0.0, 20.0),
+    (29.40, (-2.0, -6.0, 48.0), (-12.0, 0.0, 0.4), 0.0, 25.0),
+    (32.81, (-4.0, -2.0, 58.0), (-6.0, 0.0, 0.2), 0.0, 26.0),
 ]
 
-# Metres above the ground. City roofs top out near 200 m, so 1,600 m is a
-# high approach rather than a rooftop pass. The mountain beat stays above
-# the range. The opening and the end match.
+# Cruise height eases a few tens of metres. The old 1,000 m jumps were the
+# plane leaping in frame at each biome cut.
 ALT_KEYS = [
-    (0.00, 1600.0),
-    (3.20, 1680.0),
-    (4.20, 1900.0),
-    (6.60, 700.0),
-    (9.60, 760.0),
-    (10.40, 2700.0),
-    (16.80, 2600.0),
-    (18.40, 1700.0),
-    (24.00, 1620.0),
-    (28.40, 1650.0),
-    (31.40, 1600.0),
-    (32.55, 1600.0),
+    (0.00, 560.0),
+    (8.00, 480.0),
+    (16.00, 620.0),
+    (24.00, 500.0),
+    (32.81, 560.0),
 ]
 
 PITCH_KEYS = [
@@ -206,20 +190,27 @@ def biome_at(t: float) -> str:
 
 
 def _zone_colors(t: float) -> dict:
-    """Front and middle stay the same amber. Scatter is a per-seat mix in the shader."""
-    aisle = _smooth(word_time(41), word_time(41) + 0.16, t) * (1.0 - _smooth(24.20, 24.50, t))
-    best = _smooth(word_time(47), word_time(47) + 0.14, t) * (1.0 - _smooth(28.85, 29.20, t))
-
-    def mix(a, b, u):
-        return tuple(ai + (bi - ai) * u for ai, bi in zip(a, b))
-
+    """Red / yellow / green from the first frame. Numbers are the VO script:
+    front 38 and middle 39 yellow, aisle 44 red, back 32 and best 28 green.
+    """
+    del t
     return {
         "front": AMBER,
         "mid": AMBER,
         "back": GREEN,
-        "worst": mix(AMBER, RED, aisle),
-        "best": mix(GREEN, BRIGHT, best),
+        "worst": RED,
+        "best": BRIGHT,
     }
+
+
+def _lid_open(t: float) -> float:
+    """1 = crown lifted. Opens and closes over more than a second, and the
+    loop starts and ends open so the hook matches the last frame."""
+    if t < 1.15 or t > 30.6:
+        return 1.0
+    if t < 8.50:
+        return 1.0 - _smooth(1.15, 2.70, t)
+    return _smooth(8.50, 10.40, t)
 
 
 def pose_at(t: float) -> dict:
@@ -230,29 +221,18 @@ def pose_at(t: float) -> dict:
     # Vertical only: a sideways drift can tuck the lens into a wing.
     drift_z = 0.18 * math.sin(2.0 * math.pi * t / DURATION)
     eye = (eye[0], eye[1], eye[2] + drift_z)
-    eye = _keep_clear(eye)
     alt = _sample([(k[0], (k[1],)) for k in ALT_KEYS], t)[0]
-    pitch = _sample([(k[0], (k[1],)) for k in PITCH_KEYS], t)[0]
-    roll = _sample([(k[0], (k[1],)) for k in ROLL_KEYS], t)[0]
-    yaw = 0.35 * math.sin(2.0 * math.pi * t / DURATION)
-
-    shake_amp = _gauss(t, word_time(44), 0.08, 1.0)
-    shake = (
-        shake_amp * 0.045 * math.sin(t * 86.0),
-        shake_amp * 0.03 * math.sin(t * 74.0 + 1.7),
-        shake_amp * 0.02 * math.sin(t * 91.0 + 0.4),
-    )
-    eye = _keep_clear(tuple(eye[i] + shake[i] for i in range(3)))
-
+    pitch = 0.0
+    roll = 0.0
+    yaw = 0.0
     cover = cloud_cover(t)
-    # The lens never enters the cabin. Seat beats are an open roof seen from
-    # outside, which is the only way to show the rows without a black frame.
     inside = False
-    xray = _window(t, 10.90, 17.95, 0.30, 0.35)
-    cutaway = _window(t, 19.20, 28.45, 0.30, 0.40) > 0.5
-    scatter = _smooth(word_time(59), word_time(59) + 0.10, t) * (1.0 - _smooth(word_time(63), word_time(63) + 0.05, t))
+    lid = _lid_open(t)
+    xray = 0.0
+    cutaway = lid > 0.35
+    scatter = 0.0
     colors = _zone_colors(t)
-    distance = TRAVEL * (t / DURATION)
+    distance = ROUTE * (t / DURATION)
 
     t17 = word_time(17)
     t17_end = word_end(17)
@@ -279,7 +259,8 @@ def pose_at(t: float) -> dict:
         "cutaway": cutaway,
         "scroll": distance % TILE,
         "distance": distance,
-        "explode": 0.50 * _smooth(10.55, 11.20, t) * (1.0 - _smooth(17.20, 17.80, t)),
+        "explode": 0.0,
+        "lid": lid,
         "colors": colors,
         "strength": {
             "front": 1.0 + 1.15 * _gauss(t, word_time(11), 0.10) + 0.65 * _gauss(t, word_time(26), 0.16),
@@ -289,13 +270,13 @@ def pose_at(t: float) -> dict:
         "glint": _gauss(t, word_time(7), 0.16),
         "icons": icons,
         "icon_split": _smooth(word_time(21), word_time(21) + 0.18, t),
-        "show_card": _window(t, word_time(15), 9.70),
-        "show_17": _window(t, word_time(17), 9.55, 0.08, 0.25),
-        "show_38": _window(t, word_time(26), 17.70),
-        "show_39": _window(t, word_time(31), 17.85),
-        "show_32": _window(t, word_time(34), 18.05),
-        "show_44": _window(t, word_time(44), 24.15, 0.06, 0.18),
-        "show_28": _window(t, word_time(54), 28.45, 0.06, 0.20),
+        "show_title": _window(t, 0.0, 1.25, 0.0, 0.22) + _window(t, 31.55, 32.81, 0.30, 0.0),
+        "show_17": _window(t, 4.45, 9.55, 0.12, 0.20),
+        "show_38": _window(t, 2.95, 4.45, 0.12, 0.16) + _window(t, 10.20, 12.70, 0.12, 0.20),
+        "show_39": _window(t, word_time(31), 15.50, 0.12, 0.20),
+        "show_32": _window(t, 1.45, 2.95, 0.12, 0.16) + _window(t, 7.50, 9.00, 0.12, 0.16) + _window(t, word_time(34), 19.20, 0.12, 0.18),
+        "show_44": _window(t, 19.40, word_end(44) + 0.35, 0.12, 0.22),
+        "show_28": _window(t, word_time(54), word_end(54) + 0.45, 0.12, 0.22),
         "show_x": _window(t, word_time(11), word_time(11) + 0.48, 0.03, 0.16),
         "flare": min(1.0, 0.12 + 0.9 * _gauss(t, word_time(8), 0.16) + 0.75 * _gauss(t, 24.78, 0.18)),
         "beacon": 0.25 + 0.75 * max(0.0, math.cos(2.0 * math.pi * (t / DURATION) * 28.0)) ** 8,

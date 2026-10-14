@@ -131,7 +131,7 @@ def _world():
     nt.links.new(coord.outputs["Generated"], mapping.inputs["Vector"])
     nt.links.new(mapping.outputs["Vector"], env.inputs["Vector"])
     nt.links.new(env.outputs["Color"], bg.inputs["Color"])
-    bg.inputs["Strength"].default_value = 0.55
+    bg.inputs["Strength"].default_value = 1.05
     env.image = bpy.data.images.load(str(HDRI_DIR / SKY_FILES["city"]), check_existing=True)
     mapping.inputs["Rotation"].default_value[2] = SKY_TURN["city"]
     return env, mapping, bg
@@ -177,7 +177,7 @@ def _terrain(name, image, roughness=0.92, tint=(1, 1, 1), warmth=0.22, scale=0.0
         noise.inputs["Detail"].default_value = 1.0
         noise.inputs["Roughness"].default_value = 0.45
         nt.links.new(coord.outputs["Generated"], noise.inputs["Vector"])
-        noise.inputs["Scale"].default_value = 220.0
+        noise.inputs["Scale"].default_value = 7.0
         dunes_col = _mix_rgb(nt, noise.outputs["Fac"], (0.45, 0.28, 0.16, 1), (0.93, 0.78, 0.55, 1))
         mixed = _mix_rgb(nt, None, tex.outputs["Color"], dunes_col.outputs["Color"])
         mixed.inputs["Fac"].default_value = 0.88
@@ -425,9 +425,9 @@ def _polish_paint(mat):
     if bsdf is None:
         return
     if "Coat Weight" in bsdf.inputs:
-        bsdf.inputs["Coat Weight"].default_value = 0.42
+        bsdf.inputs["Coat Weight"].default_value = 0.78
     if "Coat Roughness" in bsdf.inputs:
-        bsdf.inputs["Coat Roughness"].default_value = 0.12
+        bsdf.inputs["Coat Roughness"].default_value = 0.06
     if "Specular IOR Level" in bsdf.inputs:
         bsdf.inputs["Specular IOR Level"].default_value = 0.55
     if "Base Color" not in bsdf.inputs or not bsdf.inputs["Base Color"].is_linked:
@@ -681,9 +681,32 @@ def _load_plane(root):
         for face in bm.faces:
             c = face.calc_center_median()
             # Open the crown of the tube only. The fin is farther aft (local +Y).
-            if abs(c.x) < 3.15 and c.z > 6.85 and -28.0 < c.y < 16.0:
+            if abs(c.x) < 3.55 and c.z > 4.6 and -30.0 < c.y < 18.0:
                 kill.append(face)
+        lid = None
         if kill:
+            lid_bm = bmesh.new()
+            copied = {}
+            for face in kill:
+                verts = []
+                for vert in face.verts:
+                    if vert not in copied:
+                        copied[vert] = lid_bm.verts.new(vert.co)
+                    verts.append(copied[vert])
+                try:
+                    lid_bm.faces.new(verts)
+                except ValueError:
+                    pass
+            lid_mesh = bpy.data.meshes.new("FuselageLid")
+            lid_bm.to_mesh(lid_mesh)
+            lid_bm.free()
+            for mat in opened.data.materials:
+                lid_mesh.materials.append(mat)
+            lid = bpy.data.objects.new("FuselageLid", lid_mesh)
+            lid.parent = empty
+            lid.matrix_parent_inverse = parent_inverse
+            lid.hide_render = True
+            _link(lid)
             bmesh.ops.delete(bm, geom=kill, context="FACES")
         bm.to_mesh(opened.data)
         bm.free()
@@ -692,7 +715,8 @@ def _load_plane(root):
         print("cutaway faces", len(kill))
     else:
         opened = None
-    return empty, skin_nodes, body, opened, glass_facs
+        lid = None
+    return empty, skin_nodes, body, opened, glass_facs, lid
 
 
 def _labels(root):
@@ -702,18 +726,18 @@ def _labels(root):
     # (text, color, location, em size)
     # Inboard of the tube so a 3/4 view keeps every plate inside the portrait frame.
     specs = {
-        # Camera stays on the -Y side. Cards sit just off the tube, above the
-        # crown, so a level 3/4 sees them upright and inside the safe zone.
-        # Em size 3.2 is about 3.7 m of card height, over 5% of the 9:16 frame
-        # from the rear 3/4 (about 50 m away, 22 mm lens).
-        "l38": ("38%", AMBER, (12.0, -5.2, 15.0), 3.2),
-        "l39": ("39%", AMBER, (1.2, -5.2, 15.0), 3.2),
-        "l32": ("32%", GREEN, (-9.0, -5.2, 15.0), 3.2),
-        "l44": ("44%", RED, (2.2, -5.2, 14.4), 3.2),
-        "l28": ("28%", BRIGHT, (-8.4, -5.2, 14.4), 3.2),
+        # Beside the zone, not stacked in the sky. Em 3.6 is about 4 m of
+        # plate, over 6% of the 9:16 frame from the orbit (about 40 m, 20 mm).
+        # Anchor is where the leader meets the cabin.
+        "l38": ("38%", AMBER, (4.0, -6.5, 6.5), 2.8, (11.0, -1.5, 3.2)),
+        "l39": ("39%", AMBER, (1.5, -4.4, 4.8), 2.8, (1.5, -1.5, 3.2)),
+        "l32": ("32%", GREEN, (-8.5, -4.4, 4.8), 2.8, (-8.5, -1.5, 3.2)),
+        "l44": ("44%", RED, (1.5, -8.5, 8.0), 2.8, (1.5, -0.5, 3.0)),
+        "l28": ("28%", BRIGHT, (-8.5, -4.6, 4.2), 2.8, (-8.5, 0.0, 3.0)),
+        "l17": ("17", AMBER, (8.0, -6.0, 6.2), 2.6, (10.0, -1.6, 3.4)),
     }
     out = {}
-    for key, (text, color, loc, size) in specs.items():
+    for key, (text, color, loc, size, anchor) in specs.items():
         holder = bpy.data.objects.new(key, None)
         holder.parent = root
         holder.location = loc
@@ -741,6 +765,23 @@ def _labels(root):
         plate.parent = holder
         plate.data.materials.append(_emission(key + "Bg", (0.02, 0.015, 0.02), 1.2))
         _link(plate)
+        lead = bpy.data.curves.new(key + "Lead", "CURVE")
+        lead.dimensions = "3D"
+        lead.bevel_depth = 0.07
+        lead.resolution_u = 2
+        spline = lead.splines.new("POLY")
+        spline.points.add(1)
+        spline.points[0].co = (0.0, 0.0, 0.0, 1.0)
+        spline.points[1].co = (
+            anchor[0] - loc[0],
+            anchor[1] - loc[1],
+            anchor[2] - loc[2],
+            1.0,
+        )
+        wire = bpy.data.objects.new(key + "Wire", lead)
+        wire.parent = holder
+        wire.data.materials.append(_emission(key + "WireM", color, 3.0))
+        _link(wire)
         out[key] = holder
     return out
 
@@ -1051,33 +1092,35 @@ def _snow_sheet(parent, mat):
 
 
 def _alps_range(parent):
-    """Soft snow hills plus the textured peak model.
-
-    The Gaea satellite shade and the square-based peak prop both read as
-    black-and-white noise at phone size, so they stay out of frame.
-    """
-    calm = _soft_snow_material()
-    _snow_sheet(parent, calm)
+    """Hub peaks on the mountain leg of the route. No white void sheet."""
+    calm = _hub_peak_material()
+    # The satellite shade flickers at phone size. Keep the hub mesh, drop the photo.
+    bsdf = next(n for n in calm.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+    for link in list(bsdf.inputs["Base Color"].links):
+        calm.node_tree.links.remove(link)
+    bsdf.inputs["Base Color"].default_value = (0.80, 0.83, 0.86, 1.0)
+    bsdf.inputs["Roughness"].default_value = 1.0
+    gaea, gaea_z = _import_mountain("gaea_range.glb", "GaeaRange", grade=False)
     textured, textured_z = _import_mountain("free_textured_mountain.glb", "TexturedPeak", grade=False)
-    for obj in textured.objects:
-        if obj.type != "MESH":
-            continue
-        obj.data.materials.clear()
-        obj.data.materials.append(calm)
-        _drop_custom_normals(obj.data)
-        for mod in list(obj.modifiers):
-            if mod.type == "SMOOTH":
-                mod.iterations = 16
-                mod.factor = 1.0
-    seats = [
-        (5200.0, -1400.0, 1.8, 0.4, 2.2),
-        (7800.0, 1600.0, 2.4, -0.5, 2.8),
-        (11000.0, -400.0, 3.0, 0.8, 3.4),
-        (3600.0, 2200.0, 1.4, 1.2, 1.8),
-    ]
-    for x, y, scale, yaw, zs in seats:
+    for col in (gaea, textured):
+        for obj in col.objects:
+            if obj.type != "MESH":
+                continue
+            obj.data.materials.clear()
+            obj.data.materials.append(calm)
+            _drop_custom_normals(obj.data)
+            for mod in list(obj.modifiers):
+                if mod.type == "SMOOTH":
+                    mod.iterations = 4
+                    mod.factor = 0.6
+    _place_mountain(parent, gaea, gaea_z, 0.0, 200.0, 1400.0, 0.2, z_scale=1100.0)
+    for x, y, scale, yaw, zs in (
+        (-700.0, -800.0, 1.6, 0.4, 2.0),
+        (800.0, 600.0, 2.0, -0.3, 2.4),
+        (200.0, -1400.0, 1.3, 0.8, 1.6),
+    ):
         _place_mountain(parent, textured, textured_z, x, y, scale, yaw, z_scale=zs)
-    print("soft peaks", len(seats))
+    print("route peaks")
 
 
 REAL_TREES = Path("/workspace/assets/found/trees/realistic")
@@ -1108,9 +1151,9 @@ def _forest_trees(parent):
     # A close stand under the chase camera at t≈7.4 (the tile has scrolled ~1 km).
     ground_z = -2.0
     # Wide enough that the chase at t≈7.4 (scroll ~1.08 km) sees canopy, not one clump.
-    cols = 110
-    rows = 42
-    spacing = 26.0
+    cols = 36
+    rows = 14
+    spacing = 42.0
     x0 = -500.0
     lods = {}
 
@@ -1135,7 +1178,7 @@ def _forest_trees(parent):
         obj.data = src.data
         obj.parent = parent
         obj.hide_render = False
-        metres = 22.0 + (i % 7) * 3.4
+        metres = 46.0 + (i % 7) * 6.0
         scale = metres / max(height, 0.1)
         base = min(vert.co.z for vert in src.data.vertices) if src.data.vertices else 0.0
         # Break the rows so the canopy is not a plantation grid.
@@ -1296,39 +1339,28 @@ def _city_instances(parent):
     _move_to_collection(fresh, col)
     # The block is a few hundred metres across. From 1600 m the chase sees
     # many kilometres, so the same ready-made block is repeated out to the view.
-    # From 1600 m a nearly level ray hits the ground past 100 km. The near
-    # blocks stay at street scale. A larger copy of the same block fills
-    # the distance so the horizon is city, not a dirt band.
-    step_x, step_y = 640.0, 540.0
+    def spawn(prefix, x_center, scale, step_x, step_y, ix0, ix1, iy0, iy1, radius):
+        made = 0
+        for ix in range(ix0, ix1):
+            for iy in range(iy0, iy1):
+                inst = bpy.data.objects.new(f"{prefix}_{ix}_{iy}", None)
+                inst.instance_type = "COLLECTION"
+                inst.instance_collection = col
+                inst.parent = parent
+                inst.location = (x_center + ix * step_x, iy * step_y, 0.0)
+                inst.scale = (scale, scale, scale)
+                inst.rotation_euler[2] = ((ix * 3 + iy * 5) % 7) * 0.4
+                inst["cull"] = 1
+                inst["cull_radius"] = radius
+                _link(inst)
+                made += 1
+        return made
+
+    # Opening city and the identical copy one route-length ahead, so the
+    # flight arrives back on the same streets.
     count = 0
-    for ix in range(-6, 24):
-        for iy in range(-14, 15):
-            inst = bpy.data.objects.new(f"City_{ix}_{iy}", None)
-            inst.instance_type = "COLLECTION"
-            inst.instance_collection = col
-            inst.parent = parent
-            inst.location = (ix * step_x, iy * step_y, 0.0)
-            inst.scale = (3.8, 3.8, 3.8)
-            inst.rotation_euler[2] = ((ix * 3 + iy * 5) % 7) * 0.45
-            inst["cull"] = 1
-            inst["cull_radius"] = 900.0
-            _link(inst)
-            count += 1
-    far_scale = 12.0
-    far_x, far_y = 1700.0, 1600.0
-    for ix in range(0, 72):
-        for iy in range(-10, 11):
-            inst = bpy.data.objects.new(f"CityFar_{ix}_{iy}", None)
-            inst.instance_type = "COLLECTION"
-            inst.instance_collection = col
-            inst.parent = parent
-            inst.location = (16000.0 + ix * far_x, iy * far_y, 0.0)
-            inst.scale = (far_scale, far_scale, far_scale)
-            inst.rotation_euler[2] = ((ix * 2 + iy * 3) % 6) * 0.5
-            inst["cull"] = 1
-            inst["cull_radius"] = 2200.0
-            _link(inst)
-            count += 1
+    for center in (0.0, 12000.0):
+        count += spawn("Near", center, 3.4, 520.0, 480.0, -4, 5, -5, 6, 700.0)
     print("city blocks", count)
 
 
@@ -1344,12 +1376,115 @@ def _ocean_object():
     waves.choppiness = 1.05
     waves.wave_alignment = 0.2
     waves.wind_velocity = 16.0
-    waves.repeat_x = 10
-    waves.repeat_y = 10
-    obj.scale = (70.0, 70.0, 4.0)
+    waves.repeat_x = 3
+    waves.repeat_y = 3
+    obj.scale = (14.0, 14.0, 2.2)
+    obj.location.z = 4.0
     obj.data.materials.append(_ocean_mat())
     obj["ground"] = 1
     return obj
+
+
+def _mesh_clouds(track):
+    """Soft banks the camera flies through at the leg changes. Surface only."""
+    mat = bpy.data.materials.new("RouteCloud")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
+    bsdf.inputs["Base Color"].default_value = (0.95, 0.96, 0.98, 1.0)
+    bsdf.inputs["Roughness"].default_value = 0.7
+    if "Alpha" in bsdf.inputs:
+        bsdf.inputs["Alpha"].default_value = 0.55
+    trans = nt.nodes.new("ShaderNodeBsdfTransparent")
+    mix = nt.nodes.new("ShaderNodeMixShader")
+    noise = nt.nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 1.6
+    noise.inputs["Detail"].default_value = 2.0
+    coord = nt.nodes.new("ShaderNodeTexCoord")
+    nt.links.new(coord.outputs["Object"], noise.inputs["Vector"])
+    thin = nt.nodes.new("ShaderNodeMath")
+    thin.operation = "MULTIPLY"
+    thin.inputs[1].default_value = 0.22
+    nt.links.new(noise.outputs["Fac"], thin.inputs[0])
+    nt.links.new(thin.outputs["Value"], mix.inputs["Fac"])
+    nt.links.new(trans.outputs["BSDF"], mix.inputs[1])
+    nt.links.new(bsdf.outputs["BSDF"], mix.inputs[2])
+    nt.links.new(mix.outputs["Shader"], out.inputs["Surface"])
+    try:
+        mat.blend_method = "BLEND"
+    except (AttributeError, TypeError):
+        pass
+    for x, y, z, sx, sy, sz in (
+        (1500.0, 80.0, 540.0, 260.0, 180.0, 40.0),
+        (3400.0, -60.0, 500.0, 240.0, 160.0, 36.0),
+        (5600.0, 40.0, 600.0, 280.0, 180.0, 32.0),
+        (7800.0, -40.0, 520.0, 250.0, 170.0, 38.0),
+        (10200.0, 0.0, 560.0, 270.0, 190.0, 40.0),
+    ):
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=8, radius=1.0)
+        obj = bpy.context.active_object
+        obj.name = "RouteCloud"
+        obj.parent = track
+        obj.location = (x, y, z)
+        obj.scale = (sx, sy, sz)
+        obj.data.materials.append(mat)
+        obj.visible_shadow = False
+
+
+def _horizon_sheet(track):
+    """One ground under the whole route so a side view never looks off the edge."""
+    mesh = bpy.data.meshes.new("Horizon")
+    x0, x1, y = -6000.0, 18000.0, 14000.0
+    z = -6.0
+    mesh.from_pydata(
+        [(x0, -y, z), (x1, -y, z), (x1, y, z), (x0, y, z)],
+        [],
+        [(0, 1, 2, 3)],
+    )
+    mat = bpy.data.materials.new("HorizonM")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
+    coord = nt.nodes.new("ShaderNodeTexCoord")
+    sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+    span = nt.nodes.new("ShaderNodeMapRange")
+    span.inputs["From Min"].default_value = 0.0
+    span.inputs["From Max"].default_value = 12000.0
+    ramp = nt.nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].position = 0.0
+    ramp.color_ramp.elements[0].color = (0.45, 0.42, 0.38, 1.0)
+    ramp.color_ramp.elements[1].position = 1.0
+    ramp.color_ramp.elements[1].color = (0.45, 0.42, 0.38, 1.0)
+    stops = (
+        (0.16, (0.22, 0.38, 0.16, 1.0)),
+        (0.36, (0.72, 0.75, 0.78, 1.0)),
+        (0.55, (0.12, 0.32, 0.48, 1.0)),
+        (0.74, (0.72, 0.55, 0.32, 1.0)),
+        (0.90, (0.45, 0.42, 0.38, 1.0)),
+    )
+    for pos, color in stops:
+        el = ramp.color_ramp.elements.new(pos)
+        el.color = color
+    noise = nt.nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 0.4
+    noise.inputs["Detail"].default_value = 2.0
+    mix = nt.nodes.new("ShaderNodeMixRGB")
+    mix.blend_type = "MULTIPLY"
+    mix.inputs["Fac"].default_value = 0.25
+    nt.links.new(coord.outputs["Object"], sep.inputs["Vector"])
+    nt.links.new(sep.outputs["X"], span.inputs["Value"])
+    nt.links.new(span.outputs["Result"], ramp.inputs["Fac"])
+    nt.links.new(coord.outputs["Object"], noise.inputs["Vector"])
+    nt.links.new(ramp.outputs["Color"], mix.inputs["Color1"])
+    nt.links.new(noise.outputs["Color"], mix.inputs["Color2"])
+    nt.links.new(mix.outputs["Color"], bsdf.inputs["Base Color"])
+    bsdf.inputs["Roughness"].default_value = 0.95
+    mesh.materials.append(mat)
+    obj = bpy.data.objects.new("Horizon", mesh)
+    obj.parent = track
+    _link(obj)
 
 
 def _biome_tiles():
@@ -1372,7 +1507,8 @@ def _biome_tiles():
             ground = bpy.data.objects.new("MountainAnchor", None)
         else:
             image, tint = photos[name]
-            ground = _big_plane(name + "Ground", 160000.0 if name == "city" else 48000.0)
+            span = {"city": 1500.0, "forest": 1200.0, "desert": 1100.0, "cloudsea": 400.0}[name]
+            ground = _big_plane(name + "Ground", span)
             if name == "forest":
                 mat, _mapping = _terrain(name + "M", image, tint=(0.2, 0.42, 0.12), warmth=0.42, scale=0.01, shade=0.12)
             elif name == "desert":
@@ -1384,30 +1520,83 @@ def _biome_tiles():
             ground.data.materials.append(mat)
         _link(ground, a)
         copies[name] = (a, b)
+    # One track. Sections sit on it in flight order and scroll together.
+    # Nothing is swapped on. The closing city is a copy of the opening city.
+    track = bpy.data.objects.new("WorldTrack", None)
+    _link(track)
+    centers = {
+        "city": 0.0,
+        "forest": 2200.0,
+        "mountains": 4400.0,
+        "ocean": 6600.0,
+        "desert": 8800.0,
+        "cloudsea": 10400.0,
+    }
+    for name, (a, _b) in copies.items():
+        a.parent = track
+        a.location.x = centers[name]
+    city_ground = None
+    for child in copies["city"][0].children:
+        if child.type == "MESH":
+            city_ground = child
+            break
+    if city_ground is not None:
+        loop_ground = city_ground.copy()
+        loop_ground.data = city_ground.data
+        loop_ground.parent = copies["city"][0]
+        loop_ground.location.x = 12000.0
+        _link(loop_ground)
+    snow_mat = bpy.data.materials.new("RangeM")
+    snow_mat.use_nodes = True
+    snow_bsdf = next(n for n in snow_mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+    snow_bsdf.inputs["Base Color"].default_value = (0.78, 0.81, 0.84, 1.0)
+    snow_bsdf.inputs["Roughness"].default_value = 0.95
+    snow = _big_plane("RangeGround", 1400.0)
+    snow.data.materials.append(snow_mat)
+    _link(snow, copies["mountains"][0])
     _alps_range(copies["mountains"][0])
     _city_instances(copies["city"][0])
     _forest_trees(copies["forest"][0])
+    _horizon_sheet(track)
+    _mesh_clouds(track)
+    copies["cloudsea"][0].hide_render = True
+    for child in copies["cloudsea"][0].children:
+        child.hide_render = True
     cloud_root = bpy.data.objects.new("CloudField", None)
+    cloud_root.parent = track
+    cloud_root.hide_render = True
     _link(cloud_root)
-    # Puffy cumulus around the jet, with a gap along the fuselage and open sky between them.
-    # Density is per metre on a Principled Volume. A 16 m puff at 0.12 is optically thick
-    # enough to hold a shaded underside without turning into black smoke.
-    # Camera for the punch still sits near x=-70. These puffs stay in front of that eye.
-    bank = [
-        ((-22, -6, 10), (9, 7, 6), 0.32),
-        ((-6, 8, 14), (8, 6, 6), 0.26),
-        ((4, -8, 11), (9, 7, 6), 0.3),
-        ((16, 2, 16), (7, 6, 5), 0.2),
-        ((-12, 2, 18), (6, 5, 5), 0.18),
-        ((8, 12, 8), (7, 6, 5), 0.24),
-    ]
-    for loc, scale, density in bank:
-        _cumulus(cloud_root, loc, scale, density, "punch")
+    copies["_track"] = (track, track)
     shaft = _godrays()
     shaft.parent = cloud_root
     copies["_godrays"] = (shaft, shaft)
     copies["_clouds"] = (cloud_root, cloud_root)
     return copies
+
+
+def _title_card(cam):
+    """Opening and closing line. Parented to the camera so it stays in the upper third."""
+    font_path = WHATIF / "scale_journey/assets/fonts/Anton-Regular.ttf"
+    font = bpy.data.fonts.load(str(font_path)) if font_path.is_file() else None
+    holder = bpy.data.objects.new("Title", None)
+    holder.parent = cam
+    # Camera looks down -Z, +Y is up. Sit above center, in front of the lens.
+    holder.location = (0.0, 1.05, -3.1)
+    holder.rotation_euler = (0.0, 0.0, 0.0)
+    _link(holder)
+    curve = bpy.data.curves.new("TitleText", "FONT")
+    curve.body = "WHERE'S THE\nSAFEST SEAT?"
+    curve.align_x = "CENTER"
+    curve.align_y = "CENTER"
+    curve.size = 0.24
+    curve.extrude = 0.004
+    if font:
+        curve.font = font
+    glyphs = bpy.data.objects.new("TitleGlyph", curve)
+    glyphs.parent = holder
+    glyphs.data.materials.append(_emission("TitleM", (1.0, 0.96, 0.9), 6.0))
+    _link(glyphs)
+    return holder
 
 
 def build_scene():
@@ -1441,7 +1630,8 @@ def build_scene():
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGB"
     scene.render.image_settings.compression = 3
-    scene.view_settings.exposure = -0.55
+    scene.view_settings.exposure = -0.15
+    scene.render.use_motion_blur = False
     scene.view_settings.view_transform = "AgX"
     try:
         scene.view_settings.look = "AgX - High Contrast"
@@ -1450,14 +1640,14 @@ def build_scene():
     env, sky_map, sky_bg = _world()
     _mist(scene)
     root = _link(bpy.data.objects.new("AircraftRoot", None))
-    plane, skin_nodes, body, opened, glass_facs = _load_plane(root)
+    plane, skin_nodes, body, opened, glass_facs, lid = _load_plane(root)
     cabin, seats, shell = _load_cabin(root)
     biomes = _biome_tiles()
     labels = _labels(root)
     sun = bpy.data.lights.new("Sun", "SUN")
-    sun.energy = 6.5
-    sun.angle = math.radians(1.8)
-    sun.color = (1.0, 0.48, 0.18)
+    sun.energy = 4.2
+    sun.angle = math.radians(1.2)
+    sun.color = (1.0, 0.94, 0.84)
     sun_obj = bpy.data.objects.new("Sun", sun)
     # Low warm key from the front-right, so the white paint holds a shadow.
     sun_obj.rotation_euler = (math.radians(62), math.radians(-12), math.radians(-35))
@@ -1485,6 +1675,7 @@ def build_scene():
     cam_data.clip_end = 50000.0
     cam = _link(bpy.data.objects.new("Cam", cam_data))
     scene.camera = cam
+    title = _title_card(cam)
     print("scene ready", "plane", plane.name, "seats", len(seats))
     return {
         "root": root,
@@ -1496,6 +1687,9 @@ def build_scene():
         "glass_facs": glass_facs,
         "body": body,
         "opened": opened,
+        "lid": lid,
+        "title": title,
+        "track": biomes.get("_track", (None, None))[0],
         "labels": labels,
         "biomes": biomes,
         "cam": cam,
@@ -1584,68 +1778,19 @@ def apply_pose(state, pose):
         math.radians(pose["pitch"]),
         math.radians(pose["yaw"]),
     )
-    phase = pose["scroll"]
-    biome = pose["biome"]
-    env = state.get("env")
-    if env is not None:
-        sky_name = SKY_FILES.get(biome, SKY_FILES["city"])
-        image = _sky_image(sky_name)
-        if env.image != image:
-            env.image = image
-        state["sky_map"].inputs["Rotation"].default_value[2] = SKY_TURN.get(biome, 0.0)
+    track = state.get("track")
+    if track is not None:
+        # The whole route slides past the jet. No biome is hidden or swapped.
+        track.location.x = -float(pose["distance"])
     if state.get("sky_bg") is not None:
-        state["sky_bg"].inputs["Strength"].default_value = float(pose.get("sky", 0.55))
-    sun = state.get("sun")
-    if sun is not None:
-        if biome == "mountains":
-            sun.rotation_euler = (math.radians(78), math.radians(-8), math.radians(-50))
-            sun.data.energy = 8.0
-            sun.data.color = (1.0, 0.86, 0.62)
-        elif pose.get("clouds") == "punch":
-            sun.rotation_euler = (math.radians(42), math.radians(-8), math.radians(-18))
-            sun.data.energy = 22.0
-            sun.data.color = (1.0, 0.99, 0.96)
-        elif biome == "forest":
-            sun.rotation_euler = (math.radians(58), math.radians(-10), math.radians(-30))
-            sun.data.energy = 9.0
-            sun.data.color = (1.0, 0.9, 0.72)
-        elif biome == "desert":
-            sun.rotation_euler = (math.radians(58), math.radians(-10), math.radians(-28))
-            sun.data.energy = 7.0
-            sun.data.color = (1.0, 0.72, 0.48)
-        elif biome == "ocean":
-            sun.rotation_euler = (math.radians(58), math.radians(-8), math.radians(-24))
-            sun.data.energy = 6.0
-            sun.data.color = (1.0, 0.82, 0.64)
-        else:
-            sun.rotation_euler = (math.radians(55), math.radians(-8), math.radians(-24))
-            sun.data.energy = 6.0
-            sun.data.color = (1.0, 0.86, 0.7)
-    cloud_mode = pose.get("clouds") or ("punch" if pose.get("cloud", 0.0) > 0.72 else "deck")
-    if pose.get("inside") or pose.get("interior") or state.get("fast"):
-        cloud_mode = "off"
+        state["sky_bg"].inputs["Strength"].default_value = 1.05
     for name, (a, b) in state["biomes"].items():
-        if name == "_godrays":
-            a.hide_render = state.get("fast") or not bool(pose.get("cutaway"))
+        if name in ("_godrays", "_clouds", "_track"):
+            a.hide_render = True
             continue
-        if name == "_clouds":
-            # Stay with the jet (the jet itself does not translate). Deck vs punch.
-            a.location = (0.0, 0.0, pose["altitude"])
-            xray_now = float(pose.get("xray", 0.0))
-            for child in a.children:
-                kind = child.get("kind", "deck")
-                if kind == "vortex":
-                    child.hide_render = bool(pose.get("interior")) or xray_now > 0.25
-                else:
-                    child.hide_render = cloud_mode != "all" and kind != cloud_mode
+        if track is not None:
+            b.hide_render = True
             continue
-        show = name == biome
-        a.hide_render = not show
-        b.hide_render = True
-        for child in a.children_recursive:
-            child.hide_render = not show
-        a.location.x = -phase
-        b.location.x = -phase + TILE
     xray = max(0.0, min(1.0, float(pose.get("xray", 0.0))))
     alpha = 1.0 - 0.96 * xray
     glassy = (0.62, 0.78, 0.88)
@@ -1664,9 +1809,11 @@ def apply_pose(state, pose):
     for fac in state.get("glass_facs") or []:
         fac.default_value = xray
     interior = bool(pose.get("interior"))
-    cutaway = bool(pose.get("cutaway")) and not interior
+    lid_amt = max(0.0, min(1.0, float(pose.get("lid", 0.0))))
+    cutaway = lid_amt > 0.04 and not interior
     body = state.get("body")
     opened = state.get("opened")
+    lid_obj = state.get("lid")
     for obj in state.get("plane_meshes") or []:
         if "gear" in obj.name.lower():
             obj.hide_render = True
@@ -1682,12 +1829,19 @@ def apply_pose(state, pose):
         body.hide_render = interior or cutaway
     if opened is not None:
         opened.hide_render = interior or not cutaway
+    if lid_obj is not None:
+        lid_obj.hide_render = interior or not cutaway
+        # Local +Z is up on the fuselage. The crown lifts instead of vanishing.
+        # Slide the crown off to the side. Lifting it straight up puts the
+        # roof between a top-down lens and the seats, so the cabin stays hidden.
+        lid_obj.location.x = lid_amt * 16.0
+        lid_obj.location.z = lid_amt * 2.5
     for obj in state["shell"]:
         obj.hide_render = not interior
     light = state.get("cabin_light")
     if light is not None:
         light.energy = 1800.0 if interior else 0.0
-    show_seats = interior or cutaway or xray > 0.05
+    show_seats = interior or lid_amt > 0.15 or xray > 0.05
     for seat in state["seats"]:
         seat.hide_render = not show_seats
     # Seat X is rebuilt from the row index each frame.
@@ -1717,7 +1871,14 @@ def apply_pose(state, pose):
         "l32": pose.get("show_32", 0) > 0.4,
         "l44": pose.get("show_44", 0) > 0.4,
         "l28": pose.get("show_28", 0) > 0.4,
+        "l17": pose.get("show_17", 0) > 0.4,
     }
+    title = state.get("title")
+    if title is not None:
+        show_title = pose.get("show_title", 0) > 0.35
+        title.hide_render = not show_title
+        for child in title.children:
+            child.hide_render = not show_title
     parent_q = root.matrix_world.to_quaternion()
     for key, obj in (state.get("labels") or {}).items():
         visible = show.get(key, False)
