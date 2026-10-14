@@ -24,17 +24,20 @@ CUT_BACK = -6.61
 # Seat centres, left (+Y) then mirrored. Window, middle, aisle.
 SEAT_Y = (1.28, 0.78, 0.30)
 
-AMBER = (1.0, 0.56, 0.08)
-GREEN = (0.10, 0.92, 0.38)
-BRIGHT = (0.55, 1.0, 0.28)
-RED = (1.0, 0.14, 0.10)
+# Strict heat-map primaries. 38/39 are yellow, 44 is red, 32/28 are green.
+AMBER = (1.0, 0.84, 0.05)
+GREEN = (0.10, 0.72, 0.16)
+BRIGHT = (0.30, 0.92, 0.38)
+RED = (0.92, 0.08, 0.06)
 WHITE = (0.92, 0.90, 0.86)
 GOLD = (0.95, 0.72, 0.28)
 CHARCOAL = (0.16, 0.17, 0.19)
 
-# Ground tiles. Travel is an integer number of tiles so the seam repeats.
+# One continuous route. The aircraft flies exactly one loop, and the
+# closing kilometres are a copy of the opening city so frame 984 matches frame 1.
 TILE = 1200.0
 TRAVEL = 4800.0
+ROUTE = 12000.0
 
 
 def row_x(index: int) -> float:
