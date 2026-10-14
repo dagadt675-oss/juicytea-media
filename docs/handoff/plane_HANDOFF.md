@@ -16,7 +16,7 @@ What exists now:
 - Check stills for v6 are 540×960 Cycles JPEGs, frames 1, 110, 230, 430, 530, 710, 830, 984, in `v/plane_tests/checks/` and the `plane_review_v6` artifact folder. Do not start the final 984-frame render until Kristóf confirms.
 - The v6 animatic is `v/plane_seat_animatic.mp4`: 984 frames, 540×960, 30 fps, 32.80 s, H.264 CRF 30, about 1.6 MB. It is a 4-sample Cycles pass of this same scene. Finals are not packed. Wait for approval.
 - Older approval stills remain in `v/plane_tests/` (`00_hook` through `07_forest`). They were shot with the old aim and are not the film path.
-- Working branch: `cursor/plane-seat-review-v7-4316`. Final 984-frame render is still waiting on confirmation. The v7 review set is in `plane_review_v7`: eight 540×960 JPEGs (frames 1, 55, 200, 360, 430, 690, 830, 984) and `plane_v7_animatic.mp4` (984 frames, 540×960, 30 fps, CRF 30, about 3.5 MB).
+- Working branch: `cursor/plane-seat-review-v8-4316`. Final 984-frame render is still waiting on confirmation. The v7 review set stays in `plane_review_v7`. The v8 set is `plane_review_v8`.
 
 ## 2. Kristóf’s rules and rejected attempts
 
