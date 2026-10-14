@@ -7,9 +7,14 @@ are the line under them, at least 36px.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Dict, List, Tuple
 
-import skia
+try:
+    import skia
+except ImportError:
+    skia = None
 
 FONT_BLACK = Path(__file__).resolve().parents[2] / "fonts" / "Montserrat-Black.ttf"
 FONT_BOLD = "/usr/share/fonts/truetype/macos/Inter-Bold.ttf"
@@ -320,7 +325,7 @@ def area_stack(hud: Hud, title: str, km2: float, cx: float, cy: float, pop: floa
 
 
 def strike(canvas, rect, pop: float):
-    if rect is None or pop <= 0:
+    if rect is None or pop <= 0 or skia is None:
         return
     l, t, r, b = rect
     pen = skia.Paint(AntiAlias=True, Style=skia.Paint.kStroke_Style, StrokeWidth=8 * pop)
@@ -328,3 +333,113 @@ def strike(canvas, rect, pop: float):
     pen.setColor(skia.ColorSetARGB(int(230 * pop), 226, 40, 64))
     canvas.drawLine(l + 8, t + 8, r - 8, b - 8, pen)
     canvas.drawLine(l + 8, b - 8, r - 8, t + 8, pen)
+
+
+# High-contrast pills. Background and text fade as one layer, so a white
+# theme never flashes white text and a red theme never fades toward white.
+PILL_THEMES: Dict[str, Tuple[Tuple[int, int, int, int], Tuple[int, int, int, int]]] = {
+    "red": ((212, 38, 42, 248), (255, 255, 255, 255)),
+    "dark": ((16, 22, 34, 245), (255, 255, 255, 255)),
+    "blue": ((14, 116, 218, 248), (255, 255, 255, 255)),
+    "yellow": ((245, 197, 24, 250), (14, 18, 26, 255)),
+    "white": ((248, 250, 252, 250), (14, 18, 26, 255)),
+}
+
+
+@dataclass(frozen=True)
+class MapLabelItem:
+    text: str
+    lon: float
+    lat: float
+    enter_t: float
+    exit_t: float
+    color_rgba: Tuple[int, int, int, int] = (255, 255, 255, 255)
+    font_size: float = 38.0
+
+
+@dataclass(frozen=True)
+class PillBannerItem:
+    text: str
+    screen_x: float
+    screen_y: float
+    enter_t: float
+    exit_t: float
+    theme: str = "dark"
+
+
+def resolve_2d_label_collisions(
+    boxes: List[Tuple[float, float, float, float]],
+    min_gap_px: float = 14.0,
+    iterations: int = 12,
+) -> List[Tuple[float, float]]:
+    """Push overlapping label boxes apart. Returns adjusted centers."""
+    centers = [[float(b[0]), float(b[1])] for b in boxes]
+    sizes = [(float(b[2]), float(b[3])) for b in boxes]
+    count = len(boxes)
+    for _ in range(iterations):
+        moved = False
+        for i in range(count):
+            for j in range(i + 1, count):
+                dx = centers[j][0] - centers[i][0]
+                dy = centers[j][1] - centers[i][1]
+                overlap_x = (sizes[i][0] + sizes[j][0]) * 0.5 + min_gap_px - abs(dx)
+                overlap_y = (sizes[i][1] + sizes[j][1]) * 0.5 + min_gap_px - abs(dy)
+                if overlap_x > 0.0 and overlap_y > 0.0:
+                    moved = True
+                    if overlap_y <= overlap_x * 1.4:
+                        sign_y = 1.0 if dy >= 0.0 else -1.0
+                        shift = 0.52 * overlap_y * sign_y
+                        centers[i][1] -= shift
+                        centers[j][1] += shift
+                    else:
+                        sign_x = 1.0 if dx >= 0.0 else -1.0
+                        shift = 0.52 * overlap_x * sign_x
+                        centers[i][0] -= shift
+                        centers[j][0] += shift
+        if not moved:
+            break
+    return [
+        (max(110.0, min(880.0, c[0])), max(250.0, min(1200.0, c[1])))
+        for c in centers
+    ]
+
+
+def draw_pill_banner(canvas, pill_item: PillBannerItem, t: float) -> None:
+    """Rounded pill on one alpha layer so the fill and the ink fade together."""
+    if skia is None:
+        return
+    from .vfx_core import element_fade_and_exit_offset, label_pop_state
+
+    alpha, dx, dy = element_fade_and_exit_offset(
+        t, pill_item.enter_t, pill_item.exit_t, fade_in_s=0.30, fade_out_s=0.32
+    )
+    if alpha <= 0.01:
+        return
+    pop_scale, _ = label_pop_state(t - pill_item.enter_t, duration_s=0.30)
+    bg_rgba, fg_rgba = PILL_THEMES.get(pill_item.theme, PILL_THEMES["dark"])
+    typeface = skia.Typeface.MakeFromName("Inter", skia.FontStyle.Bold())
+    font = skia.Font(typeface, 40.0)
+    text_w = font.measureText(pill_item.text)
+    pad_x, pad_y = 28.0, 18.0
+    box_w = text_w + 2.0 * pad_x
+    box_h = 40.0 + 2.0 * pad_y
+    cx = max(80.0 + box_w * 0.5, min(890.0 - box_w * 0.5, pill_item.screen_x + dx))
+    cy = max(245.0 + box_h * 0.5, min(1210.0 - box_h * 0.5, pill_item.screen_y + dy))
+    canvas.save()
+    canvas.saveLayerAlphaf(None, float(alpha))
+    canvas.translate(cx, cy)
+    canvas.scale(pop_scale, pop_scale)
+    rect = skia.Rect.MakeLTRB(-box_w * 0.5, -box_h * 0.5, box_w * 0.5, box_h * 0.5)
+    bg_paint = skia.Paint(AntiAlias=True, Style=skia.Paint.kFill_Style, Color=skia.Color(*bg_rgba))
+    border_paint = skia.Paint(
+        AntiAlias=True,
+        Style=skia.Paint.kStroke_Style,
+        StrokeWidth=3.0,
+        Color=skia.Color(255, 255, 255, 55),
+    )
+    canvas.drawRoundRect(rect, 18.0, 18.0, bg_paint)
+    canvas.drawRoundRect(rect, 18.0, 18.0, border_paint)
+    fg_paint = skia.Paint(AntiAlias=True, Style=skia.Paint.kFill_Style, Color=skia.Color(*fg_rgba))
+    canvas.drawSimpleText(pill_item.text, -text_w * 0.5, 14.0, font, fg_paint)
+    canvas.restore()
+    canvas.restore()

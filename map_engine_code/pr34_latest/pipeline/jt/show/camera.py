@@ -1,41 +1,36 @@
 """
-Juicy Tea Map-Shorts Engine — Continuous C2 Camera, Single-Geometry Projection Morph & Hermite Loop.
-Implements:
-- Time-parameterized C2 cubic/quintic spline across (w, lon, lat, ln(span))
-- Zero hard-clamping on spline outputs (Rule 2 & Section 3)
-- Quintic smootherstep (6u^5 - 15u^4 + 10u^3) for standalone moves and morphs
-- Continuous unidirectional hold drift (1-3%/s scale, <=0.5% screen_width/s pan)
-- Single-geometry projection morph with convex superellipse silhouette & atmosphere stroke
-- Seamless 0.5s (30 frames @ 60fps) C1 Hermite loop into moving Frame 0
+Juicy Tea Map-Shorts Engine — Continuous C2 Camera, Globe Morph & Hermite Loop.
+Supports close-up spans down to 3.2 degrees and orthographic globe morphs.
 """
 
 from __future__ import annotations
+
+import math
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
-import math
+
 import numpy as np
 
 FPS: int = 60
 WIDTH: int = 1080
 HEIGHT: int = 1920
+MIN_SPAN_DEG: float = 3.2
+MAX_SPAN_DEG: float = 170.0
 LOOP_TAIL_SEC: float = 0.5
-LOOP_FRAMES: int = int(round(LOOP_TAIL_SEC * FPS))  # 30 frames @ 60fps
+LOOP_FRAMES: int = int(round(LOOP_TAIL_SEC * FPS))
 
 
 def smoothstep(u: float | np.ndarray) -> float | np.ndarray:
-    """C1 cubic step: permitted ONLY for alpha and same-geometry texture LoD crossfades."""
     u_c = np.clip(u, 0.0, 1.0)
     return u_c * u_c * (3.0 - 2.0 * u_c)
 
 
 def smootherstep(u: float | np.ndarray) -> float | np.ndarray:
-    """C2 quintic step: 6u^5 - 15u^4 + 10u^3. Zero velocity and zero acceleration at u=0, 1."""
     u_c = np.clip(u, 0.0, 1.0)
     return u_c * u_c * u_c * (u_c * (u_c * 6.0 - 15.0) + 10.0)
 
 
 def smootherstep_deriv(u: float | np.ndarray, duration: float) -> float | np.ndarray:
-    """First time-derivative of smootherstep: 30 * u^2 * (1-u)^2 / T."""
     if duration <= 1e-9:
         return 0.0
     u_c = np.clip(u, 0.0, 1.0)
@@ -45,21 +40,14 @@ def smootherstep_deriv(u: float | np.ndarray, duration: float) -> float | np.nda
 @dataclass(frozen=True)
 class CameraAnchor:
     t: float
-    w: float       # 0.0 = Mercator, 1.0 = Orthographic globe
-    lon: float     # degrees (automatically unwrapped across dateline)
-    lat: float     # degrees
-    span: float    # degrees (must stay within [28.0, 170.0] without post-clamping)
+    w: float
+    lon: float
+    lat: float
+    span: float
     is_snap: bool = False
 
 
 class TimeParameterizedC2Spline:
-    """
-    Time-parameterized C2-continuous Spline over non-uniform anchor timestamps t_i.
-    Eliminates the C1 velocity jumps of uniform Catmull-Rom on uneven (0.7s - 2.8s) intervals.
-    Uses Fritsch-Carlson monotone tangent damping with C2 quintic Hermite segments so flat
-    intervals (e.g. w=0 -> w=0 or w=1 -> w=1) never overshoot [0, 1] and never require hard clamping.
-    """
-
     def __init__(
         self,
         t: np.ndarray,
@@ -92,7 +80,6 @@ class TimeParameterizedC2Spline:
         self.tangents = d
 
     def eval_with_derivs(self, t_query: float) -> Tuple[float, float, float]:
-        """Returns (position, velocity, acceleration) at time t_query with C2 continuity."""
         tq = float(np.clip(t_query, self.t[0], self.t[-1]))
         idx = int(np.searchsorted(self.t, tq, side="right")) - 1
         idx = max(0, min(idx, len(self.t) - 2))
@@ -107,7 +94,6 @@ class TimeParameterizedC2Spline:
         u4 = u3 * u
         u5 = u4 * u
 
-        # Quintic Hermite basis with zero knot acceleration (a0 = a1 = 0 -> C2 continuous everywhere)
         h0 = 1.0 - 10.0 * u3 + 15.0 * u4 - 6.0 * u5
         h1 = u - 6.0 * u3 + 8.0 * u4 - 3.0 * u5
         h2 = 10.0 * u3 - 15.0 * u4 + 6.0 * u5
@@ -130,69 +116,43 @@ class TimeParameterizedC2Spline:
 
 
 def hermite_segment(
-    t: float,
-    t0: float,
-    t1: float,
-    p0: float,
-    v0: float,
-    p1: float,
-    v1: float,
+    t: float, t0: float, t1: float, p0: float, v0: float, p1: float, v1: float
 ) -> Tuple[float, float, float]:
-    """
-    Cubic Hermite bridge over [t0, t1] matching exact endpoint positions (p0, p1)
-    and velocities (v0, v1) for the final 0.5s (30 frames @ 60fps) seamless loop into Frame 0.
-    """
-    T = max(t1 - t0, 1e-9)
-    u = float(np.clip((t - t0) / T, 0.0, 1.0))
+    length = max(t1 - t0, 1e-9)
+    u = float(np.clip((t - t0) / length, 0.0, 1.0))
     u2 = u * u
     u3 = u2 * u
-
     h00 = 2.0 * u3 - 3.0 * u2 + 1.0
     h10 = u3 - 2.0 * u2 + u
     h01 = -2.0 * u3 + 3.0 * u2
     h11 = u3 - u2
-
-    pos = h00 * p0 + h10 * (T * v0) + h01 * p1 + h11 * (T * v1)
-
+    pos = h00 * p0 + h10 * (length * v0) + h01 * p1 + h11 * (length * v1)
     dh00 = 6.0 * u2 - 6.0 * u
     dh10 = 3.0 * u2 - 4.0 * u + 1.0
     dh01 = -6.0 * u2 + 6.0 * u
     dh11 = 3.0 * u2 - 2.0 * u
-    vel = (dh00 * p0 + dh10 * (T * v0) + dh01 * p1 + dh11 * (T * v1)) / T
-
+    vel = (dh00 * p0 + dh10 * (length * v0) + dh01 * p1 + dh11 * (length * v1)) / length
     ddh00 = 12.0 * u - 6.0
     ddh10 = 6.0 * u - 4.0
     ddh01 = -12.0 * u + 6.0
     ddh11 = 6.0 * u - 2.0
-    acc = (ddh00 * p0 + ddh10 * (T * v0) + ddh01 * p1 + ddh11 * (T * v1)) / (T * T)
-
+    acc = (ddh00 * p0 + ddh10 * (length * v0) + ddh01 * p1 + ddh11 * (length * v1)) / (length * length)
     return float(pos), float(vel), float(acc)
 
 
 class ContinuousCameraRig:
-    """
-    Continuous 4-channel camera trajectory (w, lon, lat, ln(span)).
-    - Starts in motion at Frame 0 (non-zero initial drift velocity).
-    - Never hard-clamps spline outputs.
-    - Bridges the final 0.5s into Frame 0 via C1-continuous Hermite interpolation.
-    """
-
     def __init__(self, anchors: List[CameraAnchor], total_duration: float) -> None:
         if len(anchors) < 2:
             raise ValueError("At least 2 camera anchors are required.")
         self.total_duration = float(total_duration)
         self.loop_start_t = self.total_duration - LOOP_TAIL_SEC
-
-        # Frame 0 starts in motion: gentle initial drift velocity
         self.v0_w = 0.0
-        self.v0_lon = 0.20
+        self.v0_lon = 0.18
         self.v0_lat = 0.04
-        self.v0_log_span = -0.015  # -1.5%/s initial scale drift
+        self.v0_log_span = -0.015
 
         first = anchors[0]
         core_anchors = [a for a in anchors if a.t < self.loop_start_t - 0.8]
-        # Align loop_start_t (T - 0.5s) smoothly so the final 0.5s Hermite bridge
-        # is a gentle continuation into Frame 0 with zero jerk or velocity spike
         pre_loop_span = first.span / math.exp(self.v0_log_span * LOOP_TAIL_SEC)
         core_anchors.append(
             CameraAnchor(
@@ -204,29 +164,20 @@ class ContinuousCameraRig:
                 is_snap=False,
             )
         )
-
         self.anchors = core_anchors
         t_arr = np.array([a.t for a in core_anchors], dtype=np.float64)
         w_arr = np.array([a.w for a in core_anchors], dtype=np.float64)
         lon_arr = np.rad2deg(np.unwrap(np.deg2rad([a.lon for a in core_anchors])))
         lat_arr = np.array([a.lat for a in core_anchors], dtype=np.float64)
         log_span_arr = np.log(np.array([a.span for a in core_anchors], dtype=np.float64))
-
-        self.spline_w = TimeParameterizedC2Spline(
-            t_arr, w_arr, v_start=self.v0_w, v_end=self.v0_w
-        )
-        self.spline_lon = TimeParameterizedC2Spline(
-            t_arr, lon_arr, v_start=self.v0_lon, v_end=self.v0_lon
-        )
-        self.spline_lat = TimeParameterizedC2Spline(
-            t_arr, lat_arr, v_start=self.v0_lat, v_end=self.v0_lat
-        )
+        self.spline_w = TimeParameterizedC2Spline(t_arr, w_arr, v_start=self.v0_w, v_end=self.v0_w)
+        self.spline_lon = TimeParameterizedC2Spline(t_arr, lon_arr, v_start=self.v0_lon, v_end=self.v0_lon)
+        self.spline_lat = TimeParameterizedC2Spline(t_arr, lat_arr, v_start=self.v0_lat, v_end=self.v0_lat)
         self.spline_log_span = TimeParameterizedC2Spline(
             t_arr, log_span_arr, v_start=self.v0_log_span, v_end=self.v0_log_span
         )
 
     def evaluate_all(self, t: float) -> Dict[str, float]:
-        """Returns position, velocity, and acceleration for all 4 channels at time t."""
         t_clamped = float(np.clip(t, 0.0, self.total_duration))
         if t_clamped <= self.loop_start_t:
             w, dw, ddw = self.spline_w.eval_with_derivs(t_clamped)
@@ -236,29 +187,23 @@ class ContinuousCameraRig:
         else:
             w0, dw0, _ = self.spline_w.eval_with_derivs(self.loop_start_t)
             w1, dw1, _ = self.spline_w.eval_with_derivs(0.0)
-            w, dw, ddw = hermite_segment(
-                t_clamped, self.loop_start_t, self.total_duration, w0, dw0, w1, dw1
-            )
-
+            w, dw, ddw = hermite_segment(t_clamped, self.loop_start_t, self.total_duration, w0, dw0, w1, dw1)
             lon0, dlon0, _ = self.spline_lon.eval_with_derivs(self.loop_start_t)
             lon1, dlon1, _ = self.spline_lon.eval_with_derivs(0.0)
             lon1_wrapped = lon0 + ((lon1 - lon0 + 180.0) % 360.0 - 180.0)
             lon, dlon, ddlon = hermite_segment(
                 t_clamped, self.loop_start_t, self.total_duration, lon0, dlon0, lon1_wrapped, dlon1
             )
-
             lat0, dlat0, _ = self.spline_lat.eval_with_derivs(self.loop_start_t)
             lat1, dlat1, _ = self.spline_lat.eval_with_derivs(0.0)
             lat, dlat, ddlat = hermite_segment(
                 t_clamped, self.loop_start_t, self.total_duration, lat0, dlat0, lat1, dlat1
             )
-
             ls0, dls0, _ = self.spline_log_span.eval_with_derivs(self.loop_start_t)
             ls1, dls1, _ = self.spline_log_span.eval_with_derivs(0.0)
             lspan, dlspan, ddlspan = hermite_segment(
                 t_clamped, self.loop_start_t, self.total_duration, ls0, dls0, ls1, dls1
             )
-
         return {
             "w": w, "dw": dw, "ddw": ddw,
             "lon": lon, "dlon": dlon, "ddlon": ddlon,
@@ -268,43 +213,68 @@ class ContinuousCameraRig:
         }
 
     def camera_channels(self, t: float) -> Tuple[float, float, float, float]:
-        """Drop-in replacement for camera_channels(t) -> (w, lon, lat, span)."""
-        st = self.evaluate_all(t)
-        return st["w"], st["lon"], st["lat"], st["span"]
+        state = self.evaluate_all(t)
+        return state["w"], state["lon"], state["lat"], state["span"]
+
+
+def project_point_merc_ortho_blend(
+    lon_deg: float,
+    lat_deg: float,
+    cam_lon: float,
+    cam_lat: float,
+    span_deg: float,
+    w: float,
+    width: int = WIDTH,
+    height: int = HEIGHT,
+) -> Tuple[float, float, bool]:
+    blend = float(smootherstep(w))
+    dlon = ((lon_deg - cam_lon + 180.0) % 360.0) - 180.0
+    scale_merc = width / max(span_deg, 1e-3)
+    lat_clamped = max(-84.0, min(84.0, lat_deg))
+    cam_lat_clamped = max(-84.0, min(84.0, cam_lat))
+    merc_y = math.degrees(math.log(math.tan(math.pi / 4.0 + math.radians(lat_clamped) / 2.0)))
+    cam_merc_y = math.degrees(math.log(math.tan(math.pi / 4.0 + math.radians(cam_lat_clamped) / 2.0)))
+    cos_center = max(math.cos(math.radians(cam_lat_clamped)), 0.22)
+    x_merc = width * 0.5 + dlon * scale_merc * cos_center
+    y_merc = height * 0.5 - (merc_y - cam_merc_y) * scale_merc * cos_center
+
+    lam = math.radians(dlon)
+    phi = math.radians(lat_deg)
+    phi0 = math.radians(cam_lat)
+    cos_c = math.sin(phi0) * math.sin(phi) + math.cos(phi0) * math.cos(phi) * math.cos(lam)
+    visible = (cos_c >= -0.05) or (blend < 0.25)
+    globe_radius = (width * 0.44) * (68.0 / max(span_deg, 18.0))
+    globe_radius = max(380.0, min(width * 0.95, globe_radius))
+    x_ortho = width * 0.5 + globe_radius * (math.cos(phi) * math.sin(lam))
+    y_ortho = height * 0.5 - globe_radius * (
+        math.cos(phi0) * math.sin(phi) - math.sin(phi0) * math.cos(phi) * math.cos(lam)
+    )
+    x = (1.0 - blend) * x_merc + blend * x_ortho
+    y = (1.0 - blend) * y_merc + blend * y_ortho
+    return float(x), float(y), bool(visible)
 
 
 def blend_xy_morph(merc_xy: np.ndarray, ortho_xy: np.ndarray, w: float) -> np.ndarray:
-    """
-    Single-geometry projection morph: (1 - s) * merc + s * ortho, where s = smootherstep(w).
-    Never crossfades two separate rendered frames (Rule 1).
-    """
-    s = float(smootherstep(w))
-    return (1.0 - s) * merc_xy + s * ortho_xy
+    blend = float(smootherstep(w))
+    return (1.0 - blend) * merc_xy + blend * ortho_xy
 
 
 def superellipse_silhouette(
     w: float, width: int = WIDTH, height: int = HEIGHT, globe_radius: float = 460.0, n_pts: int = 256
 ) -> Tuple[np.ndarray, float]:
-    """
-    Convex superellipse silhouette transitioning smoothly from full viewport rectangle (w=0)
-    to circular orthographic globe disc (w=1), plus atmosphere stroke alpha (s in 0.55..0.93).
-    """
-    s = float(smootherstep(w))
-    rx = (1.0 - s) * (width * 0.52) + s * globe_radius
-    ry = (1.0 - s) * (height * 0.52) + s * globe_radius
-    exponent = (1.0 - s) * 18.0 + s * 2.0
-
+    blend = float(smootherstep(w))
+    rx = (1.0 - blend) * (width * 0.52) + blend * globe_radius
+    ry = (1.0 - blend) * (height * 0.52) + blend * globe_radius
+    exponent = (1.0 - blend) * 18.0 + blend * 2.0
     theta = np.linspace(0.0, 2.0 * math.pi, n_pts, endpoint=False)
     cos_t = np.cos(theta)
     sin_t = np.sin(theta)
     x = (width * 0.5) + rx * np.sign(cos_t) * (np.abs(cos_t) ** (2.0 / exponent))
     y = (height * 0.5) + ry * np.sign(sin_t) * (np.abs(sin_t) ** (2.0 / exponent))
-
-    atmo_alpha = float(smoothstep((s - 0.55) / (0.93 - 0.55)))
+    atmo_alpha = float(smoothstep((blend - 0.55) / (0.93 - 0.55)))
     return np.column_stack([x, y]), atmo_alpha
 
 
 def globe_lod_mix(span: float) -> float:
-    """Same-geometry LoD crossfade between regional hypsometric tint and Blue Marble (span 40..82)."""
     u = (span - 40.0) / (82.0 - 40.0)
     return float(smoothstep(u))

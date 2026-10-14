@@ -33,13 +33,15 @@ def main() -> None:
         assert motion["max_pan_step_pct"] <= 0.08
         assert events["max_event_gap_s"] <= 1.5
         if spec.episode_id == "cut_in_two":
-            assert spec.total_duration == 80.0
-            assert all(move.w_start == 0.0 and move.w_end == 0.0 for move in spec.moves)
+            assert spec.total_duration == 92.55
+            assert min(move.span_end for move in spec.moves) <= 5.0
+            assert max(move.w_end for move in spec.moves) >= 0.85
             end = rig.evaluate_all(spec.total_duration)
             start = rig.evaluate_all(0.0)
             assert abs(((end["lon"] - start["lon"] + 180) % 360) - 180) < 0.05
             assert abs(end["lat"] - start["lat"]) < 0.05
             assert abs(end["span"] - start["span"]) < 0.05
+            assert abs(end["w"] - start["w"]) < 0.05
         print(spec.episode_id, motion["max_pan_vel"], events["max_event_gap_s"])
 
     assert abs(icon_pop_scale(0.62 * 0.60) - 1.15) < 1e-9
