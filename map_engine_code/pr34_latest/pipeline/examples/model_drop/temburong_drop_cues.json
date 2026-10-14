@@ -1,0 +1,140 @@
+{
+  "cues": [
+    {
+      "t": 2.3,
+      "kind": "whoosh",
+      "name": "zoom-to-spot"
+    },
+    {
+      "t": 2.55,
+      "kind": "whoosh",
+      "name": "match-cut-dive"
+    },
+    {
+      "t": 2.7,
+      "kind": "ratchet",
+      "name": "span-1"
+    },
+    {
+      "t": 2.942,
+      "kind": "ratchet",
+      "name": "span-2"
+    },
+    {
+      "t": 3.136,
+      "kind": "ratchet",
+      "name": "span-3"
+    },
+    {
+      "t": 3.315,
+      "kind": "ratchet",
+      "name": "span-4"
+    },
+    {
+      "t": 3.485,
+      "kind": "ratchet",
+      "name": "span-5"
+    },
+    {
+      "t": 3.649,
+      "kind": "ratchet",
+      "name": "span-6"
+    },
+    {
+      "t": 3.808,
+      "kind": "ratchet",
+      "name": "span-7"
+    },
+    {
+      "t": 3.963,
+      "kind": "ratchet",
+      "name": "span-8"
+    },
+    {
+      "t": 4.115,
+      "kind": "ratchet",
+      "name": "span-9"
+    },
+    {
+      "t": 4.264,
+      "kind": "ratchet",
+      "name": "span-10"
+    },
+    {
+      "t": 4.41,
+      "kind": "ratchet",
+      "name": "span-11"
+    },
+    {
+      "t": 4.555,
+      "kind": "ratchet",
+      "name": "span-12"
+    },
+    {
+      "t": 4.697,
+      "kind": "ratchet",
+      "name": "span-13"
+    },
+    {
+      "t": 4.838,
+      "kind": "ratchet",
+      "name": "span-14"
+    },
+    {
+      "t": 4.977,
+      "kind": "ratchet",
+      "name": "span-15"
+    },
+    {
+      "t": 5.114,
+      "kind": "ratchet",
+      "name": "span-16"
+    },
+    {
+      "t": 5.25,
+      "kind": "ratchet",
+      "name": "span-17"
+    },
+    {
+      "t": 5.385,
+      "kind": "ratchet",
+      "name": "span-18"
+    },
+    {
+      "t": 5.519,
+      "kind": "ratchet",
+      "name": "span-19"
+    },
+    {
+      "t": 5.652,
+      "kind": "ratchet",
+      "name": "span-20"
+    },
+    {
+      "t": 5.783,
+      "kind": "ratchet",
+      "name": "span-21"
+    },
+    {
+      "t": 5.914,
+      "kind": "ratchet",
+      "name": "span-22"
+    },
+    {
+      "t": 6.043,
+      "kind": "ratchet",
+      "name": "span-23"
+    },
+    {
+      "t": 6.172,
+      "kind": "ratchet",
+      "name": "span-24"
+    },
+    {
+      "t": 6.3,
+      "kind": "ding",
+      "name": "build-done"
+    }
+  ],
+  "close_m": 28199.791509940456
+}

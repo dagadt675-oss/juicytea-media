@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+data/ne/
+data/cache/
+data/*.zip
+out/
+*.wav
+*.mp4

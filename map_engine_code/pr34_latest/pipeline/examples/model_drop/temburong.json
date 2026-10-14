@@ -1,0 +1,42 @@
+{
+  "spec": {
+    "type": "model_drop",
+    "asset": "parametric:cable_stayed",
+    "geo": [
+      [4.92639, 115.01432], [4.92261, 115.01974], [4.91856, 115.02489],
+      [4.91505, 115.03058], [4.91101, 115.03979], [4.90778, 115.04926],
+      [4.90401, 115.05847], [4.90077, 115.06443], [4.89726, 115.07012],
+      [4.89321, 115.07527], [4.88916, 115.08042], [4.88456, 115.0853],
+      [4.87996, 115.08991], [4.87482, 115.09398], [4.86995, 115.09832],
+      [4.86453, 115.10212], [4.85912, 115.10592], [4.85343, 115.10945],
+      [4.84747, 115.11244], [4.84152, 115.11544], [4.83556, 115.11816],
+      [4.82932, 115.12061], [4.82364, 115.12387], [4.82174, 115.12495]
+    ],
+    "scale": "stylized",
+    "heading": null,
+    "at_word": "NINETEEN",
+    "build": "span_by_span",
+    "kind": "cable_stayed",
+    "spans_m": [145, 145, 730, 730, 730, 730, 730, 730, 730, 730, 730, 730, 730, 730, 730, 730, 730, 730, 730, 730, 730, 730, 730, 730],
+    "deck_m": 28,
+    "tower_m": 107,
+    "tower_after": [0],
+    "label": "19 MI (30 KM) · 2020"
+  },
+  "shot": {
+    "wide_m": 1500000,
+    "wide_lon": 114.0,
+    "wide_lat": 2.6,
+    "close_m": 28000,
+    "zoom_end": 2.6,
+    "build_start": 2.7,
+    "build_dur": 3.6,
+    "untilt": 6.5,
+    "duration": 7.5,
+    "tilt": 28,
+    "imagery": "/workspace/asset_library/extra/temburong_proof",
+    "utm": 32650,
+    "out": "temburong_drop.mp4"
+  },
+  "line": "Centerline traced on USGS Landsat 8, 30 m, across Brunei Bay. The first two spans are the published Brunei Channel crossing, 2 x 145 m. The rest of the visible deck is drawn as equal bays. The 30 km label is the whole published link, including the land viaducts and tunnels that are not this water crossing."
+}

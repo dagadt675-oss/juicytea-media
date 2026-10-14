@@ -1,0 +1,30 @@
+{
+  "scale": {
+    "start": 16.0,
+    "end": 1.013,
+    "shrink_drops": [
+      3.677,
+      1.402,
+      1.471
+    ],
+    "counter_gap": 0.777,
+    "samples": 196,
+    "pass": true
+  },
+  "fourteen": {
+    "mode": "overlap",
+    "pieces": 14,
+    "painted_overlap": 0.0,
+    "painted_outside": 0.0,
+    "pass": true
+  },
+  "pack": {
+    "mode": "overlap",
+    "raw_overlap": 0.2383,
+    "raw_outside": 0.0139,
+    "painted_overlap": 0.0,
+    "painted_outside": 0.0,
+    "pass": true
+  },
+  "pass": true
+}
