@@ -25,6 +25,7 @@ if str(WHATIF) not in sys.path:
 from plane_seat.engine.aircraft import AMBER, BRIGHT, GREEN, RED, TILE  # noqa: E402
 from plane_seat.engine.clock import frame_time  # noqa: E402
 from plane_seat.engine.flight import pose_at  # noqa: E402
+from plane_seat.engine.terrain import build_route  # noqa: E402
 
 PLANE = Path("/opt/cursor/asset-cache/private/extracted/405-FLA/Long-range_passenger_aircraft_405-FLA_90155e42.blend")
 CABIN = Path("/opt/cursor/asset-cache/private/cabin/airplane_cabin.glb")
@@ -734,13 +735,14 @@ def _labels(root):
         "l32": ("32%", GREEN, (-8.5, -4.4, 4.8), 2.8, (-8.5, -1.5, 3.2)),
         "l44": ("44%", RED, (1.5, -8.5, 8.0), 2.8, (1.5, -0.5, 3.0)),
         "l28": ("28%", BRIGHT, (-8.5, -4.6, 4.2), 2.8, (-8.5, 0.0, 3.0)),
-        "l17": ("17", AMBER, (8.0, -6.0, 6.2), 2.6, (10.0, -1.6, 3.4)),
+        "l17": ("17%", AMBER, (8.0, -6.0, 6.2), 2.6, (10.0, -1.6, 3.4)),
     }
     out = {}
     for key, (text, color, loc, size, anchor) in specs.items():
         holder = bpy.data.objects.new(key, None)
         holder.parent = root
         holder.location = loc
+        holder["anchor"] = anchor
         _link(holder)
         curve = bpy.data.curves.new(key + "Text", "FONT")
         curve.body = text
@@ -1126,7 +1128,7 @@ def _alps_range(parent):
 REAL_TREES = Path("/workspace/assets/found/trees/realistic")
 
 
-def _forest_trees(parent):
+def _forest_trees(parent, height_at=None):
     glbs = sorted(REAL_TREES.glob("*.glb"))
     if not glbs:
         print("no realistic trees")
@@ -1151,10 +1153,10 @@ def _forest_trees(parent):
     # A close stand under the chase camera at t≈7.4 (the tile has scrolled ~1 km).
     ground_z = -2.0
     # Wide enough that the chase at t≈7.4 (scroll ~1.08 km) sees canopy, not one clump.
-    cols = 36
-    rows = 14
-    spacing = 42.0
-    x0 = -500.0
+    cols = 18
+    rows = 8
+    spacing = 70.0
+    x0 = 1450.0
     lods = {}
 
     def lod_for(mesh):
@@ -1185,11 +1187,12 @@ def _forest_trees(parent):
         jitter_x = ((i * 17) % 9) - 4
         jitter_y = ((i * 13) % 9) - 4
         obj.scale = (scale, scale, scale * (0.85 + (i % 5) * 0.06))
-        obj.location = (
-            x0 + (i % cols) * spacing + jitter_x,
-            (i // cols) * spacing - (rows * spacing) * 0.5 + jitter_y,
-            ground_z - base * scale,
-        )
+        px = x0 + (i % cols) * spacing + jitter_x
+        py = (i // cols) * spacing - (rows * spacing) * 0.5 + jitter_y
+        pz = ground_z - base * scale
+        if height_at is not None:
+            pz = height_at(px, py) - base * scale
+        obj.location = (px, py, pz)
         obj.rotation_euler[2] = (i % 11) * 0.57
         low = lod_for(src.data)
         obj["near_mesh"] = src.data.name
@@ -1285,33 +1288,19 @@ def _godrays():
 
 
 def _ocean_mat():
+    """Water colour only. The waves are the Ocean modifier, not a noise bump."""
     mat = bpy.data.materials.new("Ocean")
     mat.use_nodes = True
     nt = mat.node_tree
     bsdf = next(node for node in nt.nodes if node.type == "BSDF_PRINCIPLED")
-    bsdf.inputs["Roughness"].default_value = 0.04
+    bsdf.inputs["Base Color"].default_value = (0.02, 0.16, 0.24, 1.0)
+    bsdf.inputs["Roughness"].default_value = 0.05
     if "Specular IOR Level" in bsdf.inputs:
-        bsdf.inputs["Specular IOR Level"].default_value = 0.9
+        bsdf.inputs["Specular IOR Level"].default_value = 0.85
     if "Coat Weight" in bsdf.inputs:
-        bsdf.inputs["Coat Weight"].default_value = 0.15
-    cam = nt.nodes.new("ShaderNodeCameraData")
-    span = nt.nodes.new("ShaderNodeMapRange")
-    span.inputs["From Min"].default_value = 9000.0
-    span.inputs["From Max"].default_value = 36000.0
-    span.inputs["To Min"].default_value = 0.0
-    span.inputs["To Max"].default_value = 0.28
-    span.clamp = True
-    nt.links.new(cam.outputs["View Distance"], span.inputs["Value"])
-    haze = _mix_rgb(nt, span.outputs["Result"], (0.04, 0.16, 0.22, 1), (0.55, 0.62, 0.68, 1))
-    nt.links.new(haze.outputs["Color"], bsdf.inputs["Base Color"])
-    noise = nt.nodes.new("ShaderNodeTexNoise")
-    noise.inputs["Scale"].default_value = 2.2
-    noise.inputs["Detail"].default_value = 6.0
-    bump = nt.nodes.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.45
-    bump.inputs["Distance"].default_value = 2.4
-    nt.links.new(noise.outputs["Fac"], bump.inputs["Height"])
-    nt.links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
+        bsdf.inputs["Coat Weight"].default_value = 0.25
+    if "Coat Roughness" in bsdf.inputs:
+        bsdf.inputs["Coat Roughness"].default_value = 0.08
     return mat
 
 
@@ -1329,7 +1318,7 @@ def _move_to_collection(objs, col):
         col.objects.link(live)
 
 
-def _city_instances(parent):
+def _city_instances(parent, height_at):
     if not CITY.exists():
         return
     before = set(bpy.data.objects)
@@ -1356,30 +1345,51 @@ def _city_instances(parent):
                 made += 1
         return made
 
-    # Opening city and the identical copy one route-length ahead, so the
-    # flight arrives back on the same streets.
+    # The same streets at both ends of the loop. Blocks thin out into
+    # suburbs instead of ending on a square edge.
     count = 0
     for center in (0.0, 12000.0):
-        count += spawn("Near", center, 3.4, 520.0, 480.0, -4, 5, -5, 6, 700.0)
+        for ix in range(-4, 5):
+            for iy in range(-4, 5):
+                x = center + ix * 460.0
+                y = iy * 420.0
+                dx = min(abs(x % 12000.0), abs(12000.0 - (x % 12000.0)))
+                if dx > 1500.0:
+                    continue
+                weight = max(0.35, 1.0 - dx / 1500.0)
+                inst = bpy.data.objects.new(f"Near_{center}_{ix}_{iy}", None)
+                inst.instance_type = "COLLECTION"
+                inst.instance_collection = col
+                inst.parent = parent
+                inst.location = (x, y, height_at(x, y))
+                inst.scale = (2.4 + 1.4 * weight,) * 3
+                inst.rotation_euler[2] = ((ix * 3 + iy * 5) % 7) * 0.4
+                inst["cull"] = 1
+                inst["cull_radius"] = 700.0
+                _link(inst)
+                count += 1
     print("city blocks", count)
 
 
-def _ocean_object():
+def _ocean_object(parent):
+    """One ocean tile, larger than the view, so the modifier does not repeat."""
     bpy.ops.mesh.primitive_grid_add(x_subdivisions=4, y_subdivisions=4, size=2.0)
     obj = bpy.context.active_object
     obj.name = "OceanSurface"
     waves = obj.modifiers.new("Waves", "OCEAN")
     waves.geometry_mode = "GENERATE"
-    waves.resolution = 12
-    waves.spatial_size = 48
-    waves.wave_scale = 1.8
-    waves.choppiness = 1.05
-    waves.wave_alignment = 0.2
-    waves.wind_velocity = 16.0
-    waves.repeat_x = 3
-    waves.repeat_y = 3
-    obj.scale = (14.0, 14.0, 2.2)
-    obj.location.z = 4.0
+    waves.resolution = 14
+    waves.spatial_size = 180
+    waves.wave_scale = 2.4
+    waves.choppiness = 1.15
+    waves.wave_alignment = 0.15
+    waves.wind_velocity = 14.0
+    waves.repeat_x = 1
+    waves.repeat_y = 1
+    # 180 m * 22 = about 4 km, one tile across the water leg.
+    obj.scale = (22.0, 28.0, 1.0)
+    obj.parent = parent
+    obj.location = (6500.0, 0.0, 0.6)
     obj.data.materials.append(_ocean_mat())
     obj["ground"] = 1
     return obj
@@ -1488,90 +1498,13 @@ def _horizon_sheet(track):
 
 
 def _biome_tiles():
-    photos = {
-        "city": (TEX / "aerial_ground_rock_diff_1k.jpg", (0.55, 0.50, 0.45)),
-        "forest": (TEX / "forest_ground_04_diff_1k.jpg", (0.25, 0.45, 0.18)),
-        "desert": (TEX / "aerial_sand_diff_1k.jpg", (0.82, 0.55, 0.32)),
-        "cloudsea": (TEX / "aerial_sand_diff_1k.jpg", (0.75, 0.78, 0.82)),
-    }
-    copies = {}
-    for name in ("city", "forest", "mountains", "ocean", "desert", "cloudsea"):
-        a = bpy.data.objects.new(name + "A", None)
-        b = bpy.data.objects.new(name + "B", None)
-        b.hide_render = True
-        _link(a)
-        _link(b)
-        if name == "ocean":
-            ground = _ocean_object()
-        elif name == "mountains":
-            ground = bpy.data.objects.new("MountainAnchor", None)
-        else:
-            image, tint = photos[name]
-            span = {"city": 1500.0, "forest": 1200.0, "desert": 1100.0, "cloudsea": 400.0}[name]
-            ground = _big_plane(name + "Ground", span)
-            if name == "forest":
-                mat, _mapping = _terrain(name + "M", image, tint=(0.2, 0.42, 0.12), warmth=0.42, scale=0.01, shade=0.12)
-            elif name == "desert":
-                mat, _mapping = _terrain(
-                    name + "M", image, tint=tint, warmth=0.15, scale=0.0012, shade=0.0, dunes=True
-                )
-            else:
-                mat, _mapping = _terrain(name + "M", image, tint=tint, warmth=0.08, scale=0.0035, shade=0.08)
-            ground.data.materials.append(mat)
-        _link(ground, a)
-        copies[name] = (a, b)
-    # One track. Sections sit on it in flight order and scroll together.
-    # Nothing is swapped on. The closing city is a copy of the opening city.
+    """One track. The ground is a single mesh, so nothing is swapped on."""
     track = bpy.data.objects.new("WorldTrack", None)
     _link(track)
-    centers = {
-        "city": 0.0,
-        "forest": 2200.0,
-        "mountains": 4400.0,
-        "ocean": 6600.0,
-        "desert": 8800.0,
-        "cloudsea": 10400.0,
-    }
-    for name, (a, _b) in copies.items():
-        a.parent = track
-        a.location.x = centers[name]
-    city_ground = None
-    for child in copies["city"][0].children:
-        if child.type == "MESH":
-            city_ground = child
-            break
-    if city_ground is not None:
-        loop_ground = city_ground.copy()
-        loop_ground.data = city_ground.data
-        loop_ground.parent = copies["city"][0]
-        loop_ground.location.x = 12000.0
-        _link(loop_ground)
-    snow_mat = bpy.data.materials.new("RangeM")
-    snow_mat.use_nodes = True
-    snow_bsdf = next(n for n in snow_mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
-    snow_bsdf.inputs["Base Color"].default_value = (0.78, 0.81, 0.84, 1.0)
-    snow_bsdf.inputs["Roughness"].default_value = 0.95
-    snow = _big_plane("RangeGround", 1400.0)
-    snow.data.materials.append(snow_mat)
-    _link(snow, copies["mountains"][0])
-    _alps_range(copies["mountains"][0])
-    _city_instances(copies["city"][0])
-    _forest_trees(copies["forest"][0])
-    _horizon_sheet(track)
-    _mesh_clouds(track)
-    copies["cloudsea"][0].hide_render = True
-    for child in copies["cloudsea"][0].children:
-        child.hide_render = True
-    cloud_root = bpy.data.objects.new("CloudField", None)
-    cloud_root.parent = track
-    cloud_root.hide_render = True
-    _link(cloud_root)
-    copies["_track"] = (track, track)
-    shaft = _godrays()
-    shaft.parent = cloud_root
-    copies["_godrays"] = (shaft, shaft)
-    copies["_clouds"] = (cloud_root, cloud_root)
-    return copies
+    height_at = build_route(track)
+    _city_instances(track, height_at)
+    _forest_trees(track, height_at)
+    return {"_track": (track, track)}
 
 
 def _title_card(cam):
@@ -1785,7 +1718,7 @@ def apply_pose(state, pose):
     if state.get("sky_bg") is not None:
         state["sky_bg"].inputs["Strength"].default_value = 1.05
     for name, (a, b) in state["biomes"].items():
-        if name in ("_godrays", "_clouds", "_track"):
+        if name in ("_godrays", "_clouds"):
             a.hide_render = True
             continue
         if track is not None:
@@ -1866,12 +1799,12 @@ def apply_pose(state, pose):
     cam.data.dof.focus_distance = max(4.0, focus)
     cam.data.dof.aperture_fstop = float(pose.get("fstop", 8.0))
     show = {
-        "l38": pose.get("show_38", 0) > 0.4,
-        "l39": pose.get("show_39", 0) > 0.4,
-        "l32": pose.get("show_32", 0) > 0.4,
-        "l44": pose.get("show_44", 0) > 0.4,
-        "l28": pose.get("show_28", 0) > 0.4,
-        "l17": pose.get("show_17", 0) > 0.4,
+        "l38": float(pose.get("show_38", 0.0)),
+        "l39": float(pose.get("show_39", 0.0)),
+        "l32": float(pose.get("show_32", 0.0)),
+        "l44": float(pose.get("show_44", 0.0)),
+        "l28": float(pose.get("show_28", 0.0)),
+        "l17": float(pose.get("show_17", 0.0)),
     }
     title = state.get("title")
     if title is not None:
@@ -1879,37 +1812,47 @@ def apply_pose(state, pose):
         title.hide_render = not show_title
         for child in title.children:
             child.hide_render = not show_title
-    parent_q = root.matrix_world.to_quaternion()
+    parent_inv = root.matrix_world.inverted()
+    cam_q = cam.matrix_world.to_quaternion()
     for key, obj in (state.get("labels") or {}).items():
-        visible = show.get(key, False)
+        amount = max(0.0, min(1.0, show.get(key, 0.0)))
+        visible = amount > 0.04
         obj.hide_render = not visible
         for child in obj.children:
             child.hide_render = not visible
         if not visible:
             continue
-        direction = cam.location - (root.matrix_world @ mathutils.Vector(obj.location))
-        if direction.length < 0.1:
+        anchor = mathutils.Vector(obj.get("anchor", obj.location))
+        anchor_w = root.matrix_world @ anchor
+        to_cam = cam.location - anchor_w
+        if to_cam.length < 0.2:
             continue
-        # Face the camera and match its up, so the percent stays upright in frame.
-        cam_q = cam.matrix_world.to_quaternion()
-        cam_up = cam_q @ mathutils.Vector((0.0, 1.0, 0.0))
-        cam_right = cam_q @ mathutils.Vector((1.0, 0.0, 0.0))
-        z_axis = direction.normalized()
-        y_axis = cam_up - z_axis * cam_up.dot(z_axis)
-        if y_axis.length < 1e-4:
-            y_axis = cam_right.cross(z_axis)
-        y_axis.normalize()
-        x_axis = y_axis.cross(z_axis).normalized()
-        if x_axis.dot(cam_right) < 0.0:
-            x_axis = -x_axis
-            y_axis = -y_axis
-        rot = mathutils.Matrix((
-            (x_axis.x, y_axis.x, z_axis.x),
-            (x_axis.y, y_axis.y, z_axis.y),
-            (x_axis.z, y_axis.z, z_axis.z),
-        )).to_quaternion()
+        # Sit between the lens and the fuselage so the card cannot clip inside it.
+        pos_w = anchor_w + to_cam.normalized() * min(12.0, to_cam.length * 0.42)
+        pos_w.z += 1.4
+        obj.location = parent_inv @ pos_w
+        # Same orientation as the camera, so the face cannot flip as the orbit turns.
         obj.rotation_mode = "QUATERNION"
-        obj.rotation_quaternion = parent_q.inverted() @ rot
+        obj.rotation_quaternion = parent_inv.to_quaternion() @ cam_q
+        for child in obj.children:
+            if child.type == "CURVE" and child.data.splines:
+                child.scale = (1.0, 1.0, 1.0)
+                local = obj.matrix_world.inverted() @ anchor_w if obj.matrix_world.determinant() else anchor
+                # matrix_world is still the previous frame until the update below.
+                continue
+            child.scale = (amount, amount, amount)
+    bpy.context.view_layer.update()
+    for key, obj in (state.get("labels") or {}).items():
+        if obj.hide_render:
+            continue
+        anchor = mathutils.Vector(obj.get("anchor", obj.location))
+        anchor_w = root.matrix_world @ anchor
+        for child in obj.children:
+            if child.type != "CURVE" or not child.data.splines:
+                continue
+            local = obj.matrix_world.inverted() @ anchor_w
+            spline = child.data.splines[0]
+            spline.points[1].co = (local.x, local.y, local.z, 1.0)
     if state.get("cull") or state.get("lod"):
         _view_opt(state)
 

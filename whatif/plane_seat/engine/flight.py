@@ -18,25 +18,34 @@ from .clock import DURATION, word_end, word_time
 # fuselage so the jet lands in the upper-middle; the bottom quarter is UI.
 # Roll stays 0. The first key matches the last key.
 CAM_KEYS = [
+    # Hook and the closing frame. These two keys match.
     (0.00, (-4.0, -2.0, 58.0), (-6.0, 0.0, 0.2), 0.0, 26.0),
     (1.40, (-10.0, -8.0, 46.0), (-12.0, 0.0, 0.4), 0.0, 24.0),
-    (4.40, (-34.0, -20.0, 16.0), (2.0, 0.0, 0.5), 0.0, 22.0),
-    (8.20, (-26.0, -28.0, 16.0), (2.0, 0.0, 0.0), 0.0, 22.0),
-    (11.60, (-4.0, -3.0, 52.0), (-12.0, 0.0, 0.3), 0.0, 24.0),
-    (18.40, (-2.0, -2.5, 50.0), (-10.0, 0.0, 0.3), 0.0, 24.0),
-    (24.20, (38.0, -22.0, 15.0), (-4.0, 0.0, 1.0), 0.0, 20.0),
-    (29.40, (-2.0, -6.0, 48.0), (-12.0, 0.0, 0.4), 0.0, 25.0),
+    # Rear 3/4, then a side view. The look point stays near the fuselage
+    # so the horizon and the ground stay in the lower half of the frame.
+    (4.20, (-36.0, -22.0, 18.0), (4.0, 0.0, 2.0), 0.0, 22.0),
+    (7.80, (-16.0, -36.0, 18.0), (6.0, 0.0, 1.5), 0.0, 22.0),
+    # A high three-quarter over the short mountain leg, not a long nadir.
+    (10.60, (-12.0, -18.0, 32.0), (0.0, 0.0, 2.0), 0.0, 24.0),
+    # Brief top-down for the seat map, then back to a horizon view.
+    (13.30, (-2.0, -4.0, 46.0), (-8.0, 0.0, 0.4), 0.0, 24.0),
+    (16.40, (12.0, -28.0, 20.0), (-4.0, 0.0, 1.5), 0.0, 22.0),
+    (21.20, (32.0, -22.0, 16.0), (-6.0, 0.0, 1.2), 0.0, 20.0),
+    (26.60, (18.0, -16.0, 18.0), (-2.0, 0.0, 1.2), 0.0, 22.0),
+    (30.20, (-8.0, -12.0, 42.0), (-10.0, 0.0, 0.4), 0.0, 25.0),
     (32.81, (-4.0, -2.0, 58.0), (-6.0, 0.0, 0.2), 0.0, 26.0),
 ]
 
 # Cruise height eases a few tens of metres. The old 1,000 m jumps were the
 # plane leaping in frame at each biome cut.
 ALT_KEYS = [
-    (0.00, 560.0),
-    (8.00, 480.0),
-    (16.00, 620.0),
-    (24.00, 500.0),
-    (32.81, 560.0),
+    (0.00, 520.0),
+    (6.00, 460.0),
+    (10.20, 740.0),
+    (14.00, 680.0),
+    (19.00, 520.0),
+    (26.00, 470.0),
+    (32.81, 520.0),
 ]
 
 PITCH_KEYS = [
@@ -273,7 +282,7 @@ def pose_at(t: float) -> dict:
         "show_title": _window(t, 0.0, 1.25, 0.0, 0.22) + _window(t, 31.55, 32.81, 0.30, 0.0),
         "show_17": _window(t, 4.45, 9.55, 0.12, 0.20),
         "show_38": _window(t, 2.95, 4.45, 0.12, 0.16) + _window(t, 10.20, 12.70, 0.12, 0.20),
-        "show_39": _window(t, word_time(31), 15.50, 0.12, 0.20),
+        "show_39": _window(t, 13.15, 16.15, 0.18, 0.22),
         "show_32": _window(t, 1.45, 2.95, 0.12, 0.16) + _window(t, 7.50, 9.00, 0.12, 0.16) + _window(t, word_time(34), 19.20, 0.12, 0.18),
         "show_44": _window(t, 19.40, word_end(44) + 0.35, 0.12, 0.22),
         "show_28": _window(t, word_time(54), word_end(54) + 0.45, 0.12, 0.22),
