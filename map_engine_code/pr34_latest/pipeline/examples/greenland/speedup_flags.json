@@ -1,0 +1,8 @@
+{
+  "cache": false,
+  "duplicate": false,
+  "fast_basemap_interp": true,
+  "parallel_encode": true,
+  "enforce_60fps_drift": true,
+  "comment": "Rule 4 & Section 11.2 #8: cache and duplicate MUST remain false so continuous camera drift is never frozen."
+}

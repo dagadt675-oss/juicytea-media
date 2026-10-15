@@ -1,0 +1,279 @@
+{
+  "duration": 24.2,
+  "silent": true,
+  "captions_burned_in": false,
+  "caption_band": {
+    "y0": 0.64,
+    "y1": 0.72
+  },
+  "lead_in": 0.03,
+  "lines": [
+    {
+      "index": 0,
+      "text": "Your flight from LA to Tokyo curves up toward Alaska.",
+      "say": "Your flight from LA to Tokyo curves up toward Alaska.",
+      "kind": "q",
+      "start": 0.03,
+      "end": 3.93,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Your flight from LA to Tokyo curves up toward Alaska.",
+        "sub": ""
+      },
+      "claim": "Your flight from LA to Tokyo curves up toward Alaska.",
+      "sub": ""
+    },
+    {
+      "index": 1,
+      "text": "And that curve is about three hundred miles shorter.",
+      "say": "And that curve is about three hundred miles shorter.",
+      "kind": "s",
+      "start": 3.93,
+      "end": 7.24,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "And that curve is about three hundred miles shorter.",
+        "sub": ""
+      },
+      "claim": "And that curve is about three hundred miles shorter.",
+      "sub": ""
+    },
+    {
+      "index": 2,
+      "text": "Why?",
+      "say": "Why?",
+      "kind": "s",
+      "start": 7.24,
+      "end": 8.14,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Why?",
+        "sub": ""
+      },
+      "claim": "Why?",
+      "sub": ""
+    },
+    {
+      "index": 3,
+      "text": "Because your flat map is lying.",
+      "say": "Because your flat map is lying.",
+      "kind": "s",
+      "start": 8.14,
+      "end": 10.81,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Because your flat map is lying.",
+        "sub": ""
+      },
+      "claim": "Because your flat map is lying.",
+      "sub": ""
+    },
+    {
+      "index": 4,
+      "text": "On a Mercator map, the straight line looks shortest.",
+      "say": "On a Mercator map, the straight line looks shortest.",
+      "kind": "s",
+      "start": 10.81,
+      "end": 14.28,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "On a Mercator map, the straight line looks shortest.",
+        "sub": ""
+      },
+      "claim": "On a Mercator map, the straight line looks shortest.",
+      "sub": ""
+    },
+    {
+      "index": 5,
+      "text": "But Earth is a sphere, and the real shortest path is a great circle that bends north.",
+      "say": "But Earth is a sphere, and the real shortest path is a great circle that bends north.",
+      "kind": "s",
+      "start": 14.28,
+      "end": 20.25,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "But Earth is a sphere, and the real shortest path is a great circle that bends north.",
+        "sub": ""
+      },
+      "claim": "But Earth is a sphere, and the real shortest path is a great circle that bends north.",
+      "sub": ""
+    },
+    {
+      "index": 6,
+      "text": "So next time your flight tracker curves north...",
+      "say": "So next time your flight tracker curves north...",
+      "kind": "s",
+      "start": 20.25,
+      "end": 23.05,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "So next time your flight tracker curves north...",
+        "sub": ""
+      },
+      "claim": "So next time your flight tracker curves north...",
+      "sub": ""
+    },
+    {
+      "index": 7,
+      "text": "it's not a mistake.",
+      "say": "it's not a mistake.",
+      "kind": "p",
+      "start": 23.05,
+      "end": 24.2,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "it's not a mistake.",
+        "sub": ""
+      },
+      "claim": "it's not a mistake.",
+      "sub": ""
+    }
+  ],
+  "beats": [
+    {
+      "index": 0,
+      "text": "Your flight from LA to Tokyo curves up toward Alaska.",
+      "say": "Your flight from LA to Tokyo curves up toward Alaska.",
+      "kind": "q",
+      "start": 0.03,
+      "end": 3.93,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Your flight from LA to Tokyo curves up toward Alaska.",
+        "sub": ""
+      },
+      "claim": "Your flight from LA to Tokyo curves up toward Alaska.",
+      "sub": ""
+    },
+    {
+      "index": 1,
+      "text": "And that curve is about three hundred miles shorter.",
+      "say": "And that curve is about three hundred miles shorter.",
+      "kind": "s",
+      "start": 3.93,
+      "end": 7.24,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "And that curve is about three hundred miles shorter.",
+        "sub": ""
+      },
+      "claim": "And that curve is about three hundred miles shorter.",
+      "sub": ""
+    },
+    {
+      "index": 2,
+      "text": "Why?",
+      "say": "Why?",
+      "kind": "s",
+      "start": 7.24,
+      "end": 8.14,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Why?",
+        "sub": ""
+      },
+      "claim": "Why?",
+      "sub": ""
+    },
+    {
+      "index": 3,
+      "text": "Because your flat map is lying.",
+      "say": "Because your flat map is lying.",
+      "kind": "s",
+      "start": 8.14,
+      "end": 10.81,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "Because your flat map is lying.",
+        "sub": ""
+      },
+      "claim": "Because your flat map is lying.",
+      "sub": ""
+    },
+    {
+      "index": 4,
+      "text": "On a Mercator map, the straight line looks shortest.",
+      "say": "On a Mercator map, the straight line looks shortest.",
+      "kind": "s",
+      "start": 10.81,
+      "end": 14.28,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "On a Mercator map, the straight line looks shortest.",
+        "sub": ""
+      },
+      "claim": "On a Mercator map, the straight line looks shortest.",
+      "sub": ""
+    },
+    {
+      "index": 5,
+      "text": "But Earth is a sphere, and the real shortest path is a great circle that bends north.",
+      "say": "But Earth is a sphere, and the real shortest path is a great circle that bends north.",
+      "kind": "s",
+      "start": 14.28,
+      "end": 20.25,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "But Earth is a sphere, and the real shortest path is a great circle that bends north.",
+        "sub": ""
+      },
+      "claim": "But Earth is a sphere, and the real shortest path is a great circle that bends north.",
+      "sub": ""
+    },
+    {
+      "index": 6,
+      "text": "So next time your flight tracker curves north...",
+      "say": "So next time your flight tracker curves north...",
+      "kind": "s",
+      "start": 20.25,
+      "end": 23.05,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "So next time your flight tracker curves north...",
+        "sub": ""
+      },
+      "claim": "So next time your flight tracker curves north...",
+      "sub": ""
+    },
+    {
+      "index": 7,
+      "text": "it's not a mistake.",
+      "say": "it's not a mistake.",
+      "kind": "p",
+      "start": 23.05,
+      "end": 24.2,
+      "gap": 0.0,
+      "words": [],
+      "on_screen": {
+        "claim": "it's not a mistake.",
+        "sub": ""
+      },
+      "claim": "it's not a mistake.",
+      "sub": ""
+    }
+  ],
+  "words": [],
+  "sample_rate": null,
+  "voice": "none",
+  "id": "lax_tokyo",
+  "title": "Why LA\u2192Tokyo curves toward Alaska",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "note": "No audio and no burned-in karaoke. Fit an ElevenLabs read to beats[].say locally. Leave y 0.64\u20130.72 of the height empty for captions."
+}

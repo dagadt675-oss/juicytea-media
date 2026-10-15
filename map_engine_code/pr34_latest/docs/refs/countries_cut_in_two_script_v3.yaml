@@ -1,0 +1,25 @@
+# Countries Cut in Two — script v3
+# Camera and event cues are implemented in pipeline/jt/show/cut_in_two.py.
+# All poses are Mercator (w: 0). The globe morph is not used.
+# VO body named in the brief is 75.28 s. The uploaded take is only the closing
+# sentence, stored once at assets/vo/cut_in_two_vo_once.wav. loop_tail_s: 0.
+meta:
+  name: cut_in_two
+  width: 1080
+  height: 1920
+  fps: 60
+  basemap: satellite
+  map_has_yellow: true
+  font: fonts/Montserrat-Black.ttf
+
+audio:
+  vo: assets/vo/cut_in_two_vo_once.wav
+  words: pipeline/examples/cut_in_two/vo_once.json
+  loop_tail_s: 0.0
+  place_at_s: 74.23
+  text: "And the cheapest split ever? That's the one where"
+
+camera:
+  min_hold_s: 0.15
+  start: {w: 0, lon: -98, lat: 54, span: 120}
+  defaults: {drift_lon_rate: 0.12, drift_lat_rate: 0.02, drift_scale_rate: -0.012}

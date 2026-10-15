@@ -1,0 +1,43 @@
+{
+  "rows": [
+    {
+      "speedup": "all CPU cores",
+      "frames": 20,
+      "max_pixel_diff": 0,
+      "time_saved_s": -0.453,
+      "on": true,
+      "note": "4 workers vs 3, wall 4.07s vs 3.62s"
+    },
+    {
+      "speedup": "cache basemap and borders",
+      "frames": 20,
+      "max_pixel_diff": 0,
+      "time_saved_s": 1.143,
+      "on": true,
+      "note": "cache 2.51s vs redraw 3.66s, plate hits 9"
+    },
+    {
+      "speedup": "duplicate identical frames",
+      "frames": 20,
+      "max_pixel_diff": 0,
+      "time_saved_s": 0.629,
+      "on": true,
+      "note": "state copy 3.03s vs redraw 3.66s"
+    },
+    {
+      "speedup": "pipe raw RGBA, not PNG",
+      "frames": 20,
+      "max_pixel_diff": 0,
+      "time_saved_s": 8.086,
+      "on": true,
+      "note": "rgba pipe 0.92s vs png readback 9.01s"
+    }
+  ],
+  "flags": {
+    "cores": true,
+    "cache": true,
+    "duplicate": true,
+    "rgba": true,
+    "segmented": true
+  }
+}

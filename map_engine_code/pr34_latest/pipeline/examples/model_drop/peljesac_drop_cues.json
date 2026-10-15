@@ -1,0 +1,85 @@
+{
+  "cues": [
+    {
+      "t": 2.3,
+      "kind": "whoosh",
+      "name": "zoom-to-spot"
+    },
+    {
+      "t": 2.55,
+      "kind": "whoosh",
+      "name": "match-cut-dive"
+    },
+    {
+      "t": 2.7,
+      "kind": "ratchet",
+      "name": "span-1"
+    },
+    {
+      "t": 3.096,
+      "kind": "ratchet",
+      "name": "span-2"
+    },
+    {
+      "t": 3.413,
+      "kind": "ratchet",
+      "name": "span-3"
+    },
+    {
+      "t": 3.706,
+      "kind": "ratchet",
+      "name": "span-4"
+    },
+    {
+      "t": 3.985,
+      "kind": "ratchet",
+      "name": "span-5"
+    },
+    {
+      "t": 4.254,
+      "kind": "ratchet",
+      "name": "span-6"
+    },
+    {
+      "t": 4.514,
+      "kind": "ratchet",
+      "name": "span-7"
+    },
+    {
+      "t": 4.768,
+      "kind": "ratchet",
+      "name": "span-8"
+    },
+    {
+      "t": 5.017,
+      "kind": "ratchet",
+      "name": "span-9"
+    },
+    {
+      "t": 5.26,
+      "kind": "ratchet",
+      "name": "span-10"
+    },
+    {
+      "t": 5.5,
+      "kind": "ratchet",
+      "name": "span-11"
+    },
+    {
+      "t": 5.737,
+      "kind": "ratchet",
+      "name": "span-12"
+    },
+    {
+      "t": 5.97,
+      "kind": "ratchet",
+      "name": "span-13"
+    },
+    {
+      "t": 6.199,
+      "kind": "ding",
+      "name": "build-done"
+    }
+  ],
+  "close_m": 3950.214615359596
+}

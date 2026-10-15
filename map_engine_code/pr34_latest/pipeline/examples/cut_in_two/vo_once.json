@@ -1,0 +1,69 @@
+{
+  "text": "And the cheapest split ever? That's the one where",
+  "file": "assets/vo/cut_in_two_vo_once.wav",
+  "sample_rate": 48000,
+  "channels": 1,
+  "stored_once": true,
+  "source_contains_two_copies": false,
+  "loop_tail_s": 0.0,
+  "place_at_s": 87.4,
+  "align_word": "cheapest",
+  "align_move": "home",
+  "note": "The upload is one closing sentence, not the line played twice. It is stored once and is not folded back onto frame 0. The 75.28 s body (America paid ... the one where) was not in the file.",
+  "words": [
+    {
+      "text": "And",
+      "start": 0.22,
+      "end": 0.34,
+      "type": "word"
+    },
+    {
+      "text": "the",
+      "start": 0.38,
+      "end": 0.5,
+      "type": "word"
+    },
+    {
+      "text": "cheapest",
+      "start": 0.6,
+      "end": 0.98,
+      "type": "word"
+    },
+    {
+      "text": "split",
+      "start": 1.1,
+      "end": 1.32,
+      "type": "word"
+    },
+    {
+      "text": "ever?",
+      "start": 1.5,
+      "end": 1.76,
+      "type": "word"
+    },
+    {
+      "text": "That's",
+      "start": 2.34,
+      "end": 2.6,
+      "type": "word"
+    },
+    {
+      "text": "the",
+      "start": 2.64,
+      "end": 2.74,
+      "type": "word"
+    },
+    {
+      "text": "one",
+      "start": 2.8,
+      "end": 3.0,
+      "type": "word"
+    },
+    {
+      "text": "where",
+      "start": 3.06,
+      "end": 3.32,
+      "type": "word"
+    }
+  ]
+}

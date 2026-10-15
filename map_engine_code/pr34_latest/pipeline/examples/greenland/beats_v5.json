@@ -1,0 +1,282 @@
+{
+  "picture_duration": 52.433,
+  "frames": 3146,
+  "fps": 60,
+  "camera": [
+    {
+      "word": "(open)",
+      "t": 0.0,
+      "move": "hold the Mercator lie",
+      "duration": 0.0,
+      "hold": 1.098
+    },
+    {
+      "word": "GREENLAND",
+      "t": 1.098,
+      "move": "push in on the Mercator lie",
+      "duration": 0.85,
+      "hold": 1.79
+    },
+    {
+      "word": "NOT",
+      "t": 3.738,
+      "move": "projection cut, then ease on the globe",
+      "duration": 0.9,
+      "hold": 0.001
+    },
+    {
+      "word": "ALGERIA",
+      "t": 4.639,
+      "move": "push to Greenland and hold for Excuse me",
+      "duration": 0.8,
+      "hold": 1.458
+    },
+    {
+      "word": "HERE",
+      "t": 6.897,
+      "move": "projection cut, then pull back to the flat map",
+      "duration": 0.9,
+      "hold": 1.135
+    },
+    {
+      "word": "ROUND",
+      "t": 8.932,
+      "move": "ease toward the poles",
+      "duration": 0.8,
+      "hold": 0.68
+    },
+    {
+      "word": "STRETCHES",
+      "t": 10.412,
+      "move": "ease into the stretch",
+      "duration": 0.9,
+      "hold": 0.876
+    },
+    {
+      "word": "POLES",
+      "t": 12.188,
+      "move": "land on Greenland for ~3\u00d7 and ~9\u00d7",
+      "duration": 0.85,
+      "hold": 2.256
+    },
+    {
+      "word": "SIXTEEN",
+      "t": 15.294,
+      "move": "push in on the 16\u00d7 lie",
+      "duration": 1.0,
+      "hold": 1.424
+    },
+    {
+      "word": "DRAG",
+      "t": 17.718,
+      "move": "slide Greenland onto Africa, counter 16\u00d7 to 1\u00d7",
+      "duration": 4.4,
+      "hold": 6.859
+    },
+    {
+      "word": "AFRICA",
+      "t": 28.977,
+      "move": "settle on the whole continent",
+      "duration": 0.7,
+      "hold": 2.223
+    },
+    {
+      "word": "ALGERIA",
+      "t": 31.9,
+      "move": "frame Algeria and a true-size Greenland",
+      "duration": 0.85,
+      "hold": 1.951
+    },
+    {
+      "word": "CONGO",
+      "t": 34.701,
+      "move": "widen so DR Congo fits, with left margin",
+      "duration": 0.8,
+      "hold": 2.755
+    },
+    {
+      "word": "USA",
+      "t": 38.256,
+      "move": "widen to the whole of Africa",
+      "duration": 0.95,
+      "hold": 7.433
+    },
+    {
+      "word": "NEXT",
+      "t": 46.639,
+      "move": "start the return",
+      "duration": 1.0,
+      "hold": 1.006
+    },
+    {
+      "word": "REMEMBER",
+      "t": 48.645,
+      "move": "ease back toward the lie",
+      "duration": 0.9,
+      "hold": 0.875
+    },
+    {
+      "word": "HUGE",
+      "t": 50.42,
+      "move": "Greenland grows back into the lie",
+      "duration": 0.85,
+      "hold": 0.647
+    },
+    {
+      "word": "LYING",
+      "t": 51.917,
+      "move": "last 0.50 s eases onto frame 0",
+      "duration": 0.5,
+      "hold": 0.0
+    }
+  ],
+  "elements": [
+    {
+      "word": "BIG",
+      "t": 2.085,
+      "move": "SAME SIZE pill",
+      "duration": 0.0,
+      "hold": 1.653
+    },
+    {
+      "word": "EXCUSE",
+      "t": 5.63,
+      "move": "EXCUSE ME pill and smug face",
+      "duration": 0.0,
+      "hold": 0.953
+    },
+    {
+      "word": "POLES",
+      "t": 12.188,
+      "move": "~3\u00d7 wider and ~9\u00d7 area cards",
+      "duration": 0.0,
+      "hold": 3.106
+    },
+    {
+      "word": "SIXTEEN",
+      "t": 15.294,
+      "move": "counter reads 16\u00d7",
+      "duration": 0.0,
+      "hold": 2.424
+    },
+    {
+      "word": "DRAG",
+      "t": 17.718,
+      "move": "Bezier hand 1.15 s, sticker and counter ride the 4.40 s slide",
+      "duration": 4.4,
+      "hold": -0.023
+    },
+    {
+      "word": "SHRINK",
+      "t": 22.118,
+      "move": "counter lands on 1\u00d7, then holds",
+      "duration": 0.0,
+      "hold": 3.38
+    },
+    {
+      "word": "WAIT",
+      "t": 25.498,
+      "move": "WAIT... WHAT?! pill",
+      "duration": 0.0,
+      "hold": 1.369
+    },
+    {
+      "word": "DROP",
+      "t": 27.479,
+      "move": "squash and dust, camera stays",
+      "duration": 0.45,
+      "hold": 1.048
+    },
+    {
+      "word": "FOURTEEN",
+      "t": 29.84,
+      "move": "14th Greenland pops, then the set holds",
+      "duration": 0.6,
+      "hold": 2.06
+    },
+    {
+      "word": "ALGERIA",
+      "t": 31.9,
+      "move": "true-size chip beside Algeria",
+      "duration": 0.85,
+      "hold": 1.951
+    },
+    {
+      "word": "CONGO",
+      "t": 34.701,
+      "move": "DR Congo lights up",
+      "duration": 0.8,
+      "hold": 0.029
+    },
+    {
+      "word": "HI",
+      "t": 35.53,
+      "move": "HI, TINY bubble, camera already framed",
+      "duration": 0.0,
+      "hold": 1.237
+    },
+    {
+      "word": "USA",
+      "t": 38.256,
+      "move": "USA pops",
+      "duration": 0.6,
+      "hold": 0.801
+    },
+    {
+      "word": "CHINA",
+      "t": 39.057,
+      "move": "China pops",
+      "duration": 0.6,
+      "hold": 0.64
+    },
+    {
+      "word": "INDIA",
+      "t": 39.697,
+      "move": "India pops",
+      "duration": 0.6,
+      "hold": 1.22
+    },
+    {
+      "word": "EUROPE",
+      "t": 40.917,
+      "move": "Europe pops",
+      "duration": 0.6,
+      "hold": 1.028
+    },
+    {
+      "word": "TOGETHER",
+      "t": 41.945,
+      "move": "ALL FOUR FIT pill",
+      "duration": 0.0,
+      "hold": 1.833
+    },
+    {
+      "word": "STILL",
+      "t": 43.778,
+      "move": "STILL BIGGER pill, clear of the USA label",
+      "duration": 0.0,
+      "hold": 1.32
+    },
+    {
+      "word": "ROOM",
+      "t": 45.098,
+      "move": "ROOM TO SPARE pill",
+      "duration": 0.0,
+      "hold": 1.541
+    },
+    {
+      "word": "HUGE",
+      "t": 50.42,
+      "move": "Greenland inflates back over 0.85 s",
+      "duration": 0.85,
+      "hold": 0.647
+    },
+    {
+      "word": "LYING",
+      "t": 51.84,
+      "move": "THIS MAP IS LYING pill",
+      "duration": 0.0,
+      "hold": 0.577
+    }
+  ]
+}
