@@ -8,6 +8,10 @@ anti-aliased fillPoly. There is no region mask and no nearest-neighbour upscale.
 
 The soundtrack is the approved Brian narration (brian_cut_in_two.mp3), played
 once. Karaoke words use the measured word timings of that file.
+
+Badges can roll a number up to a fixed final label so the pill width stays put.
+Highlighted borders are a dark outer stroke plus a bright inner stroke.
+On the Alaska close-up, a sec^2(lat) pair compares true size with Mercator area.
 """
 
 from __future__ import annotations
@@ -381,6 +385,9 @@ class PillBannerItem:
     enter_t: float
     exit_t: float
     theme: str = "dark"
+    counter_start: float | None = None
+    counter_end: float | None = None
+    counter_fmt: str = ""
 
 
 @dataclass(frozen=True)
@@ -518,7 +525,17 @@ def build_cut_in_two_episode() -> EpisodeSpec:
     ]
 
     pills = [
-        PillBannerItem("2¢ / ACRE", 540.0, 300.0, 1.05, 5.50, theme="yellow"),
+        PillBannerItem(
+            "$7.2M · ≈2¢/ACRE · 1867",
+            540.0,
+            300.0,
+            1.05,
+            5.50,
+            theme="red",
+            counter_start=0.0,
+            counter_end=7.2,
+            counter_fmt="${val:.1f}M · ≈2¢/ACRE · 1867",
+        ),
         PillBannerItem("BORDER CHECK", 540.0, 390.0, 4.70, 6.05, theme="red"),
         PillBannerItem("1867", 540.0, 300.0, 6.15, 9.40, theme="dark"),
         PillBannerItem("STILL IN THE WAY", 540.0, 390.0, 10.85, 12.30, theme="red"),
@@ -527,7 +544,17 @@ def build_cut_in_two_episode() -> EpisodeSpec:
         PillBannerItem("2-HOUR FLIGHT", 540.0, 300.0, 21.10, 22.85, theme="blue"),
         PillBannerItem("1890", 540.0, 300.0, 24.35, 25.70, theme="dark"),
         PillBannerItem("OUT OF THE MIDDLE", 540.0, 390.0, 27.20, 28.55, theme="dark"),
-        PillBannerItem("19 MI", 540.0, 300.0, 31.15, 33.50, theme="blue"),
+        PillBannerItem(
+            "19 MI",
+            540.0,
+            300.0,
+            31.15,
+            33.50,
+            theme="blue",
+            counter_start=0.0,
+            counter_end=19.0,
+            counter_fmt="{val:.0f} MI",
+        ),
         PillBannerItem("STRAIT OF HORMUZ", 540.0, 300.0, 35.55, 38.55, theme="blue"),
         PillBannerItem("UAE IN BETWEEN", 540.0, 390.0, 37.15, 38.60, theme="yellow"),
         PillBannerItem("EXIT OMAN", 540.0, 300.0, 41.55, 43.50, theme="red"),
@@ -540,7 +567,17 @@ def build_cut_in_two_episode() -> EpisodeSpec:
         PillBannerItem("1885", 540.0, 300.0, 49.95, 51.30, theme="dark"),
         PillBannerItem("WRONG SIDE", 540.0, 300.0, 58.25, 59.75, theme="red"),
         PillBannerItem("1921", 540.0, 300.0, 61.55, 63.05, theme="dark"),
-        PillBannerItem("SLIVER OF TURKEY", 540.0, 300.0, 71.45, 74.20, theme="red"),
+        PillBannerItem(
+            "TURKEY · 11 KM",
+            540.0,
+            300.0,
+            71.45,
+            74.20,
+            theme="red",
+            counter_start=0.0,
+            counter_end=11.0,
+            counter_fmt="TURKEY · {val:.0f} KM",
+        ),
         PillBannerItem("EXCEPT AZERBAIJAN", 540.0, 390.0, 73.45, 75.05, theme="dark"),
     ]
 
@@ -962,6 +999,8 @@ def draw_vector_highlights_and_borders(
 
         if border_runs:
             stroke_thick = 4 if span < 12.0 else (3 if span < 32.0 else 2)
+            glow = tuple(max(0, int(c * 0.22)) for c in cue.stroke_rgba[:3])
+            cv2.polylines(frame, border_runs, False, glow, stroke_thick + 5, cv2.LINE_AA)
             cv2.polylines(frame, border_runs, False, cue.stroke_rgba[:3], stroke_thick, cv2.LINE_AA)
 
 
@@ -1050,6 +1089,46 @@ def text_size(draw: ImageDraw.ImageDraw, text: str, face: ImageFont.FreeTypeFont
     return box[2] - box[0], box[3] - box[1]
 
 
+def mercator_area_factor(lat_deg: float) -> float:
+    """Mercator inflates area by sec^2(latitude). Equator is 1."""
+    cos_lat = max(math.cos(math.radians(float(np.clip(lat_deg, -78.0, 78.0)))), 0.08)
+    return 1.0 / (cos_lat * cos_lat)
+
+
+def draw_truesize_compare(draw: ImageDraw.ImageDraw, lat0: float, span: float, w: float, t: float) -> None:
+    """Two circles: true area versus the Mercator sec^2(lat) exaggeration."""
+    if not (1.35 <= t <= 5.35 and span < 34.0 and lat0 > 55.0 and w < 0.25):
+        return
+    alpha = element_fade_and_exit_offset(t, 1.35, 5.35, 0.28, 0.28)[0]
+    if alpha <= 0.04:
+        return
+    factor = mercator_area_factor(lat0)
+    linear = math.sqrt(factor)
+    base_r = 32
+    merc_r = int(round(base_r * min(linear, 2.6)))
+    true_c = (250, 1560)
+    merc_c = (250 + base_r + merc_r + 56, 1560)
+    a = int(230 * alpha)
+    ink = (255, 255, 255, a)
+    draw.ellipse(
+        [true_c[0] - base_r, true_c[1] - base_r, true_c[0] + base_r, true_c[1] + base_r],
+        fill=(245, 197, 24, int(210 * alpha)),
+        outline=(14, 18, 26, a),
+        width=3,
+    )
+    draw.ellipse(
+        [merc_c[0] - merc_r, merc_c[1] - merc_r, merc_c[0] + merc_r, merc_c[1] + merc_r],
+        outline=(0, 229, 255, a),
+        width=4,
+    )
+    face = get_font(28)
+    true_label = "TRUE"
+    merc_label = f"MERCATOR {factor:.1f}×"
+    tw, _th = text_size(draw, true_label, face)
+    draw.text((true_c[0] - tw / 2, true_c[1] + base_r + 8), true_label, font=face, fill=ink)
+    draw.text((merc_c[0] - merc_r, merc_c[1] + merc_r + 8), merc_label, font=face, fill=ink)
+
+
 def draw_overlay(
     rgb: np.ndarray,
     spec: EpisodeSpec,
@@ -1092,6 +1171,8 @@ def draw_overlay(
                 draw.text((ox + dx, oy + dy), label.text, font=face, fill=stroke)
             draw.text((ox, oy), label.text, font=face, fill=ink)
 
+    draw_truesize_compare(draw, lat0, span, w, t)
+
     for pill in spec.pills:
         alpha, dx, dy = element_fade_and_exit_offset(t, pill.enter_t, pill.exit_t, 0.25, 0.28)
         if alpha <= 0.04:
@@ -1100,13 +1181,22 @@ def draw_overlay(
         font_sz = 38.0 * max(pop, 0.85)
         face = get_font(font_sz)
         bg, fg = PILL_RGB.get(pill.theme, PILL_RGB["dark"])
-        tw, th = text_size(draw, pill.text, face)
+        display_text = pill.text
+        if pill.counter_start is not None and pill.counter_end is not None and pill.counter_fmt:
+            roll_u = float(smootherstep(min(1.0, max(0.0, (t - pill.enter_t) / 0.65))))
+            val = pill.counter_start + roll_u * (pill.counter_end - pill.counter_start)
+            display_text = pill.counter_fmt.format(val=val)
+        tw_fixed, th = text_size(draw, pill.text, face)
+        tw_cur, _ = text_size(draw, display_text, face)
+        tw = max(tw_fixed, tw_cur)
         pad_x, pad_y = 28, 16
         box_w = tw + pad_x * 2
         if box_w > 980:
             font_sz *= 980.0 / box_w
             face = get_font(font_sz)
-            tw, th = text_size(draw, pill.text, face)
+            tw_fixed, th = text_size(draw, pill.text, face)
+            tw_cur, _ = text_size(draw, display_text, face)
+            tw = max(tw_fixed, tw_cur)
             box_w = tw + pad_x * 2
         box_h = th + pad_y * 2
         cx = max(80 + box_w / 2, min(W - 80 - box_w / 2, pill.screen_x + dx))
@@ -1118,7 +1208,7 @@ def draw_overlay(
         draw.rounded_rectangle(
             rect, radius=18, fill=bg + (a_solid,), outline=(255, 255, 255, int(105 * alpha)), width=2
         )
-        draw.text((cx - tw / 2, cy - th / 2 - 2), pill.text, font=face, fill=fg + (a_solid,))
+        draw.text((cx - tw_cur / 2, cy - th / 2 - 2), display_text, font=face, fill=fg + (a_solid,))
 
     active_phrase = None
     for ph in phrases:
