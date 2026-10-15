@@ -1,30 +1,20 @@
 #!/usr/bin/env python3
 """
-================================================================================
-JUICY TEA MAP-SHORTS ENGINE — PRODUCTION 60FPS 3D-SPHERICAL RENDERER
-================================================================================
-Fixes all 5 defects from the previous render:
-1. ZERO North Pole whirlpool & ZERO vertical dateline seam:
-   Uses exact 3D Unit-Sphere Camera Space projection (`spherical_camera_warp`)
-   with 3D Cartesian vector interpolation (vx, vy, vz) before `atan2`, so
-   neither the North Pole nor the +-180 antimeridian ever tears or swirls.
-2. ZERO polygon chord-slicing over Canada (00:08-00:11):
-   Country highlight fills are rasterized into a 5400x2700 equirectangular ID
-   mask (`REGION_MASK`) and warped with the EXACT same `cv2.remap` pixel tables
-   as the NASA satellite plate, guaranteeing 100% coastline lock and zero
-   horizon-clipping chords.
-3. TRUE Circular 3D Globe (`w = 1.0`) on all globe beats with 3D spherical
-   limb shading and blue atmospheric rim glow.
-4. ZERO Caspian Sea camera dip at 00:57: smooth C2 pull-back from Nakhchivan
-   directly onto the 3D globe and across the Arctic to Alaska.
-5. UNIFORM Studio Voiceover from 0.0s to 62.0s (`en-US-ChristopherNeural`),
-   velocity-peak whoosh/pop SFX, and clean `EVER?` Cyan (#00E5FF) karaoke.
-================================================================================
+Juicy Tea map-shorts — 1080x1920 60fps globe for Countries Cut in Two.
+
+The picture is a true circular sphere. Country fills come from Natural Earth
+10m, subdivided along geodesics and clamped to the horizon, drawn with
+anti-aliased fillPoly. There is no region mask and no nearest-neighbour upscale.
+
+The soundtrack is the approved Brian narration (brian_cut_in_two.mp3), played
+once. Karaoke words use the measured word timings of that file.
 """
 
 from __future__ import annotations
+
 import json
 import math
+import shutil
 import subprocess
 import sys
 import urllib.request
@@ -38,9 +28,6 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 
-# ==============================================================================
-# 1. WORKSPACE & PATH RESOLUTION
-# ==============================================================================
 def locate_paths() -> Tuple[Path, Path, Path]:
     cwd = Path.cwd().resolve()
     for candidate in [cwd, *cwd.parents]:
@@ -59,29 +46,36 @@ WORKSPACE, PR34, ROOT = locate_paths()
 sys.path.insert(0, str(ROOT))
 
 W, H, FPS = 1080, 1920, 60
+SCREEN_DIAG_RADIUS = math.hypot(W * 0.5, H * 0.5)  # 1101.45 px
 LOOP_TAIL_SEC = 0.5
 MIN_SPAN_DEG = 3.2
 MAX_SPAN_DEG = 170.0
+TOTAL_DURATION = 79.00
 
 CACHE_DIR = PR34 / "pipeline" / "examples" / "cut_in_two"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-GEOJSON_50M = CACHE_DIR / "ne_50m_admin_0_countries.geojson"
-GEOJSON_50M_URL = (
+GEOJSON_10M = CACHE_DIR / "ne_10m_admin_0_countries.geojson"
+GEOJSON_10M_URL = (
     "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/"
-    "master/geojson/ne_50m_admin_0_countries.geojson"
+    "master/geojson/ne_10m_admin_0_countries.geojson"
 )
 PLATE_PATH = CACHE_DIR / "earth_topo_5400.jpg"
 PLATE_URL = (
     "https://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73909/"
     "world.topo.bathy.200412.3x5400x2700.jpg"
 )
+BRIAN_MP3 = CACHE_DIR / "brian_cut_in_two.mp3"
+BRIAN_WORDS = CACHE_DIR / "brian_words.json"
+UPLOAD_MP3 = Path(
+    "/home/ubuntu/.cursor/projects/workspace/uploads/"
+    "ElevenLabs_2026-10-14T10_39_49_Brian_-_Deep__Resonant_and_Comforting_pre_sp100_s50_sb75_v4_f582.mp3"
+)
 OUT_MP4 = WORKSPACE / "v" / "cut_in_two.mp4"
 
+HIGHLIGHT_ISOS = {"USA", "CAN", "MYS", "BRN", "OMN", "ARE", "COD", "AGO", "AZE", "ARM"}
 
-# ==============================================================================
-# 2. C2 EASING & TIME-PARAMETERIZED SPLINE CAMERA RIG
-# ==============================================================================
+
 def smoothstep(u: float | np.ndarray) -> float | np.ndarray:
     u_c = np.clip(u, 0.0, 1.0)
     return u_c * u_c * (3.0 - 2.0 * u_c)
@@ -92,7 +86,7 @@ def smootherstep(u: float | np.ndarray) -> float | np.ndarray:
     return u_c * u_c * u_c * (u_c * (u_c * 6.0 - 15.0) + 10.0)
 
 
-def icon_pop_scale(elapsed_s: float, duration_s: float = 0.60, peak: float = 1.15) -> float:
+def icon_pop_scale(elapsed_s: float, duration_s: float = 0.55, peak: float = 1.12) -> float:
     if elapsed_s <= 0.0:
         return 0.0
     if elapsed_s >= duration_s:
@@ -105,13 +99,13 @@ def icon_pop_scale(elapsed_s: float, duration_s: float = 0.60, peak: float = 1.1
     return float(base + overshoot)
 
 
-def label_pop_state(elapsed_s: float, duration_s: float = 0.30) -> Tuple[float, float]:
+def label_pop_state(elapsed_s: float, duration_s: float = 0.28) -> Tuple[float, float]:
     if elapsed_s <= 0.0:
         return 0.0, 0.0
     if elapsed_s >= duration_s:
         return 1.0, 1.0
     scale = icon_pop_scale(elapsed_s, duration_s=duration_s, peak=1.06)
-    alpha = float(smootherstep(min(1.0, elapsed_s / (0.60 * duration_s))))
+    alpha = float(smootherstep(min(1.0, elapsed_s / (0.55 * duration_s))))
     return scale, alpha
 
 
@@ -121,7 +115,7 @@ def element_fade_and_exit_offset(
     exit_t: float,
     fade_in_s: float = 0.28,
     fade_out_s: float = 0.30,
-    exit_drift_px: Tuple[float, float] = (14.0, -10.0),
+    exit_drift_px: Tuple[float, float] = (12.0, -8.0),
 ) -> Tuple[float, float, float]:
     fade_in_s = max(fade_in_s, 0.25)
     fade_out_s = max(fade_out_s, 0.25)
@@ -215,8 +209,8 @@ class TimeParameterizedC2Spline:
 def hermite_segment(
     t: float, t0: float, t1: float, p0: float, v0: float, p1: float, v1: float
 ) -> Tuple[float, float, float]:
-    T = max(t1 - t0, 1e-9)
-    u = float(np.clip((t - t0) / T, 0.0, 1.0))
+    duration = max(t1 - t0, 1e-9)
+    u = float(np.clip((t - t0) / duration, 0.0, 1.0))
     u2 = u * u
     u3 = u2 * u
 
@@ -224,19 +218,19 @@ def hermite_segment(
     h10 = u3 - 2.0 * u2 + u
     h01 = -2.0 * u3 + 3.0 * u2
     h11 = u3 - u2
-    pos = h00 * p0 + h10 * (T * v0) + h01 * p1 + h11 * (T * v1)
+    pos = h00 * p0 + h10 * (duration * v0) + h01 * p1 + h11 * (duration * v1)
 
     dh00 = 6.0 * u2 - 6.0 * u
     dh10 = 3.0 * u2 - 4.0 * u + 1.0
     dh01 = -6.0 * u2 + 6.0 * u
     dh11 = 3.0 * u2 - 2.0 * u
-    vel = (dh00 * p0 + dh10 * (T * v0) + dh01 * p1 + dh11 * (T * v1)) / T
+    vel = (dh00 * p0 + dh10 * (duration * v0) + dh01 * p1 + dh11 * (duration * v1)) / duration
 
     ddh00 = 12.0 * u - 6.0
     ddh10 = 6.0 * u - 4.0
     ddh01 = -12.0 * u + 6.0
     ddh11 = 6.0 * u - 2.0
-    acc = (ddh00 * p0 + ddh10 * (T * v0) + ddh01 * p1 + ddh11 * (T * v1)) / (T * T)
+    acc = (ddh00 * p0 + ddh10 * (duration * v0) + ddh01 * p1 + ddh11 * (duration * v1)) / (duration * duration)
     return float(pos), float(vel), float(acc)
 
 
@@ -299,7 +293,9 @@ class ContinuousCameraRig:
 
             lat0, dlat0, _ = self.spline_lat.eval_with_derivs(self.loop_start_t)
             lat1, dlat1, _ = self.spline_lat.eval_with_derivs(0.0)
-            lat, dlat, ddlat = hermite_segment(t_clamped, self.loop_start_t, self.total_duration, lat0, dlat0, lat1, dlat1)
+            lat, dlat, ddlat = hermite_segment(
+                t_clamped, self.loop_start_t, self.total_duration, lat0, dlat0, lat1, dlat1
+            )
 
             ls0, dls0, _ = self.spline_log_span.eval_with_derivs(self.loop_start_t)
             ls1, dls1, _ = self.spline_log_span.eval_with_derivs(0.0)
@@ -324,9 +320,6 @@ class ContinuousCameraRig:
         }
 
 
-# ==============================================================================
-# 3. EPISODE CHOREOGRAPHY, UNIFORM VOICEOVER SCRIPT & CUES (62.0s)
-# ==============================================================================
 @dataclass(frozen=True)
 class LockedCameraMove:
     move_id: str
@@ -349,12 +342,24 @@ class LockedCameraMove:
 
 @dataclass(frozen=True)
 class CountryHighlightCue:
-    region_id: int
+    z_order: int
     iso_a3: str
     enter_t: float
     exit_t: float
     fill_rgba: Tuple[int, int, int, int]
+    stroke_rgba: Tuple[int, int, int, int]
     where: str = "all"
+
+
+@dataclass(frozen=True)
+class SplitArcCue:
+    lon0: float
+    lat0: float
+    lon1: float
+    lat1: float
+    enter_t: float
+    exit_t: float
+    color_rgb: Tuple[int, int, int] = (0, 229, 255)
 
 
 @dataclass(frozen=True)
@@ -365,7 +370,7 @@ class MapLabelItem:
     enter_t: float
     exit_t: float
     color_rgba: Tuple[int, int, int, int] = (255, 255, 255, 255)
-    font_size: float = 38.0
+    font_size: float = 40.0
 
 
 @dataclass(frozen=True)
@@ -386,6 +391,7 @@ class EpisodeSpec:
     moves: List[LockedCameraMove]
     event_timestamps: List[float]
     highlights: List[CountryHighlightCue] = field(default_factory=list)
+    arcs: List[SplitArcCue] = field(default_factory=list)
     labels: List[MapLabelItem] = field(default_factory=list)
     pills: List[PillBannerItem] = field(default_factory=list)
     map_has_yellow: bool = True
@@ -440,133 +446,107 @@ class EpisodeSpec:
         return ContinuousCameraRig(anchors, total_duration=self.total_duration)
 
 
-# Clean, single-speaker script across all 62.0s (no '??' typo, no speaker switch at 58s!)
-SCRIPT_TIMED_LINES: List[Tuple[float, float, str]] = [
-    (0.08, 4.30, "Russia sold Alaska to the United States for just seven point two million dollars."),
-    (4.45, 7.60, "That was two cents an acre, but nobody checked the map."),
-    (7.80, 12.10, "Because British Canada was sitting right in the way, cutting America into two pieces."),
-    (12.30, 17.80, "In nineteen sixty-three, Malaysia did it even bigger, split across the South China Sea."),
-    (18.00, 22.80, "And right on Borneo, British Sarawak bit nineteen miles right out of the middle of Brunei."),
-    (23.00, 26.80, "Today Brunei is still two separate pieces of land."),
-    (27.10, 34.80, "Now cross the Indian Ocean to the Strait of Hormuz, where Oman's Musandam tip is completely surrounded by the U A E."),
-    (35.00, 40.40, "Alaska, Malaysia, Brunei, and Oman all pulled the exact same trick across a whole sea."),
-    (40.60, 48.20, "In eighteen eighty-five, Congo took a strip to the Atlantic, leaving Angola's Cabinda stuck on the wrong side."),
-    (48.40, 55.40, "And in nineteen twenty-one, Nakhchivan was cut off from Azerbaijan by Armenia, touching Turkey for just eleven kilometers."),
-    (56.20, 61.65, "And the cheapest split ever? That's the one where"),
-]
-
-
-def build_full_karaoke_words() -> List[Dict[str, float | str]]:
-    words: List[Dict[str, float | str]] = []
-    for t0, t1, sentence in SCRIPT_TIMED_LINES:
-        tokens = [w.strip() for w in sentence.split() if w.strip()]
-        total_chars = sum(max(2, len(tok)) for tok in tokens)
-        avail_dur = max(0.2, (t1 - t0) - 0.03 * len(tokens))
-        cursor = t0
-        for tok in tokens:
-            w_dur = avail_dur * (max(2, len(tok)) / total_chars)
-            words.append({
-                "text": tok.upper(),
-                "start": round(cursor, 3),
-                "end": round(cursor + w_dur, 3),
-            })
-            cursor += w_dur + 0.025
-    return words
-
-
 def build_cut_in_two_episode() -> EpisodeSpec:
-    total_dur = 62.00
+    """Camera beats locked to the measured Brian narration, not a 62s stand-in."""
+    total_dur = TOTAL_DURATION
     moves = [
-        # 1. Alaska hook (0.0s - 7.6s): starts on TRUE 3D Globe (w=1.0) over Alaska -> zooms into flat map (w=0.0)
-        LockedCameraMove("cit_01_alaska_open", 0, 0.0, 1.50, 1.0, 0.0, -148.0, -149.0, 61.0, 63.0, 64.0, 30.0, is_snap=True),
-        LockedCameraMove("cit_02_alaska_pan", 8, 4.2, 1.35, 0.0, 0.0, -148.5, -140.0, 63.0, 60.0, 29.0, 25.0),
-        # 2. Canada in the way (7.6s - 12.2s): stays clean on spherical map without polar vortex
-        LockedCameraMove("cit_03_canada_wide", 18, 7.6, 1.45, 0.0, 0.0, -139.5, -108.0, 60.0, 55.0, 24.5, 40.0),
-        # 3. 3D Globe arc (w=1.0) across Pacific to Malaysia (12.2s - 18.0s)
-        LockedCameraMove("cit_04_globe_to_malaysia", 30, 12.2, 1.80, 0.0, 1.0, -107.5, 108.5, 55.0, 4.5, 39.5, 54.0),
-        LockedCameraMove("cit_05_malaysia_focus", 38, 14.5, 1.35, 1.0, 0.0, 108.5, 108.5, 4.5, 4.0, 53.0, 20.0),
-        # 4. True close-up on Brunei & Sarawak / 19-mile Limbang split (18.0s - 27.0s)
-        LockedCameraMove("cit_06_brunei_closeup", 50, 18.0, 1.50, 0.0, 0.0, 108.7, 114.85, 4.0, 4.75, 19.5, 4.6, is_snap=True),
-        LockedCameraMove("cit_07_limbang_corridor", 60, 22.8, 1.25, 0.0, 0.0, 114.9, 115.05, 4.75, 4.68, 4.5, 4.2),
-        # 5. Smooth pull-back to Strait of Hormuz / Musandam Peninsula (27.0s - 35.0s)
-        LockedCameraMove("cit_08_globe_to_hormuz", 72, 27.0, 1.65, 0.0, 0.85, 115.1, 56.25, 4.68, 25.4, 4.2, 32.0),
-        LockedCameraMove("cit_09_musandam_closeup", 80, 29.2, 1.40, 0.85, 0.0, 56.25, 56.25, 25.4, 25.8, 31.0, 5.4, is_snap=True),
-        # 6. Summary comparison beat on TRUE 3D Globe (w=1.0) (35.0s - 40.5s)
-        LockedCameraMove("cit_10_indian_ocean_globe", 94, 35.0, 1.55, 0.0, 1.0, 56.3, 42.0, 25.8, 12.0, 5.3, 62.0),
-        # 7. Angola & Cabinda / DR Congo corridor close-up (40.5s - 48.4s)
-        LockedCameraMove("cit_11_cabinda_zoom", 108, 40.5, 1.55, 1.0, 0.0, 42.0, 12.6, 12.0, -5.6, 60.0, 6.2, is_snap=True),
-        LockedCameraMove("cit_12_angola_frame", 118, 44.8, 1.30, 0.0, 0.0, 12.7, 15.8, -5.6, -9.8, 6.1, 14.5),
-        # 8. Smooth arc to Nakhchivan / Armenia / Azerbaijan (48.4s - 55.6s)
-        LockedCameraMove("cit_13_globe_to_caucasus", 130, 48.4, 1.60, 0.0, 0.70, 15.9, 45.5, -9.7, 39.4, 14.2, 24.0),
-        LockedCameraMove("cit_14_nakhchivan_closeup", 140, 50.4, 1.35, 0.70, 0.0, 45.5, 45.4, 39.4, 39.35, 23.0, 5.8, is_snap=True),
-        # 9. Direct pull-back onto TRUE 3D Globe (w=1.0) at 55.6s (NO Caspian Sea dip!) -> rotates to Alaska
-        LockedCameraMove("cit_15_pullback_globe", 148, 55.6, 1.55, 0.0, 1.0, 45.5, -45.0, 39.35, 54.0, 5.6, 64.0),
-        LockedCameraMove("cit_16_globe_loop_alaska", 154, 57.4, 1.95, 1.0, 1.0, -45.0, -148.0, 54.0, 61.0, 64.0, 64.0),
+        LockedCameraMove("cit_01_alaska_open", 0, 0.00, 1.70, 1.0, 0.0, -148.0, -149.0, 61.0, 63.0, 64.0, 28.0, is_snap=True),
+        LockedCameraMove("cit_02_alaska_pan", 13, 3.05, 1.45, 0.0, 0.0, -148.5, -140.0, 63.0, 60.0, 27.5, 24.0),
+        LockedCameraMove("cit_03_canada_wide", 21, 6.05, 1.55, 0.0, 0.0, -139.5, -112.0, 60.0, 54.0, 23.5, 38.0),
+        LockedCameraMove("cit_04_globe_to_malaysia", 34, 12.35, 2.10, 0.0, 1.0, -111.5, 108.5, 54.0, 4.5, 37.5, 56.0),
+        LockedCameraMove("cit_05_malaysia_focus", 45, 16.55, 1.45, 1.0, 0.0, 108.5, 108.5, 4.5, 4.0, 55.0, 19.5),
+        LockedCameraMove("cit_06_brunei_closeup", 61, 22.35, 1.55, 0.0, 0.0, 108.7, 114.80, 4.0, 4.78, 19.0, 4.2, is_snap=True),
+        LockedCameraMove("cit_07_limbang_corridor", 67, 27.15, 1.25, 0.0, 0.0, 114.85, 114.95, 4.78, 4.72, 4.1, 3.8),
+        LockedCameraMove("cit_08_globe_to_hormuz", 83, 33.55, 1.70, 0.0, 0.85, 115.0, 56.25, 4.72, 25.4, 3.8, 32.0),
+        LockedCameraMove("cit_09_musandam_closeup", 87, 36.35, 1.40, 0.85, 0.0, 56.25, 56.25, 25.4, 25.75, 31.0, 5.0, is_snap=True),
+        LockedCameraMove("cit_10_indian_ocean_globe", 110, 43.70, 1.60, 0.0, 1.0, 56.3, 42.0, 25.75, 12.0, 4.9, 64.0),
+        LockedCameraMove("cit_11_cabinda_zoom", 128, 49.75, 1.65, 1.0, 0.0, 42.0, 12.6, 12.0, -5.6, 62.0, 5.8, is_snap=True),
+        LockedCameraMove("cit_12_angola_frame", 142, 55.85, 1.30, 0.0, 0.0, 12.7, 15.8, -5.6, -9.8, 5.7, 14.0),
+        LockedCameraMove("cit_13_globe_to_caucasus", 152, 59.95, 1.80, 0.0, 0.70, 15.9, 45.5, -9.7, 39.4, 13.8, 24.0),
+        LockedCameraMove("cit_14_nakhchivan_closeup", 164, 64.15, 1.40, 0.70, 0.0, 45.5, 45.4, 39.4, 39.35, 23.0, 5.4, is_snap=True),
+        LockedCameraMove("cit_15_pullback_globe", 183, 75.15, 1.35, 0.0, 1.0, 45.5, -45.0, 39.35, 54.0, 5.3, 64.0),
+        LockedCameraMove("cit_16_globe_loop_alaska", 186, 76.55, 1.15, 1.0, 1.0, -45.0, -148.0, 54.0, 61.0, 64.0, 64.0),
     ]
 
     highlights = [
-        CountryHighlightCue(1, "USA", 0.0, 7.6, (242, 198, 65, 235), where="alaska"),
-        CountryHighlightCue(2, "CAN", 7.4, 12.2, (219, 94, 86, 225), where="all"),
-        CountryHighlightCue(3, "MYS", 14.0, 20.2, (219, 94, 86, 235), where="all"),
-        CountryHighlightCue(4, "BRN", 18.2, 27.0, (245, 197, 24, 245), where="all"),
-        CountryHighlightCue(5, "OMN", 28.8, 35.0, (219, 94, 86, 240), where="all"),
-        CountryHighlightCue(6, "ARE", 29.4, 35.0, (242, 198, 65, 240), where="all"),
-        CountryHighlightCue(7, "COD", 41.2, 48.2, (88, 154, 186, 235), where="all"),
-        CountryHighlightCue(8, "AGO", 41.5, 48.2, (245, 197, 24, 245), where="cabinda"),
-        CountryHighlightCue(9, "AGO", 44.2, 48.2, (82, 168, 104, 235), where="angola_main"),
-        CountryHighlightCue(10, "AZE", 50.0, 55.8, (88, 154, 186, 235), where="azerbaijan_main"),
-        CountryHighlightCue(11, "AZE", 50.2, 55.8, (245, 197, 24, 245), where="nakhchivan"),
-        CountryHighlightCue(12, "ARM", 50.6, 55.8, (235, 142, 70, 240), where="all"),
-        CountryHighlightCue(1, "USA", 57.2, 62.0, (242, 198, 65, 235), where="alaska"),
+        CountryHighlightCue(10, "USA", 0.00, 12.30, (245, 198, 45, 215), (255, 235, 120, 255), where="alaska"),
+        CountryHighlightCue(10, "USA", 7.40, 12.30, (245, 198, 45, 215), (255, 235, 120, 255), where="usa_lower48"),
+        CountryHighlightCue(15, "CAN", 6.00, 12.30, (225, 75, 70, 210), (255, 155, 150, 255), where="all"),
+        CountryHighlightCue(10, "MYS", 16.60, 33.50, (220, 75, 70, 210), (255, 150, 145, 255), where="all"),
+        CountryHighlightCue(20, "BRN", 22.40, 33.50, (250, 205, 25, 240), (255, 245, 150, 255), where="all"),
+        CountryHighlightCue(15, "OMN", 34.10, 43.60, (225, 75, 70, 225), (255, 160, 155, 255), where="all"),
+        CountryHighlightCue(10, "ARE", 36.40, 43.60, (245, 198, 45, 220), (255, 235, 120, 255), where="all"),
+        CountryHighlightCue(10, "COD", 49.90, 59.80, (65, 155, 205, 215), (150, 220, 255, 255), where="all"),
+        CountryHighlightCue(15, "AGO", 55.90, 59.80, (70, 175, 100, 215), (155, 245, 180, 255), where="angola_main"),
+        CountryHighlightCue(20, "AGO", 51.10, 59.80, (250, 205, 25, 240), (255, 245, 150, 255), where="cabinda"),
+        CountryHighlightCue(10, "AZE", 61.70, 75.10, (65, 155, 205, 220), (150, 220, 255, 255), where="azerbaijan_main"),
+        CountryHighlightCue(15, "ARM", 64.20, 75.10, (238, 135, 55, 225), (255, 200, 140, 255), where="all"),
+        CountryHighlightCue(20, "AZE", 65.00, 75.10, (250, 205, 25, 240), (255, 245, 150, 255), where="nakhchivan"),
+        CountryHighlightCue(10, "USA", 76.70, 79.00, (245, 198, 45, 215), (255, 235, 120, 255), where="alaska"),
+    ]
+
+    arcs = [
+        SplitArcCue(-148.0, 62.5, -120.5, 47.5, 7.70, 12.15, (0, 229, 255)),
+        SplitArcCue(102.2, 4.0, 113.5, 3.2, 18.20, 22.70, (0, 229, 255)),
+        SplitArcCue(114.65, 4.85, 115.12, 4.70, 25.70, 33.40, (0, 229, 255)),
+        SplitArcCue(57.2, 23.6, 56.25, 26.05, 36.80, 43.40, (0, 229, 255)),
+        SplitArcCue(17.2, -11.6, 12.30, -5.22, 52.10, 59.60, (0, 229, 255)),
+        SplitArcCue(47.2, 40.1, 45.4, 39.2, 65.40, 74.95, (0, 229, 255)),
     ]
 
     labels = [
-        MapLabelItem("ALASKA", -151.0, 64.5, 1.2, 7.3),
-        MapLabelItem("BRITISH", -114.0, 56.5, 8.0, 9.8),
-        MapLabelItem("CANADA", -108.0, 56.5, 9.8, 12.0),
-        MapLabelItem("MALAYSIA", 102.2, 4.5, 14.6, 18.2, color_rgba=(255, 125, 125, 255)),
-        MapLabelItem("PENINSULA", 101.5, 2.2, 15.2, 18.2),
-        MapLabelItem("BORNEO", 114.5, 1.5, 15.6, 18.5),
-        MapLabelItem("BRUNEI", 114.65, 5.05, 18.8, 26.6),
-        MapLabelItem("SARAWAK", 113.8, 3.6, 19.4, 26.6, color_rgba=(255, 130, 130, 255)),
-        # Offset into clean dark water of Strait of Hormuz so it never sits on the white coast border
-        MapLabelItem("MUSANDAM", 56.05, 26.55, 29.8, 34.8, color_rgba=(255, 155, 155, 255)),
-        MapLabelItem("UAE", 54.4, 24.2, 30.2, 34.8),
-        MapLabelItem("OMAN", 57.6, 23.2, 30.8, 34.8, color_rgba=(255, 145, 145, 255)),
-        MapLabelItem("CABINDA", 11.4, -5.25, 41.8, 47.8),
-        MapLabelItem("DR CONGO", 18.5, -4.2, 42.4, 47.8, color_rgba=(135, 205, 255, 255)),
-        MapLabelItem("ANGOLA", 17.5, -12.2, 45.0, 47.8, color_rgba=(140, 235, 165, 255)),
-        MapLabelItem("NAKHCHIVAN", 45.1, 38.65, 50.8, 55.6),
-        MapLabelItem("ARMENIA", 44.5, 40.45, 51.2, 55.6, color_rgba=(255, 185, 110, 255)),
-        MapLabelItem("AZERBAIJAN", 47.9, 40.5, 51.0, 55.6, color_rgba=(135, 205, 255, 255)),
-        MapLabelItem("IRAN", 46.2, 37.5, 51.8, 55.6),
+        MapLabelItem("ALASKA", -151.0, 64.5, 1.30, 6.00),
+        MapLabelItem("BRITISH", -114.0, 56.5, 8.15, 9.85),
+        MapLabelItem("CANADA", -108.0, 56.5, 9.85, 12.25),
+        MapLabelItem("MALAYSIA", 102.2, 4.5, 17.05, 22.30),
+        MapLabelItem("PENINSULA", 101.5, 2.2, 17.70, 22.30),
+        MapLabelItem("BORNEO", 114.5, 1.5, 18.70, 22.50),
+        MapLabelItem("BRUNEI", 114.60, 5.02, 23.20, 33.40),
+        MapLabelItem("SARAWAK", 113.85, 3.70, 25.50, 33.40),
+        MapLabelItem("LIMBANG", 114.98, 4.42, 26.30, 33.40),
+        MapLabelItem("MUSANDAM", 56.10, 26.45, 36.50, 43.45, color_rgba=(255, 165, 165, 255)),
+        MapLabelItem("UAE", 54.5, 24.3, 37.15, 43.45),
+        MapLabelItem("OMAN", 57.5, 23.3, 38.90, 43.45, color_rgba=(255, 155, 155, 255)),
+        MapLabelItem("CABINDA", 12.05, -4.85, 51.50, 59.70),
+        MapLabelItem("DR CONGO", 17.6, -4.6, 53.20, 59.70),
+        MapLabelItem("ANGOLA", 17.4, -12.4, 56.20, 59.70),
+        MapLabelItem("NAKHCHIVAN", 45.05, 38.65, 65.20, 75.05),
+        MapLabelItem("ARMENIA", 44.55, 40.35, 67.70, 75.05, color_rgba=(255, 190, 115, 255)),
+        MapLabelItem("AZERBAIJAN", 47.55, 40.15, 66.10, 75.05, color_rgba=(140, 215, 255, 255)),
+        MapLabelItem("IRAN", 46.15, 37.85, 69.20, 73.20),
+        MapLabelItem("TURKEY", 44.15, 39.55, 71.70, 74.70),
     ]
 
     pills = [
-        PillBannerItem("$7.2M · ≈2¢/ACRE · 1867", 540.0, 320.0, 0.6, 5.2, theme="red"),
-        PillBannerItem("BORDER CHECK", 540.0, 410.0, 5.2, 7.3, theme="red"),
-        PillBannerItem("STILL IN THE WAY", 540.0, 340.0, 8.4, 11.8, theme="red"),
-        PillBannerItem("2 PIECES", 540.0, 310.0, 12.4, 14.4, theme="dark"),
-        PillBannerItem("1963", 540.0, 310.0, 14.5, 17.8, theme="dark"),
-        PillBannerItem("1890", 540.0, 310.0, 18.6, 21.8, theme="dark"),
-        PillBannerItem("19 MI", 540.0, 310.0, 22.0, 26.6, theme="blue"),
-        PillBannerItem("RIGHT OUT OF THE MIDDLE", 540.0, 400.0, 22.4, 26.6, theme="dark"),
-        PillBannerItem("STRAIT OF HORMUZ", 540.0, 310.0, 27.6, 31.4, theme="blue"),
-        PillBannerItem("EXIT OMAN", 540.0, 310.0, 31.6, 34.8, theme="red"),
-        PillBannerItem("SAME TRICK", 540.0, 290.0, 35.4, 40.0, theme="dark"),
-        PillBannerItem("A WHOLE SEA", 540.0, 380.0, 35.8, 40.0, theme="blue"),
-        PillBannerItem("ALASKA", 310.0, 480.0, 36.0, 40.0, theme="yellow"),
-        PillBannerItem("MALAYSIA", 770.0, 480.0, 36.3, 40.0, theme="red"),
-        PillBannerItem("BRUNEI", 310.0, 575.0, 36.6, 40.0, theme="yellow"),
-        PillBannerItem("OMAN", 770.0, 575.0, 36.9, 40.0, theme="red"),
-        PillBannerItem("1885", 540.0, 310.0, 41.0, 44.2, theme="dark"),
-        PillBannerItem("WRONG SIDE", 540.0, 310.0, 44.4, 47.8, theme="red"),
-        PillBannerItem("1921", 540.0, 310.0, 48.8, 51.8, theme="dark"),
-        PillBannerItem("TURKEY · 11 KM", 540.0, 310.0, 52.0, 55.6, theme="red"),
-        PillBannerItem("EXCEPT AZERBAIJAN", 540.0, 400.0, 52.8, 55.6, theme="dark"),
+        PillBannerItem("2¢ / ACRE", 540.0, 300.0, 1.05, 5.50, theme="yellow"),
+        PillBannerItem("BORDER CHECK", 540.0, 390.0, 4.70, 6.05, theme="red"),
+        PillBannerItem("1867", 540.0, 300.0, 6.15, 9.40, theme="dark"),
+        PillBannerItem("STILL IN THE WAY", 540.0, 390.0, 10.85, 12.30, theme="red"),
+        PillBannerItem("2 PIECES", 540.0, 300.0, 13.85, 15.30, theme="dark"),
+        PillBannerItem("1963", 540.0, 300.0, 15.45, 16.90, theme="dark"),
+        PillBannerItem("2-HOUR FLIGHT", 540.0, 300.0, 21.10, 22.85, theme="blue"),
+        PillBannerItem("1890", 540.0, 300.0, 24.35, 25.70, theme="dark"),
+        PillBannerItem("OUT OF THE MIDDLE", 540.0, 390.0, 27.20, 28.55, theme="dark"),
+        PillBannerItem("19 MI", 540.0, 300.0, 31.15, 33.50, theme="blue"),
+        PillBannerItem("STRAIT OF HORMUZ", 540.0, 300.0, 35.55, 38.55, theme="blue"),
+        PillBannerItem("UAE IN BETWEEN", 540.0, 390.0, 37.15, 38.60, theme="yellow"),
+        PillBannerItem("EXIT OMAN", 540.0, 300.0, 41.55, 43.50, theme="red"),
+        PillBannerItem("SAME TRICK", 540.0, 220.0, 43.95, 49.35, theme="dark"),
+        PillBannerItem("ALASKA", 300.0, 330.0, 45.70, 49.30, theme="yellow"),
+        PillBannerItem("MALAYSIA", 780.0, 330.0, 46.00, 49.30, theme="red"),
+        PillBannerItem("BRUNEI", 300.0, 450.0, 46.30, 49.30, theme="yellow"),
+        PillBannerItem("OMAN", 780.0, 450.0, 46.60, 49.30, theme="red"),
+        PillBannerItem("A WHOLE SEA", 540.0, 570.0, 47.55, 49.40, theme="blue"),
+        PillBannerItem("1885", 540.0, 300.0, 49.95, 51.30, theme="dark"),
+        PillBannerItem("WRONG SIDE", 540.0, 300.0, 58.25, 59.75, theme="red"),
+        PillBannerItem("1921", 540.0, 300.0, 61.55, 63.05, theme="dark"),
+        PillBannerItem("SLIVER OF TURKEY", 540.0, 300.0, 71.45, 74.20, theme="red"),
+        PillBannerItem("EXCEPT AZERBAIJAN", 540.0, 390.0, 73.45, 75.05, theme="dark"),
     ]
 
-    events = sorted(set([round(t * 1.10, 2) for t in range(1, int(total_dur / 1.10) + 1) if t * 1.10 < total_dur]))
+    events = sorted(
+        {round(t * 1.10, 2) for t in range(1, int(total_dur / 1.10) + 1) if t * 1.10 < total_dur}
+    )
     return EpisodeSpec(
         episode_id="cut_in_two",
         total_duration=total_dur,
@@ -574,15 +554,13 @@ def build_cut_in_two_episode() -> EpisodeSpec:
         moves=moves,
         event_timestamps=events,
         highlights=highlights,
+        arcs=arcs,
         labels=labels,
         pills=pills,
         map_has_yellow=True,
     )
 
 
-# ==============================================================================
-# 4. EXACT 3D UNIT-SPHERE CAMERA PROJECTION (ZERO POLAR VORTEX, ZERO SEAM!)
-# ==============================================================================
 FONT_PATH = "/usr/share/fonts/truetype/macos/Inter-Bold.ttf"
 if not Path(FONT_PATH).exists():
     for alt in [
@@ -596,7 +574,6 @@ if not Path(FONT_PATH).exists():
 FONTS: dict[int, ImageFont.FreeTypeFont] = {}
 PLATE: np.ndarray | None = None
 STARS: np.ndarray | None = None
-REGION_MASK: np.ndarray | None = None
 
 GRID_STEP = 6
 GX_1D = np.linspace(0.0, float(W), W // GRID_STEP + 1, dtype=np.float64)
@@ -604,6 +581,7 @@ GY_1D = np.linspace(0.0, float(H), H // GRID_STEP + 1, dtype=np.float64)
 GX, GY = np.meshgrid(GX_1D, GY_1D)
 FULL_XS = np.arange(W, dtype=np.float32)[None, :]
 FULL_YS = np.arange(H, dtype=np.float32)[:, None]
+FULL_R_PX = np.hypot(FULL_XS - W * 0.5, FULL_YS - H * 0.5)
 
 
 def get_font(size: float) -> ImageFont.FreeTypeFont:
@@ -617,86 +595,47 @@ def ensure_assets() -> Path:
     if not PLATE_PATH.exists() or PLATE_PATH.stat().st_size < 100_000:
         print("[ASSET] Downloading NASA Topo/Bathy Satellite Plate...", flush=True)
         urllib.request.urlretrieve(PLATE_URL, PLATE_PATH)
-    if not GEOJSON_50M.exists() or GEOJSON_50M.stat().st_size < 100_000:
-        print("[ASSET] Downloading Natural Earth Countries...", flush=True)
-        urllib.request.urlretrieve(GEOJSON_50M_URL, GEOJSON_50M)
-    return GEOJSON_50M
+    if not GEOJSON_10M.exists() or GEOJSON_10M.stat().st_size < 500_000:
+        print("[ASSET] Downloading Natural Earth 10m High-Res Borders...", flush=True)
+        urllib.request.urlretrieve(GEOJSON_10M_URL, GEOJSON_10M)
+    if (not BRIAN_MP3.exists() or BRIAN_MP3.stat().st_size < 100_000) and UPLOAD_MP3.exists():
+        shutil.copyfile(UPLOAD_MP3, BRIAN_MP3)
+    if not BRIAN_MP3.exists():
+        raise FileNotFoundError(f"Approved narration is missing: {BRIAN_MP3}")
+    if not BRIAN_WORDS.exists():
+        raise FileNotFoundError(f"Measured word timings are missing: {BRIAN_WORDS}")
+    return GEOJSON_10M
 
 
 def load_enhanced_plate() -> np.ndarray:
     raw = np.asarray(Image.open(PLATE_PATH).convert("RGB"), dtype=np.uint8)
-    blur = cv2.GaussianBlur(raw, (0, 0), 2.0)
-    return cv2.addWeighted(raw, 1.22, blur, -0.22, 0)
+    blur = cv2.GaussianBlur(raw, (0, 0), 1.8)
+    crisp = cv2.addWeighted(raw, 1.32, blur, -0.32, 0)
+    return crisp
 
 
 def make_starfield() -> np.ndarray:
-    rng = np.random.default_rng(7)
+    rng = np.random.default_rng(11)
     img = np.zeros((H, W, 3), np.uint8)
     y = np.linspace(0.0, 1.0, H, dtype=np.float32)[:, None]
-    sky = (np.array([4, 7, 15]) * (1.0 - y) + np.array([12, 19, 32]) * y).astype(np.uint8)
+    sky = (np.array([3, 6, 14]) * (1.0 - y) + np.array([10, 16, 28]) * y).astype(np.uint8)
     img[:] = sky[:, None, :]
-    ys = rng.integers(0, H, 260)
-    xs = rng.integers(0, W, 260)
-    mag = rng.integers(150, 255, 260)
+    ys = rng.integers(0, H, 280)
+    xs = rng.integers(0, W, 280)
+    mag = rng.integers(140, 255, 280)
     img[ys, xs] = mag[:, None]
     return img
 
 
-def where_ok(kind: str, lon: float, lat: float) -> bool:
-    if kind == "alaska":
-        return lat > 51.0 and (lon < -129.9 or lon > 170.0)
-    if kind == "cabinda":
-        return 11.5 <= lon <= 13.2 and -6.02 <= lat <= -4.2
-    if kind == "angola_main":
-        return lat < -6.02
-    if kind == "nakhchivan":
-        return 44.7 <= lon <= 46.15 and 38.75 <= lat <= 39.85
-    if kind == "azerbaijan_main":
-        return lon > 46.15 or lat > 39.85
-    return True
-
-
-def build_region_mask(rings: list[dict], spec: EpisodeSpec, p_w: int, p_h: int) -> np.ndarray:
-    """
-    Rasterizes every highlighted country/region into an equirectangular ID mask (p_h x p_w)
-    matching PLATE pixel-for-pixel. Because highlights are warped with the exact same
-    3D spherical lookup table as PLATE, Canada and Alaska NEVER suffer from polygon
-    chord-closing or horizon-clipping glitches!
-    """
-    mask = np.zeros((p_h, p_w), dtype=np.uint8)
-    unique_regions: Dict[int, Tuple[str, str]] = {}
-    for cue in spec.highlights:
-        unique_regions[cue.region_id] = (cue.iso_a3, cue.where)
-
-    for reg_id, (iso, where_kind) in unique_regions.items():
-        polys = []
-        for ring in rings:
-            if ring["iso"] != iso:
-                continue
-            if not where_ok(where_kind, ring["clon"], ring["clat"]):
-                continue
-            px = ((np.mod(ring["lon"] + 180.0, 360.0) / 360.0) * (p_w - 1)).astype(np.int32)
-            py = (((90.0 - ring["lat"]) / 180.0) * (p_h - 1)).astype(np.int32)
-            # Skip rings that wrap across the +-180 edge in pixel space
-            if len(px) > 1 and np.max(np.abs(np.diff(px))) > p_w * 0.4:
-                continue
-            polys.append(np.column_stack([px, py]))
-        if polys:
-            cv2.fillPoly(mask, polys, int(reg_id))
-    return mask
-
-
-def camera_scale_and_radius(span: float, w: float) -> Tuple[float, float, float]:
-    """
-    Returns (mix, scale_px_per_rad, globe_radius_px) for the unified 3D spherical camera.
-    - When w = 0 (flat map): scale = W / rad(span)
-    - When w = 1 (3D globe): globe_radius = 455 px (true circular 3D globe inside 1080x1920)
-    """
+def camera_scale_and_disc_radius(span: float, w: float) -> Tuple[float, float, float]:
+    """True circular disc. Zoom grows the radius past the 1102px screen diagonal."""
     mix = float(smootherstep(w))
     flat_scale = W / max(math.radians(span), 1e-4)
-    globe_r = float(np.clip((W * 0.43) * (64.0 / max(span, 42.0)), 430.0, 485.0))
+    globe_r = float(np.clip((W * 0.43) * (64.0 / max(span, 36.0)), 440.0, 1450.0))
     scale = (1.0 - mix) * flat_scale + mix * globe_r
-    return mix, scale, globe_r
+    max_rho = (1.0 - mix) * (math.pi * 0.495) + mix * 1.0
+    disc_radius_px = scale * max_rho
+    return mix, scale, disc_radius_px
 
 
 def project(
@@ -706,14 +645,10 @@ def project(
     cam_lat: float,
     span: float,
     w: float,
+    clamp_to_horizon: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Exact 3D Spherical Forward Projection:
-    Maps any (lon, lat) on Earth into camera-centered 3D unit sphere coordinates (Xc, Yc, Zc),
-    then applies the Cinfty monotonic radial morph `rho(c) = (1 - s) * c + s * sin(c)`.
-    Zero pole singularity, zero dateline jump!
-    """
-    mix, scale, _ = camera_scale_and_radius(span, w)
+    """Spherical forward projection. Horizon clamp keeps large countries closed."""
+    mix, scale, _ = camera_scale_and_disc_radius(span, w)
     dlon = np.radians(lon - cam_lon)
     phi = np.radians(lat)
     phi0 = math.radians(cam_lat)
@@ -725,23 +660,21 @@ def project(
     cos_dlon = np.cos(dlon)
     sin_dlon = np.sin(dlon)
 
-    # Camera-space 3D unit vector (Xc, Yc, Zc)
     xc = cos_phi * sin_dlon
     yc = cos_phi0 * sin_phi - sin_phi0 * cos_phi * cos_dlon
     zc = np.clip(sin_phi0 * sin_phi + cos_phi0 * cos_phi * cos_dlon, -1.0, 1.0)
 
     c = np.arccos(zc)
     sin_c = np.maximum(np.hypot(xc, yc), 1e-9)
+    max_c = (1.0 - mix) * 1.52 + mix * 1.54
+    visible = c <= max_c
 
-    # Morphed radial distance: c (azimuthal flat) <-> sin(c) (3D orthographic globe)
-    rho = (1.0 - mix) * c + mix * np.sin(c)
+    c_eff = np.minimum(c, max_c) if clamp_to_horizon else c
+    rho = (1.0 - mix) * c_eff + mix * np.sin(c_eff)
     factor = (scale * rho) / sin_c
 
     x = W * 0.5 + xc * factor
     y = H * 0.5 - yc * factor
-    # Visible hemisphere: strictly front-facing on globe (c <= 88 deg), wider on flat map
-    max_c = (1.0 - mix) * 1.48 + mix * 1.53
-    visible = c <= max_c
     return x, y, visible
 
 
@@ -750,19 +683,10 @@ def spherical_camera_warp(
     cam_lat: float,
     span: float,
     w: float,
-    active_fills: List[Tuple[int, Tuple[int, int, int, int], float]],
+    focus_dim: float = 0.0,
 ) -> np.ndarray:
-    """
-    Exact Analytical Inverse of `project()` in 3D Unit-Sphere Coordinates:
-    1. For every coarse grid point (GX, GY), computes normalized radius `rho = r_px / scale`.
-    2. Solves `(1 - s) * c + s * sin(c) = rho` in 2 scalar Newton steps to 1e-12 precision.
-    3. Reconstructs the 3D unit vector (vx, vy, vz) on Earth — which is 100% smooth across
-       both the North/South Poles and the +-180 dateline!
-    4. Upsamples (vx, vy, vz) smoothly to 1080x1920, then converts to (map_x, map_y)
-       for `cv2.remap` on PLATE and REGION_MASK.
-    """
-    assert PLATE is not None and STARS is not None and REGION_MASK is not None
-    mix, scale, globe_r = camera_scale_and_radius(span, w)
+    assert PLATE is not None and STARS is not None
+    mix, scale, disc_r = camera_scale_and_disc_radius(span, w)
     p_h, p_w = PLATE.shape[:2]
 
     dx = GX - W * 0.5
@@ -770,11 +694,9 @@ def spherical_camera_warp(
     r_px = np.hypot(dx, dy)
     rho = r_px / scale
 
-    # Clamp rho to the valid domain of (1 - mix)*c + mix*sin(c) on [0, pi/2]
     max_rho = (1.0 - mix) * (math.pi * 0.495) + mix * 1.0
     rho_clamped = np.minimum(rho, max_rho * 0.9995)
 
-    # Exact 2-step scalar Newton inversion of rho(c) = (1 - mix)*c + mix*sin(c)
     c = np.where(mix > 0.5, np.arcsin(np.minimum(rho_clamped, 1.0)), rho_clamped)
     for _ in range(2):
         f_val = (1.0 - mix) * c + mix * np.sin(c) - rho_clamped
@@ -785,81 +707,61 @@ def spherical_camera_warp(
     cos_c = np.cos(c)
     r_safe = np.maximum(r_px, 1e-7)
 
-    # Camera-space unit vector (Xc, Yc, Zc)
     xc = (dx / r_safe) * sin_c
     yc = (dy / r_safe) * sin_c
     zc = cos_c
 
-    # Rotate camera-space 3D vector back to World Earth 3D unit vector (vx, vy, vz)
     phi0 = math.radians(cam_lat)
     lam0 = math.radians(cam_lon)
     cos_phi0, sin_phi0 = math.cos(phi0), math.sin(phi0)
     cos_lam0, sin_lam0 = math.cos(lam0), math.sin(lam0)
 
-    # Intermediate after undoing latitude tilt phi0:
     x1 = xc
     y1 = -sin_phi0 * yc + cos_phi0 * zc
     vz = np.clip(cos_phi0 * yc + sin_phi0 * zc, -1.0, 1.0)
 
-    # Undo longitude rotation lam0 -> 3D Earth Cartesian (vx, vy, vz):
     vx = cos_lam0 * y1 - sin_lam0 * x1
     vy = sin_lam0 * y1 + cos_lam0 * x1
 
-    # Upsample smooth 3D Cartesian components (vx, vy, vz) to 1080x1920 BEFORE atan2!
-    # Because (vx, vy, vz) has NO branch cut at +-180 and NO singularity at the poles,
-    # upsampling (vx, vy, vz) produces ZERO vertical seams and ZERO polar whirlpools!
     vx_full = cv2.resize(vx.astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR)
     vy_full = cv2.resize(vy.astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR)
     vz_full = np.clip(cv2.resize(vz.astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR), -1.0, 1.0)
 
-    lon_rad = np.arctan2(vy_full, vx_full)  # in [-pi, +pi]
-    lat_rad = np.arcsin(vz_full)            # in [-pi/2, +pi/2]
+    lon_rad = np.arctan2(vy_full, vx_full)
+    lat_rad = np.arcsin(vz_full)
 
     map_x = ((lon_rad + math.pi) * (1.0 / (2.0 * math.pi)) * (p_w - 1)).astype(np.float32)
     map_y = ((math.pi * 0.5 - lat_rad) * (1.0 / math.pi) * (p_h - 1)).astype(np.float32)
 
-    sampled = cv2.remap(PLATE, map_x, map_y, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
+    sampled = cv2.remap(PLATE, map_x, map_y, interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
 
-    # Apply rasterized country highlights in the exact same projection (zero chord-closing!)
-    if active_fills:
-        reg_warped = cv2.remap(REGION_MASK, map_x, map_y, interpolation=cv2.INTER_NEAREST, borderMode=cv2.BORDER_WRAP)
-        blended = sampled.astype(np.float32)
-        for reg_id, rgba, alpha in active_fills:
-            sel = reg_warped == reg_id
-            if np.any(sel):
-                w_fill = float(alpha) * (rgba[3] / 255.0) * 0.78
-                color_vec = np.array(rgba[:3], dtype=np.float32)
-                blended[sel] = blended[sel] * (1.0 - w_fill) + color_vec * w_fill
-        sampled = np.clip(blended, 0, 255).astype(np.uint8)
+    if focus_dim > 0.01:
+        sampled = (sampled.astype(np.float32) * (1.0 - 0.24 * focus_dim)).astype(np.uint8)
 
-    if mix < 0.005:
+    if disc_r >= SCREEN_DIAG_RADIUS + 18.0:
         return sampled
 
-    # Circular 3D Globe Silhouette when mix -> 1.0, smoothly expanding to full screen as mix -> 0.0
-    # Note: At mix = 1.0, rx = ry = globe_r and exponent = 2.0 -> 100% TRUE CIRCLE!
-    rx = (1.0 - mix) * (W * 0.75) + mix * globe_r
-    ry = (1.0 - mix) * (H * 0.75) + mix * globe_r
-    exponent = (1.0 - mix) * 8.0 + mix * 2.0
+    norm_r = FULL_R_PX / max(disc_r, 1.0)
+    inside = norm_r <= 1.0
 
-    dx_norm = np.abs(FULL_XS - W * 0.5) / rx
-    dy_norm = np.abs(FULL_YS - H * 0.5) / ry
-    super_dist = (dx_norm ** exponent + dy_norm ** exponent) ** (1.0 / exponent)
+    limb_dark = np.clip(1.0 - 0.34 * np.clip((norm_r - 0.72) / 0.28, 0.0, 1.0) ** 1.5, 0.62, 1.0)
+    fresnel = np.clip((norm_r - 0.84) / 0.16, 0.0, 1.0) ** 2.2 * 0.38
+    atmo_rgb = np.array([95.0, 175.0, 255.0], dtype=np.float32)
 
-    inside = super_dist <= 1.0
-    # 3D spherical limb darkening near the edge of the globe
-    limb_shade = np.clip(1.0 - 0.28 * mix * np.clip((super_dist - 0.78) / 0.22, 0.0, 1.0), 0.70, 1.0)
-    sampled_shaded = (sampled.astype(np.float32) * limb_shade[:, :, None]).astype(np.uint8)
+    earth_shaded = sampled.astype(np.float32) * limb_dark[:, :, None]
+    earth_shaded = np.clip(
+        earth_shaded * (1.0 - fresnel[:, :, None]) + atmo_rgb * fresnel[:, :, None], 0, 255
+    ).astype(np.uint8)
 
     frame = STARS.copy()
-    frame[inside] = sampled_shaded[inside]
+    frame[inside] = earth_shaded[inside]
 
-    # Crisp blue 3D atmospheric rim glow
-    if mix > 0.15:
-        rim_band = (super_dist >= 0.986) & (super_dist <= 1.012)
-        atmo_alpha = float(smoothstep((mix - 0.15) / 0.60)) * 0.82
-        atmo_color = np.array([110, 185, 250], dtype=np.float32)
-        frame[rim_band] = np.clip(
-            frame[rim_band].astype(np.float32) * (1.0 - atmo_alpha) + atmo_color * atmo_alpha,
+    halo_mask = (norm_r > 0.992) & (norm_r < 1.045)
+    if np.any(halo_mask):
+        halo_u = np.clip((1.045 - norm_r[halo_mask]) / (1.045 - 0.992), 0.0, 1.0)
+        halo_alpha = (halo_u ** 2.4) * 0.72
+        frame[halo_mask] = np.clip(
+            frame[halo_mask].astype(np.float32) * (1.0 - halo_alpha[:, None]) + atmo_rgb * halo_alpha[:, None],
             0,
             255,
         ).astype(np.uint8)
@@ -867,9 +769,6 @@ def spherical_camera_warp(
     return frame
 
 
-# ==============================================================================
-# 5. VECTOR COASTLINE OVERLAY, COLLISION-FREE LABELS & CYAN KARAOKE
-# ==============================================================================
 PILL_RGB = {
     "red": ((212, 38, 42), (255, 255, 255)),
     "dark": ((16, 22, 34), (255, 255, 255)),
@@ -877,6 +776,30 @@ PILL_RGB = {
     "yellow": ((245, 197, 24), (14, 18, 26)),
     "white": ((248, 250, 252), (14, 18, 26)),
 }
+
+
+def subdivide_ring_geodesic(lon: np.ndarray, lat: np.ndarray, max_deg: float = 0.25) -> Tuple[np.ndarray, np.ndarray]:
+    dlon = np.diff(lon, append=lon[0])
+    dlon_wrapped = ((dlon + 180.0) % 360.0) - 180.0
+    dlat = np.diff(lat, append=lat[0])
+    seg_len = np.hypot(dlon_wrapped, dlat)
+    if float(np.max(seg_len)) <= max_deg:
+        return lon, lat
+
+    out_lon: List[float] = []
+    out_lat: List[float] = []
+    n = len(lon)
+    for i in range(n):
+        lon0, lat0 = float(lon[i]), float(lat[i])
+        dl = float(dlon_wrapped[i])
+        dlt = float(dlat[i])
+        dist = float(seg_len[i])
+        steps = max(1, min(64, int(math.ceil(dist / max_deg))))
+        for s in range(steps):
+            u = s / steps
+            out_lon.append(lon0 + u * dl)
+            out_lat.append(lat0 + u * dlt)
+    return np.asarray(out_lon, dtype=np.float64), np.asarray(out_lat, dtype=np.float64)
 
 
 def load_rings(geojson_path: Path) -> list[dict]:
@@ -888,29 +811,60 @@ def load_rings(geojson_path: Path) -> list[dict]:
         geometry = feature.get("geometry")
         if not geometry:
             continue
-        polygons = (
-            geometry["coordinates"]
-            if geometry["type"] == "MultiPolygon"
-            else [geometry["coordinates"]]
-        )
+        polygons = geometry["coordinates"] if geometry["type"] == "MultiPolygon" else [geometry["coordinates"]]
         for polygon in polygons:
             if not polygon or len(polygon[0]) < 4:
                 continue
             arr = np.asarray(polygon[0], dtype=np.float64)
-            lon, lat = arr[:, 0], arr[:, 1]
+            lon_raw, lat_raw = arr[:, 0], arr[:, 1]
+            clon = float(np.mean(lon_raw))
+            clat = float(np.mean(lat_raw))
+            if iso in HIGHLIGHT_ISOS:
+                lon_sub, lat_sub = subdivide_ring_geodesic(lon_raw, lat_raw, max_deg=0.22)
+            else:
+                lon_sub, lat_sub = lon_raw, lat_raw
             rings.append(
                 {
                     "iso": iso,
-                    "lon": lon,
-                    "lat": lat,
-                    "clon": float(np.mean(lon)),
-                    "clat": float(np.mean(lat)),
-                    "lat0": float(np.min(lat)),
-                    "lat1": float(np.max(lat)),
-                    "n": int(lon.shape[0]),
+                    "lon": lon_sub,
+                    "lat": lat_sub,
+                    "clon": clon,
+                    "clat": clat,
+                    "lat0": float(np.min(lat_sub)),
+                    "lat1": float(np.max(lat_sub)),
+                    "lon0": float(np.min(lon_sub)),
+                    "lon1": float(np.max(lon_sub)),
+                    "n": int(lon_sub.shape[0]),
                 }
             )
     return rings
+
+
+def where_ok(kind: str, lon: float, lat: float) -> bool:
+    if kind == "alaska":
+        return lat > 51.0 and (lon < -129.9 or lon > 170.0)
+    if kind == "usa_lower48":
+        return 24.0 <= lat <= 50.0 and -126.0 <= lon <= -66.0
+    if kind == "cabinda":
+        return 11.5 <= lon <= 13.2 and -6.02 <= lat <= -4.2
+    if kind == "angola_main":
+        return lat < -6.02
+    if kind == "nakhchivan":
+        return 44.7 <= lon <= 46.15 and 38.75 <= lat <= 39.85
+    if kind == "azerbaijan_main":
+        return lon > 46.15 or lat > 39.85
+    return True
+
+
+def ring_might_show(ring: dict, cam_lon: float, cam_lat: float, span: float) -> bool:
+    """Skip rings on the far side of the globe. On-screen coasts are unchanged."""
+    dlon = ((ring["clon"] - cam_lon + 180.0) % 360.0) - 180.0
+    dlat = ring["clat"] - cam_lat
+    reach = max(span * 0.72, 16.0) if span < 50.0 else 105.0
+    if abs(dlat) > reach + 8.0:
+        return False
+    cos_lat = max(0.25, math.cos(math.radians(cam_lat)))
+    return math.hypot(dlon * cos_lat, dlat) <= reach + 12.0
 
 
 def split_visible_polylines(
@@ -927,50 +881,136 @@ def split_visible_polylines(
     return runs
 
 
-def draw_vector_borders(
+def draw_vector_highlights_and_borders(
     frame: np.ndarray,
     rings: list[dict],
+    spec: EpisodeSpec,
     lon0: float,
     lat0: float,
     span: float,
     w: float,
+    t: float,
 ) -> None:
-    """Draws crisp anti-aliased country border polylines clipped cleanly to the 3D globe disc."""
-    mix, _, globe_r = camera_scale_and_radius(span, w)
-    rx = (1.0 - mix) * (W * 0.75) + mix * globe_r
-    ry = (1.0 - mix) * (H * 0.75) + mix * globe_r
-    exponent = (1.0 - mix) * 8.0 + mix * 2.0
+    _, _, disc_r = camera_scale_and_disc_radius(span, w)
+    clip_disc = disc_r < SCREEN_DIAG_RADIUS + 10.0
+
+    active_cues = []
+    for cue in spec.highlights:
+        alpha = element_fade_and_exit_offset(t, cue.enter_t, cue.exit_t, 0.28, 0.30)[0]
+        if alpha > 0.02:
+            active_cues.append((cue, alpha))
+    active_cues.sort(key=lambda item: item[0].z_order)
+    active_isos = {cue.iso_a3 for cue, _ in active_cues}
 
     coasts = []
-    thick = 3 if span < 14.0 else (2 if span < 35.0 else 1)
-
+    base_thick = 2 if span < 22.0 else 1
     for ring in rings:
-        if (span > 55.0 or mix > 0.5) and ring["n"] < 28:
+        if span > 55.0 and ring["n"] < 32:
             continue
-        x, y, visible = project(ring["lon"], ring["lat"], lon0, lat0, span, w)
-        if mix > 0.05:
-            dx_n = np.abs(x - W * 0.5) / (rx * 0.992)
-            dy_n = np.abs(y - H * 0.5) / (ry * 0.992)
-            inside_sil = (dx_n ** exponent + dy_n ** exponent) <= 1.0
-            visible = visible & inside_sil
+        if ring["iso"] not in active_isos and not ring_might_show(ring, lon0, lat0, span):
+            continue
+        x, y, visible = project(ring["lon"], ring["lat"], lon0, lat0, span, w, clamp_to_horizon=False)
+        if clip_disc:
+            visible = visible & ((np.hypot(x - W * 0.5, y - H * 0.5)) <= disc_r * 0.994)
         if not np.any(visible):
             continue
         if not np.any((x > -120) & (x < W + 120) & (y > -120) & (y < H + 120)):
             continue
-        max_step = 80.0 if mix > 0.3 else 220.0
-        runs = split_visible_polylines(x, y, visible, max_step)
+        runs = split_visible_polylines(x, y, visible, 160.0)
         if runs:
             coasts.extend(runs)
 
     if coasts:
-        color = (238, 242, 246) if span < 38.0 and mix < 0.4 else (178, 192, 206)
-        cv2.polylines(frame, coasts, False, color, thick, cv2.LINE_AA)
+        cv2.polylines(frame, coasts, False, (175, 190, 208), base_thick, cv2.LINE_AA)
+
+    for cue, alpha in active_cues:
+        fill_polys = []
+        border_runs = []
+        for ring in rings:
+            if ring["iso"] != cue.iso_a3:
+                continue
+            if not where_ok(cue.where, ring["clon"], ring["clat"]):
+                continue
+            if span > 45.0 and ring["n"] < 20:
+                continue
+            x_f, y_f, vis_f = project(ring["lon"], ring["lat"], lon0, lat0, span, w, clamp_to_horizon=True)
+            if not np.any(vis_f):
+                continue
+            if not np.any((x_f > -250) & (x_f < W + 250) & (y_f > -250) & (y_f < H + 250)):
+                continue
+
+            pts = np.column_stack([x_f, y_f]).astype(np.int32)
+            jumps = np.hypot(np.diff(pts[:, 0]), np.diff(pts[:, 1]))
+            if len(jumps) > 0 and float(np.max(jumps)) < 450.0:
+                fill_polys.append(pts)
+
+            x_b, y_b, vis_b = project(ring["lon"], ring["lat"], lon0, lat0, span, w, clamp_to_horizon=False)
+            if clip_disc:
+                vis_b = vis_b & ((np.hypot(x_b - W * 0.5, y_b - H * 0.5)) <= disc_r * 0.994)
+            runs = split_visible_polylines(x_b, y_b, vis_b, 200.0)
+            if runs:
+                border_runs.extend(runs)
+
+        if fill_polys:
+            overlay = frame.copy()
+            cv2.fillPoly(overlay, fill_polys, cue.fill_rgba[:3], lineType=cv2.LINE_AA)
+            if clip_disc:
+                outside = FULL_R_PX > disc_r * 0.995
+                overlay[outside] = frame[outside]
+            weight = float(alpha) * (cue.fill_rgba[3] / 255.0) * 0.78
+            cv2.addWeighted(overlay, weight, frame, 1.0 - weight, 0, frame)
+
+        if border_runs:
+            stroke_thick = 4 if span < 12.0 else (3 if span < 32.0 else 2)
+            cv2.polylines(frame, border_runs, False, cue.stroke_rgba[:3], stroke_thick, cv2.LINE_AA)
+
+
+def draw_split_arcs(
+    frame: np.ndarray,
+    spec: EpisodeSpec,
+    lon0: float,
+    lat0: float,
+    span: float,
+    w: float,
+    t: float,
+) -> None:
+    for arc in spec.arcs:
+        alpha = element_fade_and_exit_offset(t, arc.enter_t, arc.exit_t, 0.25, 0.28)[0]
+        if alpha <= 0.04:
+            continue
+        progress = float(smootherstep(min(1.0, (t - arc.enter_t) / 0.85)))
+        n_pts = 48
+        u = np.linspace(0.0, progress, n_pts)
+        lons = arc.lon0 + u * (((arc.lon1 - arc.lon0 + 180.0) % 360.0) - 180.0)
+        lats = arc.lat0 + u * (arc.lat1 - arc.lat0) + np.sin(u * math.pi) * min(3.5, span * 0.08)
+
+        x, y, vis = project(lons, lats, lon0, lat0, span, w)
+        if not np.all(vis):
+            continue
+
+        pts = np.column_stack([x, y]).astype(np.int32)
+        overlay = frame.copy()
+        for i in range(0, len(pts) - 1, 2):
+            p0 = tuple(pts[i])
+            p1 = tuple(pts[min(i + 1, len(pts) - 1)])
+            cv2.line(overlay, p0, p1, (14, 18, 26), 7, cv2.LINE_AA)
+            cv2.line(overlay, p0, p1, arc.color_rgb, 4, cv2.LINE_AA)
+
+        pulse_r = int(10 + 4 * math.sin(t * 6.0))
+        for ep_lon, ep_lat in ((arc.lon0, arc.lat0), (arc.lon1, arc.lat1)):
+            ex, ey, ev = project(np.array([ep_lon]), np.array([ep_lat]), lon0, lat0, span, w)
+            if bool(ev[0]):
+                center = (int(ex[0]), int(ey[0]))
+                cv2.circle(overlay, center, pulse_r, arc.color_rgb, 3, cv2.LINE_AA)
+                cv2.circle(overlay, center, 5, (255, 255, 255), -1, cv2.LINE_AA)
+
+        cv2.addWeighted(overlay, float(alpha), frame, 1.0 - float(alpha), 0, frame)
 
 
 def resolve_2d_label_collisions(
     boxes: List[Tuple[float, float, float, float]],
-    min_gap_px: float = 20.0,
-    iterations: int = 14,
+    min_gap_px: float = 22.0,
+    iterations: int = 16,
 ) -> List[Tuple[float, float]]:
     centers = [[float(b[0]), float(b[1])] for b in boxes]
     sizes = [(float(b[2]), float(b[3])) for b in boxes]
@@ -1000,7 +1040,7 @@ def resolve_2d_label_collisions(
             break
 
     return [
-        (max(115.0, min(880.0, c[0])), max(255.0, min(1190.0, c[1])))
+        (max(130.0, min(W - 130.0, c[0])), max(260.0, min(1180.0, c[1])))
         for c in centers
     ]
 
@@ -1013,7 +1053,7 @@ def text_size(draw: ImageDraw.ImageDraw, text: str, face: ImageFont.FreeTypeFont
 def draw_overlay(
     rgb: np.ndarray,
     spec: EpisodeSpec,
-    all_words: List[Dict],
+    phrases: List[List[Dict]],
     lon0: float,
     lat0: float,
     span: float,
@@ -1024,92 +1064,93 @@ def draw_overlay(
     overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
 
-    # 1. Collision-free Map Labels
     visible_labels = []
     for label in spec.labels:
-        alpha, _dx, _dy = element_fade_and_exit_offset(t, label.enter_t, label.exit_t, 0.28, 0.30)
+        alpha, _dx, _dy = element_fade_and_exit_offset(t, label.enter_t, label.exit_t, 0.26, 0.28)
         if alpha <= 0.04:
             continue
         x, y, vis = project(np.array([label.lon]), np.array([label.lat]), lon0, lat0, span, w)
         if not bool(vis[0]):
             continue
         px, py = float(x[0]), float(y[0])
-        if not (50 < px < W - 50 and 190 < py < H - 340):
+        if not (60 < px < W - 60 and 200 < py < H - 360):
             continue
-        pop, _ = label_pop_state(t - label.enter_t, 0.30)
+        pop, _ = label_pop_state(t - label.enter_t, 0.28)
         face = get_font(label.font_size * max(pop, 0.5))
         tw, th = text_size(draw, label.text, face)
-        visible_labels.append((label, alpha, px, py, tw + 14, th + 12, face))
+        visible_labels.append((label, alpha, px, py, tw + 16, th + 14, face))
 
     if visible_labels:
         boxes = [(px, py, tw, th) for _l, _a, px, py, tw, th, _f in visible_labels]
-        centers = resolve_2d_label_collisions(boxes, min_gap_px=22.0)
+        centers = resolve_2d_label_collisions(boxes, min_gap_px=24.0)
         for (label, alpha, _px, _py, _tw, _th, face), (cx, cy) in zip(visible_labels, centers):
             ink = label.color_rgba[:3] + (int(255 * alpha),)
-            stroke = (10, 14, 22, int(248 * alpha))
+            stroke = (8, 12, 20, int(250 * alpha))
             tw, th = text_size(draw, label.text, face)
             ox, oy = cx - tw / 2.0, cy - th / 2.0
             for dx, dy in ((-3, 0), (3, 0), (0, -3), (0, 3), (-2, -2), (2, 2), (-2, 2), (2, -2)):
                 draw.text((ox + dx, oy + dy), label.text, font=face, fill=stroke)
             draw.text((ox, oy), label.text, font=face, fill=ink)
 
-    # 2. High-Contrast Pills with solid dark drop-shadow so they never look muddy during fade
     for pill in spec.pills:
-        alpha, dx, dy = element_fade_and_exit_offset(t, pill.enter_t, pill.exit_t, 0.26, 0.28)
+        alpha, dx, dy = element_fade_and_exit_offset(t, pill.enter_t, pill.exit_t, 0.25, 0.28)
         if alpha <= 0.04:
             continue
-        pop, _ = label_pop_state(t - pill.enter_t, 0.30)
-        face = get_font(38.0 * max(pop, 0.85))
+        pop, _ = label_pop_state(t - pill.enter_t, 0.28)
+        font_sz = 38.0 * max(pop, 0.85)
+        face = get_font(font_sz)
         bg, fg = PILL_RGB.get(pill.theme, PILL_RGB["dark"])
         tw, th = text_size(draw, pill.text, face)
         pad_x, pad_y = 28, 16
         box_w = tw + pad_x * 2
+        if box_w > 980:
+            font_sz *= 980.0 / box_w
+            face = get_font(font_sz)
+            tw, th = text_size(draw, pill.text, face)
+            box_w = tw + pad_x * 2
         box_h = th + pad_y * 2
-        cx = max(75 + box_w / 2, min(W - 75 - box_w / 2, pill.screen_x + dx))
+        cx = max(80 + box_w / 2, min(W - 80 - box_w / 2, pill.screen_x + dx))
         cy = max(240 + box_h / 2, min(1180 - box_h / 2, pill.screen_y + dy))
         rect = [cx - box_w / 2, cy - box_h / 2, cx + box_w / 2, cy + box_h / 2]
-        shadow_rect = [rect[0] + 4, rect[1] + 5, rect[2] + 4, rect[3] + 5]
-        a_solid = int(252 * (alpha ** 0.65))
-        draw.rounded_rectangle(shadow_rect, radius=18, fill=(8, 12, 20, int(190 * alpha)))
-        draw.rounded_rectangle(rect, radius=18, fill=bg + (a_solid,), outline=(255, 255, 255, int(90 * alpha)), width=2)
+        shadow_rect = [rect[0] + 4, rect[1] + 6, rect[2] + 4, rect[3] + 6]
+        a_solid = int(254 * (alpha ** 0.55))
+        draw.rounded_rectangle(shadow_rect, radius=18, fill=(6, 10, 18, int(200 * alpha)))
+        draw.rounded_rectangle(
+            rect, radius=18, fill=bg + (a_solid,), outline=(255, 255, 255, int(105 * alpha)), width=2
+        )
         draw.text((cx - tw / 2, cy - th / 2 - 2), pill.text, font=face, fill=fg + (a_solid,))
-
-    # 3. Full-Duration Cyan (#00E5FF) Karaoke Captions (64-72% band, y=1300)
-    phrases: List[List[Dict]] = []
-    cur: List[Dict] = []
-    for w_item in all_words:
-        if cur and (len(cur) >= 4 or (float(w_item["start"]) - float(cur[-1]["end"])) > 0.40):
-            phrases.append(cur)
-            cur = []
-        cur.append(w_item)
-    if cur:
-        phrases.append(cur)
 
     active_phrase = None
     for ph in phrases:
-        if (float(ph[0]["start"]) - 0.10) <= t <= (float(ph[-1]["end"]) + 0.15):
+        if (float(ph[0]["start"]) - 0.08) <= t <= (float(ph[-1]["end"]) + 0.12):
             active_phrase = ph
             break
 
     if active_phrase:
         t_lead = t + 0.04
-        face = get_font(64.0)
-        gap = 16
+        font_sz = 66.0
+        face = get_font(font_sz)
+        gap = 18
         widths = [text_size(draw, str(w_it["text"]), face)[0] for w_it in active_phrase]
         total_w = sum(widths) + gap * (len(active_phrase) - 1)
-        if total_w > 820:
-            face = get_font(max(52.0, 64.0 * (820.0 / total_w)))
+
+        max_allowed_w = 880.0
+        if total_w > max_allowed_w:
+            font_sz = max(48.0, font_sz * (max_allowed_w / total_w))
+            face = get_font(font_sz)
             widths = [text_size(draw, str(w_it["text"]), face)[0] for w_it in active_phrase]
             total_w = sum(widths) + gap * (len(active_phrase) - 1)
 
-        x_cur = max(70.0, min(500.0 - total_w * 0.5, 895.0 - total_w))
-        y_cur = 1300.0
+        x_cur = (W - total_w) * 0.5
+        y_cur = 1310.0
+
         for w_it, ww in zip(active_phrase, widths):
             is_act = float(w_it["start"]) <= t_lead <= float(w_it["end"])
             color = (0, 229, 255, 255) if is_act else (255, 255, 255, 255)
             txt = str(w_it["text"])
+            draw.text((x_cur + 4, y_cur + 5), txt, font=face, fill=(4, 8, 14, 210))
             for dx, dy in ((-4, 0), (4, 0), (0, -4), (0, 4), (-3, -3), (3, 3), (-3, 3), (3, -3)):
-                draw.text((x_cur + dx, y_cur + dy), txt, font=face, fill=(10, 14, 22, 248))
+                draw.text((x_cur + dx, y_cur + dy), txt, font=face, fill=(10, 14, 22, 252))
             draw.text((x_cur, y_cur), txt, font=face, fill=color)
             x_cur += ww + gap
 
@@ -1117,157 +1158,168 @@ def draw_overlay(
     return np.asarray(image.convert("RGB"))
 
 
-# ==============================================================================
-# 6. UNIFORM VOICEOVER + VELOCITY-PEAK SFX + SEAMLESS LOOP AUDIO MIXER
-# ==============================================================================
-def build_full_audio_track(spec: EpisodeSpec) -> np.ndarray:
+WEAK_WORDS = {"A", "AN", "THE", "OF", "TO", "IN", "ON", "FOR", "AND", "OR", "WITH", "BY"}
+
+
+def clean_caption_token(raw: str) -> str:
+    return raw.strip().strip(",.;:?!\"'“”").upper()
+
+
+def phrase_width(words: List[str]) -> int:
+    return sum(len(w) for w in words) + max(0, len(words) - 1)
+
+
+def group_spoken_phrases(spoken: List[dict]) -> List[List[Dict]]:
+    """Two or three words, never more than 18 characters, locked to measured times."""
+    phrases: List[List[Dict]] = []
+    cur: List[Dict] = []
+
+    def flush() -> None:
+        nonlocal cur
+        if cur:
+            phrases.append(cur)
+            cur = []
+
+    for item in spoken:
+        token = clean_caption_token(str(item["text"]))
+        if not token:
+            continue
+        raw = str(item["text"]).strip()
+        ends_sentence = raw.endswith((".", "?", "!"))
+        if cur and token in WEAK_WORDS and len(cur) >= 2:
+            flush()
+        trial = [str(w["text"]) for w in cur] + [token]
+        if cur and (len(trial) > 3 or phrase_width(trial) > 18):
+            flush()
+        cur.append({"text": token, "start": float(item["start"]), "end": float(item["end"])})
+        if ends_sentence:
+            flush()
+    flush()
+    return phrases
+
+
+def load_measured_words() -> List[dict]:
+    payload = json.loads(BRIAN_WORDS.read_text(encoding="utf-8"))
+    spoken = [w for w in payload["words"] if w.get("type", "word") == "word"]
+    if not spoken:
+        raise RuntimeError("brian_words.json has no spoken words")
+    return spoken
+
+
+def prepare_voiceover_and_karaoke_phrases(spec: EpisodeSpec) -> Tuple[np.ndarray, List[List[Dict]]]:
+    """Play the approved Brian file once. Karaoke uses its measured word times."""
     sr = 48000
     total_samples = int(round(spec.total_duration * sr))
-    master = np.zeros((total_samples, 2), dtype=np.float64)
-
-    t_vec = np.arange(total_samples, dtype=np.float64) / sr
-    bgm = (
-        0.016 * np.sin(2.0 * math.pi * 110.0 * t_vec)
-        + 0.010 * np.sin(2.0 * math.pi * 165.0 * t_vec)
+    wav_path = CACHE_DIR / "brian_cut_in_two.wav"
+    subprocess.run(
+        ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(BRIAN_MP3), "-ar", str(sr), "-ac", "1", str(wav_path)],
+        check=True,
     )
-    master[:, 0] += bgm
-    master[:, 1] += bgm
+    with wave.open(str(wav_path), "rb") as wf:
+        pcm = np.frombuffer(wf.readframes(wf.getnframes()), dtype=np.int16).astype(np.float64) / 32768.0
+        if wf.getnchannels() == 2:
+            pcm = pcm.reshape(-1, 2).mean(axis=1)
+        audio_seconds = len(pcm) / sr
+    print(f"[AUDIO] Brian narration {audio_seconds:.2f}s from {BRIAN_MP3.name}, played once", flush=True)
 
-    # Generate ALL 11 lines with the exact same voice (`en-US-ChristopherNeural`)
-    # so there is zero speaker change at 00:58!
-    for idx, (t0, t1, text) in enumerate(SCRIPT_TIMED_LINES):
-        start_sample = int(round(t0 * sr))
-        seg_wav = CACHE_DIR / f"vo_uniform_{idx:02d}.wav"
+    vo_track = np.zeros(total_samples, dtype=np.float64)
+    n = min(len(pcm), total_samples)
+    vo_track[:n] = pcm[:n]
 
-        if not seg_wav.exists():
-            mp3_tmp = CACHE_DIR / f"vo_uniform_{idx:02d}.mp3"
-            try:
-                subprocess.run(
-                    [
-                        "edge-tts",
-                        "--voice", "en-US-ChristopherNeural",
-                        "--rate=+8%",
-                        "--text", text,
-                        "--write-media", str(mp3_tmp),
-                    ],
-                    check=True, capture_output=True, timeout=20,
-                )
-                subprocess.run(
-                    ["ffmpeg", "-y", "-i", str(mp3_tmp), "-ar", str(sr), "-ac", "1", str(seg_wav)],
-                    check=True, capture_output=True,
-                )
-            except Exception:
-                try:
-                    subprocess.run(
-                        ["espeak-ng", "-v", "en-us", "-s", "175", "-w", str(seg_wav), text],
-                        check=True, capture_output=True,
-                    )
-                    subprocess.run(
-                        ["ffmpeg", "-y", "-i", str(seg_wav), "-ar", str(sr), "-ac", "1", str(seg_wav) + ".tmp.wav"],
-                        check=True, capture_output=True,
-                    )
-                    Path(str(seg_wav) + ".tmp.wav").replace(seg_wav)
-                except Exception:
-                    pass
+    spoken = load_measured_words()
+    last_word_end = float(spoken[-1]["end"])
+    if last_word_end > audio_seconds + 0.05:
+        raise RuntimeError(f"Word timings ({last_word_end:.2f}s) run past the audio ({audio_seconds:.2f}s)")
+    phrases = group_spoken_phrases(spoken)
+    for phrase in phrases:
+        text = " ".join(str(w["text"]) for w in phrase)
+        if len(text) > 18 or len(phrase) > 3:
+            raise RuntimeError(f"Caption phrase is too long: {text!r}")
 
-        if seg_wav.exists():
-            try:
-                with wave.open(str(seg_wav), "rb") as wf:
-                    if wf.getframerate() == sr:
-                        pcm = np.frombuffer(wf.readframes(wf.getnframes()), dtype=np.int16).astype(np.float64) / 32768.0
-                        if wf.getnchannels() == 2:
-                            pcm = pcm.reshape(-1, 2).mean(axis=1)
-                        end_sample = min(total_samples, start_sample + len(pcm))
-                        if end_sample > start_sample:
-                            master[start_sample:end_sample, 0] += pcm[: end_sample - start_sample] * 0.88
-                            master[start_sample:end_sample, 1] += pcm[: end_sample - start_sample] * 0.88
-            except Exception:
-                pass
+    master = np.column_stack([vo_track, vo_track])
+    rng = np.random.default_rng(42)
 
-    # Velocity-Peak Synced Whooshes
-    n_w = int(round(0.36 * sr))
-    tw = np.linspace(0.0, 0.36, n_w, dtype=np.float64)
-    uw = tw / 0.36
-    env_w = 30.0 * (uw ** 2) * ((1.0 - uw) ** 2)
-    whoosh_sig = env_w * np.sin(2.0 * math.pi * (130.0 * tw + 240.0 * (tw ** 2))) * 0.15
+    n_w = int(round(0.34 * sr))
+    tw = np.linspace(0.0, 1.0, n_w, dtype=np.float64)
+    env_w = 30.0 * (tw ** 2) * ((1.0 - tw) ** 2)
+    noise = rng.normal(0.0, 1.0, n_w)
+    kernel_size = 32
+    smooth_noise = np.convolve(noise, np.ones(kernel_size) / kernel_size, mode="same")
+    air_whoosh = env_w * (smooth_noise - np.convolve(smooth_noise, np.ones(120) / 120, mode="same")) * 0.12
+
     for mv in spec.moves:
-        peak_t = mv.start_t + 0.5 * mv.duration - 0.18
+        peak_t = mv.start_t + 0.5 * mv.duration - 0.17
         idx = int(round(max(0.0, peak_t) * sr))
         end_idx = min(total_samples, idx + n_w)
         if end_idx > idx:
-            master[idx:end_idx, 0] += whoosh_sig[: end_idx - idx]
-            master[idx:end_idx, 1] += whoosh_sig[: end_idx - idx]
+            master[idx:end_idx, 0] += air_whoosh[: end_idx - idx] * 0.45
+            master[idx:end_idx, 1] += air_whoosh[: end_idx - idx] * 0.55
 
-    # Harmonic Pops on Pills & Labels
-    n_p = int(round(0.08 * sr))
-    tp = np.linspace(0.0, 0.08, n_p, dtype=np.float64)
-    env_p = np.exp(-tp * 42.0) * np.sin(math.pi * tp / 0.08)
-    pop_sig = env_p * np.sin(2.0 * math.pi * (340.0 + 460.0 * (tp / 0.08)) * tp) * 0.18
-    pop_times = sorted(set([p.enter_t for p in spec.pills] + [l.enter_t for l in spec.labels]))
+    n_p = int(round(0.045 * sr))
+    tp = np.linspace(0.0, 0.045, n_p, dtype=np.float64)
+    env_p = np.exp(-tp * 85.0) * np.sin(math.pi * tp / 0.045)
+    thud_sig = env_p * np.sin(2.0 * math.pi * (150.0 * tp - 1100.0 * (tp ** 2))) * 0.06
+    pop_times = sorted({p.enter_t for p in spec.pills})
     for pt in pop_times:
-        idx = int(round(max(0.0, pt + 0.03) * sr))
+        idx = int(round(max(0.0, pt + 0.02) * sr))
         end_idx = min(total_samples, idx + n_p)
         if end_idx > idx:
-            master[idx:end_idx, 0] += pop_sig[: end_idx - idx]
-            master[idx:end_idx, 1] += pop_sig[: end_idx - idx]
-
-    # Seamless 0.25s loop tail wrap into Frame 0
-    n_tail = int(round(0.25 * sr))
-    u = np.linspace(0.0, 1.0, n_tail, dtype=np.float64)[:, None]
-    s = u * u * u * (u * (u * 6.0 - 15.0) + 10.0)
-    tail_seg = master[-n_tail:].copy()
-    head_seg = master[:n_tail].copy()
-    master[:n_tail] = head_seg * np.sqrt(s) + tail_seg * np.sqrt(1.0 - s)
+            master[idx:end_idx, 0] += thud_sig[: end_idx - idx]
+            master[idx:end_idx, 1] += thud_sig[: end_idx - idx]
 
     peak = float(np.max(np.abs(master)))
     if peak > 0.89:
         master *= 0.89 / peak
-    return master
+    return master, phrases
 
 
-# ==============================================================================
-# 7. MAIN EXECUTION
-# ==============================================================================
-def render_frame_at(rings: list[dict], spec: EpisodeSpec, all_words: List[Dict], st: Dict[str, float], t: float) -> np.ndarray:
-    active_fills = []
-    for cue in spec.highlights:
-        alpha = element_fade_and_exit_offset(t, cue.enter_t, cue.exit_t, 0.30, 0.30)[0]
-        if alpha > 0.02:
-            active_fills.append((cue.region_id, cue.fill_rgba, alpha))
-
-    frame = spherical_camera_warp(st["lon"], st["lat"], st["span"], st["w"], active_fills)
-    draw_vector_borders(frame, rings, st["lon"], st["lat"], st["span"], st["w"])
-    return draw_overlay(frame, spec, all_words, st["lon"], st["lat"], st["span"], st["w"], t)
+def render_frame_at(
+    rings: list[dict],
+    spec: EpisodeSpec,
+    phrases: List[List[Dict]],
+    st: Dict[str, float],
+    t: float,
+) -> np.ndarray:
+    focus_dim = float(smoothstep((35.0 - st["span"]) / 20.0)) * (1.0 - st["w"])
+    frame = spherical_camera_warp(st["lon"], st["lat"], st["span"], st["w"], focus_dim=focus_dim)
+    draw_vector_highlights_and_borders(frame, rings, spec, st["lon"], st["lat"], st["span"], st["w"], t)
+    draw_split_arcs(frame, spec, st["lon"], st["lat"], st["span"], st["w"], t)
+    return draw_overlay(frame, spec, phrases, st["lon"], st["lat"], st["span"], st["w"], t)
 
 
 def main() -> None:
-    global PLATE, STARS, REGION_MASK
+    global PLATE, STARS
     geojson_path = ensure_assets()
     PLATE = load_enhanced_plate()
     STARS = make_starfield()
+    print(f"[ASSET] Loading Natural Earth 10m from {geojson_path.name}", flush=True)
     rings = load_rings(geojson_path)
+    print(f"[ASSET] {len(rings)} rings", flush=True)
     spec = build_cut_in_two_episode()
     rig = spec.build_rig()
-    all_words = build_full_karaoke_words()
-    REGION_MASK = build_region_mask(rings, spec, PLATE.shape[1], PLATE.shape[0])
+    audio_f64, phrases = prepare_voiceover_and_karaoke_phrases(spec)
+    print(f"[CAPTION] {sum(len(p) for p in phrases)} words in {len(phrases)} phrases", flush=True)
 
     if len(sys.argv) > 1 and sys.argv[1] == "--stills":
-        out_dir = Path("/tmp/cit_v3_stills")
+        out_dir = Path("/tmp/cit_v4_stills")
         out_dir.mkdir(parents=True, exist_ok=True)
-        test_times = [float(x) for x in sys.argv[2:]] or [0.0, 9.5, 13.8, 21.0, 31.0, 37.5, 44.0, 53.0, 59.5]
+        test_times = [float(x) for x in sys.argv[2:]] or [2.5, 11.2, 19.2, 26.8, 38.0, 53.0, 67.0, 77.8]
         for t in test_times:
             st = rig.evaluate_all(min(t, spec.total_duration))
-            img = render_frame_at(rings, spec, all_words, st, t)
-            p = out_dir / f"t_{t:05.1f}s.jpg"
-            Image.fromarray(img).save(p, quality=92)
-            print(f"[STILL] {p} (w={st['w']:.2f}, span={st['span']:.1f}°, lon={st['lon']:.1f}°, lat={st['lat']:.1f}°)")
+            img = render_frame_at(rings, spec, phrases, st, t)
+            path = out_dir / f"t_{t:05.1f}s.jpg"
+            Image.fromarray(img).save(path, quality=92)
+            print(
+                f"[STILL] {path} (w={st['w']:.2f}, span={st['span']:.1f}°, "
+                f"lon={st['lon']:.1f}°, lat={st['lat']:.1f}°)",
+                flush=True,
+            )
         return
 
     OUT_MP4.parent.mkdir(parents=True, exist_ok=True)
-    audio_f64 = build_full_audio_track(spec)
     audio_i16 = (audio_f64 * 32767.0).astype(np.int16)
 
-    wav_path = Path("/tmp/cit_v3_master.wav")
+    wav_path = Path("/tmp/cit_v4_master.wav")
     with wave.open(str(wav_path), "w") as wf:
         wf.setnchannels(2)
         wf.setsampwidth(2)
@@ -1280,7 +1332,7 @@ def main() -> None:
         "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "pipe:0",
         "-i", str(wav_path),
         "-map", "0:v", "-map", "1:a",
-        "-c:v", "libx264", "-preset", "faster", "-crf", "16", "-pix_fmt", "yuv420p",
+        "-c:v", "libx264", "-preset", "faster", "-crf", "20", "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "192k",
         "-movflags", "+faststart",
         str(OUT_MP4),
@@ -1293,7 +1345,7 @@ def main() -> None:
         for f in range(n_frames):
             t = f / FPS
             st = rig.evaluate_all(t)
-            rgb = render_frame_at(rings, spec, all_words, st, t)
+            rgb = render_frame_at(rings, spec, phrases, st, t)
             proc.stdin.write(rgb.tobytes())
             if f % (FPS * 5) == 0:
                 print(
