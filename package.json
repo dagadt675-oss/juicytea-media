@@ -1,0 +1,36 @@
+{
+  "name": "juicytea-media",
+  "version": "0.4.2",
+  "description": "Deterministic 3D/2D programmatic video rendering engine with Three.js PBR scenes, Canvas2D overlays, and automated visual/audio QC gates.",
+  "main": "render/render.mjs",
+  "type": "module",
+  "scripts": {
+    "anchors": "ANCHORS=1 node src_assets/gen_seq.mjs",
+    "render": "node render/render.mjs",
+    "qc:visual": "python3 qc/visual_qc.py",
+    "qc:audio": "python3 qc/voice_qc.py",
+    "gate:timing": "bash tools/gates/g1_timing.sh",
+    "gate:stills": "bash tools/gates/g2_stills.sh",
+    "gate:animatic": "bash tools/gates/g3_animatic.sh"
+  },
+  "keywords": [
+    "programmatic-video",
+    "threejs",
+    "webgl",
+    "data-visualization",
+    "canvas2d",
+    "ffmpeg",
+    "automated-qc",
+    "documentary-engine"
+  ],
+  "author": "dagadt675-oss",
+  "license": "MIT",
+  "dependencies": {
+    "canvas": "^2.11.2",
+    "puppeteer": "^22.0.0",
+    "three": "^0.164.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
