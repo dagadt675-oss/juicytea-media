@@ -66,8 +66,8 @@ export class Paleo {
     return R;
   }
   cen0(c) { const [lo, la] = this.tracks[PAIRS[c][0]][0]; return [la, lo]; }
-  async drawBase(Ti, ant = 0) {
-    const key = Ti + '|' + ant.toFixed(2);
+  async drawBase(Ti, ant = 0, shelf = 0) {
+    const key = Ti + '|' + ant.toFixed(2) + '|' + shelf;
     if (this.baseKey === key) return;
     this.baseKey = key;
     const polys = await this.load(Ti), g = this.bg, W = this.w, H = this.h;
@@ -84,6 +84,7 @@ export class Paleo {
     // Antarctica (coast_TTT polygons + Antarctic blocks)
     g.fillStyle = mix(SAND, ANTC, ant); g.beginPath();
     for (const j of [...ANT[Ti], ...this.antX[Ti]]) { const r = polys[j]; r.forEach(([lo, la], i) => i ? g.lineTo(X(lo), Y(la)) : g.moveTo(X(lo), Y(la))); g.closePath(); }
+    if (shelf) { g.save(); g.strokeStyle = g.fillStyle; g.lineWidth = shelf * this.sc; g.lineJoin = 'round'; g.stroke(); g.restore(); } // continental shelf: closes coastline-fit gaps
     g.fill('nonzero');
   }
   // o: {hl:{c:0..1}, ant:0..1, antGlow, explode:{c:deg}, spin:{c:deg}, center:[x,y,z], key, under(g,X,Y,P), over(g,X,Y,P), baseAlpha}
@@ -91,11 +92,11 @@ export class Paleo {
     T = F.clamp(T, 0, 200);
     const Ti = Math.round(T);
     const hl = o.hl || {};
-    const sig = [T.toFixed(3), (Math.round((o.ant || 0) * 50) / 50).toFixed(2), (o.baseAlpha ?? 1).toFixed(2), ...TRACKED.map(c => (hl[c] || 0).toFixed(2) + ':' + ((o.explode && o.explode[c]) || 0).toFixed(3) + ':' + ((o.spin && o.spin[c]) || 0).toFixed(2)), o.key || ''].join('|');
+    const sig = [T.toFixed(3), (Math.round((o.ant || 0) * 50) / 50).toFixed(2), (o.baseAlpha ?? 1).toFixed(2), String(o.shelf || 0), ...TRACKED.map(c => (hl[c] || 0).toFixed(2) + ':' + ((o.explode && o.explode[c]) || 0).toFixed(3) + ':' + ((o.spin && o.spin[c]) || 0).toFixed(2)), o.key || ''].join('|');
     if (sig === this.sig) return false;
     this.sig = sig;
     const antQ = Math.round((o.ant || 0) * 50) / 50;
-    await this.load(Ti); await this.drawBase(Ti, antQ);
+    await this.load(Ti); await this.drawBase(Ti, antQ, o.shelf || 0);
     const g = this.g, W = this.w, H = this.h, sc = this.sc;
     const X = lo => (lo + 180) / 360 * W, Y = la => (90 - la) / 180 * H;
     g.clearRect(0, 0, W, H);
@@ -120,7 +121,8 @@ export class Paleo {
         }
       }
       // outline drawn UNDER the fill (double width) so only the outer edge shows, not the internal plate seams
-      if ((hl[c] || 0) > 0.01) { g.save(); g.globalAlpha = Math.min(1, hl[c]); g.strokeStyle = 'rgba(255,244,232,0.95)'; g.lineWidth = 5.2 * sc; g.lineJoin = 'round'; g.stroke(); g.restore(); }
+      if ((hl[c] || 0) > 0.01) { g.save(); g.globalAlpha = Math.min(1, hl[c]); g.strokeStyle = 'rgba(255,244,232,0.95)'; g.lineWidth = (5.2 + (o.shelf || 0)) * sc; g.lineJoin = 'round'; g.stroke(); g.restore(); }
+      if (o.shelf) { g.save(); g.strokeStyle = g.fillStyle; g.lineWidth = o.shelf * sc; g.lineJoin = 'round'; g.stroke(); g.restore(); }
       g.fill('nonzero');
     }
     if (o.over) o.over(g, X, Y, this);

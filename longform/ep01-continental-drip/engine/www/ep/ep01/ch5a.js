@@ -110,13 +110,13 @@ export async function build(api, C) {
     return { A, B, open, mid };
   }
   // the South Atlantic: last seam snaps at T_SNAP (all pairs open)
-  let T_SNAP = 112, T_OPEN0 = 145;
-  for (let T = 150; T >= 95; T -= 0.25) { const st = seamAt(P2, SEAMS.satl, T); if (st.open.some(v => v > 0.5) && T_OPEN0 === 145) T_OPEN0 = T; if (st.open.every(v => v > 0.6)) { T_SNAP = T; break; } }
+  let T_SNAP = 112, T_OPEN0 = 145, T_FIRST = null;
+  for (let T = 150; T >= 95; T -= 0.25) { const st = seamAt(P2, SEAMS.satl, T); if (T_FIRST == null && st.open[0] > 0.5) T_FIRST = T; if (st.open.some(v => v > 0.5) && T_OPEN0 === 145) T_OPEN0 = T; if (st.open.every(v => v > 0.6)) { T_SNAP = T; break; } }
   T_SNAP = clamp(T_SNAP, 100, 121);
   api.log(`ch5a: T_OPEN0 ${T_OPEN0} T_SNAP ${T_SNAP} seams ${Object.entries(SEAMS).map(([k, s]) => k + ':' + s.a0.length + '[' + ll(s.a0[0]).map(v => v.toFixed(1)) + ' -> ' + ll(s.a0[s.a0.length - 1]).map(v => v.toFixed(1)) + ']').join(' ')}`);
 
   // ---------------------------------------------------------------- time schedule (Ma) for the forward run
-  const Tfwd = mono([[M.fwd - 0.05, 180], [M.afant, 158], [tG, 148], [M.zip, Math.max(145, T_OPEN0 + 1)], [M.split, 139], [M.firstt, Math.max(131, T_SNAP + 9)],
+  const Tfwd = mono([[M.fwd - 0.05, 180], [M.afant, 158], [tG, 148], [M.zip + 0.15, T_FIRST ?? 142], [M.split, 139], [M.firstt, Math.max(131, T_SNAP + 9)],
     [M.seam, Math.max(125.5, T_SNAP + 4.5)], [M.snap2, T_SNAP], [tI, T_SNAP - 3], [tJ, T_SNAP - 7.5], [tK, 80], [tL, 66], [tM, 56], [M.slam, 44], [tN + 0.4, 38]]);
 
   // ---------------------------------------------------------------- shared drawing helpers
@@ -239,7 +239,7 @@ export async function build(api, C) {
     const hl = {}; for (const [c, m] of NAMES) hl[c] = prog(t, M[m] - 0.12, M[m] + 0.16);
     const flash = Math.exp(-Math.max(0, t - M.gond) * 3.5) * (t >= M.gond - 0.03 ? 1 : 0);
     for (const c of TRACKED) hl[c] = Math.min(1, hl[c] * (1 + 0.6 * flash));
-    const po = { hl, explode: exObj(e), center: GCv, key: 'A' };
+    const po = { hl, explode: exObj(e), center: GCv, key: 'A', shelf: t > M.gond - 0.2 ? 12 : 0 };
     await paleo(P2, T, po);
     const k = prog(t, tStart + 0.6, tStart + 1.9);
     globe(ctx, camA(t), mixLook(RLOOK, PLOOK, k), shakeAt(t, M.gond - 0.02, 0.01, 0.45));
@@ -280,7 +280,7 @@ export async function build(api, C) {
     await prep();
     const lift = 1.5 * bump(t, tKey - 0.75, tKey - 0.3, tKey + 0.02);
     const ant = 0.68 * prog(t, M.ant - 0.1, M.ant + 0.2);
-    const po = { hl: { samerica: 0.72, africa: 0.72, india: 0.72, australia: 0.72 }, ant, explode: exObj(lift), center: GCv, key: 'C' };
+    const po = { hl: { samerica: 0.72, africa: 0.72, india: 0.72, australia: 0.72 }, ant, explode: exObj(lift), center: GCv, key: 'C', shelf: 12 };
     await paleo(P2, 180, po);
     globe(ctx, camC(t), PLOOK, shakeAt(t, tKey, 0.006, 0.35));
     drawRing(ctx, t, prog(t, M.ant - 0.12, M.ant + 0.2), M.ant);
@@ -315,7 +315,7 @@ export async function build(api, C) {
   const TIP180 = TIPN.map(n => at(n, 180));
   add(tE, tF, async (ctx, t) => {
     await prep();
-    const po = { hl: { samerica: 1, africa: 1, india: 1, australia: 0.7 }, ant: 0.42, key: 'E' };
+    const po = { hl: { samerica: 1, africa: 1, india: 1, australia: 0.7 }, ant: 0.42, key: 'E', shelf: 12 };
     await paleo(P2, 180, po);
     globe(ctx, camE(t), PLOOK, shakeAt(t, M.whole, 0.008, 0.4));
     drawRing(ctx, t, 1, tE);
@@ -474,7 +474,7 @@ export async function build(api, C) {
   const lampM = new THREE.MeshStandardMaterial({ color: 0x33302A, emissive: 0xFFC870, emissiveIntensity: 0, roughness: 0.3 });
   const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.055, 16, 12), lampM); lamp.position.set(0.42, 0.64, 0.52); cabin.add(lamp);
   const pl = new THREE.PointLight(0xFFB860, 0, 3.2, 1.6); pl.position.set(0.42, 0.62, 0.7); cabin.add(pl);
-  const CAB = { x: -0.6, y: -0.07, z: -0.55, ry: 0.42, rz: 0.11, s: 0.5 };
+  const CAB = { x: -0.6, y: -0.15, z: -0.55, ry: 0.42, rz: 0.2, s: 0.5 };
   cabin.position.set(CAB.x, CAB.y, CAB.z); cabin.rotation.set(0, CAB.ry, CAB.rz); cabin.scale.setScalar(CAB.s); st.add(cabin);
   hero.play(tJ - 1, 'Idle', { fade: 0 });
   hero.play(M.leave - 0.2, 'Wave', { fade: 0.2 });

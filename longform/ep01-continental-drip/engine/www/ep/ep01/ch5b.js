@@ -720,9 +720,9 @@ export async function build(api, C) {
       }
       // the Cape: Good Hope marker, hop to Agulhas, latitude line
       if (t > M.gh - 0.12) {
-        const lp = prog(t, M.gh + 0.35, M.gh + 1.1, E.inOut); if (lp > 0) { const run = projectPath(g, Array.from({ length: 41 }, (_, i) => ({ lat: AG[0], lon: 16.8 + i * 0.13 }))); ctx.save(); ctx.globalAlpha = 0.85; F.glowPath(ctx, run, { p: lp, color: '#ffffff', width: 2.5, dash: [10, 8] }); ctx.restore(); }
+        const lp = prog(t, M.gh + 0.15, M.gh + 0.7, E.inOut); if (lp > 0) { const run = projectPath(g, Array.from({ length: 41 }, (_, i) => ({ lat: AG[0], lon: 16.8 + i * 0.13 }))); ctx.save(); ctx.globalAlpha = 0.85; F.glowPath(ctx, run, { p: lp, color: '#ffffff', width: 2.5, dash: [10, 8] }); ctx.restore(); }
         const q = g.project(GH[0], GH[1]); if (q.visible) F.dot(ctx, q.x, q.y, { r: 9, color: '#ffffff', ring: ((t - M.gh) * 0.9) % 1 });
-        const hp = prog(t, M.gh + 0.25, M.gh + 0.95, E.inOut); if (hp > 0) { const pts = projectPath(g, gcLine(GH, AG, 30, 0.004)); const head = F.glowPath(ctx, pts, { p: hp, color: '#ffffff', width: 3.5, dash: [8, 8] });
+        const hp = prog(t, M.gh + 0.05, M.gh + 0.6, E.inOut); if (hp > 0) { const pts = projectPath(g, gcLine(GH, AG, 30, 0.004)); const head = F.glowPath(ctx, pts, { p: hp, color: '#ffffff', width: 3.5, dash: [8, 8] });
           if (hp >= 1) { const a2 = g.project(AG[0], AG[1]); if (a2.visible) F.dot(ctx, a2.x, a2.y, { r: 10, color: PAL.hero, ring: ((t - M.gh) * 1.1) % 1 }); } }
       }
     } }));
@@ -737,12 +737,18 @@ export async function build(api, C) {
   scenes.push(scene(M2a, M2b, (ctx, t) => {
     const u = (t - M2a) / (M2b - M2a);
     ctx.fillStyle = '#05070D'; ctx.fillRect(0, 0, W, H);
-    F.kenburns(ctx, aster, u, 0, 0, W, H, { from: KBf, to: KBt, grade: 'cold' });
-    ctx.fillStyle = 'rgba(5,10,20,0.18)'; ctx.fillRect(0, 0, W, H);
-    // tip marker (replicates the Ken Burns crop)
     const k = E.inOutSine(clamp(u)), cxn = lerp(KBf[0], KBt[0], k), cyn = lerp(KBf[1], KBt[1], k), z = lerp(KBf[2], KBt[2], k);
     const iw = aster.width, ih = aster.height, sh = ih / z, sw = sh * (W / H); let sx = clamp(cxn * iw - sw / 2, 0, iw - sw), sy = clamp(cyn * ih - sh / 2, 0, ih - sh);
-    const px = (0.452 * iw - sx) / sw * W, py = (0.908 * ih - sy) / sh * H;
+    const LIFT = 130;
+    F.kenburns(ctx, aster, u, 0, -LIFT, W, H, { from: KBf, to: KBt, grade: 'cold' });
+    // extend the sea into the vacated band: a gradient from the plate's own bottom-edge colour (no smear, no mirrored land)
+    { const d = ctx.getImageData(0, H - LIFT - 6, W, 4).data; let r = 0, gg = 0, b = 0, n = 0; for (let q = 0; q < d.length; q += 32) { r += d[q]; gg += d[q + 1]; b += d[q + 2]; n++; }
+      r /= n; gg /= n; b /= n; const bg = ctx.createLinearGradient(0, H - LIFT, 0, H); bg.addColorStop(0, `rgb(${r | 0},${gg | 0},${b | 0})`); bg.addColorStop(1, `rgb(${(r * 0.55) | 0},${(gg * 0.6) | 0},${(b * 0.7) | 0})`);
+      ctx.fillStyle = bg; ctx.fillRect(0, H - LIFT, W, LIFT); }
+    { const jg = ctx.createLinearGradient(0, H - LIFT - 60, 0, H - LIFT + 60); jg.addColorStop(0, 'rgba(5,10,20,0)'); jg.addColorStop(0.5, 'rgba(5,10,20,0.35)'); jg.addColorStop(1, 'rgba(5,10,20,0)'); ctx.fillStyle = jg; ctx.fillRect(0, H - LIFT - 60, W, 120); }
+    ctx.fillStyle = 'rgba(5,10,20,0.18)'; ctx.fillRect(0, 0, W, H);
+    // tip marker (replicates the Ken Burns crop)
+    const px = (0.452 * iw - sx) / sw * W, py = (0.908 * ih - sy) / sh * H - LIFT;
     F.dot(ctx, px, py, { r: 10, color: PAL.hero, ring: ((t - M2a) * 0.8) % 1 });
     pillAt(ctx, 'REAL TIP: CAPE AGULHAS', 110, 100, t, M.agul - 0.1, M2b + 0.2);
     pillAt(ctx, 'AGULHAS = "NEEDLES"', 110, 180, t, M.needles - 0.1, M2b + 0.2, { border: PAL.yellow });
@@ -786,8 +792,8 @@ export async function build(api, C) {
     extra: (ctx, t, api) => {
       const [sx, sy] = U.shake(t, M.likely - 0.03, 10);
       ctx.save(); ctx.translate(sx, sy);
-      const ca = E.outBack(prog(t, coinT0, coinT0 + 0.35)); if (ca > 0) { const lean = t > M.likely ? 0.06 * Math.sin((t - M.likely) * 3) : 0; ctx.save(); ctx.translate(960, 640); ctx.rotate(lean); U.coin(ctx, 0, 0, 160 * ca, coinPhase(t)); ctx.restore(); }
-      U.drawStamp(ctx, stampC, 960, 300, t, M.likely - 0.08, { scale: 0.66, rot: -0.07 });
+      const ca = E.outBack(prog(t, coinT0, coinT0 + 0.35)); if (ca > 0) { const lean = t > M.likely ? 0.16 * Math.exp(-1.5 * (t - M.likely)) * Math.sin((t - M.likely) * 6) : 0; if (t > M.likely - 0.2) { ctx.save(); ctx.globalAlpha = 0.45 * prog(t, M.likely - 0.2, M.likely + 0.1); ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(960, 806, 100, 12, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } ctx.save(); ctx.translate(960, 640); ctx.rotate(lean); U.coin(ctx, 0, 0, 160 * ca, coinPhase(t)); ctx.restore(); }
+      U.drawStamp(ctx, stampC, 1230, 290, t, M.likely - 0.08, { scale: 0.66, rot: -0.07 });
       ctx.restore();
     } }));
   cue(M.coin2 - 0.12, 'bell_small', -16); cue(M.likely - 0.06, 'stamp', -10);
@@ -797,7 +803,7 @@ export async function build(api, C) {
   // ===================================================================================================
   const N2a = N1b, N2b = SEG('s095').start + 9.95;
   scenes.push(gshot({ t0: N2a, t1: N2b, overlay: { canvas: dripOv, bounds: WORLD }, patch: null, drift: 0.6,
-    keys: [{ t: N2a, lat: -33, lon: 25, alt: 2.55, heading: 14 }, { t: N2b, lat: -36, lon: 22, alt: 2.4, heading: 14 }],
+    keys: [{ t: N2a, lat: -55, lon: 15, alt: 3.2, heading: 8 }, { t: N2b, lat: -58, lon: 12, alt: 3.1, heading: 8 }],
     look: { desat: 0.3, dim: 0.35, ovAlpha: 0.85, relief: 0.7 },
     extra: (ctx, t, api) => {
       const g = api.g; drawRing(ctx, g, t, null);
@@ -835,7 +841,7 @@ export async function build(api, C) {
   // ===================================================================================================
   // O1 s096  lopsided planet: northern land flashes
   // ===================================================================================================
-  const O1a = N3b, O1b = M.northl - 0.08;
+  const O1a = N3b, O1b = M.northl + 0.66;
   scenes.push(gshot({ t0: O1a, t1: O1b, overlay: { canvas: northOv, bounds: WORLD }, patch: null, drift: 1.5,
     keys: [{ t: O1a, lat: 34, lon: 34, alt: 2.9 }, { t: O1b, lat: 36, lon: 14, alt: 2.8 }],
     look: (t) => { const f = prog(t, M.lopside - 0.1, M.lopside + 0.05), d = 1 - prog(t, M.lopside + 0.05, M.lopside + 0.7); return { dim: 0.25, desat: 0.25, ovAlpha: f * (0.75 + 0.25 * d), relief: 0.8, exposure: 1.25 + 0.4 * f * d }; } }));
@@ -870,14 +876,13 @@ export async function build(api, C) {
     ctx.save(); ctx.rotate(Math.PI); ctx.fillStyle = '#f4f6fa'; for (const [x, s] of [[-40, 14], [-8, 22], [26, 12], [52, 9]]) { ctx.beginPath(); ctx.moveTo(x * ap - s * ap, -R - 2); ctx.lineTo(x * ap, -R - 2 - s * 1.3 * ap); ctx.lineTo(x * ap + s * ap, -R - 2); ctx.closePath(); ctx.fill(); } ctx.restore();
     ctx.restore();
   };
-  const O2a = O1b, O2b = M.avoid2 - 0.07, O3b = M.avoid2 + 1.05;
-  scenes.push(scene(O2a, O2b, (ctx, t) => drawSlice(ctx, t, M.northl)));
+  const O2b = O1b, O3b = M.avoid2 + 0.5;
   scenes.push(scene(O2b, O3b, (ctx, t) => {
     U.spaceBg(ctx, t, { starAlpha: 0.5 }); const z = lerp(0.98, 1.03, prog(t, O2b, O3b)); const T = drawEE(ctx, { cx: 1800, cy: 880, zoom: z }, 0.42);
     ctx.save(); ctx.globalAlpha = 0.95; ctx.drawImage(antiEE, T.ox, T.oy, U.EE_W * T.z, U.EE_H * T.z); ctx.restore();
   }));
   scenes.push(scene(O3b, M.snap - 0.05, (ctx, t) => {
-    drawSlice(ctx, t, M.northl);
+    drawSlice(ctx, t, O3b);
     const fa = prog(t, M.force - 0.12, M.force + 0.35); if (fa > 0) { U.arrow(ctx, 960, 760, 960, 300, { color: '#9aa7b8', width: 26, head: 48, alpha: 0.92 * fa }); }
     const xa = M.force + 0.62; for (const [i, [x0, y0, x1, y1]] of [[860, 420, 1060, 640], [1060, 420, 860, 640]].entries()) { const p = prog(t, xa + i * 0.16, xa + i * 0.16 + 0.16, E.out); if (p <= 0) continue; ctx.save(); ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 30; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x0 + 3, y0 + 5); ctx.lineTo(lerp(x0, x1, p) + 3, lerp(y0, y1, p) + 5); ctx.stroke(); ctx.strokeStyle = PAL.danger; ctx.lineWidth = 24; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(lerp(x0, x1, p), lerp(y0, y1, p)); ctx.stroke(); ctx.restore(); }
   }));
@@ -891,7 +896,7 @@ export async function build(api, C) {
     if (snapC) return snapC;
     const g = api.g; g.setOverlay(dripOv, WORLD); g.u.tint.value.set(1, 1, 1);
     const tmp = U.cv(W, H), tc = tmp.getContext('2d');
-    api.drawGlobe(tc, { lat: -30, lon: 20, alt: 2.35, tilt: 0, heading: 0 }, Object.assign({}, BASE_LOOK, { desat: 0.3, dim: 0.3, ovAlpha: 1, relief: 0.8, nightAmt: 1, exposure: 1.25 }));
+    api.drawGlobe(tc, { lat: -30, lon: 20, alt: 3.6, tilt: 0, heading: 0 }, Object.assign({}, BASE_LOOK, { desat: 0.3, dim: 0.3, ovAlpha: 1, relief: 0.8, nightAmt: 1, exposure: 1.25 }));
     // the ring + '?' of the cold open on the South Pole
     const q = g.project(-90, 0); if (q.visible) { tc.strokeStyle = PAL.yellow; tc.lineWidth = 6; tc.beginPath(); tc.ellipse(q.x, q.y, 70, 36, 0, 0, 7); tc.stroke(); }
     api._ovOwner = null; // force the next globe shot to reinstall its own overlay
@@ -902,11 +907,11 @@ export async function build(api, C) {
   scenes.push(scene(Pa, Pb, (ctx, t) => {
     const S = getSnap(); const u = prog(t, Pa, Pb);
     ctx.fillStyle = '#05070D'; ctx.fillRect(0, 0, W, H);
-    ctx.save(); ctx.globalAlpha = 0.35; const bz = lerp(1.25, 1.32, u); ctx.drawImage(S, W / 2 - 540 * bz, H / 2 - 540 * bz, 1080 * bz, 1080 * bz); ctx.restore();
+    ctx.save(); ctx.globalAlpha = 0.35; const bz = lerp(1.25, 1.5, u); ctx.drawImage(S, W / 2 - 540 * bz, H / 2 - 540 * bz, 1080 * bz, 1080 * bz); ctx.restore();
     ctx.fillStyle = 'rgba(3,5,10,0.55)'; ctx.fillRect(0, 0, W, H);
     const PSZ = 590, B = 26, BB = 128, cw = PSZ + 2 * B, ch = PSZ + B + BB;
     const ip = prog(t, Pa, Pa + 0.45, E.outExpo);
-    ctx.save(); ctx.translate(960, 520 + lerp(30, 0, ip)); ctx.rotate(lerp(-0.09, -0.035, ip) + 0.01 * u); const sc = lerp(1.08, 1.0, ip) * (1 + 0.02 * u); ctx.scale(sc, sc);
+    ctx.save(); ctx.translate(960, 520 + lerp(30, 0, ip)); ctx.rotate(lerp(-0.09, -0.035, ip) + 0.035 * u); const sc = lerp(1.08, 1.0, ip) * (1 + 0.08 * u); ctx.scale(sc, sc);
     ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(-cw / 2 + 10, -ch / 2 + 18, cw, ch);
     ctx.fillStyle = '#f6f4ee'; ctx.fillRect(-cw / 2, -ch / 2, cw, ch);
     const px = -cw / 2 + B, py = -ch / 2 + B; ctx.drawImage(S, 80, 80, 840, 840, px, py, PSZ, PSZ);
