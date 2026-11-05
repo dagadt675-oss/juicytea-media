@@ -4,3 +4,11 @@ wf_62c3a5cf-ed8: ["ch2","ch3"]
 wf_a52c5edc-711: ["ch5a","ch6"]
 wf_0b1483cf-3ba: ["ch5b"]
 script workflow: wf_828e9517-122 (done)
+
+# review round 6 (owner reported animation problems in the preview)
+# animation review, per segment, find -> adversarial verify (script: ep01-animation-review)
+wf_54d8968d-d4f: segments 1-4 (ch1, ch2)
+wf_f838edbb-2a7: segments 5-7 (ch3, ch4, ch5a)
+wf_9820647a-970: segments 8-10 (ch5b, ch6)
+# retention / fatigue panel: casual, fan, strategist, fatigue lenses + voice/audio check -> synthesis
+wf_96e8f33f-afb

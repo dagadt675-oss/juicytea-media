@@ -130,7 +130,10 @@ export async function makeSets(api) {
       only('te'); lights({ key: 2.5, hemi: 1.0, rim: 2.2, keyPos: [5, 6, 7], rimPos: [-6, 3, -5], exposure: 1.05, shadows: false });
       te.rotation.set(o.rx || 0.25, o.ry || 0, 0);
       const xr = o.xray || 0; const m = teMesh.material;
-      if (xr > 0.001) { m.transparent = true; m.opacity = 1 - 0.55 * xr; m.depthWrite = xr < 0.5; } else { m.transparent = false; m.opacity = 1; m.depthWrite = true; }
+      // toggling 'transparent' changes the compiled shader (OPAQUE define): flag a recompile, or the look depends on where the chunk started
+      const wantT = xr > 0.001;
+      if (m.transparent !== wantT) { m.transparent = wantT; m.needsUpdate = true; }
+      if (wantT) { m.opacity = 1 - 0.55 * xr; m.depthWrite = xr < 0.5; } else { m.opacity = 1; m.depthWrite = true; }
       te.userData.set(o.k || 0, o.edge ?? 0);
       st.lookFrom(o.cam || [0, 0.6, 8.4], o.target || [0, 0, 0], o.fov || 32);
       ctx.drawImage(st.render(t), 0, 0);
