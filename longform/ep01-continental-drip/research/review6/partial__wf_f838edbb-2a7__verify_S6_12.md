@@ -1,13 +1,5 @@
 # verify S6 (12) (still running; latest notes)
 
-The first kink is confirmed: measured +2.1, -4.2, -18.0 px/frame at 16434-16437, matching the clamped-crop model exactly. Now the brake near 16460.
-
----
-
-Now S6-6 (the white-out between the Villumsen photo and the ice). I'll grab the frames and measure mean brightness.
-
----
-
 S6-6 is confirmed: brightness peaks at 186/255 (16635-16637), and the face is visible over the ice from 16634 to about 16641. Next, S6-7 and S6-8 on the seafloor flip.
 
 ---
@@ -29,3 +21,11 @@ Now let me verify the chunk seams myself, comparing each seam's frame difference
 ---
 
 The ch3-to-ch4 boundary is a cut from a frame that is only about 75% faded to white straight to a full-brightness portrait. Let me check what ch3's ending intends.
+
+---
+
+The crash zoom is a smooth bell (peak 21.9 at 16272) into a clean 9-frame dissolve. I'll skim two context sheets for static issues I might have missed.
+
+---
+
+You've hit your 5-hour limit · resets 1:30am (UTC)

@@ -1,6 +1,6 @@
 # Review round 6: what the agents found (auto-saved)
 
-## wf_54d8968d-d4f: 2 finished, 4 running
+## wf_54d8968d-d4f: 3 finished, 4 running
 
 ### find S2 ch1 1:25.79
 - **S2-1** 1:48.03-1:48.13 [major/high, jerky_motion] On 'trying', the toppling pile slides off down-left and accelerates to about 130-180 px/frame. The Bacon print then stops dead with a ~250x220 px corner still in the lower-left of frame and hangs there motionless for 4 frames before the hard cut to Forster. It reads as the paper snagging on the frame edge.
@@ -100,7 +100,65 @@ Side notes:
 - Composition only: at 'those southern points' (26.1 s) Cape Froward is behind the limb and Kanyakumari is at the limb edge.
 - The README audio flags (voice tail cut at 28.56; impact_deep masking 'Eventually' at 53.10-53.75) were not assessed.
 
-## wf_f838edbb-2a7: 2 finished, 2 running
+### find S3 ch2 2:55.32
+- **S3-1** 3:56.73-3:56.77 [major/high, pop] The big 'DIG STRAIGHT DOWN TO CHINA?' title (140 px, full opacity) disappears in a single frame at 3:56.77 while the globe behind it carries on. It goes exactly as the narrator starts 'If you dig straight down, you'll reach China'. There is no scene change to justify it, so it reads as a botched edit.
+  - cause: The headline is drawn inside scene G's draw2d (the top-down/antipode globe, t1 = cChina) with tOut = cChina - tm.brings + 1.6. Its 0.35 s fade-out is therefore scheduled for 238.36 s, 1.6 s after the scene that draws it has ended, so the scene boundary truncates it.
+  - fix: Move the headline out of G into its own overlay scene that outlives the cut. After ch2.js:489, add push({ t0: tm.brings - 0.2, t1: cChina + 2.0, layer: 5, draw(ctx, lt, t) { F.headline(ctx, ['DIG','STRAIGHT','DOWN','TO',{ w: 'CHINA?', c: PAL.hero }], W / 2, 200, t - tm.brings, { size: 140, per: (tm.myth - tm.brings - 0.25) / 4, tOut: cChina - tm.brings + 1.6 }); } }); and delete lines 485-487. The title then stays up through 'If you dig straight down, you'll reach' and fades at 238.36 s as intended. Keep the globe dimmed under it (see S3-2). (engine/www/ep/ep01/ch2.js:485-487 (headline inside gscene G, which runs t0: cTop, t1: cChina at ch2.js:459-460))
+- **S3-2** 3:56.73-3:56.77 [major/high, jump_snap] On the same frame as S3-1, the globe (meant to be one unbroken move into China) jerks backwards and brightens. Asia slides about 34 px east (about 6.5 degrees of rotation, against the slow eastward pan it was doing) and the whole globe brightens noticeably. Together with the vanishing title it reads as a jump cut.
+  - cause: The G to H hand-off parameters do not match at cChina. G's lon is lerp(10,8,k) + 80*k2 + (t - cTop)*0.4: it includes a 0.4 deg/s drift (about 7.1 deg by cChina) and k2 is still 0.994 at the cut. H's first camera key is lon 88. G's look adds 0.2 dim for the headline (dim 0.32), while H's dim is 0 until tm.china - 0.25.
+  - fix: Make H start exactly where G ends. (1) At ch2.js:463, end k2 at the cut: prog(t, tm.brings - 0.6, cChina, E.inOutSine). G then finishes at lat 30, lon 88 + 0.4*(cChina - cTop) (about 95.1). (2) At ch2.js:501, change keys[0] to { t: 0, lat: 30, lon: 88 + 0.4 * (cChina - cTop), alt: 3.0 }. (3) At ch2.js:506, carry the dim over and ease it: dim: lerp(0.32, 0.22, prog(t, cChina + 1.6, tm.china + 0.2)). This keeps the (moved) headline readable and removes the brightness pop. (engine/www/ep/ep01/ch2.js:463-465 and 468 (scene G k2, camera lon, look dim) vs ch2.js:501 and 506 (scene H keys[0] and look))
+- **S3-3** 3:27.97-3:34.80 [major/high, jerky_motion] On 'Drag the Arctic Ocean down onto Antarctica', the globe holds still for 3 frames while the cyan shape slides, then lurches into a fast spin from standstill (about 5-6 deg/frame, Africa rising about 45 px/frame) and later stops dead. The return on 'But here's the part that doesn't make sense' is worse: the globe holds, then snaps into a ~130 deg whip in only 0.63 s (peak about 9 deg/frame) and stops dead on the Arctic. The surface is unreadable and the start/stop jolts look mechanical.
+  - cause: The camera latitude is the dragged centroid's latitude, hard-clamped: camLat = clamp(la - 6, -64, 66). The centroid moves at up to ~200 deg/s: the forward drag uses E.out, which starts at full speed, and the return is a 1.7 s E.inOut over 172 deg. So the camera sits on a clamp limit, takes on full centroid speed the frame the clamp releases, and loses it the frame it re-clamps. The whole 130 deg return happens in the 0.63 s the centroid spends between the limits.
+  - fix: (1) Replace the hard clamp at ch2.js:417 with a soft clamp that eases into the limits (C1-continuous, so no velocity jump): const soft = (x, lo, hi, w = 15) => x > hi - w ? hi - w * Math.exp(-(x - hi + w) / w) : x < lo + w ? lo + w * Math.exp((x - lo - w) / w) : x; const camLat = soft(la - 6, -64, 66); (2) Ease the motion itself at ch2.js:407: use E.inOutSine for the forward drag, and lengthen the return: k -= prog(t, tBack, tBack + 2.0, E.inOutSine). Match the alt 'back' ramp at ch2.js:418, and ease the R2 unwind at ch2.js:410 with E.inOut. Peak camera speed falls from about 9 to about 4.5 deg/frame, with no dead starts or stops. (engine/www/ep/ep01/ch2.js:417 (camLat hard clamp); ch2.js:407 (E.out forward drag, 1.7 s E.inOut return); ch2.js:410 (linear, un-eased R2 unwind at tBack))
+- **S3-4** 4:11.00-4:11.90 [major/high, character] When the Explorer pops out in the Indian Ocean he starts a mid-air somersault but never finishes it. He goes in head-first, and a single boot sticks out of the water like a black post for about 0.2 s. Within about 4 frames he is suddenly upright and waist-deep, with a hand and his head popping out at odd places during the switch. He appears to teleport from feet-up to head-up.
+  - cause: ch2.js:168 starts 'Roll' (1.333 s, once) at tm.indian + 0.18 but cross-fades to 'Idle' at tm.indian + 0.95 with a 0.3 s fade. The clip is abandoned at 58%, mid-roll and upside down, so the skeletal crossfade has to turn the body about 180 deg in 0.3 s. Meanwhile the pop curve in bobScene drops him from y=0.3 to -0.47 between u=0.32 and 0.85 s, so the inverted body enters the water head-first.
+  - fix: Let the roll complete while he is still above water. At ch2.js:168 use .play(tm.indian + 0.02, 'Roll', { fade: 0.06, once: true, speed: 2 }).play(tm.indian + 0.66, 'Idle', { fade: 0.15 }). The roll then ends at u of about 0.75, when y is still about -0.1 on the current curve. Alternatively, swap 'Roll' for a non-inverting reaction such as 'HitRecieve' or 'Wave' so the crossfade never has to flip the body. If a full-speed roll is wanted, keep y >= 0.2 at ch2.js:574 until the clip ends and move the Idle cue to the clip's end. (engine/www/ep/ep01/ch2.js:168 (heroP Roll/Idle cues); ch2.js:574 (pop height curve in bobScene))
+- **S3-5** 3:10.73-3:10.97 [minor/high, pop] On 'Now go to the bottom', a hard-edged dark navy band snaps over the bottom ~22% of the still Arctic cross-section and slices the 'SEA FLOOR: ~2.5 MILES DOWN' pill in half. This happens 4 frames before the whip-pan visibly starts. At speed it reads as a flicker at the head of the whip.
+  - cause: drawSouth fills its sky from local y = -300, but the two panels are only 1.05*H apart, so the South backdrop reaches 246 px into the Arctic panel. While wk = 0 the South panel is not drawn (the 'if (wk > 0)' guard). On the first whip frame wk = 0.0012, and the overlapping backdrop appears at full opacity before either panel has visibly moved.
+  - fix: Limit the South backdrop to its own panel plus the 54 px gap. At ch2.js:271 use ctx.fillRect(0, -0.05 * H - 4, W, ySLB + 0.05 * H + 4). The Arctic rock (drawn down to H+300) then fills the frame until the South panel actually scrolls in; nothing else in drawSouth reaches above local y=0. Alternatively, increase the panel spacing at ch2.js:298 to H*1.05 + 300. (engine/www/ep/ep01/ch2.js:271 (ctx.fillRect(0, -300, W, ySLB + 300)); ch2.js:298 (panel spacing H*1.05); ch2.js:319)
+- **S3-6** 4:22.73-4:23.00 [minor/high, pop] Just before 'United States', a cyan US shape appears in one frame at full opacity, cut off at the top-left frame edge, while everything else on the map eases. The zoom-out then reveals it.
+  - cause: The US layer is gated on t > tFlipUS0 - 0.6, and its globalAlpha is usA = 1 - prog(t, tm.start - 0.6, ...), which is already 1. So it has no fade-in, and it starts while the view is still zoomed on the Indian Ocean (the zoom-out begins at tm.us - 0.5 = 262.92).
+  - fix: Add a fade-in: const usIn = prog(t, tFlipUS0 - 0.6, tFlipUS0 - 0.2); then use usA * usIn wherever usA sets globalAlpha in lines 655-657 (fill 0.55*usA*usIn, stroke usA*usIn). Alternatively, gate the layer at tm.us - 0.5 so it arrives with the zoom-out. (engine/www/ep/ep01/ch2.js:653-657)
+- **S3-7** 3:13.83-3:18.47 [minor/high, text_label] The South Pole elevation readout is white text drawn inside the white ice sheet, so '1.8 MI' is only legible through its drop shadow. While it counts up it also under-reports: it starts at '0.0' beside a ruler that is already about 0.4 mi long.
+  - cause: L.miles is placed at top + 50 (50 px below the ice surface, so on the ice) and shows 1.76*uk. The ruler, however, spans ySLB to top = iceTopB(960, kk), with kk starting at 0.12.
+  - fix: Put the readout on the dark sky and show the ruler's real length: L.miles(ctx, (ySLB - top) / MI, 1060, top - 34, { size: 54, alpha: prog(t, tm.up - 0.1, tm.up + 0.1) }). Alternatively, give L.miles a dark backing plate when it is drawn over ice. (engine/www/ep/ep01/ch2.js:330)
+- **S3-8** 3:49.71-3:53.08 [minor/medium, too_fast] The only visual for 'Almost everywhere you look, land has ocean on its far side, not more land' is a cyan/yellow antipode overlay with no key. It is fully visible for only about 1.2 s (1.9 s with fades) and is gone before 'not more land' is spoken. The globe then sits nearly static for about 1.5 s until it turns toward Asia.
+  - cause: ovAlpha, and the matching dim term, use env(t, tm.avoid - 0.35, tm.avoid + 1.55, 0.3, 0.45): a fixed 1.9 s window anchored on 'ocean' instead of on the end of the sentence.
+  - fix: Hold the overlay to the end of the sentence: ovAlpha 0.95 * env(t, tm.avoid - 0.35, tm.brings - 0.3, 0.3, 0.45). Keep the dim continuous with the headline dim: dim: 0.12 + Math.max(0.18 * env(...same window...), 0.2 * prog(t, tm.brings - 0.3, tm.brings + 0.3)). A small two-swatch key (cyan / yellow) would make it readable in the time available. (engine/www/ep/ep01/ch2.js:468)
+- notes: Frame numbering: tools/grab.py repeats its first decoded frame (ffmpeg's default constant-frame-rate output with the image2 muxer), so every label after the first is one frame too high. In a raw tile the ch1->ch2 cut shows at label 5261 instead of 5260. I used a copy with '-fps_mode passthrough' (review6/s3work/g3.py), so all frame numbers above are exact. The video packet timestamps are continuous from 5260 to 8036: no dropped or duplicate frames.
+
+Intended, reads well:
+- 12 of the 13 detector cut events are designed hard cuts landing on narration words: E1 (chapter-2 open, 5260), E2 (5427, on "Santa's"), E3 (cut at 5603, on "two"), E6 (5955, 's027' start), E8 (6167), E10 (6476, on "don't"), E11 (6572, on "Antarctica"), E14 (7348, on "dig"), E15 (7417), E16 (7520), E17 (7577), E18 (7740, on "Not China").
+- E5's cut/motion-stop cluster at 3:10.9-3:11.2 is the designed 0.5 s inOutExpo vertical whip with streaks. Only the backdrop band at its head is a defect (S3-5); E4's motion start is that band.
+- E6's pops are the designed outBack pop-in of the polar discs. The first frame (5955) is intentionally empty.
+- E7 is the designed shutter flash plus negative crossfade on "photographic" (35% white, decaying over 0.3 s).
+- E9 is the drag shape's deliberate full-speed start on "Drag". Its camera consequence is S3-3.
+- E13 is the designed whip to Kansas: E.in then E.out, with matched speed of about 300 deg/s at the junction, plus streaks.
+
+Defects among the events: E12 (S3-1 and S3-2) and E19 (S3-6). E4 and E5's pop are S3-5.
+
+Chunk seams 5400, 5850, 6300, 6750, 7200 and 7650: the 450k-1 vs 450k pairs were compared numerically. Seam differences equal their neighbours and the mean RGB is continuous, so there is no look change; I found no instance of the tetra-style run-time material toggle in this segment's sets.
+
+Clean at full frame rate:
+- Chapter card and Arctic fly-in, NORTH POLE pill, Arctic outline draw.
+- Floe gag: wave, Interact and Idle blends are smooth; feet stay planted; cabin floe drift.
+- Arctic ruler count and hero reaction.
+- South Pole pill, label swap and ice growth: motion fine; only the label legibility issue in S3-7.
+- Disc move and headline, negative-to-positive revert.
+- Cutaway drill on "line" (fast punch, designed).
+- Top-down mirrored outline, yellow fill and pull-back.
+- China fill, whip, Kansas pill and push-in.
+- Dig gag: the beam reads as held in his hanging hand; the planet correctly occludes him as he sinks.
+- Kansas drill cutaway with rider.
+- Island line, dot pop and pill swap (2-frame gap).
+- Flat map: zoom, equator flash, US card-flip (edge-on at mid-flip, designed), ZERO OVERLAP pill and FALSE stamp slam (legible on its dark plate).
+- Narration sync is within 0.4 s everywhere in the segment.
+
+Audio flags, outside visual scope:
+- SFX masking at 3:37.65-3:38.00 is likely sfx(tm.line - 0.03, 'impact_deep', -6) at ch2.js:456. It is the loudest ch2 cue (others are -10 to -20 dB) and sits on "line up"; about -14 dB is suggested.
+- The voice-tail cuts at 3:05.50 and 4:17.38 come from the narration audio edit, not from ch2 code.
+
+## wf_f838edbb-2a7: 2 finished, 3 running
 
 ### find S6 ch4 8:01.49
 - **S6-1** 8:38.97-8:39.27 [minor/medium, too_fast] The far Austrian door opens onto warm light but the camera hardly moves. The Austria map then dissolves in over it, and for 3-4 frames a see-through ghost of the near German-flag doorframe sweeps across the right third of the map. The planned rush through the door and the warm flash never show.
@@ -196,7 +254,7 @@ Tool caveat for all reviewers: tools/grab.py (ffmpeg call at line 26) uses the d
   - fix: Normalise the curve: outExpo: t => t >= 1 ? 1 : (1 - Math.pow(2, -10 * t)) / (1 - Math.pow(2, -10)). This is a shared helper, so all chapters benefit. (engine/www/lib/fx.js:13 (used at ch3.js:174, 242, 339, 476))
 - notes: Intended and reading well: all hard cuts land on narration beats (E1, E5, E6, E9, E12, E16, E18, E21-E24, E30, E32). E8 is the designed 0.2 s white callback flash. E7 and E31 are ends of crossfades. E10 is the panel slide plus 3D reframe (outExpo wrapped in inOut, smooth, peak about 47 px/frame). E11 is the 5/5 stamp, E13 the page-238 slap-in, E17 the whip-pan to the antipode (continuous, small zoom bounce at the key), E19 the kids pop-in, E20 the chalk circle-to-pyramid morph. E25 is the stall 'boing' gag; the 2-frame cage fade and the cartoon hang are deliberate. E26-E29 are the board entrances, the red-X slam and the suspect-card fall. Not intended: E3/E4 are stops inside the stuttering title push (S5-1), E14 is the page-237 pop (S5-4), and E15 is the start of the rushed page-238 lunge (S5-7). Chunk seams: all nine in this segment (10800, 11250, 11700, 12150, 12600, 13050, 13500, 13950, 14400) were compared at block level (450k-1 vs 450k); no look change, only encoder-level noise. Clean stretches: the Hawaii globe; the bent-card water diorama (no flicker); the triangle flash; the checklist camera swings, including the 6:39.8-6:40.4 top-to-bottom flip, which is fast (about 200 deg/s peak) but continuous; the North America/antipode globe and dig ripple; the kids page (staggered pop-ins, nods, middle kid's spin); the frozen tetra with the '?' (calm but deliberate); the measure globe with tape, ellipse and X; the cutaway; the stall drop and push-in; the board push; the Ortelius push and coast glows; the flat-map Greenland pop and dip to white. Narration sync is within about 0.15 s everywhere I checked. Minor timing notes not raised as findings: because outExpo is wrapped in prog's default inOut, the board shot opens on an empty board for 6 frames (13882-13887) and the kids page on an empty desk for 2 frames. Also, cooling arrows overlap the tetra's bottom corner in s054/s055. Tool note: tools/grab.py duplicates the first decoded frame, so its tile labels after the first frame are one frame late. The frame numbers above come from an exact decode (ffmpeg -fps_mode passthrough; scripts in scratchpad/review6/s5tools/).
 
-## wf_9820647a-970: 1 finished, 2 running
+## wf_9820647a-970: 1 finished, 3 running
 
 ### find S9 ch5b 13:02.40
 - **S9-1** 13:51.03-13:51.13 [major/high, flash_glitch] On 'Cape Agulhas', the zoomed-in globe of the Cape cuts to an almost black frame, and the ASTER satellite plate then ramps up over 3 frames. The result is a dark blink at the cut. Every other cut in the segment is clean, so this one stands out as a glitch.
@@ -253,7 +311,7 @@ TOOLING: tools/grab.py duplicates the first decoded frame (ffmpeg's default cons
 
 AUDIO: the README flag at 14:04.36 is real. There is an abrupt drop at 844.36-844.37, the end of s094 'north.'. No visual event coincides with it (the N1 cut is at 844.67). It is outside the animation scope.
 
-## wf_96e8f33f-afb: 4 finished, 1 running
+## wf_96e8f33f-afb: 4 finished, 2 running
 
 ### panel: casual
 - would leave at: 2:41 (161 s), on 'Three years later, a geologist published his own version of the joke. Hold on to him. He matters more than you'd think.' By then I've had four 'someone else noticed it' stories in a row (Bacon, Forster, Humboldt, the 1973 magazine). The cape list from 0:03-0:12 was just repeated word for word at 2:21. On screen is a fake page of grey placeholder lines with a yellow ring around a blurred name. I've had nothing new on the 'why' since the 0:31 tease. What would have kept me: the dig-to-China and 'Antarctica sits opposite the Arctic' material (now 2:55-5:28) coming right after the hook, with the history cut to about a minute.
