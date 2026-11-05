@@ -13,7 +13,7 @@ def main():
     ap.add_argument('--chunk', type=int, default=450); ap.add_argument('--par', type=int, default=3)
     ap.add_argument('--out', required=True); ap.add_argument('--w', type=int, default=1920); ap.add_argument('--h', type=int, default=1080)
     ap.add_argument('--crf', default='12'); ap.add_argument('--only', default=''); ap.add_argument('--force', default='')
-    ap.add_argument('--dir', default=None)
+    ap.add_argument('--dir', default=None); ap.add_argument('--reverse', action='store_true')
     a = ap.parse_args()
     cdir = a.dir or os.path.join(ENGINE, 'chunks', f'{a.ep}_{a.w}x{a.h}')
     os.makedirs(cdir, exist_ok=True)
@@ -24,14 +24,21 @@ def main():
         p = os.path.join(cdir, f'c_{i:05d}.mp4')
         if os.path.exists(p): os.remove(p)
     todo = [i for i in range(n) if (not only or i in only) and not os.path.exists(os.path.join(cdir, f'c_{i:05d}.mp4'))]
+    if a.reverse: todo = todo[::-1]
     print(f'{n} chunks, {len(todo)} to render -> {cdir}', flush=True)
     q = f'{{"ep":"{a.ep}"}}'
     def job(i):
         s = i * a.chunk; k = min(a.chunk, a.frames - s)
         tmp = os.path.join(cdir, f'tmp_{i:05d}.mp4'); fin = os.path.join(cdir, f'c_{i:05d}.mp4')
+        # several renderers may share one chunk dir: skip chunks finished meanwhile or being written by another process
+        if os.path.exists(fin): return i, 'skip (already done)'
+        lock = os.path.join(cdir, f'lock_{i:05d}')
+        for q in (tmp, lock):
+            if os.path.exists(q) and time.time() - os.path.getmtime(q) < 150: return i, 'skip (in progress elsewhere)'
         t0 = time.time()
         r = subprocess.run(['node', os.path.join(ENGINE, 'render.cjs'), '--page', 'film.html', '--q', q, '--start', str(s), '--frames', str(k),
                             '--w', str(a.w), '--h', str(a.h), '--crf', a.crf, '--out', tmp], capture_output=True, text=True)
+        if r.returncode == 3: return i, 'skip (' + r.stdout.strip()[-80:] + ')'
         if r.returncode != 0 or not os.path.exists(tmp):
             return i, f'FAIL {r.stdout[-400:]} {r.stderr[-800:]}'
         # verify frame count

@@ -116,7 +116,7 @@ export function pill(ctx, s, x, y, o = {}) {
 export function round(ctx, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
 export function dot(ctx, x, y, o = {}) {
   ctx.save(); const r = o.r || 6;
-  if (o.ring != null) { const k = o.ring % 1; ctx.strokeStyle = o.color || PAL.text; ctx.globalAlpha *= (1 - k); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, r + k * r * 5, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha /= Math.max(1e-3, 1 - k); }
+  if (o.ring != null) { const k = ((o.ring % 1) + 1) % 1; ctx.strokeStyle = o.color || PAL.text; ctx.globalAlpha *= (1 - k); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, r + k * r * 5, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha /= Math.max(1e-3, 1 - k); }
   const gg = ctx.createRadialGradient(x, y, 0, x, y, r * 3.2); gg.addColorStop(0, (o.glow || o.color || PAL.text)); gg.addColorStop(0.3, 'rgba(255,255,255,0.25)'); gg.addColorStop(1, 'rgba(255,255,255,0)');
   ctx.globalAlpha *= 0.6; ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(x, y, r * 3.2, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha /= 0.6;
   ctx.fillStyle = o.color || PAL.text; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.restore();

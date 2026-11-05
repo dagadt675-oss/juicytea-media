@@ -10,6 +10,13 @@ const P = new URLSearchParams(location.search);
 const W = +P.get('w') || 1920, H = +P.get('h') || 1080, FPS = +P.get('fps') || 30;
 const Q = JSON.parse(P.get('q') || '{}');
 const EP = Q.ep || 'ep01';
+// safety net: Canvas2D throws IndexSizeError on negative radii (e.g. an eased radius overshooting below 0)
+for (const C of [CanvasRenderingContext2D, typeof OffscreenCanvasRenderingContext2D !== 'undefined' ? OffscreenCanvasRenderingContext2D : null]) {
+  if (!C) continue; const P0 = C.prototype, arc = P0.arc, ell = P0.ellipse, arcTo = P0.arcTo;
+  P0.arc = function (x, y, r, a0, a1, ccw) { return arc.call(this, x, y, r > 0 ? r : 0, a0, a1, ccw); };
+  P0.ellipse = function (x, y, rx, ry, rot, a0, a1, ccw) { return ell.call(this, x, y, rx > 0 ? rx : 0, ry > 0 ? ry : 0, rot, a0, a1, ccw); };
+  P0.arcTo = function (x1, y1, x2, y2, r) { return arcTo.call(this, x1, y1, x2, y2, r > 0 ? r : 0); };
+}
 const comp = document.createElement('canvas'); comp.width = W; comp.height = H; document.body.appendChild(comp);
 const cx = comp.getContext('2d');
 const layerA = document.createElement('canvas'); layerA.width = W; layerA.height = H; const la = layerA.getContext('2d');
@@ -58,12 +65,20 @@ window.renderFrame = async (f) => {
     if (t < s.t0 || t >= s.t1) continue;
     const lt = t - s.t0;
     const a = Math.min(1, s.fadeIn ? lt / s.fadeIn : 1, s.fadeOut ? (s.t1 - t) / s.fadeOut : 1);
-    if (a < 0.999) {
-      la.setTransform(1, 0, 0, 1, 0, 0); la.globalAlpha = 1; la.globalCompositeOperation = 'source-over'; la.clearRect(0, 0, W, H);
-      await s.draw(la, lt, t, api);
-      cx.save(); cx.globalAlpha = Math.max(0, a); cx.drawImage(layerA, 0, 0); cx.restore();
-    } else {
-      cx.save(); await s.draw(cx, lt, t, api); cx.restore();
+    try {
+      if (a < 0.999) {
+        la.setTransform(1, 0, 0, 1, 0, 0); la.globalAlpha = 1; la.globalCompositeOperation = 'source-over'; la.clearRect(0, 0, W, H);
+        await s.draw(la, lt, t, api);
+        cx.save(); cx.globalAlpha = Math.max(0, a); cx.drawImage(layerA, 0, 0); cx.restore();
+      } else {
+        cx.save(); await s.draw(cx, lt, t, api); cx.restore();
+      }
+    } catch (e) {
+      // one failing layer must not abort the render: unwind its canvas state, skip it for this frame, report it
+      for (let i = 0; i < 64; i++) { cx.restore(); la.restore(); }
+      cx.setTransform(1, 0, 0, 1, 0, 0); cx.globalAlpha = 1; cx.globalCompositeOperation = 'source-over'; cx.setLineDash([]);
+      log(`SCENE-ERROR f=${f} t=${t.toFixed(3)} id=${s.id} layer=${s.layer || 0} ${e && e.message}`);
+      if (Q.strict) throw e;
     }
   }
   if (EDIT.post) EDIT.post(cx, t, f, api); else F.post(cx, W, H, f);

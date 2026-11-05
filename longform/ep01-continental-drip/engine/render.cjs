@@ -21,6 +21,22 @@ const WWW = path.resolve(opt('www', path.join(__dirname, 'www')));
 const JOBS = Math.max(1, +opt('jobs', 1));
 const PRESET = opt('preset', 'veryfast');
 
+// Chunk claim (tools/render_chunks.py names outputs <dir>/tmp_NNNNN.mp4 and renames them to c_NNNNN.mp4 when verified).
+// Several chunk runners may share one directory: a chunk that is already rendered, or claimed by a live renderer, exits with code 3.
+const CHUNK = path.basename(OUT).match(/^tmp_(\d+)\.mp4$/);
+if (CHUNK) {
+  const dir = path.dirname(OUT), fin = path.join(dir, `c_${CHUNK[1]}.mp4`), lock = path.join(dir, `lock_${CHUNK[1]}`);
+  const fresh = (p) => { try { return Date.now() - fs.statSync(p).mtimeMs < 120000; } catch (e) { return false; } };
+  if (fs.existsSync(fin)) { console.log(`chunk ${CHUNK[1]} already rendered`); process.exit(3); }
+  try { fs.writeFileSync(lock, String(process.pid), { flag: 'wx' }); }
+  catch (e) {
+    if (fresh(lock)) { console.log(`chunk ${CHUNK[1]} claimed by another renderer`); process.exit(3); }
+    try { fs.unlinkSync(lock); fs.writeFileSync(lock, String(process.pid), { flag: 'wx' }); } catch (e2) { process.exit(3); }
+  }
+  const hb = setInterval(() => { try { const now = new Date(); fs.utimesSync(lock, now, now); } catch (e) {} }, 20000); hb.unref();
+  process.on('exit', () => { try { if (fs.readFileSync(lock, 'utf8') === String(process.pid)) fs.unlinkSync(lock); } catch (e) {} });
+}
+
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.woff': 'font/woff', '.ttf': 'font/ttf', '.otf': 'font/otf', '.css': 'text/css', '.bin': 'application/octet-stream', '.geojson': 'application/json' };
 
 function startServer(sinks) {
@@ -39,7 +55,7 @@ function startServer(sinks) {
       return;
     }
     if (req.method === 'POST' && req.url.startsWith('/log')) {
-      let s = ''; req.on('data', c => s += c); req.on('end', () => { console.log('[page]', s); res.end('ok'); }); return;
+      let s = ''; req.on('data', c => s += c); req.on('end', () => { console.log('[page]', s); if (s.startsWith('SCENE-ERROR')) fs.appendFileSync(path.join(path.dirname(OUT), 'scene_errors.log'), `${path.basename(OUT)} ${s}\n`); res.end('ok'); }); return;
     }
     const u = decodeURIComponent(req.url.split('?')[0]);
     const p = path.join(WWW, u === '/' ? PAGE : u);
