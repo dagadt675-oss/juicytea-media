@@ -928,7 +928,7 @@ export async function build(api, C) {
     const pts = []; for (let k = 0; k <= 20; k++) pts.push(pt(u + k * 12));
     F.glowPath(ctx, pts, { color: PAL.yellow, width: 4 });
     ctx.restore();
-    F.headline(ctx, ['MYTH', 'JUICE', { w: '#2:', c: PAL.hero }, 'SPLIT', 'IN', { w: 'TWO', c: PAL.yellow }], x + w_ / 2, y - 34, t - (M.here - 0.1), { size: 70, per: 0.05 });
+    F.headline(ctx, ['WATCH', { w: 'NEXT', c: PAL.yellow }], x + w_ / 2, y - 34, t - (M.here - 0.1), { size: 70, per: 0.05 });
     // subscribe ring + label
     const sa = prog(t, M.sub2 - 0.1, M.sub2 + 0.3, E.out);
     if (sa > 0) {

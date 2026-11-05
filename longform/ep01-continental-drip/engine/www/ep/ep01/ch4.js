@@ -372,6 +372,7 @@ export async function build(api, C) {
       ctx.save(); ctx.globalAlpha = ca; ctx.fillStyle = 'rgba(4,7,13,0.72)'; F.round(ctx, W / 2 - 330, 250, 660, 300, 28); ctx.fill(); ctx.restore();
       const p = prog(t, tLock - 0.95, tLock + 0.02, E.out);
       F.counter(ctx, 1930, 1963, p, W / 2, 470, { size: 190, alpha: ca, format: v => String(Math.round(v)), color: p >= 1 ? PAL.yellow : PAL.text });
+      if (t > tLock + 0.3) { ctx.save(); ctx.globalAlpha *= prog(t, tLock + 0.3, tLock + 0.5); ctx.fillStyle = 'rgba(4,7,13,0.78)'; F.round(ctx, W / 2 - 420, 594, 840, 122, 24); ctx.fill(); ctx.restore(); }
       if (t > tLock + 0.35) F.headline(ctx, ['33', 'YEARS', 'TOO', { w: 'LATE', c: PAL.hero }], W / 2, 690, t - tLock - 0.35, { size: 120, per: 0.07, tOut: tGPS - tLock - 0.65 });
     }
   } });
@@ -435,11 +436,11 @@ export async function build(api, C) {
   cue(T('right') - 0.1, 'stamp', -10);
   const TIPS = [[-55.98, -67.27], [-34.83, 20.0], [8.08, 77.55]];
   S.push(gscene({ t0: tDrip, t1: tScrub + 0.25, overlay: OV_DRIP, patch: null,
-    cam: (lt) => Object.assign(camAt([{ t: 0, lat: -30, lon: 14, alt: 3.1, tilt: 0 }, { t: 5.2, lat: -40, lon: 22, alt: 2.75, tilt: 0 }], lt, 0.0), { lookOffset: [0, -0.06] }),
+    cam: (lt) => Object.assign(camAt([{ t: 0, lat: -30, lon: 22, alt: 3.2, tilt: 0 }, { t: 5.2, lat: -38, lon: 30, alt: 2.9, tilt: 0 }], lt, 0.0), { lookOffset: [0, -0.06] }),
     look: (lt, t) => ({ ovAlpha: 0.95, dim: 0.35, desat: 0.3 }),
     extra(ctx, lt, t, api) {
       const g = api.g;
-      TIPS.forEach(([la, lo], i) => { const q = g.project(la, lo); if (!q.visible) return; dripArrow(ctx, q.x, q.y + 6, prog(t, tDrip + 0.25 + i * 0.15, tDrip + 0.8 + i * 0.15), { len: 90, color: '#ffffff' }); });
+      TIPS.forEach(([la, lo], i) => { const q = g.project(la, lo), up = g.project(la + 8, lo); if (!q.visible || !up.visible) return; dripArrow(ctx, q.x, q.y + 6, prog(t, tDrip + 0.25 + i * 0.15, tDrip + 0.8 + i * 0.15), { len: 90, color: '#ffffff' }); });
       // Antarctica ring
       const ring = []; for (let lo = -180; lo <= 180; lo += 4) ring.push({ lat: -72, lon: lo });
       const rp = []; for (const p of ring) { const q = g.project(p.lat, p.lon); if (q.visible) rp.push([q.x, q.y]); }
@@ -640,7 +641,7 @@ function fightCard(ctx, W, H, t, t0, tFreeze, tNail) {
   ctx.save(); ctx.translate(W / 2 + jit, H / 2); ctx.scale(zoom, zoom); ctx.translate(-W / 2, -H / 2);
   ctx.fillStyle = bgL; ctx.beginPath(); ctx.moveTo(-50, -50); ctx.lineTo(W * 0.56, -50); ctx.lineTo(W * 0.44, H + 50); ctx.lineTo(-50, H + 50); ctx.fill();
   ctx.fillStyle = bgR; ctx.beginPath(); ctx.moveTo(W * 0.56, -50); ctx.lineTo(W + 50, -50); ctx.lineTo(W + 50, H + 50); ctx.lineTo(W * 0.44, H + 50); ctx.fill();
-  ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(W * 0.56, -50); ctx.lineTo(W * 0.44, H + 50); ctx.stroke();
+  ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(lerp(W * 0.56, W * 0.44, 320 / (H + 100)), 270); ctx.lineTo(W * 0.44, H + 50); ctx.stroke();
   // spotlights
   for (const [x, c] of [[W * 0.27, 'rgba(255,120,100,0.18)'], [W * 0.73, 'rgba(100,160,255,0.18)']]) { const g = ctx.createRadialGradient(x, H * 0.55, 10, x, H * 0.55, 520); g.addColorStop(0, c); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
   const k = prog(t, t0, t0 + 0.45, E.outExpo);
@@ -651,7 +652,7 @@ function fightCard(ctx, W, H, t, t0, tFreeze, tNail) {
   A.finger(ctx, lerp(-500, 520, k) + bump, 590, 0.9, ng, 0.22 * argue * 2);
   A.foot(ctx, lerp(W + 500, 1400, k) - bump, 640, 0.95, ng * 0.6, -0.25 * argue * 2);
   // anger sparks between them
-  if (lt > 0.5) { ctx.save(); ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.globalAlpha = Math.max(0, Math.sin(lt * 5.5)); for (const [dx, dy, a] of [[-40, -230, -0.6], [0, -260, 0], [40, -230, 0.6]]) { ctx.beginPath(); ctx.moveTo(W / 2 + dx, 470 + dy); ctx.lineTo(W / 2 + dx + Math.sin(a) * 40, 470 + dy - 40); ctx.stroke(); } ctx.restore(); }
+  if (lt > 0.5) { ctx.save(); ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.globalAlpha = Math.max(0, Math.sin(lt * 5.5)); for (const [dx, dy, a] of [[-40, -230, -0.6], [0, -260, 0], [40, -230, 0.6]]) { ctx.beginPath(); ctx.moveTo(W / 2 + dx, 660 + dy); ctx.lineTo(W / 2 + dx + Math.sin(a) * 40, 660 + dy - 40); ctx.stroke(); } ctx.restore(); }
   // VS badge
   const vp = prog(t, t0 + 0.25, t0 + 0.6, E.outBack);
   ctx.save(); ctx.translate(W / 2, 560); ctx.scale(vp, vp); ctx.fillStyle = '#0A0C12'; ctx.beginPath(); ctx.arc(0, 0, 105, 0, 6.283); ctx.fill(); ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 8; ctx.stroke();
