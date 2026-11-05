@@ -243,7 +243,8 @@ export async function build(api, C) {
       // one pill at a time, leader to the tip
       const order = TIPFILL.filter(f => popTimes[f[0]] != null).sort((a, b) => popTimes[a[0]] - popTimes[b[0]]);
       order.forEach((f, i) => {
-        const a = popTimes[f[0]] - 0.08, b = i + 1 < order.length ? popTimes[order[i + 1][0]] - 0.1 : (o.lastPillEnd ?? a + 1.4);
+        const nx = Object.values(popTimes).filter(v => v > popTimes[f[0]]).sort((p, q) => p - q)[0];
+        const a = popTimes[f[0]] - 0.08, b = nx != null ? nx - 0.1 : (o.lastPillEnd ?? a + 1.4);
         const al = env(tt, a, b, 0.12, 0.18); if (al <= 0.003) return;
         const [px, py] = k.pt(...EETIP[f[3]]);
         F.pill(ctx, f[2], px + f[4][0], py + f[4][1], { anchor: f[4][0] < 0 ? 'right' : 'left', leader: [px, py], size: 38, alpha: al, ring: ((tt - a) * 0.9) % 1 });
@@ -281,7 +282,7 @@ export async function build(api, C) {
   const drop = new THREE.Group();
   { const s = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 16), dropMat); const c = new THREE.Mesh(new THREE.ConeGeometry(0.141, 0.3, 32), dropMat); c.position.y = 0.2; s.castShadow = c.castShadow = true; drop.add(s); drop.add(c); }
   gst.add(drop); drop.visible = false;
-  const bead = new THREE.Mesh(new THREE.SphereGeometry(0.035, 16, 10), new THREE.MeshStandardMaterial({ color: 0x8feaff, emissive: 0x1d7088, roughness: 0.1 }));
+  const bead = new THREE.Mesh(new THREE.SphereGeometry(0.014, 16, 10), new THREE.MeshStandardMaterial({ color: 0x8feaff, emissive: 0x0a2f3a, roughness: 0.1 }));
   gst.add(bead); bead.visible = false;
   let headBone = null; hero.root.traverse(o => { if (!headBone && o.isBone && /head/i.test(o.name)) headBone = o; });
   const heroMats = []; hero.root.traverse(m => { if (m.isMesh && m.material && m.material.color) heroMats.push({ m: m.material, base: m.material.color.clone() }); });
@@ -807,7 +808,7 @@ export async function build(api, C) {
       X.printKB(ctx, img('forster'), lt / (F12 - t.s018), [620, 60, 680, 900], [0.5, 0.36, 1.45], [0.5, 0.34, 1.85], { grade: 'sepia', vig: 0.35 });
     },
   });
-  const FX = { similar: [0.218, 0.288, 0.278, 0.022], flood: [0.236, 0.558, 0.493, 0.024] };
+  const FX = { similar: [0.218, 0.288, 0.278, 0.022], flood: [0.266, 0.558, 0.435, 0.024] };
   base({
     t0: F12, t1: t.alike - 0.07, draw(ctx, lt, tt) {
       drawDesk(ctx, lt);
@@ -863,7 +864,7 @@ export async function build(api, C) {
     const ph = ((tt - t.carved - 1.2) % 1.6) / 1.6; const fall = Math.max(0, ph - 0.45) / 0.55;
     hero.update(tt); hero.root.updateMatrixWorld(true);
     const hp = new THREE.Vector3(); headBone.getWorldPosition(hp);
-    bead.visible = true; bead.position.set(hp.x, hp.y - 0.11 - 0.9 * fall * fall, hp.z + 0.1); bead.scale.setScalar(0.4 + 0.6 * Math.min(1, ph / 0.45));
+    bead.visible = fall < 0.75; bead.position.set(hp.x, hp.y - 0.015 - 0.22 * fall * fall, hp.z + 0.07); bead.scale.setScalar(0.4 + 0.6 * Math.min(1, ph / 0.45));
   };
   base({
     t0: G2, t1: G2c, draw(ctx, lt, tt) {
@@ -1045,12 +1046,12 @@ export async function build(api, C) {
 
   // ================================================================== s024  first clue; the far side (cutaway, North Pole on top)
   G({
-    t0: t.s024 - 0.07, t1: t.far - 0.07, overlay: { canvas: COLD.cv, bounds: WB }, drift: 0.6,
-    keys: [{ t: 0, lat: 6, lon: -14, alt: 3.3 }, { t: t.far - t.s024, lat: 0, lon: 6, alt: 2.35, tilt: 6 }],
+    t0: t.s024 - 0.07, t1: t.far - 0.07, overlay: { canvas: COLD.cv, bounds: WB }, drift: 0.6, sun: { lookOffset: [0, -0.05] },
+    keys: [{ t: 0, lat: -26, lon: 10, alt: 3.3 }, { t: t.far - t.s024, lat: -30, lon: 22, alt: 2.5, tilt: 6 }],
     look: { desat: 0.3, dim: 0.32, ovAlpha: 1 }, pre: () => coldSet([1, 1, 1]),
     x: (ctx, tt) => {
       const a = env(tt, t.first - 0.1, t.first + 1.2, 0.08, 0.4);
-      if (a > 0) SEVEN.forEach((k, i) => { const q = proj(...TIPS[k]); if (!q.visible) return; dripArrow(ctx, q.x, q.y + 6, prog(tt, t.first - 0.1 + i * 0.05, t.first + 0.3 + i * 0.05, E.lin), { len: 70, color: PAL.yellow, width: 5, head: 10, alpha: a }); });
+      if (a > 0) ['froward', 'agulhas', 'kanya'].forEach((k, i) => { const q = proj(...TIPS[k]); if (!q.visible) return; dripArrow(ctx, q.x, q.y + 6, prog(tt, t.first - 0.1 + i * 0.05, t.first + 0.3 + i * 0.05, E.lin), { len: 90, color: PAL.yellow, width: 6, head: 12, alpha: a }); });
       poleRing(ctx, tt, { r: 38 });
     },
   });

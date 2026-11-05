@@ -68,7 +68,7 @@ export async function makeTetraRig(api, A) {
   };
   const edgeOf = (t) => {
     if (t < A.tet) return 0;
-    const on = prog(t, A.tet + 0.2, A.tet + 1.8);
+    const on = clamp((kOf(t) - 0.55) / 0.35);
     const off = 1 - prog(t, A.stall + 0.2, A.stall + 1.6);
     return 0.92 * on * off;
   };

@@ -721,12 +721,12 @@ export async function build(api, C) {
   const ovPairs = [
     { at: tm.orig - pre, pts: [[110, 35], [-62, -30]] },
     { at: tm.orig + 0.62, pts: [[-45, 75], [60, -78]] },
-    { at: tm.orig + 1.24, pts: [[-4, 40]], zoom: [-4, 38, 1.5] },
+    { at: tm.orig + 1.24, pts: [[-4, 40], [174, -41]] },
   ];
   push({
     t0: cAnti, t1: cWaf, draw(ctx, lt, t) {
       ctx.fillStyle = '#04070d'; ctx.fillRect(0, 0, W, H);
-      const pz = ovPairs[2].zoom; const zk = env(t, ovPairs[2].at - 0.1, tm.eighth - 0.05, 0.4, 0.4);
+      const pz = ovPairs[2].zoom || [-4, 38, 1.0]; const zk = ovPairs[2].zoom ? env(t, ovPairs[2].at - 0.1, tm.eighth - 0.05, 0.4, 0.4) : 0;
       let v = lerpView({ cx: 1800, cy: 880, zoom: 1.03 + 0.03 * prog(t, cAnti, cWaf) }, L.eeViewAt(pz[0], pz[1], pz[2]), zk * E.inOut(1));
       v = lerpView({ cx: 1800, cy: 880, zoom: 1.03 + 0.03 * prog(t, cAnti, cWaf) }, L.eeViewAt(pz[0], pz[1], pz[2]), E.inOut(zk));
       L.drawEEImg(ctx, eeGrey, v, W, H);
@@ -827,7 +827,7 @@ export async function build(api, C) {
   push(gscene({
     t0: cSettle, t1: cTiles + 0.6, ovKey: 'ch2:cap', install: capIns,
     pre: (lt, t, gl) => { const fl = prog(t, tm.still - pre, tm.still + 0.45); const gl2 = 0.9 + 0.1 * env(t, tm.scoops - 0.1, tm.scoops + 1.4, 0.3, 0.5); if (cap.draw(L.dir(40, 2), { inL: [255, 90 + 40 * (gl2 - 0.9) * 10, 54, gl2], inO: [lerp(61, 40, fl), lerp(227, 200, fl), 255, lerp(0.25, 0.68, fl)], outL: [0, 0, 0, 0], outO: [0, 0, 0, 0], edge: [255, 255, 255, 0.95], edgeW: 0.012 })) capRefresh(gl); },
-    cam: (lt, t) => camAt([{ t: 0, lat: 30, lon: -26, alt: 2.9, tilt: 0 }, { t: cTiles + 0.6 - cSettle, lat: 33, lon: -14, alt: 2.55, tilt: 12 }], lt, 0.4),
+    cam: (lt, t) => camAt([{ t: 0, lat: 24, lon: -12, alt: 3.15, tilt: 0 }, { t: cTiles + 0.6 - cSettle, lat: 33, lon: -14, alt: 2.55, tilt: 12 }], lt, 0.4),
     look: () => ({ ovAlpha: 1, dim: 0.3, desat: 0.25 }),
     draw2d: (ctx, lt, t, pj) => {
       const c = pj.ll(40, 2); if (c[2]) L.pulse(ctx, c[0], c[1], t - cSettle, { color: '#ffffff', r: 7, alpha: 1 - prog(t, tm.still - 0.5, tm.still) });

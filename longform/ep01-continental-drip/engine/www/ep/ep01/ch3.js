@@ -91,7 +91,7 @@ export async function build(api, C) {
       underline(ctx, map, 400, 1190, 1338, prog(t, A.green + 0.25, A.green + 0.75), { color: '#ffffff', width: 4 });
       highlighter(ctx, map, 352, 1222, 1362, 30, prog(t, A.hawaii - 0.1, A.hawaii + 0.3, E.out));
       underline(ctx, map, 355, 1218, 1381, prog(t, A.hawaii - 0.05, A.hawaii + 0.35, E.out), { width: 5 });
-      topPill(ctx, "HAWAII'S FOREIGN MINISTER", t, A.hawaii - 0.1, 1e9, { y: 330 });
+      topPill(ctx, "HAWAII'S FOREIGN MINISTER", t, A.hawaii - 0.1, 1e9, { y: 690 });
     });
   }
   // chapter card overlay (2.4 s)
@@ -246,7 +246,7 @@ export async function build(api, C) {
         }
       } else {
         const map = drawPage(ctx, im(p239), keyAt(K3, t), W, H, { shadow: sh(p239) });
-        underline(ctx, map, 375, 1112, 2282, prog(t, tJ2 + 0.08, tJ2 + 0.6, E.out), { width: 7 });
+        underline(ctx, map, 384, 990, 2269, prog(t, tJ2 + 0.08, tJ2 + 0.6, E.out), { width: 7 });
         const fl = 1 - (t - tJ2) / 0.12; if (fl > 0) { ctx.fillStyle = `rgba(255,255,255,${0.5 * fl})`; ctx.fillRect(0, 0, W, H); }
       }
       topPill(ctx, '1899: “TENDING TO BECOME TETRAHEDRAL”', t, tJ2 + 0.02, 1e9);
