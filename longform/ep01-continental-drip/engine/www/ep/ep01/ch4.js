@@ -179,6 +179,7 @@ export async function build(api, C) {
       const ang = FIT * prog(t, tSlide0, tSlide1, E.inOut);
       const R = euler(SA, POLE, ang), RC = euler(SA_COAST, POLE, ang);
       const fa = prog(t, T('fit') + 0.4, T('fit') + 1.0);
+      fillProjected(ctx, g, SA, { color: '#070B14', alpha: 0.8 * prog(t, tSlide0, tSlide0 + 0.6) });
       fillProjected(ctx, g, R, { color: '#FF6A40', alpha: 0.82 * fa });
       strokeProjected(ctx, g, R, { color: '#ffffff', width: 1.6, alpha: 0.5 * fa });
       const cp = prog(t, T('fit') - 0.12, T('fit') + 1.0, E.out);
@@ -219,7 +220,7 @@ export async function build(api, C) {
   S.push({ t0: tWar - 0.1, t1: tGag + 0.6, layer: 5, id: 'ch4', draw(ctx, lt, t) { A.smoke(ctx, W, H, t, tWar - 0.1, env(t, tWar - 0.1, tGag + 0.6, 0.7, 0.55), { front: false }); flashes(ctx, W, H, t, tWar); } });
   S.push({ t0: tWar + 0.15, t1: tGag + 0.3, layer: 6, id: 'ch4', draw(ctx, lt, t) {
     const pin = prog(t, tWar + 0.15, tWar + 0.55, E.outBack), sink = prog(t, tBook - 0.1, tBook + 0.85, E.in);
-    const y = 560 + sink * 520 + Math.sin(t * 1.7) * 6, a = (1 - sink * 0.6);
+    const y = 560 + sink * 760 + Math.sin(t * 1.7) * 6, a = (1 - sink * 0.6);
     ctx.save(); ctx.translate(W / 2, y); ctx.scale(pin, pin); ctx.rotate(-0.04 + sink * 0.25);
     A.book(ctx, 0, 0, 270, 0, '#3B2A20', a);
     // 1915 stamp
@@ -232,7 +233,7 @@ export async function build(api, C) {
 
   // =========================== s060: Explorer gag + slamming doors ===========================
   const gag = await explorerGag(api, { tWave: tGag + 0.4, tRot: T('rot'), tDamned: word('s060', 'damned'), tRotW: word('s060', 'rot') });
-  S.push({ t0: tGag, t1: tDoors + 0.2, fadeIn: 0.35, id: 'ch4', async draw(ctx, lt, t) { gag.draw(ctx, t, t < tRot ? 'A' : 'B', T('brutal'), tRot); } });
+  S.push({ t0: tGag - 0.45, t1: tDoors + 0.2, fadeIn: 0.6, id: 'ch4', async draw(ctx, lt, t) { gag.draw(ctx, t, t < tRot ? 'A' : 'B', T('brutal'), tRot); } });
   cue(T('brutal') - 0.1, 'whoosh_soft', -18);
   cue(T('rot') - 0.03, 'impact_short', -10);
   cue(word('s060', 'damned') - 0.03, 'impact_short', -14);
@@ -598,24 +599,25 @@ function spinTides(ctx, W, H, t, api, o) {
       pts.sort((a, b) => a[0] - b[0]);
       const path = pts.map(p => [p[0], p[1]]);
       ctx.save(); ctx.globalAlpha = 0.9 * sp; const head = F.glowPath(ctx, path, { color: '#ffffff', width: 4, p: sp * 0.92 });
-      if (head) { const n = path.length; const a0 = path[Math.max(0, Math.floor(n * sp * 0.92) - 3)]; arrow2d(ctx, a0[0], a0[1], head[0], head[1], '#ffffff', 4); }
+      if (head) { const n = path.length; let hk = path.findIndex(q => q[0] >= head[0]); if (hk < 0) hk = n - 1; const a0 = path[Math.max(0, hk - 3)]; arrow2d(ctx, a0[0], a0[1], head[0], head[1], '#ffffff', 4); }
       ctx.restore();
     }
   }
   // moon + tidal bulge toward it
   const mp = prog(t, o.tTides - 0.3, o.tTides + 0.3, E.out);
   if (mp > 0) {
-    const mx = 230, my = 250, mr = 64 * mp;
+    const mx = 1500, my = 200, mr = 64 * mp;
     const mg = ctx.createRadialGradient(mx - 18, my - 18, 4, mx, my, mr); mg.addColorStop(0, '#F4F2EC'); mg.addColorStop(1, '#7D7B78');
     ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(mx, my, mr, 0, 6.283); ctx.fill();
     const ang = Math.atan2(my - d.y, mx - d.x);
     const wob = 1 + 0.02 * Math.sin(t * 3);
     ctx.save(); ctx.translate(d.x, d.y); ctx.rotate(ang);
-    ctx.globalAlpha = 0.85 * mp; ctx.fillStyle = 'rgba(61,227,255,0.16)'; ctx.strokeStyle = 'rgba(61,227,255,0.9)'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.rect(-4000, -4000, 8000, 8000); ctx.arc(0, 0, d.r, 0, 6.283); ctx.clip('evenodd');
+    ctx.globalAlpha = 0.85 * mp; ctx.fillStyle = 'rgba(61,227,255,0.35)'; ctx.strokeStyle = 'rgba(61,227,255,0.9)'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.ellipse(0, 0, d.r * 1.17 * wob, d.r * 1.02, 0, 0, 6.283); ctx.fill(); ctx.stroke();
     ctx.restore();
     // little push arrows on the bulge
-    for (const k of [-0.35, 0, 0.35]) { const a = ang + k; const x0 = d.x + Math.cos(a) * d.r * 1.3, y0 = d.y + Math.sin(a) * d.r * 1.3; const x1 = d.x + Math.cos(a) * d.r * (1.12 + 0.03 * Math.sin(t * 6)), y1 = d.y + Math.sin(a) * d.r * (1.12 + 0.03 * Math.sin(t * 6)); ctx.save(); ctx.globalAlpha = mp; arrow2d(ctx, x0, y0, x1, y1, PAL.cyan, 4); ctx.restore(); }
+    for (const k of [-0.25, 0, 0.25]) { const a = ang + k; const x0 = d.x + Math.cos(a) * d.r * 1.3, y0 = d.y + Math.sin(a) * d.r * 1.3; const x1 = d.x + Math.cos(a) * d.r * (1.12 + 0.03 * Math.sin(t * 6)), y1 = d.y + Math.sin(a) * d.r * (1.12 + 0.03 * Math.sin(t * 6)); ctx.save(); ctx.globalAlpha = mp; arrow2d(ctx, x0, y0, x1, y1, PAL.cyan, 4); ctx.restore(); }
   }
   // gauge
   const ga = prog(t, o.tTides + 0.5, o.tTides + 0.9, E.out);
@@ -712,8 +714,8 @@ async function explorerGag(api, o) {
         ctx.fillStyle = '#F4EBD8'; F.round(ctx, -470, -140, 940, 280, 18); ctx.fill();
         let x = -410;
         for (const [w, tw] of words) {
-          const wp = prog(t, tw - 0.06, tw + 0.08, E.outExpo); const ww = F.measure(ctx, w, { size: 150, fam: F.FAM.head, weight: 400, tracking: 0.02 });
-          if (wp > 0) { ctx.save(); ctx.translate(x + ww / 2, 55); ctx.scale(lerp(2.2, 1, wp), lerp(2.2, 1, wp)); F.text(ctx, w, 0, 0, { size: 150, fam: F.FAM.head, weight: 400, tracking: 0.02, align: 'center', color: w === 'ROT!' ? '#D8352A' : '#14161C', alpha: wp, shadow: false }); ctx.restore(); }
+          const wp = prog(t, tw - 0.06, tw + 0.08, E.outExpo); const ww = F.measure(ctx, w, { size: 118, fam: F.FAM.head, weight: 400, tracking: 0.02 });
+          if (wp > 0) { ctx.save(); ctx.translate(x + ww / 2, 55); ctx.scale(lerp(2.2, 1, wp), lerp(2.2, 1, wp)); F.text(ctx, w, 0, 0, { size: 118, fam: F.FAM.head, weight: 400, tracking: 0.02, align: 'center', color: w === 'ROT!' ? '#D8352A' : '#14161C', alpha: wp, shadow: false }); ctx.restore(); }
           x += ww + 38;
         }
         ctx.restore();

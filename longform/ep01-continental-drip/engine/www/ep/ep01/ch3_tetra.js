@@ -69,7 +69,7 @@ export async function makeTetraRig(api, A) {
   const edgeOf = (t) => {
     if (t < A.tet) return 0;
     const on = clamp((kOf(t) - 0.55) / 0.35);
-    const off = 1 - prog(t, A.stall + 0.2, A.stall + 1.6);
+    const off = t < A.stall + 0.08 ? 1 : clamp((kOf(t) - 0.7) / 0.3); // the cage leaves with the flat faces
     return 0.92 * on * off;
   };
   const flareOf = (t) => Math.max(0, 1 - Math.abs(t - (A.pyr4 + 0.12)) / 0.55) * (t > A.pyr4 - 0.4 ? 1 : 0);
@@ -131,11 +131,12 @@ export async function makeTetraRig(api, A) {
     { t: A.c5 + 2.3, az: 30, el: 17, dist: 14.0, hero: 0, ty: 0 },
     { t: A.main, az: 36, el: 18, dist: 13.6, hero: 0, ty: 0 },
     // s053 / s054 (frozen mid-turn, 1 deg/s drift)
-    { t: A.s053, az: 22, el: 11, dist: 12.4, hero: 0, ty: 0.2 },
-    { t: A.measure, az: 32, el: 11, dist: 12.0, hero: 0, ty: 0.2, ease: E.lin },
+    { t: A.s053, az: 18, el: 11, dist: 13.2, hero: 0, ty: -0.4 },
+    { t: A.how - 0.1, az: 26, el: 11, dist: 13.2, hero: 0, ty: -0.4, ease: E.lin },
+    { t: A.measure, az: 32, el: 11, dist: 12.8, hero: 0, ty: -0.4, ease: E.lin },
     // s055 (stall -> back to a ball; push in on the Explorer)
-    { t: A.s055, az: 26, el: 10, dist: 12.4, hero: 0, ty: 0.2 },
-    { t: A.stall + 0.2, az: 28, el: 10, dist: 12.2, hero: 0, ty: 0.2, ease: E.lin },
+    { t: A.s055, az: 26, el: 10, dist: 13.2, hero: 0, ty: -0.4 },
+    { t: A.stall + 0.2, az: 28, el: 10, dist: 13.0, hero: 0, ty: -0.4, ease: E.lin },
     { t: A.stall + 1.4, az: 30, el: 8, dist: 6.6, hero: 1 },
     { t: A.real - 1.2, az: 38, el: 6, dist: 6.2, hero: 1 },
   ];

@@ -481,11 +481,11 @@ export async function build(api, C) {
       // strings to the tetra card
       pos.forEach((p, i) => { const s0 = A.pinned + 0.35 + i * 0.12; string(ctx, [p[0], p[1] - 100], [tx, ty - 125], prog(t, s0, s0 + 0.45) * (1 - prog(t, tFall, tFall + 0.25))); });
       drawCard(ctx, tetraIcon, tx, ty, trot, tetA);
-      if (tetA > 0) pin(ctx, tx, ty - 125 + fall * 0);
+      if (tetA > 0.01) pin(ctx, tx, ty - 125 + fall * 0);
       redX(ctx, tx, ty, 210, prog(t, A.suspect - 0.05, A.suspect + 0.3));
       // the real suspect: '?'
       const qa = prog(t, tQ, tQ + 0.4, E.outBack);
-      if (qa > 0) {
+      if (qa > 0.01) {
         drawCard(ctx, qCard, CEN[0], CEN[1], 1.5, qa);
         ctx.save(); ctx.translate(CEN[0], CEN[1]); ctx.rotate(1.5 * Math.PI / 180); ctx.scale(qa, qa);
         ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 3; ctx.setLineDash([12, 9]); ctx.strokeRect(-110, -110, 220, 220); ctx.setLineDash([]);
