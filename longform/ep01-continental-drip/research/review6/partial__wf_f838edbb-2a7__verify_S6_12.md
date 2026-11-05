@@ -1,9 +1,5 @@
 # verify S6 (12) (still running; latest notes)
 
-`bigQ` takes an alpha argument, so that part of the fix works. Now S6-4: checking the photo dimensions and the clamp maths.
-
----
-
 The first kink is confirmed: measured +2.1, -4.2, -18.0 px/frame at 16434-16437, matching the clamped-crop model exactly. Now the brake near 16460.
 
 ---
@@ -29,3 +25,7 @@ The two East-Africa arrowheads are cut in half by the panel edge, so that part o
 ---
 
 Now let me verify the chunk seams myself, comparing each seam's frame difference with its neighbours.
+
+---
+
+The ch3-to-ch4 boundary is a cut from a frame that is only about 75% faded to white straight to a full-brightness portrait. Let me check what ch3's ending intends.

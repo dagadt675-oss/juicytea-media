@@ -1,6 +1,6 @@
 # Review round 6: what the agents found (auto-saved)
 
-## wf_54d8968d-d4f: 2 finished, 2 running
+## wf_54d8968d-d4f: 2 finished, 4 running
 
 ### find S2 ch1 1:25.79
 - **S2-1** 1:48.03-1:48.13 [major/high, jerky_motion] On 'trying', the toppling pile slides off down-left and accelerates to about 130-180 px/frame. The Bacon print then stops dead with a ~250x220 px corner still in the lower-left of frame and hangs there motionless for 4 frames before the hard cut to Forster. It reads as the paper snagging on the frame edge.
