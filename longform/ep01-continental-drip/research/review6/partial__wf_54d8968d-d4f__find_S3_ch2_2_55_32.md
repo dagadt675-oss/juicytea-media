@@ -1,13 +1,5 @@
 # find S3 ch2 2:55.32 (still running; latest notes)
 
-The tiny planet spins about the vertical through the hero's feet (no foot sliding). Now the Kansas drill cutaway (E15 onward), where the sheets suggested a size change in the first second.
-
----
-
-The Kansas drill cutaway is clean (rider stays on the drill head, steady framing). Next the Indian Ocean pop-out (E16): the splash, the Roll, and the hand-off from the scripted hop to the idle bob.
-
----
-
 The Roll clip is 1.333 s but Idle is faded in 0.77 s after it starts, so the roll is cut off while he is upside down. Let me look at that hand-off at higher resolution.
 
 ---
@@ -29,3 +21,11 @@ The settled stamp is legible (dark backing). Let me look at one full-res frame o
 ---
 
 At full resolution the beam reads as held in his hanging hand, so that one is fine. Let me check whether the "MOST OF ANTARCTICA" pill collides with the globe's top edge.
+
+---
+
+No other run-time material toggles in this segment's sets (only the known tetra one), consistent with the clean seam checks. Let me confirm exact line numbers for the code locations I will cite.
+
+---
+
+Let me visually confirm the forward lurch at f6239 with a closer crop of the globe.

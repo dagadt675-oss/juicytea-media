@@ -1,13 +1,5 @@
 # verify S6 (12) (still running; latest notes)
 
-S6-1 is confirmed as described. Next, S6-2 (the Graz dot at 15668/15669).
-
----
-
-S6-2 confirmed (dot and ring present through 15668, gone at 15669 mid camera move). Now S6-3, the Graz-to-spin hand-off.
-
----
-
 `bigQ` takes an alpha argument, so that part of the fix works. Now S6-4: checking the photo dimensions and the clamp maths.
 
 ---
@@ -29,3 +21,11 @@ S6-8 is confirmed: at 17097 about eight yellow arrows and the left black-and-whi
 ---
 
 S6-9 is confirmed: all four chevrons jump back about 90 px between 17219 and 17220 at full opacity. Now S6-10 (the fingernail panel title).
+
+---
+
+The two East-Africa arrowheads are cut in half by the panel edge, so that part of S6-10 holds. Now S6-11, the drip globe.
+
+---
+
+Now let me verify the chunk seams myself, comparing each seam's frame difference with its neighbours.
