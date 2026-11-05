@@ -1,0 +1,72 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="fonts/fonts.css">
+<script type="importmap">{"imports":{"three":"/three.module.min.js"}}</script>
+<style>html,body{margin:0;background:#000;overflow:hidden}</style></head><body>
+<script type="module">
+// Film runtime: loads ep/<ep>/edit.js which exports { init(api), scenes: [{id, t0, t1, layer?, fadeIn?, fadeOut?, draw(ctx, lt, t, api)}] }
+import { Globe } from './lib/globe.js';
+import * as F from './lib/fx.js';
+import * as G from './lib/geo.js';
+const P = new URLSearchParams(location.search);
+const W = +P.get('w') || 1920, H = +P.get('h') || 1080, FPS = +P.get('fps') || 30;
+const Q = JSON.parse(P.get('q') || '{}');
+const EP = Q.ep || 'ep01';
+const comp = document.createElement('canvas'); comp.width = W; comp.height = H; document.body.appendChild(comp);
+const cx = comp.getContext('2d');
+const layerA = document.createElement('canvas'); layerA.width = W; layerA.height = H; const la = layerA.getContext('2d');
+const imgs = {};
+const loadImg = (src) => imgs[src] || (imgs[src] = new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('img ' + src)); i.src = src; }));
+const log = (s) => fetch('/log', { method: 'POST', body: String(s) });
+let globe = null;
+const api = {
+  W, H, FPS, F, G, Q, log,
+  img: (src) => imgs[src + ':loaded'],
+  async loadImages(list) { for (const s of list) imgs[s + ':loaded'] = await loadImg(s); },
+  async globe() { if (!globe) { globe = new Globe(W, H); await globe.init(); } return globe; },
+  get g() { return globe; },
+  stages: {},
+  // separate WebGL stage (3D dioramas with animated characters, cutaway, morphs); cached by key
+  async newStage(key, opts = {}) { if (!api.stages[key]) { const { Stage } = await import('./lib/actors.js'); api.stages[key] = new Stage(W, H, opts); } return api.stages[key]; },
+  json: {},
+  async loadJSON(url) { if (!api.json[url]) api.json[url] = await (await fetch(url)).json(); return api.json[url]; },
+  cues: [],   // sound-effect cues pushed by chapter modules: {t, name, gain_db}
+  cue(t, name, gain_db = -6) { api.cues.push({ t: +t.toFixed(3), name, gain_db }); },
+  timing: null,
+  T(marker, which = 'start') { const m = api.timing?.markers?.[marker]; if (!m) throw new Error('missing marker ' + marker); return which === 'end' ? m.end : m.start; },
+  // draw the globe with a camera state onto ctx
+  drawGlobe(ctx, state, look = {}) {
+    globe.set(Object.assign({ sun: 'camera', lookOffset: null, tilt: 0, heading: 0, fov: 34 }, state));
+    for (const k in look) globe.look(k, look[k]);
+    if (state.stars !== false) globe.starfield(ctx, state.starAlpha ?? 1);
+    ctx.drawImage(globe.render(), 0, 0);
+  },
+};
+let EDIT;
+window.ready = (async () => {
+  await Promise.all(['400 100px "Bebas Neue"', '700 40px "Barlow Condensed"', '500 40px "Barlow Condensed"', '800 100px "Inter"', '600 40px "Inter"', '400 40px "Inter"', '700 40px "JetBrains Mono"', '700 60px "Playfair Display"', '400 60px "Anton"'].map(f => document.fonts.load(f)));
+  try { api.timing = await (await fetch(`ep/${EP}/timing.json`)).json(); } catch (e) { api.timing = { markers: {} }; }
+  EDIT = await import(`./ep/${EP}/edit.js`);
+  await EDIT.init(api);
+  EDIT.scenes.sort((a, b) => (a.layer || 0) - (b.layer || 0) || a.t0 - b.t0);
+  window.CUES = api.cues;
+  window.SCENES = EDIT.scenes.map(s => ({ id: s.id, t0: s.t0, t1: s.t1, layer: s.layer || 0 }));
+})();
+window.renderFrame = async (f) => {
+  const t = f / FPS;
+  cx.globalAlpha = 1; cx.globalCompositeOperation = 'source-over';
+  cx.fillStyle = '#05070D'; cx.fillRect(0, 0, W, H);
+  for (const s of EDIT.scenes) {
+    if (t < s.t0 || t >= s.t1) continue;
+    const lt = t - s.t0;
+    const a = Math.min(1, s.fadeIn ? lt / s.fadeIn : 1, s.fadeOut ? (s.t1 - t) / s.fadeOut : 1);
+    if (a < 0.999) {
+      la.setTransform(1, 0, 0, 1, 0, 0); la.globalAlpha = 1; la.globalCompositeOperation = 'source-over'; la.clearRect(0, 0, W, H);
+      await s.draw(la, lt, t, api);
+      cx.save(); cx.globalAlpha = Math.max(0, a); cx.drawImage(layerA, 0, 0); cx.restore();
+    } else {
+      cx.save(); await s.draw(cx, lt, t, api); cx.restore();
+    }
+  }
+  if (EDIT.post) EDIT.post(cx, t, f, api); else F.post(cx, W, H, f);
+};
+window.grabBlob = () => new Promise(r => comp.toBlob(r, 'image/jpeg', 0.95));
+</script></body></html>
