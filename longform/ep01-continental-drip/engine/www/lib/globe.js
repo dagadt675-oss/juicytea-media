@@ -66,8 +66,13 @@ void main(){
   col *= (1.0 - dim);
   if (ovOn > 0.5) {
     vec2 q = vec2((g.x-ovB.x)/(ovB.z-ovB.x), (ovB.w-g.y)/(ovB.w-ovB.y));
+    // explicit, seam-corrected gradients: atan() wraps at +-180 deg, and the raw derivative there picks the 1x1 mip
+    // (a dashed line along the date line on every overlay globe facing the Pacific)
+    vec2 qdx = dFdx(q), qdy = dFdy(q); float wrapU = 360.0 / (ovB.z - ovB.x);
+    if (abs(qdx.x) > 0.5 * wrapU) qdx.x -= sign(qdx.x) * wrapU;
+    if (abs(qdy.x) > 0.5 * wrapU) qdy.x -= sign(qdy.x) * wrapU;
     if (q.x>0.0 && q.x<1.0 && q.y>0.0 && q.y<1.0) {
-      vec4 o = texture2D(ovTex, vec2(q.x, 1.0 - q.y));
+      vec4 o = textureGrad(ovTex, vec2(q.x, 1.0 - q.y), vec2(qdx.x, -qdx.y), vec2(qdy.x, -qdy.y));
       vec3 oc = mix(o.rgb * (0.55 + 0.6*max(lit,0.35)), o.rgb * (ambient + exposure*max(d,0.0)) * 1.15, ovMul);
       col = mix(col, oc, o.a * ovAlpha);
     }

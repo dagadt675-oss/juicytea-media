@@ -9,6 +9,8 @@ export async function makeTetraRig(api, A) {
   const { tetraEarth } = await import('../../lib/morph.js');
   const W = api.W, H = api.H;
   const st = await api.newStage('ch3tetra', { shadowExtent: 4.6, hemi: 0.95, key: 2.5, rim: 2.8, exposure: 1.05 });
+  // fill light that follows the camera: the faces turned away from the key light rendered pitch black
+  if (!st.head) { st.head = new THREE.DirectionalLight(0xffffff, 1.1); st.add(st.head); st.add(st.head.target); }
   const R = 2.2, TS = 1.55;
   const te = await tetraEarth(st, { radius: R, map: 'ep/ep01/img/ch3_day_4k.jpg' });
   const mesh = te.children[0]; mesh.receiveShadow = true;
@@ -116,10 +118,10 @@ export async function makeTetraRig(api, A) {
     { t: A.pred - 0.3, az: 40, el: 16, dist: 13.6, hero: 0, tx: 0, ty: 0, tz: 0 },
     { t: A.pred + 1.2, az: 44, el: 17, dist: 13.4, hero: 0 },
     { t: A.L1 - 0.1, az: 44, el: 17, dist: 13.4, hero: 0 },
-    { t: A.c1 - 0.15, az: 16, el: 2, dist: 12.6, hero: 0, ty: 0.25 },
-    { t: A.L2 - 0.1, az: 12, el: 2, dist: 12.6, hero: 0, ty: 0.25 },
-    { t: A.c2 - 0.15, az: -24, el: -27, dist: 11.6, hero: 0, ty: -0.7 },
-    { t: A.L3 - 0.1, az: -28, el: -27, dist: 11.6, hero: 0, ty: -0.7 },
+    { t: A.c1 - 0.15, az: 16, el: 30, dist: 12.6, hero: 0, ty: 0.5 },
+    { t: A.L2 - 0.1, az: 12, el: 30, dist: 12.6, hero: 0, ty: 0.5 },
+    { t: A.c2 - 0.15, az: 96, el: -18, dist: 12.4, hero: 0, ty: -0.6 },
+    { t: A.L3 - 0.1, az: 90, el: -18, dist: 12.4, hero: 0, ty: -0.6 },
     { t: A.c3 - 0.15, az: 15, el: 86, dist: 12.0, hero: 0, ty: 0 },
     { t: A.L4 - 0.1, az: 25, el: 86, dist: 12.0, hero: 0, ty: 0 },
     { t: A.c4 - 0.15, az: 15, el: -86, dist: 11.6, hero: 0, ty: 0 },
@@ -165,6 +167,7 @@ export async function makeTetraRig(api, A) {
     const cp = tg.clone().add(new THREE.Vector3(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az)).multiplyScalar(c.dist));
     st.camera.up.set(0, 1, 0);
     st.lookFrom(cp.toArray(), tg.toArray(), c.fov || 30);
+    st.head.position.copy(cp); st.head.target.position.copy(tg); st.head.target.updateMatrixWorld();
     // hero orientation in planet coords
     const camL = te.worldToLocal(cp.clone());
     const posL = hero.root.position.clone();

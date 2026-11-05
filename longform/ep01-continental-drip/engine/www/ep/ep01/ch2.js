@@ -104,6 +104,7 @@ class Pour {
       const i = this.order[k] * 4, f = smooth(Dm - 0.05, Dm, this.dist[k]);
       D[i] = 255; D[i + 1] = 90 + 110 * f; D[i + 2] = 54 + 40 * f; D[i + 3] = 235;
     }
+    if (edgeP > 0) for (let k = N; k < this.order.length; k++) { const i = this.order[k] * 4; D[i] = 61; D[i + 1] = 227; D[i + 2] = 255; D[i + 3] = 150 * edgeP; }
     if (edgeP > 0 && edgeA > 0) for (let k = 0; k < this.edges.length; k++) { if (this.az[k] > edgeP) continue; const i = this.edges[k] * 4; D[i] = 61; D[i + 1] = 227; D[i + 2] = 255; D[i + 3] = 255 * edgeA; }
     this.g.putImageData(this.id, 0, 0); return true;
   }
@@ -914,12 +915,12 @@ export async function build(api, C) {
     ['antarctica', tm.drop + 1.75, 1.1], ['australia', tAusL, tAusA - tAusL], ['asia', tAsiaL, tAsiaA - tAsiaL]].map(([n, t0, d]) => ({ n, t0, t1: t0 + d, X: L.ringsXYZ(C_[n].rings), c: L.dir(...C_[n].centroid), area: C_[n].area }));
   drops.forEach((d, i) => sfx(d.t1 - 0.02, 'thunk_heavy', i === drops.length - 1 ? -8 : -14));
   const pourArea = (t) => { let a = 0; for (const d of drops) a += d.area * prog(t, d.t1 - 0.05, d.t1 + 0.55, E.out); return a; };
-  const heroEnd = L.dir(-46, -95);
+  const heroEnd = L.dir(-48, -80);
   push(gscene({
     t0: cPac, t1: cMont, ovKey: 'ch2:pour', install: (gl) => gl.setOverlay(pour.cv),
     pre: (lt, t, gl) => { if (pour.draw(pourArea(t), prog(t, tm.alone - pre, tm.alone + 1.1, E.inOut), 1)) { if (gl.u.ovTex.value?.image !== pour.cv) gl.setOverlay(pour.cv); else gl.refreshOverlay(); } },
     cam: (lt, t) => camAt([{ t: 0, lat: -5, lon: -160, alt: 2.6 }, { t: tm.drop - cPac, lat: -5, lon: -160, alt: 2.7 }, { t: tm.drop + 1.6 - cPac, lat: -8, lon: -158, alt: 3.15 },
-      { t: tAsiaA - cPac, lat: -8, lon: -156, alt: 3.2 }, { t: cMont - cPac, lat: -14, lon: -150, alt: 3.65 }], lt, 0.3),
+      { t: tAsiaA - cPac, lat: -8, lon: -156, alt: 3.2 }, { t: cMont - cPac, lat: -28, lon: -122, alt: 3.65 }], lt, 0.3),
     look: (lt, t) => ({ ovAlpha: 1, dim: 0.2 + 0.1 * prog(t, tm.drop, tm.drop + 1), desat: 0.2 }),
     draw2d: (ctx, lt, t, pj) => {
       // flying continents
@@ -927,6 +928,7 @@ export async function build(api, C) {
       for (const d of drops) {
         if (t < d.t0 - 0.25 || t > d.t1 + 0.45) continue;
         const k = prog(t, d.t0, d.t1, E.inOut); const R = L.rotAB(d.c, pac, k);
+        const cc = L.rotVec(d.c, R); if (!pj.xyz(cc[0], cc[1], cc[2], false)[2]) continue;
         const melt = prog(t, d.t1 - 0.05, d.t1 + 0.4, E.in);
         let arrs = d.X.map(a => L.rotXYZ(a, R));
         if (melt > 0) arrs = arrs.map(a => { const o = new Float32Array(a.length); for (let i = 0; i < a.length; i += 3) { const x = lerp(a[i], pac[0], melt * 0.85), y = lerp(a[i + 1], pac[1], melt * 0.85), z = lerp(a[i + 2], pac[2], melt * 0.85), n = Math.hypot(x, y, z); o[i] = x / n; o[i + 1] = y / n; o[i + 2] = z / n; } return o; });
@@ -977,7 +979,7 @@ export async function build(api, C) {
   const capes = [[-53.9, -71.3], [-34.8, 20.0], [8.1, 77.5]];
   push(gscene({
     t0: cDrip, t1: cTet + 0.75, ovKey: 'ch2:drip', install: (gl) => gl.setOverlay(ovDrip),
-    cam: (lt) => camAt([{ t: 0, lat: -26, lon: 14, alt: 3.15 }, { t: 6, lat: -30, lon: 22, alt: 2.95 }], lt, 2.0),
+    cam: (lt) => Object.assign(camAt([{ t: 0, lat: -26, lon: 14, alt: 3.15 }, { t: 6, lat: -30, lon: 22, alt: 2.95 }], lt, 2.0), { lookOffset: [0, -0.05] }),
     look: () => ({ ovAlpha: 1, dim: 0.35, desat: 0.3 }),
     draw2d: (ctx, lt, t, pj) => {
       const sp = pj.ll(-90, 0);
@@ -1013,7 +1015,7 @@ export async function build(api, C) {
       // camera: slow push, then (s044) a lower orbit with the globe offset right
       const k1 = prog(t, cTet, tm.before, E.inOutSine), k2 = prog(t, tm.before - 0.3, tm.before + 0.6, E.inOut);
       const ang = -0.35 + 0.25 * k1 + (t > tm.before ? (t - tm.before) * 0.06 : 0);
-      const dist = lerp(lerp(8.8, 7.6, k1), 7.9, k2), camY = lerp(lerp(1.2, 0.6, k1), -0.2, k2);
+      const dist = lerp(lerp(13.2, 11.4, k1), 7.9, k2), camY = lerp(lerp(1.2, 0.6, k1), -0.2, k2);
       const tgt = [lerp(0, -1.5, k2) * Math.cos(ang), 0, lerp(0, -1.5, k2) * -Math.sin(ang)];
       const xr = prog(t, tm.shape - pre, tm.shape + 0.9, E.inOut);
       const r = S.tetra(ctx, t, { ry: (t - cTet) * 0.14 + 0.6, rx: 0.2, cam: [Math.sin(ang) * dist + tgt[0], camY, Math.cos(ang) * dist + tgt[2]], target: tgt, xray: xr * 0.85, edge: 0 });
@@ -1052,7 +1054,7 @@ export async function build(api, C) {
         ctx.restore();
       });
       // "1875"
-      const ya = prog(t, tm.g1875 - pre, tm.g1875 + 0.4) * (1 - prog(t, tm.before - 0.2, tm.before + 0.2));
+      const ya = prog(t, tm.g1875 - pre, tm.g1875 + 0.4) * (1 - prog(t, tm.before - 0.2, tm.before + 0.2)) * (1 - prog(t, tm.ball - 0.6, tm.ball - 0.25)) * (t > tm.ball + 1.2 ? 0 : 1);
       if (ya > 0) { F.text(ctx, '1875', 150, 250, { size: 190, fam: F.FAM.head, color: '#F3E3B5', alpha: ya, tracking: 0.04 }); }
       // JUICE CHECK: ? stamp spins in (upper left) then lands on the hidden pyramid
       if (t > tm.taught - pre) {

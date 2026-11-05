@@ -671,8 +671,8 @@ export async function build(api, C) {
       const q = proj(-90, 0);
       if (q.visible && tt > t.southcont + 0.4) {
         const a = prog(tt, t.southcont + 0.4, t.southcont + 1.0), s = 1 + 0.03 * Math.sin(tt * 1.6);
-        ctx.save(); ctx.translate(q.x, q.y); ctx.scale(s, s); ctx.rotate(0.06 * Math.sin(tt * 0.9));
-        F.text(ctx, '?', 0, 0, { size: 230, fam: F.FAM.serif, weight: 'italic 700', align: 'center', baseline: 'middle', color: '#ffffff', alpha: a * lerp(1, 0.85, prog(tt, t.cent, t.cent + 1)), shadowBlur: 30, shadowColor: 'rgba(10,20,40,0.6)' });
+        ctx.save(); ctx.translate(q.x, Math.min(q.y, 740)); ctx.scale(s, s); ctx.rotate(0.06 * Math.sin(tt * 0.9));
+        F.text(ctx, '?', 0, 0, { size: 230, fam: F.FAM.serif, weight: 'italic 700', align: 'center', baseline: 'middle', color: '#ffffff', alpha: a * lerp(1, 0.85, prog(tt, t.cent, t.cent + 1)), stroke: 10, strokeColor: 'rgba(12,22,40,0.85)', shadowBlur: 12, shadowColor: 'rgba(10,20,40,0.6)' });
         ctx.restore();
       }
       pillT(ctx, '"WHETHER THERE IS ANY SOUTHERN CONTINENT"', W / 2, 900, tt, t.open - 0.1, t.antar - 0.15, { size: 40 });
@@ -766,8 +766,8 @@ export async function build(api, C) {
   // ================================================================== s017  Bacon saw it; nobody could explain it; the pile topples
   const STACK = [{ k: 'f13', at: t.anyone - 0.05, rot: -0.07, dx: -10, dy: 0 }, { k: 'greenPref', at: t.anyone + 0.9, rot: 0.06, dx: 18, dy: -14 }, { k: 'guyot', at: t.anyone + 1.85, rot: -0.03, dx: -4, dy: -26 }];
   G({
-    t0: t.s017 - 0.07, t1: t.s018 - 0.07, overlay: { canvas: COLD.cv, bounds: WB }, drift: 0.5,
-    keys: [{ t: 0, lat: -38, lon: 10, alt: 2.75 }, { t: t.s018 - t.s017, lat: -44, lon: 32, alt: 2.55, tilt: 6 }],
+    t0: t.s017 - 0.07, t1: t.s018 - 0.07, overlay: { canvas: COLD.cv, bounds: WB }, drift: 0.5, sun: { lookOffset: [0, -0.07] },
+    keys: [{ t: 0, lat: -38, lon: 10, alt: 2.75 }, { t: t.s018 - t.s017, lat: -44, lon: 32, alt: 2.55 }],
     look: { desat: 0.3, dim: 0.3, ovAlpha: 1 }, pre: () => coldSet([1, 1, 1]),
     x: (ctx, tt, lt) => {
       drawArcs(ctx, tt, -10, {});
@@ -907,18 +907,18 @@ export async function build(api, C) {
   ].map(triLL);
   G({
     t0: t.pyr - 0.08, t1: t.list - 0.07, overlay: { canvas: COLD.cv, bounds: WB }, drift: 0.35,
-    keys: [{ t: 0, lat: -26, lon: 12, alt: 2.95 }, { t: t.list - t.pyr, lat: -28, lon: 22, alt: 2.75, tilt: 6 }],
+    keys: [{ t: 0, lat: -38, lon: -30, alt: 2.75 }, { t: 2.2, lat: -16, lon: 44, alt: 2.85 }, { t: t.list - t.pyr, lat: -17, lon: 46, alt: 2.8, tilt: 6 }],
     look: { desat: 0.3, dim: 0.35, ovAlpha: 1 }, pre: () => coldSet([1, 1, 1]),
     x: (ctx, tt) => {
       TRIS.forEach((tr, i) => {
-        const a = t.pyr - 0.06 + i * 0.3; if (tt < a) return;
+        const a = t.pyr - 0.06 + [0, 0.85, 1.85][i]; if (tt < a) return;
         const fl = 1 - prog(tt, a, a + 0.35);
         strokeProjected(ctx, g, tr, { color: '#ffffff', width: 2.6 + 4 * fl, glow: true });
       });
       pillT(ctx, 'HUMBOLDT: "PYRAMIDAL"', W / 2, 110, tt, t.pyr - 0.08, t.list - 0.1, { size: 46 });
     },
   });
-  [0, 0.3, 0.6].forEach(d => cue(t.pyr - 0.06 + d, 'pop_ui', -16));
+  [0, 0.85, 1.85].forEach(d => cue(t.pyr - 0.06 + d, 'pop_ui', -16));
   const GUY = [[0.50, 0.588, 0.43, 0.026], [0.26, 0.640, 0.485, 0.026], [0.125, 0.666, 0.565, 0.026]];
   base({
     t0: t.list - 0.07, t1: t.l1 - 0.07, draw(ctx, lt, tt) {
@@ -965,8 +965,8 @@ export async function build(api, C) {
   const HEAD = 'CONTINENTAL DRIFT', HF = { size: 70, fam: F.FAM.mono, weight: 500, color: '#2a2420', shadow: false };
   // virtual camera with hard "cuts" between framings: [tStart, cx, cy, scale0, scale1]
   const CAMS = [[t.s022 - 0.1, 960, 560, 0.92, 0.97], [t.joke - 0.06, 1010, 470, 1.18, 1.25], [t.contl - 0.25, 980, 430, 1.32, 1.4], [t.staring - 0.6, 1030, 760, 1.25, 1.33],
-    [t.s023 - 0.07, 960, 560, 0.88, 0.93], [t.version - 0.07, 1060, 560, 0.86, 0.9], [t.hold - 0.07, 1290, 300, 1.25, 1.75]];
-  const typeCam = (tt) => { let i = 0; while (i + 1 < CAMS.length && tt >= CAMS[i + 1][0]) i++; const c = CAMS[i], e = i + 1 < CAMS.length ? CAMS[i + 1][0] : END; const k = prog(tt, c[0], e, E.inOutSine); return { cx: c[1], cy: c[2], s: lerp(c[3], c[4], k) }; };
+    [t.s023 - 0.07, 960, 560, 0.88, 0.93], [t.version - 0.07, 980, 560, 0.84, 0.88], [t.hold - 0.07, 1210, 290, 1.3, 1.6]];
+  const typeCam = (tt) => { let i = 0; while (i + 1 < CAMS.length && tt >= CAMS[i + 1][0]) i++; const c = CAMS[i], e = i + 1 < CAMS.length ? CAMS[i + 1][0] : t.s024 - 0.07; const k = prog(tt, c[0], e, E.inOutSine); return { cx: c[1], cy: c[2], s: lerp(c[3], c[4], k) }; };
   const sheet = (ctx, cv, x, y, w, rot, alpha = 1) => {
     const h = w * cv.height / cv.width;
     ctx.save(); ctx.globalAlpha *= alpha; ctx.translate(x, y); ctx.rotate(rot);
@@ -985,7 +985,7 @@ export async function build(api, C) {
       // sheet C (1976) slides in behind
       const cIn = prog(tt, t.version - 0.07, t.version + 0.5, E.outExpo);
       if (cIn > 0) {
-        const sc = sheet(ctx, SHEET_C, lerp(2500, 1280, cIn), 560, 760, 0.035);
+        const sc = sheet(ctx, SHEET_C, lerp(2500, 1370, cIn), 560, 760, 0.035);
         local(ctx, sc, () => {
           X.inkLines(ctx, 70, 260, 620, 16, 34, prog(tt, t.version + 0.1, t.version + 2.5, E.lin), 41);
           F.text(ctx, 'THE DRIP, REVISITED', 70, 150, { size: 46, fam: F.FAM.mono, weight: 700, color: '#2a2420', shadow: false, alpha: prog(tt, t.version + 0.1, t.version + 0.4) });
@@ -1001,10 +1001,9 @@ export async function build(api, C) {
             ctx.save(); ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.beginPath(); ctx.ellipse(220, 200, 200, 52, -0.04, -Math.PI * 0.9, -Math.PI * 0.9 + Math.PI * 2.1 * p); ctx.stroke(); ctx.restore();
           });
         }
-        pillT(ctx, '1976', 1500, 210, tt, t.version + 0.1, t.s024 - 0.2, { size: 52 });
       }
       // sheet A (magazine page)
-      const sa = sheet(ctx, SHEET_A, lerp(960, 760, shiftA), lerp(1500, 560, slideA), 760, -0.02);
+      const sa = sheet(ctx, SHEET_A, lerp(960, 540, shiftA), lerp(1500, 560, slideA), 760, -0.02);
       local(ctx, sa, () => {
         X.inkLines(ctx, 70, 280, 620, 18, 36, prog(tt, t.s022, t.s022 + 3.2, E.lin), 17);
         ctx.fillStyle = 'rgba(45,38,30,0.75)'; ctx.fillRect(70, 120, 420, 24); ctx.fillRect(70, 160, 300, 16);
@@ -1012,7 +1011,7 @@ export async function build(api, C) {
       // sheet B (coffee-stained) slides over at "joke": the headline gets retyped
       const bIn = prog(tt, t.joke - 0.06, t.joke + 0.4, E.outExpo);
       if (bIn > 0) {
-        const sb = sheet(ctx, SHEET_B, lerp(-700, lerp(1000, 820, shiftA), bIn), lerp(520, 540, shiftA), 800, lerp(-0.15, 0.03, bIn));
+        const sb = sheet(ctx, SHEET_B, lerp(-700, lerp(1000, 580, shiftA), bIn), lerp(520, 540, shiftA), 800, lerp(-0.15, 0.03, bIn));
         local(ctx, sb, () => {
           const n = Math.floor(prog(tt, t.contl - 0.05, t.drip - 0.12, E.lin) * HEAD.length);
           F.text(ctx, HEAD.slice(0, n), 60, 260, HF);
@@ -1038,6 +1037,7 @@ export async function build(api, C) {
       }
       ctx.restore();
       pillT(ctx, '1973', 1700, 110, tt, t.seventies - 0.08, t.s023 - 0.1, { size: 52 });
+      pillT(ctx, '1976', 1700, 110, tt, t.version + 0.1, t.s024 - 0.2, { size: 52 });
     },
   });
   cue(t.s022 + 0.05, 'typewriter', -12); cue(t.contl - 0.05, 'typewriter', -12); cue(t.drip + 0.15, 'bell_small', -16);
