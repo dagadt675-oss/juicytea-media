@@ -124,11 +124,11 @@ export async function build(api, C) {
       keys: [{ t: 0, lat: 25, lon: -30, alt: 2.45 }, { t: 897.4, lat: 21, lon: -21, alt: 2.3 }, { t: s100 - 0.5, lat: 19, lon: -15, alt: 2.3 }],
       plates: { SA: { q: qPole(44.0, -30.6, 57), t0: M.prox - 0.08, t1: w.africa99 - 0.3, ease: 'crash' }, NA: { q: qPole(66.95, -12.02, 75.55), t0: M.prox + 0.05, t1: w.africa99 - 0.03, ease: 'crash' }, AU: { q: qMove([-25, 134], [-14, 124]), t0: M.prox, t1: M.prox + 3.3 } },
       neigh: 'AF', contact: { t: w.africa99 - 0.03, plate: 'NA', ll: [34, -77] }, arrows: [['NA', [42, -95]], ['SA', [-12, -58]]] },
-    { name: 'NOVOPANGAEA', col: PAL.cyan, t0: s100, tExp: s100 + 0.15, tShrink: s101 - 0.5, tEnd: s101,
+    { name: 'NOVOPANGAEA', col: PAL.cyan, t0: s100, tExp: s100 + 0.15, tShrink: s101 - 1.3, tEnd: s101,
       keys: [{ t: 0, lat: -20, lon: -86, alt: 2.65 }, { t: M.novo + 0.3, lat: -30, lon: -100, alt: 2.5 }, { t: s101 - 0.5, lat: -32, lon: -106, alt: 2.48 }],
-      plates: { AN: { q: qMove([-90, 0], [-56, -118]), t0: w.pacific100, t1: M.novo - 0.05, ease: 'crash' }, SA: { q: qMove([-15, -60], [-17, -102], 6), t0: w.pacific100, t1: M.novo - 0.05, ease: 'crash' },
+      plates: { AN: { q: qMove([-90, 0], [-72, -117]), t0: w.pacific100, t1: M.novo - 0.05, ease: 'crash' }, SA: { q: qMove([-15, -60], [-17, -102], 6), t0: w.pacific100, t1: M.novo - 0.05, ease: 'crash' },
         NA: { q: qMove([45, -100], [44, -124]), t0: w.pacific100 + 0.1, t1: M.novo + 0.9 }, AU: { q: qMove([-25, 134], [-12, 139]), t0: w.pacific100 + 0.2, t1: M.novo + 0.8 } },
-      neigh: 'AN', contact: { t: M.novo - 0.05, plate: 'SA', ll: [-45, -75] }, arrows: [['AN', [-80, 0]], ['SA', [-12, -58]]] },
+      neigh: 'AN', contact: { t: M.novo - 0.05, plate: 'SA', ll: [-55.5, -67.5] }, arrows: [['AN', [-80, 0]], ['SA', [-12, -58]]] },
     { name: 'AMASIA', col: PAL.yellow, t0: s101, tExp: s101 + 0.15, tShrink: s102 - 0.5, tEnd: s102,
       keys: [{ t: 0, lat: 70, lon: -112, alt: 2.5 }, { t: M.asia + 0.2, lat: 78, lon: -128, alt: 2.35 }, { t: s102 - 0.5, lat: 80, lon: -140, alt: 2.33 }],
       plates: { NA: { q: qMove([55, -100], [77, -100]), t0: w.arctic - 0.05, t1: M.asia - 0.05, ease: 'crash' }, SA: { q: qMove([-15, -60], [3, -74]), t0: w.arctic + 0.1, t1: M.asia + 0.6 } },
@@ -149,8 +149,9 @@ export async function build(api, C) {
   const FLOOK = { specAmt: 0.16, exposure: 1.32, ambient: 0.13, rimAmt: 0.35 };
   const drawUS = (ctx, pose, t) => {
     const u = rotLL(pose.NA || I0, KANSAS[0], KANSAS[1]); const q = proj(u[0], u[1]); if (!q.visible) return;
-    ctx.save(); ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.beginPath(); ctx.arc(q.x, q.y, 11, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-    F.dot(ctx, q.x, q.y, { r: 7.5, color: '#ffffff', ring: (t * 0.8) % 1 });
+    const fa = Math.max(0, Math.min(1, (q.y - 150) / 80)); if (fa <= 0) return; // fade out at the top edge (clipped dot, pills)
+    ctx.save(); ctx.globalAlpha *= fa; ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.beginPath(); ctx.arc(q.x, q.y, 11, 0, Math.PI * 2); ctx.fill();
+    F.dot(ctx, q.x, q.y, { r: 7.5, color: '#ffffff', ring: (t * 0.8) % 1 }); ctx.restore();
   };
   const drawLive = (ctx, m, t, still = false) => {
     const pose = poseAt(m.plates, t);
@@ -462,7 +463,7 @@ export async function build(api, C) {
     st.lookFrom(o.cam, o.target, o.fov || 30);
     return st.render(t);
   };
-  const CORNER = [[100, 80, 456, 257], [W - 100 - 456, 80, 456, 257], [100, 636, 456, 257], [W - 100 - 456, 636, 456, 257]];
+  const CORNER = [[100, 80, 456, 257], [W - 100 - 456, 80, 456, 257], [100, 520, 456, 257], [W - 100 - 456, 520, 456, 257]];
   const NEIGH = [{ t: M.a1, col: PAL.hero }, { t: M.a2, col: PAL.cyan }, { t: M.a3, col: PAL.yellow }, { t: M.a4, col: PAL.green }];
   const endTiles = (S, t, rects, glowFn) => S.map((s, i) => {
     const pu = t >= NEIGH[i].t - 0.1 ? Math.exp(-2.2 * (t - NEIGH[i].t + 0.1)) : 0;
@@ -712,10 +713,11 @@ export async function build(api, C) {
   });
   cue(CP0, 'whoosh_soft', -16); cue(w.capes - 0.06, 'pop_ui', -16);
   const BX = { quod: [0.553, 0.131, 0.276, 0.017], cidit: [0.079, 0.153, 0.064, 0.016] };
-  const PG0 = CP1, PG1 = M.breakup - 0.08;
+  const PG0 = CP1, PG1 = M.breakup - 0.42;
   base(PG0, PG1, (ctx, lt, t) => {
     L.drawDrift(ctx, DESK, W, H, t, { zoom: 1.05 });
-    const m = L.printKB(ctx, img('p246'), prog(t, PG0, PG1), [330, 70, 1260, 700], [0.46, 0.142, 1.25], [0.47, 0.146, 1.36], { grade: 'sepia', vig: 0.3 });
+    const m = L.printKB(ctx, img('p246'), prog(t, PG0, PG1), [330, 70, 1260, 700], [0.46, 0.142, 1.25], [0.454, 0.146, 1.28], { grade: 'sepia', vig: 0.3 });
+    ctx.save(); ctx.beginPath(); ctx.rect(330, 70, 1260, 700); ctx.clip(); // marks never leave the page
     L.highlight(ctx, m, BX.quod, prog(t, M.acc2 + 0.05, M.acc2 + 0.4), { alpha: 0.18 });
     L.underline(ctx, m, BX.quod, prog(t, M.acc2 - 0.08, M.acc2 + 0.35, E.inOut));
     L.underline(ctx, m, BX.cidit, prog(t, M.acc2 + 0.35, M.acc2 + 0.55, E.inOut));
@@ -725,6 +727,7 @@ export async function build(api, C) {
       L.underline(ctx, m, BX.quod, 1, { color: PAL.yellow, alpha: gold, width: 6 * pu, glowColor: '#FFE27A' });
       L.underline(ctx, m, BX.cidit, 1, { color: PAL.yellow, alpha: gold, width: 6 * pu, glowColor: '#FFE27A' });
     }
+    ctx.restore();
   });
   cue(M.acc2 - 0.05, 'shimmer', -18); cue(M.right2 - 0.05, 'pop_ui', -16);
   // headline: NOT AN ACCIDENT. A BREAKUP.
@@ -872,7 +875,7 @@ export async function build(api, C) {
   };
   const drawRift = (ctx, t) => {
     const cp = prog(t, M.cracks - 0.1, M.cracks + 0.9, E.inOut);
-    const wide = 1.5 + 7 * prog(t, SEG('s109').start, END, E.inOutSine);
+    const wide = 1.5 + 7 * prog(t, SEG('s109').start, END, E.lin);
     ARMS.forEach((pts, i) => {
       const P = armPts(pts); if (P.length < 2) return;
       const pul = i === 2 && t > M.eafr - 0.1 ? 0.5 + 0.5 * Math.sin((t - M.eafr) * 7) : 0;
@@ -899,7 +902,7 @@ export async function build(api, C) {
     else {
       const cam = camAfar(AFH);
       if (!AFHOLD) { const c = L.makeCanvas(W, H); globe(c.getContext('2d'), cam, AFLOOK, null); AFHOLD = c; }
-      const k = E.inOutSine(prog(t, AFH, END));
+      const k = prog(t, AFH, END, E.lin); // keeps drifting to the last frame
       ctx.save(); zoomAbout(ctx, 1 + 0.085 * k, -50 * k, 20 * k); ctx.drawImage(AFHOLD, 0, 0);
       GSET(cam); drawRift(ctx, t); ctx.restore();
     }

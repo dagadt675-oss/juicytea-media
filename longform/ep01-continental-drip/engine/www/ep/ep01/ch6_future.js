@@ -41,6 +41,8 @@ function byLocation(la, lo) {
 }
 function plateOf(f, la, lo) {
   const P = f.properties, name = P.ADMIN || P.NAME;
+  // western New Guinea (and Aru/Tanimbar) ride the Australian plate, not Eurasia: otherwise Papua lands on Australia in Aurica
+  if (name === 'Indonesia' && lo > 130.5 && la < -0.5) return 'AU';
   if (MULTI.has(name)) return byLocation(la, lo);
   const c = P.CONTINENT;
   if (c === 'North America') return 'NA';

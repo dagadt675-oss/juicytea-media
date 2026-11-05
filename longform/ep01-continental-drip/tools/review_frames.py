@@ -18,7 +18,7 @@ for i in range(int(t0 // 15), int(math.ceil(t1 / 15))):
     tmp = os.path.join(out, f'_c{i}'); os.makedirs(tmp, exist_ok=True)
     subprocess.run(['nice', '-n', '19', 'ffmpeg', '-v', 'error', '-i', p, '-vf', f'fps={fps},scale={w}:-2', '-q:v', '3', os.path.join(tmp, 'g_%04d.jpg')], check=True)
     for k, f in enumerate(sorted(glob.glob(os.path.join(tmp, 'g_*.jpg')))):
-        t = 15 * i + k / fps
+        t = 15 * i + (k + 0.5) / fps  # fps filter output k samples the middle of [k/fps, (k+1)/fps)
         if t0 - 1e-6 <= t < t1: os.replace(f, os.path.join(out, f't_{t:07.2f}.jpg'))
         else: os.remove(f)
     os.rmdir(tmp)
