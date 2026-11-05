@@ -33,8 +33,8 @@ def main():
         # several renderers may share one chunk dir: skip chunks finished meanwhile or being written by another process
         if os.path.exists(fin): return i, 'skip (already done)'
         lock = os.path.join(cdir, f'lock_{i:05d}')
-        for q in (tmp, lock):
-            if os.path.exists(q) and time.time() - os.path.getmtime(q) < 150: return i, 'skip (in progress elsewhere)'
+        for busy in (tmp, lock):
+            if os.path.exists(busy) and time.time() - os.path.getmtime(busy) < 150: return i, 'skip (in progress elsewhere)'
         t0 = time.time()
         r = subprocess.run(['node', os.path.join(ENGINE, 'render.cjs'), '--page', 'film.html', '--q', q, '--start', str(s), '--frames', str(k),
                             '--w', str(a.w), '--h', str(a.h), '--crf', a.crf, '--out', tmp], capture_output=True, text=True)

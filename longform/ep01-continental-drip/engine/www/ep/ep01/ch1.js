@@ -62,6 +62,8 @@ export async function build(api, C) {
     title: IMG('title_1620.jpg'), bacon: IMG('bacon.jpg'), p246: IMG('ch1_bacon_n246.jpg'), p387: IMG('ch1_bacon_n387.jpg'),
     green45: IMG('green_fig45.jpg'), forster: IMG('forster.jpg'), f12: IMG('ch1_forster_p12.jpg'), f13: IMG('ch1_forster_p13.jpg'),
     greenPref: IMG('ch1_green_preface.jpg'), guyot: IMG('ch1_guyot_p22.jpg'), humboldt: IMG('ch1_humboldt.jpg'),
+    // the four future-supercontinent end states (rendered from ch6's model holds) for the s010 teaser flash
+    m0: IMG('ch1_model_0.jpg'), m1: IMG('ch1_model_1.jpg'), m2: IMG('ch1_model_2.jpg'), m3: IMG('ch1_model_3.jpg'),
   };
   await api.loadImages(Object.values(IM));
   const img = (k) => api.img(IM[k]);
@@ -205,12 +207,14 @@ export async function build(api, C) {
 
   // ================================================================== s001–s002  COLD OPEN globe (thumbnail in motion)
   const coldAlpha = (tt) => {
-    const dim = lerp(1, 0.3, prog(tt, t.melt + 0.45, t.melt + 0.75));
+    const dim = lerp(1, 0.3, prog(tt, t.melt + 0.1, t.melt + 0.4));
     return [Math.max(dim, tt >= t.sam - 0.08 ? 1 : 0), Math.max(dim, tt >= t.afr - 0.08 ? 1 : 0), Math.max(dim, tt >= t.ind - 0.08 ? 1 : 0)];
   };
   G({
-    t0: 0, t1: t.grl - 0.07, overlay: { canvas: COLD.cv, bounds: WB }, drift: 0.3,
-    keys: [{ t: 0, lat: -29, lon: 12, alt: 3.05, ease: E.lin }, { t: 8, lat: -31, lon: 30, alt: 2.8, ease: E.lin }],
+    t0: 0, t1: t.grl - 0.07, overlay: { canvas: COLD.cv, bounds: WB }, drift: 0.3, sun: { lookOffset: [0, -0.06] },
+    keys: [{ t: 0, lat: -28, lon: -24, alt: 3.2 }, { t: 1.6, lat: -29, lon: -15, alt: 3.15, ease: E.out },
+      { t: t.afr - 0.3, lat: -28, lon: -8, alt: 3.15, ease: E.inOutSine }, { t: t.ind - 0.2, lat: -22, lon: 52, alt: 3.25, ease: E.inOutExpo },
+      { t: t.grl, lat: -22, lon: 56, alt: 3.25 }],
     look: { desat: 0.3, dim: 0.35, ovAlpha: 1 },
     pre: (tt) => coldSet(coldAlpha(tt)),
     x: (ctx, tt) => {
@@ -220,14 +224,14 @@ export async function build(api, C) {
         strokeProjected(ctx, g, TIPRUN[k], { p: prog(tt, a - 0.08, a + 0.27, E.out), color: '#ffffff', width: 3.2, glow: true });
         const q = proj(...TIPS[k]); if (q.visible) F.dot(ctx, q.x, q.y, { r: 6, color: '#ffffff', ring: ((tt - a) * 1.2) % 1 });
       });
-      poleRing(ctx, tt, { r: 40 });
+      poleRing(ctx, tt, { r: 56 });
     },
   });
   cue(0, 'whoosh_soft', -12); cue(t.melt, 'shimmer', -16);
   for (const k of ['sam', 'afr', 'ind']) cue(t[k] - 0.07, 'pop_ui', -14);
 
   // ================================================================== s003–s004  Equal Earth flat map, the seven tips
-  const TIPFILL = [['grl', t.grl, 'GREENLAND', 'farewell', [170, -40]], ['fla', t.fla, 'FLORIDA', 'sable', [150, 60]], ['baja', t.baja, 'BAJA', 'lucas', [-150, 70]], ['kam', t.kam, 'KAMCHATKA', 'lopatka', [-210, 40]]];
+  const TIPFILL = [['grl', t.grl, 'GREENLAND', 'farewell', [170, -40]], ['fla', t.fla, 'FLORIDA', 'sable', [150, 60]], ['baja', t.baja, 'BAJA', 'lucas', [-125, 70]], ['kam', t.kam, 'KAMCHATKA', 'lopatka', [-210, 40]]];
   const eeTipsShot = (t0, t1, popTimes, o = {}) => base({
     t0, t1, fadeIn: o.fadeIn || 0, draw(ctx, lt, tt) {
       const v = o.view ? o.view(lt, tt) : EEV(lt + (o.viewOff || 0));
@@ -309,22 +313,26 @@ export async function build(api, C) {
     t0: G1, t1: G1e, draw(ctx, lt, tt) {
       gagBg(ctx, true);
       planet.quaternion.copy(Q_G1);
-      const al = lerp(0.02, 0.2, prog(tt, G1, G1 + 0.55, E.out)) - 0.03 * prog(tt, G1 + 1.35, G1 + 1.7) * Math.sin((tt - G1 - 1.35) * 9) * (1 - prog(tt, G1 + 1.9, G1 + 2.3));
-      hero.root.position.copy(onYZ(al)); hero.root.quaternion.setFromEuler(new THREE.Euler(al, 0, 0, 'XYZ'));
+      // walk in, lunge toward the drip as it slips (the 'catch'), then teeter at the edge
+      const wob = prog(tt, G1 + 1.35, G1 + 1.6) * (1 - prog(tt, G1e - 0.35, G1e));
+      const al = lerp(0.02, 0.2, prog(tt, G1, G1 + 0.55, E.out)) + 0.14 * prog(tt, G1 + 0.5, G1 + 1.2, E.inOut) - 0.06 * prog(tt, G1 + 1.3, G1 + 1.6, E.out)
+        + 0.05 * wob * Math.sin((tt - G1 - 1.35) * Math.PI * 2 * 2.6);
+      const pitch = 0.22 * wob * Math.sin((tt - G1 - 1.35) * Math.PI * 2 * 2.6 + 0.6);
+      hero.root.position.copy(onYZ(al)); hero.root.quaternion.setFromEuler(new THREE.Euler(al + pitch, 0, 0, 'XYZ'));
       setWet(0); bead.visible = false;
       // the drip: swells at the cape, slides down the front curve, falls into space
       drop.visible = true;
       const sw = E.outBack(prog(tt, G1 + 0.05, G1 + 0.55, E.lin));
-      const sl = prog(tt, G1 + 0.75, G1 + 1.5, E.in), a0 = 0.42, a1 = 0.98;
+      const sl = prog(tt, G1 + 0.75, G1 + 1.5, E.in), a0 = 0.42, a1 = 0.74;
       const ad = lerp(a0, a1, sl);
       let pos = onYZ(ad, 0.15), dir;
       const n = new THREE.Vector3(0, Math.cos(ad), Math.sin(ad)), tg = new THREE.Vector3(0, -Math.sin(ad), Math.cos(ad));
       dir = n.clone().lerp(tg.clone().negate(), clamp(sl * 3)).normalize();
-      if (tt > G1 + 1.5) { const dt = tt - G1 - 1.5; const tg1 = new THREE.Vector3(0, -Math.sin(a1), Math.cos(a1)); pos = onYZ(a1, 0.15).add(tg1.multiplyScalar(2.2 * dt)).add(new THREE.Vector3(0, -3.5 * dt * dt, 0.4 * dt)); dir = new THREE.Vector3(Math.sin(dt * 7) * 0.4, 1, 0.2).normalize(); }
+      if (tt > G1 + 1.5) { const dt = tt - G1 - 1.5; const tg1 = new THREE.Vector3(0, -Math.sin(a1), Math.cos(a1)); pos = onYZ(a1, 0.15).add(tg1.multiplyScalar(1.6 * dt)).add(new THREE.Vector3(0, -2.2 * dt * dt + 0.5 * dt, 0.35 * dt)); dir = new THREE.Vector3(Math.sin(dt * 7) * 0.4, 1, 0.2).normalize(); }
       drop.position.copy(pos); drop.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir); drop.scale.setScalar(Math.max(0.001, sw * (1 + 0.06 * Math.sin(tt * 14) * (1 - sl))));
       gst.key.position.set(-4, 8, 5); if (rimL) rimL.position.set(6, 3, -3.5);
       const ca = lt * 0.04;
-      gst.lookFrom([-4.0 + ca, 0.12, 2.35 + ca * 0.5], [0, 0.3, 0.95], 30);
+      gst.lookFrom([-4.4 + ca, 0.02, 2.6 + ca * 0.5], [0, 0.12, 1.2], 33);
       ctx.drawImage(gst.render(tt), 0, 0);
       drop.visible = false;
       X.sunFlare(ctx, W, H, tt, 1);
@@ -335,7 +343,7 @@ export async function build(api, C) {
   cue(G1 + 1.3, 'cartoon_fall', -10);
 
   // ================================================================== s005–s007  north/south land split, coin, the flash
-  const BAR = { x: 1440, y: 800, w: 380, h: 26 };
+  const BAR = { x: 1380, y: 800, w: 380, h: 26 };
   const S5_1 = t.entirely - 0.08;
   G({
     t0: G1e, t1: S5_1, overlay: { canvas: NORTH, bounds: WB }, drift: 0.2,
@@ -413,7 +421,7 @@ export async function build(api, C) {
   // ================================================================== s008  "why do the continents point south?"
   const S8_1 = t.s009 - 0.06;
   G({
-    t0: S7_1, t1: S8_1, overlay: { canvas: COLD.cv, bounds: WB }, drift: 0.5,
+    t0: S7_1, t1: S8_1, overlay: { canvas: COLD.cv, bounds: WB }, drift: 0.5, sun: { lookOffset: [0, -0.05] },
     keys: [{ t: 0, lat: -36, lon: 18, alt: 3.0, tilt: 0, ease: E.out }, { t: S8_1 - S7_1, lat: -56, lon: 22, alt: 2.15, tilt: 14 }],
     look: { desat: 0.3, dim: 0.3, ovAlpha: 1 },
     pre: () => coldSet([1, 1, 1]),
@@ -498,9 +506,25 @@ export async function build(api, C) {
       const kIn = prog(tt, TET0 + 0.05, TET0 + 1.5, E.inOut), kOut = prog(tt, t.wrong - 0.04, t.wrong + 0.5, E.lin);
       const k = tt < t.wrong - 0.04 ? kIn : 1 - E.outBack(kOut);
       te.userData.set(k, clamp(k * 1.4) * (1 - prog(tt, t.wrong, t.wrong + 0.3)));
-      te.rotation.y = 0.5 + 0.35 * lt; te.rotation.x = 0.12;
-      dst.lookFrom([0, -0.8, lerp(9.6, 8.6, prog(lt, 0, 3.8))], [0, -0.25, 0], 32);
+      // camera above and pulled back so the whole pyramid (south vertex included) reads in 3D; a lit continental face turned to camera
+      te.rotation.y = 2.35 + 0.35 * lt; te.rotation.x = 0.12;
+      dst.lookFrom([1.5, 2.0, lerp(11.4, 10.6, prog(lt, 0, 3.8))], [0, lerp(-0.2, -0.75, kIn), 0], 32);
       ctx.drawImage(dst.render(tt), 0, 0);
+      // thick yellow tetra edges in 2D (WebGL lines are 1 px): front edges bright, back edges faint
+      const ea = clamp(k * 1.4) * (1 - prog(tt, t.wrong, t.wrong + 0.3));
+      if (ea > 0.01) {
+        te.updateMatrixWorld(true);
+        const TV = [[-90, 0], [19.47, -75], [19.47, 45], [19.47, 165]].map(([la, lo]) => llDir(la, lo).multiplyScalar(2.2 * 1.55 * 1.002).applyMatrix4(te.matrixWorld));
+        const cam = dst.camera.position, ctr = new THREE.Vector3().setFromMatrixPosition(te.matrixWorld);
+        const dC = cam.distanceTo(ctr);
+        for (const [i, j] of [[0, 1], [0, 2], [0, 3], [1, 2], [2, 3], [3, 1]]) {
+          const mid = TV[i].clone().add(TV[j]).multiplyScalar(0.5), front = cam.distanceTo(mid) < dC;
+          const a = dst.project(TV[i]), b = dst.project(TV[j]);
+          ctx.save(); ctx.globalAlpha = ea * (front ? 1 : 0.3); ctx.lineCap = 'round';
+          ctx.strokeStyle = 'rgba(0,0,0,0.55)'; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+          ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); ctx.restore();
+        }
+      }
       X.redX(ctx, 960, 520, 170, prog(tt, t.wrong - 0.05, t.wrong + 0.17, E.lin) * (1 - prog(tt, t.last - 0.4, t.last - 0.1)));
     },
   });
@@ -518,15 +542,9 @@ export async function build(api, C) {
   let TILES = null;
   const makeTiles = () => {
     if (TILES) return TILES;
-    const tmp = mk(W, H), tc = tmp.getContext('2d');
-    g.setOverlay(USOV, WB); api._ovOwner = null;
-    const views = [[12, -60, 2.5, 25], [52, -140, 2.4, -20], [5, -125, 2.6, 60], [55, -55, 2.5, -45]];
-    TILES = views.map(([lat, lon, alt, hd], i) => {
-      api.drawGlobe(tc, { lat, lon, alt, heading: hd }, Object.assign({}, LOOK0, { dim: 0.25, desat: 0.35, ovAlpha: 0.95, exposure: 1.2 }));
-      const c = mk(W / 2, H / 2); c.getContext('2d').drawImage(tmp, 0, 0, W / 2, H / 2);
-      const q = g.project(...KANSAS);
-      return { c, us: [q.x / 2, q.y / 2] };
-    });
+    // s010 '4 MODELS' teaser: the four end states the chapter-6 payoff shows (Pangaea Proxima, Novopangaea, Amasia, Aurica),
+    // each already carrying the white US marker; tile colours match ch6's model colours
+    TILES = [IM.m0, IM.m1, IM.m2, IM.m3].map((src) => { const c = mk(W / 2, H / 2); c.getContext('2d').drawImage(api.img(src), 0, 0, W / 2, H / 2); return { c, us: null }; });
     return TILES;
   };
   const TILE_COL = [PAL.hero, PAL.cyan, PAL.yellow, PAL.green];
@@ -535,12 +553,12 @@ export async function build(api, C) {
       const tiles = makeTiles();
       ctx.fillStyle = '#05070D'; ctx.fillRect(0, 0, W, H);
       tiles.forEach((tl, i) => {
-        const x0 = (i % 2) * W / 2, y0 = Math.floor(i / 2) * H / 2, a = prog(lt, i * 0.06, i * 0.06 + 0.2);
-        const s = 1.02 + 0.03 * lt;
+        // full alpha from the first frame (no dark blink on 'crash'); stagger with a scale pop instead
+        const x0 = (i % 2) * W / 2, y0 = Math.floor(i / 2) * H / 2, a = 1;
+        const s = 1.02 + 0.03 * lt + 0.08 * (1 - E.out(prog(lt, i * 0.05, i * 0.05 + 0.18, E.lin)));
         ctx.save(); ctx.globalAlpha = a; ctx.beginPath(); ctx.rect(x0 + 4, y0 + 4, W / 2 - 8, H / 2 - 8); ctx.clip();
         ctx.drawImage(tl.c, x0 + W / 4 - W / 4 * s, y0 + H / 4 - H / 4 * s, W / 2 * s, H / 2 * s);
-        const ux = x0 + W / 4 + (tl.us[0] - W / 4) * s, uy = y0 + H / 4 + (tl.us[1] - H / 4) * s;
-        F.dot(ctx, ux, uy, { r: 7, color: '#ffffff', ring: ((lt * 1.4) + i * 0.25) % 1 });
+        if (tl.us) { const ux = x0 + W / 4 + (tl.us[0] - W / 4) * s, uy = y0 + H / 4 + (tl.us[1] - H / 4) * s; F.dot(ctx, ux, uy, { r: 7, color: '#ffffff', ring: ((lt * 1.4) + i * 0.25) % 1 }); }
         ctx.restore();
         ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = TILE_COL[i]; ctx.lineWidth = 4; ctx.strokeRect(x0 + 6, y0 + 6, W / 2 - 12, H / 2 - 12); ctx.restore();
       });
@@ -606,8 +624,8 @@ export async function build(api, C) {
         X.underline(ctx, m2, BX.austrum, prog(tt, P387 + 0.45, P387 + 0.9, E.inOut));
         if (tt > P387 + 0.95) X.stamp(ctx, 'x2', r[0] + r[2] - 40, r[1] + 40, prog(tt, P387 + 0.95, P387 + 1.15, E.lin), { size: 84, color: PAL.hero, rot: 0.18, bg: 'rgba(20,8,4,0.6)' });
       }
-      pillT(ctx, '"NARROW AND POINTED TOWARD THE SOUTH"', W / 2, 920, tt, t.narrow - 0.07, t.narrow + 1.0, { size: 40 });
-      pillT(ctx, '"ACUMINATI": SHARPENED TO A POINT', W / 2, 920, tt, t.narrow + 1.0, t.breath - 0.6, { size: 40 });
+      pillT(ctx, '"NARROW AND POINTED TOWARD THE SOUTH"', W / 2, 880, tt, t.narrow - 0.07, t.narrow + 1.9, { size: 46 });
+      pillT(ctx, '"ACUMINATI": SHARPENED TO A POINT', W / 2, 880, tt, t.narrow + 1.9, t.breath - 0.6, { size: 46 });
     },
   });
   cue(t.narrow - 0.05, 'paper_rustle', -16); cue(P387 + 0.95, 'stamp', -18);

@@ -157,7 +157,7 @@ export async function build(api, C) {
   const antX = L.ringsXYZ(antR);
   const antMirX = L.ringsXYZ(antR.map(r => r.map(([lo, la]) => [lo + 180, -la])));
   const meanDir = (arrs) => { let x = 0, y = 0, z = 0; for (const a of arrs) for (let i = 0; i < a.length; i += 3) { x += a[i]; y += a[i + 1]; z += a[i + 2]; } const n = Math.hypot(x, y, z); return [x / n, y / n, z / n]; };
-  const arcC = meanDir(arcX), antC = L.dir(...DATA.continents.antarctica.centroid);
+  const arcC = ARC.features[0].properties?.centroid_latlon ? L.dir(...ARC.features[0].properties.centroid_latlon) : meanDir(arcX), antC = L.dir(...DATA.continents.antarctica.centroid);
 
   // ---------------- 3D actor timelines (absolute) ----------------
   S.heroF.play(cB - 1, 'Idle').play(tm.boat - 0.25, 'Wave', { fade: 0.2 }).play(tm.stand + 0.1, 'Interact', { fade: 0.25 }).play(tm.stand + 1.4, 'Idle', { fade: 0.3 });
@@ -183,7 +183,7 @@ export async function build(api, C) {
     draw2d: (ctx, lt, t, pj) => {
       if (t >= tm.ocean25 - 0.3) {
         const k = prog(t, tm.ocean25 - 0.2, tm.ocean25 + 0.9, E.out);
-        ctx.save(); ctx.globalAlpha = 0.28 * k; ctx.fillStyle = PAL.cyan; ctx.fill(L.globePath(pj, arcX, false)); ctx.restore();
+        ctx.save(); ctx.globalAlpha = 0.28 * k; ctx.fillStyle = PAL.cyan; ctx.fill(L.globePath(pj, arcX, true)); ctx.restore();
         L.strokeGlobe(ctx, pj, arcX, { p: k, color: PAL.cyan, width: 2.6 });
       }
       if (t >= tm.np - pre) {
@@ -403,7 +403,7 @@ export async function build(api, C) {
   const dragTh = 172 * Math.PI / 180; // rotation about +z: negative angle moves the pole down the 0° meridian
   const tDragE = tm.drag + 2.5, tBack = tm.but29 + 0.25;
   const dragState = (t) => {
-    let k = prog(t, tm.drag, tDragE, E.inOut); k -= prog(t, tBack, tBack + 1.7, E.inOut);
+    let k = prog(t, tm.drag - pre, tDragE, E.out); k -= prog(t, tBack, tBack + 1.7, E.inOut);
     const R1 = { ax: [0, 0, 1], th: -dragTh * k };
     const c1 = L.rotVec(arcC, R1);
     const R2 = L.rotAB(c1, antC, prog(t, tDragE - 0.6, tDragE + 0.3, E.inOut) * (1 - prog(t, tBack, tBack + 0.6)));
@@ -423,7 +423,7 @@ export async function build(api, C) {
       // Antarctica (orange) outline + fill
       if (t > tDragE - 0.2) {
         const k = prog(t, tDragE - 0.1, tm.match, E.out);
-        ctx.save(); ctx.globalAlpha = 0.32 * prog(t, tm.match - 0.3, tm.match + 0.2); ctx.fillStyle = PAL.hero; ctx.fill(L.globePath(pj, antX, false)); ctx.restore();
+        ctx.save(); ctx.globalAlpha = 0.32 * prog(t, tm.match - 0.3, tm.match + 0.2) * (1 - prog(t, tBack, tBack + 0.35)); ctx.fillStyle = PAL.hero; ctx.fill(L.globePath(pj, antX, true)); ctx.restore();
         L.strokeGlobe(ctx, pj, antX, { p: k, color: PAL.hero, width: 3 });
       }
       const R = L.rotXYZ; const moved = arcX.map(a => R(R(a, s.R1), s.R2));
@@ -443,9 +443,9 @@ export async function build(api, C) {
     t0: cCut, t1: cTop, draw(ctx, lt, t) {
       const gr = ctx.createRadialGradient(W / 2, H / 2, 80, W / 2, H / 2, H); gr.addColorStop(0, '#12213b'); gr.addColorStop(1, '#03050a'); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
       const k = prog(t, cCut, cTop, E.inOutSine);
-      const p = prog(t, tm.line, tm.line + 1.2, E.inOut);
-      const d = lerp(8.6, 7.4, k), a = Math.PI / 4 + 0.15 - 0.12 * k;
-      const r = S.cutaway(ctx, t, { lat: 90, lon: 0, p, spin: 0.6 + 0.15 * k, cam: [Math.cos(a) * d, lerp(4.4, 3.6, k), Math.sin(a) * d], target: [0, 0.1, 0] });
+      const p = prog(t, tm.line - pre, tm.line + 1.0, E.out);
+      const d = lerp(12, 11, k), a = Math.PI / 4 + 0.15 - 0.12 * k;
+      const r = S.cutaway(ctx, t, { lat: 90, lon: 0, p, spin: 0.6 + 0.15 * k, cam: [Math.cos(a) * d, lerp(5.6, 4.9, k), Math.sin(a) * d], target: [0, 0, 0] });
       const top = S.project(r.top), bot = S.project(r.bottom), hd = S.project(r.end);
       if (p > 0 && p < 1) L.glowDot(ctx, hd.x, hd.y, 46, PAL.cyan, 0.9);
       if (t > tm.line - pre) L.pulse(ctx, top.x, top.y, t - tm.line + pre, { color: PAL.cyan, r: 9 });
@@ -458,7 +458,7 @@ export async function build(api, C) {
   push(gscene({
     t0: cTop, t1: cChina, ovKey: 'ch2:antipodes', install: async (gl) => { await gl.setOverlayURL('tex/data/antipodes.png'); },
     cam: (lt, t) => {
-      const k = prog(t, tm.poles - 0.1, tm.poles + 2.1, E.inOut);
+      const k = prog(t, tm.poles - 0.4, tm.poles + 1.8, E.inOut);
       const k2 = prog(t, tm.brings - 0.6, cChina + 0.2, E.inOutSine);
       const ll = L.ll([lerp(1e-3, Math.cos(25 * Math.PI / 180), k), lerp(1, Math.sin(25 * Math.PI / 180), k), 0]);
       const lat = lerp(89.95, 24, k), lon = lerp(10, 8, k) + 80 * k2 + (t - cTop) * 0.4;
@@ -469,7 +469,7 @@ export async function build(api, C) {
       const fade = 1 - prog(t, tm.poles + 0.2, tm.poles + 1.2);
       if (fade > 0) {
         ctx.save(); ctx.globalAlpha = fade;
-        const ap = L.globePath(pj, arcX, false), mp = L.globePath(pj, antMirX, false);
+        const ap = L.globePath(pj, arcX, true), mp = L.globePath(pj, antMirX, true);
         ctx.save(); ctx.globalAlpha *= 0.22; ctx.fillStyle = PAL.cyan; ctx.fill(ap); ctx.restore();
         L.strokeGlobe(ctx, pj, arcX, { color: PAL.cyan, width: 2.6 });
         const mk = prog(t, tm.ant - pre, tm.ant + 1.5, E.inOut);
@@ -554,8 +554,8 @@ export async function build(api, C) {
       const gr = ctx.createRadialGradient(W / 2, H / 2, 80, W / 2, H / 2, H); gr.addColorStop(0, '#12213b'); gr.addColorStop(1, '#03050a'); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
       const k = prog(t, cDrill, cOcean, E.inOutSine);
       const p = prog(t, cDrill + 0.25, cOcean - 0.15, E.inOutSine);
-      const a = Math.PI / 4 + 0.1 - 0.1 * k, d = lerp(8.0, 7.2, k);
-      const r = S.cutaway(ctx, t, { lat: KS[0], lon: KS[1], p, spin: 2.2, rider: p > 0.01 && p < 0.985, cam: [Math.cos(a) * d, lerp(3.6, 2.6, k), Math.sin(a) * d], target: [0, -0.1 - 0.4 * k, 0] });
+      const a = Math.PI / 4 + 0.1 - 0.1 * k, d = lerp(11.5, 10.5, k);
+      const r = S.cutaway(ctx, t, { lat: KS[0], lon: KS[1], p, spin: 2.2, rider: p > 0.01 && p < 0.985, cam: [Math.cos(a) * d, lerp(5.0, 3.8, k), Math.sin(a) * d], target: [0, -0.15 * k, 0] });
       const top = S.project(r.top), hd = S.project(r.end);
       L.pulse(ctx, top.x, top.y, t - cDrill, { color: PAL.yellow, r: 8, alpha: 1 - prog(t, cDrill + 1.5, cDrill + 2) });
       if (p > 0 && p < 1) L.glowDot(ctx, hd.x, hd.y, 60, PAL.cyan, 0.85);
@@ -570,7 +570,7 @@ export async function build(api, C) {
       const gr = ctx.createRadialGradient(W / 2, H * 0.62, 60, W / 2, H * 0.55, H * 1.05); gr.addColorStop(0, '#123a66'); gr.addColorStop(1, '#03060c'); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
       const u = t - popAt;
       let y = -0.47 + 0.035 * Math.sin(t * 2.4), rz = 0.06 * Math.sin(t * 1.9);
-      if (popAt != null && u < 0.85) { if (u < 0) y = -1.3; else if (u < 0.32) y = lerp(-1.3, 0.55, E.out(u / 0.32)); else y = lerp(0.55, -0.47, E.in((u - 0.32) / 0.53)); rz = 0; }
+      if (popAt != null && u < 0.85) { if (u < 0) y = -1.3; else if (u < 0.32) y = lerp(-1.3, 0.3, E.out(u / 0.32)); else y = lerp(0.3, -0.47, E.in((u - 0.32) / 0.53)); rz = 0; }
       const k = prog(t, t0, t1, E.inOutSine);
       S.planet(ctx, t, { lat: KSA[0], lon: KSA[1], spin: 1.1 + 0.06 * k, hero: { pos: [0, y, 0], ry: opts.ry ?? 0.3, rz }, camAng: (opts.ang ?? 0.3) - 0.06 * k, dist: opts.dist ?? 4.7, camH: 0.62, target: [0, 0.32, 0] });
       const wp = S.project(new S.THREE.Vector3(0, 0, 0));
@@ -606,7 +606,7 @@ export async function build(api, C) {
   sfx(tm.island - 0.05, 'pop_ui', -14);
 
   // ======================= s033/s034 M: Equal Earth flat map — US vs China antipodes, Argentina =======================
-  const usF = feat('United States of America'), argF = feat('Argentina');
+  const usF = feat('USA'), argF = feat('Argentina');
   const usR = rings(usF), chR = rings(chinaF), arR = rings(argF);
   const saR = CTY.features.filter(f => f.properties.CONTINENT === 'South America').flatMap(f => rings(f));
   const chPath = L.eePath(chR), arPath = L.eePath(arR), saPath = L.eePath(saR);
@@ -616,7 +616,7 @@ export async function build(api, C) {
   const eqPath = (() => { const p = new Path2D(); const [x0, y0] = L.ee(-180, 0), [x1] = L.ee(180, 0); p.moveTo(x0, y0); p.lineTo(x1, y0); return { p, len: x1 - x0 }; })();
   const eeBase = im('tex/equal_earth.jpg'), eeGrey = im('ch2_ee_grey.jpg'), eeAntiImg = im('ch2_ee_anti.png');
   const vWorld = { cx: 1800, cy: 900, zoom: 1.04 };
-  const vIndian = L.eeViewAt(62, 2, 1.62), vSA = L.eeViewAt(-70, -33, 2.15), vWorld2 = { cx: 1800, cy: 880, zoom: 1.06 };
+  const vIndian = L.eeViewAt(60, -3, 1.3), vSA = L.eeViewAt(-68, -28, 2.15), vWorld2 = { cx: 1800, cy: 880, zoom: 1.06 };
   const tFlipUS0 = tm.us - pre, tFlipUS1 = tm.us + 1.0, tFlipCH0 = tm.start - pre, tFlipCH1 = tm.start + 1.1, tFlipAR0 = tm.arg - 0.6, tFlipAR1 = tm.arg + 0.25;
   const mView = (t) => {
     let v = lerpView(vWorld, vIndian, prog(t, cFlat, tm.hemi + 0.2, E.inOut));
@@ -684,7 +684,7 @@ export async function build(api, C) {
       L.pulse(ctx, ka[0], ka[1], t - cFlat, { color: PAL.yellow, r: 8, alpha: 1 - prog(t, tm.start - 0.6, tm.start - 0.2) });
       // texts
       const p1 = prog(t, tm.china2 - 0.75, tm.china2 - 0.45) * (1 - prog(t, tm.start - 0.5, tm.start - 0.2));
-      F.pill(ctx, 'US AND CHINA: ZERO OVERLAP', W / 2, 110, { anchor: 'center', size: 42, alpha: p1 });
+      F.pill(ctx, 'US AND CHINA: ZERO OVERLAP', 140, 110, { anchor: 'left', size: 42, alpha: p1 });
       const sa = 1 - prog(t, tm.start - 0.5, tm.start - 0.2);
       if (t > tm.china2 - pre && sa > 0) L.juiceStamp(ctx, W / 2 + 360, 330, t - (tm.china2 - pre), 'FALSE', { size: 74, alpha: sa, spin: 0.6 });
       // shovel taps Argentina

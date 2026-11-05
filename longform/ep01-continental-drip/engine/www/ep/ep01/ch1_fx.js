@@ -67,11 +67,18 @@ export function printKB(ctx, img, k, rect, from, to, o = {}) {
   ctx.strokeStyle = 'rgba(70,50,25,0.45)'; ctx.lineWidth = 1.5; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
   ctx.restore();
   const cr = Math.cos(rot), sr = Math.sin(rot);
-  return (u, v) => {
+  const map = (u, v) => {
     const px = x + (u * img.width - sx) / sw * w, py = y + (v * img.height - sy) / sh * h;
     if (!rot) return [px, py];
     const dx = px - cxr, dy = py - cyr; return [cxr + dx * cr - dy * sr, cyr + dx * sr + dy * cr];
   };
+  // the visible print area in screen space, so marks drawn through this map can be clipped to the page
+  map.clipPoly = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]].map(([px, py]) => { const dx = px - cxr, dy = py - cyr; return [cxr + dx * cr - dy * sr, cyr + dx * sr + dy * cr]; });
+  return map;
+}
+function clipToPrint(ctx, map) {
+  if (!map.clipPoly) return;
+  ctx.beginPath(); map.clipPoly.forEach(([px, py], i) => i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)); ctx.closePath(); ctx.clip();
 }
 // hand-drawn underline under a normalized box [x, y, w, h] of the image
 export function underline(ctx, map, box, p, o = {}) {
@@ -80,13 +87,15 @@ export function underline(ctx, map, box, p, o = {}) {
   const a = map(bx - 0.004, yy), b = map(bx + bw + 0.004, yy);
   const pts = []; const n = 14;
   for (let i = 0; i <= n; i++) { const u = i / n; pts.push([lerp(a[0], b[0], u), lerp(a[1], b[1], u) + Math.sin(u * 9.3 + bx * 37) * 1.8 + (u - 0.5) * 2]); }
+  ctx.save(); clipToPrint(ctx, map);
   F.glowPath(ctx, pts, { p, color: o.color || PAL.hero, width: o.width || 5.5, alpha: o.alpha ?? 1 });
+  ctx.restore();
 }
 // translucent marker highlight behind text box (drawn on top with multiply-ish alpha)
 export function highlight(ctx, map, box, p, o = {}) {
   if (p <= 0) return;
   const [bx, by, bw, bh] = box; const a = map(bx - 0.004, by - 0.002), b = map(bx + bw + 0.004, by + bh + 0.004);
-  ctx.save(); ctx.globalAlpha *= (o.alpha ?? 0.28); ctx.fillStyle = o.color || PAL.hero;
+  ctx.save(); clipToPrint(ctx, map); ctx.globalAlpha *= (o.alpha ?? 0.28); ctx.fillStyle = o.color || PAL.hero;
   ctx.fillRect(a[0], a[1], (b[0] - a[0]) * clamp(p), b[1] - a[1]); ctx.restore();
 }
 
