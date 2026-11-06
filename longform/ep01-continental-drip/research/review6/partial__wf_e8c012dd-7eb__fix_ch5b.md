@@ -1,13 +1,5 @@
 # fix ch5b (still running; latest notes)
 
-S8-5 (twist at 21977 to 21978) and S8-3 (date runs off the card) are both confirmed. Next, S8-6 and S8-7 around the split screen and the reference card.
-
----
-
-The whoosh peaks about 0.15 s after its cue. If the cue stays at 726.54, it lands mid-flip in the earlier run 2, so I'll keep that cue time. Next, verifying S9-1 (the dip at the Cape Agulhas cut).
-
----
-
 S9-1 confirmed (frame 24931 is near black at luma 4.4, then ramps up over 3 frames). Next, S9-2 (N1 to N2) and the S9-4/S9-5 timing.
 
 ---
@@ -29,3 +21,11 @@ The bedrock wipe is a real visual defect: a hard rectangle sweeps across the voi
 ---
 
 R1 confirmed: about 1.1 s of near-empty navy (23276-23308) with only a faint scan line before the grid pops in. Next, S8-4 (needles overshooting the bottom-row tiles).
+
+---
+
+I've verified every reported item. Before editing, I'm backing up the original module so I can diff and revert.
+
+---
+
+Now the edits. First S8-2: fade B1's tip arrows out, then ease B2's framing in from where B1 ends.

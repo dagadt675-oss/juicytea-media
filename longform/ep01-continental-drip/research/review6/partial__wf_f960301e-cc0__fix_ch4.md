@@ -1,17 +1,5 @@
 # fix ch4 (still running; latest notes)
 
-Now ch4.js. First the S6-1 key times, keeping tGraz (and so the pop and whoosh cues) at its original value.
-
----
-
-Now the Graz shot: S6-2 (fade the dot with the overlay) and S6-3 (end on the spin shot's camera and look, fade the "?"), plus a hard cut into the spin shot.
-
----
-
-Now S6-4 (keep the Villumsen keys inside the photo) and S6-6 (white ramp ends at tIce, ice shot starts on its own white).
-
----
-
 Now the slow push-in during the '33 YEARS TOO LATE' hold (fan panel item).
 
 ---
@@ -29,3 +17,15 @@ All edits are in. I'll review the full diff and syntax-check both modules before
 ---
 
 Both modules parse. Before rendering, I'll rerun the crop simulation with the new Villumsen keys to confirm the pan never touches the clamp and has no velocity kinks.
+
+---
+
+The render exited 0 with 150 frames. Test-video frame 0 is film frame 15540, so I'll grab test frames 10-45 (film 15550-15585) to judge the push and the reveal.
+
+---
+
+That crop missed the dot. I'll read the tile to locate it.
+
+---
+
+In the test, the Austria highlight and the Graz dot now fade out together (test frames 108-114). I'll crop that region at full resolution to confirm the dot fades smoothly rather than popping.

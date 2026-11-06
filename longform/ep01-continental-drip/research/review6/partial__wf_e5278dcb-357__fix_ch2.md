@@ -1,13 +1,5 @@
 # fix ch2 (still running; latest notes)
 
-The US now fades in at the corner over about 10 frames as the zoom-out reveals it. Numeric check on the top-left region (new versus raw chunk 17, which covers 7650-8099):
-
----
-
-The one-frame jump at 7882 (diff 8.33) is now a gradual ramp merging into the zoom-out. S3-6 fixed. Now the China copy (S4-11):
-
----
-
 The copy now fades in over 8007-8012 and then peels off, instead of snapping China grey in one frame. Numeric check on a box over China:
 
 ---
@@ -29,3 +21,11 @@ After the sort every vacated cell keeps its unlit square, so no more moth-eaten 
 ---
 
 The black cards are gone; the globes now sit as round discs on the navy grid. I notice a thin dark arc on the upper edge of the bottom-middle globe, so I'm zooming in to check whether that's new.
+
+---
+
+The Pacific now begins lighting up right after the 9602 cut and is mostly lit by "Pacific" (about 9614). S4-9 fixed. Now the continent arrivals at the rim, North America first (around 9668):
+
+---
+
+Europe also comes over the top limb gradually (translucent at 9703, firmer at 9704). Next Asia and the hero hand-off (S4-1), frames 9745-9809:
