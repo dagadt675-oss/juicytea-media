@@ -1,9 +1,5 @@
 # fix ch2 (still running; latest notes)
 
-Europe also comes over the top limb gradually (translucent at 9703, firmer at 9704). Next Asia and the hero hand-off (S4-1), frames 9745-9809:
-
----
-
 The globe is already filled orange by the pour here, so the orange count can't isolate Asia. Visual check instead:
 
 ---
@@ -29,3 +25,7 @@ Re-rendering the corner moment (10280-10319) to verify:
 ---
 
 Those frames show the x-ray edges inside the globe brightening steadily (0.85·xr); the 10309 step is my 170-threshold metric tipping over, not a visual pop. Now the emergence itself:
+
+---
+
+You've hit your 5-hour limit · resets 1:30pm (UTC)

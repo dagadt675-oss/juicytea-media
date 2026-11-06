@@ -1,9 +1,5 @@
 # fix ch5a (still running; latest notes)
 
-While that renders, let me review the full diff against the original.
-
----
-
 While the zipper render runs, let me prepare a slider-tracking check (yellow-pixel centroid per frame).
 
 ---
@@ -29,3 +25,7 @@ The slider rides smoothly up the seam with the cyan strip filling in behind it. 
 ---
 
 G looks right. While the H-scene renders run, let me pre-compute the expected time markers for the remaining checks.
+
+---
+
+You've hit your 5-hour limit · resets 1:30pm (UTC)

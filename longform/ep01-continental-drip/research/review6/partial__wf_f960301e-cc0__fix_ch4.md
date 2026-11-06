@@ -1,9 +1,5 @@
 # fix ch4 (still running; latest notes)
 
-In the test, the Austria highlight and the Graz dot now fade out together (test frames 108-114). I'll crop that region at full resolution to confirm the dot fades smoothly rather than popping.
-
----
-
 To judge the pan motion I'll track a patch on Villumsen's face frame to frame (template matching) in both the delivered film and the test render.
 
 ---
@@ -29,3 +25,7 @@ I'll block in the foreground until the background render reports its exit line.
 ---
 
 The render succeeded. I'll start the next one (seafloor flip and arrows, film 17040-17189) in the background while I analyse this clip.
+
+---
+
+You've hit your 5-hour limit · resets 1:30pm (UTC)

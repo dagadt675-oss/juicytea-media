@@ -1,17 +1,5 @@
 # fix ch6 (still running; latest notes)
 
-Now S10-13: interpolate the sparks along each arm, fade them in after the crack draw-on, and fade them at both ends of an arm so the wrap is invisible.
-
----
-
-Now the grid card border pop flagged by the retention panels: the full-screen shortcut should only take over once the card actually fills the frame.
-
----
-
-Let me syntax-check the module before rendering.
-
----
-
 The module parses. Now the first test render: gag 10a through the splash cross-fade (S10-1, S10-2, the first S10-3 transition), starting a little before the first run.
 
 ---
@@ -29,3 +17,15 @@ The first cross-fade is fixed: the gag dissolves into the splash map over 9 fram
 ---
 
 The chunks use the same BT.601 tagging as my test, so they are the right baseline. Let me write a compare helper that reads the original frame from its chunk and diffs it against my test render.
+
+---
+
+The residual sits along the ridge line and the gap outline, which suggests a small geometric shift rather than a brightness pop. Let me crop both frames side by side at full resolution.
+
+---
+
+Re-rendering the switch to confirm the carried-over camera motion.
+
+---
+
+You've hit your 5-hour limit · resets 1:30pm (UTC)

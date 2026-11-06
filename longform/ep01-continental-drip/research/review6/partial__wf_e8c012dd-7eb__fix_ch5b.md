@@ -1,13 +1,5 @@
 # fix ch5b (still running; latest notes)
 
-Now N1/N2/N3: S9-2 (fade the stamp and coin, then tilt the camera instead of the jump cut), S9-4 (scar lines draw across "tore apart around Antarctica") and S9-5 (cut to N3 on "The small ones").
-
----
-
-Let me review the full diff before rendering.
-
----
-
 The machine is heavily loaded (load around 25, 11 other renders running), so it's about 3.6 s per frame. I'll keep test renders short. Checking the B1 to B2 result.
 
 ---
@@ -29,3 +21,11 @@ S8-3 is fixed: both lines now sit inside the card with a right margin matching t
 ---
 
 The F/G1 render is done. Checking the divider (S8-6) and the card's first frames (S8-7).
+
+---
+
+S8-4 is fixed: at 23468 all four bottom-row needles end inside their tiles, and they stay inside after the relayout. Let me look closer at York's swing to judge the length growth.
+
+---
+
+You've hit your 5-hour limit · resets 1:30pm (UTC)
