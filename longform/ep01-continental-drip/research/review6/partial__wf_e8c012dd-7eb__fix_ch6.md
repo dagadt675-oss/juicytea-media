@@ -1,9 +1,5 @@
 # fix ch6 (still running; latest notes)
 
-Let me read the ch6 helper files and edit.js.
-
----
-
 Now the timing markers and segments for ch6.
 
 ---
@@ -29,3 +25,7 @@ Let me check the reviewer's FK analysis script to validate the clip-direction cl
 ---
 
 The FK numbers confirm the clip directions (Run_Left's planted foot moves -x, so the clip travels +x, which is screen-right for a camera-facing hero). Let me look at the reviewer's crop of the feet.
+
+---
+
+S10-2 is confirmed: the hero stands in Idle and glides from about 1320 px to about 1080 px over 28098-28134. Frame 28138 also shows the black blink (S10-3). Let me check all three S10-3 transitions.

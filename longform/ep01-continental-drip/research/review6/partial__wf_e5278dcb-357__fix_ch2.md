@@ -1,21 +1,5 @@
 # fix ch2 (still running; latest notes)
 
-Now the stamp flight/landing in ch2.js.
-
----
-
-All edits are in. Syntax check of the modified module files before rendering:
-
----
-
-Checking whether any other module imports ch2_lib.js (my lib edits are additive with unchanged defaults, but I want to be sure).
-
----
-
-Only ch2.js uses ch2_lib.js, and the existing FALSE stamp call keeps its defaults. Starting test renders, first the G→H cut (S3-1/S3-2): frames 7085-7184.
-
----
-
 Rendered in 61 s, exit 0. Checking the log for scene errors and viewing the cut (video index 0 = film frame 7085).
 
 ---
@@ -29,3 +13,19 @@ The overlay now holds from 6895 through "not more land" and fades out at about 6
 ---
 
 Smooth: luma eases down as the overlay fades and the headline then fades in, with no dip. S3-8 fixed. Next S3-3, the forward drag (6220-6339):
+
+---
+
+The drag now starts, travels and lands smoothly with the camera following. Confirming the speed profile numerically (frame-difference ramp) against the raw chunk:
+
+---
+
+The return is smooth too: gradual start at 6408, peak around 6434, eased stop by 6468 (8 frames of rest before the designed hard cut at 6476). S3-3 fixed. Next S3-4, the roll (7510-7579):
+
+---
+
+The hero is small in a full frame, so I'll add a crop option to my grabber and look at a close-up of the pop-out.
+
+---
+
+The roll now completes (inverted around 7530-7538, upright by 7542) instead of being abandoned mid-air. I need a wider crop to confirm the head stays above the waterline while inverted.
