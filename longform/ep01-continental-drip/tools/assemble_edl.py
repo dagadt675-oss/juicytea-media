@@ -37,7 +37,7 @@ def main():
         f = f'[{a}:v]trim=end_frame={m - k0},setpts=PTS-STARTPTS'
         if start: f += f',tpad=start_mode=clone:start={start}'
         if post: f += f',tpad=stop_mode=clone:stop={post}'
-        fc.append(f + f'{scale}[p{i}]'); labels.append(f'[p{i}]')
+        fc.append(f + f'{scale},settb=AVTB[p{i}]'); labels.append(f'[p{i}]')   # one timebase everywhere: xfade refuses a concat output (1/1e6) against a raw input (1/15360)
         r['_len'] = (m - k0) + start + post
     # chain the ranges: concat at plain joins, xfade at dissolve joins (offset in the accumulated output timeline)
     acc, acc_len = labels[0], R[0]['_len']
