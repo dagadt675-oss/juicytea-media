@@ -1,9 +1,5 @@
 # finish ch5a (still running; latest notes)
 
-The house gag holds through the end of the shot (porch light on, cabin seated). Let me check the queue; the slam re-render should be first.
-
----
-
 The simulated sway decays smoothly (reversals every 3-4 frames, steps ≤10 px early, ≤3 px after 0.3 s, ending at 0.6 px). Let me wait for the slam re-render to finish.
 
 ---
@@ -29,3 +25,7 @@ The M→N handoff is clean: the white "43" fades out before the ink "43" fades i
 ---
 
 The F render finished (exit 0). First the crack rumble, measured the same way as the master.
+
+---
+
+Tfwd is identical before scene M (max |ΔT| = 0), so the clock change only touches scene M onward. Let me wait for the O render.
