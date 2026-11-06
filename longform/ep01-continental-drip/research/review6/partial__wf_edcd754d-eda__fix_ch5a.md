@@ -1,13 +1,5 @@
 # fix ch5a (still running; latest notes)
 
-Now scenes O and P (drift retime, TODAY/number sequencing, counter dissolve, ripple phase and camera continuity).
-
----
-
-Now the house gag (scene J): hide the edge-on shadow disc, add a soft contact shadow, seat the cabin on the limb.
-
----
-
 Let me syntax-check both module files.
 
 ---
@@ -29,3 +21,11 @@ While that renders, let me review the full diff against the original.
 ---
 
 While the zipper render runs, let me prepare a slider-tracking check (yellow-pixel centroid per frame).
+
+---
+
+While the renders run, let me look at the first finished zipper frames as soon as they exist. Meanwhile, here is a tiling helper for test videos.
+
+---
+
+Madagascar's 180-Ma polygon sits in the channel between Africa and India, which is the correct Gondwana position, so un-excluding it is right. Waiting for the render monitor now.
