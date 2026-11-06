@@ -1,17 +1,5 @@
 # fix ch6 (still running; latest notes)
 
-Now S10-8: the Aurica glow uses the time-based alpha for the still as well, so the still matches the first live frame.
-
----
-
-Now S10-10: ease the filmstrip scroll in, centred on the old start so every frame after the ramp is unchanged.
-
----
-
-Now the filmstrip (S10-4, S10-11, S10-12). Let me view the current FS block before rewriting it.
-
----
-
 I need to avoid a few uncovered pixels at the screen edges when the copies are shifted, so I'll give the offscreen layer a horizontal margin and shift the source rectangle instead.
 
 ---
@@ -29,3 +17,15 @@ Let me syntax-check the module before rendering.
 ---
 
 The module parses. Now the first test render: gag 10a through the splash cross-fade (S10-1, S10-2, the first S10-3 transition), starting a little before the first run.
+
+---
+
+The render exited 0. Let me check for scene errors and look at the runs.
+
+---
+
+The run now heads left. To judge foot planting I need full-resolution crops of the feet over the planted phase (computed as film 934.435-934.677, i.e. test frames 28-35).
+
+---
+
+The first cross-fade is fixed: the gag dissolves into the splash map over 9 frames with luma falling smoothly from 27.4 to 21.3, and no black frame. Next render: the s097 to s098 handover (S10-5).

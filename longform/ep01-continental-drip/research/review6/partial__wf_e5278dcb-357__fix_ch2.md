@@ -1,9 +1,5 @@
 # fix ch2 (still running; latest notes)
 
-After the sort every vacated cell keeps its unlit square, so no more moth-eaten grids. S4-8 fixed. Next the cap-tile grid (S4-4), frames 9215-9264:
-
----
-
 The black cards are gone; the globes now sit as round discs on the navy grid. I notice a thin dark arc on the upper edge of the bottom-middle globe, so I'm zooming in to check whether that's new.
 
 ---
@@ -29,3 +25,7 @@ The montage water globe is now a crisp round globe on the navy grid, with no squ
 ---
 
 South disc on clean navy, the antipode map crisp rather than milky, and the round water globe. S4-3/S4-4 fixed. Next S4-7 (drip headline at the 10037 cut), frames 10025-10074:
+
+---
+
+The x-ray onset is a smooth 20-frame ramp (31.9 → 37.1, max diff 0.75), so the look change is now an intended dissolve rather than a seam. Now the corner glow (S4-6):

@@ -1,9 +1,5 @@
 # fix ch4 (still running; latest notes)
 
-That crop missed the dot. I'll read the tile to locate it.
-
----
-
 In the test, the Austria highlight and the Graz dot now fade out together (test frames 108-114). I'll crop that region at full resolution to confirm the dot fades smoothly rather than popping.
 
 ---
@@ -29,3 +25,7 @@ The render is running. I'll load the Monitor tool so I can wait on it without po
 ---
 
 I'll block in the foreground until the background render reports its exit line.
+
+---
+
+The render succeeded. I'll start the next one (seafloor flip and arrows, film 17040-17189) in the background while I analyse this clip.
