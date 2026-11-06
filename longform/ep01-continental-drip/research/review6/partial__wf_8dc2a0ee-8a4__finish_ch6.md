@@ -1,9 +1,5 @@
 # finish ch6 (still running; latest notes)
 
-The spark render finished (exit 0). Let me track the sparks and look at the fade-in.
-
----
-
 The sparks now glide 2-5 px per frame (1154 → 1192 over 13 frames), where the original held and then hopped 15-25 px. Now the fade-in after the crack draw-on.
 
 ---
@@ -29,3 +25,7 @@ The spin render finished (exit 0). Let me view the spin peak, same frames as the
 ---
 
 Seamless: the ridge keeps its brightness, the gap, bus and continent tint carry through, and the pill fades on its schedule. S10-5 is fixed. Next job: the Amasia shrink and Aurica expand/handover.
+
+---
+
+The words' left edge stays at x=1238 in every frame, so the line no longer re-centres. The right-edge numbers look odd (1640 while n should still be 10), so let me look at the frames.
