@@ -7,7 +7,7 @@ import * as F from '../../lib/fx.js';
 import { globeShot } from '../../lib/shots.js';
 import { loadGeo, findFeature, rings, makeCanvas, fillEquirect, strokeProjected, gcLine } from '../../lib/geo.js';
 import { region, dripArrow } from '../../lib/beats.js';
-import { keyAt, cv, deskBg, shadowSprite, drawPage, highlighter, underline, ee, EE_W, EE_H, inwardArrows, questionMark, stamp, redX, checkMark, wrap, glowSprite } from './ch3_lib.js';
+import { keyAt, cv, deskBg, shadowSprite, drawPage, highlighter, underline, ee, EE_W, EE_H, inwardArrows, questionMark, stamp, redX, checkMark, wrap, glowSprite, outExpoN } from './ch3_lib.js';
 import { makeTetraRig } from './ch3_tetra.js';
 import { makeCardRig, makeKidsRig, makeCutRig } from './ch3_stages.js';
 const { PAL, E, prog, env, clamp, lerp } = F;
@@ -69,7 +69,8 @@ export async function build(api, C) {
 
   const scenes = [];
   const base = (t0, t1, draw, o = {}) => scenes.push(Object.assign({ t0, t1, layer: 0, draw }, o));
-  const topPill = (ctx, s, t, a0, a1, o = {}) => { const a = env(t, a0, a1, o.fi ?? 0.25, o.fo ?? 0.3); if (a > 0) F.pill(ctx, s, o.x ?? W / 2, o.y ?? 112, { anchor: 'center', size: o.size || 38, alpha: a, border: o.border, color: o.color }); };
+  const topPill = (ctx, s, t, a0, a1, o = {}) => { const a = env(t, a0, a1, o.fi ?? 0.25, o.fo ?? 0.3); if (a > 0) F.pill(ctx, s, o.x ?? W / 2, o.y ?? 112, { anchor: 'center', size: o.size || 38, alpha: a, border: o.border, color: o.color, bg: o.bg }); };
+  const PAPER_BG = 'rgba(8,11,18,0.94)'; // pills over printed pages: the default 0.72 lets the print read through
 
   // =====================================================================================
   // s045 — Green's 1875 title page (chapter card over it), push 4x into the minister line
@@ -77,13 +78,12 @@ export async function build(api, C) {
   const tTitle1 = 363.85 > A.hawaii + 0.8 ? A.hawaii + 0.93 : 363.85;
   {
     const f = 'ch3_green_title.jpg';
+    // one continuous push from the full page to the minister line (intermediate keys made it stop twice), then a soft creep
     const K = [
       { t: C.t0, cx: 790, cy: 1090, z: 0.45, rot: -1.6 },
       { t: A.green + 0.3, cx: 790, cy: 1010, z: 0.53, rot: -1.1, ease: E.inOutSine },
-      { t: A.green + 1.15, cx: 795, cy: 1255, z: 1.0, rot: -0.6 },
-      { t: A.hawaii - 1.2, cx: 790, cy: 1330, z: 1.35, rot: -0.3, ease: E.inOutSine },
-      { t: A.hawaii - 0.05, cx: 786, cy: 1360, z: 1.95, rot: 0 },
-      { t: tTitle1, cx: 772, cy: 1364, z: 2.08, rot: 0.15, ease: E.lin },
+      { t: A.hawaii - 0.05, cx: 786, cy: 1360, z: 1.95, rot: 0, ease: E.inOutSine },
+      { t: tTitle1, cx: 772, cy: 1364, z: 2.08, rot: 0.15, ease: E.inOutSine },
     ];
     base(C.t0, tTitle1, (ctx, lt, t) => {
       ctx.drawImage(desk, 0, 0);
@@ -133,7 +133,7 @@ export async function build(api, C) {
         F.dot(ctx, tip[0], tip[1], { r: 10, color: PAL.yellow, ring: ((t - A.tips + 0.1) * 0.9) % 1 });
         dripArrow(ctx, tip[0], tip[1] + 22, prog(t, A.tips, A.tips + 0.5), { len: 120, color: PAL.yellow, width: 6, head: 13 });
       }
-      topPill(ctx, '“THE NORMAL FORM OF A CONTINENT”', t, A.obsessed + 0.1, tFig1 - 0.1);
+      topPill(ctx, '“THE NORMAL FORM OF A CONTINENT”', t, A.obsessed + 0.1, tFig1 - 0.1, { bg: PAPER_BG });
     });
   }
   base(tFig1, A.pyr2 - 0.08, (ctx, lt, t) => { cardRig.draw(ctx, t); }, { fadeIn: 0.3 });
@@ -171,7 +171,7 @@ export async function build(api, C) {
   LINES.forEach(L => api.cue(L.tick, 'pop_ui', -14));
   api.cue(A.five - 0.1, 'stamp', -10);
   api.cue(A.tet + 0.4, 'whoosh_soft', -14); // slide-whistle fallback as he rolls down
-  const panelX = (t) => lerp(-760, 92, E.outExpo(prog(t, A.pred - 0.1, A.pred + 0.5)));
+  const panelX = (t) => lerp(-760, 92, outExpoN(prog(t, A.pred - 0.1, A.pred + 0.5)));
   const drawPanel = (ctx, t) => {
     const x = panelX(t); if (x < -700) return;
     const y = 300, w = 620, h = 430;
@@ -214,11 +214,12 @@ export async function build(api, C) {
     ctx.restore();
   };
   base(tFlash1, A.main - 0.05, (ctx, lt, t) => {
-    const off = 250 * E.outExpo(prog(t, A.pred - 0.1, A.pred + 0.5));
+    const off = 250 * outExpoN(prog(t, A.pred - 0.1, A.pred + 0.5));
     const P = tetra.draw(ctx, t, { offX: off });
-    // cooling / shrinking arrows ring the planet
+    // cooling / shrinking arrows ring the planet; ring turned half a step so no arrow points straight down the top,
+    // where the Explorer stands (the default 0.31 rad put one arrow through his legs)
     const ca = env(t, A.cool - 0.1, A.tet + 0.6, 0.35, 0.5);
-    if (ca > 0) inwardArrows(ctx, P.center.x, P.center.y, P.rpx * 1.02, (t * 0.75) % 1, ca, { color: PAL.cyan, n: 10 });
+    if (ca > 0) inwardArrows(ctx, P.center.x, P.center.y, P.rpx * 1.02, (t * 0.75) % 1, ca, { color: PAL.cyan, n: 10, rot: 0.31 + Math.PI / 10 });
     topPill(ctx, 'EARTH BECOMING A TETRAHEDRON', t, A.tet - 0.08, A.pyr4 + 1.0);
     drawOpposite(ctx, t);
     drawPanel(ctx, t);
@@ -231,15 +232,18 @@ export async function build(api, C) {
   {
     const p237 = 'ch3_gj237.jpg', p238 = 'ch3_gj238.jpg', p239 = 'ch3_gj239.jpg';
     const K1 = [{ t: tJ0, cx: 905, cy: 1480, z: 0.335, rot: -2.2 }, { t: tJ1 + 0.4, cx: 1080, cy: 1300, z: 0.52, rot: -0.8, ease: E.inOutSine }];
-    const K2 = [{ t: tJ1, cx: 925, cy: 1420, z: 0.4, rot: 1.6 }, { t: A.squeeze - 0.1, cx: 900, cy: 1300, z: 0.6, rot: 0.6, ease: E.inOutSine }, { t: tJ2 + 0.05, cx: 640, cy: 1255, z: 1.25, rot: 0 }];
+    // one continuous push that starts slow, builds and lands on Fig. 5a before its outline draws (it used to drift, stop
+    // dead at A.squeeze - 0.1 and lunge 2x in 0.7 s into the cut, so the outlined figure was never seen at rest)
+    const K2 = [{ t: tJ1, cx: 925, cy: 1420, z: 0.4, rot: 1.6 }, { t: A.squeeze - 0.1, cx: 640, cy: 1255, z: 1.25, rot: 0, ease: (u) => E.inOutSine(u * u) }];
     const K3 = [{ t: tJ2, cx: 740, cy: 2262, z: 1.32, rot: 0 }, { t: tJ3, cx: 760, cy: 2258, z: 1.45, rot: 0.2, ease: E.lin }];
     const fig5a = [[395, 1070], [815, 1085], [595, 1432], [395, 1070], [430, 1350], [595, 1432]];
     base(tJ0, tJ3, (ctx, lt, t) => {
       ctx.drawImage(desk, 0, 0);
       if (t < tJ2) {
-        if (t < tJ1 + 0.45) drawPage(ctx, im(p237), keyAt(K1, t), W, H, { shadow: sh(p237) });
+        // 238 is framed smaller than 237, so 237 fades out under it instead of popping off (a strip of it showed at the left)
+        if (t < tJ1 + 1.0) { ctx.save(); ctx.globalAlpha = 1 - prog(t, tJ1 + 0.4, tJ1 + 1.0); drawPage(ctx, im(p237), keyAt(K1, t), W, H, { shadow: sh(p237) }); ctx.restore(); }
         if (t >= tJ1) {
-          const v = keyAt(K2, t); const sl = E.outExpo(prog(t, tJ1, tJ1 + 0.45)); v.ox = (1 - sl) * 1500; v.rot += (1 - sl) * 6;
+          const v = keyAt(K2, t); const sl = outExpoN(prog(t, tJ1, tJ1 + 0.45)); v.ox = (1 - sl) * 1500; v.rot += (1 - sl) * 6;
           const map = drawPage(ctx, im(p238), v, W, H, { shadow: sh(p238) });
           const gp = prog(t, A.squeeze - 0.05, A.squeeze + 0.45, E.inOut);
           if (gp > 0) F.glowPath(ctx, fig5a.map(([x, y]) => map(x, y)), { p: gp, color: PAL.yellow, width: 6 });
@@ -249,7 +253,7 @@ export async function build(api, C) {
         underline(ctx, map, 384, 990, 2269, prog(t, tJ2 + 0.08, tJ2 + 0.6, E.out), { width: 7 });
         const fl = 1 - (t - tJ2) / 0.12; if (fl > 0) { ctx.fillStyle = `rgba(255,255,255,${0.5 * fl})`; ctx.fillRect(0, 0, W, H); }
       }
-      topPill(ctx, '1899: “TENDING TO BECOME TETRAHEDRAL”', t, tJ2 + 0.02, 1e9);
+      topPill(ctx, '1899: “TENDING TO BECOME TETRAHEDRAL”', t, tJ2 + 0.02, 1e9, { bg: PAPER_BG });
     });
     api.cue(A.main - 0.03, 'paper_rustle', -16);
     api.cue(tJ1, 'paper_rustle', -20);
@@ -336,7 +340,7 @@ export async function build(api, C) {
     };
     base(tK0, tK1, (ctx, lt, t) => {
       ctx.drawImage(desk, 0, 0);
-      const sl = E.outExpo(prog(t, tK0, tK0 + 0.55));
+      const sl = outExpoN(prog(t, tK0, tK0 + 0.55));
       const oy = (1 - sl) * -1100, rot = (1 - sl) * -4;
       ctx.save(); ctx.translate(W / 2, H / 2 + oy); ctx.rotate(rot * Math.PI / 180); ctx.scale(1 + 0.02 * (t - tK0) / 8, 1 + 0.02 * (t - tK0) / 8); ctx.translate(-W / 2, -H / 2);
       ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(PX + 10, PY + 16, PW, PH);
@@ -351,7 +355,7 @@ export async function build(api, C) {
       if (ia > 0) chalk(ctx, [[boardC[0], boardC[1] - 175], [boardC[0] + 35, boardC[1] + 60], [boardC[0] + 175, boardC[1] + 128], [boardC[0] + 35, boardC[1] + 60], [boardC[0] - 175, boardC[1] + 128]], ia, { w: 6 });
       ctx.restore();
       if (t > A.mag - 0.1) kids.drawKids(ctx, t);
-      topPill(ctx, '1918: “A SORT OF PYRAMID”', t, A.y1918 - 0.05, 1e9, { y: 116 });
+      topPill(ctx, '1918: “A SORT OF PYRAMID”', t, tK0 + 0.3, 1e9, { y: 116 }); // fades in as the page lands (it used to float on the empty desk)
     });
     api.cue(tK0 + 0.05, 'paper_rustle', -18);
   }
@@ -434,7 +438,9 @@ export async function build(api, C) {
   const tB0 = word('s055', "Green's") - 0.1;
   base(S('s055'), tB0, (ctx, lt, t) => {
     const P = tetra.draw(ctx, t);
-    const ph = (Math.min(t, A.stall + 0.05) * 0.75) % 1;
+    // the ring freezes when the engine stalls: offset the phase so it freezes at 0.25, where both arrow halves are fully
+    // visible (each arrow now fades out at the end of its push, and the old freeze phase 0.49 left half of them faded)
+    const ph = (Math.min(t, A.stall + 0.05) * 0.75 + 1.25 - ((A.stall + 0.05) * 0.75) % 1) % 1;
     const ca = prog(t, S('s055'), S('s055') + 0.3) * (1 - prog(t, A.stall + 0.1, A.stall + 0.7));
     if (ca > 0) inwardArrows(ctx, P.center.x, P.center.y, P.rpx * 0.95, ph, ca, { color: PAL.cyan, n: 10 });
   });
@@ -463,7 +469,9 @@ export async function build(api, C) {
     const pos = [[700, 300], [1250, 268], [1600, 500], [1500, 800], [720, 800]];
     const rots = [-5, 4, -3, 6, -4];
     const CEN = [1090, 560];
-    const pin = (ctx, x, y) => { F.dot(ctx, x, y, { r: 9, color: '#e8322b' }); };
+    // pins ride on their cards: sc = the card's pop-in scale; pinAt = pin point dy above a card centre, turned by rot (deg)
+    const pin = (ctx, x, y, sc = 1) => { if (sc > 0.01) F.dot(ctx, x, y, { r: 9 * sc, color: '#e8322b' }); };
+    const pinAt = (x, y, dy, rot = 0) => { const r = rot * Math.PI / 180; return [x + Math.sin(r) * dy, y - Math.cos(r) * dy]; };
     const string = (ctx, a, b, p, col = '#e8322b') => { if (p <= 0) return; const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2 + 60; const pts = []; for (let i = 0; i <= 24; i++) { const u = i / 24; pts.push([(1 - u) * (1 - u) * a[0] + 2 * u * (1 - u) * mx + u * u * b[0], (1 - u) * (1 - u) * a[1] + 2 * u * (1 - u) * my + u * u * b[1]]); } ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 6; ctx.beginPath(); const n = Math.max(2, Math.ceil(pts.length * p)); pts.slice(0, n).forEach(([x, y], i) => i ? ctx.lineTo(x, y + 3) : ctx.moveTo(x, y + 3)); ctx.stroke(); ctx.strokeStyle = col; ctx.lineWidth = 3.5; ctx.beginPath(); pts.slice(0, n).forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.restore(); };
     const drawCard = (ctx, c, x, y, rot, sc, a = 1) => { if (sc <= 0.001 || a <= 0) return; ctx.save(); ctx.globalAlpha *= a; ctx.translate(x, y); ctx.rotate(rot * Math.PI / 180); ctx.scale(sc, sc); ctx.drawImage(c, -c.width / 2, -c.height / 2); ctx.restore(); };
     const tGlob = word('s055', "Green's") - 0.05, tFall = A.realSus - 0.1, tQ = A.realSus + 0.5;
@@ -473,16 +481,19 @@ export async function build(api, C) {
       ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.translate(-lerp(W / 2, CEN[0], prog(t, A.plain - 0.4, tBoard1)), -lerp(H / 2, CEN[1], prog(t, A.plain - 0.4, tBoard1)));
       ctx.drawImage(board, 0, 0);
       // Green's globe engraving drifts in (sepia photo, pinned)
-      const gx = lerp(-260, 330, E.outExpo(prog(t, tGlob, tGlob + 0.7))) + (t - tGlob) * 6;
+      const gx = lerp(-260, 330, outExpoN(prog(t, tGlob, tGlob + 0.7))) + (t - tGlob) * 6;
       { const img = im('ch3_green_globe9.jpg'), w = 300, h = 315; ctx.save(); ctx.translate(gx, 545); ctx.rotate(-7 * Math.PI / 180); ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fillRect(-w / 2 - 10, -h / 2 - 2, w + 28, h + 52); ctx.fillStyle = '#f3ecdc'; ctx.fillRect(-w / 2 - 16, -h / 2 - 16, w + 32, h + 56); ctx.drawImage(img, -w / 2, -h / 2, w, h); ctx.restore(); pin(ctx, gx + 5, 545 - h / 2 - 4); }
       // tetra suspect card (centre), falls away after the X
       const tetA = prog(t, A.pinned - 0.1, A.pinned + 0.3, E.outBack), fall = E.in(prog(t, tFall, tFall + 0.65));
       const tx = CEN[0] + fall * 80, ty = CEN[1] + fall * 900, trot = -2 + fall * 38;
+      const tPin = pinAt(tx, ty, 125 * tetA, trot + 2); // at rest exactly (tx, ty - 125), as before
       // strings to the tetra card
-      pos.forEach((p, i) => { const s0 = A.pinned + 0.35 + i * 0.12; string(ctx, [p[0], p[1] - 100], [tx, ty - 125], prog(t, s0, s0 + 0.45) * (1 - prog(t, tFall, tFall + 0.25))); });
+      pos.forEach((p, i) => { const s0 = A.pinned + 0.35 + i * 0.12; string(ctx, [p[0], p[1] - 100], tPin, prog(t, s0, s0 + 0.45) * (1 - prog(t, tFall, tFall + 0.25))); });
       drawCard(ctx, tetraIcon, tx, ty, trot, tetA);
-      if (tetA > 0.01) pin(ctx, tx, ty - 125 + fall * 0);
-      redX(ctx, tx, ty, 210, prog(t, A.suspect - 0.05, A.suspect + 0.3));
+      pin(ctx, tPin[0], tPin[1], tetA);
+      // the X is slammed onto the card, so it tilts and falls with it
+      const xp = prog(t, A.suspect - 0.05, A.suspect + 0.3);
+      if (xp > 0) { ctx.save(); ctx.translate(tx, ty); ctx.rotate((trot + 2) * Math.PI / 180); redX(ctx, 0, 0, 210, xp); ctx.restore(); }
       // the real suspect: '?'
       const qa = prog(t, tQ, tQ + 0.4, E.outBack);
       if (qa > 0.01) {
@@ -491,11 +502,11 @@ export async function build(api, C) {
         ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 3; ctx.setLineDash([12, 9]); ctx.strokeRect(-110, -110, 220, 220); ctx.setLineDash([]);
         questionMark(ctx, 0, -6, 170, prog(t, tQ + 0.2, tQ + 0.9));
         ctx.restore();
-        pin(ctx, CEN[0], CEN[1] - 125);
+        pin(ctx, CEN[0], CEN[1] - 125 * qa, qa);
         pos.forEach((p, i) => { const s0 = tQ + 0.7 + i * 0.1; string(ctx, [p[0], p[1] - 100], [CEN[0], CEN[1] - 125], prog(t, s0, s0 + 0.4), PAL.yellow); });
       }
       // clue cards
-      pos.forEach((p, i) => { const s0 = A.real - 0.15 + i * 0.16; const sc = E.outBack(prog(t, s0, s0 + 0.35, E.lin)); drawCard(ctx, icons[i], p[0], p[1], rots[i], sc); if (sc > 0.5) pin(ctx, p[0], p[1] - 100); });
+      pos.forEach((p, i) => { const s0 = A.real - 0.15 + i * 0.16; const sc = E.outBack(prog(t, s0, s0 + 0.35, E.lin)); drawCard(ctx, icons[i], p[0], p[1], rots[i], sc); pin(ctx, p[0], p[1] - 100 * sc, sc); });
       ctx.restore();
       topPill(ctx, 'REAL CLUES. WRONG SUSPECT.', t, A.real - 0.1, tFall + 0.3, { y: 96 });
     });
@@ -524,19 +535,28 @@ export async function build(api, C) {
   }
   // photoreal globe, same two coasts; the continents twitch apart
   {
+    // The quake twitch has to read (a ±0.45 deg shake and a 0.6 deg coast split moved only 3-5 px): the globe shakes
+    // ±2.25 deg, decaying, and both continents (fills via the overlay + coast strokes) jolt 2.5 deg apart, hold ~0.4 s and
+    // ease back over the rumble to the original resting state (fills in place, strokes split 0.6 deg).
     const ov = makeCanvas(2048, 1024);
-    fillEquirect(ov, B, [...featSA, ...featAF], { color: PAL.hero, alpha: 0.4, glow: 10 });
+    const shiftF = (feats, d) => asFeat(feats.flatMap(f => rings(f)).map(rg => rg.map(([lo, la]) => [lo + d, la])));
+    const drawOv = (d) => { ov.getContext('2d').clearRect(0, 0, ov.width, ov.height); fillEquirect(ov, B, [...shiftF(featSA, -d), ...shiftF(featAF, d)], { color: PAL.hero, alpha: 0.4, glow: 10 }); };
+    drawOv(0);
+    let ovOff = 0;
+    const jolt = (t) => { const s = t - A.say; if (s <= 0) return 0; if (s < 0.2) return 2.5 * E.outBack(s / 0.2); if (s < 0.6) return 2.5; return 2.5 * (1 - E.inOut(clamp((s - 0.6) / 0.6))); };
     const L = (x) => x - tG0;
     const keys = [{ t: 0, lat: -10, lon: -15, alt: 2.45 }];
     const r = F.rng(5);
-    for (let i = 0; i < 9; i++) keys.push({ t: L(A.say) + i * 0.06, lat: -10 + (r() - 0.5) * 0.9 * (1 - i / 9), lon: -15 + (r() - 0.5) * 0.9 * (1 - i / 9), alt: 2.42, ease: E.lin });
+    for (let i = 0; i < 9; i++) keys.push({ t: L(A.say) + i * 0.06, lat: -10 + (r() - 0.5) * 4.5 * (1 - i / 9), lon: -15 + (r() - 0.5) * 4.5 * (1 - i / 9), alt: 2.42, ease: E.lin });
     keys.push({ t: L(A.drips - 0.25), lat: -9, lon: -14, alt: 2.15, ease: E.inOutSine });
     scenes.push(Object.assign(globeShot({
       t0: tG0, t1: A.drips - 0.25, fadeIn: 0.35, overlay: { canvas: ov, bounds: B }, patch: null, keys,
       look: { dim: 0.25, ovAlpha: 0.75 },
+      // move the continent fills with the strokes: redraw the overlay before the globe renders, only when the offset changes
+      pre: (lt) => { const d = jolt(tG0 + lt); if (Math.abs(d - ovOff) > 1e-4) { drawOv(d); api.g.refreshOverlay(); ovOff = d; } },
       extra: (ctx, lt) => {
         const t = tG0 + lt, g = api.g;
-        const off = 0.6 * E.out(prog(t, A.say, A.say + 0.2));
+        const off = 0.6 * E.out(prog(t, A.say, A.say + 0.2)) + jolt(t);
         strokeProjected(ctx, g, [COAST_SA.map(([lo, la]) => [lo - off, la])], { color: PAL.hero, width: 4.5, glow: true });
         strokeProjected(ctx, g, [COAST_AF.map(([lo, la]) => [lo + off, la])], { color: PAL.hero, width: 4.5, glow: true });
       },

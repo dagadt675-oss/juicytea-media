@@ -75,7 +75,7 @@ export async function build(api, C) {
     .sort((a, b) => a.lon - b.lon);
   const F_SA = await region('south america'), F_AF = await region('africa'), F_IN = await region('india');
   const F_GRL = [findFeature(C50, 'Greenland')], F_FLA = await region('florida'), F_BAJA = await region('baja'), F_KAM = await region('kamchatka');
-  const F_US = [findFeature(C50, 'United States of America')];
+  const F_US = [findFeature(C50, 'USA')]; // 'United States of America' also matches SOVEREIGNT and returned the Northern Mariana Islands
   const R_SA = allRings(F_SA), R_AF = allRings(F_AF);
 
   // coastline runs inside a box [lon0, lat0, lon1, lat1] (southern-tip outlines)
@@ -212,7 +212,8 @@ export async function build(api, C) {
   };
   G({
     t0: 0, t1: t.grl - 0.07, overlay: { canvas: COLD.cv, bounds: WB }, drift: 0.3, sun: { lookOffset: [0, -0.06] },
-    keys: [{ t: 0, lat: -28, lon: -24, alt: 3.2 }, { t: 1.6, lat: -29, lon: -15, alt: 3.15, ease: E.out },
+    // "Spin a globe": a 70 deg ease-out spin that settles on the same framing at 1.6 s (it was a 9 deg drift that read as a still)
+    keys: [{ t: 0, lat: -28, lon: -85, alt: 3.2 }, { t: 1.6, lat: -29, lon: -15, alt: 3.15, ease: E.out },
       { t: t.afr - 0.3, lat: -28, lon: -8, alt: 3.15, ease: E.inOutSine }, { t: t.ind - 0.2, lat: -22, lon: 52, alt: 3.25, ease: E.inOutExpo },
       { t: t.grl, lat: -22, lon: 56, alt: 3.25 }],
     look: { desat: 0.3, dim: 0.35, ovAlpha: 1 },
@@ -302,9 +303,23 @@ export async function build(api, C) {
   // Explorer timeline (absolute times; both gags)
   const G1 = t.dash - 0.08, G1e = t.two - 0.08;
   const G2 = t.wave - 0.04, G2c = t.some + 0.8, G2e = segS('s020');
-  hero.play(G1, clip('Walk', 'Idle'), { fade: 0.05 }).play(G1 + 0.5, clip('Interact', 'Idle'), { fade: 0.15, once: true })
+  // Root motion is matched to the in-place clips so planted feet never skate over the planet. Measured on this rig (scale
+  // 0.55): Walk's stance foot travels ~0.75 u/s and Run_Left's ~1.75 u/s at speed 1; Interact / HitRecieve / Idle keep both
+  // feet fixed, so the root holds still while they play (lunges become leans about the feet). Facing the camera, Run_Left
+  // is the strafe that travels to screen-right (Run_Right runs toward the wave).
+  // ramp(): distance, in full-speed seconds, covered x s after a linear 0 -> 1 speed ramp of length f began
+  const ramp = (x, f) => x <= 0 ? 0 : x < f ? x * x / (2 * f) : x - f / 2;
+  const WALK_S = 1.4, W1 = 0.75 * WALK_S / R0, G1S = G1 + 0.5, AL1 = 0.31; // gag 1: brisk walk-in, stops as 'Interact' fades in
+  // gag 2: run [R2a, R2b] (speed ramps in with the clip fade, stops with the hit); the root keeps its original path
+  // (-0.05 -> 0.2 rad, wave lip at 'carved') and the tiny planet turns under him for the rest of the stride
+  const RUN_S = 0.8, R2a = G2 + 0.35, R2b = t.carved - 0.06, BE0 = -0.05;
+  const run2 = (tt) => ramp(tt - R2a, 0.15) - ramp(tt - R2b, 0.06);
+  const W2 = (0.2 - BE0) / run2(1e3), P2 = W2 - 1.75 * RUN_S / R0; // root and planet-surface angular speeds (rad per full-speed s)
+  const ZAX = new THREE.Vector3(0, 0, 1);
+  hero.play(G1S - 0.74 / WALK_S, clip('Walk', 'Idle'), { fade: 0, speed: WALK_S }) // mid-stride on the cut; right foot passes the Interact stance mid-crossfade
+    .play(G1S, clip('Interact', 'Idle'), { fade: 0.15, once: true })
     .play(G1 + 1.3, clip('HitRecieve_2', 'HitRecieve'), { fade: 0.12, once: true }).play(G1e - 0.25, 'Idle', { fade: 0.25 });
-  hero.play(G2 - 0.5, 'Idle', { fade: 0 }).play(G2 + 0.35, clip('Run_Right', 'Run'), { fade: 0.15 })
+  hero.play(G2 - 0.5, 'Idle', { fade: 0 }).play(R2a, clip('Run_Left', 'Run'), { fade: 0.15, speed: RUN_S })
     .play(t.carved - 0.06, 'HitRecieve', { fade: 0.06, once: true }).play(t.carved + 0.9, clip('Idle_Neutral', 'Idle'), { fade: 0.35 });
   api.log('ch1 explorer clips: ' + Object.keys(hero.clips).join(','));
 
@@ -314,12 +329,14 @@ export async function build(api, C) {
     t0: G1, t1: G1e, draw(ctx, lt, tt) {
       gagBg(ctx, true);
       planet.quaternion.copy(Q_G1);
-      // walk in, lunge toward the drip as it slips (the 'catch'), then teeter at the edge
+      // walk in (root speed = stride speed), lean toward the drip as it slips (the 'catch'), recoil, then teeter at the edge;
+      // after the walk the feet stay planted: lunge, recoil and teeter are rotations about the feet
       const wob = prog(tt, G1 + 1.35, G1 + 1.6) * (1 - prog(tt, G1e - 0.35, G1e));
-      const al = lerp(0.02, 0.2, prog(tt, G1, G1 + 0.55, E.out)) + 0.14 * prog(tt, G1 + 0.5, G1 + 1.2, E.inOut) - 0.06 * prog(tt, G1 + 1.3, G1 + 1.6, E.out)
-        + 0.05 * wob * Math.sin((tt - G1 - 1.35) * Math.PI * 2 * 2.6);
+      const al = AL1 - W1 * ramp(G1S + 0.15 - tt, 0.15);
+      const lean = 0.10 * prog(tt, G1S, G1 + 1.2, E.inOut) - 0.05 * prog(tt, G1 + 1.3, G1 + 1.6, E.out);
       const pitch = 0.22 * wob * Math.sin((tt - G1 - 1.35) * Math.PI * 2 * 2.6 + 0.6);
-      hero.root.position.copy(onYZ(al)); hero.root.quaternion.setFromEuler(new THREE.Euler(al + pitch, 0, 0, 'XYZ'));
+      const th = lean + pitch, lift = Math.max(0.245 * Math.sin(th), -0.10 * Math.sin(th)); // rock on the toe / heel edge, not through the planet
+      hero.root.position.copy(onYZ(al, lift)); hero.root.quaternion.setFromEuler(new THREE.Euler(al + th, 0, 0, 'XYZ'));
       setWet(0); bead.visible = false;
       // the drip: swells at the cape, slides down the front curve, falls into space
       drop.visible = true;
@@ -357,15 +374,16 @@ export async function build(api, C) {
       // equator ring
       if (tt > t.eq - 0.1) strokeProjected(ctx, g, [Array.from({ length: 121 }, (_, i) => [-180 + i * 3, 0])], { p: prog(tt, t.eq - 0.1, t.eq + 0.9, E.inOut), color: '#ffffff', width: 2.6, glow: true, alpha: 1 - prog(tt, t.s006 + 0.2, t.s006 + 0.8) });
       // city dots (nine in ten of us)
-      const ca = prog(tt, t.nine - 0.1, t.nine + 0.6, E.lin) * (1 - prog(tt, t.s006 + 0.3, t.s006 + 0.9));
-      if (ca > 0) {
+      // staggered grow-in; the exit is a plain fade (through the stagger gain it collapsed into a 2-frame blink)
+      const cin = prog(tt, t.nine - 0.1, t.nine + 0.6, E.lin), cout = 1 - prog(tt, t.s006 + 0.3, t.s006 + 0.9, E.inOutSine);
+      if (cin * cout > 0) {
         ctx.save();
         cities.forEach((c, i) => {
-          const k = clamp((ca * 1.25 - i / cities.length * 0.25) * 4); if (k <= 0) return;
+          const k = clamp((cin * 1.25 - i / cities.length * 0.25) * 4); if (k <= 0) return;
           const q = proj(c.lat, c.lon); if (!q.visible) return;
           const r = (2 + Math.sqrt(c.pop) / 750) * E.outBack(k);
-          ctx.globalAlpha = 0.25 * k; ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(q.x, q.y, r * 2.4, 0, Math.PI * 2); ctx.fill();
-          ctx.globalAlpha = 0.95 * k; ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, Math.PI * 2); ctx.fill();
+          ctx.globalAlpha = 0.25 * k * cout; ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(q.x, q.y, r * 2.4, 0, Math.PI * 2); ctx.fill();
+          ctx.globalAlpha = 0.95 * k * cout; ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, Math.PI * 2); ctx.fill();
         });
         ctx.restore();
       }
@@ -421,15 +439,18 @@ export async function build(api, C) {
 
   // ================================================================== s008  "why do the continents point south?"
   const S8_1 = t.s009 - 0.06;
+  // s008's last camera state (key + its 0.5 deg/s heading drift and alt breathing): s009 starts from it, so the hand-off is one move
+  const L8 = S8_1 - S7_1, END8 = { lat: -56, lon: 22, alt: 2.15 * (1 + 0.006 * Math.sin(L8 * 0.7)), tilt: 14, heading: 0.5 * L8 };
+  const out8 = (tt) => 1 - prog(tt, S8_1 - 0.35, S8_1, E.inOutSine); // overlay, arcs and ring clear before the whip
   G({
     t0: S7_1, t1: S8_1, overlay: { canvas: COLD.cv, bounds: WB }, drift: 0.5, sun: { lookOffset: [0, -0.05] },
-    keys: [{ t: 0, lat: -36, lon: 18, alt: 3.0, tilt: 0, ease: E.out }, { t: S8_1 - S7_1, lat: -56, lon: 22, alt: 2.15, tilt: 14 }],
-    look: { desat: 0.3, dim: 0.3, ovAlpha: 1 },
+    keys: [{ t: 0, lat: -36, lon: 18, alt: 3.0, tilt: 0, ease: E.out }, { t: L8, lat: -56, lon: 22, alt: 2.15, tilt: 14 }],
+    look: (lt, tt) => ({ desat: 0.3, dim: 0.3, ovAlpha: out8(tt) }),
     pre: () => coldSet([1, 1, 1]),
     x: (ctx, tt) => {
-      drawArcs(ctx, tt, S7_1 + 0.25, { d: 1.2, stagger: 0.2, to: [-89.5, 0], lift: 0.06 });
+      drawArcs(ctx, tt, S7_1 + 0.25, { d: 1.2, stagger: 0.2, to: [-89.5, 0], lift: 0.06, alpha: 0.92 * out8(tt) });
       const fl = prog(tt, t.pointing - 0.06, t.pointing + 0.7, E.out);
-      poleRing(ctx, tt, { r: 46, flare: tt > t.pointing - 0.06 ? fl : 0 });
+      poleRing(ctx, tt, { r: 46, flare: tt > t.pointing - 0.06 ? fl : 0, alpha: out8(tt) });
       const hw = [{ w: 'WHY' }, { w: 'DO' }, { w: 'THE' }, { w: 'CONTINENTS' }, { w: 'POINT' }, { w: 'SOUTH?', c: PAL.hero }];
       F.headline(ctx, hw, W / 2, 196, tt - (t.why - 0.1), { size: 116, per: 0.11, tOut: S8_1 - t.why - 0.25 });
     },
@@ -438,9 +459,11 @@ export async function build(api, C) {
 
   // ================================================================== s009  teaser: can't dig to China
   const KANSAS = [39.83, -98.58];
+  let lo9 = 1; // s008's look offset, eased out with the whip (read through the getter below each frame)
   G({
-    t0: S8_1, t1: t.usa - 0.07, overlay: { canvas: USOV, bounds: WB }, drift: 0.4,
-    keys: [{ t: 0, lat: -40, lon: 0, alt: 2.6, ease: E.inOutExpo }, { t: 1.9, lat: 34, lon: -96, alt: 2.25 }, { t: 3.4, lat: 36, lon: -98, alt: 2.0 }],
+    t0: S8_1, t1: t.usa - 0.07, overlay: { canvas: USOV, bounds: WB }, drift: 0.4, sun: { get lookOffset() { return [0, -0.05 * lo9]; } },
+    keys: [{ t: 0, ...END8 }, { t: 1.9, lat: 34, lon: -96, alt: 2.25, ease: E.inOutSine }, { t: 3.4, lat: 36, lon: -98, alt: 2.0 }],
+    pre: (tt, lt) => { lo9 = 1 - prog(lt, 0, 1.9, E.inOutSine); },
     look: (lt) => ({ desat: 0.3, dim: 0.3, ovAlpha: prog(lt, 1.2, 1.9) }),
     x: (ctx, tt) => {
       if (tt < t.dig - 0.3) return;
@@ -480,7 +503,8 @@ export async function build(api, C) {
   });
   cutShot(t.usa - 0.07, t.t1875 - 0.07, {
     top: KANSAS, spin: 0.05, drill0: t.usa + 0.05, drillD: 1.2,
-    cam: (k) => [[lerp(7.9, 7.3, k), lerp(4.1, 3.8, k), lerp(7.6, 7.2, k)], [0, -0.35, 0], 32],
+    // same view direction, pulled back and recentred: the entry dot (Kansas, y ~100) and the antipode '?' (y ~850-1020) both stay in frame
+    cam: (k) => [[lerp(9.21, 8.68, k), lerp(5.09, 4.79, k), lerp(8.86, 8.35, k)], [0, -0.1, 0], 32],
     extra: (ctx, tt) => {
       const pa = prog(tt, t.usa + 1.2, t.usa + 1.45, E.lin); if (pa <= 0) return;
       const e = dst.project(new THREE.Vector3(0, -3.25, 0));
@@ -550,9 +574,12 @@ export async function build(api, C) {
   };
   const TILE_COL = [PAL.hero, PAL.cyan, PAL.yellow, PAL.green];
   base({
-    t0: t.crash - 0.07, t1: t.eventually - 0.04, draw(ctx, lt, tt) {
+    // runs on under "Eventually." (dimmed, slow push) instead of cutting to black; the s011 map fades up over it
+    t0: t.crash - 0.07, t1: t.s011, draw(ctx, lt, tt) {
       const tiles = makeTiles();
+      const dim = prog(tt, t.eventually - 0.04, t.eventually + 0.3, E.out), push = 1 + 0.035 * prog(tt, t.eventually - 0.04, t.s011, E.inOutSine);
       ctx.fillStyle = '#05070D'; ctx.fillRect(0, 0, W, H);
+      ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(push, push); ctx.translate(-W / 2, -H / 2);
       tiles.forEach((tl, i) => {
         // full alpha from the first frame (no dark blink on 'crash'); stagger with a scale pop instead
         const x0 = (i % 2) * W / 2, y0 = Math.floor(i / 2) * H / 2, a = 1;
@@ -563,13 +590,14 @@ export async function build(api, C) {
         ctx.restore();
         ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = TILE_COL[i]; ctx.lineWidth = 4; ctx.strokeRect(x0 + 6, y0 + 6, W / 2 - 12, H / 2 - 12); ctx.restore();
       });
+      ctx.restore();
       pillT(ctx, '4 MODELS', W / 2, H / 2, tt, t.crash - 0.07, t.eventually, { size: 50 });
+      if (dim > 0) { ctx.fillStyle = `rgba(0,0,0,${0.7 * dim})`; ctx.fillRect(0, 0, W, H); }
     },
   });
   cue(t.crash - 0.05, 'glitch_click', -14);
-  // hard cut to black on "Eventually."
+  // "Eventually.": the grid dims to ~30% on the hit (no pure black: it read as the video stopping)
   const UP11 = t.s011 - 0.55;
-  base({ t0: t.eventually - 0.04, t1: UP11, draw(ctx) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); } });
   cue(t.eventually - 0.02, 'impact_deep', -6);
 
   // ================================================================== s011  bad news: 2026 -> 1620
@@ -612,29 +640,32 @@ export async function build(api, C) {
   });
   const BX = { acum: [0.568, 0.229, 0.130, 0.022], quod: [0.553, 0.131, 0.276, 0.017], cidit: [0.079, 0.153, 0.064, 0.016], austrum: [0.154, 0.334, 0.517, 0.019] };
   const PAGE_R = [200, 150, 1520, 700];
-  const P387 = t.narrow + 1.45;
+  const P387 = t.narrow + 1.45, N12 = t.narrow - 0.07, S12_1 = t.breath - 0.55;
   base({
-    t0: t.narrow - 0.07, t1: t.breath - 0.55, draw(ctx, lt, tt) {
+    t0: N12, t1: S12_1, draw(ctx, lt, tt) {
       drawDesk(ctx, lt);
-      const slide = prog(tt, P387, P387 + 0.45, E.outExpo);
-      const m = X.printKB(ctx, img('p246'), lt / 3.2, PAGE_R, [0.47, 0.212, 1.3], [0.48, 0.222, 1.5], { grade: 'sepia', vig: 0.3, dim: 0.45 * slide });
-      X.underline(ctx, m, BX.acum, prog(tt, t.narrow + 0.35, t.narrow + 0.8, E.inOut), { alpha: 1 - 0.5 * slide });
-      if (slide > 0) {
+      // p387 dissolves away (and p246's dim lifts) before the cut, so s013 continues on the same undimmed page
+      const slide = prog(tt, P387, P387 + 0.45, E.outExpo), out = prog(tt, S12_1 - 0.35, S12_1 - 0.02, E.inOutSine);
+      const m = X.printKB(ctx, img('p246'), lt / 3.2, PAGE_R, [0.47, 0.212, 1.3], [0.48, 0.222, 1.5], { grade: 'sepia', vig: 0.3, dim: 0.45 * slide * (1 - out) });
+      X.underline(ctx, m, BX.acum, prog(tt, t.narrow + 0.35, t.narrow + 0.8, E.inOut), { alpha: lerp(1 - 0.5 * slide, 0.7, out) });
+      if (slide > 0 && out < 1) {
         const r = [lerp(W + 80, 330, slide), 250, 1220, 560];
-        const m2 = X.printKB(ctx, img('p387'), prog(tt, P387, P387 + 2.5), r, [0.42, 0.342, 1.55], [0.42, 0.344, 1.65], { grade: 'sepia', vig: 0.3, rot: -0.025 });
-        X.underline(ctx, m2, BX.austrum, prog(tt, P387 + 0.45, P387 + 0.9, E.inOut));
-        if (tt > P387 + 0.95) X.stamp(ctx, 'x2', r[0] + r[2] - 40, r[1] + 40, prog(tt, P387 + 0.95, P387 + 1.15, E.lin), { size: 84, color: PAL.hero, rot: 0.18, bg: 'rgba(20,8,4,0.6)' });
+        const m2 = X.printKB(ctx, img('p387'), prog(tt, P387, P387 + 2.5, E.lin), r, [0.42, 0.342, 1.55], [0.42, 0.344, 1.65], { grade: 'sepia', vig: 0.3, rot: -0.025, alpha: 1 - out });
+        X.underline(ctx, m2, BX.austrum, prog(tt, P387 + 0.45, P387 + 0.9, E.inOut), { alpha: 1 - out });
+        if (tt > P387 + 0.95) X.stamp(ctx, 'x2', r[0] + r[2] - 40, r[1] + 40, prog(tt, P387 + 0.95, P387 + 1.15, E.lin), { size: 84, color: PAL.hero, rot: 0.18, bg: 'rgba(20,8,4,0.6)', alpha: 1 - out });
       }
       pillT(ctx, '"NARROW AND POINTED TOWARD THE SOUTH"', W / 2, 880, tt, t.narrow - 0.07, t.narrow + 1.9, { size: 46 });
-      pillT(ctx, '"ACUMINATI": SHARPENED TO A POINT', W / 2, 880, tt, t.narrow + 1.9, t.breath - 0.6, { size: 46 });
     },
   });
+  // the gloss stays up across the (now seamless) cut into the s013 tilt: ~2 s instead of ~0.7 s
+  over(t.narrow + 1.9, t.breath + 0.5, (ctx, tt) => pillT(ctx, '"ACUMINATI": SHARPENED TO A POINT', W / 2, 880, tt, t.narrow + 1.9, t.breath + 0.5, { size: 46 }));
   cue(t.narrow - 0.05, 'paper_rustle', -16); cue(P387 + 0.95, 'stamp', -18);
-  // s013: same breath -> tilt up two lines on the same page
+  // s013: same breath -> tilt up two lines on the same page (starts on the narrow shot's end framing; desk clock continues;
+  // linear progress + one ease: the double ease made a dead hold, a 0.2 s lurch and another hold)
   base({
-    t0: t.breath - 0.55, t1: t.africa13 - 0.15, draw(ctx, lt, tt) {
-      drawDesk(ctx, lt);
-      const m = X.printKB(ctx, img('p246'), prog(tt, t.breath - 0.4, t.africa13 - 0.2), PAGE_R, [0.47, 0.232, 1.32], [0.47, 0.135, 1.32], { grade: 'sepia', vig: 0.3, ease: E.inOut });
+    t0: S12_1, t1: t.africa13 - 0.15, draw(ctx, lt, tt) {
+      drawDesk(ctx, tt - N12);
+      const m = X.printKB(ctx, img('p246'), prog(tt, t.breath - 0.4, t.africa13 - 0.2, E.lin), PAGE_R, [0.48, 0.222, 1.5], [0.47, 0.135, 1.32], { grade: 'sepia', vig: 0.3, ease: E.inOutSine });
       X.underline(ctx, m, BX.acum, 1, { alpha: 0.7 });
     },
   });
@@ -779,8 +810,8 @@ export async function build(api, C) {
       const sk = prog(lt, 0.15, 1.0, E.inOutExpo);
       const r = [lerp(200, 110, sk), lerp(150, 90, sk), lerp(1520, 430, sk), lerp(700, 250, sk)];
       if (sk < 1) { ctx.save(); ctx.globalAlpha = 1 - sk; drawDesk(ctx, lt); ctx.restore(); }
-      // topple of the whole pile
-      const tp = prog(tt, t.tryW - 0.05, t.tryW + 0.7, E.in);
+      // topple of the whole pile (unclamped cubic: keeps accelerating until the print has left the frame, no snag at the edge)
+      const tu = Math.max(0, (tt - (t.tryW - 0.05)) / 0.75), tp = tu * tu * tu;
       ctx.save();
       if (tp > 0) { const px = r[0] + r[2], py = r[1] + r[3]; ctx.translate(px, py); ctx.rotate(tp * 1.3); ctx.translate(-px + tp * 900, -py + tp * tp * 500); }
       const m = X.printKB(ctx, img('p246'), 0.3, r, [0.48, 0.212, lerp(1.4, 1.15, sk)], [0.48, 0.212, lerp(1.4, 1.15, sk)], { grade: 'sepia', vig: 0.3, border: lerp(14, 8, sk) });
@@ -828,7 +859,9 @@ export async function build(api, C) {
   // whip to Kanyakumari, looking north up the Western Ghats
   G({
     t0: WHIP, t1: t.s019 - 0.07, overlay: null, patch: { url: 'tex/patch/s_india.jpg', bounds: [70, 4, 86, 18] }, drift: 0.15,
-    keys: [{ t: 0, lat: 7.2, lon: 77.9, alt: 0.24, tilt: 55, heading: 8, ease: E.outExpo }, { t: 0.35, lat: 7.9, lon: 77.6, alt: 0.23, tilt: 56, heading: 0 }, { t: t.s019 - WHIP, lat: 8.8, lon: 77.3, alt: 0.21, tilt: 58, heading: -2 }],
+    // one segment: fastest on the cut (under the smear), decaying into a slow push; camAt reads the destination key's ease,
+    // so the old first-key outExpo was ignored and the camera stopped dead at the 0.35 s key
+    keys: [{ t: 0, lat: 7.2, lon: 77.9, alt: 0.24, tilt: 55, heading: 8 }, { t: t.s019 - WHIP, lat: 8.8, lon: 77.3, alt: 0.21, tilt: 58, heading: -2, ease: (x) => 0.8 * E.outExpo(x) + 0.2 * E.inOutSine(x) }],
     look: { relief: 1.0, nightAmt: 0, desat: 0.08, exposure: 1.3 },
     x: (ctx, tt, lt) => {
       const q = proj(...TIPS.kanya); if (q.visible) F.dot(ctx, q.x, q.y, { r: 7, color: PAL.hero, ring: ((tt - WHIP) * 0.9) % 1 });
@@ -851,12 +884,15 @@ export async function build(api, C) {
   const HIT = [1150, 520];
   const waveAt = (p) => { const d = (p - 0.6) * 2600; const lx = LIP[0] * WS, ly = LIP[1] * WS; const c = Math.cos(WROT), s = Math.sin(WROT);
     return [HIT[0] + d * c - (lx * c - ly * s), HIT[1] + d * s - (lx * s + ly * c)]; };
-  const wp = (tt) => prog(tt, t.carved - 1.25, t.carved + 0.85, E.lin);
+  const wp = (tt) => (tt - (t.carved - 1.25)) / 2.1; // unclamped: the wave keeps going until it has left the frame (p ~1.32)
   const g2Hero = (tt) => {
-    const be = lerp(-0.05, 0.2, prog(tt, G2 + 0.35, t.carved - 0.05, E.inOut)) - 0.05 * prog(tt, t.carved, t.carved + 0.35, E.out);
+    // root speed + planet-surface speed = the run clip's stride speed, so the planted foot stays on the ground; the wave then
+    // pushes him back
+    const d = run2(tt);
+    const be = BE0 + W2 * d - 0.05 * prog(tt, t.carved, t.carved + 0.35, E.out);
     hero.root.position.copy(onXY(be)); hero.root.quaternion.setFromEuler(new THREE.Euler(0, 0.0, -be, 'ZYX'));
     setWet(prog(tt, t.carved, t.carved + 0.25));
-    planet.quaternion.copy(Q_G2);
+    planet.quaternion.setFromAxisAngle(ZAX, -P2 * d).multiply(Q_G2);
     gst.key.position.set(3, 7, 6); if (rimL) rimL.position.set(-2.5, 4, -6);
   };
   const beadAt = (tt) => { // drips falling from the beard after the soaking
@@ -864,7 +900,9 @@ export async function build(api, C) {
     const ph = ((tt - t.carved - 1.2) % 1.6) / 1.6; const fall = Math.max(0, ph - 0.45) / 0.55;
     hero.update(tt); hero.root.updateMatrixWorld(true);
     const hp = new THREE.Vector3(); headBone.getWorldPosition(hp);
-    bead.visible = fall < 0.75; bead.position.set(hp.x, hp.y - 0.015 - 0.22 * fall * fall, hp.z + 0.07); bead.scale.setScalar(0.4 + 0.6 * Math.min(1, ph / 0.45));
+    // grows under the beard, falls, and shrinks away during the fall (no mid-air pop); the next one starts tiny
+    bead.visible = fall < 1; bead.position.set(hp.x, hp.y - 0.015 - 0.22 * fall * fall, hp.z + 0.07);
+    bead.scale.setScalar(Math.max(0.001, (0.15 + 0.85 * Math.min(1, ph / 0.45)) * (1 - clamp((fall - 0.55) / 0.45))));
   };
   base({
     t0: G2, t1: G2c, draw(ctx, lt, tt) {
@@ -872,7 +910,7 @@ export async function build(api, C) {
       gst.lookFrom([0.15 + lt * 0.03, 0.12, 4.7 - lt * 0.05], [0.35, 0.42, 0], 30);
       ctx.drawImage(gst.render(tt), 0, 0);
       const p = wp(tt);
-      if (p > 0 && p < 1) { const [x, y] = waveAt(p); X.wave(ctx, x, y, WS, WROT, { spray: Math.sin(tt * 8) * 0.5 + 0.5 }); }
+      if (p > 0 && p < 1.45) { const [x, y] = waveAt(p); X.wave(ctx, x, y, WS, WROT, { spray: Math.sin(tt * 8) * 0.5 + 0.5 }); }
       // splash burst on impact
       const sp = prog(tt, t.carved - 0.02, t.carved + 0.5, E.out);
       if (sp > 0 && sp < 1) { ctx.save(); ctx.globalAlpha = 1 - sp; ctx.fillStyle = '#e8fbff'; for (let i = 0; i < 14; i++) { const a = -Math.PI * (0.1 + 0.8 * i / 13), d = 40 + sp * (160 + (i % 4) * 40); ctx.beginPath(); ctx.arc(HIT[0] + Math.cos(a) * d, HIT[1] + 40 + Math.sin(a) * d + sp * sp * 120, 9 - (i % 3) * 2, 0, Math.PI * 2); ctx.fill(); } ctx.restore(); }
@@ -940,11 +978,13 @@ export async function build(api, C) {
         const [px, py] = k.pt(...EETIP.kanya); F.pill(ctx, 'INDIA', px + 140, py + 40, { anchor: 'left', leader: [px, py], size: 38, alpha: env(tt, t.l4 - 0.08, t.l5 - 0.1, 0.12, 0.18), ring: ((tt - t.l4) * 0.9) % 1 });
       }
       if (tt > t.quote21 - 0.1) {
+        // fades in (it popped in one frame); sits in the band between Greenland's tip (y <= 132), Africa's top (y >= 261) and
+        // Kamchatka (x >= 1578) so none of the five tips is covered while the quote says all their points turn south
         const n = Math.floor(prog(tt, t.quote21 - 0.1, t.quote21 + 1.5, E.lin) * QUOTE.length);
-        const a = 1 - prog(tt, t.s022 - 0.4, t.s022 - 0.1);
-        ctx.save(); ctx.globalAlpha = a * 0.82; ctx.fillStyle = '#0a0d14'; F.round(ctx, 210, 60, 1500, 104, 20); ctx.fill(); ctx.restore();
-        F.text(ctx, QUOTE.slice(0, n), 960 - F.measure(ctx, QUOTE, { size: 64, fam: F.FAM.head, weight: 400, tracking: 0.03 }) / 2, 136, { size: 64, fam: F.FAM.head, weight: 400, tracking: 0.03, color: '#ffffff', alpha: a });
-        if (n < QUOTE.length && Math.floor(tt * 4) % 2 === 0) { const w = F.measure(ctx, QUOTE.slice(0, n), { size: 64, fam: F.FAM.head, weight: 400, tracking: 0.03 }); ctx.fillStyle = PAL.hero; ctx.fillRect(960 - F.measure(ctx, QUOTE, { size: 64, fam: F.FAM.head, weight: 400, tracking: 0.03 }) / 2 + w + 6, 86, 5, 56); }
+        const a = prog(tt, t.quote21 - 0.1, t.quote21 + 0.15, E.out) * (1 - prog(tt, t.s022 - 0.4, t.s022 - 0.1));
+        ctx.save(); ctx.globalAlpha = a * 0.82; ctx.fillStyle = '#0a0d14'; F.round(ctx, 360, 142, 1200, 104, 20); ctx.fill(); ctx.restore();
+        F.text(ctx, QUOTE.slice(0, n), 960 - F.measure(ctx, QUOTE, { size: 64, fam: F.FAM.head, weight: 400, tracking: 0.03 }) / 2, 218, { size: 64, fam: F.FAM.head, weight: 400, tracking: 0.03, color: '#ffffff', alpha: a });
+        if (n < QUOTE.length && Math.floor(tt * 4) % 2 === 0) { const w = F.measure(ctx, QUOTE.slice(0, n), { size: 64, fam: F.FAM.head, weight: 400, tracking: 0.03 }); ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = PAL.hero; ctx.fillRect(960 - F.measure(ctx, QUOTE, { size: 64, fam: F.FAM.head, weight: 400, tracking: 0.03 }) / 2 + w + 6, 168, 5, 56); ctx.restore(); }
       }
     },
   });
@@ -999,7 +1039,8 @@ export async function build(api, C) {
         if (tt > t.hold - 0.08) { // yellow ring around the blurred byline
           const p = prog(tt, t.hold - 0.08, t.hold + 0.5, E.inOut);
           local(ctx, sc, () => {
-            ctx.save(); ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.beginPath(); ctx.ellipse(220, 200, 200, 52, -0.04, -Math.PI * 0.9, -Math.PI * 0.9 + Math.PI * 2.1 * p); ctx.stroke(); ctx.restore();
+            // fitted to the byline bars (y 182-214) so its top arc clears the title's glyph bottoms ('DRIP,' read 'DRTP.')
+            ctx.save(); ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.beginPath(); ctx.ellipse(220, 206, 205, 38, -0.04, -Math.PI * 0.9, -Math.PI * 0.9 + Math.PI * 2.1 * p); ctx.stroke(); ctx.restore();
           });
         }
       }
@@ -1029,10 +1070,11 @@ export async function build(api, C) {
           const cy0 = 640, cw = 560, ch = cw * 352 / 720;
           ctx.save(); ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(116, cy0 + 8, cw + 8, ch + 8); ctx.restore();
           ctx.drawImage(CARD, 110, cy0, cw, ch); ctx.strokeStyle = 'rgba(60,40,20,0.5)'; ctx.lineWidth = 2; ctx.strokeRect(110, cy0, cw, ch);
-          if (tt > t.staring - 0.5 && tt < t.s023 + 0.5) {
+          const ma = env(tt, t.staring - 0.6, t.s023 + 0.5, 0.15, 0.3); // fades in on the CAMS cut, out in the wide (no pops)
+          if (ma > 0) {
             const mp = prog(tt, t.staring - 0.4, t.staring + 1.2, E.inOut);
             const mx = lerp(120, 640, mp), my = cy0 + ch * 0.62 + Math.sin(mp * Math.PI * 2) * 40;
-            X.magnifier(ctx, CARD, mx, my, 92, 2.2, [110, cy0, cw, ch]);
+            ctx.save(); ctx.globalAlpha *= ma; X.magnifier(ctx, CARD, mx, my, 92, 2.2, [110, cy0, cw, ch]); ctx.restore();
           }
         });
       }

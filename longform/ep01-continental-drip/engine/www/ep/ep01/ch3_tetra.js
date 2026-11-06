@@ -44,9 +44,12 @@ export async function makeTetraRig(api, A) {
   const hero = await Actor.create(st, 'models/adventurer.glb', { scale: 0.75 });
   te.add(hero.root);
   const ROLL0 = A.tet + 0.42, ROLL1 = A.pyr4 - 0.04;
+  // exactly one roll over the path, ending upright at ROLL1 (at speed 1.15 the looping 1.33 s clip wrapped at 383.60 and
+  // the idle crossfade cut a second roll off upside down)
+  const rollDur = hero.clips.Roll ? hero.clips.Roll.duration : 1.333;
   hero.play(A.cool - 0.2, 'Idle_Neutral', { fade: 0.4 });
-  hero.play(ROLL0, 'Roll', { fade: 0.12, speed: 1.15 });
-  hero.play(ROLL1, 'Idle_Neutral', { fade: 0.2 });
+  hero.play(ROLL0, 'Roll', { fade: 0.12, speed: rollDur / (ROLL1 - ROLL0), once: true });
+  hero.play(ROLL1, 'Idle_Neutral', { fade: 0.25 });
   hero.play(A.stall + 0.3, 'HitRecieve_2', { fade: 0.08, once: true });
   hero.play(A.stall + 1.25, 'Idle_Neutral', { fade: 0.35 });
 
@@ -173,13 +176,22 @@ export async function makeTetraRig(api, A) {
     const camL = te.worldToLocal(cp.clone());
     const posL = hero.root.position.clone();
     const up = h.n.clone();
-    let fwd;
-    if (h.face === 'path') fwd = dPerch.clone().sub(posL); else fwd = camL.clone().sub(posL);
-    fwd.addScaledVector(up, -fwd.dot(up));
-    if (fwd.lengthSq() < 1e-8) fwd.set(0, 0, 1); fwd.normalize();
-    if (h.face !== 'path') fwd.applyAxisAngle(up, yawOf(t) * D2R);
-    const x = new THREE.Vector3().crossVectors(up, fwd).normalize();
-    hero.root.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, up, fwd));
+    const faceQ = (fwd, yaw) => {
+      fwd.addScaledVector(up, -fwd.dot(up));
+      if (fwd.lengthSq() < 1e-8) fwd.set(0, 0, 1); fwd.normalize();
+      if (yaw) fwd.applyAxisAngle(up, yaw * D2R);
+      const x = new THREE.Vector3().crossVectors(up, fwd).normalize();
+      return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, up, fwd));
+    };
+    // 'path' faces the direction of travel (top -> perch); the old dPerch - posL swung back toward the axis near the end
+    const travelQ = () => faceQ(dPerch.clone().sub(top), 0);
+    if (h.face === 'path') hero.root.quaternion.copy(travelQ());
+    else {
+      const qc = faceQ(camL.clone().sub(posL), yawOf(t));
+      // after the roll he turns from the travel direction to the camera over 0.3 s (it used to snap in one frame)
+      const turn = prog(t, ROLL1, ROLL1 + 0.3);
+      hero.root.quaternion.copy(t >= ROLL1 && turn < 1 ? travelQ().slerp(qc, turn) : qc);
+    }
     return { k, cp, tg, heroW };
   };
   // projected helpers

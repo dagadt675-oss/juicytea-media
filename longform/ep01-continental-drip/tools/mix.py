@@ -6,6 +6,7 @@ mix.json: {
   "music": [{"file": "cue1.mp3", "start": 0, "end": 120, "gain_db": -16, "fade_in": 1.5, "fade_out": 3, "offset": 0, "loop": false}],
   "sfx": [{"file": "whoosh.mp3", "t": 12.3, "gain_db": -8}],
   "duck": {"db": -8, "attack": 0.06, "release": 0.45},
+  "dips": [[272.95, 273.95, -12]],
   "target_lufs": -14, "true_peak": -1.5
 }
 Mixes at 48 kHz stereo: music ducked under the VO envelope, SFX placed at times, loudness-normalised (BS.1770 via pyloudnorm)
@@ -56,6 +57,15 @@ def main():
     for i, v in enumerate(act): c = ca if v > e else cr; e = c * e + (1 - c) * v; g[i] = e
     gain = db(d['db'] * g)
     gain = np.interp(np.arange(N), np.arange(len(gain)) * hop, gain).astype(np.float32)
+    # music dips: short, explicit breaths in the bed (e.g. before a punchline), each [t0, t1, db] with 0.25 s ramps
+    for d0, d1, ddb in spec.get('dips', []):
+        a, b, r = int(d0 * SR), int(d1 * SR), int(0.25 * SR)
+        env = np.ones(N, np.float32); lo = db(ddb)
+        seg = np.full(max(0, b - a), lo, np.float32)
+        k = min(r, len(seg) // 2)
+        if k: seg[:k] = np.linspace(1, lo, k); seg[-k:] = np.linspace(lo, 1, k)
+        env[a:b] = seg[:max(0, min(b, N) - a)]
+        gain = gain * env
     mix = vo + bus_m * gain[:, None] + bus_s
     # loudness normalisation
     meter = pyln.Meter(SR)

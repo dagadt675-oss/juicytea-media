@@ -21,6 +21,10 @@ export function keyAt(keys, t, ease = E.inOut) {
   return Object.assign({}, keys[keys.length - 1]);
 }
 
+// E.outExpo (lib/fx.js) only reaches 0.999 before returning exactly 1 at t = 1, so every slide-in snaps its last
+// 0.1% of travel on its final frame (1-1.5 px on a 1100-1500 px slide). This normalised copy lands continuously.
+export const outExpoN = (t) => t >= 1 ? 1 : (1 - Math.pow(2, -10 * t)) / (1 - Math.pow(2, -10));
+
 // ---------- canvases ----------
 export function cv(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
 
@@ -48,7 +52,7 @@ export function pageMatrix(W, H, v) {
 export function drawPage(ctx, img, v, W, H, o = {}) {
   const M = pageMatrix(W, H, v);
   ctx.save(); ctx.setTransform(M);
-  if (o.shadow) { const p = o.shadow.pad; ctx.globalAlpha = 0.9; ctx.drawImage(o.shadow.c, -p, -p + img.height * 0.012, img.width + 2 * p, img.height + 2 * p); ctx.globalAlpha = 1; }
+  if (o.shadow) { const p = o.shadow.pad, a0 = ctx.globalAlpha; ctx.globalAlpha = a0 * 0.9; ctx.drawImage(o.shadow.c, -p, -p + img.height * 0.012, img.width + 2 * p, img.height + 2 * p); ctx.globalAlpha = a0; }
   ctx.drawImage(img, 0, 0);
   ctx.restore();
   const map = (ix, iy) => { const p = M.transformPoint(new DOMPoint(ix, iy)); return [p.x, p.y]; };
@@ -89,7 +93,9 @@ export function inwardArrows(ctx, cx, cy, R, phase, alpha = 1, o = {}) {
     const r1 = R + (o.len ?? 120) - push, r0 = R + 18 - push;
     const ux = Math.cos(ang), uy = Math.sin(ang);
     const x1 = cx + ux * r1, y1 = cy + uy * r1, x0 = cx + ux * r0, y0 = cy + uy * r0;
-    const a = 0.65 + 0.35 * Math.sin(Math.PI * s);
+    // each arrow fades in as its push starts and out as it ends, so the jump back to the outer radius is never seen
+    const a = (0.65 + 0.35 * Math.sin(Math.PI * s)) * E.inOutSine(clamp(s / 0.2)) * E.inOutSine(clamp((1 - s) / 0.25));
+    if (a <= 0.003) continue;
     ctx.globalAlpha = alpha * a;
     for (const [lw, c] of [[17, 'rgba(0,0,0,0.5)'], [9, col]]) {
       ctx.strokeStyle = c; ctx.fillStyle = c; ctx.lineWidth = lw;
