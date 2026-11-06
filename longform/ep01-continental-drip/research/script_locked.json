@@ -1,0 +1,2239 @@
+{
+ "title_options": [
+  "Why the Continents Point South (Not Just a Coincidence)",
+  "Earth Looks Like It's Dripping. Your Map Never Said Why",
+  "The Continents Are Pointing at Something",
+  "A 400-Year-Old Clue in the Shape of the Continents",
+  "Why Every Map Looks Like It's Dripping South",
+  "Why Earth Drips South, and Where It's Dripping Next"
+ ],
+ "thumbnail_concepts": [
+  "CAN'T UNSEE IT (UNSEE in pure red #FF2B2B, not the #FF5A36 land hue; white text on black boxes, top-left). Built from the EXACT frame-1 render (s001: same ~60 deg underside tilt and crop) so 0:00 matches. South America and Africa tapers fill the lower-middle third, large and glowing orange; India secondary. Three thick white drip-arrows from Cape Froward, Cape Agulhas and Kanyakumari run into a yellow #FFD23F ring at bottom centre with a white '?' inside (the unresolved question). Atmosphere and night lights off for 120-px legibility. Pair with title 1 or 3.",
+  "POINTING AT WHAT? (WHAT in red). Same frame-1 render; the three drip-arrows stop at the edge of the yellow ring and the white '?' inside it is enlarged. The title says 'south'; the thumbnail opens the deeper gap the video pays off at s074 and s079-s081 (they point back to Antarctica). Pair with title 1 or 3.",
+  "THEY POINT HERE (HERE in red; deliberately not 'ALL'). Same frame-1 render plus dotted ghost outlines of South America, Africa and India snapped into the yellow ring (the s007 one-second flash frame) and one fat white arrow aimed at the ring. No Australia slab (Australia's Cape York points north, s091). Shows the shape of the answer without explaining it. Pair with title 1. Test all three with Test & Compare on title 1, judged on watch-time share; check at 120 px next to RealLifeLore / Johnny Harris. Optional 4th (story) arm, only with title 4: same globe, torn sepia strip top-right, '\"NOT AN ACCIDENT\"' in quote marks with a small 1620 tag (matches the s106 ending line)."
+ ],
+ "chapters": [
+  {
+   "n": 1,
+   "title": "Why does Earth look like it's dripping?",
+   "first_segment": "s001"
+  },
+  {
+   "n": 2,
+   "title": "What's on Earth's other side?",
+   "first_segment": "s025"
+  },
+  {
+   "n": 3,
+   "title": "Is Earth secretly a pyramid?",
+   "first_segment": "s045"
+  },
+  {
+   "n": 4,
+   "title": "Why did geologists laugh at Wegener?",
+   "first_segment": "s057"
+  },
+  {
+   "n": 5,
+   "title": "Where are the drips pointing?",
+   "first_segment": "s072"
+  },
+  {
+   "n": 6,
+   "title": "Where is the drip going next?",
+   "first_segment": "s097"
+  }
+ ],
+ "segments": [
+  {
+   "id": "s001",
+   "chapter": 1,
+   "text": "Spin a globe, and Earth looks like it's {m:melt}melting.",
+   "pause_after": 0.3,
+   "visual": "FRAME 1 = THUMBNAIL IN MOTION (same render as thumbnail T1). globeShot keys {lat:-30, lon:20, alt:3.0, tilt:0, heading:0}, drift 2 deg/s; look {desat:0.3, dim:0.35, ovAlpha:1}; ocean navy #0A1A2E. One fillEquirect overlay: South America, Africa, India in #FF5A36, glow 24. A #FFD23F ring with a white '?' inside pulses on the South Pole (1.2 s period). At {m:melt}: three `arcs` draw on (1.0 s each, staggered 0.15 s, white, lift 0.08, headDot) from Cape Froward (-53.9,-71.3), Cape Agulhas (-34.8,20.0) and Kanyakumari (8.1,77.5) to (-78,20); then the three glows fade back to 30% over 0.3 s so s002 can re-light them.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "whoosh_soft (-12) at 0.0",
+    "shimmer (-16) under the arcs"
+   ],
+   "music": "Cold open: pulsing low synth bed, tense and minimal, starts on frame 1.",
+   "fact_ids": []
+  },
+  {
+   "id": "s002",
+   "chapter": 1,
+   "text": "{m:sam}South America. {m:afr}Africa. {m:ind}India.",
+   "pause_after": 0.25,
+   "visual": "No camera travel (s001 view holds). On each marker the named landmass snaps back to full orange and a white outline of its southern tip draws on (strokeProjected, 0.35 s): {m:sam} Cape Froward, {m:afr} Cape Agulhas (NOT the Cape of Good Hope), {m:ind} Kanyakumari. No labels needed.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "pop_ui (-14) x3"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-28",
+    "pattern-29",
+    "pattern-1"
+   ]
+  },
+  {
+   "id": "s003",
+   "chapter": 1,
+   "text": "{m:grl}Greenland. {m:fla}Florida. {m:baja}Baja. {m:kam}Kamchatka.",
+   "pause_after": 0.3,
+   "visual": "Hard cut on {m:grl} (6-frame whoosh) to the EQUAL EARTH FLAT MAP (new mode: one precomputed still, inverse-projected from tex/day_8k.jpg, 30% desat, navy ocean, faint graticule; markers placed with the forward Equal Earth formula). South America, Africa and India are already orange. Each tip fills orange with a white outline on its word: Cape Farewell 59.8N 43.9W; Cape Sable 25.3N 81.1W and Cabo San Lucas 22.9N 109.9W (tips_admin1); Cape Lopatka 50.9N 156.7E (tips_admin1 Kamchatka). One pill at a time, each fading as the next pops. TTS: check 'Baja' (BAH-hah) and 'Kamchatka' (kam-CHAHT-kuh) before lock; alias in TTS input only.",
+   "onscreen": [
+    "GREENLAND",
+    "FLORIDA",
+    "BAJA",
+    "KAMCHATKA"
+   ],
+   "humor": "",
+   "sfx": [
+    "pop_ui (-14) x4"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-28",
+    "pattern-14"
+   ]
+  },
+  {
+   "id": "s004",
+   "chapter": 1,
+   "text": "Every point aims {m:south}south. Like somebody left the planet on the dashboard in {m:july}July.",
+   "pause_after": 0.8,
+   "visual": "Flat map holds. At {m:south}: all seven tips get a short #FFD23F drip arrow pointing straight down (len 70 px, staggered 0.06 s). At {m:july}: hard cut to EXPLORER GAG 1 (~3 s, separate stage): tinyPlanet radius 3, rotated so Cape Agulhas sits just in front of the top point, warm 2D sun flare top-right. An orange 3D teardrop (sphere + cone, 0.25 units) swells at the cape and slides down the planet's front curve. The Explorer walks to the edge (Walk 0.4 s), reaches down to catch it (Interact 1.0 s); the drop slips past his fingers and falls off into space; he wobbles at the edge (HitRecieve_2). Cut on the wobble into s005.",
+   "onscreen": [],
+   "humor": "Narration: the planet left on the dashboard in July (melting-crayon image). EXPLORER GAG 1: tries to catch the drip and nearly falls off Africa (Walk, Interact, HitRecieve_2).",
+   "sfx": [
+    "cartoon_fall (-10) on the wobble (the only fall whistle in the video)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-28",
+    "pattern-14"
+   ]
+  },
+  {
+   "id": "s005",
+   "chapter": 1,
+   "text": "{m:twothirds}Two-thirds of all land is north of the {m:eq}equator. So are nearly {m:nine}nine in ten of us.",
+   "pause_after": 0.4,
+   "visual": "Photoreal globe {lat:15, lon:20, alt:3.2}. At {m:twothirds}: setOverlayURL('tex/data/land_north.png') fades in orange while look.dim rises to 0.45 (southern land darkens). At {m:eq}: a glowing white equator ring draws on (1.0 s) and a two-part split bar (right third, above the bottom 12%) fills to the two-thirds mark, no digits. At {m:nine}: land overlay drops to 30%; white dots for every city in ne_110m_populated_places_simple pop in (radius proportional to sqrt(pop_max)), heavily northern; the bar refills to the nine-in-ten mark.",
+   "onscreen": [
+    "TWO-THIRDS OF ALL LAND",
+    "NEARLY 9 IN 10 OF US"
+   ],
+   "humor": "",
+   "sfx": [
+    "tick_counter (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-3",
+    "numbers-5"
+   ]
+  },
+  {
+   "id": "s006",
+   "chapter": 1,
+   "text": "You've probably heard those southern points are just a {m:coin}coincidence.",
+   "pause_after": 0.3,
+   "visual": "Globe keeps drifting. At {m:coin}: a 2D gold coin spins up in front of the globe (scaleX oscillation, 1.5 turns/s). Generic coin only: no channel names, no thumbnails of other videos.",
+   "onscreen": [
+    "JUST A COINCIDENCE?"
+   ],
+   "humor": "",
+   "sfx": [
+    "bell_small (-14) as the coin ring"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-26"
+   ]
+  },
+  {
+   "id": "s007",
+   "chapter": 1,
+   "text": "They're {m:not}not. Not {m:entirely}entirely.",
+   "pause_after": 0.5,
+   "visual": "Music cut 0.5 s before 'They're'. At {m:not}: the coin freezes and cracks in two. At {m:entirely}: a 1.0 s UNEXPLAINED flash of the final answer: paleo globe from a south-polar camera (paleo/coast_180.json) with South America, Africa and India clamped around Antarctica's yellow ring, then snap back to today's tilted globe.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "impact_short (-10) on the crack",
+    "whoosh_soft on the flash"
+   ],
+   "music": "Bed returns heavier after the cut.",
+   "fact_ids": [
+    "science-21",
+    "science-16"
+   ]
+  },
+  {
+   "id": "s008",
+   "chapter": 1,
+   "text": "So {m:why}why do the continents point south? By the end, you'll know what they're really {m:pointing}pointing at.",
+   "pause_after": 0.5,
+   "visual": "Slow push-in on the s001 tilted globe; the three drip arcs redraw and converge on Antarctica's ring with the white '?'. Kinetic headline (F.headline) lands on the question. At {m:pointing} the ring flares. SHORTS CUT ends here; for the Short replace the second sentence with 'The full story is on the channel.' MARKER CUES: {m:why} the kinetic headline starts rising word by word.",
+   "onscreen": [
+    "WHY DO THE CONTINENTS POINT SOUTH?"
+   ],
+   "humor": "",
+   "sfx": [
+    "riser_tension (-12), start 4 s early"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-21"
+   ]
+  },
+  {
+   "id": "s009",
+   "chapter": 1,
+   "text": "Along the way: why you can't dig to China from {m:usa}anywhere in America.",
+   "pause_after": 0.3,
+   "visual": "Teaser, nothing explained. At {m:usa}: 1.8 s hard cut to the cutawayEarth stage, shell rotated so Kansas is on top (setFromUnitVectors(llDir(39.83,-98.58), up)); drillDir grows the cyan line from the top through the core and out the bottom in 1.2 s; a yellow '?' pops at the exit. Camera st.lookFrom([6,3.5,6],[0,0.3,0],32).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "sonar_ping (-12)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-24"
+   ]
+  },
+  {
+   "id": "s010",
+   "chapter": 1,
+   "text": "A theory from {m:t1875}eighteen seventy-five that explained all of it, and was {m:wrong}dead wrong. And {m:last}the last one: the four continents your country might {m:crash}crash into. Eventually.",
+   "pause_after": 0.8,
+   "visual": "At {m:t1875}: 0.8 s sepia flash of Green's Figure 5 (assets/pd/green_fig45.jpg, lower half), then the tetraEarth stage with k 0->1 over 1.5 s (yellow edges). At {m:wrong}: it snaps back to a sphere (k 1->0, E.outBack) under a red X stamp. At {m:last}: cut to the cold-open globe spinning forward fast. At {m:crash}: 1.0 s flash of the 2x2 grid of the four model end-state stills (pre-rendered in s099-s102), the white US marker pulsing in every tile; no single neighbor is shown. Hard cut to black on 'Eventually'.",
+   "onscreen": [
+    "1875",
+    "4 MODELS"
+   ],
+   "humor": "'Eventually.' undercuts the doom.",
+   "sfx": [
+    "stamp (-12) on the X",
+    "impact_deep (-6) on the cut to black"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-1",
+    "science-5",
+    "future-visuals-8",
+    "future-visuals-6"
+   ]
+  },
+  {
+   "id": "s011",
+   "chapter": 1,
+   "text": "Bad news: you're not the first to notice. {m:bacon}Not even close.",
+   "pause_after": 0.3,
+   "visual": "From black, fade up on the s003 Equal Earth flat map with the seven orange tips. A sepia paper wash wipes left to right across it (sepia grade, grain 10) while a year counter top-left (JetBrains Mono) rolls back 2026 -> 1620. At {m:bacon}: cross-dissolve to the 1620 Instauratio Magna engraved title page (assets/pd/title_1620.jpg) in a rounded print frame; Ken Burns from the galleon (cx 0.5, cy 0.75, zoom 1.6) up to the title (0.5, 0.3, 1.15).",
+   "onscreen": [
+    "1620"
+   ],
+   "humor": "Self-aware 'bad news' for the viewer.",
+   "sfx": [
+    "time_rewind (-12)",
+    "paper_rustle (-16)"
+   ],
+   "music": "Switch to felt piano + soft strings for the history.",
+   "fact_ids": [
+    "pattern-1"
+   ]
+  },
+  {
+   "id": "s012",
+   "chapter": 1,
+   "text": "In sixteen twenty, Francis {m:fb}Bacon wrote that the Old World and the New are both {m:narrow}'narrow and pointed toward the south.'",
+   "pause_after": 0.4,
+   "visual": "At {m:fb}: Ken Burns on Bacon's portrait (assets/pd/bacon.jpg, Paul van Somer 1617, sepia print frame). At {m:narrow}: cut to the 1620 page that actually holds the passage: archive.org instauratiomagna00baco leaf n246 = printed p.239 (research/script/visual-director/dl_ia/n246.jpg; NOT assets/pd/bacon_p232.jpg, which is p.240 and lacks it). Ken Burns into lines 4-6; an orange glowPath underline draws under 'acuminati' (normalized box x0.568 y0.229 w0.130 h0.022) and the pill swaps to the Latin gloss. Then the Parasceve page (leaf n387 = printed p.20, dl_ia/n387.jpg) slides in from the right with an underline under 'ad Austrum angusta & veluti acuminata' (x0.154 y0.334 w0.517 h0.019) and a small 'x2' stamp: he wrote it twice. Visual only, no narration.",
+   "onscreen": [
+    "\"NARROW AND POINTED TOWARD THE SOUTH\"",
+    "\"ACUMINATI\": SHARPENED TO A POINT",
+    "x2"
+   ],
+   "humor": "",
+   "sfx": [
+    "paper_rustle (-16)",
+    "stamp (-18) on x2"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-1",
+    "pattern-2",
+    "pattern-4"
+   ]
+  },
+  {
+   "id": "s013",
+   "chapter": 1,
+   "text": "And in the same {m:breath}breath, he said Africa and South America's matching capes were {m:accident}'not to be attributed to mere accident.'",
+   "pause_after": 0.4,
+   "visual": "0-2.3 s: globe {lat:-25, lon:-10, alt:2.6}, Africa and South America outlined white side by side, their southern capes pulsing orange. At {m:breath}: back to page n246 and tilt the Ken Burns UP two lines from 'acuminati' (it is literally the sentence above, on the same 1620 page). At {m:accident}: orange underlines draw under 'quod non temere ac-' (x0.553 y0.131 w0.276 h0.017) and 'cidit.' (x0.079 y0.153 w0.064 h0.016); the English pill fades in. This proves thumbnail/title wording by ~1:05.",
+   "onscreen": [
+    "\"NOT TO BE ATTRIBUTED TO MERE ACCIDENT\""
+   ],
+   "humor": "",
+   "sfx": [
+    "shimmer (-18)"
+   ],
+   "music": "Soft piano accent on 'accident'.",
+   "fact_ids": [
+    "pattern-3"
+   ]
+  },
+  {
+   "id": "s014",
+   "chapter": 1,
+   "text": "Then he wrote down an open question: is there even a {m:southcont}southern continent down there? Nobody would lay eyes on {m:antar}Antarctica for two more {m:cent}centuries. Remember {m:rem}that.",
+   "pause_after": 0.6,
+   "visual": "Camera dives to the bottom of the globe at {m:southcont}; Antarctica is hidden under a soft white fog (white Antarctica polygon in the overlay canvas, feathered) with a hand-lettered '?'. A sepia year ticker flicks 1620 -> 1820 and the fog thins; freeze-drift on the '?' (drift keeps it alive). MARKER CUES: {m:antar} the sepia ticker starts 1620 -> 1820; {m:cent} the fog thins; {m:rem} hold-drift on the '?'.",
+   "onscreen": [
+    "\"WHETHER THERE IS ANY SOUTHERN CONTINENT\"",
+    "FIRST SEEN: 1820"
+   ],
+   "humor": "",
+   "sfx": [
+    "tick_counter (-18) as clock ticks"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-5"
+   ]
+  },
+  {
+   "id": "s015",
+   "chapter": 1,
+   "text": "Now, you may have heard that Bacon predicted continental drift. {m:scratch}He didn't.",
+   "pause_after": 0.4,
+   "visual": "Globe {lat:-15, lon:-15, alt:2.4}: South America's rings drag (moves, true size) toward Africa and rotate to snap into its coast. At {m:scratch}: frozen mid-snap, a red JUICE CHECK: FALSE stamp slams down (brand verdict device, first use).",
+   "onscreen": [
+    "BACON PREDICTED DRIFT?",
+    "JUICE CHECK: FALSE"
+   ],
+   "humor": "Record-scratch myth-bust.",
+   "sfx": [
+    "record_scratch (-12)",
+    "stamp (-10)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-6"
+   ]
+  },
+  {
+   "id": "s016",
+   "chapter": 1,
+   "text": "He wasn't {m:snap}snapping Africa and South America together like puzzle pieces. He was saying they're shaped {m:same}alike, side by side.",
+   "pause_after": 0.3,
+   "visual": "The jigsaw rewinds (South America slides back home). At {m:same}: both continents sit side by side in today's orientation; a white isosceles taper triangle draws over each, same orientation, with an approx-equals sign between them. MARKER CUES: {m:snap} the jigsaw rewind starts.",
+   "onscreen": [
+    "NOT PUZZLE PIECES. LOOKALIKES."
+   ],
+   "humor": "",
+   "sfx": [
+    "time_rewind (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-6",
+    "pattern-7",
+    "pattern-3"
+   ]
+  },
+  {
+   "id": "s017",
+   "chapter": 1,
+   "text": "So Bacon saw the drip, but never tried to {m:explain}explain it. For centuries, nobody else {m:anyone}could. That did not stop them from {m:try}trying.",
+   "pause_after": 0.3,
+   "visual": "Page n246 shrinks into a print frame top-left over the slowly turning drip globe. At {m:explain}: a big '?' draws on Antarctica's ring. At {m:anyone}: archival pages drop onto a stack, one every 1.1 s: Forster 1778 p.13 (fetch archive.org b30408623 page 13), Green 1875 preface (vestigesmolteng00greegoog leaf n7), Guyot 1849 p.22 (fetch earthmanlectures00guyo page 22). At {m:try}: the pile overflows the frame and topples off sideways.",
+   "onscreen": [],
+   "humor": "Dry understatement: 'That did not stop them from trying.'",
+   "sfx": [
+    "paper_rustle (-16) x3",
+    "whoosh_soft (-14) on the topple"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-1",
+    "pattern-10",
+    "pattern-13",
+    "pattern-18"
+   ]
+  },
+  {
+   "id": "s018",
+   "chapter": 1,
+   "text": "Captain {m:cook}Cook's naturalist, Johann Reinhold Forster, claimed that every great southern tip looks {m:alike}alike: high, rocky, the end of a {m:mtn}mountain chain.",
+   "pause_after": 0.3,
+   "visual": "0-2.6 s: Ken Burns on assets/pd/forster.png (Bause after Graff) in a sepia print frame. At {m:alike}: cut to the globe, relief 1.0, patch tex/patch/s_america_tip.jpg, camera low over Cape Froward looking north up the Andes {lat:-52, lon:-72, alt:0.25, tilt:55, heading:0}. At {m:mtn}: whip to Kanyakumari (patch s_india.jpg, tilt 55) looking north up the Western Ghats. Show only real terrain; draw NO 'mountain chain' lines from Cape Agulhas or Tasmania (Forster's rule is his claim, not ours). MARKER CUES: {m:cook} the Forster portrait Ken Burns starts.",
+   "onscreen": [
+    "\"A GREAT AND STRIKING SIMILARITY\""
+   ],
+   "humor": "",
+   "sfx": [
+    "whoosh_soft (-14) on the whip"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-10"
+   ]
+  },
+  {
+   "id": "s019",
+   "chapter": 1,
+   "text": "His {m:expl}explanation? A giant flood came {m:wave}roaring in from the south-west and {m:carved}carved every one of them. Some of the top scientists of the day {m:bought}bought it. Geology later asked for a {m:refund}refund.",
+   "pause_after": 0.4,
+   "visual": "On 'His explanation?': the fetched Forster 1778 p.13 scan, orange underline under 'a violent flood coming from the south-west'. At {m:wave}: cut to EXPLORER GAG 2 and stay there: tiny planet with the South Atlantic facing camera; a flat stylised 2D wave (cyan crest, white foam line) sweeps from lower-left (south-west) to upper-right over 1.4 s. The Explorer runs (Run_Right) but too late; the crest clips him (HitRecieve); it passes, and he stands soaked (Idle_Neutral) while a drop falls off his beard (now he's the one dripping). At {m:bought}: a small sepia wax seal stamps onto the wave graphic. At {m:refund}: the wave deflates like a pool float (scaleY 1 -> 0.1, 0.4 s). MARKER CUES: {m:expl} the Forster p.13 underline draws; {m:carved} the crest clips the Explorer (HitRecieve).",
+   "onscreen": [
+    "FORSTER'S CAUSE: \"A VIOLENT FLOOD\""
+   ],
+   "humor": "EXPLORER GAG 2: soaked by Forster's imaginary flood (Run_Right, HitRecieve, Idle_Neutral). Tag: 'Geology later asked for a refund.'",
+   "sfx": [
+    "whoosh_big (-10)",
+    "splash_big (-10)",
+    "stamp (-18) on the seal",
+    "deflate 'pfff' (generate CC0; else silence)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-11",
+    "pattern-12"
+   ]
+  },
+  {
+   "id": "s020",
+   "chapter": 1,
+   "text": "By the eighteen-forties, the most famous scientist alive was calling the tips {m:pyr}'pyramidal.' And someone had written down almost the exact {m:list}list you saw at the start.",
+   "pause_after": 0.3,
+   "visual": "2.5 s Ken Burns on Humboldt's portrait (Stieler 1843, PD; fetch from Commons) in a sepia frame. At {m:pyr}: cut to the s001 tilted globe; thin white triangle outlines snap onto the southern ends of South America, Africa and India (plants the pyramid for Chapter 3). At {m:list}: Ken Burns on the fetched Guyot 1849 p.22 scan.",
+   "onscreen": [
+    "HUMBOLDT: \"PYRAMIDAL\""
+   ],
+   "humor": "",
+   "sfx": [
+    "pop_ui (-16) on the triangle snaps"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-15",
+    "pattern-14"
+   ]
+  },
+  {
+   "id": "s021",
+   "chapter": 1,
+   "text": "{m:l1}Greenland, {m:l2}Baja, {m:l3}Florida, {m:l4}India, {m:l5}Kamchatka. 'All their points turned towards the south.'",
+   "pause_after": 0.7,
+   "visual": "Match-cut to the EXACT s003 Equal Earth framing; re-pop the five tips in the same rhythm and with the same pop_ui thump as 0:04 (callback). The quote types on last.",
+   "onscreen": [
+    "\"ALL THEIR POINTS TURNED TOWARDS THE SOUTH\""
+   ],
+   "humor": "",
+   "sfx": [
+    "pop_ui (-14) x5, same as the cold open"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-14"
+   ]
+  },
+  {
+   "id": "s022",
+   "chapter": 1,
+   "text": "Then, in the {m:seventies}nineteen-seventies, the pattern got its name, as a {m:joke}joke. A magazine writer called it {m:drip}'continental drip': a fake theory you could prove just by {m:staring}staring at a map.",
+   "pause_after": 0.3,
+   "visual": "Typewriter card on cream paper (JetBrains Mono 500; generic, no real magazine branding). At {m:joke}: a coffee-stained sheet slides in. At {m:drip}: 'CONTINENTAL DRIFT' types out, then the 'FT' is struck through and a 'P' typed over it: DRIP. MARKER CUES: {m:seventies} the '1973' pill pops; {m:staring} a magnifying-glass icon sweeps across a small world-map card.",
+   "onscreen": [
+    "1973",
+    "CONTINENTAL DRIFT -> DRIP"
+   ],
+   "humor": "DRIFT gets retyped as DRIP on screen.",
+   "sfx": [
+    "typewriter (-12)",
+    "bell_small (-16) as the carriage bell"
+   ],
+   "music": "Light, playful pizzicato under the joke.",
+   "fact_ids": [
+    "science-6",
+    "pattern-23"
+   ]
+  },
+  {
+   "id": "s023",
+   "chapter": 1,
+   "text": "Three years later, a geologist published his own {m:version}version of the joke. Hold on to {m:hold}him. He matters more than you'd {m:think}think.",
+   "pause_after": 0.4,
+   "visual": "A second typewriter sheet slides in behind the first; its byline is blurred. At {m:hold}: a yellow ring circles the blur; slow push-in. On 'more than you'd think': a 0.5 s flicker of the Gondwana paleo still behind the paper, like a watermark (plants the Chapter 5 twist). MARKER CUES: {m:version} the second sheet slides in; {m:think} the 0.5 s Gondwana watermark flicker.",
+   "onscreen": [
+    "1976"
+   ],
+   "humor": "",
+   "sfx": [
+    "typewriter (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-7"
+   ]
+  },
+  {
+   "id": "s024",
+   "chapter": 1,
+   "text": "But the shapes are just the {m:first}first clue. The next one is on the {m:far}far side of the planet.",
+   "pause_after": 0.6,
+   "visual": "At {m:first}: the seven drip arrows flash once on the cold-open globe while the camera pushes in. At {m:far}: hard cut to the cutawayEarth stage with the North Pole on top; drillDir draws the cyan line from the pole through the core and out the South Pole in 1.4 s while the camera dollies from [6,3.5,6] to [4.5,2.6,4.5] (target [0,0.3,0], fov 32).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "riser_tension (-12), start 4 s early",
+    "sonar_ping (-12)"
+   ],
+   "music": "Riser into Chapter 2; switch to the pulsing synth + strings data bed.",
+   "fact_ids": []
+  },
+  {
+   "id": "s025",
+   "chapter": 2,
+   "text": "Start at the top of the world. The {m:np}North Pole isn't land, it's ocean. Which makes Santa's workshop, technically, a {m:boat}houseboat. Stand on the ice there, and the sea floor is about {m:depth}two and a half miles beneath your boots.",
+   "pause_after": 0.4,
+   "visual": "Chapter card as a 2 s overlay on moving footage. Camera flies to {lat:85, lon:0, alt:1.4, tilt:35}: the dark bathymetric Arctic basin ringed by land (the texture has no sea ice). At {m:np}: pulsing white marker + pill. At {m:boat}: EXPLORER GAG 3 (3D diorama stage): the Explorer on a white floe slab bobbing on a dark water plane beside a red-and-white striped pole (simple cylinder); optional low-poly cabin with chimney smoke on the next floe. At {m:depth}: cut to a 2D PROFILE PANEL (slice Greenland -> pole -> Siberia): thin white ice line, navy water, sea floor 2.5 mi down; a depth ruler drops from the ice to the floor; the Explorer (same stage, transparent background, composited on the ice line) looks down and recoils (HitRecieve_2).",
+   "onscreen": [
+    "WHAT'S ON EARTH'S OTHER SIDE?",
+    "SEA FLOOR: ~2.5 MILES DOWN"
+   ],
+   "humor": "Santa's workshop is technically a houseboat. EXPLORER GAG 3: vertigo over two and a half miles of water (HitRecieve_2).",
+   "sfx": [
+    "sonar_ping (-12)",
+    "rumble_quake (-18) under the ruler drop"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-18",
+    "numbers-19"
+   ]
+  },
+  {
+   "id": "s026",
+   "chapter": 2,
+   "text": "Now go to the {m:bottom}bottom. At the {m:sp}South Pole, you're standing almost {m:up}two miles up, on a {m:sheet}sheet of ice more than a mile and a half {m:thick}thick.",
+   "pause_after": 0.4,
+   "visual": "At {m:bottom}: the profile panel whips down to a South Pole profile on the same axis scale: dashed sea-level line, rock below, white ice sheet above. At {m:sp}: marker SOUTH POLE. At {m:up}: the ice column rises under the Explorer like an elevator to almost 2 miles (upward ruler); on 'a mile and a half thick' a bracket draws along the ice. He stands on top (Idle_Neutral), beard flapping. Schematic, not to scale (the Explorer is a gag, not a scale reference). MARKER CUES: {m:sheet} the white ice sheet is outlined; {m:thick} the bracket draws along the ice.",
+   "onscreen": [
+    "SOUTH POLE: NEARLY 2 MILES UP"
+   ],
+   "humor": "",
+   "sfx": [
+    "ice_wind (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-19"
+   ]
+  },
+  {
+   "id": "s027",
+   "chapter": 2,
+   "text": "The two ends of the planet are {m:neg}photographic negatives. Ocean on top. A continent at the bottom.",
+   "pause_after": 0.4,
+   "visual": "Mode change: two 2D POLAR DISCS (520 px, azimuthal equal-area from ne_50m_land; Antarctica includes ice shelves), slowly counter-rotating. Left: Arctic, navy ocean centre with a cream ring of land. Right: Antarctica, cream land centre with a navy ring of ocean. At {m:neg}: the Arctic disc inverts via a 'difference' composite against white (cream and navy swap over 0.4 s) and now rhymes with the Antarctic disc.",
+   "onscreen": [
+    "OCEAN ON TOP. LAND AT BOTTOM."
+   ],
+   "humor": "",
+   "sfx": [
+    "glitch_click (-14) as a camera shutter"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-18"
+   ]
+  },
+  {
+   "id": "s028",
+   "chapter": 2,
+   "text": "And they're almost the same size. {m:drag}Drag the Arctic Ocean down onto Antarctica, and the sizes nearly {m:match}match.",
+   "pause_after": 0.5,
+   "visual": "Globe. At {m:drag}: www/geo/arctic_ocean.geojson rings (cyan) are dragged with `moves` (true size) along the 0 deg meridian over 2.5 s; the camera tracks the shape's centroid at alt 2.6 from lat 70 to lat -70. At {m:match}: it settles over Antarctica (outlined orange); the two areas almost coincide.",
+   "onscreen": [
+    "ARCTIC OCEAN = ANTARCTICA (ALMOST)"
+   ],
+   "humor": "",
+   "sfx": [
+    "whoosh_soft (-12)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-15"
+   ]
+  },
+  {
+   "id": "s029",
+   "chapter": 2,
+   "text": "But here's the part that doesn't make sense. They don't just match. They {m:line}line up. Most of {m:ant}Antarctica sits directly opposite the Arctic Ocean, on the exact {m:other}other side of the Earth.",
+   "pause_after": 0.9,
+   "visual": "Music cuts 0.5 s before {m:line}. At {m:line}: cutawayEarth stage (North Pole on top), drillDir shoots from the pole through the core into Antarctica in 1.2 s. At {m:ant}: cut to the globe looking straight down on the Arctic {lat:90, alt:2.4}: arctic_ocean.geojson outlined cyan; Antarctica's outline mirrored to its antipode (lat -> -lat, lon -> lon+180) draws on in orange. At {m:other}: the overlap of mirrored Antarctica and the Arctic Ocean fills yellow. FIRST JAW-DROP (~3:00).",
+   "onscreen": [
+    "MOST OF ANTARCTICA: OPPOSITE THE ARCTIC OCEAN"
+   ],
+   "humor": "",
+   "sfx": [
+    "impact_deep (-6) at {m:line}"
+   ],
+   "music": "Cut the bed 0.5 s before 'line up'.",
+   "fact_ids": [
+    "numbers-16",
+    "numbers-17"
+   ]
+  },
+  {
+   "id": "s030",
+   "chapter": 2,
+   "text": "And it's not just the {m:poles}poles. Almost everywhere you look, land has {m:avoid}ocean on its far side, not more land. Which {m:brings}brings us to a classic American playground {m:myth}myth.",
+   "pause_after": 0.3,
+   "visual": "Pull back to the whole globe. At {m:avoid}: a 1.0 s glimpse of tex/data/antipodes.png fading on and off (cyan flipped land, small yellow overlaps). At {m:myth}: kinetic headline. MARKER CUES: {m:poles} pull back to the whole globe; {m:brings} the headline words start rising, landing on {m:myth}.",
+   "onscreen": [
+    "DIG STRAIGHT DOWN TO CHINA?"
+   ],
+   "humor": "",
+   "sfx": [
+    "whoosh_soft (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-10",
+    "numbers-14"
+   ]
+  },
+  {
+   "id": "s031",
+   "chapter": 2,
+   "text": "If you dig straight down, you'll reach {m:china}China. Let's {m:test}test it. Start in {m:kansas}Kansas, right at the center of the lower forty-eight, and {m:dig}dig. Ignore everything on the way down that would kill you, and keep {m:going}going.",
+   "pause_after": 0.3,
+   "visual": "At {m:china}: globe centred on China (35N 105E, alt 2.6), China fills orange. At {m:test}: whip west to the US (39N 98W); China is on the far side and cannot share the frame. At {m:kansas}: marker drops on the 1918 geographic centre of the lower 48 (39.83N 98.58W, near Lebanon, Kansas) + pill. At {m:dig}: EXPLORER GAG 4a (tiny planet, Kansas rotated to the top): he touches the ground (Interact) and a glowing beam fires straight down from his hand; moveAlong lowers him 0.6 units into the planet over 1.2 s until he vanishes (2D dirt puffs). Then cut to cutawayEarth with Kansas on top: drillDir runs from Kansas through the core over ~3 s with a tiny Explorer icon riding the drill head; no depth numbers. At {m:going}: the drill nears the far side.",
+   "onscreen": [
+    "KANSAS"
+   ],
+   "humor": "'Ignore everything on the way down that would kill you.' EXPLORER GAG 4a: digs from Kansas (Interact) and sinks out of sight.",
+   "sfx": [
+    "dig_shovel (-12)",
+    "sonar_ping (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-24"
+   ]
+  },
+  {
+   "id": "s032",
+   "chapter": 2,
+   "text": "You come out in the {m:indian}southern Indian Ocean. The {m:nearest}nearest land is a tiny French {m:island}island, more than two hundred miles {m:away}away.",
+   "pause_after": 0.4,
+   "visual": "The drill exits at the bottom of the cutaway. At {m:indian}: tiny planet rotated so 39.83S 81.42E (Kansas's antipode) is on top, all blue; the Explorer shoots up out of the water (moveAlong y -0.6 -> +0.4), Roll, then Idle chest-deep inside a 2D ripple ring, the whole model bobbing on the swell (treading water). At {m:nearest}: cut to the photoreal globe over the antipode {alt:0.35, tilt:40}: yellow pulsing marker, a dashed great-circle line draws to Ile Saint-Paul (38.72S 77.53E), shown as a tiny white dot with no label. MARKER CUES: {m:island} the tiny white dot pops; {m:away} the pill swaps to the distance.",
+   "onscreen": [
+    "INDIAN OCEAN",
+    "200+ MILES TO THE NEAREST LAND"
+   ],
+   "humor": "EXPLORER GAG 4b: pops out into empty ocean and treads water (Roll, Idle).",
+   "sfx": [
+    "splash_big (-10)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-24"
+   ]
+  },
+  {
+   "id": "s033",
+   "chapter": 2,
+   "text": "Not {m:notchina}China. Not even the right {m:hemi}hemisphere. In fact, there isn't a single spot in the {m:us}United States that sits opposite {m:china2}China.",
+   "pause_after": 0.4,
+   "visual": "Equal Earth flat map (place and antipode both on screen): all 50 states mirrored in cyan (lower 48 in the Indian Ocean, Hawaii on Botswana, a sliver of Alaska on Antarctica), China in orange. At {m:china2}: they touch nowhere; JUICE CHECK: FALSE stamp. MARKER CUES: {m:notchina} cut to the flat map, China orange; {m:hemi} the equator line flashes between the Kansas antipode (south) and China (north); {m:us} the mirrored cyan states draw on.",
+   "onscreen": [
+    "US AND CHINA: ZERO OVERLAP",
+    "JUICE CHECK: FALSE"
+   ],
+   "humor": "",
+   "sfx": [
+    "stamp (-10)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-24"
+   ]
+  },
+  {
+   "id": "s034",
+   "chapter": 2,
+   "text": "Even if you {m:start}started in China, three times out of {m:four}four you'd surface in the ocean. The people who can actually {m:dig2}dig to China? {m:arg}Argentinians.",
+   "pause_after": 0.5,
+   "visual": "Flat map. At {m:start}: China's antipodal outline (cyan) draws on over the South Pacific and South Atlantic off Chile and Argentina. At {m:four}: the part over water fills cyan; about a quarter (over Argentina and Chile) fills yellow. At {m:arg}: Argentina fills orange and its own antipodal outline lands right on China (overlap yellow). A Kenney mini (mini_male_a, separate stage, transparent background, ~110 px) pops up out of a little hole in China (jump) and plays emote-yes. Then a 1 s cutaway: the Explorer still bobbing alone in the Indian Ocean (Idle). MARKER CUES: {m:dig2} a tiny shovel icon taps Argentina.",
+   "onscreen": [
+    "ARGENTINA -> CHINA"
+   ],
+   "humor": "Punchline 'Argentinians.' Kenney mini pops out in China; the Explorer is still stranded at sea.",
+   "sfx": [
+    "bell_small (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-25"
+   ]
+  },
+  {
+   "id": "s035",
+   "chapter": 2,
+   "text": "Now flip {m:flipall}every continent to the far side of the planet and {m:lay}lay it over the {m:orig}original. Only about {m:eighth}one-eighth of the land has land on the other side.",
+   "pause_after": 0.4,
+   "visual": "Equal Earth flat map (area-true, so the polar pair is not inflated). At {m:flipall}: the reprojected antipodes.png cyan layer wipes in left to right over grey real land. At {m:orig}: the yellow overlaps pulse one at a time: South America with East Asia, Antarctica with the Arctic lands, New Zealand with Spain (1.5x punch-in). At {m:eighth}: hero counter. MARKER CUES: {m:lay} the cyan wipe completes.",
+   "onscreen": [
+    "ONLY ABOUT 1 IN 8"
+   ],
+   "humor": "",
+   "sfx": [
+    "shimmer (-16) x3",
+    "tick_counter (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-10",
+    "numbers-20"
+   ]
+  },
+  {
+   "id": "s036",
+   "chapter": 2,
+   "text": "That's less than half of what you'd expect if the continents had been {m:random}sprinkled at random.",
+   "pause_after": 0.4,
+   "visual": "Mode change: DATA CARD on navy with two 10x10 waffle grids of land squares, left IF RANDOM, right REAL EARTH. At {m:random}: squares light yellow (land with land opposite) in a fast random order; the left stops at 29 squares, the right at 13; a white bracket shows the right is under half. No numbers printed (hero-number rule); the grids carry the ratio.",
+   "onscreen": [
+    "IF RANDOM",
+    "REAL EARTH"
+   ],
+   "humor": "",
+   "sfx": [
+    "tick_counter (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-12"
+   ]
+  },
+  {
+   "id": "s037",
+   "chapter": 2,
+   "text": "So try a {m:puzzle}puzzle. Slice the Earth into {m:half}two halves, any way you like, and {m:cram}cram as much land as you can into one of them.",
+   "pause_after": 0.3,
+   "visual": "Back to the globe. At {m:half}: a translucent hemisphere cap (hemisphereCanvas regenerated each frame at 1024x512, source-in against the land mask: land inside the cap glows orange, ocean inside stays cyan) sweeps along a scripted search path that ends at 40N 2E. MARKER CUES: {m:puzzle} a small puzzle-piece icon pops; {m:cram} the cap's search speeds up.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "whoosh_soft (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-6"
+   ]
+  },
+  {
+   "id": "s038",
+   "chapter": 2,
+   "text": "The winner is centered on {m:europe}western Europe. It scoops up most of the world's land. And it's still {m:still}more than half water.",
+   "pause_after": 0.6,
+   "visual": "The cap settles centred between Brittany and the Spanish coast (40N 2E) at {m:europe}; land inside glows. Music cuts 0.5 s before {m:still}; at {m:still} the ocean inside the cap floods cyan.",
+   "onscreen": [
+    "BEST HALF: STILL MOSTLY WATER"
+   ],
+   "humor": "",
+   "sfx": [
+    "impact_short (-10) at {m:still}"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-6",
+    "numbers-7",
+    "numbers-8"
+   ]
+  },
+  {
+   "id": "s039",
+   "chapter": 2,
+   "text": "There is no way to {m:cut}cut this planet in half and get a half that's {m:mostly}mostly land.",
+   "pause_after": 0.5,
+   "visual": "Mode change: a 2x3 grid of pre-rendered globe stills (still.cjs), each with a hemisphere cap centred on Asia, Africa, North America, South America, Antarctica and Australia (ocean inside the cap cyan, land orange). A red X stamp icon (no words) slams onto each tile, 1.0 s apart; tiles drift slightly. MARKER CUES: {m:cut} the 2x3 grid slides in; the X stamps then land 1.0 s apart. MARKER CUES: {m:mostly} the last X lands and the headline pill appears.",
+   "onscreen": [
+    "NO HALF IS MOSTLY LAND"
+   ],
+   "humor": "",
+   "sfx": [
+    "stamp (-16) x6"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-8"
+   ]
+  },
+  {
+   "id": "s040",
+   "chapter": 2,
+   "text": "Now flip the globe {m:flip}over. The other half is {m:p89}eighty-nine percent water, centered in the empty Pacific near New Zealand.",
+   "pause_after": 0.7,
+   "visual": "Globe centred (-40,-178). It whips 180 deg at {m:flip}; the opposite cap goes deep cyan. At {m:p89}: hero counter climbs to 89%; New Zealand is a small orange sliver near the cap's centre.",
+   "onscreen": [
+    "THE WATER HALF: 89% OCEAN"
+   ],
+   "humor": "",
+   "sfx": [
+    "whoosh_big (-10)",
+    "tick_counter (-16)",
+    "impact_deep (-8) on 89"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-9"
+   ]
+  },
+  {
+   "id": "s041",
+   "chapter": 2,
+   "text": "The Pacific {m:alone}alone could swallow {m:drop}every continent on Earth, with room to spare. Yes, even {m:asia}Asia.",
+   "pause_after": 0.9,
+   "visual": "Globe on the Pacific {lat:-5, lon:-160, alt:2.6}. At {m:alone}: the Pacific (NE 10m marine polygons incl. marginal seas) outlined cyan. From {m:drop}: continents lift off as orange shapes (moves, 0.5 s apart) and 'melt' into an AREA-TRUE orange pour spreading out from the basin centre (offline raster: Pacific cells ordered by distance from the centre, filled until the filled area equals the land dropped so far; rigid true-size packing would overlap and is NOT used). EXPLORER GAG 5: Australia arrives carrying the still-soaked Explorer (stage render composited at the shape's projected centroid, ~140 px, Idle_Neutral). Asia drops LAST at {m:asia} with the heaviest thunk; its splash rocks him (HitRecieve_2). The pour stops leaving a blue rim; pull out wide; he waves from the leftover blue (Wave).",
+   "onscreen": [
+    "PACIFIC > ALL LAND COMBINED"
+   ],
+   "humor": "Tag 'Yes, even Asia.' EXPLORER GAG 5: hitches a ride on Australia, gets rocked by Asia's splash, waves from the leftover room (Idle_Neutral, HitRecieve_2, Wave).",
+   "sfx": [
+    "thunk_heavy (-14) per landing, last one -8"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-27"
+   ]
+  },
+  {
+   "id": "s042",
+   "chapter": 2,
+   "text": "{m:ocean}Ocean on top, {m:landb}land at the bottom, {m:avoidl}land avoiding land. This planet is strangely {m:lop}lopsided. And the drip might be just the part you can {m:see}see.",
+   "pause_after": 0.4,
+   "visual": "Callback montage, ~1 s each: polar discs, antipode flat map, water-half cap. At {m:lop}: return to the s001 tilted drip globe (core question restated, ~36%). MARKER CUES: {m:ocean} polar discs; {m:landb} Antarctic disc; {m:avoidl} antipode flat map; {m:see} the drip arcs redraw on the s001 globe.",
+   "onscreen": [
+    "WHY DO THE CONTINENTS POINT SOUTH?"
+   ],
+   "humor": "",
+   "sfx": [
+    "whoosh_soft (-16) x3"
+   ],
+   "music": "",
+   "fact_ids": [
+    "numbers-18",
+    "numbers-12",
+    "numbers-3",
+    "numbers-13"
+   ]
+  },
+  {
+   "id": "s043",
+   "chapter": 2,
+   "text": "And back in {m:g1875}eighteen seventy-five, one man thought he'd found a single {m:shape}shape that explained all of it. And it wasn't a {m:ball}ball.",
+   "pause_after": 0.4,
+   "visual": "Sepia wipe. At {m:g1875}: tetraEarth at k=0 with edge opacity 0.9; the edges sit at 1.55R, so the four yellow corners poke out through the surface (a pyramid hidden inside the planet). At {m:ball}: the four corners flare. Keep it rotating under the subscribe ask so the loop stays open on screen. MARKER CUES: {m:shape} the hidden yellow edges start glowing.",
+   "onscreen": [
+    "1875"
+   ],
+   "humor": "",
+   "sfx": [
+    "riser_tension (-14)"
+   ],
+   "music": "Riser; switch to curious felt piano + pizzicato.",
+   "fact_ids": [
+    "science-1"
+   ]
+  },
+  {
+   "id": "s044",
+   "chapter": 2,
+   "text": "Before we meet him: every Myth Juice video takes {m:taught}one thing you were taught about the world and {m:checks}checks it against the real planet. Want the next one? {m:sub}Subscribe.",
+   "pause_after": 0.4,
+   "visual": "Picture keeps moving: slow orbit of the rotating tetra-in-globe. At {m:taught}: the brand JUICE CHECK stamp spins in at upper left. At {m:checks}: it lands with a '?' on the hidden pyramid (the next verdict is pending). At {m:sub}: an animated subscribe button glows in the lower third, above the bottom 12%. No freeze. FIRST SUBSCRIBE ASK (~37%), right after the China / 89% / Pacific payoffs, inside the open 1875 loop.",
+   "onscreen": [
+    "JUICE CHECK: ?",
+    "SUBSCRIBE"
+   ],
+   "humor": "",
+   "sfx": [
+    "stamp (-14)",
+    "pop_ui (-14)"
+   ],
+   "music": "",
+   "fact_ids": []
+  },
+  {
+   "id": "s045",
+   "chapter": 3,
+   "text": "His name was William Lowthian Green. He wasn't a professor. He was the {m:hawaii}foreign minister of the Kingdom of Hawaii.",
+   "pause_after": 0.4,
+   "visual": "Chapter card (2 s overlay). Ken Burns (4x) on Green's 1875 title page (archive.org vestigesmolteng00greegoog leaf n5 at w1600; crop out the Bodleian stamp and handwritten shelfmark). At {m:hawaii}: the line 'MINISTER OF FOREIGN AFFAIRS TO THE KING OF THE SANDWICH ISLANDS' gets an orange highlight; quick cut to a pulsing marker on Hawaii.",
+   "onscreen": [
+    "IS EARTH SECRETLY A PYRAMID?",
+    "HAWAII'S FOREIGN MINISTER"
+   ],
+   "humor": "Reveal: the theorist was Hawaii's foreign minister.",
+   "sfx": [
+    "pop_ui (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-2"
+   ]
+  },
+  {
+   "id": "s046",
+   "chapter": 3,
+   "text": "And he'd been {m:obsessed}obsessed with those pointy southern tips for years. He even demonstrated them with a {m:card}bent card dipped in {m:water}water.",
+   "pause_after": 0.3,
+   "visual": "Small 3D diorama: two 1.2x0.8 white planes hinged at 165 deg (a shallow roof), tilted 8 deg nose-down; at {m:card} it lowers into a cyan water plane (0.6 opacity); the dry part reads as a triangle aimed at the dipped end, with a white line along the waterline. Cross-dissolve to Green's Figure 1 (assets/pd/green_n18.jpg; NOT green_fig1.jpg, which is a blank page): the south-pointing three-lobed 'normal form'. MARKER CUES (reordered): {m:obsessed} Ken Burns on Green's Figure 1 (assets/pd/green_n18.jpg) first; {m:card} the card diorama; {m:water} the card touches the water and the dry triangle appears.",
+   "onscreen": [
+    "\"THE NORMAL FORM OF A CONTINENT\""
+   ],
+   "humor": "",
+   "sfx": [
+    "shimmer (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-2",
+    "future-visuals-29"
+   ]
+  },
+  {
+   "id": "s047",
+   "chapter": 3,
+   "text": "Remember those {m:pyr2}'pyramidal' tips? Green thought the whole planet was heading that way: {m:cool}cooling, shrinking, and slowly collapsing toward a {m:tet}tetrahedron. A four-cornered {m:pyr4}pyramid.",
+   "pause_after": 0.3,
+   "visual": "At {m:pyr2}: 1 s callback flash of Humboldt's triangle outlines on the s020 globe. Then the tetraEarth stage (radius 2.2) with the Explorer standing on top (the North Pole = centre of the future top face). At {m:tet}: k ramps 0 -> 1 over 3 s while the whole group tilts 25 deg toward camera so the top face slopes; EXPLORER GAG 6a: he Rolls (moveAlong) from the face centre down to the near upper corner (19.47N, -75, the Americas vertex). At {m:pyr4}: he stops perched on that corner (Idle_Neutral) and stays there through s053; the yellow edges flare. MARKER CUES: {m:cool} inward 'cooling' arrows ring the planet as the Explorer stands on top.",
+   "onscreen": [
+    "EARTH BECOMING A TETRAHEDRON"
+   ],
+   "humor": "EXPLORER GAG 6a: the ground tilts under him as the planet turns into a pyramid; he rolls down to a corner and perches (Roll, Idle_Neutral).",
+   "sfx": [
+    "slide whistle down (generate CC0; fallback whoosh_soft -14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-1",
+    "science-3",
+    "pattern-15"
+   ]
+  },
+  {
+   "id": "s048",
+   "chapter": 3,
+   "text": "It sounds ridiculous. But watch what it {m:pred}explained. Most land in the north: {m:c1}check. Three continents ending in points aimed south: {m:c2}check.",
+   "pause_after": 0.25,
+   "visual": "Checklist, one line at a time (each replaces the previous; never more than two text elements). Each tick gets its own lookFrom on the tetra (Explorer still perched): {m:c1} side view, north up, three upper corners; {m:c2} low side view along an edge running down to the south vertex. MARKER CUES: {m:pred} the checklist frame slides in beside the tetra.",
+   "onscreen": [
+    "MOST LAND IN THE NORTH",
+    "THREE CONTINENTS POINTING SOUTH"
+   ],
+   "humor": "",
+   "sfx": [
+    "pop_ui (-14) x2 as ticks"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-1"
+   ]
+  },
+  {
+   "id": "s049",
+   "chapter": 3,
+   "text": "An ocean on top of the world: {m:c3}check. A continent at the bottom: {m:c4}check. Land sitting opposite water: {m:c5}check. One shape, every clue.",
+   "pause_after": 0.5,
+   "visual": "{m:c3}: view from straight above at the flat top face (Arctic); {m:c4}: view from straight below at the south vertex (Antarctica); {m:c5}: a vertex with the opposite face behind it. Then a '5 / 5' stamp.",
+   "onscreen": [
+    "OCEAN AT THE NORTH POLE",
+    "CONTINENT AT THE SOUTH POLE",
+    "LAND OPPOSITE WATER",
+    "5 / 5"
+   ],
+   "humor": "",
+   "sfx": [
+    "pop_ui (-14) x3",
+    "stamp (-10)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-1"
+   ]
+  },
+  {
+   "id": "s050",
+   "chapter": 3,
+   "text": "And it {m:main}caught on. By eighteen ninety-nine, a leading {m:geol}geologist was telling Britain's top geographers that a shrinking Earth had to {m:squeeze}squeeze toward a {m:geo}tetrahedron.",
+   "pause_after": 0.3,
+   "visual": "At {m:main}: Ken Burns across the fetched March 1899 journal leaf with the Fig. 5 tetrahedron diagrams (archive.org sim_geographical-journal_1899-03_13_3; frame out the masthead, no citation look). At {m:geo}: orange underline under 'tending to become tetrahedral', then cut to the rotating tetraEarth with a '1899' pill and the Explorer still clinging to his corner. Fallback if the leaf is unusable: sepia-graded tetraEarth + the pill (do NOT substitute Green's 1875 figure). MARKER CUES: {m:geol} the 1899 journal leaf Ken Burns starts; {m:squeeze} the Ken Burns pushes into the Fig. 5 tetrahedron.",
+   "onscreen": [
+    "1899: \"TENDING TO BECOME TETRAHEDRAL\""
+   ],
+   "humor": "",
+   "sfx": [
+    "paper_rustle (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-3"
+   ]
+  },
+  {
+   "id": "s051",
+   "chapter": 3,
+   "text": "He even pointed out that most of North America sits opposite the {m:io}Indian Ocean. The same ocean you just dug into.",
+   "pause_after": 0.3,
+   "visual": "Globe over the Indian Ocean: North America mirrored to its antipode in cyan; the lower 48 and Mexico land in the Indian Ocean, while Greenland and Arctic Canada land on Antarctica (keep that visible: it is why the line says 'most'). At {m:io}: the same yellow pulsing marker at 39.83S 81.42E (Kansas's antipode) reappears inside the cyan outline with the same sonar ping.",
+   "onscreen": [
+    "MOST OF NORTH AMERICA: OPPOSITE INDIAN OCEAN"
+   ],
+   "humor": "Callback to the dig gag.",
+   "sfx": [
+    "sonar_ping (-12)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-3",
+    "numbers-24",
+    "numbers-21"
+   ]
+  },
+  {
+   "id": "s052",
+   "chapter": 3,
+   "text": "By nineteen eighteen, a children's {m:mag}magazine was telling kids that one day, the Earth would turn into a {m:pyramid}pyramid. Sleep {m:tight}tight, kids.",
+   "pause_after": 0.4,
+   "visual": "Recreated sepia children's-page card (our own typography, no real masthead). Kenney mini characters sit cross-legged (sit) facing a chalkboard where a globe morphs into a pyramid at {m:pyramid}. At {m:tight}: one mini turns to camera and plays emote-no. MARKER CUES: {m:mag} the recreated children's-page card and the seated minis appear.",
+   "onscreen": [
+    "1918: \"A SORT OF PYRAMID\""
+   ],
+   "humor": "Deadpan 'Sleep tight, kids.' (Kenney mini emote-no).",
+   "sfx": [
+    "paper_rustle (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-4"
+   ]
+  },
+  {
+   "id": "s053",
+   "chapter": 3,
+   "text": "So, hang on. If it explained all that, {m:how}how do we know it's wrong?",
+   "pause_after": 0.9,
+   "visual": "The tetrahedron freezes mid-turn (Explorer perched; keep a 1 deg/s drift so the frame is not static); music drops out at {m:how}; a single '?' draws itself on one face.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "Silence 0.9 s.",
+   "fact_ids": []
+  },
+  {
+   "id": "s054",
+   "chapter": 3,
+   "text": "Because the whole idea needed a cooling, shrinking Earth. And critics could {m:measure}measure the planet: a ball, slightly squashed at the poles. Not a {m:notp}pyramid. And by then, scientists had discovered {m:rad}radioactivity, quietly heating Earth from the inside.",
+   "pause_after": 0.3,
+   "visual": "Inward 'shrinking' arrows (2D) appear around the tetra. At {m:measure}: a measuring-tape graphic wraps the planet and a white oblate ellipse outline (labelled EXAGGERATED) overlays it. At {m:notp}: a red X on the tetra outline. At {m:rad}: glowing orange specks (2D sprites over the model) speckle the interior with a soft heat glow.",
+   "onscreen": [
+    "SQUASHED BALL, NOT A PYRAMID",
+    "RADIOACTIVITY: A HIDDEN HEATER"
+   ],
+   "humor": "",
+   "sfx": [
+    "stamp (-16) on the X",
+    "shimmer (-16) on the specks"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-5"
+   ]
+  },
+  {
+   "id": "s055",
+   "chapter": 3,
+   "text": "Over the next few decades, the shrinking engine {m:stall}stalled. The pyramid vanished from geology. Green's checklist was {m:real}real. He'd just pinned the clues on the wrong {m:suspect}suspect.",
+   "pause_after": 0.4,
+   "visual": "At {m:stall}: the inward arrows stall and FADE (never reverse; no outward arrows: Earth is not expanding). EXPLORER GAG 6b: the tetra puffs back into a round sphere (k 1 -> 0, E.outBack); his corner disappears from under him (HitRecieve_2) and he ends standing on the round globe, looking around for his corner (Idle_Neutral). ~3 s. At {m:real}: Green's globe engravings (assets/pd/green_globes.jpg, Figs 9-10) drift by in sepia; five icon-only clue cards appear on a dark board (ocean cap, Antarctica, south-pointing triangle, north-heavy globe, antipode double-arrow). At {m:suspect}: red strings link all five to a tetrahedron icon, which gets a red X.",
+   "onscreen": [
+    "REAL CLUES. WRONG SUSPECT."
+   ],
+   "humor": "EXPLORER GAG 6b: the pyramid pops back into a ball and his corner vanishes from under him (HitRecieve_2, Idle_Neutral). Detective framing: 'wrong suspect'.",
+   "sfx": [
+    "boing (generate CC0; fallback pop_ui -8)",
+    "impact_short (-14) on the X"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-5",
+    "numbers-13"
+   ]
+  },
+  {
+   "id": "s056",
+   "chapter": 3,
+   "text": "The real suspect had been hiding in plain sight on every world {m:maps}map. A few people had guessed it before. It took one stubborn man to {m:say}make the case out loud. And his story ends on one of the {m:drips}drips.",
+   "pause_after": 0.6,
+   "visual": "At {m:maps}: Ken Burns across Ortelius's 1570 Typus Orbis Terrarum (PD; fetch from Commons), pushing in on the Atlantic; orange glowPaths trace the facing coasts of South America and Africa. At {m:say}: cross-dissolve to the photoreal globe {lat:-10, lon:-15, alt:2.4}, same two coasts glowing; the continents twitch apart 0.3 deg (moves, 0.2 s). At {m:drips}: 1 s Greenland tip-pop on the s003 flat map with the cold-open thump, then dip to white.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "paper_rustle (-16)",
+    "rumble_quake (-12) at {m:say}",
+    "pop_ui (-12) at {m:drips}"
+   ],
+   "music": "Riser into Chapter 4.",
+   "fact_ids": [
+    "pattern-8",
+    "science-10",
+    "science-14"
+   ]
+  },
+  {
+   "id": "s057",
+   "chapter": 4,
+   "text": "Around nineteen ten, a young German weather scientist named Alfred Wegener {m:wrote}wrote to his future wife. Doesn't South America {m:fit}fit against Africa, he asked, as if they had once been {m:joined}joined?",
+   "pause_after": 0.3,
+   "visual": "Chapter card (2 s overlay). Ken Burns on the Wegener portrait (assets/pd/wegener_portrait.jpg, c.1924-30, PD in US). At {m:wrote}: the Ken Burns lands on the eyes and an envelope icon slides in. At {m:fit}: the Atlantic coasts of both continents glow white on the globe. At {m:joined}: South America slides east (moves) and nestles against Africa.",
+   "onscreen": [
+    "WHY DID GEOLOGISTS LAUGH AT WEGENER?",
+    "ALFRED WEGENER"
+   ],
+   "humor": "",
+   "sfx": [
+    "paper_rustle (-18)",
+    "pop_ui (-18) as the coasts meet"
+   ],
+   "music": "Chapter 4: hopeful strings that later turn cold.",
+   "fact_ids": [
+    "science-10"
+   ]
+  },
+  {
+   "id": "s058",
+   "chapter": 4,
+   "text": "'This is an idea I'll have to {m:pursue}pursue.'",
+   "pause_after": 0.4,
+   "visual": "Handwritten-style letter card (Playfair Display 700 italic) with the line; the fitted continents glow behind it. MARKER CUES: {m:pursue} the handwritten line finishes writing on.",
+   "onscreen": [
+    "\"AN IDEA I'LL HAVE TO PURSUE\""
+   ],
+   "humor": "",
+   "sfx": [
+    "paper_rustle (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-10"
+   ]
+  },
+  {
+   "id": "s059",
+   "chapter": 4,
+   "text": "In nineteen twelve, he stood up before a {m:meeting}meeting of geologists and told them the {m:move}continents move. Then a world {m:war}war buried his {m:book}book.",
+   "pause_after": 0.4,
+   "visual": "At {m:move}: a 3 s simplified paleo scrub on the globe from 200 Ma to today (paleo/coast_TTT.json; years chip 'MILLION YEARS AGO \u00b7 SIMPLIFIED'): real reconstructed motion, not invented arrows. (The on-disk wegener_1924_fig4.jpg is a hypsometric curve, not a reconstruction map: do not use it here.) At {m:war}: dark smoke rolls across the frame and a simple book silhouette stamped 1915 sinks under it. MARKER CUES: {m:meeting} a 1912 pill over the portrait; {m:book} the 1915 book silhouette sinks under the smoke.",
+   "onscreen": [
+    "1912: THE CONTINENTS MOVE"
+   ],
+   "humor": "",
+   "sfx": [
+    "whoosh_soft (-14)",
+    "rumble_quake (-18) as distant thunder"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-11",
+    "science-17"
+   ]
+  },
+  {
+   "id": "s060",
+   "chapter": 4,
+   "text": "Once the world read it, the reaction was {m:brutal}brutal. One society president called it {m:rot}'utter, damned rot.' In Germany, he never landed a full {m:prof}professorship. It took a university in {m:austria}Austria to give him one.",
+   "pause_after": 0.4,
+   "visual": "EXPLORER GAG 7: at {m:rot} a quote card slams into frame; the Explorer, standing beside a small drifting globe, recoils as if hit by the words (HitRecieve). At {m:prof}: a row of simple university-door icons slam shut one by one. At {m:austria}: one door at the far end opens onto warm light; a marker pops on Graz. MARKER CUES: {m:brutal} five generic book silhouettes (the 1922 translations) fan out around the Explorer.",
+   "onscreen": [
+    "\"UTTER, DAMNED ROT!\"",
+    "FULL PROFESSOR AT LAST: AUSTRIA, 1924"
+   ],
+   "humor": "EXPLORER GAG 7: knocked back by an insult (HitRecieve).",
+   "sfx": [
+    "impact_short (-10)",
+    "thunk_heavy (-18) x3 as the doors",
+    "bell_small (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-12"
+   ]
+  },
+  {
+   "id": "s061",
+   "chapter": 4,
+   "text": "And critics had one killer question: what could possibly {m:push}push a continent? Wegener guessed Earth's {m:spin}spin, and tides. Both were far too {m:weak}weak.",
+   "pause_after": 0.3,
+   "visual": "At {m:push}: a big '?' over the continents. At {m:spin}: curved white spin arrows on the globe and a tidal-bulge graphic pushing on a continent. At {m:weak}: a 2D needle gauge labelled FORCE twitches and sags to near zero.",
+   "onscreen": [
+    "SPIN AND TIDES: FAR TOO WEAK"
+   ],
+   "humor": "",
+   "sfx": [
+    "glitch_click (-16) as the gauge sputters"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-13"
+   ]
+  },
+  {
+   "id": "s062",
+   "chapter": 4,
+   "text": "He admitted it himself. 'The Newton of drift theory has not yet {m:appeared}appeared.'",
+   "pause_after": 0.5,
+   "visual": "Wegener portrait again, slow push toward the eyes; the quote types on. MARKER CUES: {m:appeared} the quote finishes typing.",
+   "onscreen": [
+    "\"THE NEWTON OF DRIFT... NOT YET APPEARED\""
+   ],
+   "humor": "",
+   "sfx": [
+    "typewriter (-20)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-13"
+   ]
+  },
+  {
+   "id": "s063",
+   "chapter": 4,
+   "text": "In nineteen thirty, Wegener was deep on the ice of {m:grl}Greenland. One of the drip's own tips.",
+   "pause_after": 0.4,
+   "visual": "At {m:grl}: Greenland pops orange on the globe with the same tip-pop thump as the cold open; then a low flyover across the white Greenland ice sheet toward its centre (patch tex/patch/greenland.jpg, relief 1.0, tilt 50, ~10 s).",
+   "onscreen": [
+    "GREENLAND, 1930"
+   ],
+   "humor": "",
+   "sfx": [
+    "pop_ui (-12)",
+    "ice_wind (-14)"
+   ],
+   "music": "Sparse cold drone and wind.",
+   "fact_ids": [
+    "science-14",
+    "pattern-28"
+   ]
+  },
+  {
+   "id": "s064",
+   "chapter": 4,
+   "text": "On his {m:fifty}fiftieth birthday, he left a {m:camp}camp in the middle of the ice sheet with a Greenlander named Rasmus {m:villumsen}Villumsen.",
+   "pause_after": 0.6,
+   "visual": "Slow Ken Burns on the last photo of Wegener and Villumsen (assets/pd/wegener_last_026.jpg = Commons 'Wegener Expedition-1930 026.jpg', tagged PD-Mark; VERIFY the licence on the live Commons page / with AWI before use; fallback: a verified-PD expedition image or a recreated still of two figures and a sled on the ice). Hold at {m:fifty}. MARKER CUES: {m:camp} the Ken Burns drifts across the photo; {m:villumsen} it settles on the second figure.",
+   "onscreen": [
+    "NOVEMBER 1930"
+   ],
+   "humor": "",
+   "sfx": [
+    "ice_wind (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-14"
+   ]
+  },
+  {
+   "id": "s065",
+   "chapter": 4,
+   "text": "Neither of them made it {m:back}back.",
+   "pause_after": 1.2,
+   "visual": "The photo slowly fades to pure white (exposure ramp over 3 s). No Explorer anywhere in s063-s068. MARKER CUES: {m:back} the fade to white begins.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "ice_wind only"
+   ],
+   "music": "Music drops to silence; wind only.",
+   "fact_ids": [
+    "science-14"
+   ]
+  },
+  {
+   "id": "s066",
+   "chapter": 4,
+   "text": "They found Wegener's body the next {m:may}May, carefully buried in the snow. Villumsen was never {m:found}found.",
+   "pause_after": 0.6,
+   "visual": "Flyover resumes over empty ice; light snowfall; no location marker. MARKER CUES: {m:may} the 'FOUND: MAY 1931' pill; {m:found} the snowfall thickens and the pill fades.",
+   "onscreen": [
+    "FOUND: MAY 1931"
+   ],
+   "humor": "",
+   "sfx": [
+    "ice_wind (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-14"
+   ]
+  },
+  {
+   "id": "s067",
+   "chapter": 4,
+   "text": "Wegener never saw his idea proven. The proof was hiding on the {m:floor}ocean floor: stripes of magnetized rock, {m:mirror}mirrored on both sides of the mid-ocean ridges, like a {m:tape}tape recording of new seafloor being made.",
+   "pause_after": 0.3,
+   "visual": "Cut from white ice to the dark ocean floor. At {m:floor}: magnetic 'zebra' stripes (recreated schematic) appear. At {m:mirror}: they mirror across a glowing mid-ocean ridge. At {m:tape}: new stripes emerge at the centre and slide outward symmetrically like tape leaving a recorder.",
+   "onscreen": [
+    "THE SEAFLOOR'S ZEBRA STRIPES"
+   ],
+   "humor": "",
+   "sfx": [
+    "shimmer (-20)"
+   ],
+   "music": "Slow warm swell returns.",
+   "fact_ids": [
+    "science-15"
+   ]
+  },
+  {
+   "id": "s068",
+   "chapter": 4,
+   "text": "The paper that decoded those stripes came out {m:y33}thirty-three years after he died.",
+   "pause_after": 1.2,
+   "visual": "Year counter rolls 1930 -> 1963 at {m:y33}; the stripes lock into place.",
+   "onscreen": [
+    "33 YEARS TOO LATE"
+   ],
+   "humor": "",
+   "sfx": [
+    "tick_counter (-16)",
+    "impact_deep (-10)"
+   ],
+   "music": "Warm music comes back up before 'Today' so the next joke reads as a deliberate release.",
+   "fact_ids": [
+    "science-15"
+   ]
+  },
+  {
+   "id": "s069",
+   "chapter": 4,
+   "text": "Today, satellites clock the continents moving at about the speed your {m:nail}fingernails grow. Or your {m:toe}toenails, depending on which government agency you ask.",
+   "pause_after": 0.4,
+   "visual": "Globe on the Atlantic: white GPS-style velocity arrows appear on the plates. At {m:nail}: a split diagram slides in from the right (mode change): a vector fingertip whose nail edge creeps forward. At {m:toe}: boxing fight-card split: a vector foot icon slides in opposite with 'VS' between them; the two icons tilt toward each other as if arguing. No agency names or labels.",
+   "onscreen": [
+    "PLATE SPEED = FINGERNAIL GROWTH",
+    "FINGERNAILS VS TOENAILS"
+   ],
+   "humor": "Fingernails vs toenails: the agencies disagree (fight card).",
+   "sfx": [
+    "record_scratch (-14) on 'agency'"
+   ],
+   "music": "",
+   "fact_ids": [
+    "future-visuals-9",
+    "future-visuals-12"
+   ]
+  },
+  {
+   "id": "s070",
+   "chapter": 4,
+   "text": "So Wegener was {m:right}right. But that still doesn't explain the {m:drip}drip. Why would so many of them end up {m:point}pointing the same way?",
+   "pause_after": 0.4,
+   "visual": "Pull back to the tilted drip globe; the southern tips glow; at {m:point} a big '?' hangs over Antarctica's ring (core question restated, ~62%). MARKER CUES: {m:right} JUICE CHECK: TRUE stamp over Wegener's portrait (brand verdict); {m:drip} cut to the tilted drip globe.",
+   "onscreen": [
+    "JUICE CHECK: TRUE",
+    "WHY DO THEY POINT SOUTH?"
+   ],
+   "humor": "",
+   "sfx": [
+    "riser_tension (-12)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-11",
+    "science-15"
+   ]
+  },
+  {
+   "id": "s071",
+   "chapter": 4,
+   "text": "Run the clock {m:rewind}backwards, and the big drips all start pointing at the same {m:place}place.",
+   "pause_after": 0.5,
+   "visual": "Mode change: black scrub card; a time-scrub bar slides in (above the bottom 12%); at {m:rewind} its counter starts rolling backwards. At {m:place}: the drip arrows on the three big tips swing toward one point off-frame below.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "time_rewind (-12)"
+   ],
+   "music": "Building swell begins.",
+   "fact_ids": [
+    "science-16",
+    "science-21"
+   ]
+  },
+  {
+   "id": "s072",
+   "chapter": 5,
+   "text": "Back into the age of dinosaurs. Watch the southern continents slide home: {m:r_sam}South America, {m:r_afr}Africa, {m:r_ind}India, {m:r_aus}Australia.",
+   "pause_after": 0.3,
+   "visual": "Chapter card (2 s overlay). Paleo globe (PaleoOverlay; look {flatBase:1, ovAlpha:1, ovMul:1, nightAmt:0, relief:0}) from a south-polar camera {lat:-60, lon:20, alt:2.8} so Gondwana assembles centre-frame; T scrubs 0 -> 180 Ma across the segment (E.inOut). Polygon indices are mapped to continents once from coast_000.json centroids; on each name marker that continent's polygons fill orange. MARKER CUES: {m:r_sam}, {m:r_afr}, {m:r_ind}, {m:r_aus} each continent's polygons fill orange on its name.",
+   "onscreen": [
+    "WHERE ARE THE DRIPS POINTING?",
+    "MILLION YEARS AGO \u00b7 SIMPLIFIED"
+   ],
+   "humor": "",
+   "sfx": [
+    "time_rewind (-12)"
+   ],
+   "music": "Building swell continues.",
+   "fact_ids": [
+    "science-16",
+    "science-17"
+   ]
+  },
+  {
+   "id": "s073",
+   "chapter": 5,
+   "text": "They lock together into one supercontinent: {m:gond}Gondwana. And at its heart sits {m:ant}Antarctica. Geologists call it the keypiece.",
+   "pause_after": 0.5,
+   "visual": "Pieces lock with a clunk at {m:gond}; at {m:ant} Antarctica pulses with a yellow ring at the centre of the assembled Gondwana.",
+   "onscreen": [
+    "GONDWANA",
+    "ANTARCTICA: THE KEYPIECE"
+   ],
+   "humor": "",
+   "sfx": [
+    "thunk_heavy (-10)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-16"
+   ]
+  },
+  {
+   "id": "s074",
+   "chapter": 5,
+   "text": "{m:remember}Remember Bacon's open question? Is there even a southern continent? The drips were {m:point}pointing at it {m:whole}the whole time.",
+   "pause_after": 1,
+   "visual": "At {m:remember}: cut for 2.5 s to Bacon's portrait (sepia, Ken Burns toward the eyes) with the question pill (breaks the long paleo run). At {m:point}: back to the assembled Gondwana paleo globe. At {m:whole}: white drip arrows from the 180 Ma positions of cape_horn, cape_agulhas and kanyakumari (paleo/tracks.json) converge on the yellow ring at the south_pole track point.",
+   "onscreen": [
+    "\"WHETHER THERE IS ANY SOUTHERN CONTINENT\""
+   ],
+   "humor": "",
+   "sfx": [
+    "impact_deep (-10) at {m:whole}"
+   ],
+   "music": "Music cut 0.5 s before 'the whole time', then swell.",
+   "fact_ids": [
+    "pattern-5",
+    "science-16",
+    "science-21"
+   ]
+  },
+  {
+   "id": "s075",
+   "chapter": 5,
+   "text": "Now let the clock run {m:fwd}forward. Cracks open, and new ocean starts seeping in between {m:afant}Africa and Antarctica.",
+   "pause_after": 0.3,
+   "visual": "At {m:fwd}: the counter starts running forward from 180 Ma. At {m:afant}: a thin blue line of new ocean cracks open between Africa and Antarctica.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "rumble_quake (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-17"
+   ]
+  },
+  {
+   "id": "s076",
+   "chapter": 5,
+   "text": "Then the {m:zip}South Atlantic unzips from the bottom up, {m:split}splitting Africa from South America. The south tears open {m:firstt}first. The last {m:seam}seam, near the equator, hangs on for millions of years {m:snap2}more.",
+   "pause_after": 0.3,
+   "visual": "At {m:zip}: the South Atlantic opens like a zipper from its south end northward, a zipper-pull icon tracking the opening. The equatorial link holds, then snaps at {m:snap2}. MARKER CUES: {m:split} Africa and South America glow on either side of the opening; {m:firstt} the southern gap widens; {m:seam} the equatorial link glows yellow before it snaps.",
+   "onscreen": [
+    "THE SOUTH ATLANTIC UNZIPS NORTHWARD"
+   ],
+   "humor": "",
+   "sfx": [
+    "whoosh_soft (-14) as the zip",
+    "impact_short (-12) at the snap"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-18"
+   ]
+  },
+  {
+   "id": "s077",
+   "chapter": 5,
+   "text": "And then everyone moves {m:leave}out. Except {m:stay}Antarctica. It barely budges. It keeps the {m:house}house.",
+   "pause_after": 0.4,
+   "visual": "T runs 140 -> 60 Ma: Africa, South America, India and Australia drift north out of frame while Antarctica stays centred. EXPLORER GAG 8: the Explorer stage (transparent background) is composited over the paleo globe at the projected south_pole track point (~150 px). At {m:leave}: he waves goodbye (Wave) to the departing continents. At {m:stay}: Antarctica's yellow ring pulses under him. At {m:house}: a tiny porch light flicks on behind him.",
+   "onscreen": [
+    "ANTARCTICA STAYS PUT"
+   ],
+   "humor": "Breakup metaphor: everyone moves out, Antarctica keeps the house. EXPLORER GAG 8: left behind, waving everyone off (Wave).",
+   "sfx": [
+    "whoosh_soft (-18) as each continent exits",
+    "glitch_click (-18) as the porch-light click"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-19"
+   ]
+  },
+  {
+   "id": "s078",
+   "chapter": 5,
+   "text": "India {m:sprint}sprints: up to about eight inches a year, several times faster than {m:afaus}Africa or Australia. For a continent, that's reckless {m:driving}driving. Then it {m:slam}slams into Asia.",
+   "pause_after": 0.4,
+   "visual": "At {m:sprint}: India streaks north with a glowing speed trail; its speed tag gets cartoon motion lines. At {m:slam}: it crashes into Asia with a shock ring. MARKER CUES: {m:afaus} Africa and Australia crawl beside India with short trails; {m:driving} cartoon motion lines on India's speed tag.",
+   "onscreen": [
+    "INDIA: UP TO ~8 INCHES A YEAR"
+   ],
+   "humor": "'For a continent, that's reckless driving.'",
+   "sfx": [
+    "whoosh_big (-10)",
+    "impact_deep (-8) at {m:slam}"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-19"
+   ]
+  },
+  {
+   "id": "s079",
+   "chapter": 5,
+   "text": "Here's the {m:best}explanation a geologist will most likely give you. Put the pieces back {m:together}together, and their pointy ends all sat close to {m:ant2}Antarctica.",
+   "pause_after": 0.4,
+   "visual": "Counter jumps back to 180 Ma. At {m:ant2}: the southern tips of South America, Africa and India pulse orange exactly where they touch Antarctica's ring. MARKER CUES: {m:best} counter jumps back to 180 Ma; {m:together} the pieces re-lock around Antarctica.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "shimmer (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-21",
+    "science-9",
+    "science-16"
+   ]
+  },
+  {
+   "id": "s080",
+   "chapter": 5,
+   "text": "As they drifted {m:apart}apart, they roughly kept their orientation. So those points still {m:aim}aim back to where they tore away.",
+   "pause_after": 0.6,
+   "visual": "Counter runs to TODAY; camera pulls back to the present-day tilted globe (the s001 angle). At {m:apart}: dotted yellow lines draw the real paths from paleo/tracks.json (cape_horn, cape_agulhas, kanyakumari, 0 -> 180 Ma) on today's globe. At {m:aim}: they converge near Antarctica's ring.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "shimmer (-18)"
+   ],
+   "music": "Music cut 0.5 s before the next line.",
+   "fact_ids": [
+    "science-21"
+   ]
+  },
+  {
+   "id": "s081",
+   "chapter": 5,
+   "text": "The big drips aren't drips at all. They're {m:scar}scars.",
+   "pause_after": 1,
+   "visual": "At {m:scar}: the dotted trails turn into glowing seam lines, like healed scars across the oceans.",
+   "onscreen": [
+    "THE BIG DRIPS ARE SCARS"
+   ],
+   "humor": "",
+   "sfx": [
+    "impact_deep (-6)"
+   ],
+   "music": "Swell lands on 'scars'.",
+   "fact_ids": [
+    "science-21"
+   ]
+  },
+  {
+   "id": "s082",
+   "chapter": 5,
+   "text": "Back to that second drip joke. The geologist who wrote it was John {m:holden}Holden.",
+   "pause_after": 0.3,
+   "visual": "The 1976 typewriter sheet from Chapter 1 returns; at {m:holden} its blurred byline un-blurs to JOHN C. HOLDEN.",
+   "onscreen": [
+    "1976",
+    "JOHN C. HOLDEN"
+   ],
+   "humor": "",
+   "sfx": [
+    "typewriter (-14)"
+   ],
+   "music": "Playful pizzicato returns.",
+   "fact_ids": [
+    "science-7"
+   ]
+  },
+  {
+   "id": "s083",
+   "chapter": 5,
+   "text": "Writing for a science humor journal, he declared that every continent is a {m:tear}teardrop, with the pointed end showing the direction it came from.",
+   "pause_after": 0.3,
+   "visual": "At {m:tear}: teardrop silhouettes (each sized to its continent's area, centred on its centroid, point aimed south) fade in over the dimmed continents with a white outline draw-on (0.6 s). Our own redraw, not the copyrighted figure.",
+   "onscreen": [
+    "\"TEAR-DROP SHAPED\""
+   ],
+   "humor": "",
+   "sfx": [
+    "shimmer (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-7",
+    "pattern-24"
+   ]
+  },
+  {
+   "id": "s084",
+   "chapter": 5,
+   "text": "Drips always flow {m:down}down, he reasoned, so our maps must be {m:upside}upside down. He was {m:joking}joking. But one of the most famous {m:photo}photos of Earth ever taken really was shot with {m:bm}Antarctica on top. It was published {m:flip}flipped.",
+   "pause_after": 0.3,
+   "visual": "At {m:upside}: the globe flips south-up for a beat; the teardrops now hang like falling drops with their tails up (his logic). At {m:bm}: assets/pd/bluemarble_original.jpg (Apollo 17, south-up, PD) fills the frame. At {m:flip}: it rotates 180 deg and dissolves into assets/pd/bluemarble_northup.jpg. MARKER CUES: {m:down} a single teardrop falls down the frame; {m:joking} a 'JOKE' tag wobbles onto the flipped globe; {m:photo} cut to a photo frame drawing on, filled at {m:bm}.",
+   "onscreen": [
+    "SHOT WITH ANTARCTICA ON TOP"
+   ],
+   "humor": "",
+   "sfx": [
+    "whoosh_soft (-14) on each rotation"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-8",
+    "future-visuals-18"
+   ]
+  },
+  {
+   "id": "s085",
+   "chapter": 5,
+   "text": "So by Holden's logic, it was right the first {m:first}time.",
+   "pause_after": 0.4,
+   "visual": "EXPLORER GAG 9 (~3 s): the tiny planet rolls 180 deg about the camera axis (planet.rotation.z) while the Explorer plays Run facing screen-right and stays on top like a hamster in a wheel. At {m:first}: it rolls back the other way; he turns (ry 180), runs again (Run), then stops upright on the south-up planet (Idle_Neutral).",
+   "onscreen": [],
+   "humor": "Callback joke: the south-up photo was right by Holden's logic. EXPLORER GAG 9: hamster-wheels on the flipping planet (Run, Idle_Neutral).",
+   "sfx": [
+    "whoosh_soft (-16) x2"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-8",
+    "future-visuals-18"
+   ]
+  },
+  {
+   "id": "s086",
+   "chapter": 5,
+   "text": "And one day, he wrote, the continents would {m:splash}splash back together into a supercontinent called {m:pangooy}'Pangooy.' On a {m:tue}Tuesday, at nine in the morning. He did not say which {m:tz}time zone.",
+   "pause_after": 0.9,
+   "visual": "At {m:pangooy}: the teardrops slosh together into one goofy blob (Antarctica left out); a gag card slides in with the date (the year is on the card only, never spoken). At {m:tz}: hold on the card and drop the music for 0.3 s. MARKER CUES: {m:splash} the teardrops start sliding together; {m:tue} the gag card slides in.",
+   "onscreen": [
+    "\"PANGOOY\" (A JOKE)",
+    "TUESDAY, 9:00 A.M., 1,786,379 A.D."
+   ],
+   "humor": "'He did not say which time zone.'",
+   "sfx": [
+    "splash_big (-12)",
+    "bell_small (-14) as the alarm ding"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-8",
+    "pattern-25"
+   ]
+  },
+  {
+   "id": "s087",
+   "chapter": 5,
+   "text": "{m:twist}Here's the twist. Six years {m:earlier}earlier, the very same John Holden had helped map, for {m:real}real, how Pangaea broke {m:apart2}apart.",
+   "pause_after": 0.5,
+   "visual": "Music cuts at {m:twist}. Split screen: left, our own serious breakup still (paleo coast_200 with motion trails to today, labelled '1970: THE REAL MAP (SIMPLIFIED)'); right, the joke teardrop map (our redraw). At {m:apart2}: a yellow line links the two under the same name. MARKER CUES: {m:earlier} the left panel (real map) slides in; {m:real} the right panel (joke) slides in.",
+   "onscreen": [
+    "1970: THE REAL MAP (SIMPLIFIED)",
+    "1976: THE JOKE"
+   ],
+   "humor": "",
+   "sfx": [
+    "impact_deep (-6)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-9"
+   ]
+  },
+  {
+   "id": "s088",
+   "chapter": 5,
+   "text": "His joke even {m:cited}cited his own real work. That line about the {m:pointline}point showing where it came from? Not just a {m:punch}punchline. It was basically the {m:answer}answer.",
+   "pause_after": 1,
+   "visual": "The joke map's south-pointing teardrop points extend into the s080 dotted tracks, which converge on Antarctica; at {m:answer} the yellow ring flares. MARKER CUES: {m:cited} a reference-list card (our typography) highlights 'Dietz and Holden (1970)'; {m:pointline} one teardrop point glows; {m:punch} its point extends into a dotted track.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "shimmer (-14)"
+   ],
+   "music": "Swell, then hold.",
+   "fact_ids": [
+    "science-9",
+    "science-21",
+    "pattern-24"
+   ]
+  },
+  {
+   "id": "s089",
+   "chapter": 5,
+   "text": "And the joke wasn't {m:notdone}done. Geologists have since found {m:realdrip}real drips. Under {m:nev}Nevada, a cold blob of rock appears to be sinking into the Earth, like {m:honey}honey off a spoon. One of the scientists who found it admitted he'd been {m:anti}'anti-drip' since his early days.",
+   "pause_after": 0.6,
+   "visual": "At {m:realdrip}: the globe dives to Nevada {lat:39, lon:-117, alt:0.4} with a pulsing marker. At {m:nev}: cut to a 2D cross-section under the western US (crust and mantle): a cold blue blob with a long tail stretches downward over 4 s (about 60 mi wide by 300+ mi deep, in proportion). At {m:honey}: a vector spoon inset (top-right) drips amber honey in the same shape, in sync. At {m:anti}: the quote pill pops. MARKER CUES: {m:notdone} 1 s callback to the 1973 DRIP typewriter sheet.",
+   "onscreen": [
+    "REAL DRIP: UNDER NEVADA (SIMPLIFIED)",
+    "\"ANTI-DRIP\""
+   ],
+   "humor": "The scientist who found a real drip had been 'anti-drip'.",
+   "sfx": [
+    "pop_ui (-16) as the honey plop"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-28",
+    "science-29"
+   ]
+  },
+  {
+   "id": "s090",
+   "chapter": 5,
+   "text": "Now, the honest {m:honest}part, because we're not going to fake you a tidy answer. Not everything {m:drips}drips.",
+   "pause_after": 0.3,
+   "visual": "Hard switch to a clean data look: a grid of 12 peninsula tiles (crops of the Equal Earth map, peninsula in orange), each with a compass needle from a hand-picked base point to its ledger tip. South-pointing: South America (Cape Froward), Baja, Florida, Greenland, Kamchatka, India, Malay Peninsula, Greece (Cape Matapan). North-pointing: Cape York, Yucatan, Jutland, Taymyr. Needles all start pointing south at {m:drips}. MARKER CUES: {m:honest} the 12-tile grid snaps in.",
+   "onscreen": [
+    "THE HONEST PART"
+   ],
+   "humor": "",
+   "sfx": [
+    "glitch_click (-16)"
+   ],
+   "music": "Lighter, curious bed.",
+   "fact_ids": [
+    "pattern-30",
+    "pattern-28"
+   ]
+  },
+  {
+   "id": "s091",
+   "chapter": 5,
+   "text": "Australia's {m:york}Cape York points north. So do Mexico's {m:yuc}Yucat\u00e1n, Denmark's {m:jut}Jutland and Siberia's {m:tay}Taymyr. And the Antarctic {m:antpen}Peninsula has no choice. From the South Pole, every direction is {m:north}north.",
+   "pause_after": 0.4,
+   "visual": "From {m:york}: the four north-pointing tiles swing their needles grey-north one by one. At {m:north}: top-down view over the South Pole with unlabelled white arrows radiating outward in every direction. Let the line land dry with 0.3 s of room tone (no comic sting). MARKER CUES: {m:york}, {m:yuc}, {m:jut}, {m:tay} each north-pointing tile swings its needle in turn; {m:antpen} cut to the Antarctic Peninsula on the globe.",
+   "onscreen": [
+    "THESE POINT NORTH",
+    "EVERY DIRECTION: NORTH"
+   ],
+   "humor": "'From the South Pole, every direction is north.'",
+   "sfx": [
+    "whoosh_soft (-18) x4"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-30"
+   ]
+  },
+  {
+   "id": "s092",
+   "chapter": 5,
+   "text": "Smaller drips have their own {m:stories}stories. Several million years ago, the Pacific Plate grabbed {m:baja}Baja and started dragging it away from mainland {m:mex}Mexico. It's still {m:going}going.",
+   "pause_after": 0.3,
+   "visual": "Globe with patch tex/patch/baja.jpg {lat:27, lon:-112, alt:0.35, tilt:45}. At {m:baja}: Baja (tips_admin1: Baja California + Baja California Sur) outlined orange, first shown pushed ~170 mi south-east against mainland Mexico (moveRings offset), then sliding north-west to its present position over 2.5 s as the Gulf of California opens behind it, with a white Pacific Plate arrow pointing NW. At {m:going}: the arrow keeps pulsing. MARKER CUES: {m:stories} fly to Baja; {m:mex} the Gulf of California gap glows as Baja slides.",
+   "onscreen": [
+    "BAJA: TORN FROM MAINLAND MEXICO"
+   ],
+   "humor": "",
+   "sfx": [
+    "rumble_quake (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-24"
+   ]
+  },
+  {
+   "id": "s093",
+   "chapter": 5,
+   "text": "{m:fla}Florida isn't a drip at all. It's the top of a gigantic {m:lime}limestone platform, miles thick, built up by {m:sealife}sea life in warm, shallow water. And {m:under}under all that limestone sits bedrock that started out next to {m:wafr}West Africa. Like a lot of people in Florida, it's originally from somewhere {m:else}else.",
+   "pause_after": 0.4,
+   "visual": "At {m:fla}: Florida highlighted (patch tex/patch/florida.jpg). At {m:lime}: a 2D cross-section: a thick pale limestone platform rises under the peninsula and extends well beyond its coast; small vector shell and coral icons stand in for sea life. At {m:wafr}: a deep basement layer glows and a dotted arc traces back across the Atlantic to West Africa. At {m:else}: hold the arc; optional tiny moving-truck icon pulls up at the Florida end. MARKER CUES: {m:sealife} the shell and coral icons; {m:under} the basement layer is revealed under the platform.",
+   "onscreen": [
+    "FLORIDA: A GIANT LIMESTONE PLATFORM",
+    "ITS BEDROCK: BORN NEXT TO AFRICA"
+   ],
+   "humor": "'Like a lot of people in Florida, it's originally from somewhere else.'",
+   "sfx": [
+    "pop_ui (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-25",
+    "science-26"
+   ]
+  },
+  {
+   "id": "s094",
+   "chapter": 5,
+   "text": "And Africa's real southern tip isn't the Cape of Good {m:gh}Hope. It's Cape {m:agul}Agulhas. The name means {m:needles}'needles,' and the best-known story says that's because sailors' {m:compass}compass needles there pointed true north. So, if that story is right, Africa's southern tip is named after pointing {m:north2}north.",
+   "pause_after": 0.4,
+   "visual": "Globe over the Cape {lat:-34.5, lon:19.2, alt:0.25, tilt:40}, patch s_africa.jpg. At {m:gh}: a white marker pulses on the Cape of Good Hope (34.36S 18.48E); a dashed line hops ~90 mi east-south-east to Cape Agulhas (34.83S 20.0E); a thin latitude line shows Agulhas is farther south. At {m:agul}: NASA ASTER view of Cape Agulhas (assets/pd/cape_agulhas_aster.jpg, PD). At {m:north2}: a compass-needle graphic spins and settles pointing north, right at Africa's southern tip. (No sign photo is used: the only one on disk reads 'SCENIC WALK'.) MARKER CUES: {m:needles} the 'AGULHAS = NEEDLES' pill; {m:compass} the compass graphic starts spinning.",
+   "onscreen": [
+    "REAL TIP: CAPE AGULHAS",
+    "AGULHAS = \"NEEDLES\""
+   ],
+   "humor": "Africa's southern tip is named after pointing north.",
+   "sfx": [
+    "whoosh_soft (-14)",
+    "bell_small (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "future-visuals-19",
+    "future-visuals-22",
+    "pattern-29"
+   ]
+  },
+  {
+   "id": "s095",
+   "chapter": 5,
+   "text": "So is the drip just a {m:coin2}coincidence? The big ones are most {m:likely}likely not: they're scars from a supercontinent that tore apart around {m:v_ant}Antarctica. The small ones have no single {m:single}answer, and some of it may just be us, connecting {m:dots}dots.",
+   "pause_after": 0.4,
+   "visual": "At {m:coin2}: the cold-open coin spins up again (callback), then the JUICE CHECK verdict stamp. At {m:v_ant}: scar lines glow on South America, Africa and India. Then small drips flicker each with its own white line icon: Baja a tear-away arrow, Florida a shell. At {m:dots}: a dotted constellation line joins random tips and fades. MARKER CUES: {m:likely} the JUICE CHECK stamp lands; {m:single} the small-drip icons flicker.",
+   "onscreen": [
+    "JUICE CHECK: IT'S COMPLICATED"
+   ],
+   "humor": "",
+   "sfx": [
+    "bell_small (-16) as the coin",
+    "stamp (-10)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "science-21",
+    "pattern-26",
+    "pattern-30"
+   ]
+  },
+  {
+   "id": "s096",
+   "chapter": 5,
+   "text": "And the rest of the {m:lopside}lopsided planet? The land piled up in the {m:northl}north, the land that avoids {m:avoid2}land? There's no clear sign of a deep {m:force}force arranging it. The likeliest answer: it's a {m:snap}snapshot of where the drifting pieces happen to be right now.",
+   "pause_after": 0.6,
+   "visual": "At {m:avoid2}: 1 s glimpse of the antipode flat map. Then a 2D EQUATORIAL SLICE: Earth disc with crust, mantle and core rings and two broad orange plumes rising on opposite sides (small Africa and Pacific-island silhouettes on the rim do the labelling, no text). At {m:force}: a grey arrow pointing north fades in over the disc and gets a red X. At {m:snap}: a white flash freezes the s001 drip globe inside a white Polaroid border. MARKER CUES: {m:lopside} land_north overlay flash; {m:northl} the equatorial-slice disc appears.",
+   "onscreen": [
+    "NOT A FORCE. A SNAPSHOT."
+   ],
+   "humor": "",
+   "sfx": [
+    "glitch_click (-12) as the shutter"
+   ],
+   "music": "Riser into the finale.",
+   "fact_ids": [
+    "science-27",
+    "numbers-13",
+    "numbers-12"
+   ]
+  },
+  {
+   "id": "s097",
+   "chapter": 6,
+   "text": "So where is the drip {m:going}going? Since Bacon wrote his {m:line}line, the Atlantic has grown about a {m:bus}school bus wider.",
+   "pause_after": 0.3,
+   "visual": "Chapter card (2 s overlay). Globe on the Atlantic with the mid-Atlantic ridge as a glowPath; at {m:bus} a yellow school-bus silhouette slides into the widening gap. MARKER CUES: {m:going} the drip arcs pulse; {m:line} a 1620 pill on the ridge.",
+   "onscreen": [
+    "WHERE IS THE DRIP GOING NEXT?",
+    "SINCE 1620: ABOUT ONE SCHOOL BUS"
+   ],
+   "humor": "School-bus scale for 400 years of drift.",
+   "sfx": [
+    "whoosh_soft (-14)"
+   ],
+   "music": "Finale: epic but restrained build.",
+   "fact_ids": [
+    "future-visuals-14"
+   ]
+  },
+  {
+   "id": "s098",
+   "chapter": 6,
+   "text": "Give it a couple hundred million {m:years}years, and geologists think a new supercontinent will {m:form}form. They just can't {m:agree}agree on what it looks like. Here are the four main {m:models}models.",
+   "pause_after": 0.3,
+   "visual": "The time-scrub bar runs forward past TODAY. At {m:form}: the globe spins forward fast and fogs over. At {m:models}: four tiles slide in as a 2x2 grid (pre-rendered stills of today's globe centred on North America with the white US tracked marker), unnamed until s099-s102 name them. MARKER CUES: {m:years} the scrub counter runs forward; {m:agree} four faint '?' marks appear around North America.",
+   "onscreen": [
+    "4 MODELS, 50-300 MILLION YEARS OUT"
+   ],
+   "humor": "",
+   "sfx": [
+    "riser_tension (-12)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "future-visuals-6"
+   ]
+  },
+  {
+   "id": "s099",
+   "chapter": 6,
+   "text": "One: the Atlantic {m:prox}slams shut, and America {m:crash2}crashes back into Africa in about two hundred fifty million years. Pangaea {m:proxname}Proxima.",
+   "pause_after": 0.3,
+   "visual": "Tile 1 expands into a live globe shot {lat:25, lon:-30, alt:2.4}. The engine has no future data, so each model is our own hand-keyed redraw: true-size `moves` of Natural Earth continents, ~3 s, eased. Proxima: North America moves east and rotates ~20 deg to close against north-west Africa and Iberia; South America closes against West Africa; the US marker bumps into Africa at {m:prox}. Hold 1 s, save the end frame (still.cjs) for the grid, the s010 flash and the filmstrip. MARKER CUES: {m:crash2} North America starts its eastward move; {m:proxname} the MODEL pill lands.",
+   "onscreen": [
+    "MODEL: PANGAEA PROXIMA"
+   ],
+   "humor": "",
+   "sfx": [
+    "thunk_heavy (-12)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "future-visuals-1",
+    "future-visuals-8"
+   ]
+  },
+  {
+   "id": "s100",
+   "chapter": 6,
+   "text": "Two: the Pacific closes instead, and the Americas hit {m:novo}Antarctica first. Novopangaea. One team's favorite bet.",
+   "pause_after": 0.3,
+   "visual": "Same template, camera on the Pacific: the Americas move west and Antarctica moves north into the gap; contact at {m:novo}. Save end frame.",
+   "onscreen": [
+    "MODEL: NOVOPANGAEA"
+   ],
+   "humor": "",
+   "sfx": [
+    "thunk_heavy (-12)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "future-visuals-3"
+   ]
+  },
+  {
+   "id": "s101",
+   "chapter": 6,
+   "text": "Three: the Arctic Ocean vanishes, and America meets {m:asia}Asia practically at the North Pole. Amasia.",
+   "pause_after": 0.3,
+   "visual": "Camera over the North Pole: North America rotates north over the pole onto Siberia; contact at {m:asia}. Save end frame.",
+   "onscreen": [
+    "MODEL: AMASIA"
+   ],
+   "humor": "",
+   "sfx": [
+    "thunk_heavy (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "future-visuals-4"
+   ]
+  },
+  {
+   "id": "s102",
+   "chapter": 6,
+   "text": "Four: both oceans close at once, and Australia ends up in the {m:middle}middle of everything. Australia plus America: {m:aurica}Aurica.",
+   "pause_after": 0.3,
+   "visual": "Camera on the Pacific: the Americas move west while Asia and Australia move east, leaving Australia at the centre. At {m:aurica}: the name assembles from AU + RICA. Save end frame. MARKER CUES: {m:middle} Australia glows at the centre.",
+   "onscreen": [
+    "MODEL: AURICA",
+    "AUSTRALIA + AMERICA"
+   ],
+   "humor": "",
+   "sfx": [
+    "pop_ui (-14) x2"
+   ],
+   "music": "",
+   "fact_ids": [
+    "future-visuals-5"
+   ]
+  },
+  {
+   "id": "s103",
+   "chapter": 6,
+   "text": "{m:a1}Africa, {m:a2}Antarctica, {m:a3}Asia or {m:a4}Australia: which {m:neighbor}neighbor are you betting on? One word, in the {m:comments}comments. In a way, Holden's continental splash really is coming. Just not on a {m:tuesday}Tuesday.",
+   "pause_after": 0.4,
+   "visual": "EXPLORER GAG 10a: the Explorer stands on North America of the tiny planet, framed by the 2x2 grid of model stills in spoken order (Africa = Proxima, Antarctica = Novopangaea, Asia = Amasia, Australia = Aurica), each tile pulsing as it is named. At {m:neighbor}: he runs toward one (Run_Left), stops, runs toward another (Run_Right), stops, stands undecided (Idle). At {m:comments}: a comment-bubble icon pops. At {m:tuesday}: the Pangooy gag card flashes back for 0.5 s. MARKER CUES: {m:a1}..{m:a4} each model tile pulses with a coloured border as its neighbor is named.",
+   "onscreen": [
+    "ONE WORD: WHICH NEIGHBOR?"
+   ],
+   "humor": "EXPLORER GAG 10a: can't decide which continent to crash into (Run_Left, Run_Right, Idle). 'Just not on a Tuesday.'",
+   "sfx": [
+    "pop_ui (-14)",
+    "bell_small (-14) as the alarm-ding callback"
+   ],
+   "music": "",
+   "fact_ids": [
+    "future-visuals-8",
+    "pattern-25",
+    "future-visuals-6"
+   ]
+  },
+  {
+   "id": "s104",
+   "chapter": 6,
+   "text": "One study ran the climate on one of these future supercontinents. Only a {m:tenth}tenth to a sixth of the land would stay livable for mammals. {m:mammal}Reminder: you're a mammal.",
+   "pause_after": 0.6,
+   "visual": "Schematic heat map (precomputed mask of the Proxima-style supercontinent's land, blurred inward: interior red #FF5A36 to dark red, coastal fringes cooler) on the s099 still, labelled MODEL. At {m:tenth}: hero counter. EXPLORER GAG 10b: tiny planet with a red key light and a subtle vertical sine-offset heat-shimmer strip (no ctx.filter); the Explorer stands wilting (Idle_Neutral) and collapses in a comic faint (Death) exactly at {m:mammal}.",
+   "onscreen": [
+    "LIVABLE FOR MAMMALS: UNDER 1 IN 6"
+   ],
+   "humor": "Deadpan 'Reminder: you're a mammal.' EXPLORER GAG 10b: faints in the future heat (Death).",
+   "sfx": [
+    "thunk_heavy (-22) as a soft thud"
+   ],
+   "music": "",
+   "fact_ids": [
+    "future-visuals-7"
+   ]
+  },
+  {
+   "id": "s105",
+   "chapter": 6,
+   "text": "Whichever future {m:wins}wins, the map we know gets {m:torn}torn up. The drip is just a fingerprint of where the pieces have {m:been}been.",
+   "pause_after": 0.4,
+   "visual": "The four model stills shrink into a filmstrip; the camera returns to the opening tilted globe angle and the drip arcs re-trace toward Antarctica (bookend with frame 1). MARKER CUES: {m:wins} the four tiles shrink into the filmstrip; {m:torn} cut back to the opening tilted globe. MARKER CUES: {m:been} the drip arcs re-trace toward Antarctica.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "time_rewind (-18) as a film whir"
+   ],
+   "music": "",
+   "fact_ids": [
+    "future-visuals-8",
+    "science-21"
+   ]
+  },
+  {
+   "id": "s106",
+   "chapter": 6,
+   "text": "Four hundred years {m:ago}ago, Bacon said the matching capes of Africa and South America were no {m:acc2}accident. Looks like he was {m:right2}right. It wasn't an accident. It was a {m:breakup}breakup.",
+   "pause_after": 0.5,
+   "visual": "At {m:acc2}: page n246 returns with 'quod non temere accidit' underlined in orange (callback to s013). At {m:breakup}: the s073 Gondwana still snaps apart in 1 s, pieces flying north, leaving Antarctica's ring with the tiny waving Explorer and his porch light (callback to s077). MARKER CUES: {m:ago} the 1620 counter flick; {m:right2} the underline glows gold.",
+   "onscreen": [
+    "NOT AN ACCIDENT. A BREAKUP."
+   ],
+   "humor": "Callback punchline: 'It wasn't an accident. It was a breakup.'",
+   "sfx": [
+    "impact_short (-12) on the snap"
+   ],
+   "music": "",
+   "fact_ids": [
+    "pattern-3",
+    "science-21",
+    "science-16"
+   ]
+  },
+  {
+   "id": "s107",
+   "chapter": 6,
+   "text": "Every map you've ever seen is one {m:frame}frame of a very slow movie.",
+   "pause_after": 0.5,
+   "visual": "The globe shrinks into one frame of a filmstrip scrolling left at constant speed: paleo stills at 200, 150, 100 and 50 Ma, today, then the four model stills. One felt piano note at {m:frame}. A low riser continues underneath, so this bridges instead of ending.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "riser_tension (-18)"
+   ],
+   "music": "Bed drops to one felt piano note on 'frame', riser underneath.",
+   "fact_ids": [
+    "future-visuals-9",
+    "science-27"
+   ]
+  },
+  {
+   "id": "s108",
+   "chapter": 6,
+   "text": "And the next frame is already being {m:shot}shot. Right now in {m:afar}Ethiopia, three {m:cracks}cracks meet in a giant Y, and one of them is slowly unzipping {m:eafr}East Africa.",
+   "pause_after": 0.4,
+   "visual": "The next blank frame on the filmstrip fills with the globe; fast fly-down alt 3.0 -> 0.35, tilt 0 -> 40 over 3 s to Afar. At {m:afar}: three glowPaths from 11.5N 41.5E: Red Sea axis NW to 27N 34E; Gulf of Aden east to 12.5N 51E; East African Rift SSW to 4N 37E (this arm pulses and creeps south). END SCREEN zone starts here (~15 s to the end). MARKER CUES: {m:shot} the next filmstrip frame fills with the globe and the fly-down starts; {m:cracks} the three glowPaths draw; {m:eafr} the southern arm pulses.",
+   "onscreen": [
+    "A CONTINENT CRACKING IN A 'Y'"
+   ],
+   "humor": "",
+   "sfx": [
+    "rumble_quake (-12)",
+    "riser_tension (-14)"
+   ],
+   "music": "Low tension riser.",
+   "fact_ids": [
+    "science-22"
+   ]
+  },
+  {
+   "id": "s109",
+   "chapter": 6,
+   "text": "What happens if Africa splits in two? That's our {m:here}next story. And if you want to watch the map keep changing, {m:sub2}subscribe.",
+   "pause_after": 0.5,
+   "visual": "END SCREEN: the Afar Y keeps glowing and widening behind; video tile 'MYTH JUICE #2: SPLIT IN TWO' appears at {m:here}; the subscribe button glows at {m:sub2}; visuals keep moving to the final frame, then hard cut.",
+   "onscreen": [
+    "MYTH JUICE #2: SPLIT IN TWO",
+    "SUBSCRIBE"
+   ],
+   "humor": "",
+   "sfx": [
+    "audio logo sting (channel asset)"
+   ],
+   "music": "Hold the riser under the end screen, cut on the last frame.",
+   "fact_ids": [
+    "science-22"
+   ]
+  }
+ ],
+ "loop_ledger": [
+  {
+   "opened_in": "s008",
+   "closed_in": "s081",
+   "loop": "Core question 'Why do the continents point south? ... what they're really pointing at' (restated s042 ~35% and s070 ~60%). Answered: put the pieces back and the pointy ends sat against Antarctica (s079); they roughly kept their orientation (s080); 'the big drips are scars' (s081)."
+  },
+  {
+   "opened_in": "s006",
+   "closed_in": "s095",
+   "loop": "Cold-open myth 'those southern points are just a coincidence' / 'They're not. Not entirely.' Closed by the coin callback: 'So is the drip just a coincidence? The big ones are most likely not ... the small ones have no single answer' (JUICE CHECK: IT'S COMPLICATED)."
+  },
+  {
+   "opened_in": "s009",
+   "closed_in": "s033",
+   "loop": "Teaser 1: why you can't dig to China from anywhere in America. Kansas comes out in the southern Indian Ocean (s032); no US spot sits opposite China (s033); Argentinians can (s034)."
+  },
+  {
+   "opened_in": "s010",
+   "closed_in": "s055",
+   "loop": "Teaser 2: an 1875 theory that explained all of it and was dead wrong. Green's tetrahedron (s045-s049), the 5/5 checklist, killed by measurement + radioactivity (s054), 'real clues, wrong suspect' (s055)."
+  },
+  {
+   "opened_in": "s010",
+   "closed_in": "s103",
+   "loop": "Teaser 3 (final reveal flashed as a 2x2 grid for 1 s): the four continents your country might crash into. Paid off by four labelled models (s099-s102) and 'Africa, Antarctica, Asia or Australia: which neighbor are you betting on?' (s103)."
+  },
+  {
+   "opened_in": "s011",
+   "closed_in": "s021",
+   "loop": "'You're not the first to notice. Not even close.' Paid off by Bacon in 1620 (s012-s013) and the 1840s list that nearly matches the cold-open list (s021)."
+  },
+  {
+   "opened_in": "s003",
+   "closed_in": "s021",
+   "loop": "The cold-open tip list (same Equal Earth framing and pop thump) is re-popped as the list written down in the 1840s."
+  },
+  {
+   "opened_in": "s014",
+   "closed_in": "s074",
+   "loop": "Bacon's open question 'is there even a southern continent?' ('Remember that.'). Closed: 'The drips were pointing at it the whole time' (Antarctica, Gondwana's keypiece)."
+  },
+  {
+   "opened_in": "s020",
+   "closed_in": "s047",
+   "loop": "Humboldt's 'pyramidal' tips (triangle outlines) return as a spoken callback: 'Remember those pyramidal tips? Green thought the whole planet was heading that way.'"
+  },
+  {
+   "opened_in": "s023",
+   "closed_in": "s088",
+   "loop": "The unnamed 1976 joker ('Hold on to him. He matters more than you'd think.', Gondwana watermark flicker) is named John Holden (s082), revealed as co-mapper of the real Pangaea breakup (s087), and his punchline was 'basically the answer' (s088)."
+  },
+  {
+   "opened_in": "s024",
+   "closed_in": "s029",
+   "loop": "'The next clue is on the far side of the planet' (cutaway drill pole to pole). Paid off: most of Antarctica sits directly opposite the Arctic Ocean."
+  },
+  {
+   "opened_in": "s029",
+   "closed_in": "s096",
+   "loop": "'Here's the part that doesn't make sense' (Antarctica opposite the Arctic Ocean; land avoiding land, s030/s036). Tetrahedron offered a wrong explanation (s049); closed honestly in s096: no clear sign of a deep force, likeliest a snapshot of drifting pieces."
+  },
+  {
+   "opened_in": "s043",
+   "closed_in": "s045",
+   "loop": "'One man thought he'd found a single shape that explained all of it. And it wasn't a ball.' The subscribe ask (s044, 'Before we meet him') plays inside this open loop; Green is named in s045 and the pyramid shape lands in s047."
+  },
+  {
+   "opened_in": "s053",
+   "closed_in": "s055",
+   "loop": "'If it explained all that, how do we know it's wrong?' Answered: critics measured a slightly squashed ball, radioactivity heats the planet, the shrinking engine stalled over decades."
+  },
+  {
+   "opened_in": "s031",
+   "closed_in": "s051",
+   "loop": "The Kansas dig into the Indian Ocean gets an 1899 callback: 'most of North America sits opposite the Indian Ocean. The same ocean you just dug into.' (same marker and sonar ping)."
+  },
+  {
+   "opened_in": "s056",
+   "closed_in": "s066",
+   "loop": "Chapter-boundary cliffhanger 'It took one stubborn man to say it out loud. And his story ends on one of the drips.' Closed when Wegener dies on the Greenland ice (s063-s066); Greenland was one of the cold-open tips (s003)."
+  },
+  {
+   "opened_in": "s061",
+   "closed_in": "s068",
+   "loop": "'What could possibly push a continent?' / 'The Newton of drift theory has not yet appeared.' The proof arrives from the seafloor's magnetic stripes, thirty-three years after Wegener's death."
+  },
+  {
+   "opened_in": "s071",
+   "closed_in": "s074",
+   "loop": "'Run the clock backwards, and the big drips all start pointing at the same place.' Paid off by Gondwana assembling around Antarctica (s072-s074)."
+  },
+  {
+   "opened_in": "s032",
+   "closed_in": "s041",
+   "loop": "Explorer visual thread: stranded treading water in the Indian Ocean (s032), still bobbing (s034), hitches a ride on Australia into the Pacific (s041)."
+  },
+  {
+   "opened_in": "s047",
+   "closed_in": "s055",
+   "loop": "Explorer visual thread: perched on the pyramid's corner through the checklist; the corner vanishes when the tetrahedron pops back into a ball."
+  },
+  {
+   "opened_in": "s086",
+   "closed_in": "s103",
+   "loop": "Holden's joke 'continental splash ... on a Tuesday, at nine in the morning' returns: 'Holden's continental splash really is coming. Just not on a Tuesday.' (gag card flash)."
+  },
+  {
+   "opened_in": "s077",
+   "closed_in": "s106",
+   "loop": "'Everyone moves out ... Antarctica keeps the house' (breakup metaphor, porch light) pays off in the ending line: 'It wasn't an accident. It was a breakup.'"
+  },
+  {
+   "opened_in": "s013",
+   "closed_in": "s106",
+   "loop": "Bacon's 'not to be attributed to mere accident' (underlined on the 1620 page) returns as the ending callback: 'Looks like he was right. It wasn't an accident. It was a breakup.'"
+  },
+  {
+   "opened_in": "s097",
+   "closed_in": "s105",
+   "loop": "'So where is the drip going?' Answered through four labelled future models and 'the drip is just a fingerprint of where the pieces have been.'"
+  },
+  {
+   "opened_in": "s001",
+   "closed_in": "s105",
+   "loop": "Visual bookend: the opening tilted drip globe (frame 1 = thumbnail) returns and the drip arcs re-trace toward Antarctica."
+  },
+  {
+   "opened_in": "s108",
+   "closed_in": "Part 2 (MYTH JUICE #2: SPLIT IN TWO)",
+   "loop": "Cliffhanger: 'the next frame is already being shot' - three cracks meet in a Y in Ethiopia and one is unzipping East Africa. 'What happens if Africa splits in two?' Deliberately left open for Part 2 on the end screen."
+  }
+ ],
+ "word_count": 2460,
+ "notes": "FILES: The work directory is /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/script/head-writer-final/. It holds build.py (the segment source and checks), patch_markers.py (adds markers only: it asserts that the spoken text is unchanged and adds a visual cue for every new marker), segments_marked.json (the final segments), notes.txt, and script_output.json (this full output).\n\nLENGTH AND TIMING: 2,460 spoken words in 109 segments. Runtime is about 16:01 at 2.7 words/s and about 16:36 at Brian's slower 2.6 words/s.\nBeats, timed at 2.7 words/s:\n- Promise: 0:25.\n- First teaser, the cutaway drill: 0:32.\n- Content starts with Bacon: 0:52.\n- Title and thumbnail claim proven ('not to be attributed to mere accident' on the real 1620 page): 1:01.\n- First JUICE CHECK (Bacon and drift, FALSE): 1:20.\n- The cold-open list repeated from the 1840s: 2:13.\n- 'The North Pole isn't land, it's ocean': 2:47.\n- Jaw-drop (the poles are negatives; Antarctica sits opposite the Arctic): 3:13-3:27.\n- China payoff: 4:13.\n- 89% water / the Pacific: 5:14 / 5:22.\n- Core question restated: 5:29 (s042).\n- Subscribe ask #1: 5:48. That is 36% in, inside the open 1875 loop, right after the China, 89% and Pacific payoffs.\n- 'How do we know it's wrong?': 7:08 (45%).\n- Wegener's death: 9:00 (56%).\n- Core question restated again: 9:36 (60%).\n- Main answer, 'scars': 11:05 (69%).\n- Holden twist: 11:55 (74%).\n- Honest part: 12:31.\n- Verdict (coin callback): 13:34.\n- Finale: 14:07.\n- One-word comment prompt: 14:54.\n- Cliffhanger and end screen: 15:41-16:01.\nChapters start at 0:00, 2:47, 5:59, 7:52, 9:51 and 14:07. Chapter 5 is the longest at about 4:15, but it changes format every 20-40 s: paleo globe, Bacon portrait, typewriter card, Blue Marble, cross-sections, tile grid.\nAutomated checks all pass:\n- No digits in the spoken text.\n- 1-4 sentences per segment.\n- Every on-screen string is 7 words or fewer and appears no more than 2 at a time (longer lists are shown one item at a time).\n- Pauses are between 0.25 and 1.2 s.\n- No 'finally', 'in conclusion' or 'according to', and no source, journal or agency names in the spoken text.\n- Every {m:} marker is referenced in its visual beat.\n- No segment goes more than 5.4 s without a marker-synced event (visual-director rule).\n- All titles are 55 characters or fewer.\n\nHERO NUMBERS (8, per owner override 2):\n1. Two-thirds of all land is in the north.\n2. Nearly 9 in 10 of us live in the north.\n3. The sea floor is about 2.5 miles down at the North Pole; the South Pole is almost 2 miles up.\n4. About 1 in 8 of all land has land opposite it.\n5. The 89%-water half.\n6. India moved up to about 8 inches a year.\n7. About 250 million years.\n8. About 1 in 10 of the land stays livable.\nEverything else is a story date or a small count.\n\nEXPLORER GAGS (10, Explorer clips only):\n1. s004: tries to catch the drip and nearly falls off Africa (Walk, Interact, HitRecieve_2).\n2. s019: gets soaked by Forster's flood (Run_Right, HitRecieve, Idle_Neutral).\n3. s025-s026 (NEW, fills the old 90-s laugh gap): vertigo at the North Pole over 2.5 miles of water, then the South Pole ice rises under him like an elevator (HitRecieve_2, Idle_Neutral).\n4. s031-s032: digs down from Kansas and pops up treading water in the Indian Ocean (Interact, Roll, Idle). He is still stranded in s034.\n5. s041: hitches a ride on Australia into the Pacific, gets rocked by Asia's splash, then waves (Idle_Neutral, HitRecieve_2, Wave).\n6. s047 + s055: rolls down the shrinking pyramid and perches on a corner; the corner vanishes when the pyramid pops back into a ball (Roll, Idle_Neutral, HitRecieve_2). This replaces the draft's kick, which suggested a kick, not radioactivity, killed the theory.\n7. s060: recoils from 'utter, damned rot' (HitRecieve).\n8. s077: left behind on Antarctica, waves everyone off; a porch light comes on (Wave).\n9. s085: runs like a hamster in a wheel on the flipping planet (Run, Idle_Neutral).\n10. s103-s104: can't pick a neighbor, then faints on 'Reminder: you're a mammal' (Run_Left, Run_Right, Idle, Idle_Neutral, Death).\nKenney minis add two side gags that are not counted: s034 (one pops out of a hole in China) and s052 (kids at a chalkboard, emote-no). The Explorer is kept out of s063-s068 (Wegener's death). Narration jokes land about every 45-75 s outside the death sequence. Cartoon sound effects were cut back per the humor critique: fall whistle, record scratch, slide whistle and boing only.\n\nCRITIQUE ITEMS REJECTED OR MODIFIED (everything else was applied; that covers every blocker and every major):\n1. Spin myth. I rejected the facts critique's optional s005 (keep spin, add mirror symmetry) and the retention critique's s005 ('spin flung the land'), and used the hook critique's rewrite, which drops the spin myth from the cold open. Reasons: it fixes the myth/refutation order, so 'Not entirely' now clearly applies to the southern points and not to the northern pile-up, which s096 calls a snapshot; it removes an unproven refutation and the source-like 'video with tens of millions of views' line; it saves about 5 s. s061 (Wegener's spin and tides were far too weak) now stands alone. The s005->s061 loop and the SPIN FORCE gauge callback are gone, and so is the 'It's NOT the Spin' title.\n2. Retention s008 (tease 'no half that's mostly land'): rejected in favour of the hook critique's three-teaser stack, so content starts at about 0:52. The hemisphere puzzle and the 89% half are now bonus payoffs that were not teased.\n3. Retention s009 kept 'predicted': rejected per the facts critique. 'Explained' is used in s010, s048 and s053. I took the retention wording 'the four continents your country might crash into' over the hook critique's single 'continent'. The tease is honest, and the 1-s flash shows all four models, so the payoff doesn't feel like bait.\n4. Humor s012 rewrite: moot, because the s012 narration was cut per the retention and hook critiques. The 'acuminati' word and the 'he wrote it twice' detail survive as visual-only on-screen text in the new s012.\n5. Humor s017 'couldn't explain': replaced with the facts critique's 'never tried to explain it'. Kept the humor tag 'That did not stop them from trying.' 'For a very long time' was shortened to 'For centuries'.\n6. Humor s054 'Then scientists discovered radioactivity': rejected on chronology grounds (facts). The script uses 'by then, scientists had discovered radioactivity' and 'Over the next few decades' (s055). Added the retention critique's oblate-Earth rebuttal. The humor critique's {m:stall} pyramid-pop payoff is kept but moved to s055. The arrows stall and fade and never reverse.\n7. Humor s089 'reef platform ... tiny sea creatures': text rejected per the facts critique (it is a limestone/carbonate platform). The joke tag 'originally from somewhere else' is kept.\n8. 'The most famous photo of Earth' (humor s090 and retention s083), plus the reason 'because that's how we're used to seeing it': rejected per the facts critique. The script says 'one of the most famous photos' and 'It was published flipped.' 'Even down is our own invention' was dropped for length, and with it the visual director's Tabula Rogeriana south-up opener.\n9. Other wording rejected per the facts critique, in favour of the hedged versions: humor s103 'stayed livable' -> 'would stay livable'; retention s093 'probably just us' -> 'may just be us'; retention s095 'is sinking' -> 'appears to be sinking'; 'The scientist who found it' -> 'One of the scientists who found it'; retention s042 'the drip is just the part you can see' -> 'might be'; retention s079 'kept their orientation' -> 'roughly kept their orientation'. Retention's concrete line ('their pointy ends sat right up against Antarctica') is kept, opened with the facts hedge 'Here's the best explanation geologists have'.\n10. The brief and hook line 'He was half right' (s105): replaced with 'Looks like he was right. It wasn't an accident. It was a breakup.' (s106). The facts critique showed that 'half right' does not fit what Bacon actually said: the matching capes of Africa and South America, which are exactly the big drips the video calls scars. The new line keeps a hedge, pays off the 'everyone moves out / Antarctica keeps the house' gag, and is quotable. The honest big-versus-small split now lives in the s095 verdict. The visual director's split-screen for 'half right' became a Gondwana snap-apart with the Explorer and his porch light.\n11. Hook thumbnail T4 (the Bacon 'NOT AN ACCIDENT' arm): kept only as an optional fourth arm, because the task asks for 3 concepts. It now matches the ending line.\n12. Visual director's s043 (subscribe ask over the Kansas-antipode marker with a FALSE stamp): adapted. The ask now plays over the rotating tetrahedron-in-globe so the open 1875 loop stays on screen, and the stamp lands as '?'.\n13. Visual director's s059 (Ken Burns on Wegener's 1924 reconstruction): rejected. The only candidate on disk, assets/pd/wegener_1924_fig4.jpg, is a hypsometric curve, not a map. I used the visual director's own fallback, a 3-s paleo scrub.\n14. The Cape of Good Hope sign sentence (the fact-checker says the wording is confirmed; the visual director offered a fallback): cut entirely. The retention critique also cut it, and no verified sign photo is on disk (the only one reads 'SCENIC WALK'). The Good Hope -> Agulhas myth-bust survives in s094, shown with a globe hop and the public-domain NASA ASTER image.\n15. Retention: chapter 5 stays long. Six chapters is the maximum, so splitting it would need a seventh; it changes format every 20-40 s instead.\n16. Facts s105, the optional isthmus in s013: not added. s106 says 'matching capes', which is exactly what Bacon was talking about.\n\nFLAGS (cautious wording; owner checks before narration lock):\n(1) s060 'In Germany, he never landed a full professorship. It took a university in Austria to give him one.' The ledger (science-12) only has NASA's looser line plus the caveat 'Graz made him a professor in 1924'. The word 'full' follows the fact-checker's German Wikipedia check (Hamburg made him ausserordentlicher Professor in 1921). On screen: 'FULL PROFESSOR AT LAST: AUSTRIA, 1924'. Verify before lock.\n(2) s054 'by then, scientists had discovered radioactivity'. The 1896 date comes from the fact-checker; science-5 gives no date. The wording is safe because 'by then' refers to the 1918 beat.\n(3) s096 now says 'no clear sign of a deep force ... likeliest answer: a snapshot', and this also covers the land-avoids-land pattern, to close the retention critique's open loop. The ledger supports 'snapshot' only for the northern pile-up (science-27, medium, our inference); numbers-13 says the antipodal pattern is unusual but proves no cause. The line is hedged. The owner may prefer 'Nobody has found a deep force arranging it.'\n(4) s095 'some of it may just be us, connecting dots' is a hedged interpretation; pattern-26 is only the opinion of a video.\n(5) s079 'the best explanation geologists have' and s106 'Looks like he was right' both rest on science-21: one expert answer, medium confidence, no peer-reviewed study.\n(6) s105 'Whichever future wins, the map we know gets torn up' is my synthesis of future-visuals-1 to -8.\n(7) s064 photo licence. wegener_last_026.jpg is tagged PD-Mark on Commons, but the ledger and NASA credit AWI copyright, so verify it or use the fallback still. The Commons caption dates the photo 2 Nov; the ledger says 1 Nov. On screen we show only 'NOVEMBER 1930'.\n(8) s109 'That's Part Two, right here' needs MYTH JUICE #2 (or a playlist) live on upload day. Otherwise say: 'That's the next Myth Juice. Subscribe, so you don't miss it.'\n(9) s051 softens Gregory's own overstatement ('the whole of that continent is exactly antipodal') to what is true: 'most of North America' (numbers-21/24). The visual must show Greenland and Arctic Canada landing on Antarctica.\n(10) s020 'the most famous scientist alive' is the ledger's spoken wording (pattern-15). Humboldt's name appears only on screen, to spare viewers one more name.\n(11) These are jokes or framing, not claims: 'Santa's workshop, technically, a houseboat'; 'dashboard in July'; 'refund'; 'Not even the right hemisphere' (true: the Kansas antipode is in the south); 'Yes, even Asia' (implied by numbers-27); 'reckless driving'; 'time zone' (Holden gave none); 'originally from somewhere else'; 'Reminder: you're a mammal'; 'a classic American playground myth'.\n(12) Small figures: s093 'miles thick' means 1.25-3.75 mi (science-25); s097 'school bus' is computed arithmetic (future-visuals-14, medium); s092 Baja's ~6 Ma is spoken as 'several million years ago'.\n(13) s031: the dig must start at the 1918 centre near Lebanon, Kansas, or the '200+ miles' line fails. No depth numbers are shown, because Earth's layers are not in the ledger.\n(14) TTS: check 'Baja' and 'Kamchatka' in s003. Use pronunciation aliases in the TTS input only.\n(15) s090 tiles: Italy and Korea are left out because their tip coordinates are not in the ledger. The 12 tiles use only ledger tips (pattern-28/29/30), and the needle base points are hand-picked; list them in the description.\n(16) s001, s024, s044 and s053 carry no fact_ids. They are the opening image, a transition, the subscribe ask and a question.\n(17) Two subscribe asks (constraints file) override the brief's 'no subscribe ask'. The ending line overrides 'half right' (see item 10 above).\n(18) On-screen glyphs '->', '>', '=' and '\u00b7' must render in Barlow or Bebas; otherwise draw them as icons.\n\nENGINE AND PRODUCTION NOTES:\n- New mode: an Equal Earth flat map. It is one precomputed still, inverse-projected from tex/day_8k.jpg, with 2D markers placed by the forward formula: sin t = (sqrt3/2) sin phi; x = 2 sqrt3 lam cos t / (3(9A4 t^8 + 7A3 t^6 + 3A2 t^2 + A1)); y = A4 t^9 + A3 t^7 + A2 t^3 + A1 t; A1 = 1.340264, A2 = -0.081106, A3 = 0.000893, A4 = 0.003796. It is used in s003, s011, s021, s033-s035, s056 and s090.\n- Through-planet lines use only the cutawayEarth drill (s009, s024, s029, s031). The photoreal globe is opaque.\n- Pre-render these with still.cjs: the four model end-states (s099-s102), reused in s010, s098, s103, s105 and s107; the 2x3 hemisphere grid (s039); the polar discs (s027); the Gondwana still (s023, s087, s106).\n- The Pacific beat (s041) is an area-true 'pour', because rigid true-size packing would overlap and be false.\n- Sound effects use the library names. Four need generating as CC0 sounds, each with a fallback: deflate 'pfff' (s019; fallback silence); slide whistle (s047; fallback whoosh_soft); boing (s055; fallback pop_ui); audio-logo sting (s109; channel asset).\n- Assets to fetch: Forster 1778 p.13 (archive.org b30408623); Guyot 1849 p.22 (earthmanlectures00guyo); Green 1875 title page (leaf n5) and preface (leaf n7); Fig. 5 leaf from the March 1899 Geographical Journal; Humboldt portrait (Stieler, 1843); Ortelius, Typus Orbis Terrarum (1570).\n- Corrected Bacon pages are at research/script/visual-director/dl_ia/n246.jpg (p.239, the 'acuminati' and 'non temere accidit' lines) and n387.jpg (p.20, Parasceve). Do NOT use assets/pd/bacon_p232.jpg. Green's Figure 1 is assets/pd/green_n18.jpg (green_fig1.jpg is blank).\n- Shorts: s001-s008 is the standalone Short; replace the second sentence of s008 with 'The full story is on the channel.' Funnel Shorts: s031-s034 (dig to China) and s037-s041 (no half is mostly land, 89%, the Pacific)."
+}

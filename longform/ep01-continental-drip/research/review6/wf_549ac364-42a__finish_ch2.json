@@ -1,0 +1,365 @@
+{
+ "run": "wf_549ac364-42a",
+ "agent": "acb66fb609bf1dd62",
+ "label": "finish ch2",
+ "result": {
+  "module": "ch2",
+  "results": [
+   {
+    "id": "S3-1",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The DIG STRAIGHT DOWN TO CHINA? headline was taken out of scene G's draw2d. It now has its own layer-5 overlay (tm.brings-0.2 to cChina+2.0), so it fades at cChina+1.6 as timed instead of being cut off at the G->H cut.",
+    "files_lines": "engine/www/ep/ep01/ch2.js:516-521 (overlay push); removed from scene G draw2d",
+    "scene_ranges": [
+     [
+      219.06,
+      236.76
+     ],
+     [
+      233.18,
+      238.76
+     ]
+    ],
+    "evidence": "Previous agent's render review6/fix_ch2/t_7085.mp4: the headline holds through 'If you dig straight down' and fades at 7151-7163. My render t2_6940.mp4 (final code): the antipode overlay and key fade out at 6980-6992 and the headline starts at 7001-7004, so they do not overlap."
+   },
+   {
+    "id": "S3-2",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. Scene G's k2 now ends exactly at cChina. Scene H's first camera key equals G's final camera (lat 30, lon 88+0.4*(cChina-cTop), same alt breathing). H's dim starts at G's final 0.32 and eases to 0.22 over cChina+1.6 to tm.china+0.2. I checked the code values: lat, lon, alt and heading all match at the cut.",
+    "files_lines": "ch2.js:486 (G k2), 534 (H key 0), 539 (H look dim)",
+    "scene_ranges": [
+     [
+      219.06,
+      236.76
+     ],
+     [
+      236.76,
+      244.92
+     ]
+    ],
+    "evidence": "t_7085.mp4 (previous agent): the move is continuous across 7102->7103, with no jump back and no brightness pop."
+   },
+   {
+    "id": "S3-3",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The drag eases both ways with inOutSine and the return takes 2.0 s. Camera latitude now follows lerp(66,-64,k) of the eased drag progress instead of the hard-clamped centroid latitude, so the camera never starts or stops dead.",
+    "files_lines": "ch2.js:409-425",
+    "scene_ranges": [
+     [
+      205.54,
+      215.84
+     ]
+    ],
+    "evidence": "t_6220.mp4 and t_6395.mp4 (previous agent, with frame-diff ramps): gradual start at about 6239 and an eased stop; the return eases from 6408, peaks at about 6434 and settles by 6468, before the designed cut at 6476."
+   },
+   {
+    "id": "S3-4",
+    "status": "fixed",
+    "change": "Previous agent's fix; I checked the waterline it had not yet confirmed. Roll now plays at 2x from tm.indian+0.02 and Idle takes over at tm.indian+0.66 (fade 0.15), so the somersault finishes in the air. Because Idle's start cue moved, the Explorer's pose phase also changes in the later bob insert (scene N).",
+    "files_lines": "ch2.js:169",
+    "scene_ranges": [
+     [
+      250.66,
+      252.56
+     ],
+     [
+      274.99,
+      275.74
+     ]
+    ],
+    "evidence": "Crops from t_7510.mp4 (review6/fix_ch2/grab2/tile_t7510d_07528_20x1.jpg): he is inverted only in mid-air (7528-7538) with his head well above the water, upright by 7541-7542, lands feet-first and is waist-deep at 7547. No head-first entry, no boot-only frames, no upright snap."
+   },
+   {
+    "id": "S3-5",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. drawSouth's sky fill now starts at the panel's own top edge (-0.05H-4) instead of -300, so it no longer covers the Arctic panel before the whip moves.",
+    "files_lines": "ch2.js:273",
+    "scene_ranges": [
+     [
+      186.76,
+      198.5
+     ]
+    ],
+    "evidence": "t_5715.mp4 (previous agent): 5719-5726 show the full Arctic panel and the intact SEA FLOOR pill. The South sky only enters as the panel scrolls in."
+   },
+   {
+    "id": "S3-6",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The US flip layer now fades in over tFlipUS0-0.6 to tFlipUS0-0.2 instead of popping in at full opacity.",
+    "files_lines": "ch2.js:686",
+    "scene_ranges": [
+     [
+      258,
+      274.99
+     ]
+    ],
+    "evidence": "t_7870.mp4 (previous agent): the one-frame jump at 7882 (diff 8.33 against the raw chunk) is now a ramp of about 10 frames that merges into the zoom-out."
+   },
+   {
+    "id": "S3-7",
+    "status": "fixed",
+    "change": "Previous agent's fix; I verified it. The readout now shows the ruler's real length, (ySLB-top)/MI, and is drawn at top-34 on the dark sky instead of on the white ice. Tick marks follow the same length.",
+    "files_lines": "ch2.js:329-333",
+    "scene_ranges": [
+     [
+      186.76,
+      198.5
+     ]
+    ],
+    "evidence": "t_5715.mp4 frames 5813-5863 (grab2/tile_t5715_05808_12x5.jpg plus a full-res crop): the count starts at 0.4, matching the visible ruler, and '1.8 MI' sits in white on the dark sky, clearly legible."
+   },
+   {
+    "id": "S3-8",
+    "status": "fixed",
+    "change": "Previous agent held the overlay to the end of 'not more land'. I extended it: the overlay now fades in from 'Almost everywhere you look' (227.64-228.09) and holds until 232.63-233.08, during the pull-back and before the headline. I added a two-item key at bottom-left above the bottom 12%: a cyan swatch 'OCEAN OPPOSITE LAND' appears on 'land has ocean on its far side' (229.32), and a yellow swatch 'LAND OPPOSITE LAND' on 'not more land' (231.56). Both fade with the overlay. I checked the swatch meanings against tex/data/antipodes.png: mid-Pacific is cyan, Kansas and the Sahara are clear, Spain, Argentina and NZ are yellow. The dim stays continuous into the headline dim.",
+    "files_lines": "ch2.js:465-482 (timing + keyItem helper), 492 (look), 509-513 (key draw)",
+    "scene_ranges": [
+     [
+      219.06,
+      236.76
+     ]
+    ],
+    "evidence": "t2_6820.mp4 and t2_6940.mp4 (exit 0): the overlay fades in over 6830-6845 with smoothly decaying frame diffs (3.9 to 0.3, camera pull-back). The key items enter at 6880 and 6948 and are legible (full-res grab2/gkey2_06960.jpg). The overlay and key fade out over 6980-6992 (diffs 0.2-0.7), and the headline follows at 7001."
+   },
+   {
+    "id": "S4-1",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept; I re-verified it after my easing change. The hero's hand-off offset now ramps from 0 (off = 0.15*prog(tAusA, tAusA+0.5)), so he starts exactly where Australia delivered him. heroAt is computed before the visibility skip.",
+    "files_lines": "ch2.js:976, 993-994",
+    "scene_ranges": [
+     [
+      320.06,
+      327.98
+     ]
+    ],
+    "evidence": "Crops from t2_9650.mp4 (grab2/tile_uhero_09768_16x1.jpg): the Explorer stays put through 9776 and then slides gradually as Asia arrives. No 130 px jump."
+   },
+   {
+    "id": "S4-2",
+    "status": "fixed",
+    "change": "The previous agent removed the centroid 'continue' and multiplied alpha by smooth(-0.35,0.05,facing(centroid)), using a new pj.facing in ch2_lib. That still left Africa entering at about 15 deg/frame (1 translucent frame, then solid). I switched the flight easing from cubic inOut to inOutSine, which halves the peak horizon-crossing speed with the same land times and thunks, and widened the fade to smooth(-0.5,0.05). Each continent now rises over the limb as a growing crescent over 3-4 frames.",
+    "files_lines": "ch2.js:971-985 (drop loop); ch2_lib.js:94-95 (projector.facing)",
+    "scene_ranges": [
+     [
+      320.06,
+      327.98
+     ]
+    ],
+    "evidence": "t2_9650.mp4 (exit 0). Africa (grab2/tile_uaf_09712_12x1.jpg): faint arc at 9717, then a translucent crescent at 9718, firmer at 9719 and solid at 9720. Orange-pixel deltas are +116/+463/+916/+975, against +45 then +1996 in one frame in the master. North America fades in at the limb over 9656-9662. Europe rises over the top limb 9701-9704, Antarctica from the bottom limb 9724-9732, and Asia over the upper-left limb 9771-9776."
+   },
+   {
+    "id": "S4-3",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The montage flash now counts only cuts already passed, so there is a brief 0.12 s flash after each cut instead of a constant 18% veil from tMont2 to tMont4.",
+    "files_lines": "ch2.js:1017-1019",
+    "scene_ranges": [
+     [
+      327.98,
+      334.59
+     ]
+    ],
+    "evidence": "t_9875.mp4 (previous agent): the south disc is on clean navy, the antipode map is crisp, and there is no veil drain at 9967-9969."
+   },
+   {
+    "id": "S4-4",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. renderTile masks each tile to the globe disc with a soft rim (a destination-in radial gradient), and the montage water globe is rendered at 900 px instead of being upscaled from 420. The 2x3 grid part of the finding (scene S, 307.31-312.08) lies inside the cut 306.47-312.10; the montage part is fixed.",
+    "files_lines": "ch2.js:880-898",
+    "scene_ranges": [
+     [
+      327.98,
+      334.59
+     ],
+     [
+      307.31,
+      312.08
+     ]
+    ],
+    "evidence": "Full-res frame 10010 from t_9875.mp4 (grab2/t9875full_10010.jpg): a round, crisp water globe on the navy grid with no black or tilted square. Frames 10035-10036 in t_10025.mp4 look the same."
+   },
+   {
+    "id": "S4-5",
+    "status": "fixed",
+    "change": "Previous agent's fix; I verified it. The flight now reaches the globe centre on the frame before the slam and grows to the slam's start size. The slam keeps full opacity through a new juiceStamp fadeIn:false option; defaults are unchanged for the FALSE stamp.",
+    "files_lines": "ch2.js:1115-1120; ch2_lib.js:157",
+    "scene_ranges": [
+     [
+      338.87,
+      357.66
+     ]
+    ],
+    "evidence": "t_10565.mp4, rendered after the previous agent's last edit (grab2/tile_t10565_10574_16x1.jpg): the stamp is at the centre at slam size at 10579, slams at full opacity at 10580 and settles by 10586. No faint or doubled ghost frame."
+   },
+   {
+    "id": "S4-6",
+    "status": "fixed",
+    "change": "Previous agent's fix; I verified it with the final code. Soft limb occlusion (smooth over dPerp from 0.97R to 1.08R) now applies to both the corner glows and the edge stubs, so a corner coming round the limb fades in.",
+    "files_lines": "ch2.js:1076-1101",
+    "scene_ranges": [
+     [
+      338.87,
+      357.66
+     ]
+    ],
+    "evidence": "t2_10290.mp4 (exit 0, final code): bright-pixel count in the corner box goes 89, 137, 164, 195, 224 ... 374 over 10296-10305, against 93 to 450 in one frame in the master. The crop (grab2/tile_xc_10295_8x1.jpg) shows a faint stub at 10297 that brightens by 10301."
+   },
+   {
+    "id": "S4-7",
+    "status": "fixed",
+    "change": "Previous agent's fix; I verified it. The headline clock now starts with the scene (cDrip+0.03) and keeps the same absolute fade-out (tOut cTet-cDrip-0.23).",
+    "files_lines": "ch2.js:1042",
+    "scene_ranges": [
+     [
+      334.54,
+      339.62
+     ]
+    ],
+    "evidence": "t_10025.mp4 (grab2/tile_t10025_10035_12x1.jpg): 10037 is empty, WHY appears at 10038, then DO, THE, CONTINENTS and POINT rise in one by one through 10046."
+   },
+   {
+    "id": "S4-8",
+    "status": "skipped_cut",
+    "change": "Scene P (waffle, 284.92-290.28) lies entirely inside the cut 284.90-290.30. The previous agent's correct fix stays in the code (unlit squares drawn for all 100 cells, lit squares sliding on top). I list the scene range because its frames differ from the old chunk.",
+    "files_lines": "ch2.js:808-822",
+    "scene_ranges": [
+     [
+      284.92,
+      290.28
+     ]
+    ],
+    "evidence": "t_8625.mp4 (previous agent): no holes after the sort. The range is removed in post."
+   },
+   {
+    "id": "S4-9",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The Pacific edge sweep is now keyed to the cut and the word: prog(cPac+0.05, tm.alone+0.6, E.out).",
+    "files_lines": "ch2.js:963",
+    "scene_ranges": [
+     [
+      320.06,
+      327.98
+     ]
+    ],
+    "evidence": "t_9595.mp4 (previous agent): the Pacific starts lighting up right after the 9602 cut and is mostly lit by 'Pacific' (about 9614). In t2_9650.mp4 it is fully lit by 9652."
+   },
+   {
+    "id": "S4-10",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. Argentina lights at tm.arg-0.75 to -0.45, and then its outline flips from tm.arg-0.4 with a 0.12 s fade-in, so cause comes before effect.",
+    "files_lines": "ch2.js:654, 706, 710",
+    "scene_ranges": [
+     [
+      258,
+      274.99
+     ]
+    ],
+    "evidence": "t_8180.mp4 (previous agent): Argentina turns orange at 8198-8204, the outline leaves from about 8207 and lands on China at about 8226."
+   },
+   {
+    "id": "S4-11",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The flipping China copy fades in over 0.2 s instead of turning China grey in one frame.",
+    "files_lines": "ch2.js:696",
+    "scene_ranges": [
+     [
+      258,
+      274.99
+     ]
+    ],
+    "evidence": "t_7870.mp4 (previous agent, full-res crop): the orange-to-grey snap at 8006/8007 is now an ease over 8007-8010 before the copy slides off."
+   },
+   {
+    "id": "S4-12",
+    "status": "fixed",
+    "change": "Previous agent's fix; I verified it. The landed stamp gets a near-opaque plate, rgba(10,6,6,0.92), through a new juiceStamp bg option, so the additive tetra edge behind it no longer strikes through the '?'.",
+    "files_lines": "ch2.js:1120; ch2_lib.js:162",
+    "scene_ranges": [
+     [
+      338.87,
+      357.66
+     ]
+    ],
+    "evidence": "Full-res frame 10724 from t2_10600.mp4 (grab2/endfull_10724.jpg): the vertical edge stops at the plate and nothing crosses the box or the '?'. Frames 10586-10589 in t_10565.mp4 look the same."
+   },
+   {
+    "id": "SYN-14",
+    "status": "fixed",
+    "change": "(a) The 10350 seam needed no code change. ch2_sets.js already sets needsUpdate when the tetra material's 'transparent' flag toggles. The master's chunk 22 was rendered before that fix (video_final.mp4 at 20:20 on Nov 5; the fix at 21:41), so it never showed the x-ray. With current code the look change is the designed 20-frame x-ray fade on 'shape' (10298-10319, luma 31.9 to 37.1). I kept it there by design rather than moving it to 'wasn't'. Chunks 22 and 23 must both be re-rendered. (b) The SUBSCRIBE pill now pops in on 'Want the next one?' (outBack, 354.52-354.87) with a soft glow, then bumps 9% and glows fully on 'Subscribe.' (356.46-356.86). The end state matches the old one, and the existing pop SFX at tm.sub now lands on the bump.",
+    "files_lines": "ch2.js:1122-1135 (subscribe); ch2_sets.js tetra(): existing needsUpdate on the transparent toggle, unchanged",
+    "scene_ranges": [
+     [
+      338.87,
+      357.66
+     ]
+    ],
+    "evidence": "Seam: frame 10350 from a fresh page (t2_10350.mp4) against the same frame from a page started at 10290 (t2_10290.mp4) gives a mean abs diff of 0.36. The step from 10349 (continuous page) to 10350 (fresh page) is 0.63, equal to normal motion; master and raw chunks c_00022/23 show 4.6-5.0 (grab2/seam_compare.jpg). My fresh 10350 matches raw c_00023 frame 0 (diff 0.26). Pill: t2_10600.mp4 (exit 0) shows the pop-in at 10635-10645 and the bump and glow at 10696-10708 (grab2/tile_subin_10632_8x1.jpg, tile_subhit_10692_12x2.jpg)."
+   },
+   {
+    "id": "SYN-15",
+    "status": "fixed",
+    "change": "Same change as S3-8. The antipode overlay now holds from 'Almost everywhere you look' (3:47.6) to just before the DIG STRAIGHT DOWN TO CHINA? title (fades out 3:52.63-3:53.08; title from 3:53.18). Two-item key: cyan OCEAN OPPOSITE LAND and yellow LAND OPPOSITE LAND, each entering on its phrase.",
+    "files_lines": "ch2.js:465-482, 492, 509-513",
+    "scene_ranges": [
+     [
+      219.06,
+      236.76
+     ]
+    ],
+    "evidence": "t2_6820.mp4 and t2_6940.mp4 (exit 0); see S3-8."
+   },
+   {
+    "id": "SYN-19",
+    "status": "fixed",
+    "change": "In-range sub-items only. (a) The Pacific water-half globe on a black square is fixed by S4-4. (b) The reused surfacing insert under 'Now flip every continent': cAnti moved from s035.start+0.4 (276.20) to s035.start-0.06 (275.74). The bob insert now fills only the pause after 'Argentinians.' (274.99-275.74; crickets SFX unchanged) and the antipode map is on screen for the whole sentence. I kept the map's wipe on 'every' (276.42) so it stays in sync with its existing whoosh SFX. Other sub-items (9:48, 10:34, 7:06, 12:19, 6:03, 6:57) are outside ch2.",
+    "files_lines": "ch2.js:139 (cAnti), 750-751; S4-4 lines 880-898",
+    "scene_ranges": [
+     [
+      274.99,
+      276.2
+     ],
+     [
+      275.74,
+      284.92
+     ],
+     [
+      327.98,
+      334.59
+     ]
+    ],
+    "evidence": "t2_8240.mp4 (exit 0; grab2/tile_bob_08244_16x3.jpg, tile_bobcut_08270_6x1.jpg): the bob insert runs 8250-8272, with a clean cut to the map at 8273 (275.77) ahead of 'Now' (275.80). The wipe starts at about 8293 on 'every'. The montage globe check is under S4-4."
+   }
+  ],
+  "changed_ranges": [
+   [
+    186.76,
+    198.5
+   ],
+   [
+    205.54,
+    215.84
+   ],
+   [
+    219.06,
+    244.92
+   ],
+   [
+    250.66,
+    252.56
+   ],
+   [
+    258,
+    290.28
+   ],
+   [
+    307.31,
+    312.08
+   ],
+   [
+    320.06,
+    357.66
+   ]
+  ],
+  "shared_changes_needed": "None. All edits are in ch2.js and ch2_lib.js. The ch2_lib.js additions are additive, with defaults unchanged for the other caller (the FALSE stamp): projector.facing, and juiceStamp fadeIn and bg options. Only ch2.js imports ch2_lib.js. ch2_sets.js is unchanged, but its existing needsUpdate on the tetra material toggle is what removes the 10350 seam, so chunks 22 (9900-10349) and 23 (10350-10799) must both be re-rendered from the current code.",
+  "notes": "The previous agent's diff (review6/fix_ch2/prev_diff.patch) is fully applied; reconstructing its state and diffing against the current files shows only my edits (review6/fix_ch2/my_diff.patch). I found nothing to revert.\n\nMy additions:\n- S4-2: sine easing plus a wider limb fade for the continent drops.\n- S3-8/SYN-15: overlay held from 'Almost' and a two-item key.\n- SYN-14: SUBSCRIBE in on 'Want the next one?' with a bump and glow on 'Subscribe.'\n- SYN-19: bob insert ends before 'Now flip'.\n\nOn SYN-19: the grey map now holds still for 0.68 s (275.74-276.42) before its wipe, up from 0.22 s.\n\nOn SYN-14: the x-ray darkening of the 1875 globe is designed for 'shape' (343.2 s). The master showed it only at the 10350 chunk seam because of the old material bug, which is why the synthesis placed it near 'wasn't'.\n\nFinal test renders, all exit 0 with no SCENE-ERROR or GAP lines, all in /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/fix_ch2/: t2_6820.mp4, t2_6940.mp4, t2_8240.mp4, t2_9650.mp4, t2_10290.mp4, t2_10350.mp4, t2_10600.mp4. The last one (t2_6940) exited 0 and no renders are left running.\n\nTooling: the shared grab.py still labels multi-frame runs one frame high (missing -fps_mode passthrough). I used tools2/gg.py, a passthrough copy with film-frame labels and crop.\n\nThe changed ranges cover chunks 12-23. Chunk 19 is needed only for the waffle scene and chunk 20 only for the tile grid, and both of those lie inside the post cuts."
+ }
+}
