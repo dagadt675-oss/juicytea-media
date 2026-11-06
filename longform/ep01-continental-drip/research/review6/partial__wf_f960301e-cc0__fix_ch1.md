@@ -13,3 +13,15 @@ Now S2-4 (wave runs off-frame instead of vanishing) and S2-5 (bead shrinks out i
 ---
 
 Let me test-render gag 1 now (with the foot logger) to validate the planted-feet approach before moving on.
+
+---
+
+The teeter now rocks on the toe/heel edge with no sinking or skating. Let me check the full gag at normal framing, every frame through the walk-in and stop.
+
+---
+
+Gag 1 now walks in mid-stride with planted feet and stops into the reach. Next, S1-2 (city dots fade instead of blinking off):
+
+---
+
+Now S1-3 (continuous hand-off s008 → s009) and S1-4 (US feature lookup):

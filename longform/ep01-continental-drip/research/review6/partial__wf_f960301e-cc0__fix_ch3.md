@@ -1,13 +1,5 @@
 # fix ch3 (still running; latest notes)
 
-Now S5-3 in the tetra rig: one roll over the path, travel-direction facing, and a 0.3 s turn to the camera after the roll.
-
----
-
-Now S5-6. Let me check `rings()` handles the `asFeat` polygon form before reusing it for the moving overlay.
-
----
-
 `rings()` handles both forms. Now the S5-6 edit: a readable twitch (fills and coast strokes jolt apart together, with a decaying globe shake), settling back to the original end state.
 
 ---
@@ -29,3 +21,11 @@ Fast render (0.2 s/frame for the 2D page). Let me check for page errors, then me
 ---
 
 "FIGURE 1." no longer reads through the pill. Next the tetra shot: arrows (S5-2, S5-5) and the roll (S5-3), frames 11390-11539.
+
+---
+
+The one-frame reset spikes at 11400/11420/11440/11460 (0.51-0.62) are gone (now 0.12-0.22, in line with neighbours). Now the roll.
+
+---
+
+One roll now, ending upright at the corner. Let me check the end of the roll and the turn frame-by-frame at a closer crop.
