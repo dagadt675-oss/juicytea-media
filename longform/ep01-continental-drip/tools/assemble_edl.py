@@ -20,6 +20,11 @@ def main():
             j, n = item.split(':'); xf[int(j)] = int(n)
     test = '--test' in rest; noshort = '--noshortest' in rest; noaudio = '--noaudio' in rest
     R = json.load(open(rj))
+    # the EDL may ask for one frame past the end of the source (mix duration rounded up): clamp to the real frame count
+    nb = int(subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=nb_frames', '-of', 'csv=p=0', vid], capture_output=True, text=True).stdout.strip() or 0)
+    if nb:
+        for r in R:
+            if r['m'] > nb: print('range end clamped', r['m'], '->', nb); r['m'] = nb
     inputs, labels = [], []   # labels: per range, the stream label of its finished picture
     fc = []
     def add_input(args): inputs.append(args); return len(inputs) - 1
