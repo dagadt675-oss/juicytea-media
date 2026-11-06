@@ -1,9 +1,5 @@
 # fix ch5b (still running; latest notes)
 
-Now S8-6 (retract the divider as the bracket draws) and S8-7 (card already entering on the cut frame).
-
----
-
 Now S8-9 (keep the drip highlight inside the bulb) and S8-8 (land the honey drop on the puddle exactly when it reacts and the existing pop cue plays).
 
 ---
@@ -29,3 +25,7 @@ Now N1/N2/N3: S9-2 (fade the stamp and coin, then tilt the camera instead of the
 ---
 
 Let me review the full diff before rendering.
+
+---
+
+The machine is heavily loaded (load around 25, 11 other renders running), so it's about 3.6 s per frame. I'll keep test renders short. Checking the B1 to B2 result.

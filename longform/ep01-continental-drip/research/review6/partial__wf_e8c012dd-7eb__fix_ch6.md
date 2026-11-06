@@ -1,13 +1,5 @@
 # fix ch6 (still running; latest notes)
 
-Now S10-1 and S10-2: swap the strafe clips, match clip speed to root speed, and replace the idle glide with a short foot-planted sidestep.
-
----
-
-Now S10-3: keep the three outgoing scenes running under the incoming fades.
-
----
-
 Now S10-8: the Aurica glow uses the time-based alpha for the still as well, so the still matches the first live frame.
 
 ---
@@ -29,3 +21,11 @@ Now S10-13: interpolate the sparks along each arm, fade them in after the crack 
 ---
 
 Now the grid card border pop flagged by the retention panels: the full-screen shortcut should only take over once the card actually fills the frame.
+
+---
+
+Let me syntax-check the module before rendering.
+
+---
+
+The module parses. Now the first test render: gag 10a through the splash cross-fade (S10-1, S10-2, the first S10-3 transition), starting a little before the first run.

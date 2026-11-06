@@ -1,9 +1,5 @@
 # fix ch5a (still running; latest notes)
 
-Let me syntax-check both module files.
-
----
-
 Syntax is fine. Note: edit.js filters with `ch.id !== only && ch.id !== 'ch' + only`, so `"only":5` would skip `ch5a` entirely; I'll use `"only":"5a"`. First a short smoke render in the zipper scene.
 
 ---
@@ -29,3 +25,7 @@ While the renders run, let me look at the first finished zipper frames as soon a
 ---
 
 Madagascar's 180-Ma polygon sits in the channel between Africa and India, which is the correct Gondwana position, so un-excluding it is right. Waiting for the render monitor now.
+
+---
+
+My render completed fine (the OOM kill hit another agent's Chromium). Let me analyze the zipper render: slider track and tiles.
