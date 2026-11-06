@@ -1,13 +1,5 @@
 # fix ch6 (still running; latest notes)
 
-Let me test the grabber on a frame in my range.
-
----
-
-The grabber works. Let me verify S10-1 (the gag 10a run) first.
-
----
-
 Let me check the reviewer's FK analysis script to validate the clip-direction claim.
 
 ---
@@ -29,3 +21,11 @@ S10-12 is confirmed: a faint vertical white line sits at the left edge in 29486-
 ---
 
 The camera handoff at s097 to s098 also jumps slightly: camA(A1) gives alt about 0.907 and tilt 21.7, while camB starts at alt 0.9 and tilt 22. Now S10-6, the fast spin.
+
+---
+
+S10-6 is confirmed: the code peaks at 38° per frame, and consecutive frames show unrelated faces of the Earth. Next, S10-8 (Aurica glow switching off at the tile handover).
+
+---
+
+S10-8 is confirmed: Australia's gold glow is on through 27627 and off from 27628, the first live frame. Next, S10-9 (the countdown line shifting sideways).

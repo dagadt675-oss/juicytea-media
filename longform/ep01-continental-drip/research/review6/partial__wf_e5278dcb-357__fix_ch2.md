@@ -1,31 +1,31 @@
 # fix ch2 (still running; latest notes)
 
-Headline now holds through "If you dig straight down" and fades out at 7151-7163 before China lights up; the globe move is continuous. S3-1/S3-2 fixed. Next S3-8 (overlay hold), frames 6875-7024:
+The US now fades in at the corner over about 10 frames as the zoom-out reveals it. Numeric check on the top-left region (new versus raw chunk 17, which covers 7650-8099):
 
 ---
 
-The overlay now holds from 6895 through "not more land" and fades out at about 6985-6992. Checking numerically that the hand-over to the headline dim has no bright dip:
+The one-frame jump at 7882 (diff 8.33) is now a gradual ramp merging into the zoom-out. S3-6 fixed. Now the China copy (S4-11):
 
 ---
 
-Smooth: luma eases down as the overlay fades and the headline then fades in, with no dip. S3-8 fixed. Next S3-3, the forward drag (6220-6339):
+The copy now fades in over 8007-8012 and then peels off, instead of snapping China grey in one frame. Numeric check on a box over China:
 
 ---
 
-The drag now starts, travels and lands smoothly with the camera following. Confirming the speed profile numerically (frame-difference ramp) against the raw chunk:
+That box missed China (the map is moving, and both versions show the same drift). Let me look at a full-resolution crop around China instead.
 
 ---
 
-The return is smooth too: gradual start at 6408, peak around 6434, eased stop by 6468 (8 frames of rest before the designed hard cut at 6476). S3-3 fixed. Next S3-4, the roll (7510-7579):
+Original snaps orange→grey between 8006 and 8007; the new version eases over 8007-8010 before the copy slides off. S4-11 fixed. Next S4-10 (Argentina), frames 8180-8239:
 
 ---
 
-The hero is small in a full frame, so I'll add a crop option to my grabber and look at a close-up of the pop-out.
+Order is now cause-then-effect: Argentina lights orange at 8198-8204, the outline leaves from about 8207 and lands on China around 8226. S4-10 fixed. Next the waffle sort (S4-8), frames 8625-8714:
 
 ---
 
-The roll now completes (inverted around 7530-7538, upright by 7542) instead of being abandoned mid-air. I need a wider crop to confirm the head stays above the waterline while inverted.
+After the sort every vacated cell keeps its unlit square, so no more moth-eaten grids. S4-8 fixed. Next the cap-tile grid (S4-4), frames 9215-9264:
 
 ---
 
-No band before the whip any more (5719-5726 show the full Arctic panel and intact pill); the South panel's sky now enters only with the scroll. S3-5 fixed. Now the South Pole readout (S3-7):
+The black cards are gone; the globes now sit as round discs on the navy grid. I notice a thin dark arc on the upper edge of the bottom-middle globe, so I'm zooming in to check whether that's new.
