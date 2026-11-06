@@ -17,3 +17,7 @@ The tiles alone can't show velocity kinks, so I'll simulate the `kenburns` crop 
 ---
 
 The tiles are too small to judge the arrows, so I'll look at full-resolution crops of the key frames.
+
+---
+
+S6-9 is confirmed: all four chevrons jump back toward the ridge between 17219 and 17220. Next, S6-10 (the fingernail panel title).
