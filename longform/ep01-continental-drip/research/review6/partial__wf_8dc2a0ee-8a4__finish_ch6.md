@@ -1,9 +1,5 @@
 # finish ch6 (still running; latest notes)
 
-The sparks now glide 2-5 px per frame (1154 → 1192 over 13 frames), where the original held and then hopped 15-25 px. Now the fade-in after the crack draw-on.
-
----
-
 The sed in that chain replaces queue.log, which my `tail -f` monitor would stop following. Let me re-arm the monitor with `tail -F` (follow by name).
 
 ---
@@ -29,3 +25,7 @@ Seamless: the ridge keeps its brightness, the gap, bus and continent tint carry 
 ---
 
 The words' left edge stays at x=1238 in every frame, so the line no longer re-centres. The right-edge numbers look odd (1640 while n should still be 10), so let me look at the frames.
+
+---
+
+The drip-globe scene is unchanged apart from a comment; only the Bacon scene's start moves. Let me stop my monitor and confirm none of my render processes are still running.
