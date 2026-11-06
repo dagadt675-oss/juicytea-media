@@ -1,31 +1,31 @@
 # fix ch3 (still running; latest notes)
 
-Let me check how `globeShot` and the globe overlay work before deciding on the S5-6 fix.
+For S5-4 I want to fade page 237 out, but `drawPage` overwrites `globalAlpha` (it sets 0.9 for the shadow, then 1). Let me check who else uses `drawPage` before making it respect the incoming alpha.
 
 ---
 
-The globe has a `refreshOverlay()` hook and `globeShot` has a `pre` callback, so animating the overlay is possible. Let me check the rumble cue's sound to size the twitch to it.
+`drawPage` is only used in ch3.js, always with an incoming alpha of 1, so making it multiply rather than overwrite is safe.
 
 ---
 
-Let me look at the other two arrow shots (s053/s054 at 442-444 s and s055 at 456-460 s) that S5-5 covers.
+Now the kids page: the normalized slide and the "1918" pill fading in as the page lands rather than before it appears.
 
 ---
 
-The arrows in the later tetra shots stay clear of the Explorer, so S5-2 only needs the first shot's ring rotated. I've verified every reported defect. Let me back up the module files before editing.
+Now S5-9: pins ride on their cards (scale with the pop-in, turn with the falling card), and the red X turns with the falling card. At-rest positions stay exactly as before.
 
 ---
 
-Now let me make the edits. First S5-1 (the title push as one move).
+Now S5-5: hide each arrow's reset by fading it at the ends of its push cycle.
 
 ---
 
-Now S5-8: let `topPill` pass a background through, and use a near-opaque one for the two pills over printed paper.
+Now S5-3 in the tetra rig: one roll over the path, travel-direction facing, and a 0.3 s turn to the camera after the roll.
 
 ---
 
-Now S5-10: a normalized out-expo curve in the module's own helper file (the shared `fx.js` stays untouched).
+Now S5-6. Let me check `rings()` handles the `asFeat` polygon form before reusing it for the moving overlay.
 
 ---
 
-Now S5-2 (rotate the first shot's arrow ring so no arrow lands on the Explorer at the top) plus the matching out-expo swap in that scene.
+`rings()` handles both forms. Now the S5-6 edit: a readable twitch (fills and coast strokes jolt apart together, with a decaying globe shake), settling back to the original end state.
