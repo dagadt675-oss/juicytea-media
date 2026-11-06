@@ -29,6 +29,11 @@ function dest(lat, lon, az, d) {
   const l2 = l + Math.atan2(Math.sin(a) * Math.sin(dd) * Math.cos(p), Math.cos(dd) - Math.sin(p) * Math.sin(p2));
   return [p2 / D2R, l2 / D2R];
 }
+// initial great-circle azimuth (deg from north) from [lat1,lon1] toward [lat2,lon2]
+function bearing(la1, lo1, la2, lo2) {
+  const p1 = la1 * D2R, p2 = la2 * D2R, dl = (lo2 - lo1) * D2R;
+  return Math.atan2(Math.sin(dl) * Math.cos(p2), Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl)) / D2R;
+}
 // ---------------- coastline extraction from Natural Earth land rings ----------------
 function nearestIdx(ring, lat, lon) { let bi = 0, bd = 1e18; const c = Math.cos(lat * D2R); for (let i = 0; i < ring.length; i++) { const dx = (ring[i][0] - lon) * c, dy = ring[i][1] - lat, d = dx * dx + dy * dy; if (d < bd) { bd = d; bi = i; } } return [bi, bd]; }
 function ringNear(rs, lat, lon) { let best = null, bd = 1e18; for (const r of rs) { const [, d] = nearestIdx(r, lat, lon); if (d < bd) { bd = d; best = r; } } return best; }
@@ -140,8 +145,10 @@ export async function build(api, C) {
   const tRot = T('rot') - 0.25;
   const tDoors = word('s060', 'in') - 0.1; // "In Germany"
   const slams = [T('prof') - 0.06, T('prof') + 0.4, T('prof') + 0.86];
-  const tOpen = T('austria') - 0.1, tPush = T('austria') + 0.22, tPushEnd = T('austria') + 0.72;
-  const tGraz = tPushEnd - 0.32;
+  // the push through the far door (and its warm flash) completes exactly when the Graz map starts to dissolve in, so the map comes out
+  // of a full warm-white frame instead of ghosting over the corridor
+  const tOpen = T('austria') - 0.1, tPush = T('austria') - 0.06, tPushEnd = T('austria') + 0.4;
+  const tGraz = T('austria') + 0.4;
   const tSpin = T('spin') - 0.2, tTides = word('s061', 'tides') - 0.1;
   const tQuote = word('s062', 'himself') - 0.08;
   const tGrl = seg('s063').start - 0.28;
@@ -202,17 +209,30 @@ export async function build(api, C) {
   // paleo scrub 200 Ma -> today on the globe
   const pal = paleo(api);
   const ma = (t) => 200 * (1 - prog(t, T('move') - 0.05, T('move') + 2.95, E.inOut));
+  // No Ma counter here (chapter 5's globe runs the film's one 0-180 Ma clock): plain drift arrows ride on North America, South America
+  // and Africa instead, each pointing along its overall drift. Anchors: a fixed interior point of each plate, carried by the plate's
+  // rotation fitted to the paleo coastline vertices (residual 0.013 deg), sampled every 10 Ma from 0 to 200 Ma.
+  const DRIFT = [
+    [[40, -95], [40.1, -93.1], [40.4, -91.3], [40.3, -89.2], [40.3, -85.6], [41.2, -82.5], [41.5, -77.8], [40.4, -72.9], [39.2, -67.5], [37.1, -61.6], [34, -57.4], [31.5, -52.8], [27.3, -48.1], [23.9, -44.8], [22.3, -43.1], [20.8, -43.6], [17.9, -40.7], [15.5, -38.1], [15, -36.5], [14.3, -35.2], [12, -34.5]],
+    [[-10, -55], [-11.2, -54.3], [-11.8, -52.8], [-12.7, -51.3], [-13.6, -48.6], [-13.9, -47.3], [-15, -45], [-16.6, -42.1], [-18.5, -39.9], [-20.5, -39], [-21.9, -37], [-22.2, -33.6], [-23.6, -30.5], [-25.5, -30.5], [-25.4, -31.6], [-24.8, -33.3], [-24.2, -33.6], [-24, -33.9], [-23.1, -33], [-22.4, -32.2], [-23.3, -32.7]],
+    [[-10, 22], [-11.8, 19.8], [-13, 17.7], [-14.8, 15.3], [-16.9, 13.9], [-18.7, 11.5], [-20.6, 10.8], [-22.8, 10.9], [-27.3, 8.5], [-32.4, 5.1], [-35.4, 2.4], [-36.9, 0.5], [-39.7, -1.9], [-42.4, -3.8], [-42.8, -6.2], [-41.9, -8.4], [-42.2, -9.8], [-43.1, -11.1], [-42.4, -10.6], [-41.7, -10.1], [-43, -10.7]],
+  ].map(path => { const a = v3(...path[0]), b = v3(...path[20]); return { path, goal: ll3([0, 1, 2].map(i => a[i] + 0.6 * (a[i] - b[i]))) }; }); // goal: today's point pushed on along the 200 Ma -> today drift
+  const driftAt = (path, m) => { const u = clamp(m / 200) * 20, i = Math.min(19, Math.floor(u)), k = u - i; return [lerp(path[i][0], path[i + 1][0], k), lerp(path[i][1], path[i + 1][1], k)]; };
   S.push(gscene({ t0: tMove, t1: tGag + 0.45,
     pre: async (lt, t) => { await pal.draw(ma(t)); },
     overlay: () => pal.spec,
     cam: kcam([{ t: 0, lat: 2, lon: -6, alt: 2.7 }, { t: tGag + 0.5 - tMove, lat: -2, lon: -22, alt: 2.55 }], 0.4),
     look: () => ({ flatBase: 1, ovAlpha: 1, ovMul: 1, nightAmt: 0, relief: 0, desat: 0 }),
-    extra(ctx, lt, t) {
-      const a = env(t, tMove + 0.1, tWar + 0.9, 0.3, 0.4);
-      if (a > 0) {
-        F.counter(ctx, ma(t), ma(t), 1, 120, 186, { size: 96, align: 'left', alpha: a, format: v => String(Math.round(v)) });
-        F.text(ctx, 'MILLION YEARS AGO · SIMPLIFIED', 124, 236, { size: 28, fam: F.FAM.label, weight: 700, tracking: 0.16, color: PAL.sub, alpha: a });
-      }
+    extra(ctx, lt, t, api) {
+      const a = env(t, T('move') + 0.15, tWar + 0.25, 0.25, 0.35); if (a <= 0) return; // gone before the war smoke and the book
+      const m = Math.max(0, Math.min(200, Math.round(ma(t) / 2) * 2)); // same 2-Ma steps as the coastline overlay, so the arrows stay put on their plates
+      DRIFT.forEach((d, i) => {
+        const [la, lo] = driftAt(d.path, m), p = prog(t, T('move') + 0.15 + i * 0.12, T('move') + 0.65 + i * 0.12, E.outBack); if (p <= 0) return;
+        const e = dest(la, lo, bearing(la, lo, d.goal[0], d.goal[1]), 11 * Math.max(0.05, p));
+        const A0 = api.g.project(la, lo), B0 = api.g.project(e[0], e[1]); if (!A0.visible || !B0.visible) return;
+        const fa = a * clamp((Math.min(A0.facing, B0.facing) - 0.12) / 0.2); if (fa <= 0) return; // fade near the limb instead of popping
+        ctx.save(); ctx.globalAlpha *= fa; arrow2d(ctx, A0.x, A0.y, B0.x, B0.y, PAL.hero, 6); ctx.restore(); // hero red: white vanished on the cream land
+      });
     },
   }));
   cue(tMove, 'whoosh_soft', -14);
@@ -238,28 +258,37 @@ export async function build(api, C) {
   cue(T('rot') - 0.03, 'impact_short', -10);
   cue(word('s060', 'damned') - 0.03, 'impact_short', -14);
   cue(word('s060', 'rot') - 0.03, 'impact_short', -12);
-  S.push({ t0: tDoors, t1: tPushEnd + 0.05, fadeIn: 0.2, id: 'ch4', draw(ctx, lt, t) { corridor(ctx, W, H, t, { t0: tDoors, slams, open: tOpen, pushAt: tPush, pushEnd: tPushEnd }); } });
+  S.push({ t0: tDoors, t1: tGraz + 0.37, fadeIn: 0.2, id: 'ch4', draw(ctx, lt, t) { corridor(ctx, W, H, t, { t0: tDoors, slams, open: tOpen, pushAt: tPush, pushEnd: tPushEnd }); } }); // holds the full flash under the Graz fade-in
   for (const s of slams) cue(s, 'thunk_heavy', -18);
   cue(tOpen, 'bell_small', -18);
   S.push({ t0: tOpen - 0.05, t1: tGraz + 2.1, layer: 6, id: 'ch4', draw(ctx, lt, t) { pillTop(ctx, W, 'FULL PROFESSOR AT LAST: AUSTRIA, 1924', env(t, tOpen - 0.05, tGraz + 2.1, 0.25, 0.35), { size: 42 }); } });
 
   // =========================== s061: Graz -> what pushes a continent? ===========================
   const tPull = tGraz + 1.3;
+  // the shot ends exactly on the spin shot's opening camera (lat 6, lon -30, alt 3.0, heading 0, lookOffset [0.2, 0]) and look, so the
+  // hand-off at tSpin is one continuous move; the last key's heading/alt cancel this shot's drift and breathing at that moment
+  const LSPIN = tSpin - tGraz;
   S.push(gscene({ t0: tGraz, t1: tSpin + 0.25, fadeIn: 0.32,
     overlay: (lt, t) => t < T('push') - 1.0 ? OV_AUT : OV_SAAF,
-    cam: kcam([{ t: 0, lat: 47.5, lon: 15.0, alt: 0.62, tilt: 22 }, { t: 1.3, lat: 47.3, lon: 15.2, alt: 0.55, tilt: 24 }, { t: 4.6, lat: 8, lon: -18, alt: 2.55, tilt: 0 }, { t: 9, lat: 4, lon: -24, alt: 2.45, tilt: 0 }], 0.3),
-    look: (lt, t) => t < T('push') - 1.0 ? { ovAlpha: 0.9 * (1 - prog(t, tPull + 0.8, tPull + 2.0)), dim: 0.2 } : { ovAlpha: 0.9 * prog(t, T('push') - 0.25, T('push') + 0.25), dim: 0.2 + 0.2 * prog(t, T('push') - 0.25, T('push') + 0.25) },
+    cam: kcam([{ t: 0, lat: 47.5, lon: 15.0, alt: 0.62, tilt: 22 }, { t: 1.3, lat: 47.3, lon: 15.2, alt: 0.55, tilt: 24 }, { t: 4.6, lat: 8, lon: -18, alt: 2.55, tilt: 0 },
+      { t: LSPIN, lat: 6, lon: -30, alt: 3.0 / (1 + 0.006 * Math.sin(LSPIN * 0.7)), tilt: 0, heading: -0.3 * LSPIN }], 0.3,
+    (lt, t) => ({ lookOffset: [0.2 * prog(t, tSpin - 1.4, tSpin, E.inOut), 0] })),
+    look: (lt, t) => {
+      if (t < T('push') - 1.0) return { ovAlpha: 0.9 * (1 - prog(t, tPull + 0.8, tPull + 2.0)), dim: 0.2 };
+      const p = prog(t, T('push') - 0.25, T('push') + 0.25), h = prog(t, tSpin - 1.4, tSpin, E.inOut);
+      return { ovAlpha: lerp(0.9 * p, 0.75, h), dim: lerp(0.2 + 0.2 * p, 0.25, h), desat: lerp(LOOK0.desat, 0.15, h) };
+    },
     extra(ctx, lt, t, api) {
-      const q = api.g.project(47.07, 15.44);
-      if (q.visible && t < tPull + 2.0) F.dot(ctx, q.x, q.y, { r: 10 * prog(t, tGraz + 0.15, tGraz + 0.4, E.outBack), color: PAL.yellow, ring: ((t - tGraz) * 0.8) % 1 });
-      if (t > T('push') - 0.1) { const m = api.g.project(-2, -16); A.bigQ(ctx, m.x, m.y - 40, t, T('push') - 0.12, 330); }
+      const q = api.g.project(47.07, 15.44), da = 1 - prog(t, tPull + 0.8, tPull + 2.0); // the Graz dot fades out with the Austria overlay
+      if (q.visible && da > 0) { ctx.save(); ctx.globalAlpha *= da; F.dot(ctx, q.x, q.y, { r: 10 * prog(t, tGraz + 0.15, tGraz + 0.4, E.outBack), color: PAL.yellow, ring: ((t - tGraz) * 0.8) % 1 }); ctx.restore(); }
+      if (t > T('push') - 0.1) { const m = api.g.project(-2, -16); A.bigQ(ctx, m.x, m.y - 40, t, T('push') - 0.12, 330, 1 - prog(t, tSpin - 0.5, tSpin)); }
     },
   }));
   cue(tGraz + 0.15, 'pop_ui', -14);
   cue(tPull, 'whoosh_soft', -14);
   cue(T('push') - 0.12, 'pop_ui', -12);
   // spin + tides + gauge
-  S.push(gscene({ t0: tSpin, t1: tQuote + 0.25, fadeIn: 0.2,
+  S.push(gscene({ t0: tSpin, t1: tQuote + 0.25, fadeIn: 0, // continues the Graz shot's camera seamlessly (no double exposure)
     overlay: OV_SAAF,
     cam: (lt) => Object.assign(camAt([{ t: 0, lat: 6, lon: -30, alt: 3.0 }, { t: 6, lat: 6, lon: -78, alt: 3.0, ease: E.inOutSine }], lt, 0.0), { lookOffset: [0.2, 0.0] }),
     look: () => ({ ovAlpha: 0.75, dim: 0.25, desat: 0.15 }),
@@ -312,17 +341,19 @@ export async function build(api, C) {
     pillNov(ctx, t);
   } });
   S.push({ t0: tPhoto2, t1: tIce + 0.85, fadeIn: 0.3, id: 'ch4', draw(ctx, lt, t) {
-    photo(ctx, imgVill, [{ t: tPhoto2, x: 0.42, y: 0.46, z: 1.06 }, { t: T('villumsen') + 0.2, x: 0.7, y: 0.4, z: 1.55, ease: E.inOut }, { t: tIce + 0.9, x: 0.71, y: 0.39, z: 1.72 }], t, 0, 0, W, H, { grade: 'cold' });
+    // keys stay inside the photo (1920x1434 is narrower than 16:9, so x must lie in [0.5/z, 1 - 0.5/z]); outside it kenburns' hard clamp
+    // pinned the crop to an edge and broke the eased pan into a reversal and a brake
+    photo(ctx, imgVill, [{ t: tPhoto2, x: 0.472, y: 0.46, z: 1.06 }, { t: T('villumsen') + 0.2, x: 0.68, y: 0.4, z: 1.55, ease: E.inOut }, { t: tIce + 0.9, x: 0.71, y: 0.39, z: 1.72 }], t, 0, 0, W, H, { grade: 'cold' });
     A.snow(ctx, W, H, t, 0.2, 0.05, 0.6);
     pillNov(ctx, t);
-    const wa = prog(t, tWhite, tWhite + 3.0, E.in); if (wa > 0) { ctx.fillStyle = `rgba(250,252,255,${wa})`; ctx.fillRect(0, 0, W, H); }
+    const wa = prog(t, tWhite, tIce, E.in); if (wa > 0) { ctx.fillStyle = `rgba(250,252,255,${wa})`; ctx.fillRect(0, 0, W, H); } // fully white when the ice shot starts
   } });
   function pillNov(ctx, t) { const a = env(t, word('s064', 'fiftieth') - 0.1, T('back') - 0.2, 0.3, 0.4); if (a > 0) F.pill(ctx, 'NOVEMBER 1930', 130, 150, { anchor: 'left', size: 42, alpha: a }); }
   cue(tPhoto1 + 0.2, 'ice_wind', -14);
   cue(tWhite - 0.4, 'ice_wind', -14);
 
   // =========================== s066: empty ice ===========================
-  S.push(gscene({ t0: tIce, t1: tRidge + 0.1, fadeIn: 0.6, patch: PATCH_GRL, overlay: null,
+  S.push(gscene({ t0: tIce, t1: tRidge + 0.1, fadeIn: 0, patch: PATCH_GRL, overlay: null, // starts on its own full white veil (photo -> white -> ice)
     cam: kcam([{ t: 0, lat: 68.6, lon: -45.0, alt: 0.14, tilt: 60, heading: 22 }, { t: tRidge - tIce + 0.2, lat: 70.3, lon: -41.6, alt: 0.11, tilt: 63, heading: 30, ease: E.inOutSine }], 0.0),
     look: () => ({ relief: 1.0, desat: 0.4, exposure: 1.18, nightAmt: 0, tint: [0.94, 0.98, 1.06], specAmt: 0.2 }),
     extra(ctx, lt, t) {
@@ -352,6 +383,9 @@ export async function build(api, C) {
     const orb = Math.sin((t - tFloor) * 0.09) * 2.2;
     const pos = [lerp(orb, 0, lockP), lerp(3.0 - 0.03 * (t - tFloor), 8.6, lockP), lerp(6.4, 2.2, lockP)];
     const tgt = [0, lerp(-0.35, 0, lockP), lerp(-2.6, -3.4, lockP)];
+    // slow push-in after the lock so the '33 YEARS TOO LATE' hold and the pause after it never sit on a dead-still frame
+    const pin = 0.08 * prog(t, tLock, tGPS + 0.2, E.inOutSine);
+    if (pin > 0) for (let i = 0; i < 3; i++) pos[i] = lerp(pos[i], tgt[i], pin);
     const shiftT = Math.min(t, tLock) - (tTape - 0.1);
     seafloor(ctx, W, H, t, {
       cam: { pos, target: tgt, fov: 40 },
@@ -394,17 +428,17 @@ export async function build(api, C) {
     extra(ctx, lt, t, api) {
       const g = api.g;
       ctx.save(); ctx.globalAlpha = 0.5; const pts = projectPath(g, MAR); F.glowPath(ctx, pts, { color: '#FF8A3D', width: 2.5 }); ctx.restore();
+      const px = lerp(W + 20, W * 0.53, prog(t, tNail, tNail + 0.55, E.outExpo)); // nail panel's left edge (off-screen until tNail)
       for (const [la, lo, az, d, dt] of ARW) {
         const ta = tArw + dt * 1.3; if (t < ta) continue;
         const p = prog(t, ta, ta + 0.7, E.outBack);
         const e = dest(la, lo, az, d * Math.max(0.05, p));
         const a = g.project(la, lo), b = g.project(e[0], e[1]); if (!a.visible || !b.visible) continue;
-        arrow2d(ctx, a.x, a.y, b.x, b.y, '#ffffff', 5);
+        const fa = clamp((px - 24 - Math.max(a.x, b.x)) / 48); if (fa <= 0) continue; // arrows the panel would cut off fade as it arrives
+        ctx.save(); ctx.globalAlpha *= fa; arrow2d(ctx, a.x, a.y, b.x, b.y, '#ffffff', 5); ctx.restore();
       }
       // nail panel slides in from the right
       if (t > tNail) {
-        const k = prog(t, tNail, tNail + 0.55, E.outExpo);
-        const px = lerp(W + 20, W * 0.53, k);
         ctx.save(); ctx.fillStyle = 'rgba(10,13,22,0.94)'; F.round(ctx, px, 70, W - px + 40, H - 140, 30); ctx.fill();
         ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 2; F.round(ctx, px, 70, W - px + 40, H - 140, 30); ctx.stroke(); ctx.restore();
         const ng = prog(t, T('nail'), T('nail') + 3.0, E.lin);
@@ -413,7 +447,8 @@ export async function build(api, C) {
         const rx = px + 420 + 150, ry = 690; ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 2;
         for (let i = 0; i <= 8; i++) { ctx.beginPath(); ctx.moveTo(rx + i * 14, ry); ctx.lineTo(rx + i * 14, ry + (i % 4 === 0 ? 22 : 12)); ctx.stroke(); }
         ctx.restore(); F.dot(ctx, px + 420 + tip, ry - 6, { r: 7, color: PAL.yellow });
-        const ta = env(t, T('nail') - 0.1, tFight + 0.35, 0.25, 0.2); pillTop(ctx, W, 'PLATE SPEED = FINGERNAIL GROWTH', ta, { size: 42 });
+        const ta = env(t, T('nail') - 0.1, tFight + 0.35, 0.25, 0.2); // title sits on the panel (centred on its visible part), not over the globe
+        F.pill(ctx, 'PLATE SPEED = FINGERNAIL GROWTH', (px + W) / 2, 150, { anchor: 'center', size: 42, alpha: ta });
       }
     },
   }));
@@ -440,7 +475,12 @@ export async function build(api, C) {
     look: (lt, t) => ({ ovAlpha: 0.95, dim: 0.35, desat: 0.3 }),
     extra(ctx, lt, t, api) {
       const g = api.g;
-      TIPS.forEach(([la, lo], i) => { const q = g.project(la, lo), up = g.project(la + 8, lo); if (!q.visible || !up.visible) return; dripArrow(ctx, q.x, q.y + 6, prog(t, tDrip + 0.25 + i * 0.15, tDrip + 0.8 + i * 0.15), { len: 90, color: '#ffffff' }); });
+      TIPS.forEach(([la, lo], i) => {
+        const q = g.project(la, lo), up = g.project(la + 8, lo); if (!q.visible || !up.visible) return;
+        // each drip hangs along its meridian toward the pole (its on-screen direction), so tips near the limb stay on the globe
+        const s = g.project(la - 3, lo), ang = Math.atan2(s.y - q.y, s.x - q.x);
+        dripArrow(ctx, q.x + Math.cos(ang) * 6, q.y + Math.sin(ang) * 6, prog(t, tDrip + 0.25 + i * 0.15, tDrip + 0.8 + i * 0.15), { len: 90, color: '#ffffff', angle: ang });
+      });
       // Antarctica ring
       const ring = []; for (let lo = -180; lo <= 180; lo += 4) ring.push({ lat: -72, lon: lo });
       const rp = []; for (const p of ring) { const q = g.project(p.lat, p.lon); if (q.visible) rp.push([q.x, q.y]); }
@@ -636,9 +676,10 @@ function fightCard(ctx, W, H, t, t0, tFreeze, tNail) {
   const tt = Math.min(t, tFreeze);
   const bgL = ctx.createLinearGradient(0, 0, W * 0.6, H); bgL.addColorStop(0, '#5A1418'); bgL.addColorStop(1, '#22070A');
   const bgR = ctx.createLinearGradient(W, 0, W * 0.4, H); bgR.addColorStop(0, '#0F2E5A'); bgR.addColorStop(1, '#060F22');
-  const zoom = t > tFreeze ? 1 + 0.05 * prog(t, tFreeze, tFreeze + 0.35, E.outExpo) + 0.01 * (t - tFreeze) : 1;
-  const jit = t > tFreeze && t < tFreeze + 0.25 ? Math.sin(t * 160) * 12 : 0;
-  ctx.save(); ctx.translate(W / 2 + jit, H / 2); ctx.scale(zoom, zoom); ctx.translate(-W / 2, -H / 2);
+  // record-scratch freeze: the fight stops and the card takes one eased 1.05x punch-in, then creeps on. No sideways shake (sin(t*160)
+  // aliased at 30 fps into a jerk-and-snap) and no dim (it left the whole held frame ~15% darker until the stamp).
+  const zoom = t > tFreeze ? 1 + 0.05 * prog(t, tFreeze, tFreeze + 0.3, E.out) + 0.01 * (t - tFreeze) : 1;
+  ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(zoom, zoom); ctx.translate(-W / 2, -H / 2);
   ctx.fillStyle = bgL; ctx.beginPath(); ctx.moveTo(-50, -50); ctx.lineTo(W * 0.56, -50); ctx.lineTo(W * 0.44, H + 50); ctx.lineTo(-50, H + 50); ctx.fill();
   ctx.fillStyle = bgR; ctx.beginPath(); ctx.moveTo(W * 0.56, -50); ctx.lineTo(W + 50, -50); ctx.lineTo(W + 50, H + 50); ctx.lineTo(W * 0.44, H + 50); ctx.fill();
   ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(lerp(W * 0.56, W * 0.44, 320 / (H + 100)), 270); ctx.lineTo(W * 0.44, H + 50); ctx.stroke();
@@ -659,7 +700,6 @@ function fightCard(ctx, W, H, t, t0, tFreeze, tNail) {
   F.text(ctx, 'VS', 0, 50, { size: 140, fam: F.FAM.head, align: 'center', color: PAL.yellow, shadow: false }); ctx.restore();
   F.headline(ctx, ['FINGERNAILS', { w: 'VS', c: PAL.yellow }, 'TOENAILS'], W / 2, 190, t - t0 - 0.1, { size: 120, per: 0.08 });
   ctx.restore();
-  if (t > tFreeze) { ctx.fillStyle = `rgba(20,24,32,${0.25 * prog(t, tFreeze, tFreeze + 0.2)})`; ctx.fillRect(0, 0, W, H); }
 }
 
 // Explorer gag: proud author waves, books fan out; words "UTTER, DAMNED ROT!" knock him back
@@ -758,15 +798,15 @@ function scrubCard(ctx, W, H, t, o) {
   const bp = prog(t, o.t0 + 0.1, o.t0 + 0.55, E.outExpo);
   const bx = 980, by = 880, bw = 760;
   ctx.save(); ctx.globalAlpha = bp; ctx.translate(0, (1 - bp) * 40);
-  ctx.fillStyle = 'rgba(6,9,16,0.85)'; F.round(ctx, bx - 250, by - 52, bw + 290, 104, 22); ctx.fill();
+  ctx.fillStyle = 'rgba(6,9,16,0.85)'; F.round(ctx, bx - 126, by - 52, bw + 166, 104, 22); ctx.fill();
   ctx.fillStyle = 'rgba(255,255,255,0.18)'; F.round(ctx, bx, by - 5, bw, 10, 5); ctx.fill();
   const back = prog(t, o.rewind - 0.05, o.t1 + 0.2, E.inOut);
   const hx = bx + bw * (1 - back);
   ctx.fillStyle = PAL.cyan; F.round(ctx, hx, by - 5, bx + bw - hx, 10, 5); ctx.fill();
   F.dot(ctx, hx, by, { r: 11, color: PAL.cyan });
-  // rewind glyph
+  // rewind glyph, just in front of the track. No Mya readout: this card only previews the rewind over today's map (a number running to
+  // 180 Ma while nothing moves read as wrong, and it collided with the glyph); chapter 5's globe runs the one real 0-180 Ma clock.
   ctx.fillStyle = (lt * 3) % 1 < 0.6 || t < o.rewind ? PAL.cyan : 'rgba(61,227,255,0.35)';
-  for (const dx of [0, 26]) { ctx.beginPath(); ctx.moveTo(bx - 210 + dx, by); ctx.lineTo(bx - 180 + dx, by - 20); ctx.lineTo(bx - 180 + dx, by + 20); ctx.closePath(); ctx.fill(); }
-  F.counter(ctx, 0, 180, back, bx - 40, by + 26, { size: 64, align: 'right', format: v => String(Math.round(v)), unit: 'MYA' });
+  for (const dx of [0, 26]) { ctx.beginPath(); ctx.moveTo(bx - 86 + dx, by); ctx.lineTo(bx - 56 + dx, by - 20); ctx.lineTo(bx - 56 + dx, by + 20); ctx.closePath(); ctx.fill(); }
   ctx.restore();
 }

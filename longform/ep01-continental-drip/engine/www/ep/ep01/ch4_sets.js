@@ -51,7 +51,7 @@ export function corridor(ctx, W, H, t, o) {
   const XW = 2.2, YH = 3.8, ZN = 5, ZF = -18;
   // camera dolly + push through the far door
   let cz = lerp(3.4, 0.4, prog(t, o.t0, o.pushAt, E.inOut));
-  cz = lerp(cz, -16.9, prog(t, o.pushAt, o.pushEnd, E.in));
+  cz = lerp(cz, -16.9, prog(t, o.pushAt, o.pushEnd, (k) => k * k)); // quadratic rush: reads from its first frames, ends in the flash
   let sx = 0, sy = 0;
   for (const ts of o.slams) if (t > ts) { const k = t - ts; sy += 0.05 * Math.exp(-k * 9) * Math.sin(k * 70); sx += 0.025 * Math.exp(-k * 9) * Math.cos(k * 55); }
   const cam = camera([sx, 1.55 + sy, cz], [sx * 0.5, 1.5 + sy, cz - 10], 64, W, H);
@@ -203,30 +203,32 @@ export function seafloor(ctx, W, H, t, s) {
   ctx.beginPath(); for (let z = 0; z >= -DZ; z -= 1.5) { const pts = []; for (let x = -L; x <= L + 0.01; x += 0.4) pts.push(cam.proj([x, hgt(x) + 0.002, z])); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); }
   ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1.5; ctx.stroke();
   const st = stripes(s.shift || 0);
-  // right side stripes (reveal wipe outward from the ridge)
   const rr = (s.rightReveal ?? 0) * L;
+  // compass needles: polarity arrows (north = away from camera) on a surface map(d, z), d = distance from the ridge
+  const needles = (map) => {
+    if ((s.arrows || 0) <= 0) return;
+    ctx.save(); ctx.globalAlpha = s.arrows; ctx.strokeStyle = PAL.yellow; ctx.fillStyle = PAL.yellow; ctx.lineWidth = 4; ctx.lineCap = 'round';
+    for (const q of st) {
+      const w = q.b - q.a; if (w < 0.3 || q.a > rr) continue;
+      const dm = (q.a + q.b) / 2, zA = q.n ? -2.2 : -3.6, zB = q.n ? -3.6 : -2.2;
+      const a = cam.proj(map(dm, zA)), b = cam.proj(map(dm, zB));
+      ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+      const ang = Math.atan2(b[1] - a[1], b[0] - a[0]), hl = 14;
+      ctx.beginPath(); ctx.moveTo(b[0] + Math.cos(ang) * 6, b[1] + Math.sin(ang) * 6); ctx.lineTo(b[0] - Math.cos(ang - 0.5) * hl, b[1] - Math.sin(ang - 0.5) * hl); ctx.lineTo(b[0] - Math.cos(ang + 0.5) * hl, b[1] - Math.sin(ang + 0.5) * hl); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  };
+  // right side stripes (reveal wipe outward from the ridge) and their needles, drawn before the page so the lifting page covers them
   for (const q of st) { if (q.a >= rr) break; surf(q.a, Math.min(q.b, rr), q.n ? NORM : REV, (x, z) => [x, hgt(x) + 0.004, z]); }
-  // left side: a mirrored 'page' flipping over the ridge axis
+  needles((d, z) => [d, hgt(d) + 0.01, z]);
+  // left side: a mirrored 'page' flipping over the ridge axis; it carries its own copy of the needles (coincident with the floor's at the
+  // start of the flip), which ride over with it and land as the left-side needles, so nothing pops in when the flip ends
   const fp = s.flip ?? 0;
   if (fp > 0) {
     const th = Math.PI * (1 - fp);
     const map = (d, z) => [-d * Math.cos(th), hgt(d) + 0.006 + d * Math.sin(th) * 0.92, z];
     for (const q of st) surf(q.a, q.b, q.n ? (th > 1.57 ? '#CDD3DB' : NORM) : REV, map);
-  }
-  // compass needles: polarity arrows (north = away from camera)
-  if ((s.arrows || 0) > 0) {
-    ctx.save(); ctx.globalAlpha = s.arrows; ctx.strokeStyle = PAL.yellow; ctx.fillStyle = PAL.yellow; ctx.lineWidth = 4; ctx.lineCap = 'round';
-    for (const q of st) {
-      const w = q.b - q.a; if (w < 0.3 || q.a > rr) continue;
-      for (const sg of fp >= 1 ? [1, -1] : [1]) {
-        const xm = sg * (q.a + q.b) / 2, zA = q.n ? -2.2 : -3.6, zB = q.n ? -3.6 : -2.2;
-        const a = cam.proj([xm, hgt(xm) + 0.01, zA]), b = cam.proj([xm, hgt(xm) + 0.01, zB]);
-        ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
-        const ang = Math.atan2(b[1] - a[1], b[0] - a[0]), hl = 14;
-        ctx.beginPath(); ctx.moveTo(b[0] + Math.cos(ang) * 6, b[1] + Math.sin(ang) * 6); ctx.lineTo(b[0] - Math.cos(ang - 0.5) * hl, b[1] - Math.sin(ang - 0.5) * hl); ctx.lineTo(b[0] - Math.cos(ang + 0.5) * hl, b[1] - Math.sin(ang + 0.5) * hl); ctx.closePath(); ctx.fill();
-      }
-    }
-    ctx.restore();
+    needles((d, z) => { const p = map(d, z); p[1] += 0.01; return p; });
   }
   // ridge glow along the crest
   const rg = s.ridgeGlow ?? 0.5;
@@ -237,9 +239,10 @@ export function seafloor(ctx, W, H, t, s) {
   }
   // spreading arrows (white chevrons moving outward)
   if ((s.spreadArrows || 0) > 0) {
-    ctx.save(); ctx.globalAlpha = s.spreadArrows; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    const ph = (t * 0.5) % 1; // 2-s loop: each chevron fades in near the ridge and out at the end of its run, so the wrap never shows as a jump
+    ctx.save(); ctx.globalAlpha = s.spreadArrows * clamp(Math.min(ph, 1 - ph) / 0.15); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const sg of [-1, 1]) for (const z of [-1.2, -5.5]) {
-      const x0 = sg * (0.6 + ((t * 0.5) % 1) * 0.5), x1 = x0 + sg * 1.0;
+      const x0 = sg * (0.6 + ph * 0.5), x1 = x0 + sg * 1.0;
       const a = cam.proj([x0, hgt(x0) + 0.05, z]), b = cam.proj([x1, hgt(x1) + 0.05, z]);
       ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
       const ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
@@ -268,13 +271,14 @@ export function seafloor(ctx, W, H, t, s) {
     if (poly3(ctx, cam, [...lower, ...lower2.slice().reverse()])) { ctx.fillStyle = '#2B2622'; ctx.fill(); }
     // upper crust base band, then polarity dikes mirrored on top
     { const tp = [], bt = []; for (let x = -L; x <= L + 0.001; x += 0.2) { tp.push([x, hgt(x), 0]); bt.push([x, hgt(x) - 0.32, 0]); } if (poly3(ctx, cam, [...tp, ...bt.reverse()])) { ctx.fillStyle = '#3A4350'; ctx.fill(); } }
+    const dl = clamp((fp - 0.8) / 0.2); // left-side dikes fade in while the page settles instead of popping in at flip = 1
     for (const q of st) {
       for (const sg of [1, -1]) {
-        if (sg === 1 && q.a >= rr) continue; if (sg === -1 && fp < 1) continue;
+        if (sg === 1 && q.a >= rr) continue; if (sg === -1 && dl <= 0) continue;
         const a0 = sg === 1 ? q.a : -Math.min(q.b, L), a1 = sg === 1 ? Math.min(q.b, rr) : -q.a;
         const n = Math.max(2, Math.ceil(Math.abs(a1 - a0) / 0.2)); const tp = [], bt = [];
         for (let i = 0; i <= n; i++) { const x = lerp(a0, a1, i / n); tp.push([x, hgt(x), 0]); bt.push([x, hgt(x) - 0.32, 0]); }
-        if (poly3(ctx, cam, [...tp, ...bt.reverse()])) { ctx.fillStyle = q.n ? '#C9CFD8' : '#141C27'; ctx.fill(); }
+        if (poly3(ctx, cam, [...tp, ...bt.reverse()])) { const ga = ctx.globalAlpha; if (sg === -1) ctx.globalAlpha = ga * dl; ctx.fillStyle = q.n ? '#C9CFD8' : '#141C27'; ctx.fill(); ctx.globalAlpha = ga; }
       }
     }
     // upwelling arrows under the ridge

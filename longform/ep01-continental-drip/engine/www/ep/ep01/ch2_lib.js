@@ -91,6 +91,8 @@ export function projector(g, W = 1920, H = 1080) {
       const r = 1 + lift; const q = P(x * r, y * r, z * r); q.push(vis); return q;
     },
     ll(lat, lon, lift = 0) { const v = dir(lat, lon); return this.xyz(v[0], v[1], v[2], false, lift); },
+    // signed distance of a unit vector past the horizon (> 0 visible, < 0 behind the globe)
+    facing(x, y, z) { return x * cx + y * cy + z * cz - h; },
     disc() { const ang = Math.asin(Math.min(1, h)); const f = H / 2 / Math.tan(cam.fov * D2R / 2); const c0 = P(0, 0, 0); return { x: c0[0], y: c0[1], r: Math.tan(ang) * f }; },
   };
 }
@@ -152,12 +154,12 @@ export function juiceStamp(ctx, x, y, lt, verdict, o = {}) {
   const col = o.color || PAL.danger, size = o.size || 64;
   const p = clamp(lt / (o.dur || 0.28)); const s = lerp(o.from ?? 2.4, 1, E.in(p)) * (o.scale || 1);
   const shake = p >= 1 ? Math.sin(lt * 60) * Math.exp(-(lt - (o.dur || 0.28)) * 9) * 6 : 0;
-  ctx.save(); ctx.translate(x + shake, y); ctx.rotate((o.rot ?? -8) * D2R + (1 - p) * (o.spin ?? 0)); ctx.scale(s, s); ctx.globalAlpha *= clamp(p * 3) * (o.alpha ?? 1);
+  ctx.save(); ctx.translate(x + shake, y); ctx.rotate((o.rot ?? -8) * D2R + (1 - p) * (o.spin ?? 0)); ctx.scale(s, s); ctx.globalAlpha *= (o.fadeIn === false ? 1 : clamp(p * 3)) * (o.alpha ?? 1);
   const t1 = 'JUICE CHECK', t2 = verdict;
   const w1 = F.measure(ctx, t1, { size: size * 0.42, fam: F.FAM.label, weight: 700, tracking: 0.3 });
   const w2 = F.measure(ctx, t2, { size, fam: F.FAM.head, weight: 400, tracking: 0.06 });
   const bw = Math.max(w1, w2) + size * 1.0, bh = size * 1.75;
-  ctx.fillStyle = 'rgba(10,6,6,0.55)'; F.round(ctx, -bw / 2, -bh / 2, bw, bh, 12); ctx.fill();
+  ctx.fillStyle = o.bg || 'rgba(10,6,6,0.55)'; F.round(ctx, -bw / 2, -bh / 2, bw, bh, 12); ctx.fill();
   ctx.strokeStyle = col; ctx.lineWidth = size * 0.08; F.round(ctx, -bw / 2, -bh / 2, bw, bh, 12); ctx.stroke();
   ctx.lineWidth = size * 0.03; F.round(ctx, -bw / 2 + size * 0.14, -bh / 2 + size * 0.14, bw - size * 0.28, bh - size * 0.28, 8); ctx.stroke();
   F.text(ctx, t1, 0, -bh / 2 + size * 0.62, { size: size * 0.42, fam: F.FAM.label, weight: 700, tracking: 0.3, align: 'center', color: col, shadow: false });

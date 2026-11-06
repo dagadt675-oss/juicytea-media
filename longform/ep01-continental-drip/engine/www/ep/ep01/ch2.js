@@ -136,7 +136,7 @@ export async function build(api, C) {
   // cut points (absolute)
   const cA = T0, cB = tm.santa - 0.25, cProf = tm.depth - pre, cDisc = SEG('s027').start, cDrag = SEG('s028').start, cCut = tm.dont - 0.12,
     cTop = tm.ant - pre, cChina = SEG('s031').start, cGag4 = tm.dig - 0.2, cDrill = cGag4 + 2.3, cOcean = tm.indian - 0.12, cIsl = tm.nearest - 0.3,
-    cFlat = tm.notchina - pre, cBob = tm.arg + 1.05, cAnti = SEG('s035').start + 0.4, cWaf = SEG('s036').start, cCap = SEG('s037').start,
+    cFlat = tm.notchina - pre, cBob = tm.arg + 1.05, cAnti = SEG('s035').start - 0.06, cWaf = SEG('s036').start, cCap = SEG('s037').start,
     cSettle = tm.europe - 0.2, cTiles = tm.cut - 0.35, cFlip = SEG('s040').start, cPac = SEG('s041').start, cMont = tm.ocean - pre,
     cDrip = tm.lop - pre, cTet = SEG('s043').start - 0.25;
 
@@ -165,7 +165,8 @@ export async function build(api, C) {
   S.heroC.play(cProf - 1, 'Idle').play(tm.depth + 1.05, 'HitRecieve_2', { fade: 0.12, once: true }).play(tm.depth + 2.0, 'Idle', { fade: 0.35 })
     .play(tm.up - 0.1, 'Idle_Neutral', { fade: 0.3 }).play(tm.thick + 0.6, 'Idle', { fade: 0.4 });
   S.heroP.play(cGag4 - 1, 'Idle').play(tm.dig - 0.05, 'Interact', { fade: 0.15 }).play(tm.dig + 1.1, 'Idle_Neutral', { fade: 0.3 })
-    .play(cOcean - 0.5, 'Idle').play(tm.indian + 0.18, 'Roll', { fade: 0.08, once: true }).play(tm.indian + 0.95, 'Idle', { fade: 0.3 });
+    // the roll (1.333 s clip) plays at 2x so it completes while he is still above water, then Idle takes over from its upright end pose
+    .play(cOcean - 0.5, 'Idle').play(tm.indian + 0.02, 'Roll', { fade: 0.06, once: true, speed: 2 }).play(tm.indian + 0.66, 'Idle', { fade: 0.15 });
   S.heroD.play(cDrill - 1, 'Run');
   // gag 5 (Pacific pour) on the composite hero
   const tAusL = tm.drop + 2.35, tAusA = tAusL + 1.45, tAsiaA = tm.asia + 0.02, tAsiaL = tAsiaA - 1.0;
@@ -268,7 +269,8 @@ export async function build(api, C) {
   }
   function drawSouth(ctx, oy, t, k) {
     ctx.save(); ctx.translate(0, oy);
-    const sg = ctx.createLinearGradient(0, ySLB - 4 * MI, 0, ySLB); sg.addColorStop(0, '#081226'); sg.addColorStop(1, '#2a4a70'); ctx.fillStyle = sg; ctx.fillRect(0, -300, W, ySLB + 300);
+    // sky starts at this panel's top edge (minus the 0.05*H gap to the Arctic panel), so it never covers the Arctic panel before the whip moves it
+    const sg = ctx.createLinearGradient(0, ySLB - 4 * MI, 0, ySLB); sg.addColorStop(0, '#081226'); sg.addColorStop(1, '#2a4a70'); ctx.fillStyle = sg; ctx.fillRect(0, -0.05 * H - 4, W, ySLB + 0.05 * H + 4);
     // bedrock
     const rp = new Path2D(); rp.moveTo(0, H + 300); for (let x = 0; x <= W; x += 8) rp.lineTo(x, ySLB - bedB(x) * MI); rp.lineTo(W, H + 300); rp.closePath();
     const rg = ctx.createLinearGradient(0, ySLB - 60, 0, H); rg.addColorStop(0, '#6a5747'); rg.addColorStop(1, '#221a15'); ctx.fillStyle = rg; ctx.fill(rp);
@@ -324,10 +326,11 @@ export async function build(api, C) {
         // upward ruler from sea level
         const uk = prog(t, tm.up - 0.1, tm.up + 1.5, E.inOutSine);
         if (uk > 0) {
+          const rl = (ySLB - top) / MI; // the ruler's real length (miles): ticks and readout follow it
           ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(1015, ySLB); ctx.lineTo(1015, top); ctx.stroke();
-          for (let m = 0.5; m <= 1.76 * uk + 1e-6; m += 0.5) { const yy = ySLB - m * MI; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(1015, yy); ctx.lineTo(m % 1 === 0 ? 1043 : 1033, yy); ctx.stroke(); }
+          for (let m = 0.5; m <= rl + 1e-6; m += 0.5) { const yy = ySLB - m * MI; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(1015, yy); ctx.lineTo(m % 1 === 0 ? 1043 : 1033, yy); ctx.stroke(); }
           ctx.fillStyle = PAL.yellow; ctx.beginPath(); ctx.moveTo(1015, top - 4); ctx.lineTo(1005, top + 12); ctx.lineTo(1025, top + 12); ctx.closePath(); ctx.fill();
-          L.miles(ctx, 1.76 * uk, 1060, top + 50, { size: 54, alpha: prog(t, tm.up - 0.1, tm.up + 0.1) });
+          L.miles(ctx, rl, 1060, top - 34, { size: 54, alpha: prog(t, tm.up - 0.1, tm.up + 0.1) }); // on the dark sky above the ice, not white-on-white
         }
         // sheet outline + thickness bracket
         if (t > tm.sheet - pre) { ctx.save(); ctx.lineJoin = 'round'; const a = prog(t, tm.sheet - pre, tm.sheet + 0.5); for (const [lw, c] of [[12, 'rgba(61,227,255,0.18)'], [5, 'rgba(61,227,255,0.45)'], [2.5, '#ffffff']]) { ctx.strokeStyle = c; ctx.lineWidth = lw; ctx.globalAlpha = a; ctx.stroke(ip); } ctx.restore(); }
@@ -404,7 +407,8 @@ export async function build(api, C) {
   const dragTh = 172 * Math.PI / 180; // rotation about +z: negative angle moves the pole down the 0° meridian
   const tDragE = tm.drag + 2.5, tBack = tm.but29 + 0.25;
   const dragState = (t) => {
-    let k = prog(t, tm.drag - pre, tDragE, E.out); k -= prog(t, tBack, tBack + 1.7, E.inOut);
+    // eased both ways (no full-speed start), return over 2.0 s: the camera below follows k, so it never starts or stops dead
+    let k = prog(t, tm.drag - pre, tDragE, E.inOutSine); k -= prog(t, tBack, tBack + 2.0, E.inOutSine);
     const R1 = { ax: [0, 0, 1], th: -dragTh * k };
     const c1 = L.rotVec(arcC, R1);
     const R2 = L.rotAB(c1, antC, prog(t, tDragE - 0.6, tDragE + 0.3, E.inOut) * (1 - prog(t, tBack, tBack + 0.6)));
@@ -413,8 +417,10 @@ export async function build(api, C) {
   push(gscene({
     t0: cDrag, t1: cCut,
     cam: (lt, t) => {
-      const s = dragState(t); const [la] = L.ll(s.c);
-      const camLat = clamp(la - 6, -64, 66);
+      // camera latitude tracks the eased drag progress (66 -> -64, same end framings as before) instead of the hard-clamped
+      // centroid latitude, which jumped from rest to full speed when the clamp released and stopped dead when it re-clamped
+      const s = dragState(t);
+      const camLat = lerp(66, -64, s.k);
       const back = prog(t, tBack, tBack + 1.9, E.inOut);
       return camAt([{ t: 0, lat: camLat, lon: lerp(4, 0, back), alt: lerp(2.55, 3.1, back), tilt: 0 }], 0, 0) && { lat: camLat, lon: 0, alt: lerp(2.55, 3.0, back) * (1 + 0.006 * Math.sin(t * 0.7)), heading: (t - cDrag) * 0.8, tilt: 0 };
     },
@@ -456,16 +462,34 @@ export async function build(api, C) {
   sfx(tm.line - 0.03, 'impact_deep', -6);
 
   // ======================= s029/s030 G: top-down on the Arctic, mirrored Antarctica; pull back; antipode glimpse; headline =======================
+  // antipode overlay from "Almost everywhere you look" to the end of "...not more land", with a two-item key timed to the words
+  const tOvIn = wordAt('s030', 'almost') - 0.1, tOvOut = tm.brings - 0.3, tKeyO = wordAt('s030', 'land') - pre, tKeyL = wordAt('s030', 'not', 1) - pre;
+  const ovEnv = (t) => env(t, tOvIn, tOvOut, 0.45, 0.45);
+  const keyItem = (ctx, x, y, col, label, a, k) => {
+    if (a <= 0.001) return;
+    const size = 34, padX = size * 0.55, padY = size * 0.32, sw = 26, gap = 14;
+    const tw = F.measure(ctx, label, { size, fam: F.FAM.label, weight: 700, tracking: 0.08 });
+    const bw = padX * 2 + sw + gap + tw, bh = size + padY * 2, bx = x - 24 * (1 - k), by = y - bh / 2;
+    ctx.save(); ctx.globalAlpha *= a;
+    ctx.fillStyle = 'rgba(8,11,18,0.72)'; F.round(ctx, bx, by, bw, bh, bh / 2); ctx.fill();
+    // soft glow behind the swatch so it reads as bright as the overlay colours on the globe despite the corner vignette
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; L.glowDot(ctx, bx + padX + sw / 2, y, sw * 1.3, col, 0.45); ctx.restore();
+    ctx.fillStyle = col; F.round(ctx, bx + padX, y - sw / 2, sw, sw, 6); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 1.5; ctx.stroke();
+    F.text(ctx, label, bx + padX + sw + gap, by + bh / 2 + size * 0.36, { size, fam: F.FAM.label, weight: 700, tracking: 0.08, color: PAL.text, shadow: false });
+    ctx.restore();
+  };
   push(gscene({
     t0: cTop, t1: cChina, ovKey: 'ch2:antipodes', install: async (gl) => { await gl.setOverlayURL('tex/data/antipodes.png'); },
     cam: (lt, t) => {
       const k = prog(t, tm.poles - 0.4, tm.poles + 1.8, E.inOut);
-      const k2 = prog(t, tm.brings - 0.6, cChina + 0.2, E.inOutSine);
+      const k2 = prog(t, tm.brings - 0.6, cChina, E.inOutSine); // settles exactly at the cut, where scene H's first key picks up
       const ll = L.ll([lerp(1e-3, Math.cos(25 * Math.PI / 180), k), lerp(1, Math.sin(25 * Math.PI / 180), k), 0]);
       const lat = lerp(89.95, 24, k), lon = lerp(10, 8, k) + 80 * k2 + (t - cTop) * 0.4;
       return { lat: lerp(lat, 30, k2), lon, alt: lerp(2.25 + 0.12 * prog(t, cTop, tm.poles, E.inOutSine), 3.0, k) * (1 + 0.006 * Math.sin(t * 0.7)), heading: (1 - k) * (t - cTop) * 3.2, tilt: 0 };
     },
-    look: (lt, t) => ({ ovAlpha: 0.95 * env(t, tm.avoid - 0.35, tm.avoid + 1.55, 0.3, 0.45), dim: 0.12 + 0.18 * env(t, tm.avoid - 0.35, tm.avoid + 1.55, 0.3, 0.45) + 0.2 * prog(t, tm.brings - 0.3, tm.brings + 0.3), desat: 0.15 }),
+    // antipode overlay from "Almost everywhere you look" to the end of "...not more land" (was ~1.2 s, gone before it); its dim hands over to the headline dim with no bright dip
+    look: (lt, t) => ({ ovAlpha: 0.95 * ovEnv(t), dim: 0.12 + Math.max(0.18 * env(t, tOvIn, 1e9, 0.45, 0.45), 0.2 * prog(t, tm.brings - 0.3, tm.brings + 0.3)), desat: 0.15 }),
     draw2d: (ctx, lt, t, pj) => {
       const fade = 1 - prog(t, tm.poles + 0.2, tm.poles + 1.2);
       if (fade > 0) {
@@ -481,12 +505,20 @@ export async function build(api, C) {
         ctx.restore();
         F.pill(ctx, 'MOST OF ANTARCTICA: OPPOSITE THE ARCTIC OCEAN', W / 2, 110, { anchor: 'center', size: 40, alpha: prog(t, wordAt('s029', 'opposite') - pre, wordAt('s029', 'opposite') + 0.3) * (1 - prog(t, tm.poles - 0.2, tm.poles + 0.2)) });
       }
-      // kinetic headline
-      if (t > tm.brings - 0.2) {
-        F.headline(ctx, ['DIG', 'STRAIGHT', 'DOWN', 'TO', { w: 'CHINA?', c: PAL.hero }], W / 2, 200, t - tm.brings, { size: 140, per: (tm.myth - tm.brings - 0.25) / 4, tOut: cChina - tm.brings + 1.6 });
+      // key for the overlay (cyan: ocean sitting opposite land, on "land has ocean on its far side"; yellow: land opposite land, on "not more land")
+      if (t > tKeyO && t < tOvOut) {
+        const ko = prog(t, tKeyO, tKeyO + 0.3, E.out), kl = prog(t, tKeyL, tKeyL + 0.3, E.out), out = 1 - prog(t, tOvOut - 0.45, tOvOut);
+        keyItem(ctx, 110, 846, PAL.cyan, 'OCEAN OPPOSITE LAND', ko * out, ko);
+        keyItem(ctx, 110, 914, PAL.yellow, 'LAND OPPOSITE LAND', kl * out, kl);
       }
     },
   }));
+  // kinetic headline: its own overlay so it outlives the G -> H cut and fades at cChina + 1.6 as timed (was cut off by G's end)
+  push({
+    t0: tm.brings - 0.2, t1: cChina + 2.0, layer: 5, draw(ctx, lt, t) {
+      F.headline(ctx, ['DIG', 'STRAIGHT', 'DOWN', 'TO', { w: 'CHINA?', c: PAL.hero }], W / 2, 200, t - tm.brings, { size: 140, per: (tm.myth - tm.brings - 0.25) / 4, tOut: cChina - tm.brings + 1.6 });
+    },
+  });
   sfx(tm.poles - 0.05, 'whoosh_soft', -14);
   sfx(tm.avoid - 0.3, 'shimmer', -18);
   sfx(tm.myth - 0.05, 'impact_short', -14);
@@ -498,12 +530,13 @@ export async function build(api, C) {
   push(gscene({
     t0: cChina, t1: cGag4, ovKey: 'ch2:china', install: (gl) => gl.setOverlay(ovChina),
     cam: (lt, t) => {
-      const keys = [{ t: 0, lat: 30, lon: 88, alt: 3.0 }, { t: tm.china - cChina, lat: 35, lon: 104, alt: 2.6 }, { t: tm.test - cChina, lat: 36, lon: 108, alt: 2.55 },
+      // first key = scene G's exact final camera (lon drift 0.4 deg/s since cTop, alt breathing at cChina), so the cut is seamless
+      const keys = [{ t: 0, lat: 30, lon: 88 + 0.4 * (cChina - cTop), alt: 3.0 * (1 + 0.006 * Math.sin(cChina * 0.7)) }, { t: tm.china - cChina, lat: 35, lon: 104, alt: 2.6 }, { t: tm.test - cChina, lat: 36, lon: 108, alt: 2.55 },
         { t: tm.test - cChina + 0.45, lat: 52, lon: 175, alt: 3.3, ease: E.in }, { t: tm.kansas - cChina - 0.35, lat: 39, lon: -98, alt: 2.5, ease: E.out },
         { t: tm.kansas - cChina + 0.7, lat: 39.5, lon: -98.4, alt: 2.3 }, { t: cGag4 - cChina, lat: 38.2, lon: -98.6, alt: 0.95, tilt: 28 }];
       return camAt(keys, lt, 0.5);
     },
-    look: (lt, t) => ({ ovAlpha: prog(t, tm.china - 0.25, tm.china + 0.2), dim: 0.22 * prog(t, tm.china - 0.25, tm.china + 0.2), desat: 0.15 }),
+    look: (lt, t) => ({ ovAlpha: prog(t, tm.china - 0.25, tm.china + 0.2), dim: lerp(0.32, 0.22, prog(t, cChina + 1.6, tm.china + 0.2)), desat: 0.15 }), // starts at G's final dim (headline still up)
     draw2d: (ctx, lt, t, pj) => {
       if (t > tm.kansas - pre) {
         const q = pj.ll(...KS);
@@ -618,7 +651,7 @@ export async function build(api, C) {
   const eeBase = im('tex/equal_earth.jpg'), eeGrey = im('ch2_ee_grey.jpg'), eeAntiImg = im('ch2_ee_anti.png');
   const vWorld = { cx: 1800, cy: 900, zoom: 1.04 };
   const vIndian = L.eeViewAt(60, -3, 1.3), vSA = L.eeViewAt(-68, -28, 2.15), vWorld2 = { cx: 1800, cy: 880, zoom: 1.06 };
-  const tFlipUS0 = tm.us - pre, tFlipUS1 = tm.us + 1.0, tFlipCH0 = tm.start - pre, tFlipCH1 = tm.start + 1.1, tFlipAR0 = tm.arg - 0.6, tFlipAR1 = tm.arg + 0.25;
+  const tFlipUS0 = tm.us - pre, tFlipUS1 = tm.us + 1.0, tFlipCH0 = tm.start - pre, tFlipCH1 = tm.start + 1.1, tFlipAR0 = tm.arg - 0.4, tFlipAR1 = tm.arg + 0.25;
   const mView = (t) => {
     let v = lerpView(vWorld, vIndian, prog(t, cFlat, tm.hemi + 0.2, E.inOut));
     v = lerpView(v, vWorld, prog(t, tm.us - 0.5, tm.us + 0.4, E.inOut));
@@ -650,7 +683,7 @@ export async function build(api, C) {
         if (eqA > 0) { ctx.save(); ctx.globalAlpha = eqA; ctx.setLineDash([]); ctx.strokeStyle = PAL.yellow + '55'; ctx.lineWidth = 14 / z; ctx.stroke(eqPath.p); ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 4 / z; ctx.stroke(eqPath.p); ctx.restore(); }
         // Kansas antipode marker (yellow) stays from the previous shot until the US flip
         // US flip: original outline -> antipode (cyan)
-        const fk = prog(t, tFlipUS0, tFlipUS1, E.inOut), usA = 1 - prog(t, tm.start - 0.6, tm.start - 0.1);
+        const fk = prog(t, tFlipUS0, tFlipUS1, E.inOut), usA = (1 - prog(t, tm.start - 0.6, tm.start - 0.1)) * prog(t, tFlipUS0 - 0.6, tFlipUS0 - 0.2); // fades in (no one-frame pop)
         if (t > tFlipUS0 - 0.6 && usA > 0) {
           ctx.globalAlpha = usA;
           if (fk < 1) { const pth = L.eePath(L.flipRings(usR, fk)).path; ctx.globalAlpha = usA * 0.55; ctx.fillStyle = PAL.cyan; ctx.fill(pth); ctx.globalAlpha = usA; strokeImg(ctx, z, pth, '#E8FBFF', 1.6); }
@@ -660,7 +693,7 @@ export async function build(api, C) {
         // China antipode (cyan over water, yellow over land)
         const ck = prog(t, tFlipCH0, tFlipCH1, E.inOut);
         if (t > tFlipCH0) {
-          if (ck < 1) { const pth = L.eePath(L.flipRings(chR, ck)).path; ctx.globalAlpha = 0.5; ctx.fillStyle = PAL.cyan; ctx.fill(pth); ctx.globalAlpha = 1; strokeImg(ctx, z, pth, '#E8FBFF', 1.8); }
+          if (ck < 1) { const ca = prog(t, tFlipCH0, tFlipCH0 + 0.2); const pth = L.eePath(L.flipRings(chR, ck)).path; ctx.globalAlpha = 0.5 * ca; ctx.fillStyle = PAL.cyan; ctx.fill(pth); ctx.globalAlpha = ca; strokeImg(ctx, z, pth, '#E8FBFF', 1.8); ctx.globalAlpha = 1; } // copy fades in as it peels off
           else {
             const fill = prog(t, tm.four - pre, tm.four + 0.35);
             ctx.globalAlpha = 0.25 + 0.4 * fill; ctx.fillStyle = PAL.cyan; ctx.fill(chAnti.path); ctx.globalAlpha = 1;
@@ -670,11 +703,11 @@ export async function build(api, C) {
         }
         // Argentina orange + its antipode landing on China
         if (t > tm.dig2 - 0.3) {
-          const aa = prog(t, tm.arg - pre - 0.25, tm.arg);
+          const aa = prog(t, tm.arg - 0.75, tm.arg - 0.45); // Argentina lights up first, then its outline flips (cause before effect)
           ctx.globalAlpha = 0.9 * aa; ctx.fillStyle = PAL.hero; ctx.fill(arPath.path); ctx.globalAlpha = 1; if (aa > 0) strokeImg(ctx, z, arPath.path, '#ffffff', 1.6);
           if (t > tFlipAR0) {
             const ak = prog(t, tFlipAR0, tFlipAR1, E.inOut);
-            if (ak < 1) { const pth = L.eePath(L.flipRings(arR, ak)).path; strokeImg(ctx, z, pth, '#ffffff', 2); }
+            if (ak < 1) { const pth = L.eePath(L.flipRings(arR, ak)).path; ctx.globalAlpha = prog(t, tFlipAR0, tFlipAR0 + 0.12); strokeImg(ctx, z, pth, '#ffffff', 2); ctx.globalAlpha = 1; }
             else { ctx.save(); ctx.clip(chPath.path); ctx.globalAlpha = 0.95 * prog(t, tFlipAR1, tFlipAR1 + 0.3); ctx.fillStyle = PAL.yellow; ctx.fill(arAnti.path); ctx.restore(); strokeImg(ctx, z, arAnti.path, '#ffffff', 2); }
           }
         }
@@ -714,6 +747,7 @@ export async function build(api, C) {
   sfx(tm.arg - 0.05, 'bell_small', -14);
 
   // ======================= s034 N: still bobbing alone at sea =======================
+  // the insert fills the pause after "Argentinians." and ends just before "Now flip every continent" (cAnti), so the map is up for the whole sentence
   bobScene(cBob, cAnti, null, { ry: -0.2, ang: 0.55, dist: 4.4 });
   sfx(cBob, 'crickets', -20);
 
@@ -771,16 +805,19 @@ export async function build(api, C) {
         F.text(ctx, lab, x0 + gw / 2, tops - 50, { size: 48, fam: F.FAM.label, weight: 700, tracking: 0.18, align: 'center', color: gi ? PAL.yellow : PAL.text, alpha: prog(t, cWaf + 0.1, cWaf + 0.4) });
         const lit = Math.floor(n * prog(t, lightA, lightB, E.inOutSine) + 1e-6);
         const sk = prog(t, sortAt, sortE, E.inOut);
+        // unlit cell backgrounds for all 100 cells (cells vacated by the sort stay filled instead of leaving holes)
         for (let i = 0; i < 100; i++) {
-          const rank = ord.indexOf(i); const on = rank < lit;
+          const x = x0 + (i % 10) * (gs + gap), y = tops + Math.floor(i / 10) * (gs + gap);
+          ctx.save(); ctx.translate(x + gs / 2, y + gs / 2); ctx.scale(pop, pop); ctx.fillStyle = 'rgba(160,190,230,0.13)'; F.round(ctx, -gs / 2, -gs / 2, gs, gs, 7); ctx.fill(); ctx.restore();
+        }
+        for (let i = 0; i < 100; i++) {
+          const rank = ord.indexOf(i); if (rank >= lit) continue;
           // sorted position: lit squares settle into the bottom rows (reading order from the bottom-left)
           let col = i % 10, row = Math.floor(i / 10);
-          if (on && sk > 0) { const tr = 9 - Math.floor(rank / 10), tc = rank % 10; col = lerp(col, tc, sk); row = lerp(row, tr, sk); }
-          else if (!on && sk > 0) { /* unlit stay */ }
+          if (sk > 0) { const tr = 9 - Math.floor(rank / 10), tc = rank % 10; col = lerp(col, tc, sk); row = lerp(row, tr, sk); }
           const x = x0 + col * (gs + gap), y = tops + row * (gs + gap);
           ctx.save(); ctx.translate(x + gs / 2, y + gs / 2); ctx.scale(pop, pop);
-          if (on) { const fl = 1 - prog(t, lightA + (rank / n) * (lightB - lightA), lightA + (rank / n) * (lightB - lightA) + 0.25); ctx.fillStyle = PAL.yellow; F.round(ctx, -gs / 2, -gs / 2, gs, gs, 7); ctx.fill(); if (fl > 0) { ctx.fillStyle = `rgba(255,255,255,${0.8 * fl})`; ctx.fill(); } }
-          else if (!(sk > 0 && ord.indexOf(9 - Math.floor(i / 10)) < 0)) { ctx.fillStyle = 'rgba(160,190,230,0.13)'; F.round(ctx, -gs / 2, -gs / 2, gs, gs, 7); ctx.fill(); }
+          const fl = 1 - prog(t, lightA + (rank / n) * (lightB - lightA), lightA + (rank / n) * (lightB - lightA) + 0.25); ctx.fillStyle = PAL.yellow; F.round(ctx, -gs / 2, -gs / 2, gs, gs, 7); ctx.fill(); if (fl > 0) { ctx.fillStyle = `rgba(255,255,255,${0.8 * fl})`; ctx.fill(); }
           ctx.restore();
         }
       });
@@ -840,12 +877,16 @@ export async function build(api, C) {
   // ======================= s039 S: 2x3 grid of cap tiles with red X stamps =======================
   const TILES = [[45, 90], [5, 20], [45, -100], [-15, -60], [-90, 0], [-25, 135]];
   let tileCache = null;
-  const renderTile = async (clat, clon, colours, camLL) => {
+  const renderTile = async (clat, clon, colours, camLL, size = 420) => {
     const c = L.dir(clat, clon); cap.draw(c, colours); g.setOverlay(cap.cv); api._ovOwner = 'ch2:tiles';
     const cv = makeCanvas(W, H); const cx = cv.getContext('2d');
     api.drawGlobe(cx, { lat: camLL[0], lon: camLL[1], alt: 2.5, tilt: 0, heading: 0, starAlpha: 0 }, Object.assign({}, LOOK0, { ovAlpha: 1, dim: 0.28, desat: 0.25 }));
     const pj = L.projector(g); const dc = pj.disc(); const s = Math.ceil(dc.r * 2 + 24);
-    const tile = makeCanvas(420, 420); const tc = tile.getContext('2d'); tc.drawImage(cv, dc.x - s / 2, dc.y - s / 2, s, s, 0, 0, 420, 420);
+    const tile = makeCanvas(size, size); const tc = tile.getContext('2d'); tc.drawImage(cv, dc.x - s / 2, dc.y - s / 2, s, s, 0, 0, size, size);
+    // keep only the globe disc + a soft rim: the opaque render background must not show as a black square card
+    const rd = dc.r * size / s, mk = tc.createRadialGradient(size / 2, size / 2, rd, size / 2, size / 2, size / 2);
+    mk.addColorStop(0, 'rgba(0,0,0,1)'); mk.addColorStop(1, 'rgba(0,0,0,0)');
+    tc.globalCompositeOperation = 'destination-in'; tc.fillStyle = mk; tc.fillRect(0, 0, size, size); tc.globalCompositeOperation = 'source-over';
     return tile;
   };
   const tileCols = { inL: ORANGE, inO: CYAN(0.6), outL: [30, 30, 36, 0.45], outO: [0, 0, 0, 0.45], edge: [255, 255, 255, 0.95], edgeW: 0.014 };
@@ -853,7 +894,7 @@ export async function build(api, C) {
     if (tileCache) return tileCache;
     const out = [];
     for (const [la, lo] of TILES) out.push(await renderTile(la, lo, tileCols, la < -80 ? [-55, 10] : [clamp(la - 12, -60, 60), lo - 28]));
-    const water = await renderTile(-40, -178, { inL: ORANGE, inO: [0, 150, 215, 0.75], outL: [30, 30, 36, 0.45], outO: [0, 0, 0, 0.45], edge: [255, 255, 255, 0.95], edgeW: 0.014 }, [-34, -165]);
+    const water = await renderTile(-40, -178, { inL: ORANGE, inO: [0, 150, 215, 0.75], outL: [30, 30, 36, 0.45], outO: [0, 0, 0, 0.45], edge: [255, 255, 255, 0.95], edgeW: 0.014 }, [-34, -165], 900); // shown at 820-900 px
     tileCache = { tiles: out, water }; api._ovOwner = 'ch2:tiles-done'; return tileCache;
   };
   const xTimes = TILES.map((_, i) => lerp(tm.cut + 0.25, tm.mostly - pre, i / 5));
@@ -918,7 +959,8 @@ export async function build(api, C) {
   const heroEnd = L.dir(-48, -80);
   push(gscene({
     t0: cPac, t1: cMont, ovKey: 'ch2:pour', install: (gl) => gl.setOverlay(pour.cv),
-    pre: (lt, t, gl) => { if (pour.draw(pourArea(t), prog(t, tm.alone - pre, tm.alone + 1.1, E.inOut), 1)) { if (gl.u.ovTex.value?.image !== pour.cv) gl.setOverlay(pour.cv); else gl.refreshOverlay(); } },
+    // the Pacific starts lighting up on the cut / "The Pacific" (was ~0.5 s late, leaving a dark static globe)
+    pre: (lt, t, gl) => { if (pour.draw(pourArea(t), prog(t, cPac + 0.05, tm.alone + 0.6, E.out), 1)) { if (gl.u.ovTex.value?.image !== pour.cv) gl.setOverlay(pour.cv); else gl.refreshOverlay(); } },
     cam: (lt, t) => camAt([{ t: 0, lat: -5, lon: -160, alt: 2.6 }, { t: tm.drop - cPac, lat: -5, lon: -160, alt: 2.7 }, { t: tm.drop + 1.6 - cPac, lat: -8, lon: -158, alt: 3.15 },
       { t: tAsiaA - cPac, lat: -8, lon: -156, alt: 3.2 }, { t: cMont - cPac, lat: -28, lon: -122, alt: 3.65 }], lt, 0.3),
     look: (lt, t) => ({ ovAlpha: 1, dim: 0.2 + 0.1 * prog(t, tm.drop, tm.drop + 1), desat: 0.2 }),
@@ -927,24 +969,29 @@ export async function build(api, C) {
       let heroAt = null;
       for (const d of drops) {
         if (t < d.t0 - 0.25 || t > d.t1 + 0.45) continue;
-        const k = prog(t, d.t0, d.t1, E.inOut); const R = L.rotAB(d.c, pac, k);
-        const cc = L.rotVec(d.c, R); if (!pj.xyz(cc[0], cc[1], cc[2], false)[2]) continue;
+        // sine easing halves the peak speed (cubic crossed the horizon at ~15 deg/frame, so far-side continents still blinked on in 1-2 frames)
+        const k = prog(t, d.t0, d.t1, E.inOutSine); const R = L.rotAB(d.c, pac, k);
+        const cc = L.rotVec(d.c, R);
+        const lift = Math.sin(Math.PI * k) * 14;
+        if (d.n === 'australia' && t < d.t1) { const q = pj.xyz(cc[0], cc[1], cc[2], true); heroAt = [q[0], q[1] - lift]; }
+        // fade in while the centroid comes over the horizon (the limb-clamped shape rises over the rim, over ~3-4 frames) instead of popping in
+        const vis = smooth(-0.5, 0.05, pj.facing(cc[0], cc[1], cc[2])); if (vis <= 0) continue;
         const melt = prog(t, d.t1 - 0.05, d.t1 + 0.4, E.in);
         let arrs = d.X.map(a => L.rotXYZ(a, R));
         if (melt > 0) arrs = arrs.map(a => { const o = new Float32Array(a.length); for (let i = 0; i < a.length; i += 3) { const x = lerp(a[i], pac[0], melt * 0.85), y = lerp(a[i + 1], pac[1], melt * 0.85), z = lerp(a[i + 2], pac[2], melt * 0.85), n = Math.hypot(x, y, z); o[i] = x / n; o[i + 1] = y / n; o[i + 2] = z / n; } return o; });
         const path = L.globePath(pj, arrs, true);
-        const lift = Math.sin(Math.PI * k) * 14;
-        ctx.save(); ctx.translate(0, -lift); ctx.globalAlpha = (1 - melt) * prog(t, d.t0 - 0.25, d.t0 + 0.05);
+        ctx.save(); ctx.translate(0, -lift); ctx.globalAlpha = (1 - melt) * prog(t, d.t0 - 0.25, d.t0 + 0.05) * vis;
         ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.translate(0, lift + 10); ctx.fill(path); ctx.translate(0, -lift - 10);
         ctx.fillStyle = d.n === 'asia' ? '#FF6A3D' : PAL.hero; ctx.fill(path); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke(path); ctx.restore();
-        if (d.n === 'australia' && t < d.t1) { const c = L.rotVec(d.c, R); const q = pj.xyz(c[0], c[1], c[2], true); heroAt = [q[0], q[1] - lift]; }
       }
       // Explorer: rides Australia, then is pushed to the blue rim by Asia's splash and waves
       if (t >= tAusL - 0.25) {
         let hx, hy;
         if (heroAt) [hx, hy] = heroAt;
         else {
-          const k2 = prog(t, tAsiaA + 0.05, tAsiaA + 0.8, E.out); const R = L.rotAB(pac, heroEnd, 0.15 + 0.85 * k2); const v = L.rotVec(pac, R); const q = pj.xyz(v[0], v[1], v[2], true); hx = q[0]; hy = q[1];
+          // starts exactly at pac, where Australia delivered him (the fixed 0.15 offset made him jump ~130 px when Australia landed)
+          const k2 = prog(t, tAsiaA + 0.05, tAsiaA + 0.8, E.out), off = 0.15 * prog(t, tAusA, tAusA + 0.5, E.inOut);
+          const R = L.rotAB(pac, heroEnd, off + (1 - off) * k2); const v = L.rotVec(pac, R); const q = pj.xyz(v[0], v[1], v[2], true); hx = q[0]; hy = q[1];
         }
         S.comp(ctx, t, 'hero', hx, hy, 205, { ry: 0.35, alpha: prog(t, tAusL - 0.25, tAusL + 0.1) });
         if (t > tAsiaA - 0.05 && t < tAsiaA + 1.1) { const u = (t - tAsiaA) / 1.1; for (let j = 0; j < 3; j++) { const ph = clamp(u * 1.2 - j * 0.15); if (ph <= 0 || ph >= 1) continue; const pp = pj.xyz(...pac, true); L.ring(ctx, pp[0], pp[1], 40 + ph * 420, '#FFD9B0', 6 * (1 - ph), 1 - ph); } }
@@ -967,7 +1014,8 @@ export async function build(api, C) {
         const TC = await getTiles(); navyBg(ctx, t); const k = prog(t, tMont4, cDrip, E.inOutSine); const s = lerp(820, 900, k);
         ctx.save(); ctx.translate(W / 2, H / 2 + 10); ctx.rotate(0.05 * k); ctx.drawImage(TC.water, -s / 2, -s / 2, s, s); ctx.restore();
       }
-      const fl = Math.max(1 - prog(t, tMont2, tMont2 + 0.12), 1 - prog(t, tMont3, tMont3 + 0.12), 1 - prog(t, tMont4, tMont4 + 0.12));
+      // brief flash after each cut already passed (a later cut's term was 1 before that cut, which held an 18% veil from tMont2 to tMont4)
+      const fl = Math.max(...[tMont2, tMont3, tMont4].map(c => t >= c ? 1 - prog(t, c, c + 0.12) : 0));
       if (fl > 0 && t > tMont2) { ctx.fillStyle = `rgba(255,255,255,${0.18 * fl})`; ctx.fillRect(0, 0, W, H); }
     },
   });
@@ -990,7 +1038,8 @@ export async function build(api, C) {
         const head = F.glowPath(ctx, pts, { p: prog(t, t0, t0 + 1.0, E.inOut), color: '#ffffff', width: 3.5 });
         if (head) F.dot(ctx, head[0], head[1], { r: 6, color: '#ffffff' });
       });
-      F.headline(ctx, ['WHY', 'DO', 'THE', 'CONTINENTS', 'POINT', { w: 'SOUTH?', c: PAL.hero }], W / 2, 175, t - (tm.lop - 0.35), { size: 112, per: 0.07, tOut: cTet - tm.lop + 0.15 });
+      // word rise starts with the scene (its clock used to start 0.25 s before the cut, so four words popped in already formed); same fade-out time
+      F.headline(ctx, ['WHY', 'DO', 'THE', 'CONTINENTS', 'POINT', { w: 'SOUTH?', c: PAL.hero }], W / 2, 175, t - (cDrip + 0.03), { size: 112, per: 0.07, tOut: cTet - cDrip - 0.23 });
     },
   }));
   sfx(cDrip, 'whoosh_soft', -14);
@@ -1024,19 +1073,21 @@ export async function build(api, C) {
       const glowA = 0.9, flare = env(t, tm.ball - pre, tm.ball + 1.4, 0.08, 0.9);
       ctx.save(); ctx.lineCap = 'round'; ctx.globalCompositeOperation = 'lighter';
       for (const [a, b] of edgesIdx) {
-        const A = r.V[a], B = r.V[b]; let run = [], runVis = null; const segs = [];
+        const A = r.V[a], B = r.V[b]; let run = [], runVis = null, runSv = 0; const segs = [];
         for (let i = 0; i <= 48; i++) {
           const P = A.clone().lerp(B, i / 48); const out = P.length() > R * 1.003;
           const D = P.clone().sub(cam); const Ld = D.length(); D.divideScalar(Ld);
           const bq = cam.dot(D), cq = cam.lengthSq() - R * R, disc = bq * bq - cq; let occl = false;
           if (disc > 0) { const th = -bq - Math.sqrt(disc); if (th > 0 && th < Ld - 1e-3) occl = true; }
           const vis = out && !occl; const q = S.project(P);
-          if (runVis === null || vis === runVis) run.push([q.x, q.y]); else { segs.push([runVis, run]); run = [run[run.length - 1], [q.x, q.y]]; }
+          // same soft limb factor as the corners: a stub coming round the limb fades in with its corner instead of popping on
+          const sv = vis ? (-bq < Ld ? smooth(R * 0.97, R * 1.08, Math.sqrt(Math.max(0, cq + R * R - bq * bq))) : 1) : 0;
+          if (runVis === null || vis === runVis) { run.push([q.x, q.y]); runSv = Math.max(runSv, sv); } else { segs.push([runVis, run, runSv]); run = [run[run.length - 1], [q.x, q.y]]; runSv = sv; }
           runVis = vis;
         }
-        segs.push([runVis, run]);
-        for (const [vis, pts] of segs) {
-          const al = vis ? glowA * prog(t, tm.g1875 - pre, tm.g1875 + 0.6) : 0.85 * xr;
+        segs.push([runVis, run, runSv]);
+        for (const [vis, pts, sv] of segs) {
+          const al = vis ? lerp(0.85 * xr, glowA * prog(t, tm.g1875 - pre, tm.g1875 + 0.6), sv) : 0.85 * xr;
           if (al <= 0.01 || pts.length < 2) continue;
           F.glowPath(ctx, pts, { color: PAL.yellow, width: vis ? 4.5 : 3.2, alpha: al * (1 + 0.6 * flare) });
         }
@@ -1044,9 +1095,10 @@ export async function build(api, C) {
       ctx.restore();
       // corners
       r.V.forEach(V => {
-        const q = S.project(V); const D = V.clone().sub(cam); const Ld = D.length(); D.divideScalar(Ld); const bq = cam.dot(D), cq = cam.lengthSq() - R * R, disc = bq * bq - cq;
-        const occl = disc > 0 && (-bq - Math.sqrt(disc)) < Ld - 1e-3 && (-bq - Math.sqrt(disc)) > 0;
-        const a = (occl ? 0.35 * xr : 1) * prog(t, tm.g1875 - pre, tm.g1875 + 0.6);
+        const q = S.project(V); const D = V.clone().sub(cam); const Ld = D.length(); D.divideScalar(Ld); const bq = cam.dot(D), cq = cam.lengthSq() - R * R;
+        // soft occlusion: a corner behind the globe fades in over the last few degrees as its line of sight clears the limb (was a 0 -> 1 pop)
+        const dPerp = Math.sqrt(Math.max(0, cq + R * R - bq * bq)), vis = -bq < Ld ? smooth(R * 0.97, R * 1.08, dPerp) : 1;
+        const a = lerp(0.35 * xr, 1, vis) * prog(t, tm.g1875 - pre, tm.g1875 + 0.6);
         if (a <= 0) return;
         ctx.save(); ctx.globalCompositeOperation = 'lighter';
         L.glowDot(ctx, q.x, q.y, 40 + 150 * flare, PAL.yellow, a * (0.55 + 0.45 * flare));
@@ -1058,18 +1110,23 @@ export async function build(api, C) {
       if (ya > 0) { F.text(ctx, '1875', 150, 250, { size: 190, fam: F.FAM.head, color: '#F3E3B5', alpha: ya, tracking: 0.04 }); }
       // JUICE CHECK: ? stamp spins in (upper left) then lands on the hidden pyramid
       if (t > tm.taught - pre) {
-        const lk = prog(t, tm.checks - 0.35, tm.checks - pre, E.in);
+        // the flight reaches gc on the frame before the slam and grows to the slam's start size; the slam keeps full opacity (no blink);
+        // the plate turns near-opaque as it lands so the tetra edge behind it no longer strikes through the '?'
+        const lk = prog(t, tm.checks - 0.35, tm.checks - pre - 1 / 30, E.in);
         const gc = S.project(new S.THREE.Vector3(0, 0, 0));
         const sx = lerp(360, gc.x, lk), sy = lerp(230, gc.y, lk);
         const landed = t > tm.checks - pre;
-        L.juiceStamp(ctx, sx, sy, landed ? t - (tm.checks - pre) : t - (tm.taught - pre), '?', { size: landed ? 92 : 70, spin: landed ? 0 : 12, dur: landed ? 0.2 : 0.45, from: landed ? 1.5 : 0.2, color: PAL.yellow });
+        L.juiceStamp(ctx, sx, sy, landed ? t - (tm.checks - pre) : t - (tm.taught - pre), '?', { size: landed ? 92 : 70, spin: landed ? 0 : 12, dur: landed ? 0.2 : 0.45, from: landed ? 1.5 : 0.2,
+          scale: landed ? 1 : lerp(1, 92 * 1.5 / 70, lk), fadeIn: !landed, bg: `rgba(10,6,6,${landed ? 0.92 : lerp(0.55, 0.92, lk)})`, color: PAL.yellow });
       }
-      // subscribe button
-      if (t > tm.sub - pre - 0.15) {
-        const sk = E.outBack(prog(t, tm.sub - pre - 0.15, tm.sub + 0.15, E.lin)); const glow = 0.5 + 0.5 * Math.sin((t - tm.sub) * 6);
+      // subscribe button: pops in on "Want the next one?" with a soft glow, then bumps and glows fully on "Subscribe."
+      if (t > tm.want - pre - 0.15) {
+        const sk = E.outBack(prog(t, tm.want - pre - 0.15, tm.want + 0.15, E.lin)); const glow = 0.5 + 0.5 * Math.sin((t - tm.sub) * 6);
+        const on = prog(t, tm.sub - pre, tm.sub + 0.3), hit = env(t, tm.sub - pre, tm.sub + 0.9, 0.1, 0.7);
+        const bump = 1 + 0.09 * Math.sin(Math.PI * prog(t, tm.sub - pre, tm.sub + 0.3, E.lin));
         const bw = 420, bh = 96, bx = W / 2 - bw / 2 + 0, by = 790;
-        ctx.save(); ctx.translate(W / 2, by + bh / 2); ctx.scale(sk, sk); ctx.translate(-W / 2, -(by + bh / 2));
-        L.glowDot(ctx, W / 2, by + bh / 2, 330, '#FF3B3B', 0.35 + 0.25 * glow);
+        ctx.save(); ctx.translate(W / 2, by + bh / 2); ctx.scale(sk * bump, sk * bump); ctx.translate(-W / 2, -(by + bh / 2));
+        L.glowDot(ctx, W / 2, by + bh / 2, 330, '#FF3B3B', lerp(0.2 + 0.1 * glow, 0.35 + 0.25 * glow, on) + 0.3 * hit);
         ctx.fillStyle = '#E8262B'; F.round(ctx, bx, by, bw, bh, 18); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 3; ctx.stroke();
         F.text(ctx, 'SUBSCRIBE', W / 2, by + bh / 2 + 22, { size: 62, fam: F.FAM.label, weight: 700, tracking: 0.14, align: 'center', color: '#ffffff', shadow: false });
         ctx.restore();
