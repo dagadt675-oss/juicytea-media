@@ -364,7 +364,7 @@ The README audio flags (10:29.5, 11:10.2, 11:32.2) coincide with the impact_deep
 
 Tooling caveat: tools/grab.py runs ffmpeg without -fps_mode passthrough. For some seek points ffmpeg duplicates the first decoded frame (reported dup=1, e.g. start 19485), so every later tile label is one frame late. All frame numbers in this report were checked with a passthrough decoder. Adding '-fps_mode passthrough' to grab.py fixes it.
 
-## wf_9820647a-970: 2 finished, 4 running
+## wf_9820647a-970: 3 finished, 3 running
 
 ### find S9 ch5b 13:02.40
 - **S9-1** 13:51.03-13:51.13 [major/high, flash_glitch] On 'Cape Agulhas', the zoomed-in globe of the Cape cuts to an almost black frame, and the ASTER satellite plate then ramps up over 3 frames. The result is a dark blink at the cut. Every other cut in the segment is clean, so this one stands out as a glitch.
@@ -474,6 +474,81 @@ Tool bug affecting every segment: tools/grab.py tile labels are +1 frame off aft
 Audio flags:
 - 12:03.50 is real. In audio/vo/vo_proc.wav the final 't' burst of 'flipped.' (~-16 dB at 723.49) drops to digital silence within ~15 ms at 723.51, the s084 segment end, so the consonant is clipped with a click. This is audio (VO assembly), not animation; suggested fix: extend that segment's tail by ~60 ms with a short fade.
 - 12:19.3 twist impact is borderline. The mix sits ~3-5 dB over the voice and the voice stays on top.
+
+### find S10 ch6 14:35.39
+- **S10-1** 15:33.94-15:36.09 [major/high, character] In gag 10a the Explorer runs sideways across the tiny planet, but his legs strafe the opposite way to his travel (a moonwalk). The grounded foot slides along with the body instead of planting, so the whole run looks like ice-skating.
+  - cause: The strafe clips are assigned by screen direction, but Quaternius Run_Left/Run_Right are named from the character's point of view, and he faces the camera (ry=0). There is also a speed mismatch: the clip's natural speed is about 1.65 world u/s at scale 0.55, while the Run_Right path peaks at about 3.4 u/s (2.05 u in 0.95 s, inOutSine).
+  - fix: Swap the clips: hero.play(runL0, 'Run_Right', ...)... .play(runR0, 'Run_Left', ...). Then match speed: for the second run use a near-linear path (short ease in/out) and/or { speed: ~1.6 } on the clip, or lengthen runR1-runR0 to about 1.3 s, so the planted foot stays still relative to the planet. (engine/www/ep/ep01/ch6.js:442 (hero.play timeline) and ch6.js:447-450 (heroX run segments))
+- **S10-2** 15:36.39-15:37.69 [major/high, character] After the second run the Explorer stands in Idle and glides back toward centre by about 150-200 px over 1.3 s with his feet still. He straightens up from his lean while drifting, as if on a conveyor, and the comment bubble drifts with him.
+  - cause: heroX lerps 1.0 to 0.35 between runR1+0.3 and runR1+1.6 while the clip timeline plays 'Idle' from runR1, so root translation has no locomotion.
+  - fix: Either keep the root where the run ended (return 1.0) and re-centre by easing the camera target/look instead, or schedule a locomotion clip for the drift. For example, hero.play(runR1 + 0.25, 'Run_Right' (screen-left for him) or a 'Walk' turned with ry toward -x, {speed ≈ 0.7}) and then 'Idle' at runR1 + 1.6, so the feet plant. (engine/www/ep/ep01/ch6.js:451 (return lerp(1.0, 0.35, prog(t, runR1 + 0.3, runR1 + 1.6, E.inOutSine))) with ch6.js:442)
+- **S10-3** 15:37.90-16:03.27 [major/high, flash_glitch] Three transitions blink to black: gag 10a to the splash map, the splash map to the heat globe, and the drip globe to the Bacon desk. A full-brightness picture is replaced by a black frame, and the new shot then fades up over about 0.3 s. There is no fade-out, so it reads as a dropout or blink rather than a crossfade.
+  - cause: These base scenes are declared with { fadeIn: 0.3 / 0.3 / 0.25 }. film.html blends a fadeIn scene over whatever is below it (alpha = lt/fadeIn, so 0 on the first frame). But each outgoing base scene ends exactly at the incoming t0 (gag 10a ends at GA1 = SP0, splash at SP1 = HT0, drip globe at D1 = BC0), so the fade happens over the black safety-net background. ENGINE.md says to keep the outgoing scene running until the incoming fade ends.
+  - fix: Overlap the outgoing scenes by the fade length: base(GA0, GA1 + 0.3, ...), base(SP0, SP1 + 0.3, ...), base(D0, D1 + 0.25, ...). None of the pairs share globe or overlay state: 3D stage to 2D, 2D to fut.draw, globe to 2D. Alternatively drop the three fadeIn options for clean cuts. (engine/www/ep/ep01/ch6.js:481 (base(GA0, GA1)), ch6.js:532 (base(SP0, SP1)), ch6.js:664 (base(D0, D1)); fadeIn at ch6.js:555, 591, 704)
+- **S10-4** 16:22.10-16:22.17 [major/high, jump_snap] On 'shot.', when the blank film frame turns live, the whole filmstrip snaps about 6% smaller in one frame. The scroll also stops dead from 22 px/frame. The push-in then restarts from scratch and creeps for about 0.4 s before whooshing into the hole, so the beat reads as a hiccup instead of one continuous push.
+  - cause: The pre-live zoom ends at 1 + 0.06 = 1.06, but the live branch restarts at lerp(1, ..., inExpo(0)) = 1.0. tt = min(t, M.shot - 0.05) also freezes a linear scroll (V2*(M.frame - tt)) with no deceleration.
+  - fix: Start the live zoom where the pre-live one ends: lerp(1.06, W / FW * 1.1, prog(t, M.shot - 0.05, M.shot + 0.7, inExpo)). Make BLANK_I arrive centred and at rest at TF = M.shot - 0.05: V2 = (BLANK_I - TODAY_I) * PITCH / (TF - M.frame), and replace the linear scroll term with a curve that decelerates to zero over the last ~0.6 s (quadratic ease-out, distance preserved). (engine/www/ep/ep01/ch6.js:821 (zoom), ch6.js:819 (live/tt), ch6.js:805-806 (V2, fX))
+- **S10-5** 14:42.53-14:43.07 [minor/high, pop] At the switch from s097 (bus in the gap) to s098 (pull-back), the cyan Mid-Atlantic Ridge line jumps from faint to full brightness in one frame, then fades out over 0.5 s. In the same frame the faint orange continent tint and drip arcs disappear.
+  - cause: s097 draws the ridge at alpha 1 - 0.4*prog(...) = 0.6 by A1. s098 draws drawRidge(ctx, t, fa) with fa starting at 1. s098's globe() also passes ovAlpha 0 and overlay null (s097 had COLD at 0.12) and does not continue the 0.18-alpha drip arcs. The camera also changes from moving to starting at rest (alt about 0.914 to 0.9).
+  - fix: In s098 use drawRidge(ctx, t, 0.6 * fa). Keep the overlay fading: globe(ctx, camB(t), {..., ovAlpha: 0.12 * fa}, fa > 0 ? COLD : null). Add drawArcs(ctx, t, 0, { full: true, alpha: 0.18 * fa }) while fa > 0. (engine/www/ep/ep01/ch6.js:322 and ch6.js:325 (s098 base) vs ch6.js:286-288 (s097))
+- **S10-6** 14:47.28-14:49.18 [minor/medium, too_fast] The 'supercontinent will form' globe spin turns 24-38° per frame at its peak. Each frame shows a different face of the Earth (Asia, India, Middle East, Europe/Africa, Atlantic, North America, Pacific within 10 frames), so at speed it strobes and flickers rather than reading as a spin.
+  - cause: The longitude term rotates 750° over SPIN1-SPIN0 = 1.9 s with a cubic inOut, and there is no motion blur.
+  - fix: Cut to about 300-360° (peak ≤ 15°/frame), lengthen the spin, or add a cheap sub-frame blur during the spin (average 3-4 globe renders at sub-times, or stronger fog earlier). (engine/www/ep/ep01/ch6.js:316 (lon = ... - 750 * k ...))
+- **S10-7** 15:19.86-15:19.94 [minor/medium, other] Audio, not picture: right after 'Amasia.' a short breath or mouth noise starts and is chopped off, which can be heard as a small click.
+  - cause: Each TTS take is trimmed at last-char end + 90 ms and gets only an 8 ms fade-out, so a breath that starts inside the 90 ms margin is cut mid-sound.
+  - fix: Keep clip lengths, so timing does not change, but fade the tail to silence from last-char end + 10 ms over 30-40 ms (or end at the RMS minimum inside the margin). For s101 only, a 40 ms VO-track fade starting at 919.86 in the mix also works. (tools/tts.py:99 (b = en[last] + 0.09) and tools/tts.py:102 (8 ms fade))
+- **S10-8** 15:20.90-15:20.93 [minor/high, pop] As the Aurica tile finishes expanding to full screen, Australia's gold glow switches off in one frame. It returns about 4 s later on 'middle'.
+  - cause: The tile still S[3].a is drawn with drawLive(..., still=true), and MODELS[3].extra uses a = 0.5 when still. The first live frame at tLive uses a = prog(t, M.middle - 0.1, ...) = 0.
+  - fix: Use the time-based alpha in both cases, so the still matches the first live frame: const a = prog(t, M.middle - 0.1, M.middle + 0.25). Let `still` suppress only the yRing. (engine/www/ep/ep01/ch6.js:189 (const a = still ? 0.5 : prog(...)); still built at ch6.js:203)
+- **S10-9** 15:48.83-15:48.87 [minor/high, text_label] During the 'UNDER 1 IN 10 -> 6' countdown, the whole line jumps about 25 px sideways when 10 becomes 9.
+  - cause: The string 'UNDER 1 IN ' + n is drawn with align 'center', so the line re-centres when the number loses a digit.
+  - fix: Anchor it to the widest string: x0 = x - F.measure(ctx, 'UNDER 1 IN 10', fo) / 2, then draw with align 'left' at x0, or draw the static words and the number with separate fixed anchors. (engine/www/ep/ep01/ch6.js:599)
+- **S10-10** 15:56.53-15:56.60 [minor/medium, jerky_motion] The four tiles settle into the filmstrip, ending with a slight rightward drift, then come to rest. On the next frame the strip is already scrolling left at full speed, a visible hitch with a direction reversal.
+  - cause: The scroll is a linear term -V1*max(0, t - (M.wins + 0.55)) that starts at full speed the moment the inOutExpo morph ends.
+  - fix: Replace max(0, u) with an eased ramp, e.g. ramp = u => u <= 0 ? 0 : u < 0.4 ? u*u/0.8 : u - 0.2, and start it slightly earlier (M.wins + 0.4) so it accelerates under the tail of the morph. (engine/www/ep/ep01/ch6.js:642 and ch6.js:648)
+- **S10-11** 16:16.87-16:22.12 [minor/medium, too_fast] On 'one frame of a very slow movie' the strip of map frames pans at about 666 px/s (22 px per frame). The high-contrast sprocket holes and globes judder or strobe at 30 fps, and the highlighted TODAY frame slides off within about 1.5 s.
+  - cause: V2 = 5 frames * 690 px / (M.shot - M.frame = 5.18 s) is about 666 px/s, well above the speed at which a 30p pan of fine detail looks smooth.
+  - fix: Lower the pan speed: put the blank frame 3-4 frames after TODAY instead of 5, or reduce PITCH while sZ = 1. Alternatively soften the sprocket pattern during the scroll (lower alpha or a 2-3 px horizontal smear). (engine/www/ep/ep01/ch6.js:805 (V2), ch6.js:830 (band scroll))
+- **S10-12** 16:22.87-16:22.93 [minor/high, layering_clipping] At the end of the zoom into the live frame, a white vertical line (the hole's border) flashes at the left edge of the screen for 2 frames, then vanishes at the cut to the Afar scene.
+  - cause: The hole is centred at fxB = fX(9, M.shot - 0.05) ≈ 993 px rather than 960 because of the early freeze. The final zoom W/FW*1.02 (≈3.26) only just exceeds the frame width, so the 3*zoom px border strokeRect sits on the left edge until FS1.
+  - fix: With the S10-4 fix the hole is centred. Also raise the end zoom to about W/FW*1.1, or fade the border with ctx.globalAlpha = 0.5 * (1 - prog(zoom, 1.6, 2.6)). (engine/www/ep/ep01/ch6.js:835 (strokeRect(hole)), ch6.js:819-822)
+- **S10-13** 16:25.59-16:50.93 [minor/high, jerky_motion] The glowing sparks along the three Afar rift arms all pop on at full brightness in one frame. They then hop forward in jumps of about 25-35 px roughly every 6 frames, ticking along rather than flowing, for the rest of the film including the end screen.
+  - cause: Each spark uses q = P[floor(u*(P.length-1))] with no interpolation between densified points, so a ~25-point arm gives one step every ~0.23 s. All sparks start at full alpha when cp >= 1, and u % 1 makes them teleport from the arm end back to the junction.
+  - fix: Interpolate: f = u*(P.length-1), i0 = floor(f), i1 = min(i0+1, P.length-1), q = lerp(P[i0], P[i1], f - i0). Scale spark alpha by prog(t, M.cracks + 0.9, M.cracks + 1.3) * Math.sin(Math.PI * u) so they fade in and never visibly wrap. (engine/www/ep/ep01/ch6.js:889-891)
+- notes: Intended and reads fine:
+- E1: chapter cut, with the card fading in over the bright globe.
+- E2: hard cut to the 4-tile grid on 'four main models'. The '?' marks don't carry over exactly, which is acceptable.
+- E3-E11: tile expand and shrink snap zooms (inOutExpo 0.5-0.55 s, consistent across all four models). Tile-to-live handovers at 26808, 27097 and 27384 are seamless; the only exception is the Aurica glow (S10-8).
+- E12: gag start.
+- E15/E16: the 0.58 s Tuesday-card callback flash.
+- E18/E26: counter rolls, landing just before 'sixth' and 'ago'.
+- E19, E20, E27, E28, E29: hard cuts on sentence starts.
+- E21/E22: grid-to-strip shuffle; tiles 1 and 2 briefly cross, acceptable.
+- E24: torn halves exit.
+- E30: Gondwana snap.
+
+Defective events:
+- E13, E14, E17, E25: S10-3.
+- E23: S10-10.
+- E32: S10-4.
+- Missed by the detectors: S10-1, S10-2, S10-5, S10-6, S10-8, S10-11, S10-12, S10-13.
+
+Chunk starts 26550, 27000, 27450, 27900, 28350, 28800, 29250, 29700 and 30150 show no look change. 29700 and 30150 carry only codec GOP noise: mean |d| 1.2/0.9 in the source chunk files, no shift, gain or offset, R² ≈ 0. In code, globe() resets every uniform fut.draw touches, and the STILLS/HOLD/HEATHOLD/AFHOLD/PSTILLS caches are deterministic, so nothing like the 5:45 needsUpdate bug exists in ch6.
+
+Clean stretches:
+- s097 ridge draw, 1620 pill (rides off-frame with the camera as a world pin) and bus drop.
+- Proxima, Novopangaea, Amasia and Aurica plate motion, arrows, impacts and holds.
+- AU+RICA label assembly.
+- Splash convergence.
+- Heat build.
+- Gag 10b faint: the Death clip lands on 'Reminder', with no T-pose or snapping.
+- Tear, drip globe and fingerprint arcs.
+- Bacon counter, capes globe, p.246 underlines and gold.
+- Gondwana snap with the waving Explorer and porch light.
+- Afar fly-in and crack draw-on.
+- End screen. The last frame (30328) is live, not black.
+
+Narration sync is within about 0.3 s throughout. The QC 'static' stretches 944.4-948.5 and 958.7-963.0 carry the heat build, a slow zoom and the tip highlights, so they are acceptable holds.
 
 ## wf_96e8f33f-afb: 5 finished, 3 running
 

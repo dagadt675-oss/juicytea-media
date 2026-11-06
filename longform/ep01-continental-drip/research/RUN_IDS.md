@@ -19,3 +19,4 @@ wf_54d8968d-d4f, wf_f838edbb-2a7, wf_9820647a-970 (resumed: S4, S7, S8, S10 find
 wf_f960301e-cc0: ch1, ch3, ch4
 wf_e5278dcb-357: ch2
 wf_edcd754d-eda: ch5a
+wf_e8c012dd-7eb: ch5b, ch6
