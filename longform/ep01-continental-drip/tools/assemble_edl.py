@@ -18,7 +18,7 @@ def main():
     if '--xfade' in rest:
         for item in rest[rest.index('--xfade') + 1].split(','):
             j, n = item.split(':'); xf[int(j)] = int(n)
-    test = '--test' in rest
+    test = '--test' in rest; noshort = '--noshortest' in rest; noaudio = '--noaudio' in rest
     R = json.load(open(rj))
     inputs, labels = [], []   # labels: per range, the stream label of its finished picture
     fc = []
@@ -37,24 +37,26 @@ def main():
         f = f'[{a}:v]trim=end_frame={m - k0},setpts=PTS-STARTPTS'
         if start: f += f',tpad=start_mode=clone:start={start}'
         if post: f += f',tpad=stop_mode=clone:stop={post}'
-        fc.append(f + f'{scale},settb=AVTB[p{i}]'); labels.append(f'[p{i}]')   # one timebase everywhere: xfade refuses a concat output (1/1e6) against a raw input (1/15360)
+        fc.append(f + f'{scale},settb=1/30,setpts=N[p{i}]'); labels.append(f'[p{i}]')   # exact integer frame stamps in one timebase: concat and xfade then never round a frame away
         r['_len'] = (m - k0) + start + post
     # chain the ranges: concat at plain joins, xfade at dissolve joins (offset in the accumulated output timeline)
     acc, acc_len = labels[0], R[0]['_len']
     for i in range(1, len(R)):
         n = xf.get(i, 0)
         if n:
-            fc.append(f'{acc}{labels[i]}xfade=transition=fade:duration={n / FPS:.6f}:offset={(acc_len - n) / FPS:.6f}[x{i}]')
+            fc.append(f'{acc}{labels[i]}xfade=transition=fade:duration={n / FPS:.6f}:offset={(acc_len - n) / FPS:.6f},settb=1/30,setpts=N[x{i}]')
             acc = f'[x{i}]'; acc_len += R[i]['_len'] - n
         else:
-            fc.append(f'{acc}{labels[i]}concat=n=2:v=1:a=0[x{i}]'); acc = f'[x{i}]'; acc_len += R[i]['_len']
+            fc.append(f'{acc}{labels[i]}concat=n=2:v=1:a=0,settb=1/30,setpts=N[x{i}]'); acc = f'[x{i}]'; acc_len += R[i]['_len']   # concat re-stamps to 1/1e6; back to exact 1/30 for the next xfade
     fc.append(f'{acc}{"format=yuv420p" if test else GRADE}[v]')
     cmd = ['ffmpeg', '-y', '-loglevel', 'error']
     for a in inputs: cmd += a
-    cmd += ['-i', aud, '-filter_complex', ';'.join(fc), '-map', '[v]', '-map', f'{len(inputs)}:a', '-r', str(FPS)]
-    if test: cmd += ['-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '28', '-c:a', 'aac', '-b:a', '96k', '-shortest', out]
+    if noaudio: cmd += ['-filter_complex', ';'.join(fc), '-map', '[v]', '-r', str(FPS)]
+    else: cmd += ['-i', aud, '-filter_complex', ';'.join(fc), '-map', '[v]', '-map', f'{len(inputs)}:a', '-r', str(FPS)]
+    sh = [] if (noshort or noaudio) else ['-shortest']
+    if test: cmd += ['-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '28'] + ([] if noaudio else ['-c:a', 'aac', '-b:a', '96k']) + sh + [out]
     else: cmd += ['-c:v', 'libx264', '-preset', 'slow', '-crf', crf, '-profile:v', 'high', '-level', '4.2', '-x264-params', 'aq-mode=3:deblock=-1,-1',
-                  '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-c:a', 'aac', '-b:a', '320k', '-ar', '48000', '-movflags', '+faststart', '-shortest', out]
+                  '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-c:a', 'aac', '-b:a', '320k', '-ar', '48000', '-movflags', '+faststart'] + sh + [out]
     expected = sum(r['m'] - r['k'] for r in R)
     print('inputs', len(inputs), 'expected frames', expected, 'accumulated', acc_len, 'xfade', xf, flush=True)
     subprocess.run(cmd, check=True)
