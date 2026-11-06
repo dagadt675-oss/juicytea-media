@@ -1020,7 +1020,7 @@ Tooling: the shared grab.py still labels multi-frame runs one frame high (missin
 
 The changed ranges cover chunks 12-23. Chunk 19 is needed only for the waffle scene and chunk 20 only for the tile grid, and both of those lie inside the post cuts.
 
-## wf_0b6495e8-5a0: 1 finished, 1 running
+## wf_0b6495e8-5a0: 2 finished, 0 running
 
 ### finish ch5b
 - fix **S8-1** fixed: Kept the previous agent's edit after checking it. Run 2 is now keyed to the word 'first': r2a = 726.03 and r2b = 727.03, so the planet is south-up again on 'time.'. The tick lands at 727.08 and holds about 0.9 s before the cut. The run-2 whoosh cue stays at its mixed time of 726.54 (r2a + 0.51), on the fast middle of the flip. (engine/www/ep/ep01/ch5b.js:286-292, 314) scenes [[723.75, 728.05]]
@@ -1060,6 +1060,48 @@ The hold frame at 860.20 (frame 25806) is O1's first frame. It is clean in the m
 Scene ranges are reported per changed scene. N1, N2 and N3 are given as the union of their old and new extents, because their cut points moved (N1/N2 from 850.62 to 849.61, N2/N3 from 854.72 to 853.93). For LM and M2 only 831.02-831.14 differs, but the full scene ranges are reported. Unchanged scenes: A, C, G2, H1-H3, J, L1, M3, O1-O3, P.
 
 Optional item not done: S8-1's suggestion to extend Db; the check already holds about 0.9 s.
+
+### finish ch5a
+- fix **S7-1** fixed: Done by the previous agent and checked by me on renders. The zipper is now driven by a continuous front, zipF = mono([[M.zip+0.1,0],[M.split,0.25],[M.firstt,0.6],[M.seam,0.85],[M.snap2-0.05,1]]), measured as fractional arc length along the seam (pair spacing is very uneven). The slider rides the front, scales in with E.outBack over 0.25 s and takes its heading from ±1.2° of seam. Teeth are drawn only beyond the front. The cyan strip and ridge are clipped continuously to the front (new front mode in seamUnder). The pulsing dot sits in the middle of the still-closed part. G/H also got a soft dark plate behind the Ma chip. (engine/www/ep/ep01/ch5a.js:105-107 (seamCum/idxAt/frontIdx), 203-233 (seamUnder front mode), 154 + 167 (chip back plate), 396-433 (zipF, drawZipper), 435-469 (scenes G/H)) scenes [[639.75, 646.55], [646.55, 652.55]]
+- fix **S7-2** fixed: Previous agent: a MADAGASCAR index table un-excludes the 217-point Madagascar polygon from EXCL for 171-180 Ma, so it stays in the base land. I moved this into an exported exclSet(Ti, polys) and also applied it to the paper figure's BASE180, so the textbook figure matches the globe (Madagascar between Africa and India). (engine/www/ep/ep01/ch5a_paleo.js:32-36 (MADAGASCAR, exclSet), 88 (drawBase); ch5a.js:706 (ex180)) scenes [[604.37, 619.45], [619.45, 623.45], [628.79, 633.6], [633.6, 639.75], [672.25, 682], [681.55, 689.4]]
+- fix **S7-3** fixed: Previous agent: base land (everything except the four tracked plates, Antarctica included) is cross-blended between the two neighbouring integer-Ma snapshots, (1-f)*base(T0) + f*base(T0+1) with 'lighter' compositing, using an LRU cache of 3 base canvases. So it glides instead of ticking at each Ma, and class flips (Madagascar, the NE-Brazil sliver, the West Antarctic block) fade over 1 Ma. I kept this approach; making Antarctica a rotated plate was not needed. My only paleo change is the exclSet refactor, which behaves the same. (engine/www/ep/ep01/ch5a_paleo.js:72-130 (baseCanvas, drawBase, draw cross-blend)) scenes [[604.37, 619.45], [633.6, 639.75], [639.75, 652.55], [652.55, 653.85], [653.85, 659.7], [659.7, 664.62], [664.62, 668.4], [668.4, 672.55], [681.55, 689.4]]
+- fix **S7-4** fixed: Previous agent: the continental shelf now ramps with the final convergence, shelf = Math.round(12*prog(t, M.gond-0.2, M.gond-0.04, E.in)), instead of switching on in one frame 5 frames before the lock. (engine/www/ep/ep01/ch5a.js:267) scenes [[604.37, 619.45]]
+- fix **S7-5** fixed: Previous agent: an India-only pull into the impact (explode toward SLAM_C, eased E.in over tM..M.slam), carried through the trail, streaks, speed tag and seam; the clock stops on impact ([M.slam+0.25,43.5],[tN+0.4,43]). Its 2.2° pull toward (36N,61E) was not enough: my first render showed India covering only a small island, with the tip and zigzags still in open water. I measured coast_043/044: the Asian mainland (Makran block #651, Lhasa #137) is 4-6° from India's tip at 44 Ma. I recomputed the constants: SLAM_C = (32.03N, 50.80E), SLAM_PULL = 6.2°, IND_HIT = (36.46, 72.89), the tip vertex that makes contact. India's tip now presses 0.24° into #651 at 44 Ma and stays 0.16-0.27° in through 43 Ma, while every other block stays 2-3° clear. I also redrew the crumple marks as parallel ridges with a dark under-stroke, set on the Asian land just beyond the contact (the old rows were out of phase and over water). (engine/www/ep/ep01/ch5a.js:123-125 (Tfwd clock stop), 586-598 (pull constants and helpers), 600-605/633-636 (tag and trail follow the pull), 666-692 (scene M: pull, rings on IND_HIT, crumple ridges, chip fade)) scenes [[668.4, 672.55]]
+- fix **S7-6** fixed: Previous agent: the drift now runs from tO+0.45 (after the dissolve) to 'orientation'+0.6 (682.00-684.95, 2.95 s, inOutSine) instead of about 1.1 s. The look morph, TODAY and the Antarctica fade follow it, and the number fades out before TODAY fades in. I added the missing 'orientation in motion': each tip carries a marker (with a dark/white backing over the bright paleo plates) and lays its dotted path down behind it as it drifts (tipTrail: smoothed path from the 180-Ma end to T, joined to the true tip). At TODAY the trail is exactly the full path, which then stays up through 'still aim back to where they tore away'. The dots are anchored at the 180-Ma end, so they don't crawl. drawPaths is shared with P, so O and P match. (engine/www/ep/ep01/ch5a.js:786-789 (tD0/tD1/TO), 791-829 (tipTrail, drawPaths), 849-857 (scene O: drawPaths with T and mark, chip/TODAY)) scenes [[681.55, 689.4], [689.4, 694.13]]
+- fix **S7-7** fixed: Previous agent: scene P's ripple uses the same phase as O (drawRing(..., M.aim-0.05)), and camP evaluates camAt with scene O's time origin, so the heading drift and altitude breathing run on across the invisible cut. With my change the dotted paths are also drawn identically on both sides. (engine/www/ep/ep01/ch5a.js:785 (camP), 866 (drawRing in P)) scenes [[689.4, 694.13]]
+- fix **S7-8** fixed: Previous agent: the seamUnder alpha (ga) and the new-ocean glow (na) now start at the word 'ocean' (tOcean-0.1 = 635.81). Africa's highlight stays on 'Africa'. (engine/www/ep/ep01/ch5a.js:366-383) scenes [[633.6, 639.75]]
+- fix **S7-9** fixed: Previous agent: the paper figure's tip markers pop on 'pointy' (tPointy-0.12, staggered 0.1 s), and their dotted lines grow toward the ring until M.ant2+0.3 ('...close to Antarctica'). (engine/www/ep/ep01/ch5a.js:716, 762-773) scenes [[672.25, 682]]
+- fix **S7-10** fixed: Previous agent: the edge-on ShadowMaterial floor is hidden and replaced by a soft 2D contact shadow under the boots. Each frame, the cabin's roll and height are fitted to the projected limb of the globe (computed from the silhouette circle), so its base follows the curve. (engine/www/ep/ep01/ch5a.js:495, 554-572) scenes [[653.85, 659.7]]
+- fix **SYN-19** fixed: The '10:34.43 one-frame coastline jump' (f19033) is the crack shake: shakeAt's 91 rad/s reverses direction on every frame at 30 fps for 6 frames (strategist note: it reads as a render hiccup). For 'Cracks open' only, a new rumbleAt gives a ~4 Hz sway (7 frames per cycle) that decays over about half a second (0.8 s window). Amplitude, cue and timing are unchanged; the other designed shakes are untouched. (engine/www/ep/ep01/ch5a.js:147-149 (rumbleAt), 374 (scene F)) scenes [[633.6, 639.75]]
+- fix **SYN-4** fixed: Optional effort-M redesign of 11:12-11:33. I did the contained parts: tips and dashed lines on 'pointy' (S7-9); a static 180 on the paper figure instead of the extra 43->180 counter roll (the existing rewind sound now accompanies the cut into the figure); counters that never double-expose (M->N and N->O dissolves, number->TODAY); a drift slowed to about 3 s with tip markers and paths laid during the move (S7-6); landing on the finished TODAY globe with dotted lines during 'still aim back...' and holding through the scars. Not done, deliberately: the hard cut instead of the 0.45-s dissolve (the S7 reviewer lists that dissolve as intended, and it no longer double-exposes), and a 6-s ease-out drift (it would still be running at 'aim' (686.91), where the aim arrows need complete paths). (engine/www/ep/ep01/ch5a.js:716, 762-776 (scene N tips and static ink chip), 786-857 (scene O drift, trails, chip)) scenes [[672.25, 682], [681.55, 689.4], [689.4, 694.13]]
+- fix **SYN-10** not_a_defect: No change in ch5a. The plan removes the counter from the flat-map slider (9:58.6-10:04.4, module ch4) and the '62 Ma' counter at 8:22.5 (also outside ch5a), so that the ch5a globe count (10:07-10:16) is the only 0->180 count. That ch5a count is what the plan keeps. (none) scenes []
+- changed ranges: [[604.37, 623.45], [628.79, 694.13]]
+- shared changes needed: None. All edits are in engine/www/ep/ep01/ch5a.js and ch5a_paleo.js.
+- notes: All ten reported findings (S7-1 to S7-10) and SYN-19 are fixed and proven on test renders I looked at. SYN-4 is done in part (two sub-items deliberately skipped, reasons in its entry); SYN-10 needs no ch5a change.
+
+**Previous agent's work.** Its edits for S7-1, S7-2, S7-3, S7-4, S7-6 (retime only), S7-7, S7-8, S7-9 and S7-10 were complete and correct. Only its G-scene zipper had been checked on a render, so I verified the rest on renders.
+
+**Repaired.** Its slam fix (S7-5) did not work: the 2.2° pull only covered a small island, so India still stopped in open water and the crumple marks floated over water. I recomputed the pull from the coast data (6.2° toward 32.03N 50.80E). India's tip now presses into the Asian coast and stops, with the crumple marks redrawn on the land.
+
+**Added by me.**
+- S7-6: the tips now lay their paths down during the drift.
+- SYN-19: a decaying rumble replaces the per-frame crack jitter at f19033.
+- Madagascar now also appears in the paper figure, through a shared exclSet().
+- A static 180 on the paper figure (part of SYN-4).
+- The unused EXCL import is removed.
+
+**Re-render.** Only scene D (623.45-628.79, the Bacon insert) cannot change. Every other ch5a scene changes, so chunks 40-46 (frames 18000-21149) all need re-rendering.
+
+**Render command.** `"only":5` matches no module, because the ids are ch5a and ch5b (edit.js compares against "5" and "ch5"). That run would render background only. All my test renders used `"only":"5a"`.
+
+**Test renders.** All are in scratchpad/review6/fix_ch5a/ as t2_FRAME.mp4, with logs t2_FRAME.log; every one exited 0 and no scene errors were logged:
+- 18338 (20 frames), 18496 (20)
+- 19025 (150), 19470 (111)
+- 19612 (100), 19765 (31), 19798 (20)
+- 20048 (150), 20090 (40), 20098 (60), 20160 (45)
+- 20340 (80), 20440 (150), 20596 (24), 20670 (30), 20750 (40)
+
+The last one, t2_20160 (20160-20204), exited 0. No render is left running.
 
 ## wf_8dc2a0ee-8a4: 1 finished, 0 running
 
