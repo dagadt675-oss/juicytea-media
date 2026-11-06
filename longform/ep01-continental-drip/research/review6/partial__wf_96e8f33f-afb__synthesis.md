@@ -1,3 +1,3 @@
 # synthesis (still running; latest notes)
 
-You've hit your 5-hour limit · resets 1:30am (UTC)
+I'll start by reading the source material before merging the reviews.
