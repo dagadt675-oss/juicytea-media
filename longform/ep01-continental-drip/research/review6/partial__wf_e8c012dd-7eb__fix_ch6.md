@@ -1,9 +1,5 @@
 # fix ch6 (still running; latest notes)
 
-Let me check the reviewer's FK analysis script to validate the clip-direction claim.
-
----
-
 The FK numbers confirm the clip directions (Run_Left's planted foot moves -x, so the clip travels +x, which is screen-right for a camera-facing hero). Let me look at the reviewer's crop of the feet.
 
 ---
@@ -29,3 +25,7 @@ S10-6 is confirmed: the code peaks at 38° per frame, and consecutive frames sho
 ---
 
 S10-8 is confirmed: Australia's gold glow is on through 27627 and off from 27628, the first live frame. Next, S10-9 (the countdown line shifting sideways).
+
+---
+
+The pill fades over about 6 frames (27586-27591), so "disappears in one frame" is not accurate. Let me look at an expand (model 2, around 15:12.6, where a panel says the zoom frame "pops away").

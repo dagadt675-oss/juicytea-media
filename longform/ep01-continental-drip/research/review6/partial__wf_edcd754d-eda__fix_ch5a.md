@@ -1,21 +1,5 @@
 # fix ch5a (still running; latest notes)
 
-Let me check how the Tfwd change for the slam affects T(t) before scene M (mono-cubic tangents can propagate).
-
----
-
-Now let me compute the India pull parameters (contact depth and point) offline to sanity-check the build-time computation I'll put in the module.
-
----
-
-Now the ch5a.js edits. First the chip (backing option, sequential number/TODAY fade) and the shelf ramp.
-
----
-
-Now seamUnder (front-driven mode for the South Atlantic seam).
-
----
-
 Now scene F (ocean seep on "ocean").
 
 ---
@@ -29,3 +13,19 @@ Now the slam: stop the clock on impact and pull India into contact.
 ---
 
 Now scene N (tips on "pointy", ink counter start value and the dissolve crossfades).
+
+---
+
+Now scenes O and P (drift retime, TODAY/number sequencing, counter dissolve, ripple phase and camera continuity).
+
+---
+
+Now the house gag (scene J): hide the edge-on shadow disc, add a soft contact shadow, seat the cabin on the limb.
+
+---
+
+Let me syntax-check both module files.
+
+---
+
+Syntax is fine. Note: edit.js filters with `ch.id !== only && ch.id !== 'ch' + only`, so `"only":5` would skip `ch5a` entirely; I'll use `"only":"5a"`. First a short smoke render in the zipper scene.

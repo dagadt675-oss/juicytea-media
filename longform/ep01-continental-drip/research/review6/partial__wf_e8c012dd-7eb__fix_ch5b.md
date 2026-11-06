@@ -1,9 +1,5 @@
 # fix ch5b (still running; latest notes)
 
-S8-1 confirmed: the second flip completes at 21835, the check mark appears at 21838, and the cut comes at 21842. Next I'm checking S8-5 (blob twitch) and S8-3 (card text).
-
----
-
 S8-5 (twist at 21977 to 21978) and S8-3 (date runs off the card) are both confirmed. Next, S8-6 and S8-7 around the split screen and the reference card.
 
 ---
@@ -29,3 +25,7 @@ R2 confirmed in the frames: a hard-edged red rectangle sweeps left to right acro
 ---
 
 The bedrock wipe is a real visual defect: a hard rectangle sweeps across the void and reads as a render error. Now R1, the "empty navy screen" at the start of scene I that all four panels flagged.
+
+---
+
+R1 confirmed: about 1.1 s of near-empty navy (23276-23308) with only a faint scan line before the grid pops in. Next, S8-4 (needles overshooting the bottom-row tiles).
