@@ -1,13 +1,5 @@
 # fix ch2 (still running; latest notes)
 
-The black cards are gone; the globes now sit as round discs on the navy grid. I notice a thin dark arc on the upper edge of the bottom-middle globe, so I'm zooming in to check whether that's new.
-
----
-
-The Pacific now begins lighting up right after the 9602 cut and is mostly lit by "Pacific" (about 9614). S4-9 fixed. Now the continent arrivals at the rim, North America first (around 9668):
-
----
-
 Europe also comes over the top limb gradually (translucent at 9703, firmer at 9704). Next Asia and the hero hand-off (S4-1), frames 9745-9809:
 
 ---
@@ -29,3 +21,11 @@ South disc on clean navy, the antipode map crisp rather than milky, and the roun
 ---
 
 The x-ray onset is a smooth 20-frame ramp (31.9 → 37.1, max diff 0.75), so the look change is now an intended dissolve rather than a seam. Now the corner glow (S4-6):
+
+---
+
+Re-rendering the corner moment (10280-10319) to verify:
+
+---
+
+Those frames show the x-ray edges inside the globe brightening steadily (0.85·xr); the 10309 step is my 170-threshold metric tipping over, not a visual pop. Now the emergence itself:

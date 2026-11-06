@@ -1,9 +1,5 @@
 # fix ch5b (still running; latest notes)
 
-Now S9-1: a real crossfade from the Cape globe into the ASTER plate.
-
----
-
 Now N1/N2/N3: S9-2 (fade the stamp and coin, then tilt the camera instead of the jump cut), S9-4 (scar lines draw across "tore apart around Antarctica") and S9-5 (cut to N3 on "The small ones").
 
 ---
@@ -29,3 +25,7 @@ The jump at 21977 to 21978 dropped from 6.61 to 4.04 but hasn't gone. Something 
 ---
 
 S8-3 is fixed: both lines now sit inside the card with a right margin matching the clock's left margin. Let me check batch progress.
+
+---
+
+The F/G1 render is done. Checking the divider (S8-6) and the card's first frames (S8-7).
