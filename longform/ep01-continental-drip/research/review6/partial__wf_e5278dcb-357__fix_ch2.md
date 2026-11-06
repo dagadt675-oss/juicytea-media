@@ -1,13 +1,5 @@
 # fix ch2 (still running; latest notes)
 
-The copy now fades in over 8007-8012 and then peels off, instead of snapping China grey in one frame. Numeric check on a box over China:
-
----
-
-That box missed China (the map is moving, and both versions show the same drift). Let me look at a full-resolution crop around China instead.
-
----
-
 Original snaps orange→grey between 8006 and 8007; the new version eases over 8007-8010 before the copy slides off. S4-11 fixed. Next S4-10 (Argentina), frames 8180-8239:
 
 ---
@@ -29,3 +21,11 @@ The Pacific now begins lighting up right after the 9602 cut and is mostly lit by
 ---
 
 Europe also comes over the top limb gradually (translucent at 9703, firmer at 9704). Next Asia and the hero hand-off (S4-1), frames 9745-9809:
+
+---
+
+The globe is already filled orange by the pour here, so the orange count can't isolate Asia. Visual check instead:
+
+---
+
+No visible jump of the Explorer around 9776, and Asia now slides in from the upper-left limb translucent-first (9774-9776) instead of blinking on. Close-up of the hero across the old jump frame:

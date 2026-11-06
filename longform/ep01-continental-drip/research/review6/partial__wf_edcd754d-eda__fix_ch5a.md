@@ -1,9 +1,5 @@
 # fix ch5a (still running; latest notes)
 
-Now scene N (tips on "pointy", ink counter start value and the dissolve crossfades).
-
----
-
 Now scenes O and P (drift retime, TODAY/number sequencing, counter dissolve, ripple phase and camera continuity).
 
 ---
@@ -29,3 +25,7 @@ Now let me test the zipper from just before the slider appears (G scene).
 ---
 
 While that renders, let me review the full diff against the original.
+
+---
+
+While the zipper render runs, let me prepare a slider-tracking check (yellow-pixel centroid per frame).

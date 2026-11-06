@@ -1,31 +1,31 @@
 # fix ch5b (still running; latest notes)
 
-S9-1 confirmed (frame 24931 is near black at luma 4.4, then ramps up over 3 frames). Next, S9-2 (N1 to N2) and the S9-4/S9-5 timing.
+Now S8-6 (retract the divider as the bracket draws) and S8-7 (card already entering on the cut frame).
 
 ---
 
-The shared Baja border is 10 identical edges along 28N, so the cross line can be dropped by stroking only the non-shared edges. Next, I'm measuring the K camera motion for S9-6.
+Now S8-9 (keep the drip highlight inside the bulb) and S8-8 (land the honey drop on the puddle exactly when it reacts and the existing pop cue plays).
 
 ---
 
-S9-6 confirmed: motion rises to about 2.2, drops to about 0.1 at 23937-23944, then climbs again for the dive. Now the Florida cross-section (S9-7 and the bedrock wipe the casual panel flagged).
+Now I'll move the scan line to draw after the tiles, so it sits on top of the ghosts.
 
 ---
 
-R2 confirmed in the frames: a hard-edged red rectangle sweeps left to right across the black void under the platform (24530-24552). Let me see it at full resolution.
+Now scene K: S9-6 (one continuous camera move) and S9-3 (hide the real peninsula while the red copy is away, and stroke only the outer outline).
 
 ---
 
-The bedrock wipe is a real visual defect: a hard rectangle sweeps across the void and reads as a render error. Now R1, the "empty navy screen" at the start of scene I that all four panels flagged.
+Now L2: S9-7 (gentler rise ease) and R2 (soft top-down bedrock reveal instead of the hard left-to-right wipe).
 
 ---
 
-R1 confirmed: about 1.1 s of near-empty navy (23276-23308) with only a faint scan line before the grid pops in. Next, S8-4 (needles overshooting the bottom-row tiles).
+Now S9-1: a real crossfade from the Cape globe into the ASTER plate.
 
 ---
 
-I've verified every reported item. Before editing, I'm backing up the original module so I can diff and revert.
+Now N1/N2/N3: S9-2 (fade the stamp and coin, then tilt the camera instead of the jump cut), S9-4 (scar lines draw across "tore apart around Antarctica") and S9-5 (cut to N3 on "The small ones").
 
 ---
 
-Now the edits. First S8-2: fade B1's tip arrows out, then ease B2's framing in from where B1 ends.
+Let me review the full diff before rendering.

@@ -1,17 +1,5 @@
 # fix ch6 (still running; latest notes)
 
-The FK numbers confirm the clip directions (Run_Left's planted foot moves -x, so the clip travels +x, which is screen-right for a camera-facing hero). Let me look at the reviewer's crop of the feet.
-
----
-
-S10-2 is confirmed: the hero stands in Idle and glides from about 1320 px to about 1080 px over 28098-28134. Frame 28138 also shows the black blink (S10-3). Let me check all three S10-3 transitions.
-
----
-
-My helper reads exact frames: 28137 is black (luma 0.9). Now S10-4, the filmstrip snap on "shot.".
-
----
-
 S10-12 is confirmed: a faint vertical white line sits at the left edge in 29486-29487. Next, S10-5 (ridge pop at the s097 to s098 switch).
 
 ---
@@ -29,3 +17,15 @@ S10-8 is confirmed: Australia's gold glow is on through 27627 and off from 27628
 ---
 
 The pill fades over about 6 frames (27586-27591), so "disappears in one frame" is not accurate. Let me look at an expand (model 2, around 15:12.6, where a panel says the zoom frame "pops away").
+
+---
+
+I've now checked every reported picture defect on exact frames. Before editing, let me quickly check the S10-7 audio claim (it is outside my module's files, but I should report it accurately).
+
+---
+
+Now the S10-5 edit: continue s097's camera, ridge alpha, cold overlay, drip arcs and look into the start of s098.
+
+---
+
+Now S10-1 and S10-2: swap the strafe clips, match clip speed to root speed, and replace the idle glide with a short foot-planted sidestep.
