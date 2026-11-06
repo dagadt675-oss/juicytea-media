@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """assemble_edl.py VIDEO_IN(concatenated chunks) RANGES_JSON(edl.py) AUDIO_WAV OUT_MP4 [CRF] [--xfade J:N,J:N] [--test]
 The master as assemble.sh makes it (grade, BT.709, x264 slow, AAC 320k), with the picture taken from the edl.py ranges in
-output order. Each range is its own frame-accurate input (-ss/-to half a frame inside the boundaries) feeding one concat.
+output order. Each range is its own input (seek half a frame before its first frame, then an exact frame-count trim) feeding one concat.
 --xfade J:N  dissolves N frames (even) over join J (1-based: the join between range J and range J+1) without moving the
-             timeline: range J holds its last frame N/2 frames longer, range J+1 starts with its first frame held N/2
-             frames, and the two overlap in an xfade of N frames (so a shot never shows cut material from the other side).
+             timeline: range J clones its last frame N/2 frames longer, range J+1 starts with N/2 clones of its first
+             frame, and the two overlap in an xfade of N frames (so a shot never shows cut material from the other side).
 --test       320x180, ultrafast, no grade: a quick structural check (frame count, joins) in a few minutes."""
 import json, subprocess, sys
 
@@ -29,19 +29,16 @@ def main():
         k, m, h = r['k'], r['m'], r.get('hold_until')
         pre = xf.get(i, 0) // 2        # join i is between range i-1 and range i (1-based J = i)
         post = xf.get(i + 1, 0) // 2   # join i+1 is between range i and range i+1
-        subs = []
-        if h and h > k:   # the moved piece: hold its own first shot frame until the shot starts (pre-hold merges into it)
-            n_hold = (h - k) + pre
-            a = add_input(['-ss', ss(h), '-i', vid]); fc.append(f'[{a}:v]trim=end_frame=1,loop=loop={n_hold - 1}:size=1:start=0,setpts=N/{FPS}/TB{scale}[s{a}]'); subs.append(f'[s{a}]')
-            k = h
-        elif pre:
-            a = add_input(['-ss', ss(k), '-i', vid]); fc.append(f'[{a}:v]trim=end_frame=1,loop=loop={pre - 1}:size=1:start=0,setpts=N/{FPS}/TB{scale}[s{a}]'); subs.append(f'[s{a}]')
-        a = add_input(['-ss', ss(k), '-to', ss(m), '-i', vid]); fc.append(f'[{a}:v]setpts=PTS-STARTPTS{scale}[s{a}]'); subs.append(f'[s{a}]')
-        if post:
-            a = add_input(['-ss', ss(m - 1), '-i', vid]); fc.append(f'[{a}:v]trim=end_frame=1,loop=loop={post - 1}:size=1:start=0,setpts=N/{FPS}/TB{scale}[s{a}]'); subs.append(f'[s{a}]')
-        if len(subs) > 1: fc.append(''.join(subs) + f'concat=n={len(subs)}:v=1:a=0[p{i}]'); labels.append(f'[p{i}]')
-        else: labels.append(subs[0])
-        r['_len'] = (m - k) + ((h - r['k']) if (h and h > r['k']) else 0) + pre + post
+        k0 = h if (h and h > k) else k
+        # holds are clones of the first/last frame of the same stream (tpad), so no second seek can bring in a foreign frame
+        start = (k0 - k) + pre
+        # seek to the first frame, then cut the exact frame count in the graph (an input -to rounds and can let one more frame through)
+        a = add_input(['-ss', ss(k0), '-i', vid])
+        f = f'[{a}:v]trim=end_frame={m - k0},setpts=PTS-STARTPTS'
+        if start: f += f',tpad=start_mode=clone:start={start}'
+        if post: f += f',tpad=stop_mode=clone:stop={post}'
+        fc.append(f + f'{scale}[p{i}]'); labels.append(f'[p{i}]')
+        r['_len'] = (m - k0) + start + post
     # chain the ranges: concat at plain joins, xfade at dissolve joins (offset in the accumulated output timeline)
     acc, acc_len = labels[0], R[0]['_len']
     for i in range(1, len(R)):
