@@ -1,13 +1,5 @@
 # finish ch6 (still running; latest notes)
 
-Now the reported findings and the synthesis plan.
-
----
-
-Let me look at the engine layout, the ch6 files, and the timing.
-
----
-
 Now the full ch6.js module (current state, with the previous agent's edits).
 
 ---
@@ -29,3 +21,11 @@ Let me check the previous agent's test renders (frame counts) and the chunk file
 ---
 
 Let me review the previous agent's gag 10a test render (t_28005.mp4) myself: the run directions, the sidestep and the cross-fade to the splash map.
+
+---
+
+The first cross-fade is clean. Now the s097→s098 switch (S10-5): the previous agent's final render t_26468.mp4 was never reviewed. Let me measure it against the original chunk.
+
+---
+
+The residual at the switch frame is a geometric shift of the gap/bus/ridge relative to the previous frame. Let me evaluate the two cameras numerically at the switch.

@@ -1,31 +1,31 @@
 # finish ch5a (still running; latest notes)
 
-Let me read the current module source in full.
+Let me check the s076 narration words to judge the zipper pacing in H.
 
 ---
 
-Now the paleo module (current version).
+Let me look at the master around frame 19033 (the synthesis' one-frame coastline jump on "Cracks open").
 
 ---
 
-Let me see the original paleo module and the original ch5a.js regions to compare.
+Let me quantify that jump with a frame-diff image (master, 19032→19033).
 
 ---
 
-Let me look at how markers are resolved (film.html / edit.js) and the timing data, so I can compute every scene boundary in film seconds.
+The diff is dominated by the designed crack shake. Let me find the reviewer's source note for frame 19033.
 
 ---
 
-Let me look at the previous agent's simulation helpers, which may already compute the markers.
+Two panels flagged 19033; the strategist note says it is the 6-frame crack shake (alternating per-frame jitter). Let me check how `lookOffset` is applied in the globe to size a smoother shake.
 
 ---
 
-Let me compute every marker and scene boundary from timing.json.
+Let me check the machine load and whether other renders are running before I queue test renders.
 
 ---
 
-Let me check the shared camera helper (camAt drift semantics) and a few fx helpers used by the edits.
+The machine is shared (load ~10 on 4 cores), so I need to keep renders lean. Let me check render.cjs options.
 
 ---
 
-Let me look at the previous agent's G-scene test render myself to confirm its zipper result.
+Let me quickly verify the Stage API used by the house-gag edits (project/camera/lookFrom).
