@@ -1,9 +1,5 @@
 # fix ch2 (still running; latest notes)
 
-Rendered in 61 s, exit 0. Checking the log for scene errors and viewing the cut (video index 0 = film frame 7085).
-
----
-
 Headline now holds through "If you dig straight down" and fades out at 7151-7163 before China lights up; the globe move is continuous. S3-1/S3-2 fixed. Next S3-8 (overlay hold), frames 6875-7024:
 
 ---
@@ -29,3 +25,7 @@ The hero is small in a full frame, so I'll add a crop option to my grabber and l
 ---
 
 The roll now completes (inverted around 7530-7538, upright by 7542) instead of being abandoned mid-air. I need a wider crop to confirm the head stays above the waterline while inverted.
+
+---
+
+No band before the whip any more (5719-5726 show the full Arctic panel and intact pill); the South panel's sky now enters only with the scroll. S3-5 fixed. Now the South Pole readout (S3-7):

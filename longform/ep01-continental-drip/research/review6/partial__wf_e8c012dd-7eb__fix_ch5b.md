@@ -1,9 +1,5 @@
 # fix ch5b (still running; latest notes)
 
-I'll start by reading the defect reports and the module code.
-
----
-
 Now the retention panel files.
 
 ---
@@ -25,3 +21,11 @@ S8-1 confirmed: the second flip completes at 21835, the check mark appears at 21
 ---
 
 S8-5 (twist at 21977 to 21978) and S8-3 (date runs off the card) are both confirmed. Next, S8-6 and S8-7 around the split screen and the reference card.
+
+---
+
+The whoosh peaks about 0.15 s after its cue. If the cue stays at 726.54, it lands mid-flip in the earlier run 2, so I'll keep that cue time. Next, verifying S9-1 (the dip at the Cape Agulhas cut).
+
+---
+
+S9-1 confirmed (frame 24931 is near black at luma 4.4, then ramps up over 3 frames). Next, S9-2 (N1 to N2) and the S9-4/S9-5 timing.
