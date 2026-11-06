@@ -1,13 +1,5 @@
 # fix ch1 (still running; latest notes)
 
-Gag 1 now walks in mid-stride with planted feet and stops into the reach. Next, S1-2 (city dots fade instead of blinking off):
-
----
-
-Now S1-3 (continuous hand-off s008 → s009) and S1-4 (US feature lookup):
-
----
-
 Now S1-5 (cutaway framing so the Kansas entry point and the antipode '?' are both in frame):
 
 ---
@@ -29,3 +21,11 @@ Now S2-7 (magnifier entrance/exit envelope) and S2-8 (byline ring off the title)
 ---
 
 Code changes are in. Now test renders, one at a time. First gag 2 (run, hit, wave exit) with the foot logger:
+
+---
+
+The start composition is back to the original, the hero visibly runs with planted strides, and the planet rolls under him. Now the wave exit (S2-4) and the hit, every frame:
+
+---
+
+The wave now leaves the frame up-right with no pop. Next, the close-up (bead, S2-5), including the cut into it, since the planet orientation there now carries the run's final roll:
