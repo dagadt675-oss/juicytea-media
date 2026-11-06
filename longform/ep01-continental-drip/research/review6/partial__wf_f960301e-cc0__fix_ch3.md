@@ -1,13 +1,5 @@
 # fix ch3 (still running; latest notes)
 
-S5-2 confirmed (the top arrow runs through the Explorer's legs), and the outward jump of the diagonal arrows (S5-5) is visible between 11399 and 11403. Now S5-3, the roll.
-
----
-
-S5-3 confirmed: the roll wraps (he stands and starts a second roll at 11508), flails inverted at 11524-11527, and snaps upright at 11528. Let me check the clip lengths in the model.
-
----
-
 Now the kids page (fan's pill-on-empty-desk claim at 426.5 and the strategist's kids claim at 427.9-432).
 
 ---
@@ -29,3 +21,11 @@ S5-7 confirmed: the page sits still until 12471, then lunges to about 2x zoom by
 ---
 
 S5-8 confirmed: "FIGURE 1." and "N." read through the Figure 1 pill, and the body text reads through the 1899 pill. Now S5-9 (board pins and the red X).
+
+---
+
+Let me check how `globeShot` and the globe overlay work before deciding on the S5-6 fix.
+
+---
+
+The globe has a `refreshOverlay()` hook and `globeShot` has a `pre` callback, so animating the overlay is possible. Let me check the rumble cue's sound to size the twitch to it.
