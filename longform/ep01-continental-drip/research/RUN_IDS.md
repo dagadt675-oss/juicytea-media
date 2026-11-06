@@ -20,3 +20,7 @@ wf_f960301e-cc0: ch1, ch3, ch4
 wf_e5278dcb-357: ch2
 wf_edcd754d-eda: ch5a
 wf_e8c012dd-7eb: ch5b, ch6
+# continuation after the second usage limit (successors read prev_notes.md + prev_diff.patch)
+wf_549ac364-42a: ch2, ch4
+wf_0b6495e8-5a0: ch5a, ch5b
+wf_8dc2a0ee-8a4: ch6
