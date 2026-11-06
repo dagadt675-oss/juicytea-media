@@ -1,31 +1,31 @@
 # fix ch2 (still running; latest notes)
 
-S3-6 confirmed (cyan US pops in at 7882 at full opacity in the corner). Now S3-8.
+Now scene G (S3-8 overlay hold, S3-2 camera end, S3-1 headline moved to an overlay scene).
 
 ---
 
-S3-8 confirmed (overlay visible only 6895-6945, then a near-static plain globe through "not more land"). Now the segment-4 defects, starting with S4-11 and S4-10.
+Now scene H's first camera key and dim (S3-2).
 
 ---
 
-S4-11 confirmed (China turns grey in one frame at 8007). Now S4-10.
+Now S3-4 (let the roll complete above the water).
 
 ---
 
-S4-10 confirmed (white outline appears at 8201 and flies off before Argentina's fill arrives at 8212-8214). Now the waffle card: S4-8 holes and the panel-reported pop-ins around 4:48.
+Now the flat map: S3-6 (US fade-in), S4-11 (China copy fade-in), S4-10 (Argentina lights before its outline flips).
 
 ---
 
-The grid entrance is a clean eased outBack pop (8548-8556), so no defect there. Now grabbing the segment-4 globe/tile/montage moments in one batch.
+Now S4-8 (waffle: unlit cells always drawn, lit squares slide over them).
 
 ---
 
-S4-4 confirmed in the grid (opaque black cards behind every globe). Next the Pacific shot frames.
+Now S4-4 (tiles masked to the globe disc; the montage water globe rendered at 900 px instead of being upscaled from 420).
 
 ---
 
-S4-3 confirmed (grey veil from 9881; drains over 9967-9969) and S4-4 confirmed on the montage water globe (black tilted square, soft). Next the drip headline, tetra corner and the seam.
+Now S4-9 (Pacific lights up on the cut/word "Pacific").
 
 ---
 
-S4-7 (headline already formed at 10037), S4-6 (corner glow pops on at 10297) and the 10350 seam (opaque to x-ray look in one frame) all confirmed. Now the JUICE CHECK stamp.
+Now S4-2/S4-1. First a `facing` helper on the ch2 projector (ch2_lib.js), then the drop loop and the hero hand-off.

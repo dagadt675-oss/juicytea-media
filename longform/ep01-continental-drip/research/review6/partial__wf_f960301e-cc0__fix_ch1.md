@@ -1,13 +1,5 @@
 # fix ch1 (still running; latest notes)
 
-The bead now shrinks away as it falls and the next one starts tiny, with no mid-air pop. Next, the cold-open spin:
-
----
-
-The globe now visibly spins and settles on the original framing by ~1.2-1.6 s. Next, S1-2 city dots:
-
----
-
 City dots now fade smoothly alongside the ring. Next, S1-3/S1-4 (hand-off and US highlight):
 
 ---
@@ -29,3 +21,11 @@ The whole sphere is in frame now, with the entry dot at the top and the '?' at t
 ---
 
 The boundary is invisible: mean frame difference 0.38 at f2037→f2038 with identical page luma. Next, S2-1 (topple) and S2-2 (whip):
+
+---
+
+The print now falls out of frame (gone by F3243) before the cut at F3245. Now the whip (S2-2):
+
+---
+
+The whip now starts fastest on the cut and decays monotonically: 2.8 down to 0.2 mean diff, where the old version stopped dead at F3523-3525 and then pushed again. Next, the quote bar (S2-6):
