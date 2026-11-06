@@ -5,7 +5,8 @@ Feltölteni csak te töltesz fel. Én semmit nem publikáltam, és nem mentem fe
 
 | Fájl | Mire való |
 |---|---|
-| `video_final.mp4` | A videó: 1920×1080, 30 fps, 16:51, AAC 320k, -14 LUFS |
+| `video_final.mp4` | A teljes minőségű mester: 1920×1080, 30 fps, 15:34, AAC 320k, -14 LUFS |
+| `myth_juice_ep01_upload.mp4` | Ugyanez 500 MB alatt (2 menetes kódolás, ~4 Mbps): ezt küldtem át, ez tölthető fel |
 | `thumb_B_pointing_at_what.jpg` | Thumbnail B, 1280×720: **ez legyen az alapértelmezett** |
 | `thumb_A_cant_unsee_it.jpg` | Thumbnail A, 1280×720 |
 | `thumb_S_theyre_scars.jpg` | Thumbnail S, 1280×720 |
@@ -38,12 +39,14 @@ Why do the continents point south? Spin a globe and South America, Africa and In
 Here's what the drips are really pointing at, and where they're dripping next.
 
 0:00 Why do the continents point south?
-2:55 What's on Earth's other side?
-3:53 Can you dig to China?
-5:58 Is Earth secretly a pyramid?
-8:01 Continental drift: why did geologists laugh at Wegener?
-10:04 Running the clock backwards
-14:35 Where is the drip going next?
+2:15 What's on Earth's other side?
+3:13 Can you dig to China?
+5:06 Is Earth secretly a pyramid?
+7:10 Why did geologists laugh at Wegener?
+9:13 Where are the drips pointing?
+10:43 Was the answer hidden in a joke?
+11:46 What doesn't drip?
+13:10 Where is the drip going next?
 
 Plus the four competing models for the next supercontinent, from Pangaea Proxima to Amasia.
 
@@ -57,7 +60,7 @@ Made with real satellite imagery and real data:
 - Elevation: Terrain Tiles (Mapzen, AWS Open Data), from SRTM, GMTED2010, ETOPO1 and other sources
 - Past positions of the continents: GPlates Web Service, EarthByte Group; plate model by Müller et al. (2019), CC BY 4.0, simplified
 - 3D characters: Quaternius and Kenney (CC0)
-- Historical images (public domain): Francis Bacon, Novum Organum (1620), and his portrait by Paul van Somer (1617); Johann Reinhold Forster (1778), and his portrait engraved by J. F. Bause after Anton Graff; Arnold Guyot (1849); William Lowthian Green, Vestiges of the Molten Globe (1875); J. W. Gregory, The Plan of the Earth and Its Causes (1899); Abraham Ortelius, Typus Orbis Terrarum (1570); Alexander von Humboldt by Joseph Karl Stieler. Scans via Internet Archive, Wellcome Collection and Wikimedia Commons.
+- Historical images (public domain): Francis Bacon, Novum Organum (1620), and his portrait by Paul van Somer (1617); Arnold Guyot (1849); William Lowthian Green, Vestiges of the Molten Globe (1875); J. W. Gregory, The Plan of the Earth and Its Causes (1899); Abraham Ortelius, Typus Orbis Terrarum (1570); Alexander von Humboldt by Joseph Karl Stieler. Scans via Internet Archive, Wellcome Collection and Wikimedia Commons.
 - Photographs of Alfred Wegener and the 1930 Greenland expedition: Archive of the Alfred Wegener Institute (via Wikimedia Commons)
 ```
 
@@ -82,7 +85,7 @@ In a couple hundred million years, America crashes into a new neighbor. Africa, 
 - **Test & Compare:** run B, A and S together with the title fixed, and upload B as the default image. All three are checked at phone size.
 - **End screen:**
   - The video ends on "What happens if Africa splits in two? That's our next story", over a moving map with a "WATCH NEXT" frame drawn on the right.
-  - Put a Video element over that frame from 16:34 to the end, and a Subscribe element from 16:37 to the end (17 s in all, within YouTube's 20 s limit).
+  - Put a Video element over that frame from 15:17 to the end, and a Subscribe element from 15:20 to the end (17 s in all, within YouTube's 20 s limit).
   - Until there is a video about Africa splitting, set the element to "Best for viewer". Don't link the "Split in Two" Short, because it is about country borders, not Africa.
   - Once episode #2 (Africa splitting) is out, swap it in. End screens can be edited after publishing.
 - **"Altered or synthetic content" checkbox:** your call. Check YouTube's current guide ("Disclosing use of altered or synthetic content") before you decide. The parts of this video it may concern are the synthetic narration voice and the generated background music. The footage is maps, renders and archival images, not realistic people or events.
