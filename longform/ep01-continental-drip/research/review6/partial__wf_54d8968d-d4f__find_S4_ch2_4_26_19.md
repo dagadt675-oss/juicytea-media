@@ -8,16 +8,8 @@ Now the event filmstrips.
 
 ---
 
-Now let me look at the scene code.
+Now the scene code. Let me check sizes first.
 
 ---
 
-Let me start stepping through frames. First the zoom into South America (E1) and the China flip earlier in the shot.
-
----
-
-Confirmed a one-frame 5.75° roll at frame 8994. Now let me check every chunk seam in the segment numerically.
-
----
-
-You've hit your 5-hour limit · resets 1:30am (UTC)
+Let me look at the shared libs and the timing markers for my segment.
