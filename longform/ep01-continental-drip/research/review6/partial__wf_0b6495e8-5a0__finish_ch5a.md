@@ -1,9 +1,5 @@
 # finish ch5a (still running; latest notes)
 
-The cut is now seamless: 0.33 at 20682 versus 0.29-0.34 around it (the master spiked to 2.28). Let me view the diff image to be sure the ripple doesn't reset.
-
----
-
 `EXCL` is now unused in ch5a.js; I'll drop it from the import, then queue the final batch.
 
 ---
@@ -29,3 +25,7 @@ The crumple ridges now sit entirely on the Asian land above the contact, and Ind
 ---
 
 Nothing is running, the last test render exited 0, and no scene errors were logged. Let me collect line numbers for the report.
+
+---
+
+The handoff is clean: the globe "43" fades out, then a static ink "180" fades in, with no roll and no overlap. That render exited 0 and is my last one. A final check that nothing is left running:
