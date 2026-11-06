@@ -536,3 +536,5 @@ AUDIO: the README flag at 14:04.36 is real. There is an abrupt drop at 844.36-84
 - fatigue 14:20.00: A hedged verdict at 164-169 wpm over re-used visuals, during the lowest motion in the film (14:00-14:30).
 - fatigue 15:12.00: A numbered list of four models in an identical globe template, with the 2x2 grid shown again and again.
 - fatigue 16:03.00: Wrap-up signals ('Whichever future wins...', 'Four hundred years ago...') invite exits before the Ethiopia tease at 16:19.
+
+## wf_f960301e-cc0: 0 finished, 2 running
