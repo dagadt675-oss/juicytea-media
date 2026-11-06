@@ -1,9 +1,5 @@
 # find S4 ch2 4:26.19 (still running; latest notes)
 
-Clean: only the designed Western Europe pulse pops in at 8994. Now the cap-search motion (the hemisphere sweeping between waypoints) at full rate.
-
----
-
 The first cap sweep is smooth. The later waypoints come every 0.6 to 0.7 s with large swings, so let me check those too.
 
 ---
@@ -29,3 +25,7 @@ The X slams are clean, designed 6-frame slams. Next, the "THE WATER HALF / 89%" 
 ---
 
 The 89% fade-out and the zoom to New Zealand are smooth, so that stretch is clean. Next, the final composition with the stamp, tetra edges and SUBSCRIBE button at full resolution.
+
+---
+
+Only North America stands out by that threshold, because the other pops happen while neighbouring frames already change a lot. Let me print the per-frame numbers directly around each suspected pop.
