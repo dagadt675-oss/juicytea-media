@@ -17,3 +17,4 @@ wf_96e8f33f-afb
 wf_54d8968d-d4f, wf_f838edbb-2a7, wf_9820647a-970 (resumed: S4, S7, S8, S10 finders), wf_96e8f33f-afb (resumed: voice/audio + synthesis)
 # fix agents per module (verify -> fix -> test render)
 wf_f960301e-cc0: ch1, ch3, ch4
+wf_e5278dcb-357: ch2
