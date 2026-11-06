@@ -14,3 +14,10 @@ Control is headless through the official `google-colab-cli` (`pip install google
 5. poll with `cx.sh "tail -3 /content/render.log"` every few minutes (an idle client lets Colab reclaim the VM)
 6. `colab download -s mj /content/out/c_000NN.mp4 ...`, verify frame counts (450; 179 for chunk 67), swap into `chunks/`.
 Never `| head` after a long remote command (SIGPIPE), always give `colab exec` an explicit `--timeout`, start long jobs detached (`run_bg.py`).
+
+## Measured on 2026-11-06 (Colab L4, 12 vCPU, 52 GB)
+- Setup (Playwright Chromium 1.63 + NVIDIA EGL ICD): about 1 minute; `glcheck.cjs` printed `ANGLE (NVIDIA Corporation, NVIDIA L4/PCIe/SSE2, OpenGL ES 3.2)`.
+- One 450-frame chunk (1920x1080, CRF 12): 32 s on the GPU, against 6-12 minutes on the 4-CPU box with SwiftShader (15-20x).
+- Picture: identical to the eye; mean absolute difference 0.6-1.3/255 against the SwiftShader frames (sub-pixel anti-aliasing only).
+- Cost: 1.94 compute units per hour while the L4 session runs; stop the session (`colab stop -s mj`) as soon as the chunks are downloaded.
+- `colab upload` returned HTTP 500 for a 343 MB file: upload in 40 MB parts (`upload_parts.sh`) and `cat` them on the VM, md5-verified.
