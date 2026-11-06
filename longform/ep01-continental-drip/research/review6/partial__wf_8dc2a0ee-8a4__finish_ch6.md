@@ -1,31 +1,31 @@
 # finish ch6 (still running; latest notes)
 
-Let me confirm the strip block now matches the pre-fix original exactly, then start the first test render (the s097→s098 switch).
-
----
-
-While the queue renders, let me look at the retention-panel notes the previous agent used for the grid-card border change, to confirm what it addressed.
-
----
-
-There are partial notes from earlier ch6 runs (fix_ch6 and finish_ch6). Let me read them to make sure I'm not missing work.
-
----
-
-That "finish_ch6" file is this run's own autosaved progress. Let me check the retention panels for picture notes in my time range (the grid-card border item).
-
----
-
-The Aurica model's label is drawn by its own pill call; let me give it the same linear fade-out.
-
----
-
-Both files parse, and only ch6 uses ch6_lib.js. Let me check on the filmstrip render.
-
----
-
 The filmstrip render finished (exit 0). Let me measure it, and the original chunk for comparison.
 
 ---
 
 The live hole and push-in look continuous, but I can't read the last zoom frames (29481-29487) at this size. Let me look at a few at full resolution.
+
+---
+
+Original: the sparks hold position for several frames, then hop. I'll write a tracker for spark peaks along the Gulf of Aden arm to compare per-frame motion once the new render lands.
+
+---
+
+The tracker reproduces the reported hops (1150 → 1165 → 1189 every 6 frames). Waiting for the spark render.
+
+---
+
+The Monitor will notify me as each job finishes. Meanwhile, let me compute and record the exact changed scene ranges from the timing so the report is precise.
+
+---
+
+The spark render finished (exit 0). Let me track the sparks and look at the fade-in.
+
+---
+
+The sparks now glide 2-5 px per frame (1154 → 1192 over 13 frames), where the original held and then hopped 15-25 px. Now the fade-in after the crack draw-on.
+
+---
+
+The sed in that chain replaces queue.log, which my `tail -f` monitor would stop following. Let me re-arm the monitor with `tail -F` (follow by name).
