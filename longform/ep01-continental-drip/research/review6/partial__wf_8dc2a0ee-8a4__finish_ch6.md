@@ -1,25 +1,5 @@
 # finish ch6 (still running; latest notes)
 
-The filmstrip render finished (exit 0). Let me measure it, and the original chunk for comparison.
-
----
-
-The live hole and push-in look continuous, but I can't read the last zoom frames (29481-29487) at this size. Let me look at a few at full resolution.
-
----
-
-Original: the sparks hold position for several frames, then hop. I'll write a tracker for spark peaks along the Gulf of Aden arm to compare per-frame motion once the new render lands.
-
----
-
-The tracker reproduces the reported hops (1150 → 1165 → 1189 every 6 frames). Waiting for the spark render.
-
----
-
-The Monitor will notify me as each job finishes. Meanwhile, let me compute and record the exact changed scene ranges from the timing so the report is precise.
-
----
-
 The spark render finished (exit 0). Let me track the sparks and look at the fade-in.
 
 ---
@@ -29,3 +9,23 @@ The sparks now glide 2-5 px per frame (1154 → 1192 over 13 frames), where the 
 ---
 
 The sed in that chain replaces queue.log, which my `tail -f` monitor would stop following. Let me re-arm the monitor with `tail -F` (follow by name).
+
+---
+
+The spin render is running. Let me pull the original spin frames for comparison.
+
+---
+
+The text sprite's baseline is at the given y, so the strike at y≈140 sits mid-cap on "TUESDAY" (caps span about 119-160 in the card's frame). Waiting for the spin render.
+
+---
+
+Still rendering. Meanwhile, the original Aurica handover frames as a baseline for S10-8.
+
+---
+
+The spin render finished (exit 0). Let me view the spin peak, same frames as the original.
+
+---
+
+Seamless: the ridge keeps its brightness, the gap, bus and continent tint carry through, and the pill fades on its schedule. S10-5 is fixed. Next job: the Amasia shrink and Aurica expand/handover.
