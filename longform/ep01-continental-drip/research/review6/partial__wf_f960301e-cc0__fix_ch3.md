@@ -1,21 +1,5 @@
 # fix ch3 (still running; latest notes)
 
-One roll now, ending upright at the corner. Let me check the end of the roll and the turn frame-by-frame at a closer crop.
-
----
-
-The page lands before the outline draws. Let me verify the 1899 pill up close (frame 12520; this part of the scene is independent of the K2 change).
-
----
-
-The body text no longer reads through the 1899 pill. Next, the kids page entrance (pill timing and slide landing), frames 12785-12820.
-
----
-
-The "1918" pill now fades in only after the page has landed (from 12803), and the landing has no one-frame drop at 12810. Next, the s053/s054 arrows (13265-13344).
-
----
-
 Reset spikes at 13280/13300/13320/13340 are gone. A quick look at the ring.
 
 ---
@@ -29,3 +13,19 @@ Reset spikes at 13700/13720/13740/13760 are gone and the stall itself (13781+) m
 ---
 
 At the stall all ten arrows freeze fully visible, then fade together as the ball pops back. Next, the detective board (S5-9): clue cards and the suspect card pop-in, frames 13880-13964.
+
+---
+
+Pins now grow with their cards and sit on the top edge throughout the pop-in. Next, the suspect card's fall and the "?" card (14035-14069).
+
+---
+
+The red X now tilts and falls with its card, the pin stays on the card's edge, and the "?" card's pin grows with the card. Last: the quake twitch on the photoreal globe (S5-6), frames 14280-14389.
+
+---
+
+The energy is higher than the original (up to about 2 versus 0.46) but still modest at 480 px. Let me look at the frames directly to judge whether the twitch reads.
+
+---
+
+With the 3.0 factor the seeded offsets reach about 1° (about 9 px), mostly vertical. Let me look at consecutive frames around the jolt at a closer crop.
