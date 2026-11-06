@@ -50,6 +50,9 @@ def main():
             if 'fixes' in res:
                 summary.append(f"- verdict: {res.get('verdict')}\n")
                 for r in res['fixes']: summary.append(f"- #{r.get('rank')} {mmss(r.get('t0'))}-{mmss(r.get('t1'))} [{r.get('effort')}, votes {r.get('votes')}, new voice: {r.get('needs_new_voice')}] {r.get('problem')}\n  - fix: {r.get('fix')}\n")
+            if 'results' in res and 'module' in res:
+                for r in res['results']: summary.append(f"- fix **{r.get('id')}** {r.get('status')}: {r.get('change')} ({r.get('files_lines')}) scenes {r.get('scene_ranges')}\n")
+                summary.append(f"- changed ranges: {res.get('changed_ranges')}\n- shared changes needed: {res.get('shared_changes_needed')}\n- notes: {res.get('notes')}\n")
             if res.get('intended_notes'): summary.append(f"- notes: {res['intended_notes']}\n")
         for aid in set(started) - set(results):
             label = started[aid]; tp = os.path.join(d, f'agent-{aid}.jsonl'); texts = []
