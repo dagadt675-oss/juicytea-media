@@ -1,31 +1,31 @@
 # finish ch5a (still running; latest notes)
 
-Let me quantify that jump with a frame-diff image (master, 19032→19033).
-
----
-
-The diff is dominated by the designed crack shake. Let me find the reviewer's source note for frame 19033.
-
----
-
-Two panels flagged 19033; the strategist note says it is the 6-frame crack shake (alternating per-frame jitter). Let me check how `lookOffset` is applied in the globe to size a smoother shake.
-
----
-
-Let me check the machine load and whether other renders are running before I queue test renders.
-
----
-
-The machine is shared (load ~10 on 4 cores), so I need to keep renders lean. Let me check render.cjs options.
-
----
-
-Let me quickly verify the Stage API used by the house-gag edits (project/camera/lookFrom).
-
----
-
-While those render, let me look at the master's paper figure (scene N) after the lock, to judge Madagascar consistency there.
-
----
-
 Let me quantify how far the smoothed tip paths (PATHS) deviate from the raw tip tracks, to decide how to lay trails behind the moving tips during the drift.
+
+---
+
+Now Madagascar in the paper figure: export the corrected exclusion set from the paleo module so the globe and the paper figure share it.
+
+---
+
+Let me check the render queue status (edits are atomic, but I want to know which code version each render loaded).
+
+---
+
+Let me review the whole O/P section as it now stands, and syntax-check.
+
+---
+
+While the renders run, let me verify the Madagascar index table offline: for every Ma 165-180, the polygon should exist, have 217 points, sit in the Africa-India channel, and be drawn.
+
+---
+
+Madagascar is one consistent 217-point polygon at every Ma and is now drawn throughout 160-180 Ma. Let me check the render queue.
+
+---
+
+The slam render (20048-20197) finished, exit 0. Let me look at it: tiles across the shot, then full-res frames at the impact.
+
+---
+
+India now reaches the Asian coast and the crumple marks sit at the contact; the clock stops at 43-44. Let me check full-resolution frames at the impact and after it.

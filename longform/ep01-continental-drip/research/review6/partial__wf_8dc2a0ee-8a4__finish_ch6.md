@@ -1,13 +1,5 @@
 # finish ch6 (still running; latest notes)
 
-Now the full ch6.js module (current state, with the previous agent's edits).
-
----
-
-Let me look at the previous agent's helper scripts and grabs.
-
----
-
 Let me compute the marker/word times that ch6 uses so I can map every scene to film time.
 
 ---
@@ -29,3 +21,11 @@ The first cross-fade is clean. Now the s097→s098 switch (S10-5): the previous 
 ---
 
 The residual at the switch frame is a geometric shift of the gap/bus/ridge relative to the previous frame. Let me evaluate the two cameras numerically at the switch.
+
+---
+
+Now the third S10-3 transition: the drip globe ends at D1 again, and the Bacon desk dissolves in over its last 0.25 s, so it is fully up from BC0 = D1.
+
+---
+
+Now let me look at what the optional synthesis item SYN-17 covers in my range: the words around the Tuesday callback, the pill helper, and the frames where the hero overlaps the Aurica panel.
