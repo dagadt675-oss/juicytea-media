@@ -80,7 +80,7 @@ export function highlight(ctx, map, box, p, o = {}) {
 // pill that pops in at a (outBack) and fades out at b
 export function pillT(ctx, s, x, y, t, a, b, o = {}) {
   if (t < a || t > b) return;
-  const pin = prog(t, a, a + 0.28, E.outBack), out = 1 - prog(t, b - 0.3, b, E.in);
+  const pin = prog(t, a, a + 0.28, E.outBack), out = 1 - prog(t, b - 0.3, b, o.outEase || E.in);
   const al = clamp(prog(t, a, a + 0.12)) * out; if (al <= 0.003) return;
   ctx.save(); ctx.translate(x, y); const sc = lerp(0.82, 1, pin); ctx.scale(sc, sc);
   F.pill(ctx, s, 0, 0, Object.assign({ anchor: 'center', size: 40, alpha: al, border: o.border }, o, { leader: null }));

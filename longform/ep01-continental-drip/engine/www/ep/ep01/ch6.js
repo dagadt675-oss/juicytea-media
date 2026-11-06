@@ -186,7 +186,7 @@ export async function build(api, C) {
   };
   // Aurica: Australia glows in the middle
   MODELS[3].extra = (ctx, t, pose, still) => {
-    const a = still ? 0.5 : prog(t, M.middle - 0.1, M.middle + 0.25);
+    const a = prog(t, M.middle - 0.1, M.middle + 0.25);   // same for the tile still, so the still->live handover does not pop
     if (a <= 0) return;
     const c = rotLL(pose.AU || I0, -25, 134); const q = proj(c[0], c[1]); if (!q.visible) return;
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
@@ -309,20 +309,27 @@ export async function build(api, C) {
   // ================================================================== s098  time scrub forward, spin, fog, four '?'
   const B0 = A1, B1 = M.models - 0.25;
   const SPIN0 = M.form - 0.15, SPIN1 = M.form + 1.75;
+  // the pull-back starts from s097's (still drifting) camera, so position and speed carry over the cut
+  // (camAt's breathing factor is divided out here because camAt re-applies it)
+  const KB0 = (t) => { const c = camA(t); return { t: B0, lat: c.lat, lon: c.lon, alt: c.alt / (1 + 0.006 * Math.sin(t * 0.7)), tilt: c.tilt }; };
+  const inOutQuad = (x) => x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+  // inOutExpo jumps by 2^-11 at both ends (0.03 deg over this 66 deg pull-back = a 1 px hop on the first s098 frame): offset-free version
+  const expo0 = (x) => x <= 0 ? 0 : x >= 1 ? 1 : E.inOutExpo(x) + Math.pow(2, -11) * (2 * x - 1);
   const camB = (t) => {
-    if (t < B0 + 1.9) return camAt([{ t: B0, lat: -17.8, lon: -13.4, alt: 0.9, tilt: 22 }, { t: B0 + 1.9, lat: 30, lon: -62, alt: 2.85, tilt: 0, ease: E.inOutExpo }], t, 0);
+    if (t < B0 + 1.9) return camAt([KB0(t), { t: B0 + 1.9, lat: 30, lon: -62, alt: 2.85, tilt: 0, ease: expo0 }], t, 0);
     const k = prog(t, SPIN0, SPIN1, E.inOut);
     const lat = lerp(lerp(30, 32, prog(t, B0 + 1.9, SPIN0, E.lin)), 38, k);
-    const lon = -62 - 8 * prog(t, B0 + 1.9, SPIN0, E.lin) - 750 * k - 1.2 * Math.max(0, t - SPIN1);
+    // one turn + 30 deg (same end face as before, 390 = 750 - 360) with a softer ease: peak ~14 deg/frame instead of ~38
+    const lon = -62 - 8 * prog(t, B0 + 1.9, SPIN0, E.lin) - 390 * prog(t, SPIN0, SPIN1, inOutQuad) - 1.2 * Math.max(0, t - SPIN1);
     return { lat, lon, alt: lerp(2.85, 2.72, k) * (1 + 0.006 * Math.sin(t * 0.7)), tilt: 0, heading: 0 };
   };
   const SCRUB = { x0: 330, x1: 1590, y: 112 };
   base(B0, B1, (ctx, lt, t) => {
     const fog = prog(t, M.form - 0.05, M.form + 1.3, E.inOut);
-    globe(ctx, camB(t), { desat: lerp(0.18, 0.6, fog), dim: 0.06 + 0.12 * fog, ovAlpha: 0 }, null);
-    // ridge + bus gap fade out as we pull back
+    // ridge + bus gap (+ s097's faint cold tint and drip arcs) fade out as we pull back, starting from s097's end values
     const fa = 1 - prog(t, B0, B0 + 0.5);
-    if (fa > 0) { drawRidge(ctx, t, fa); drawGap(ctx, t, fa); }
+    globe(ctx, camB(t), { desat: lerp(0.18, 0.6, fog) + 0.02 * fa, dim: 0.06 + 0.02 * fa + 0.12 * fog, ovAlpha: 0.12 * fa }, fa > 0 ? COLD : null);
+    if (fa > 0) { drawArcs(ctx, t, 0, { full: true, alpha: 0.18 * fa, width: 3.2 }); drawRidge(ctx, t, 0.6 * fa); drawGap(ctx, t, fa); }
     // fog over the globe
     if (fog > 0) {
       const d = g.disc();
@@ -376,10 +383,13 @@ export async function build(api, C) {
       if (t >= m.tLive && t < m.tShrink) { if (t < m.tHold) drawLive(ctx, m, t); else drawHold(ctx, m, t); return; }
       spaceBg(ctx, t);
       const tiles = gridTiles(S, t, { done: MODELS.map((_, j) => j < mi || (j === mi && t >= m.tShrink)) });
-      const k = t < m.tLive ? prog(t, m.tExp, m.tLive, E.inOutExpo) : 1 - prog(t, m.tShrink, m.tEnd, E.inOutExpo);
+      // cubic in-out (not expo): the card travels over the whole window instead of snapping in 3 frames and stopping dead
+      const k = t < m.tLive ? prog(t, m.tExp, m.tLive, E.inOut) : 1 - prog(t, m.tShrink, m.tEnd, E.inOut);
       const act = tiles[mi]; tiles[mi] = null;
       drawTiles(ctx, t, tiles);
-      if (k > 0.98) { ctx.drawImage(t < m.tLive ? S[mi].a : S[mi].b, 0, 0); }
+      // full-frame still only once the card really fills the frame: the card's border slides off/on at the screen edge
+      // instead of popping at ~1-2 % inset
+      if (k > 0.9995) { ctx.drawImage(t < m.tLive ? S[mi].a : S[mi].b, 0, 0); }
       else drawTiles(ctx, t, [Object.assign(act, { rect: lerpR(SLOT[mi], FULL, k), radius: lerp(16, 0, k), q: act.q * (1 - k) })]);
     });
     cue(m.tExp, 'whoosh_soft', -15);
@@ -388,7 +398,8 @@ export async function build(api, C) {
     const pin = [M.proxname, w.novoname, w.amasia, M.aurica][mi] - 0.09;
     over(pin, m.tShrink - 0.02, (ctx, lt, t) => {
       if (mi === 3) return; // Aurica handles its own (AU + RICA assembly)
-      L.pillT(ctx, 'MODEL: ' + m.name, 96 + F.measure(ctx, 'MODEL: ' + m.name, { size: 42, fam: F.FAM.label, weight: 700, tracking: 0.08 }) / 2 + 24, 104, t, pin, m.tShrink - 0.02, { size: 42, border: m.col });
+      // linear 9-frame fade-out (the default ease-in fade drops the last half in ~2 frames, which reads as a pop)
+      L.pillT(ctx, 'MODEL: ' + m.name, 96 + F.measure(ctx, 'MODEL: ' + m.name, { size: 42, fam: F.FAM.label, weight: 700, tracking: 0.08 }) / 2 + 24, 104, t, pin, m.tShrink - 0.02, { size: 42, border: m.col, outEase: E.lin });
     });
     if (mi < 3) cue(pin + 0.02, 'pop_ui', -14);
   });
@@ -411,7 +422,7 @@ export async function build(api, C) {
       const target = 'MODEL: AURICA', tw = F.measure(ctxm, target, fo), tx0 = 96 + 24, ty = 104;
       const k = prog(t, tN - 0.05, tN + 0.45, E.inOutExpo);
       if (t >= tN - 0.05) {
-        if (k >= 1) { L.pillT(ctx, target, tx0 + tw / 2, ty, t, tN + 0.42, tOut, { size: PS, border: PAL.green }); }
+        if (k >= 1) { L.pillT(ctx, target, tx0 + tw / 2, ty, t, tN + 0.42, tOut, { size: PS, border: PAL.green, outEase: E.lin }); }
         if (k < 1.0 || t < tN + 0.55) {
           const x0 = px - fw / 2, auX0 = x0, ricaX0 = x0 + F.measure(ctxm, 'AUSTRALIA + AME', fo);
           const auX1 = tx0 + F.measure(ctxm, 'MODEL: ', fo), ricaX1 = auX1 + F.measure(ctxm, 'AU', fo) + PS * 0.08;
@@ -439,16 +450,30 @@ export async function build(api, C) {
   const Q_NA = qTop(40, -100), Q_AF = qTop(8, 18);
   const GA0 = M.neighbor - 0.14, GA1 = w.inaway + 0.0;
   const runL0 = M.neighbor + 0.05, runL1 = runL0 + 0.85, runR0 = runL1 + 0.3, runR1 = runR0 + 1.0;
-  hero.play(runL0, 'Run_Left', { fade: 0.15 }).play(runL1, 'Idle', { fade: 0.15 }).play(runR0, 'Run_Right', { fade: 0.15 }).play(runR1, 'Idle', { fade: 0.2 });
+  const back0 = runR1 + 0.2, back1 = back0 + 0.44;   // short sidestep back toward the centre for the comment ask
+  // The strafe clips are named from the character's side: he faces the camera, so 'Run_Right' travels screen-left.
+  // Clip speeds match the root speed of the moves below (stride = 1.64 world u/s at speed 1, scale 0.55): planted feet stay put.
+  hero.play(runL0, 'Run_Right', { fade: 0.15, speed: 0.75 }).play(runL1, 'Idle', { fade: 0.15 })
+    .play(runR0, 'Run_Left', { fade: 0.15, speed: 1.22 }).play(runR1, 'Idle', { fade: 0.2 })
+    .play(back0, 'Run_Right', { fade: 0.15, speed: 0.85 }).play(back1, 'Idle', { fade: 0.2 });
   const GB0 = SEG('s104').start + 6.9, faint = M.mammal - 0.12;   // gag 10b
   hero.play(GB0 - 0.4, 'Idle_Neutral', { fade: 0.3 }).play(faint, 'Death', { fade: 0.12, once: true });
   const GD0 = M.breakup - 0.05;   // Gondwana callback: waving
   hero.play(GD0 - 0.3, 'Wave', { fade: 0.1 });
+  // fraction of a move whose speed ramps up over [a, a+f1], holds, and ramps down over [b, b+f2]: the same windows as the
+  // clip cross-fades, so the root speed follows the run clip's blend weight
+  const trap = (t, a, f1, b, f2) => {
+    const tot = b - a - f1 / 2 + f2 / 2;
+    if (t <= a) return 0;
+    if (t < a + f1) return (t - a) * (t - a) / (2 * f1) / tot;
+    if (t < b) return (t - a - f1 / 2) / tot;
+    if (t < b + f2) { const w = t - b; return (b - a - f1 / 2 + w - w * w / (2 * f2)) / tot; }
+    return 1;
+  };
   const heroX = (t) => {
-    if (t < runL0) return 0;
-    if (t < runL1 + 0.2) return lerp(0, -1.05, prog(t, runL0 + 0.05, runL1, E.inOutSine));
-    if (t < runR1 + 0.2) return lerp(-1.05, 1.0, prog(t, runR0 + 0.05, runR1, E.inOutSine));
-    return lerp(1.0, 0.35, prog(t, runR1 + 0.3, runR1 + 1.6, E.inOutSine));
+    if (t < runR0) return lerp(0, -1.05, trap(t, runL0, 0.15, runL1, 0.15));
+    if (t < back0) return lerp(-1.05, 1.0, trap(t, runR0, 0.15, runR1, 0.2));
+    return lerp(1.0, 0.35, trap(t, back0, 0.15, back1, 0.2));
   };
   const setLights = (mode) => {
     if (mode === 'hot') { st.key.color.setHex(0xff6a35); st.key.intensity = 3.4; st.key.position.set(6, 5, 4); hemi.color.setHex(0xff9a6a); hemi.groundColor.setHex(0x3a1008); hemi.intensity = 1.2; rimL.color.setHex(0xffb070); rimL.intensity = 2.2; }
@@ -477,8 +502,8 @@ export async function build(api, C) {
     drawTiles(ctx, t, tiles);
   });
   NEIGH.forEach(n => cue(n.t - 0.05, 'pop_ui', -20));
-  // gag 10a
-  base(GA0, GA1, async (ctx, lt, t) => {
+  // gag 10a (keeps running under the splash map's 0.3 s fade-in, so the cross-fade is not over black)
+  base(GA0, GA1 + 0.3, async (ctx, lt, t) => {
     const S = await ensureStills(); spaceBg(ctx, t);
     const k = prog(t, GA0, GA0 + 0.5, E.inOutExpo);
     const x = heroX(t);
@@ -529,7 +554,7 @@ export async function build(api, C) {
   const EET = L.ee(10, 12);
   const EEF = { AM: 0.52, AF: 0.12, EA: 0.42, OC: 0.62 };
   const SP0 = GA1, SP1 = SEG('s104').start - 0.15, tSplash = w.splash;
-  base(SP0, SP1, (ctx, lt, t) => {
+  base(SP0, SP1 + 0.3, (ctx, lt, t) => {   // runs on under the heat globe's 0.3 s fade-in
     ctx.fillStyle = '#05070D'; ctx.fillRect(0, 0, W, H);
     const kz = prog(t, SP0, SP1, E.inOutSine);
     const z = lerp(0.98, 1.22, kz) * (W * 0.92 / EW), cx = lerp(EW / 2, EET[0] * ES, kz * 0.7), cy = lerp(EH / 2, EET[1] * ES + 30, kz * 0.7);
@@ -554,12 +579,22 @@ export async function build(api, C) {
     }
   }, { fadeIn: 0.3 });
   cue(w.holden - 0.1, 'whoosh_soft', -16); cue(tSplash - 0.05, 'splash_big', -18);
-  // Tuesday: the Pangooy card flashes back for half a second
-  over(M.tuesday - 0.08, M.tuesday + 0.5, (ctx, lt, t) => {
-    const a = env(t, M.tuesday - 0.08, M.tuesday + 0.5, 0.06, 0.12);
+  // Tuesday: the Pangooy card comes back on "Just", holds through "...not on a Tuesday." (~1.7 s, readable), and TUESDAY is
+  // struck through on the word; gone before the heat globe fades in
+  const TU0 = wf('s103', 'just') - 0.08, TU1 = Math.min(M.tuesday + 1.15, SP1 - 0.1);
+  over(TU0, TU1, (ctx, lt, t) => {
+    const a = env(t, TU0, TU1, 0.12, 0.25);
     ctx.save(); ctx.fillStyle = `rgba(3,5,10,${0.45 * a})`; ctx.fillRect(0, 0, W, H); ctx.restore();
-    const s = lerp(1.15, 1, prog(t, M.tuesday - 0.08, M.tuesday + 0.1, E.outBack));
-    ctx.save(); ctx.translate(W / 2, H / 2 - 30); ctx.scale(s, s); L.pangooyCard(ctx, 0, 0, -0.04, t, a); ctx.restore();
+    const s = lerp(1.15, 1, prog(t, TU0, TU0 + 0.18, E.outBack));
+    ctx.save(); ctx.translate(W / 2, H / 2 - 30); ctx.scale(s, s); L.pangooyCard(ctx, 0, 0, -0.04, t, a);
+    const sp = prog(t, M.tuesday - 0.04, M.tuesday + 0.2, E.out);
+    if (sp > 0) {   // in the card's own frame (pangooyCard: 740 x 300, rotated about its centre; the line of text starts at x 230, baseline 160)
+      const tw = F.measure(ctx, 'TUESDAY', { size: 58, fam: F.FAM.label, weight: 700, tracking: 0.03 });
+      ctx.rotate(-0.04); ctx.translate(-370, -150); ctx.globalAlpha *= a;
+      ctx.strokeStyle = PAL.hero; ctx.lineWidth = 7; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(222, 141); ctx.lineTo(222 + sp * (tw + 16), 139); ctx.stroke();
+    }
+    ctx.restore();
   }, 7);
   cue(M.tuesday, 'bell_small', -14);
 
@@ -596,7 +631,10 @@ export async function build(api, C) {
       const x = 1480, y = 470;
       F.text(ctx, 'LIVABLE FOR MAMMALS:', x, y - 110, { size: 44, fam: F.FAM.label, weight: 700, tracking: 0.12, align: 'center', color: PAL.text, alpha: a });
       const n = Math.round(lerp(10, 6, prog(t, M.tenth + 0.1, w.sixth - 0.05, E.inOut)));
-      F.text(ctx, 'UNDER 1 IN ' + n, x, y + 20, { size: 120, fam: F.FAM.head, weight: 400, tracking: 0.02, align: 'center', color: n <= 6 ? PAL.hero : PAL.text, alpha: a, shadowBlur: 30 });
+      // fixed left anchor = where the final 'UNDER 1 IN 6' sits when centred: the words stay put while the number counts down
+      const fo = { size: 120, fam: F.FAM.head, weight: 400, tracking: 0.02, shadowBlur: 30 };
+      const x0 = x - F.text(ctx, 'UNDER 1 IN 6', 0, 0, Object.assign({}, fo, { alpha: 0 })) / 2;
+      F.text(ctx, 'UNDER 1 IN ' + n, x0, y + 20, Object.assign({}, fo, { align: 'left', color: n <= 6 ? PAL.hero : PAL.text, alpha: a }));
       ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = PAL.hero; const lw = 360 * prog(t, w.sixth - 0.05, w.sixth + 0.3, E.outExpo); ctx.fillRect(x - lw / 2, y + 52, lw, 5); ctx.restore();
     }
   });
@@ -661,7 +699,7 @@ export async function build(api, C) {
   // the tear + bookend globe
   const D0 = STRIP_B, D1 = SEG('s106').start - 0.2;
   const TEAR = (() => { const r = F.rng(7), pts = []; for (let y = -20; y <= H + 20; y += 36) pts.push([W / 2 + (r() - 0.5) * 70 + Math.sin(y * 0.02) * 30, y]); return pts; })();
-  base(D0, D1, async (ctx, lt, t) => {
+  base(D0, D1, async (ctx, lt, t) => {   // the Bacon desk cross-fades in over its last 0.25 s
     const cam = camAt([{ t: D0, lat: -29, lon: 12, alt: 3.05, ease: E.lin }, { t: D1, lat: -31, lon: 24, alt: 2.9 }], t, 0);
     globe(ctx, cam, { desat: 0.3, dim: 0.35, ovAlpha: 1 }, COLD);
     ['froward', 'agulhas', 'kanya'].forEach((k, i) => {
@@ -694,7 +732,10 @@ export async function build(api, C) {
 
   // ================================================================== s106  1620 flick, matching capes, "not an accident", the breakup
   const BC0 = D1, BC1 = wf('s106', 'matching') - 0.2;
-  base(BC0, BC1, (ctx, lt, t) => {
+  // the desk dissolves in over the drip globe's last 0.25 s (instead of fading up from black after it), so it is fully up from
+  // BC0 on: the post edit cuts the film at ~963.03, and the first kept frame must be the clean desk, not part of a dissolve.
+  // Everything inside is timed on absolute t from BC0, so nothing moves.
+  base(BC0 - 0.25, BC1, (ctx, lt, t) => {
     L.drawDrift(ctx, DESK, W, H, t, { zoom: 1.05 });
     L.printKB(ctx, img('bacon'), prog(t, BC0, BC1), [250, 160, 560, 688], [0.5, 0.42, 1.0], [0.5, 0.36, 1.16], { grade: 'sepia', vig: 0.35, rot: -0.02 });
     const p = prog(t, M.ago - 0.75, M.ago - 0.03, E.outExpo);
@@ -803,7 +844,21 @@ export async function build(api, C) {
   const FS0 = GO1, FS1 = M.shot + 0.75;
   const TODAY_I = 4, BLANK_I = 9;
   const V2 = (BLANK_I - TODAY_I) * PITCH / (M.shot - M.frame);
-  const fX = (i, t) => W / 2 + (i - TODAY_I) * PITCH + V2 * (M.frame - t);
+  // strip scroll: constant V2 (TODAY centred on "frame"), then a 0.6 s ease-out that brings the blank frame to rest exactly
+  // at the centre at M.shot + 0.3 (same total distance, so the constant-speed part is unchanged up to M.shot - 0.3)
+  const SC_D = 0.6, SC_A = M.shot + 0.3 - SC_D;
+  const scrollAt = (t) => { const u = t - SC_A; if (u <= 0) return V2 * (t - M.frame); const v = Math.min(u, SC_D); return V2 * (SC_A - M.frame + v - v * v / (2 * SC_D)); };
+  const scrollV = (t) => { const u = t - SC_A; return u <= 0 ? V2 : V2 * Math.max(0, 1 - u / SC_D); };
+  const fX = (i, t) => W / 2 + (i - TODAY_I) * PITCH - scrollAt(t);
+  // push-in: one continuous curve. Ease-in to 1.06 while the blank frame arrives, then (live) carry that speed on and
+  // accelerate into the hole; ends at 1.1x frame-filling so the hole's border is off-screen before the cut
+  const TF = M.shot - 0.05, TZ0 = M.shot - 1.2, ZE = W / FW * 1.1, ZV = 0.06 * 3 / (TF - TZ0);
+  const zoomAt = (t) => {
+    if (t < TF) return 1 + 0.06 * E.in(clamp((t - TZ0) / (TF - TZ0)));
+    const s = Math.min(t - TF, 0.75);
+    return 1.06 + ZV * s + (ZE - 1.06 - ZV * 0.75) * inExpo(s / 0.75);
+  };
+  let STRIPCV = null;   // offscreen layer for the strip (band + frames), composited with a horizontal motion blur
   // Afar camera (shared by the strip hole and the Afar scene)
   const camAfar = (t) => {
     const c = camAt([{ t: M.shot - 0.05, lat: 4, lon: 30, alt: 3.0 }, { t: M.shot + 2.9, lat: 8.6, lon: 40.3, alt: 0.38, tilt: 40, heading: -8, ease: E.inOut },
@@ -816,18 +871,24 @@ export async function build(api, C) {
   const AFLOOK = { desat: 0.08, dim: 0, ovAlpha: 0, relief: 1.0, exposure: 1.3 };
   base(FS0, FS1, async (ctx, lt, t) => {
     const P = await ensurePaleo(); const S = await ensureStills();
-    const live = t >= M.shot - 0.05, tt = Math.min(t, M.shot - 0.05);
+    const live = t >= TF, tt = t;
     const sZ = lerp(0.5, 1, prog(t, FS0 + 0.65, M.frame - 0.12, E.inOut));
-    const zoom = live ? lerp(1, W / FW * 1.02, prog(t, M.shot - 0.05, M.shot + 0.7, inExpo)) : 1 + 0.06 * prog(t, M.shot - 1.2, M.shot - 0.05, E.inOut);
+    const zoom = zoomAt(t);
     const fxB = fX(BLANK_I, tt);
     const hole = [fxB - FW / 2, BANDY - FH / 2, FW, FH];
+    const tfm = (c) => { c.translate(fxB, BANDY); c.scale(zoom, zoom); c.translate(-fxB, -BANDY); c.translate(W / 2, BANDY); c.scale(sZ, sZ); c.translate(-W / 2, -BANDY); };
     if (live) globe(ctx, camAfar(t), AFLOOK, null);
+    // static backdrop (outside the hole once it is live)
     ctx.save();
-    ctx.translate(fxB, BANDY); ctx.scale(zoom, zoom); ctx.translate(-fxB, -BANDY);
-    ctx.translate(W / 2, BANDY); ctx.scale(sZ, sZ); ctx.translate(-W / 2, -BANDY);
-    if (live) { ctx.beginPath(); ctx.rect(-W * 8, -H * 8, W * 17, H * 17); ctx.rect(hole[0], hole[1], hole[2], hole[3]); ctx.clip('evenodd'); }
-    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); spaceBg(ctx, t); ctx.restore();
-    drawBand(ctx, -W * 3, W * 4, { scroll: -V2 * tt });
+    if (live) { tfm(ctx); ctx.beginPath(); ctx.rect(-W * 8, -H * 8, W * 17, H * 17); ctx.rect(hole[0], hole[1], hole[2], hole[3]); ctx.clip('evenodd'); ctx.setTransform(1, 0, 0, 1, 0, 0); }
+    spaceBg(ctx, t);
+    ctx.restore();
+    // the strip itself goes to an offscreen layer (hole cut out when live), then is composited with motion blur
+    const MB = 24, SCV = STRIPCV || (STRIPCV = L.makeCanvas(W + 2 * MB, H)), outer = ctx;   // MB: side margin for the blur shifts
+    ctx = SCV.getContext('2d');
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.clearRect(0, 0, W + 2 * MB, H);
+    ctx.save(); ctx.translate(MB, 0); tfm(ctx);
+    drawBand(ctx, -W * 3, W * 4, { scroll: -(scrollAt(tt) + V2 * M.frame) });
     const xMin = W / 2 - W / 2 / sZ - FW, xMax = W / 2 + W / 2 / sZ + FW;
     const ims = [...P.slice(0, 4), P[4], ...S.map(s => s.b)];
     for (let i = 0; i < 12; i++) {
@@ -848,7 +909,17 @@ export async function build(api, C) {
         }
       }
     }
+    if (live) { ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = '#000'; ctx.fillRect(hole[0], hole[1], hole[2], hole[3]); }
     ctx.restore();
+    ctx = outer;
+    // horizontal motion blur of the scrolling strip (half-frame shutter): averages 4 shifted copies of the layer
+    // (running average via alpha 1/(k+1)); only the band's rows are composited
+    const blur = scrollV(tt) * sZ / 60, bh = BANDH / 2 * sZ * zoom + 4;
+    const y0 = Math.max(0, Math.floor(BANDY - bh)), y1 = Math.min(H, Math.ceil(BANDY + bh));
+    if (y1 > y0) {
+      const NB = blur > 0.75 ? 4 : 1;
+      for (let k = 0; k < NB; k++) { ctx.save(); ctx.globalAlpha = 1 / (k + 1); ctx.drawImage(SCV, MB - (NB > 1 ? blur * (k / (NB - 1) - 0.5) : 0), y0, W, y1 - y0, 0, y0, W, y1 - y0); ctx.restore(); }
+    }
     // the Gondwana view shrinks into its frame at the start
     const sk = prog(t, FS0, FS0 + 0.7, E.inOutExpo);
     if (sk < 1) {
@@ -886,9 +957,21 @@ export async function build(api, C) {
     const ep = prog(t, M.eafr - 0.1, M.eafr + 1.8, E.inOut);
     if (ep > 0) { const P = armPts(ARM2); if (P.length > 1) { const pul = 0.5 + 0.5 * Math.sin((t - M.eafr) * 7); if (ep >= 1) band(ctx, P, wide * 0.8, 1); F.glowPath(ctx, P, { p: ep, color: '#FF7A45', width: 4.5 + 2.5 * pul, glowColor: '#FF5A36', dash: null }); F.glowPath(ctx, P, { p: ep, color: '#fff3d6', width: 1.4, alpha: 0.8 }); } }
     // sparks drifting along the arms
-    if (cp >= 1) {
-      ctx.save(); ctx.globalCompositeOperation = 'lighter';
-      ARMS.forEach((pts, i) => { const P = armPts(pts); if (P.length < 2) return; for (let j = 0; j < 4; j++) { const u = ((t * 0.18 + j / 4 + i * 0.13) % 1); const idx = Math.min(P.length - 1, Math.floor(u * (P.length - 1))); const q = P[idx]; const gg = ctx.createRadialGradient(q[0], q[1], 0, q[0], q[1], 16); gg.addColorStop(0, 'rgba(255,230,170,0.85)'); gg.addColorStop(1, 'rgba(255,120,60,0)'); ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(q[0], q[1], 16, 0, Math.PI * 2); ctx.fill(); } });
+    // (interpolated between the arm's points so they glide; fade in after the draw-on, and fade at both ends of an arm so the
+    // wrap from the tip back to the junction is never seen)
+    const spA = prog(t, M.cracks + 0.9, M.cracks + 1.3);
+    if (cp >= 1 && spA > 0) {
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; const ga = ctx.globalAlpha;
+      ARMS.forEach((pts, i) => {
+        const P = armPts(pts); if (P.length < 2) return;
+        for (let j = 0; j < 4; j++) {
+          const u = ((t * 0.18 + j / 4 + i * 0.13) % 1), a = spA * clamp(Math.min(u, 1 - u) / 0.15); if (a <= 0.003) continue;
+          const f = u * (P.length - 1), i0 = Math.min(P.length - 1, Math.floor(f)), i1 = Math.min(P.length - 1, i0 + 1), fr = f - i0;
+          const q = [lerp(P[i0][0], P[i1][0], fr), lerp(P[i0][1], P[i1][1], fr)];
+          const gg = ctx.createRadialGradient(q[0], q[1], 0, q[0], q[1], 16); gg.addColorStop(0, 'rgba(255,230,170,0.85)'); gg.addColorStop(1, 'rgba(255,120,60,0)');
+          ctx.globalAlpha = ga * a; ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(q[0], q[1], 16, 0, Math.PI * 2); ctx.fill();
+        }
+      });
       ctx.restore();
     }
     // Afar marker
