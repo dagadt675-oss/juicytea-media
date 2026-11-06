@@ -1,21 +1,5 @@
 # fix ch2 (still running; latest notes)
 
-Now S4-2/S4-1. First a `facing` helper on the ch2 projector (ch2_lib.js), then the drop loop and the hero hand-off.
-
----
-
-Now S4-3 (montage flash counts only cuts already passed).
-
----
-
-Now S4-6 (soft limb occlusion for the tetra corner glows).
-
----
-
-Now S4-5/S4-12. First the juiceStamp options in ch2_lib.js (opt-out of the restart fade, optional plate colour; defaults unchanged for the other caller).
-
----
-
 Now the stamp flight/landing in ch2.js.
 
 ---
@@ -29,3 +13,19 @@ Checking whether any other module imports ch2_lib.js (my lib edits are additive 
 ---
 
 Only ch2.js uses ch2_lib.js, and the existing FALSE stamp call keeps its defaults. Starting test renders, first the G→H cut (S3-1/S3-2): frames 7085-7184.
+
+---
+
+Rendered in 61 s, exit 0. Checking the log for scene errors and viewing the cut (video index 0 = film frame 7085).
+
+---
+
+Headline now holds through "If you dig straight down" and fades out at 7151-7163 before China lights up; the globe move is continuous. S3-1/S3-2 fixed. Next S3-8 (overlay hold), frames 6875-7024:
+
+---
+
+The overlay now holds from 6895 through "not more land" and fades out at about 6985-6992. Checking numerically that the hand-over to the headline dim has no bright dip:
+
+---
+
+Smooth: luma eases down as the overlay fades and the headline then fades in, with no dip. S3-8 fixed. Next S3-3, the forward drag (6220-6339):

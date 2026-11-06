@@ -1,17 +1,5 @@
 # fix ch1 (still running; latest notes)
 
-City dots now fade smoothly alongside the ring. Next, S1-3/S1-4 (hand-off and US highlight):
-
----
-
-The overlay, arcs and ring now clear before the boundary, and f1148→f1149 is one continuous framing. Let me check the whip and the US highlight.
-
----
-
-The whip is smooth and the contiguous US is now highlighted. Let me check one full-res frame for the Kansas dot and dig line over the red fill.
-
----
-
 S1-4 is confirmed: the US is lit, with the Kansas dot and dig line readable. Now the cutaway framing (S1-5):
 
 ---
@@ -29,3 +17,15 @@ The print now falls out of frame (gone by F3243) before the cut at F3245. Now th
 ---
 
 The whip now starts fastest on the cut and decays monotonically: 2.8 down to 0.2 mean diff, where the old version stopped dead at F3523-3525 and then pushed again. Next, the quote bar (S2-6):
+
+---
+
+The quote bar now fades in and sits between Greenland and Africa, with all five tips fully visible. Next, the magnifier (S2-7):
+
+---
+
+The magnifier now fades in on the cut (F4771-4774) and fades out in the wide (F4848-4856) instead of popping. Before the last renders, let me remove the temporary debug instrumentation.
+
+---
+
+Debug code is gone, the module parses, and only `ch1.js` changed. Now S2-8 (byline ring):

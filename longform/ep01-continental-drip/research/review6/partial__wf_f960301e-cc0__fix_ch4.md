@@ -21,3 +21,11 @@ The tiles are too small to judge the arrows, so I'll look at full-resolution cro
 ---
 
 S6-9 is confirmed: all four chevrons jump back toward the ridge between 17219 and 17220. Next, S6-10 (the fingernail panel title).
+
+---
+
+S6-10 is confirmed: the title spans the globe and the panel edge, and the two African arrows end exactly at the panel border. Next, S6-11 (the drip-globe arrows).
+
+---
+
+S6-11 is confirmed: the Cape Horn arrow hangs off the lower-left limb into space, and India's arrow sits on the right limb with only a sliver of red. Next, S6-12 (the rewind card counter).
