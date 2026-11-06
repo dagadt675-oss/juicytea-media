@@ -1,6 +1,6 @@
 # Review round 6: what the agents found (auto-saved)
 
-## wf_54d8968d-d4f: 3 finished, 4 running
+## wf_54d8968d-d4f: 3 finished, 5 running
 
 ### find S2 ch1 1:25.79
 - **S2-1** 1:48.03-1:48.13 [major/high, jerky_motion] On 'trying', the toppling pile slides off down-left and accelerates to about 130-180 px/frame. The Bacon print then stops dead with a ~250x220 px corner still in the lower-left of frame and hangs there motionless for 4 frames before the hard cut to Forster. It reads as the paper snagging on the frame edge.
@@ -158,7 +158,7 @@ Audio flags, outside visual scope:
 - SFX masking at 3:37.65-3:38.00 is likely sfx(tm.line - 0.03, 'impact_deep', -6) at ch2.js:456. It is the loudest ch2 cue (others are -10 to -20 dB) and sits on "line up"; about -14 dB is suggested.
 - The voice-tail cuts at 3:05.50 and 4:17.38 come from the narration audio edit, not from ch2 code.
 
-## wf_f838edbb-2a7: 2 finished, 3 running
+## wf_f838edbb-2a7: 2 finished, 4 running
 
 ### find S6 ch4 8:01.49
 - **S6-1** 8:38.97-8:39.27 [minor/medium, too_fast] The far Austrian door opens onto warm light but the camera hardly moves. The Austria map then dissolves in over it, and for 3-4 frames a see-through ghost of the near German-flag doorframe sweeps across the right third of the map. The planned rush through the door and the warm flash never show.
@@ -254,7 +254,7 @@ Tool caveat for all reviewers: tools/grab.py (ffmpeg call at line 26) uses the d
   - fix: Normalise the curve: outExpo: t => t >= 1 ? 1 : (1 - Math.pow(2, -10 * t)) / (1 - Math.pow(2, -10)). This is a shared helper, so all chapters benefit. (engine/www/lib/fx.js:13 (used at ch3.js:174, 242, 339, 476))
 - notes: Intended and reading well: all hard cuts land on narration beats (E1, E5, E6, E9, E12, E16, E18, E21-E24, E30, E32). E8 is the designed 0.2 s white callback flash. E7 and E31 are ends of crossfades. E10 is the panel slide plus 3D reframe (outExpo wrapped in inOut, smooth, peak about 47 px/frame). E11 is the 5/5 stamp, E13 the page-238 slap-in, E17 the whip-pan to the antipode (continuous, small zoom bounce at the key), E19 the kids pop-in, E20 the chalk circle-to-pyramid morph. E25 is the stall 'boing' gag; the 2-frame cage fade and the cartoon hang are deliberate. E26-E29 are the board entrances, the red-X slam and the suspect-card fall. Not intended: E3/E4 are stops inside the stuttering title push (S5-1), E14 is the page-237 pop (S5-4), and E15 is the start of the rushed page-238 lunge (S5-7). Chunk seams: all nine in this segment (10800, 11250, 11700, 12150, 12600, 13050, 13500, 13950, 14400) were compared at block level (450k-1 vs 450k); no look change, only encoder-level noise. Clean stretches: the Hawaii globe; the bent-card water diorama (no flicker); the triangle flash; the checklist camera swings, including the 6:39.8-6:40.4 top-to-bottom flip, which is fast (about 200 deg/s peak) but continuous; the North America/antipode globe and dig ripple; the kids page (staggered pop-ins, nods, middle kid's spin); the frozen tetra with the '?' (calm but deliberate); the measure globe with tape, ellipse and X; the cutaway; the stall drop and push-in; the board push; the Ortelius push and coast glows; the flat-map Greenland pop and dip to white. Narration sync is within about 0.15 s everywhere I checked. Minor timing notes not raised as findings: because outExpo is wrapped in prog's default inOut, the board shot opens on an empty board for 6 frames (13882-13887) and the kids page on an empty desk for 2 frames. Also, cooling arrows overlap the tetra's bottom corner in s054/s055. Tool note: tools/grab.py duplicates the first decoded frame, so its tile labels after the first frame are one frame late. The frame numbers above come from an exact decode (ffmpeg -fps_mode passthrough; scripts in scratchpad/review6/s5tools/).
 
-## wf_9820647a-970: 1 finished, 3 running
+## wf_9820647a-970: 1 finished, 5 running
 
 ### find S9 ch5b 13:02.40
 - **S9-1** 13:51.03-13:51.13 [major/high, flash_glitch] On 'Cape Agulhas', the zoomed-in globe of the Cape cuts to an almost black frame, and the ASTER satellite plate then ramps up over 3 frames. The result is a dark blink at the cut. Every other cut in the segment is clean, so this one stands out as a glitch.
@@ -311,7 +311,7 @@ TOOLING: tools/grab.py duplicates the first decoded frame (ffmpeg's default cons
 
 AUDIO: the README flag at 14:04.36 is real. There is an abrupt drop at 844.36-844.37, the end of s094 'north.'. No visual event coincides with it (the N1 cut is at 844.67). It is outside the animation scope.
 
-## wf_96e8f33f-afb: 4 finished, 2 running
+## wf_96e8f33f-afb: 4 finished, 3 running
 
 ### panel: casual
 - would leave at: 2:41 (161 s), on 'Three years later, a geologist published his own version of the joke. Hold on to him. He matters more than you'd think.' By then I've had four 'someone else noticed it' stories in a row (Bacon, Forster, Humboldt, the 1973 magazine). The cape list from 0:03-0:12 was just repeated word for word at 2:21. On screen is a fake page of grey placeholder lines with a yellow ring around a blurred name. I've had nothing new on the 'why' since the 0:31 tease. What would have kept me: the dig-to-China and 'Antarctica sits opposite the Arctic' material (now 2:55-5:28) coming right after the hook, with the history cut to about a minute.

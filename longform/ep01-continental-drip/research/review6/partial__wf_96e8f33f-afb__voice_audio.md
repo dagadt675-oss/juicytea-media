@@ -1,3 +1,7 @@
 # voice + audio (still running; latest notes)
 
-You've hit your 5-hour limit · resets 1:30am (UTC)
+I'll start by reading all the provided material.
+
+---
+
+Now the overview images.
