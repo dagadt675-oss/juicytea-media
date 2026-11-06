@@ -80,6 +80,13 @@ async function runJob(browser, port, job, start, n) {
   await page.goto(url);
   await page.waitForFunction(() => window.ready !== undefined, null, { timeout: 180000 });
   await page.evaluate(() => window.ready);
+  if (process.env.GPU === '1') {
+    // fail fast instead of silently rendering on software GL for hours; then render and discard one warm-up frame (the first GPU frame can read back black)
+    const rend = await page.evaluate(() => { const c = document.createElement('canvas'); const g = c.getContext('webgl2') || c.getContext('webgl'); if (!g) return 'no-webgl'; const e = g.getExtension('WEBGL_debug_renderer_info'); return String(e ? g.getParameter(e.UNMASKED_RENDERER_WEBGL) : g.getParameter(g.RENDERER)); });
+    if (!/NVIDIA/i.test(rend)) throw new Error('GPU=1 but the WebGL renderer is "' + rend + '" (expected NVIDIA)');
+    console.log(`[j${job}] GPU renderer: ${rend}`);
+    await page.evaluate(async (f) => { await window.renderFrame(f); await window.grabBlob(); }, start);
+  }
   await page.evaluate(async ({ start, n, job }) => {
     for (let f = start; f < start + n; f++) {
       await window.renderFrame(f);
@@ -100,7 +107,11 @@ async function runJob(browser, port, job, start, n) {
   const sinks = segs.map(sg => ffSink(sg.out));
   const server = await startServer(sinks);
   const port = server.address().port;
-  const browsers = await Promise.all(segs.map(() => chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--disable-gpu-vsync', '--js-flags=--max-old-space-size=4096'] })));
+  // GPU=1 (Colab L4 etc.): ANGLE on the NVIDIA EGL driver instead of SwiftShader; the renderer is asserted per page in runJob
+  const GPU = process.env.GPU === '1';
+  const ARGS = GPU ? ['--no-sandbox', '--use-gl=angle', '--use-angle=gl-egl', '--ignore-gpu-blocklist', '--enable-gpu', '--disable-gpu-vsync', '--js-flags=--max-old-space-size=4096']
+                   : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--disable-gpu-vsync', '--js-flags=--max-old-space-size=4096'];
+  const browsers = await Promise.all(segs.map(() => chromium.launch({ args: ARGS })));
   await Promise.all(segs.map((sg, j) => runJob(browsers[j], port, j, sg.s, sg.n)));
   await Promise.all(browsers.map(b => b.close()));
   sinks.forEach(s => s.proc.stdin.end());
