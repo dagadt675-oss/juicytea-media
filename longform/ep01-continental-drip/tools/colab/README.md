@@ -21,3 +21,9 @@ Never `| head` after a long remote command (SIGPIPE), always give `colab exec` a
 - Picture: identical to the eye; mean absolute difference 0.6-1.3/255 against the SwiftShader frames (sub-pixel anti-aliasing only).
 - Cost: 1.94 compute units per hour while the L4 session runs; stop the session (`colab stop -s mj`) as soon as the chunks are downloaded.
 - `colab upload` returned HTTP 500 for a 343 MB file: upload in 40 MB parts (`upload_parts.sh`) and `cat` them on the VM, md5-verified.
+
+## Handing a large file to the owner (2026-11-06)
+`colab drivemount` fails on a headless session (the Drive mount needs the notebook's permission pop-up), and the in-chat file limit is
+400 MiB. What worked: upload the master to a CPU session in 40 MB parts (`upload_master.sh`, md5-checked on the VM), then give the
+owner `colab url -s up`; in that notebook a two-line cell mounts Drive interactively and copies `/content/mythjuice/*` to My Drive.
+A CPU session costs about 0.08 compute units per hour; stop it once the owner has the files.
