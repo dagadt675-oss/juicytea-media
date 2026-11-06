@@ -1,13 +1,5 @@
 # finish ch6 (still running; latest notes)
 
-Let me compute the marker/word times that ch6 uses so I can map every scene to film time.
-
----
-
-Let me check how the post edit (edl.py) maps the cut times to frames, since the frames at the cut boundaries in my module matter.
-
----
-
 Let me check the previous agent's test renders (frame counts) and the chunk files they compare against.
 
 ---
@@ -29,3 +21,11 @@ Now the third S10-3 transition: the drip globe ends at D1 again, and the Bacon d
 ---
 
 Now let me look at what the optional synthesis item SYN-17 covers in my range: the words around the Tuesday callback, the pill helper, and the frames where the hero overlaps the Aurica panel.
+
+---
+
+Let me syntax-check the module.
+
+---
+
+Let me confirm the strip block now matches the pre-fix original exactly, then start the first test render (the s097→s098 switch).
