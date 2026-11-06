@@ -1,13 +1,5 @@
 # finish ch5a (still running; latest notes)
 
-Now let me read the findings and the synthesis plan.
-
----
-
-The previous agent covered a lot in code but only verified the G-scene zipper. Let me look at its test-render logs and the current module files.
-
----
-
 Let me read the current module source in full.
 
 ---
@@ -29,3 +21,11 @@ Let me look at the previous agent's simulation helpers, which may already comput
 ---
 
 Let me compute every marker and scene boundary from timing.json.
+
+---
+
+Let me check the shared camera helper (camAt drift semantics) and a few fx helpers used by the edits.
+
+---
+
+Let me look at the previous agent's G-scene test render myself to confirm its zipper result.
