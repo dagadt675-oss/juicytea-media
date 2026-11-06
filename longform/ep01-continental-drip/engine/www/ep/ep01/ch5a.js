@@ -7,8 +7,8 @@ import * as F from '../../lib/fx.js';
 import * as THREE from '../../three.module.min.js';
 import { camAt } from '../../lib/shots.js';
 import { dripArrow } from '../../lib/beats.js';
-import { Paleo, PAIRS, TRACKED, v3, ll, apply, cross, dot, norm, circleLL, gcLL, projRuns, strokeRuns, droplet, HERO, ANTC } from './ch5a_paleo.js';
-import { EXCL, ANT } from './ch5a_data.js';
+import { Paleo, PAIRS, TRACKED, v3, ll, apply, cross, dot, norm, circleLL, gcLL, projRuns, strokeRuns, droplet, HERO, ANTC, exclSet } from './ch5a_paleo.js';
+import { ANT } from './ch5a_data.js';
 const { PAL, prog, env, clamp, lerp, E } = F;
 const D = Math.PI / 180;
 
@@ -101,6 +101,10 @@ export async function build(api, C) {
     satl: contact('samerica', 'africa', afrPts, 150, 1.8, 72, 120),
   };
   { const s = SEAMS.satl; if (ll(s.a0[0])[0] > ll(s.a0[s.a0.length - 1])[0]) { s.a0.reverse(); s.b0.reverse(); s.g0.reverse(); } } // south -> north
+  // arc length (deg) along a seam's midpoint line -> fractional pair index (the pairs are very unevenly spaced: 0.04-6.5 deg)
+  const seamCum = mid => { const c = [0]; for (let i = 1; i < mid.length; i++) c.push(c[i - 1] + angV(v3(...mid[i - 1]), v3(...mid[i]))); return c; };
+  const idxAt = (cum, a) => { const n = cum.length; if (a <= 0) return 0; if (a >= cum[n - 1]) return n - 1; let i = 0; while (cum[i + 1] < a) i++; return i + (a - cum[i]) / Math.max(1e-9, cum[i + 1] - cum[i]); };
+  const frontIdx = (mid, f) => { const c = seamCum(mid); return idxAt(c, clamp(f) * c[c.length - 1]); };
   // seam state at time T: rotated edges, per-pair opening 0..1, midpoints [lat, lon]
   function seamAt(P, s, T, po = {}) {
     const RA = P.plateRot(s.A, T, po), RB = s.B === 'antarctica' ? P.rot('antarctica', T) : P.plateRot(s.B, T, po);
@@ -117,7 +121,8 @@ export async function build(api, C) {
 
   // ---------------------------------------------------------------- time schedule (Ma) for the forward run
   const Tfwd = mono([[M.fwd - 0.05, 180], [M.afant, 158], [tG, 148], [M.zip + 0.15, T_FIRST ?? 142], [M.split, 139], [M.firstt, Math.max(131, T_SNAP + 9)],
-    [M.seam, Math.max(125.5, T_SNAP + 4.5)], [M.snap2, T_SNAP], [tI, T_SNAP - 3], [tJ, T_SNAP - 7.5], [tK, 80], [tL, 66], [tM, 56], [M.slam, 44], [tN + 0.4, 38]]);
+    [M.seam, Math.max(125.5, T_SNAP + 4.5)], [M.snap2, T_SNAP], [tI, T_SNAP - 3], [tJ, T_SNAP - 7.5], [tK, 80], [tL, 66], [tM, 56], [M.slam, 44],
+    [M.slam + 0.25, 43.5], [tN + 0.4, 43]]);   // the clock all but stops on impact: India halts on "slams"
 
   // ---------------------------------------------------------------- shared drawing helpers
   const PLOOK = { flatBase: 1, ovAlpha: 1, ovMul: 1, nightAmt: 0, relief: 0, dim: 0, desat: 0, exposure: 1.25, ambient: 0.12, specAmt: 0.16, rimAmt: 0.35 };
@@ -139,12 +144,18 @@ export async function build(api, C) {
     api.drawGlobe(ctx, st, look);
   };
   const shakeAt = (t, th, amp = 0.012, dur = 0.5) => { if (t < th || t > th + dur) return null; const k = Math.exp(-(t - th) * 7); return [Math.sin(t * 91) * amp * k, Math.cos(t * 73) * amp * k]; };
+  // rumble for "Cracks open": a ~4 Hz sway (7 frames per cycle) that decays over about half a second. (shakeAt's 91 rad/s flips
+  // direction on every frame at 30 fps and dies within 6 frames, which read as a one-frame coastline jump, f19033.)
+  const rumbleAt = (t, th, amp, dur = 0.8) => { if (t < th || t > th + dur) return null; const u = t - th, k = amp * Math.exp(-u * 4.2) * Math.min(1, u / 0.06); return [Math.sin(u * 26) * k, Math.sin(u * 21 + 0.7) * k * 0.7]; };
   const proj = (lat, lon, h = 0) => g.project(lat, lon, h);
   const plateCen = (P, c, T, po = {}) => ll(apply(P.plateRot(c, T, po), v3(...P.cen0(c))));
   // "MILLION YEARS AGO · SIMPLIFIED" chip (same placement as chapter 4)
+  // o.back: soft dark plate behind the text, for close-ups where bright land and coastlines sit behind the chip
+  const chipBack = (() => { const c = document.createElement('canvas'); c.width = 720; c.height = 320; const q = c.getContext('2d'); q.filter = 'blur(22px)'; q.fillStyle = 'rgba(3,5,10,0.82)'; F.round(q, 70, 70, 525, 176, 56); q.fill(); return c; })();
   const chip = (ctx, Ma, a, o = {}) => {
     if (a <= 0.003) return;
-    const today = o.today || 0, na = a * (1 - today);
+    // the number fades out before TODAY fades in at the same spot (a straight crossfade read as "0DAY")
+    const today = o.today || 0, na = a * (1 - clamp(today * 2)), ta = a * clamp(today * 2 - 1);
     if (o.ink) {
       if (na > 0.003) {
         F.text(ctx, String(Math.round(Ma)), 120, 186, { size: 96, fam: F.FAM.body, weight: 800, color: '#2B2520', alpha: na, shadow: false });
@@ -153,11 +164,12 @@ export async function build(api, C) {
       return;
     }
     { const gr = ctx.createRadialGradient(300, 175, 20, 300, 175, 330); gr.addColorStop(0, `rgba(3,5,10,${0.55 * a})`); gr.addColorStop(1, 'rgba(3,5,10,0)'); ctx.save(); ctx.fillStyle = gr; ctx.fillRect(-40, -160, 700, 700); ctx.restore(); }
+    if (o.back) { ctx.save(); ctx.globalAlpha = a * o.back; ctx.drawImage(chipBack, 22, 20); ctx.restore(); }
     if (na > 0.003) {
       F.counter(ctx, Ma, Ma, 1, 120, 186, { size: 96, align: 'left', alpha: na, format: v => String(Math.round(v)) });
       F.text(ctx, 'MILLION YEARS AGO · SIMPLIFIED', 124, 236, { size: 28, fam: F.FAM.label, weight: 700, tracking: 0.16, color: PAL.sub, alpha: na });
     }
-    if (today > 0.003) F.text(ctx, 'TODAY', 120, 186, { size: 104, fam: F.FAM.head, weight: 400, tracking: 0.03, color: PAL.yellow, alpha: a * today });
+    if (ta > 0.003) F.text(ctx, 'TODAY', 120, 186, { size: 104, fam: F.FAM.head, weight: 400, tracking: 0.03, color: PAL.yellow, alpha: ta });
   };
   // pill that pops (scale overshoot) at a0 and fades at a1
   const pillAt = (ctx, s, x, y, t, a0, a1, o = {}) => {
@@ -185,24 +197,36 @@ export async function build(api, C) {
   const crackPts = (mids, seed) => mids.map((m, i) => { const q = proj(m[0], m[1]); return q.visible ? [q.x + (hash(i + seed) - 0.5) * 9, q.y + (hash(i * 3 + seed) - 0.5) * 9] : null; }).filter(Boolean);
   // trail of a track point between two times (Ma) -> [[lat, lon]]
   const trail = (name, Ta, Tb, step = 0.5) => { const out = []; const n = Math.max(2, Math.ceil(Math.abs(Tb - Ta) / step)); for (let i = 0; i <= n; i++) out.push(at(name, lerp(Ta, Tb, i / n))); return out; };
-  // cyan "new ocean" strips + ridge line drawn UNDER the land into the overlay
+  // cyan "new ocean" strips + ridge line drawn UNDER the land into the overlay.
+  // list entries [seam, alpha, front?]: with a front (0..1 of the seam's length, south -> north) the strip and ridge follow the
+  // zipper front continuously (the leading quad is clipped) instead of the per-pair opening thresholds.
   const seamUnder = (list, T, po = {}, alpha = 1) => (gx, X, Y, P) => {
-    for (const [key, a] of list) {
+    for (const [key, a, front] of list) {
       const s = seamAt(P, SEAMS[key], T, po); const A = s.A.map(ll), B = s.B.map(ll);
       const unwrap = (lo, ref) => { while (lo - ref > 180) lo -= 360; while (lo - ref < -180) lo += 360; return lo; };
       const ref = A[0][1];
+      const xy = ([la, lo]) => [X(unwrap(lo, ref)), Y(la)];
+      const mixP = (p, q, f) => { const u = xy(p), v = xy(q); return [lerp(u[0], v[0], f), lerp(u[1], v[1], f)]; };
+      const n = A.length, kf = front == null ? null : frontIdx(s.mid, front);
       gx.save(); gx.globalAlpha = 0.62 * a * alpha; gx.fillStyle = '#2FB8E0'; gx.beginPath();
-      for (let i = 0; i < A.length - 1; i++) {
-        if (Math.min(s.open[i], s.open[i + 1]) < 0.02) continue;
-        const q = [A[i], A[i + 1], B[i + 1], B[i]];
-        q.forEach(([la, lo], k) => { const x = X(unwrap(lo, ref)), y = Y(la); k ? gx.lineTo(x, y) : gx.moveTo(x, y); }); gx.closePath();
+      for (let i = 0; i < n - 1; i++) {
+        let q;
+        if (kf == null) { if (Math.min(s.open[i], s.open[i + 1]) < 0.02) continue; q = [xy(A[i]), xy(A[i + 1]), xy(B[i + 1]), xy(B[i])]; }
+        else { if (i >= kf) break; const e = Math.min(1, kf - i); q = [xy(A[i]), mixP(A[i], A[i + 1], e), mixP(B[i], B[i + 1], e), xy(B[i])]; }
+        q.forEach(([x, y], k) => { k ? gx.lineTo(x, y) : gx.moveTo(x, y); }); gx.closePath();
       }
       gx.fill('nonzero');
       gx.globalAlpha = 0.95 * a * alpha; gx.strokeStyle = '#BFF6FF'; gx.lineWidth = 2.2 * P.sc; gx.lineJoin = 'round'; gx.lineCap = 'round'; gx.beginPath();
       let pen = false;
-      for (let i = 0; i < s.mid.length; i++) {
-        if (s.open[i] < 0.5) { pen = false; continue; }
-        const x = X(unwrap(s.mid[i][1], ref)), y = Y(s.mid[i][0]); pen ? gx.lineTo(x, y) : gx.moveTo(x, y); pen = true;
+      if (kf == null) {
+        for (let i = 0; i < s.mid.length; i++) {
+          if (s.open[i] < 0.5) { pen = false; continue; }
+          const [x, y] = xy(s.mid[i]); pen ? gx.lineTo(x, y) : gx.moveTo(x, y); pen = true;
+        }
+      } else if (kf > 0) {
+        const i0 = Math.min(n - 1, Math.floor(kf));
+        for (let i = 0; i <= i0; i++) { const [x, y] = xy(s.mid[i]); pen ? gx.lineTo(x, y) : gx.moveTo(x, y); pen = true; }
+        if (i0 < n - 1) { const [x, y] = mixP(s.mid[i0], s.mid[i0 + 1], kf - i0); gx.lineTo(x, y); }
       }
       gx.stroke(); gx.restore();
     }
@@ -239,7 +263,8 @@ export async function build(api, C) {
     const hl = {}; for (const [c, m] of NAMES) hl[c] = prog(t, M[m] - 0.12, M[m] + 0.16);
     const flash = Math.exp(-Math.max(0, t - M.gond) * 3.5) * (t >= M.gond - 0.03 ? 1 : 0);
     for (const c of TRACKED) hl[c] = Math.min(1, hl[c] * (1 + 0.6 * flash));
-    const po = { hl, explode: exObj(e), center: GCv, key: 'A', shelf: t > M.gond - 0.2 ? 12 : 0 };
+    // continental shelf grows with the final convergence (switching it on in one frame swelled every coast 5 frames before the lock)
+    const po = { hl, explode: exObj(e), center: GCv, key: 'A', shelf: Math.round(12 * prog(t, M.gond - 0.2, M.gond - 0.04, E.in)) };
     await paleo(P2, T, po);
     const k = prog(t, tStart + 0.6, tStart + 1.9);
     globe(ctx, camA(t), mixLook(RLOOK, PLOOK, k), shakeAt(t, M.gond - 0.02, 0.01, 0.45));
@@ -338,14 +363,15 @@ export async function build(api, C) {
   // ================================================================= F  s075: the clock runs forward; Africa/Antarctica crack
   const midAfAnt = (() => { const s = seamAt(P2, SEAMS.afant, 165); return s.mid[Math.floor(s.mid.length / 2)]; })();
   const camF = camK([{ t: tF, lat: midAfAnt[0] + 4, lon: midAfAnt[1] - 6, alt: 2.05, tilt: 10 }, { t: tG, lat: midAfAnt[0] + 3, lon: midAfAnt[1] + 2, alt: 1.7, tilt: 24, heading: 6 }], 0.3);
+  const tOcean = wordAt('s075', /^ocean/i);   // "new ocean starts seeping in": the seep starts on "ocean", Africa lights up on "Africa"
   add(tF, tG, async (ctx, t) => {
     await prep();
     const T = Tfwd(t);
     const afHL = 0.45 + 0.55 * prog(t, M.afant - 0.15, M.afant + 0.2);
-    const ga = prog(t, M.afant - 0.15, M.afant + 0.35);
+    const ga = prog(t, tOcean - 0.1, M.afant + 0.35, E.out);
     const po = { hl: { samerica: 0.4, africa: afHL, india: 0.4, australia: 0.4 }, ant: 0.75, key: 'F' + ga.toFixed(2), under: seamUnder([['afant', ga], ['indant', ga], ['satl', ga]], T) };
     await paleo(P2, T, po);
-    globe(ctx, camF(t), PLOOK, shakeAt(t, tCracks, 0.009, 0.7));
+    globe(ctx, camF(t), PLOOK, rumbleAt(t, tCracks, 0.009));
     // cracks: white jagged lines along the seams, drawn on at "Cracks open"
     const ca = prog(t, tCracks - 0.05, tCracks + 0.8) * (1 - 0.7 * prog(t, M.afant + 0.6, M.afant + 1.6));
     if (ca > 0.01) for (const [k, s0] of [['afant', 11], ['indant', 23], ['satl', 37]]) {
@@ -353,8 +379,8 @@ export async function build(api, C) {
       if (pts.length > 1) { F.glowPath(ctx, pts, { p: prog(t, tCracks - 0.05 + s0 * 0.004, tCracks + 0.75), color: '#1A1408', glowColor: '#000000', width: 8, alpha: ca * 0.5 }); F.glowPath(ctx, pts, { p: prog(t, tCracks - 0.05 + s0 * 0.004, tCracks + 0.75), color: '#ffffff', glowColor: '#FFFFFF', width: 4.5, alpha: ca }); }
     }
     // new ocean highlight between Africa and Antarctica
-    const na = env(t, M.afant - 0.1, tG, 0.25, 0.5);
-    if (na > 0.01) { const s = seamAt(P2, SEAMS.afant, T); const pts = s.mid.map(m => proj(m[0], m[1])).filter(q => q.visible).map(q => [q.x, q.y]); if (pts.length > 1) F.glowPath(ctx, pts, { p: prog(t, M.afant - 0.1, M.afant + 0.6), color: '#9FF3FF', glowColor: '#3DE3FF', width: 4, alpha: na }); }
+    const na = env(t, tOcean - 0.1, tG, 0.25, 0.5);
+    if (na > 0.01) { const s = seamAt(P2, SEAMS.afant, T); const pts = s.mid.map(m => proj(m[0], m[1])).filter(q => q.visible).map(q => [q.x, q.y]); if (pts.length > 1) F.glowPath(ctx, pts, { p: prog(t, tOcean - 0.1, M.afant + 0.6), color: '#9FF3FF', glowColor: '#3DE3FF', width: 4, alpha: na }); }
     scan(ctx, t, 0.5 * prog(t, M.fwd - 0.1, M.fwd + 0.4));
     chip(ctx, T, 1);
   });
@@ -365,20 +391,24 @@ export async function build(api, C) {
   const zG = zipMid(140, 0.5), zH = zipMid(T_SNAP + 6, 0.82);
   const camG = camK([{ t: tG, lat: zG[0] - 3, lon: zG[1] + 1, alt: 1.7, tilt: 6, heading: -6 }, { t: tH, lat: zG[0] - 1, lon: zG[1] + 1, alt: 1.45, tilt: 12, heading: 0 }], 0.3);
   const camH = camK([{ t: tH, lat: zH[0] - 6, lon: zH[1] + 1, alt: 0.95, tilt: 24, heading: -4 }, { t: M.snap2, lat: zH[0] - 3, lon: zH[1] + 1, alt: 0.8, tilt: 28, heading: 1 }, { t: tI, lat: zH[0] - 3.5, lon: zH[1] + 1, alt: 0.84, tilt: 28, heading: 2 }], 0.25);
-  // zipper teeth on the still-closed part, slider at the frontier
+  // zipper front (0..1 of the seam's length, south -> north): continuous and monotone, keyed to the narration. The physical
+  // pair-opening thresholds cross 0.5 for long runs of pairs in the same frame, which made the slider (and the cyan strip) jump.
+  const zipF = mono([[M.zip + 0.1, 0], [M.split, 0.25], [M.firstt, 0.6], [M.seam, 0.85], [M.snap2 - 0.05, 1]]);
+  // zipper teeth on the still-closed part, slider at the front
   const drawZipper = (ctx, s, t, o = {}) => {
-    const n = s.mid.length; let k = 0; while (k < n && s.open[k] > 0.5) k++;
+    const n = s.mid.length, cum = seamCum(s.mid), tot = cum[n - 1], fa = zipF(t) * tot, kf = idxAt(cum, fa);
     const pts = s.mid.map(m => proj(m[0], m[1]));
-    const glow = o.glow || 0;
-    if (k < n) {
+    const at = x => { x = clamp(x, 0, n - 1); const i = Math.min(n - 2, Math.floor(x)), f = x - i, a = pts[i], b = pts[i + 1]; return { x: lerp(a.x, b.x, f), y: lerp(a.y, b.y, f), visible: a.visible && b.visible }; };
+    const glow = o.glow || 0, done = t >= M.snap2;   // the last seam snaps on "more."
+    if (!done) {
       ctx.save(); ctx.lineCap = 'round';
-      const seg = []; for (let i = k; i < n; i++) if (pts[i].visible) seg.push([pts[i].x, pts[i].y]);
+      const s0 = at(kf), seg = s0.visible ? [[s0.x, s0.y]] : []; for (let i = Math.floor(kf) + 1; i < n; i++) if (pts[i].visible) seg.push([pts[i].x, pts[i].y]);
       if (seg.length > 1) {
         if (glow > 0) F.glowPath(ctx, seg, { color: PAL.yellow, glowColor: PAL.yellow, width: 9, alpha: glow });
         ctx.strokeStyle = 'rgba(10,12,18,0.9)'; ctx.lineWidth = 9; ctx.beginPath(); seg.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
       }
-      for (let i = k; i < n; i++) {
-        const p = pts[i]; if (!p.visible) continue;
+      for (let i = 0; i < n; i++) {
+        const p = pts[i]; if (!p.visible || i + 1e-6 <= kf) continue;
         const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)]; let dx = b.x - a.x, dy = b.y - a.y; const L = Math.hypot(dx, dy) || 1; dx /= L; dy /= L;
         const side = i % 2 ? 1 : -1, len = o.teeth || 12;
         ctx.strokeStyle = glow > 0.3 ? '#FFF2B0' : '#E8EDF5'; ctx.lineWidth = o.toothW || 5;
@@ -386,11 +416,12 @@ export async function build(api, C) {
       }
       ctx.restore();
     }
-    // slider
-    const kk = clamp(k, 1, n - 1), p = pts[kk], q = pts[kk - 1];
-    if (k > 0 && k < n && p.visible && q.visible && !o.noSlider) {
-      const ang = Math.atan2(p.y - q.y, p.x - q.x), sz = o.slider || 1;
-      ctx.save(); ctx.translate(lerp(q.x, p.x, 0.5), lerp(q.y, p.y, 0.5)); ctx.rotate(ang); ctx.scale(sz, sz);
+    // slider: rides the front, scales in when the unzipping starts; heading from +-1.2 deg of seam (the line zigzags locally)
+    const sz = (o.slider || 1) * E.outBack(prog(t, M.zip + 0.1, M.zip + 0.35, E.lin));
+    const p = at(kf), pa = at(idxAt(cum, fa - 1.2)), pb = at(idxAt(cum, fa + 1.2));
+    if (!done && sz > 0.01 && p.visible && pa.visible && pb.visible && !o.noSlider) {
+      const ang = Math.atan2(pb.y - pa.y, pb.x - pa.x);
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(ang); ctx.scale(sz, sz);
       ctx.fillStyle = 'rgba(0,0,0,0.4)'; F.round(ctx, -20, -13, 44, 30, 7); ctx.fill();
       ctx.fillStyle = PAL.yellow; F.round(ctx, -22, -15, 44, 30, 7); ctx.fill(); ctx.strokeStyle = '#1A1408'; ctx.lineWidth = 3; ctx.stroke();
       const sw = Math.sin(t * 5) * 0.25;
@@ -398,29 +429,30 @@ export async function build(api, C) {
       ctx.fillStyle = '#1A1408'; F.round(ctx, -3, 30, 6, 10, 3); ctx.fill();
       ctx.restore();
     }
-    return { k, pts };
+    return { kf, at, mid: () => at(idxAt(cum, lerp(fa, tot, 0.5))) };   // mid: middle of the still-closed part
   };
   const satlHL = (t) => 0.5 + 0.5 * prog(t, M.split - 0.12, M.split + 0.25) + 0.25 * bump(t, M.split - 0.1, M.split + 0.3, M.split + 1.2);
   add(tG, tH, async (ctx, t) => {
     await prep();
-    const T = Tfwd(t), h = Math.min(1, satlHL(t));
-    const po = { hl: { samerica: h, africa: h, india: 0.35, australia: 0.35 }, ant: 0.6, key: 'G', under: seamUnder([['afant', 0.8], ['indant', 0.8], ['satl', 1]], T) };
+    const T = Tfwd(t), h = Math.min(1, satlHL(t)), zf = zipF(t);
+    const po = { hl: { samerica: h, africa: h, india: 0.35, australia: 0.35 }, ant: 0.6, key: 'G' + zf.toFixed(4), under: seamUnder([['afant', 0.8], ['indant', 0.8], ['satl', 1, zf]], T) };
     await paleo(P2, T, po);
     globe(ctx, camG(t), PLOOK);
     const s = seamAt(P2, SEAMS.satl, T);
     drawZipper(ctx, s, t, { slider: 1.15 });
-    chip(ctx, T, 1);
+    chip(ctx, T, 1, { back: 1 });
   });
   add(tH, tI, async (ctx, t) => {
     await prep();
-    const T = Tfwd(t);
-    const po = { hl: { samerica: 1, africa: 1, india: 0.35, australia: 0.35 }, ant: 0.6, key: 'H', under: seamUnder([['afant', 0.8], ['indant', 0.8], ['satl', 1]], T) };
+    const T = Tfwd(t), zf = zipF(t);
+    const po = { hl: { samerica: 1, africa: 1, india: 0.35, australia: 0.35 }, ant: 0.6, key: 'H' + zf.toFixed(4), under: seamUnder([['afant', 0.8], ['indant', 0.8], ['satl', 1, zf]], T) };
     await paleo(P4, T, po);
     globe(ctx, camH(t), PLOOK, shakeAt(t, M.snap2 - 0.03, 0.006, 0.45));
     const s = seamAt(P4, SEAMS.satl, T);
     const glow = prog(t, M.seam - 0.1, M.seam + 0.3) * (0.7 + 0.3 * Math.sin((t - M.seam) * 9));
     const z = drawZipper(ctx, s, t, { glow: t < M.snap2 + 0.05 ? glow : 0, teeth: 16, toothW: 6, slider: 1.5 });
-    if (t > M.seam - 0.1 && t < M.snap2 && z.k < s.mid.length) { const m = s.mid[Math.min(s.mid.length - 1, Math.round((z.k + s.mid.length - 1) / 2))], q = proj(m[0], m[1]); if (q.visible) F.dot(ctx, q.x, q.y, { r: 9, color: PAL.yellow, ring: ((t - M.seam) * 0.9) % 1 }); }
+    // pulsing dot on the middle of the still-closed (last) seam
+    if (t > M.seam - 0.1 && t < M.snap2 && z.kf < s.mid.length - 1) { const q = z.mid(); if (q.visible) F.dot(ctx, q.x, q.y, { r: 9, color: PAL.yellow, ring: ((t - M.seam) * 0.9) % 1 }); }
     // snap burst at the last seam
     if (t > M.snap2 - 0.06 && t < M.snap2 + 0.9) {
       const lp = s.mid[s.mid.length - 1], qq = proj(lp[0], lp[1]);
@@ -433,7 +465,7 @@ export async function build(api, C) {
         ctx.restore();
       }
     }
-    chip(ctx, T, 1);
+    chip(ctx, T, 1, { back: 1 });
   });
   add(M.zip - 0.1, M.seam + 0.6, (ctx, t) => { pillAt(ctx, 'THE SOUTH ATLANTIC UNZIPS NORTHWARD', W - 100 - 380, 124, t, M.zip - 0.1, M.seam + 0.6, { size: 40 }); }, { layer: 6 });
   cue(M.zip - 0.1, 'pop_ui', -16); cue(M.zip, 'whoosh_soft', -14); cue(M.snap2 - 0.03, 'impact_short', -12);
@@ -460,6 +492,7 @@ export async function build(api, C) {
   const st = await api.newStage('ch5a_gag', { shadowExtent: 3, hemi: 1.3, key: 2.8, rim: 3.6, rimColor: 0x9cc8ff, exposure: 1.18, fov: 30 });
   const hero = await Actor.create(st, 'models/adventurer.glb', { scale: 0.55 });
   const floor = new THREE.Mesh(new THREE.CircleGeometry(1.1, 64), new THREE.ShadowMaterial({ opacity: 0.4 })); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; st.add(floor);
+  floor.visible = false;   // a flat shadow catcher seen edge-on over the curved 2D globe showed as a dark sliver; a 2D contact shadow replaces it
   const yRing = new THREE.Mesh(new THREE.RingGeometry(0.55, 0.66, 72), new THREE.MeshBasicMaterial({ color: 0xFFD23F, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }));
   yRing.rotation.x = -Math.PI / 2; yRing.position.y = 0.012; st.add(yRing);
   const yRing2 = yRing.clone(); yRing2.material = yRing.material.clone(); st.add(yRing2);
@@ -518,6 +551,25 @@ export async function build(api, C) {
       const r2 = rx * (1 + ph * 1.3); ctx.globalAlpha = s1 * (1 - ph) * 0.8; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(feet.x, feet.y + 2, r2, r2 * 0.2, 0, from, to); ctx.stroke();
       ctx.restore(); };
     ringE(Math.PI, Math.PI * 2);
+    // soft contact shadow under his boots
+    { ctx.save(); ctx.translate(feet.x, feet.y + 3); ctx.scale(78, 13); const gr = ctx.createRadialGradient(0, 0, 0, 0, 0, 1); gr.addColorStop(0, 'rgba(0,0,0,0.5)'); gr.addColorStop(0.6, 'rgba(0,0,0,0.25)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, 1, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+    // seat the cabin on the globe's limb: its front-bottom edge follows the limb tangent, with its middle just below the limb line
+    // (its pose was fixed in stage space, so one corner sank into the surface while the other hovered). The limb is the projected
+    // tangent circle of the unit globe as seen from its camera (off-axis, so an ellipse on screen).
+    { const C = g.camera.position, dC = C.length(), ch = C.clone().normalize(), c0 = ch.clone().multiplyScalar(1 / dC), rho = Math.sqrt(1 - 1 / (dC * dC));
+      let u = new THREE.Vector3(0, 1, 0).cross(ch); if (u.lengthSq() < 1e-8) u = new THREE.Vector3(1, 0, 0).cross(ch); u.normalize(); const v = ch.clone().cross(u);
+      const sil = []; for (let k = 0; k <= 360; k++) { const ph = k / 360 * Math.PI * 2, p = c0.clone().addScaledVector(u, rho * Math.cos(ph)).addScaledVector(v, rho * Math.sin(ph)).project(g.camera); sil.push([(p.x + 1) / 2 * W, (1 - p.y) / 2 * H]); }
+      const limbY = x => { let y = Infinity; for (let k = 1; k < sil.length; k++) { const [x0, y0] = sil[k - 1], [x1, y1] = sil[k]; if (x0 !== x1 && (x0 - x) * (x1 - x) <= 0) y = Math.min(y, y0 + (y1 - y0) * (x - x0) / (x1 - x0)); } return y; };
+      const FPXs = (H / 2) / Math.tan(15 * D), V = (x, z) => cabin.localToWorld(new THREE.Vector3(x, 0, z));
+      cabin.position.set(CAB.x, CAB.y, CAB.z); cabin.rotation.set(0, CAB.ry, CAB.rz);
+      for (let it = 0; it < 3; it++) {
+        cabin.updateMatrixWorld(true);
+        const Lp = st.project(V(-0.625, 0.475)), Rp = st.project(V(0.625, 0.475)), Mw = V(0, 0.475), Mp = st.project(Mw);
+        const yl = limbY(Mp.x), ya = limbY(Mp.x - 10), yb = limbY(Mp.x + 10); if (!isFinite(yl + ya + yb)) break;
+        cabin.rotation.z += (Math.atan2(Rp.y - Lp.y, Rp.x - Lp.x) - Math.atan2(yb - ya, 20)) * Math.cos(CAB.ry);
+        cabin.position.y -= (yl + 6 - Mp.y) / (FPXs / st.camera.position.distanceTo(Mw));
+      }
+      cabin.updateMatrixWorld(true); }
     const L = lampOn(t); lampM.emissiveIntensity = 3.2 * L; pl.intensity = 3.0 * L; winM.emissiveIntensity = 1.6 * L;
     ctx.drawImage(st.render(t), 0, 0);
     ringE(0, Math.PI);
@@ -533,14 +585,25 @@ export async function build(api, C) {
   // ================================================================= K/L/M  s078: India sprints, Africa and Australia crawl, the slam
   const indN = (() => { const ring = ringOf('india'); let best = ring[0]; for (const p of ring) if (p[1] > best[1]) best = p; return best; })(); // northernmost point (present)
   const contactLL = ll(apply(P2.rot('india', 44), indN));
+  // The present-day India outline (no Greater India) only reaches Asia ~20 Ma in this rigid reconstruction: at 44 Ma only small
+  // islands lie 1.5-2 deg off its tip, and the Asian mainland (the Makran block, coast_044 #651, and Lhasa, #137) is 4-6 deg away,
+  // so the slam happened in open water. During the last shot India is pulled toward SLAM_C (NNW of it), accelerating into the
+  // impact, by SLAM_PULL deg: computed from coast_043/044 and tracks.json, that presses India's tip (IND_HIT, present-day
+  // lat/lon of the India ring vertex that makes the contact) ~0.25 deg into #651 at 44 Ma and keeps it there through 43 Ma,
+  // with every other Asian block still 2-3 deg clear. The shock rings go on IND_HIT, the crumple marks on the land beyond it.
+  const SLAM_C = v3(32.03, 50.80), SLAM_PULL = 6.2, IND_HIT = v3(36.46, 72.89);
+  const pullK = t => prog(t, tM, M.slam, E.in);
+  const indPo = t => ({ explode: { india: -SLAM_PULL * pullK(t) }, center: SLAM_C });
+  const pullR = (T, t, w = 1) => P2.explodeRot('india', T, SLAM_C, -SLAM_PULL * pullK(t) * w);   // null when there is no pull
+  const pullLL = (R, p) => R ? ll(apply(R, v3(p[0], p[1]))) : p;
   const camK1 = camK([{ t: tK, lat: at('india_c', 80)[0] + 8, lon: at('india_c', 80)[1] - 2, alt: 2.0 }, { t: tL, lat: at('india_c', 66)[0] + 10, lon: at('india_c', 66)[1], alt: 2.1, heading: 3 }], 0.3);
   const camL = camK([{ t: tL, lat: -30, lon: 74, alt: 3.15, heading: -3 }, { t: tM, lat: -26, lon: 76, alt: 2.95, heading: 2 }], 0.3);
   const camM = camK([{ t: tM, lat: contactLL[0] - 14, lon: contactLL[1] - 2, alt: 1.45, tilt: 26, heading: -4 }, { t: M.slam, lat: contactLL[0] - 9, lon: contactLL[1] - 1, alt: 1.32, tilt: 30, heading: 0 }, { t: tN + 0.4, lat: contactLL[0] - 9.5, lon: contactLL[1] - 1, alt: 1.36, tilt: 30, heading: 1 }], 0.25);
   const tagA = t => env(t, tUpTo - 0.1, M.slam + 0.25, 0.2, 0.3);
   // speed tag attached to India with cartoon motion lines (and a siren at "reckless driving")
-  const speedTag = (ctx, t, T) => {
+  const speedTag = (ctx, t, T, R = null) => {
     const a = tagA(t); if (a <= 0.01) return;
-    const c = at('india_c', T), cp = at('india_c', T + 2.5), q = proj(c[0], c[1]), qp = proj(cp[0], cp[1]);
+    const c = pullLL(R, at('india_c', T)), cp = pullLL(R, at('india_c', T + 2.5)), q = proj(c[0], c[1]), qp = proj(cp[0], cp[1]);
     if (!q.visible) return;
     let dx = q.x - qp.x, dy = q.y - qp.y; const Lm = Math.hypot(dx, dy) || 1; dx /= Lm; dy /= Lm;
     const drv = prog(t, M.driving - 0.1, M.driving + 0.2) * (1 - prog(t, M.slam - 0.1, M.slam + 0.1));
@@ -566,8 +629,10 @@ export async function build(api, C) {
     }
     pillAt(ctx, 'INDIA: UP TO ~8 INCHES A YEAR', x + 330 + jig, y, t, tUpTo - 0.1, M.slam + 0.25, { size: 40, leader: [q.x, q.y], border: drv > 0.01 ? (Math.sin(t * 18) > 0 ? '#FF4040' : '#4C8DFF') : 'rgba(255,90,54,0.95)' });
   };
-  const indiaTrail = (ctx, T, a = 1) => {
-    const pts = []; for (const [la, lo] of trail('india_c', 92, T)) { const q = proj(la, lo); if (q.visible) pts.push([q.x, q.y]); }
+  // t (scene M only): the trail's last 6 Ma bend with India's pull so its head stays on the plate
+  const indiaTrail = (ctx, T, a = 1, t = null) => {
+    const tr = trail('india_c', 92, T), nT = tr.length - 1, pts = [];
+    tr.forEach(([la, lo], i) => { let p = [la, lo]; if (t != null) p = pullLL(pullR(T, t, clamp(1 - (lerp(92, T, i / nT) - T) / 6)), p); const q = proj(p[0], p[1]); if (q.visible) pts.push([q.x, q.y]); });
     if (pts.length > 1) { F.glowPath(ctx, pts, { color: '#000000', glowColor: '#000000', width: 11, alpha: 0.35 * a }); F.glowPath(ctx, pts, { color: '#FFC266', glowColor: '#FF5A36', width: 8, alpha: a }); const h = pts[pts.length - 1]; F.dot(ctx, h[0], h[1], { r: 8, color: '#FFE1A8' }); }
   };
   const crawlTrail = (ctx, name, T, a) => {
@@ -600,26 +665,30 @@ export async function build(api, C) {
   });
   add(tM, tN + 0.3, async (ctx, t) => {
     await prep();
-    const T = Tfwd(t);
-    const po = { hl: { samerica: 0.3, africa: 0.3, india: 1, australia: 0.3 }, ant: 0.3, key: 'M', under: seamUnder(ALLSEAMS(T), T, {}, 0.6) };
+    const T = Tfwd(t), ip = indPo(t), R = pullR(T, t);
+    const po = Object.assign({ hl: { samerica: 0.3, africa: 0.3, india: 1, australia: 0.3 }, ant: 0.3, key: 'M', under: seamUnder(ALLSEAMS(T), T, ip, 0.6) }, ip);
     await paleo(P2, T, po);
     globe(ctx, camM(t), PLOOK, shakeAt(t, M.slam - 0.02, 0.02, 0.7));
-    indiaTrail(ctx, T);
-    if (t < M.slam) { const a = at('kanyakumari', T), b = at('kanyakumari', T + 3); streaks(ctx, proj(a[0], a[1]), proj(b[0], b[1]), 0.85, 90, 5); }
-    speedTag(ctx, t, T);
-    // slam: shock rings + flash + crumple marks
+    indiaTrail(ctx, T, 1, t);
+    if (t < M.slam) { const a = pullLL(R, at('kanyakumari', T)), b = pullLL(R, at('kanyakumari', T + 3)); streaks(ctx, proj(a[0], a[1]), proj(b[0], b[1]), 0.85, 90, 5); }
+    speedTag(ctx, t, T, R);
+    // slam: shock rings + flash + crumple marks, at the point where India presses into Asia
     if (t > M.slam - 0.05) {
-      const cpt = ll(apply(P2.rot('india', T), indN)), q = proj(cpt[0], cpt[1]);
+      const cpt = ll(apply(P2.plateRot('india', T, po), IND_HIT)), q = proj(cpt[0], cpt[1]);
       if (q.visible) {
         for (let i = 0; i < 3; i++) { const k = prog(t, M.slam - 0.04 + i * 0.12, M.slam + 0.9 + i * 0.12, E.out); if (k <= 0 || k >= 1) continue; ctx.save(); ctx.globalAlpha = 1 - k; ctx.strokeStyle = i ? '#FFB347' : '#ffffff'; ctx.lineWidth = 8 * (1 - k) + 2; ctx.beginPath(); ctx.ellipse(q.x, q.y, 40 + 360 * k, (40 + 360 * k) * 0.62, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
-        const ca = prog(t, M.slam + 0.05, M.slam + 0.5);
-        ctx.save(); ctx.globalAlpha = ca; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4; ctx.lineJoin = 'round';
-        for (let r = 0; r < 3; r++) { ctx.beginPath(); for (let i = 0; i <= 10; i++) { const x = q.x - 110 + i * 22, y = q.y - 26 - r * 22 + (i % 2 ? -9 : 9); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke(); }
+        // crumple marks: parallel ridges on the Asian land just beyond the contact (up and to the land side of the tip; the bay
+        // opens to its right), shortening away from it, with a dark under-stroke so they read on the pale land
+        const ca = prog(t, M.slam + 0.05, M.slam + 0.5), cx = q.x - 70, cy = q.y - 24;
+        const ridge = r => { const n = 8 - 2 * r; ctx.beginPath(); for (let i = 0; i <= n; i++) { const x = cx + (i - n / 2) * 20, y = cy + 4 - r * 20 + ((i + r) % 2 ? -8 : 8); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke(); };
+        ctx.save(); ctx.globalAlpha = ca; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+        ctx.strokeStyle = 'rgba(40,24,10,0.6)'; ctx.lineWidth = 8; for (let r = 0; r < 3; r++) ridge(r);
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4; for (let r = 0; r < 3; r++) ridge(r);
         ctx.restore();
       }
       const fl = Math.exp(-Math.max(0, t - M.slam) * 8); ctx.save(); ctx.globalAlpha = 0.45 * fl; ctx.fillStyle = '#FFF2DC'; ctx.fillRect(0, 0, W, H); ctx.restore();
     }
-    chip(ctx, T, 1);
+    chip(ctx, T, 1 - prog(t, tN, tN + 0.15, E.lin));   // fades out before the paper figure's ink counter fades in (no double-exposed digits)
   });
   cue(M.sprint - 0.08, 'whoosh_big', -10); cue(tUpTo - 0.1, 'pop_ui', -15); cue(M.slam - 0.02, 'impact_deep', -8);
 
@@ -634,7 +703,7 @@ export async function build(api, C) {
     q.globalAlpha = 1; const vg = q.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 1.0); vg.addColorStop(0, 'rgba(80,55,20,0)'); vg.addColorStop(1, 'rgba(80,55,20,0.35)'); q.fillStyle = vg; q.fillRect(0, 0, W, H);
   }
   const coast180 = await P2.load(180);
-  const ex180 = new Set(EXCL[180]), an180 = new Set(ANT[180]);
+  const ex180 = exclSet(180, coast180), an180 = new Set(ANT[180]);   // with Madagascar, as on the globe
   const isAntX = (r, j) => !ex180.has(j) && !an180.has(j) && r.every(q => q[1] < -58);
   const BASE180 = coast180.filter((r, j) => !ex180.has(j) && !an180.has(j) && !isAntX(r, j)).map(r => r.map(([lo, la]) => v3(la, lo)));
   const ANT180 = coast180.filter((r, j) => an180.has(j) || isAntX(r, j)).map(r => r.map(([lo, la]) => v3(la, lo)));
@@ -644,6 +713,7 @@ export async function build(api, C) {
   const INK = '#2B2520';
   const exN = t => { let e = lerp(13, 9, prog(t, tN + 0.6, M.together - 0.9, E.inOut)); e *= 1 - prog(t, M.together - 0.85, M.together - 0.02, E.inOut); return e; };
   const spinN = (t, i) => (1 - prog(t, M.together - 0.85, M.together - 0.02, E.inOut)) * (7 * Math.sin(t * 0.9 + i * 1.7) + (i % 2 ? 9 : -9));
+  const tPointy = wordAt('s079', /^pointy/i);
   add(tN, tO + 0.45, (ctx, t, lt) => {
     ctx.drawImage(paper, 0, 0);
     const view = { cx: W / 2 + 150, cy: H / 2 + 22, R: 468 * (1 + 0.05 * prog(t, tN, tO + 0.45, E.inOut)) };
@@ -690,35 +760,49 @@ export async function build(api, C) {
       ctx.save(); ctx.globalAlpha = ra; ctx.strokeStyle = INK; ctx.lineWidth = 10; ctx.beginPath(); ctx.arc(rcx, rcy, rr, 0, Math.PI * 2); ctx.stroke();
       ctx.strokeStyle = '#FFE066'; ctx.lineWidth = 5.5; ctx.stroke(); ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(rcx, rcy, 6, 0, Math.PI * 2); ctx.fill(); ctx.restore();
     }
-    if (t > M.ant2 - 0.12) TIP180.forEach((tp, i) => {
-      const a0 = M.ant2 - 0.12 + i * 0.1, p = prog(t, a0, a0 + 0.5, E.out); if (p <= 0) return;
+    // tip markers pop on "pointy ends"; their dotted lines grow toward the ring through "...close to Antarctica"
+    if (t > tPointy - 0.12) TIP180.forEach((tp, i) => {
+      const a0 = tPointy - 0.12 + i * 0.1, p = prog(t, a0, a0 + 0.5, E.out); if (p <= 0) return;
+      const pl = prog(t, a0 + 0.1, M.ant2 + 0.3 + i * 0.06);
       const [x, y] = ortho(v3(...tp), view);
-      ctx.save(); ctx.strokeStyle = INK; ctx.lineWidth = 4; ctx.setLineDash([3, 10]); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(lerp(x, rcx, p * 0.85), lerp(y, rcy, p * 0.85)); ctx.stroke(); ctx.restore();
+      ctx.save(); ctx.strokeStyle = INK; ctx.lineWidth = 4; ctx.setLineDash([3, 10]); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(lerp(x, rcx, pl * 0.85), lerp(y, rcy, pl * 0.85)); ctx.stroke(); ctx.restore();
       const ph = ((t - a0) * 1.1) % 1;
       ctx.save(); ctx.strokeStyle = '#E2421F'; ctx.globalAlpha = 1 - ph; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(x, y, 16 + ph * 70, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
       const pp = 1 + 0.25 * E.outBack(clamp(p * 1.5)) * (1 - p);
       ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(x, y, 17 * pp, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#FF6A3D'; ctx.beginPath(); ctx.arc(x, y, 12.5 * pp, 0, Math.PI * 2); ctx.fill();
     });
     ctx.restore();
-    // counter: jumps back to 180 Ma
-    const cv = lerp(38, 180, prog(t, M.best - 0.1, M.best + 0.55, E.outExpo));
-    chip(ctx, cv, prog(t, tN + 0.05, tN + 0.3), { ink: true });
+    // counter: a static 180 (the textbook figure is the 180-Ma map; rolling 43 -> 180 here made a fourth clock in the chapter).
+    // In both dissolves the outgoing counter fades out before the incoming one fades in, so the two never double-expose.
+    chip(ctx, 180, prog(t, tN + 0.15, tN + 0.3, E.lin) * (1 - prog(t, tO, tO + 0.2, E.lin)), { ink: true });
   }, { fadeIn: 0.3 });
   cue(tN - 0.05, 'whoosh_soft', -14); cue(M.best - 0.1, 'time_rewind', -16); cue(M.together - 0.03, 'thunk_heavy', -14); cue(M.ant2 - 0.1, 'shimmer', -16);
 
   // ================================================================= O/P  s080–s081: back to today; the tips' real paths; scars
   const camO = camK([{ t: tO, lat: GC[0] - 2, lon: GC[1] + 4, alt: 2.5 }, { t: tO + 2.2, lat: -46, lon: 18, alt: 3.15, ease: E.inOut }, { t: tP, lat: -50, lon: 16, alt: 3.0 }], 0.3);
-  const camP = camK([{ t: tP, lat: -50, lon: 16, alt: 3.0, heading: 0.3 * (tP - tO) }, { t: tEnd, lat: -53, lon: 14, alt: 2.55, tilt: 6, heading: 0.3 * (tP - tO) + 2 }], 0.3);
-  const TO = t => 180 * (1 - prog(t, tO + 0.1, M.apart + 0.55, E.inOut));
+  // the closing shot keeps scene O's camera time origin, so the heading drift and altitude breathing run on across the invisible cut
+  const camP = (() => { const ks = [{ t: tP - tO, lat: -50, lon: 16, alt: 3.0 }, { t: tEnd - tO, lat: -53, lon: 14, alt: 2.55, tilt: 6, heading: 2 }]; return t => camAt(ks, t - tO, 0.3); })();
+  // the drift back to today plays after the dissolve and through "...they roughly kept their orientation" (it used to take
+  // 1.4 s, a third of it under the dissolve); the tips lay their paths down as they go (see tipTrail); the look change and TODAY follow
+  const tD0 = tO + 0.45, tD1 = wordAt('s080', /^orientation/i) + 0.6;
+  const TO = t => 180 * (1 - prog(t, tD0, tD1, E.inOutSine));
   const smoothLL = (pts, w) => pts.map((_, i) => { let s = [0, 0, 0]; for (let j = Math.max(0, i - w); j <= Math.min(pts.length - 1, i + w); j++) { const v = v3(...pts[j]); s = [s[0] + v[0], s[1] + v[1], s[2] + v[2]]; } return i === 0 || i === pts.length - 1 ? pts[i] : ll(norm(s)); });
   const PATHS = TIPN.map(n => smoothLL(smoothLL(trail(n, 0, 180, 1), 8), 8));
-  const pathP = t => prog(t, M.apart + 0.05, M.aim - 0.05, E.inOut);
+  // The tips ride the drift: each keeps a marker on its tip and lays its dotted path down behind it, from its 180-Ma end (beside
+  // Antarctica) to where it is at T Ma, so "they roughly kept their orientation" is seen while they move. At TODAY (T = 0) the
+  // trail is the whole path, which stays up for "...those points still aim back to where they tore away" and the scars.
+  const tipTrail = (i, T) => {   // [lat, lon] from the 180-Ma end to the tip: smoothed path, then joined to the true tip
+    const path = PATHS[i], k = clamp(T, 0, 180), j = Math.min(179, Math.floor(k)), f = k - j, out = path.slice(j + 1).reverse();
+    if (k < 180) { const a = v3(...path[j]), b = v3(...path[j + 1]); out.push(ll([lerp(a[0], b[0], f), lerp(a[1], b[1], f), lerp(a[2], b[2], f)])); }
+    out.push(at(TIPN[i], k)); return out;
+  };
+  // o.T: drift time (Ma, default 0 = today); o.mark: dark/white backing under the tip dots (legible on the bright paleo plates)
   const drawPaths = (ctx, t, o = {}) => {
-    const p = o.p ?? pathP(t); if (p <= 0) return;
+    const T = o.T ?? 0, mk = o.mark || 0;
     PATHS.forEach((path, i) => {
-      const n = Math.max(2, Math.round(path.length * p)), sub = path.slice(0, n);
-      const runs = projRuns(g, sub);
+      const tr = tipTrail(i, T);
       if (o.scar > 0) {
+        const runs = projRuns(g, path);
         const sa = o.scar;
         strokeRuns(ctx, runs, { color: '#FFE3D6', width: 5, glow: true, glowColor: 'rgba(255,90,54,0.22)', glowColor2: 'rgba(255,110,70,0.45)', alpha: sa });
         // stitches across the seam, appearing along the path
@@ -737,9 +821,13 @@ export async function build(api, C) {
         }
       }
       const da = 1 - (o.scar || 0);
-      if (da > 0.01) strokeRuns(ctx, runs, { color: PAL.yellow, width: 6, dash: [0.1, 15], under: null, alpha: da });
-      if (p < 1 && runs.length) { const r = runs[runs.length - 1], h = r[r.length - 1]; F.dot(ctx, h[0], h[1], { r: 7, color: PAL.yellow }); }
-      const q0 = proj(path[0][0], path[0][1]); if (q0.visible && !o.noTips) F.dot(ctx, q0.x, q0.y, { r: 7, color: PAL.hero });
+      // dotted from the 180-Ma end, so the dots stay put while the trail grows (and match at the O -> P cut)
+      if (da > 0.01) strokeRuns(ctx, projRuns(g, tr), { color: PAL.yellow, width: 6, dash: [0.1, 15], under: null, alpha: da });
+      const tip = tr[tr.length - 1], q0 = proj(tip[0], tip[1]);
+      if (q0.visible && !o.noTips) {
+        if (mk > 0.01) { ctx.save(); ctx.globalAlpha *= mk; ctx.fillStyle = 'rgba(18,10,4,0.85)'; ctx.beginPath(); ctx.arc(q0.x, q0.y, 11.5, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#FFF4E8'; ctx.beginPath(); ctx.arc(q0.x, q0.y, 9.5, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+        F.dot(ctx, q0.x, q0.y, { r: 7, color: PAL.hero });
+      }
     });
   };
   // aim: dashed extensions from each path end to the ring
@@ -756,24 +844,25 @@ export async function build(api, C) {
   add(tO, tP, async (ctx, t) => {
     await prep();
     const T = TO(t);
-    const po = { hl: { samerica: 0.8, africa: 0.8, india: 0.8, australia: 0.5 }, ant: 0.8 * (1 - prog(t, tO + 1.0, tO + 1.8)), key: 'O' };
+    const po = { hl: { samerica: 0.8, africa: 0.8, india: 0.8, australia: 0.5 }, ant: 0.8 * (1 - prog(t, tD1 - 0.2, tD1 + 0.6)), key: 'O' };
     await paleo(P2, T, po);
-    const k = prog(t, M.apart + 0.2, M.apart + 1.1);
+    const k = prog(t, tD1 - 0.1, tD1 + 0.8);
     globe(ctx, camO(t), mixLook(PLOOK, RLOOK, k));
-    scan(ctx, t, 0.6 * env(t, tO + 0.1, M.apart + 0.5, 0.2, 0.3));
-    drawPaths(ctx, t);
+    scan(ctx, t, 0.6 * env(t, tO + 0.1, tD1, 0.2, 0.3));
+    drawPaths(ctx, t, { T, mark: 1 - prog(t, tD1 - 0.1, tD1 + 0.8) });
     drawAim(ctx, t, prog(t, M.aim - 0.15, M.aim + 0.1));
     drawRing(ctx, t, prog(t, M.aim - 0.4, M.aim) + 0.35 * (1 - prog(t, tO + 0.4, tO + 1.2)), M.aim - 0.05);
-    chip(ctx, T, 1 - prog(t, M.apart + 1.6, M.apart + 2.0), { today: prog(t, M.apart + 0.35, M.apart + 0.6) });
+    // the globe counter fades in only after the paper figure's ink counter has faded out (see scene N)
+    chip(ctx, T, (1 - prog(t, tD1 + 1.2, tD1 + 1.6)) * prog(t, tO + 0.2, tO + 0.45, E.lin), { today: prog(t, tD1 - 0.2, tD1 + 0.2, E.lin) });
   }, { fadeIn: 0.45 });
   add(tP, tEnd, async (ctx, t) => {
     await prep();
     await paleo(P2, 0, { hl: {}, ant: 0, key: 'P' });
     globe(ctx, camP(t), RLOOK, shakeAt(t, M.scar - 0.02, 0.006, 0.4));
     const sc = prog(t, M.scar - 0.1, M.scar + 0.35);
-    drawPaths(ctx, t, { p: 1, scar: sc, st: prog(t, M.scar - 0.1, M.scar + 0.9), noTips: sc > 0.5 });
+    drawPaths(ctx, t, { scar: sc, st: prog(t, M.scar - 0.1, M.scar + 0.9), noTips: sc > 0.5 });
     drawAim(ctx, t, 1 - sc);
-    drawRing(ctx, t, 1 - 0.4 * sc, tP);
+    drawRing(ctx, t, 1 - 0.4 * sc, M.aim - 0.05);   // same ripple phase as scene O (the ripples restarted at the cut)
     // the "drips" on the three present-day tips, before they become scars
     const da = env(t, tBig - 0.1, M.scar + 0.3, 0.25, 0.35);
     if (da > 0.01) PATHS.forEach((path, i) => {

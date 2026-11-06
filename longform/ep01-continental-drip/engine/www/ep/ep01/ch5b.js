@@ -131,6 +131,12 @@ export async function build(api, C) {
   const bajaR0 = allRings(bajaFeat);
   const BAJA_P = [26.5, -112.5], BAJA_Q = U.dest(26.5, -112.5, 274, 125);
   const bajaStart = moveRings(bajaR0, BAJA_P, BAJA_Q, 1);
+  // outer outline of the peninsula: drop the edges shared by the two admin polygons (their border at 28N), so no line crosses it
+  const bajaOutline = (() => { const key = p => p[0].toFixed(5) + ',' + p[1].toFixed(5), ek = (a, b) => [key(a), key(b)].sort().join('|'), cnt = new Map();
+    for (const r of bajaR0) for (let i = 1; i < r.length; i++) { const e = ek(r[i - 1], r[i]); cnt.set(e, (cnt.get(e) || 0) + 1); }
+    const out = []; for (const r of bajaR0) { let cur = [r[0]]; for (let i = 1; i < r.length; i++) { if (cnt.get(ek(r[i - 1], r[i])) > 1) { if (cur.length > 1) out.push(cur); cur = [r[i]]; } else cur.push(r[i]); } if (cur.length > 1) out.push(cur); }
+    return out; })();
+  const bajaOutStart = moveRings(bajaOutline, BAJA_P, BAJA_Q, 1);
 
   // ---------- antipode map in Equal Earth (forward splat of the equirect data overlay) ----------
   const antiEE = U.cv(1800, 880);
@@ -197,7 +203,7 @@ export async function build(api, C) {
     // "the pointed end showing the direction it came from": arrows out of each tip
     const td = C.words('s083').find(w => /direction/.test(w.w)).start - 0.1;
     shapes.forEach((s, i) => { const p = prog(t, td + i * 0.05, td + i * 0.05 + 0.45, E.outBack); if (p <= 0) return; const tip = s[U.DROP.tipIdx]; const L = 24 + 46 * p + 6 * Math.sin(t * 6 + i);
-      U.arrow(ctx, tip[0], tip[1] + 8, tip[0], tip[1] + 8 + L, { color: PAL.yellow, width: 5, head: 12, alpha: clamp(p) }); });
+      U.arrow(ctx, tip[0], tip[1] + 8, tip[0], tip[1] + 8 + L, { color: PAL.yellow, width: 5, head: 12, alpha: clamp(p) * (1 - prog(t, B1b - 0.35, B1b)) }); }); // fade out before B2
     pillAt(ctx, '"TEAR-DROP SHAPED"', 110, 100, t, M.tear - 0.1, B1b);
   }, { fadeIn: 0.4 }));
   cue(M.tear - 0.05, 'shimmer', -18);
@@ -209,11 +215,14 @@ export async function build(api, C) {
   const tagC = U.cv(300, 150); { const g = tagC.getContext('2d'); g.fillStyle = PAL.yellow; g.beginPath(); g.moveTo(40, 15); g.lineTo(285, 15); g.lineTo(285, 135); g.lineTo(40, 135); g.lineTo(8, 75); g.closePath(); g.fill();
     g.fillStyle = '#0b0f16'; g.beginPath(); g.arc(42, 75, 10, 0, 7); g.fill(); g.font = '400 96px "Bebas Neue"'; g.textAlign = 'center'; g.fillText('JOKE', 172, 112); }
   scenes.push(scene(B2a, B2b, (ctx, t) => {
-    U.spaceBg(ctx, t, { starAlpha: 0.7 });
+    // starts on B1's end framing (cx 1840, cy 840, zoom 1.1, dim 0.5, faint coast) and eases into its own over 0.9 s: no jump at the cut
+    const kIn = prog(t, B2a, B2a + 0.9, E.inOut);
+    U.spaceBg(ctx, t, { starAlpha: lerp(0.5, 0.7, kIn) });
     const flipP = prog(t, M.upside - 0.12, M.upside + 0.62, E.inOut), rot = Math.PI * flipP + 0.006 * Math.max(0, t - M.upside - 0.6);
-    const zoom = lerp(0.9, 0.97, prog(t, B2a, B2b)) * (1 - 0.06 * Math.sin(Math.PI * flipP));
+    const zoom = lerp(1.1, lerp(0.9, 0.97, prog(t, B2a, B2b)), kIn) * (1 - 0.06 * Math.sin(Math.PI * flipP));
     ctx.save(); ctx.translate(W / 2, H / 2); ctx.rotate(rot); ctx.translate(-W / 2, -H / 2);
-    const T = drawEE(ctx, { cx: 1800, cy: 880, zoom }, 0.48);
+    const T = drawEE(ctx, { cx: lerp(1840, 1800, kIn), cy: lerp(840, 880, kIn), zoom }, lerp(0.5, 0.48, kIn));
+    strokeCoast(ctx, T, 0.165 * (1 - kIn));
     drawDrops(ctx, T, t, { wob: 0.012 });
     ctx.restore();
     // a single drop falls down the frame on "down"
@@ -274,7 +283,9 @@ export async function build(api, C) {
   const Q0 = (() => { const f = llDir(-14, 22).normalize(); const n = new THREE.Vector3(0, 1, 0).sub(f.clone().multiplyScalar(f.y)).normalize(); const e = new THREE.Vector3().crossVectors(n, f).normalize();
     const m = new THREE.Matrix4().makeBasis(e, n, f).transpose(); return new THREE.Quaternion().setFromRotationMatrix(m); })();
   const ZAX = new THREE.Vector3(0, 0, 1), Qr = new THREE.Quaternion();
-  const r1a = Da + 0.25, r1b = r1a + 1.45, r2a = M.first - 0.02, r2b = r2a + 1.25;
+  // run 2 is keyed to the word "first" (M.first sits on "time."), so the planet is back south-up and the tick lands right after "time."
+  const wFirst = C.words('s085').find(w => /^first/i.test(w.w)).start;
+  const r1a = Da + 0.25, r1b = r1a + 1.45, r2a = wFirst - 0.3, r2b = r2a + 1.0;
   hero.play(Da - 2, 'Idle_Neutral').play(r1a - 0.05, 'Run', { fade: 0.15, speed: 1.35 }).play(r1b + 0.1, 'Idle_Neutral', { fade: 0.25 })
     .play(r2a - 0.12, 'Run', { fade: 0.15, speed: 1.35 }).play(r2b + 0.05, 'Idle_Neutral', { fade: 0.3 });
   hero.moveAlong([{ t: Da - 1, x: 0, y: 0, z: 0, ry: 20 }, { t: r1a - 0.2, x: 0, y: 0, z: 0, ry: 20 }, { t: r1a + 0.05, x: 0, y: 0, z: 0, ry: 90 }, { t: r2a - 0.25, x: 0, y: 0, z: 0, ry: 90 },
@@ -300,23 +311,27 @@ export async function build(api, C) {
     // tick when he stops upright on the south-up planet
     const ck = prog(t, r2b + 0.05, r2b + 0.35, E.outBack); if (ck > 0) { ctx.save(); ctx.translate(tP.x + 210, tP.y - 330); ctx.scale(ck, ck); ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 16; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath(); ctx.moveTo(-40, 0); ctx.lineTo(-10, 32); ctx.lineTo(48, -40); ctx.stroke(); ctx.restore(); }
   }));
-  cue(r1a - 0.05, 'whoosh_soft', -16); cue(r2a - 0.05, 'whoosh_soft', -16);
+  cue(r1a - 0.05, 'whoosh_soft', -16); cue(r2a + 0.51, 'whoosh_soft', -16); // run-2 whoosh kept at its mixed time (726.54): it peaks on the fast middle of the flip
 
   // ===================================================================================================
   // E  s086  the drops slosh together into "Pangooy" + Tuesday 9 a.m. card
   // ===================================================================================================
   const Ea = Db, Eb = M.twist - 0.06;
   const [tgx, tgy] = U.ee(-6, 14);
+  // gag-card text sizes fitted to the 650-px card (text starts at x 230, keeps a 34-px right margin); widths measured like F.text does
+  const cardFit = (() => { const m = U.cv(8, 8).getContext('2d'), avail = 650 - 230 - 34;
+    const mw = (s, size, fam, trk) => { m.font = `800 ${size}px "${fam}"`; if (!trk) return m.measureText(s).width; let w = 0; for (const ch of s) w += m.measureText(ch).width; return w + trk * size * (s.length - 1); };
+    return [Math.min(54, 54 * avail / mw('TUESDAY, 9:00 A.M.,', 54, F.FAM.label, 0.03)), Math.min(62, 62 * avail / mw('1,786,379 A.D.', 62, F.FAM.body, 0))]; })();
   scenes.push(scene(Ea, Eb, (ctx, t) => {
     U.spaceBg(ctx, t, { starAlpha: 0.6 });
     const k = prog(t, Ea, Eb, E.inOut);
     const T = drawEE(ctx, { cx: lerp(1880, 1960, k), cy: lerp(880, 860, k), zoom: lerp(1.0, 1.06, k) }, 0.45);
     const p = prog(t, M.splash - 0.05, M.pangooy - 0.15, E.inOut), lt = t - (M.pangooy - 0.15);
-    const settle = lt > 0 ? 16 * Math.exp(-3 * lt) * Math.sin(lt * 11) : 0;
+    const settle = lt > 0 ? 16 * Math.exp(-3 * lt) * Math.sin(lt * 11) * prog(lt, 0, 0.18, E.inOut) : 0; // jiggle builds up from rest (no 1-frame twitch when the drops land)
     const pos = (c, i) => { const tx = tgx + (c.x - meanX) * 0.2, ty = tgy + (c.y - meanY) * 0.2; const px = -(ty - c.y), py = tx - c.x, pl = Math.hypot(px, py) || 1; const sl = Math.sin(Math.PI * p) * 70 * (i % 2 ? 1 : -1);
       return [lerp(c.x, tx, p) + px / pl * sl + settle * (i % 2 ? 1 : -1), lerp(c.y, ty, p) + py / pl * sl + settle * 0.5]; };
     const u = prog(p, 0.55, 0.95);
-    const wob = 0.012 + 0.07 * Math.sin(Math.PI * p) + (lt > 0 ? 0.03 + 0.03 * Math.exp(-2 * lt) : 0);
+    const wob = 0.012 + 0.07 * Math.sin(Math.PI * p) + (lt > 0 ? (0.03 + 0.03 * Math.exp(-2 * lt)) * prog(lt, 0, 0.3, E.inOut) : 0); // settle jiggle ramps in (no 1-frame outline jump)
     const shapes = drawDrops(ctx, T, t, { pos, wob, union: u, indiv: 1 - u });
     // googly eyes on the blob
     const ep = E.outBack(prog(t, M.pangooy - 0.12, M.pangooy + 0.2));
@@ -333,8 +348,8 @@ export async function build(api, C) {
       const ring = M.tue + 0.55, sh = t > ring && t < ring + 0.7 ? Math.sin((t - ring) * 70) * 0.16 * (1 - (t - ring) / 0.7) : 0;
       const sp = prog(t, M.tz - 0.05, M.tz + 1.15, E.inOut);
       ctx.save(); ctx.translate(120, 175); ctx.rotate(sh); U.clockIcon(ctx, 0, 0, 78, Math.PI * 1.5 + sp * Math.PI * 2, sp * Math.PI * 2 * 3); ctx.restore();
-      F.text(ctx, 'TUESDAY, 9:00 A.M.,', 230, 160, { size: 54, fam: F.FAM.label, weight: 800, color: '#141922', tracking: 0.03, shadow: false });
-      F.text(ctx, '1,786,379 A.D.', 230, 236, { size: 62, fam: F.FAM.body, weight: 800, color: PAL.hero, shadow: false });
+      F.text(ctx, 'TUESDAY, 9:00 A.M.,', 230, 160, { size: cardFit[0], fam: F.FAM.label, weight: 800, color: '#141922', tracking: 0.03, shadow: false });
+      F.text(ctx, '1,786,379 A.D.', 230, 236, { size: cardFit[1], fam: F.FAM.body, weight: 800, color: PAL.hero, shadow: false });
       ctx.restore();
     }
   }));
@@ -372,19 +387,27 @@ export async function build(api, C) {
     ctx.save(); ctx.translate(sx, sy); const z = lerp(1, 1.03, prog(t, Fa, Fb)); ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
     const Lx = 100, Rx = 1000, Py = 285;
     // divider
-    const dv = prog(t, M.twist - 0.04, M.twist + 0.4, E.outExpo); ctx.fillStyle = PAL.yellow; ctx.fillRect(958, 120, 4, 800 * dv);
-    const lp = prog(t, M.twist + 0.08, M.twist + 0.6, E.outExpo), rp = prog(t, M.twist + 0.3, M.twist + 0.85, E.outExpo);
+    // (retracts to the panels' bottom edge as the bracket starts: it is already above the bracket bar when the bar appears, so it never crosses the bar or the name pill)
+    const dv = prog(t, M.twist - 0.04, M.twist + 0.4, E.outExpo), dvH = lerp(800, Py + PH + 10 - 120, prog(t, M.apart2 - 0.5, M.apart2 + 0.1, E.inOut));
+    ctx.fillStyle = PAL.yellow; ctx.fillRect(958, 120, 4, dvH * dv);
+    // both halves fly in on the cut (the left one is already half in on the first frame), so neither half sits empty
+    const lp = prog(t, M.twist - 0.08, M.twist + 0.4, E.outExpo), rp = prog(t, M.twist + 0.02, M.twist + 0.52, E.outExpo);
     const frame = (img, x, y) => { ctx.fillStyle = 'rgba(0,0,0,0.4)'; F.round(ctx, x - 10, y - 10 + 8, PW + 20, PH + 20, 16); ctx.fill(); ctx.fillStyle = '#081426'; F.round(ctx, x - 10, y - 10, PW + 20, PH + 20, 16); ctx.fill(); ctx.drawImage(img, x, y); };
     if (lp > 0) { const x = lerp(-PW - 40, Lx, lp); frame(realPanel, x, Py);
-      // motion trails 200 Ma -> today
-      trkPanel.forEach((pts, i) => { const q = prog(t, M.earlier + 0.5 + i * 0.06, M.earlier + 2.6 + i * 0.06, E.inOut); if (q <= 0) return; const sp = pts.map(([a, b]) => [a + x, b + Py]);
-        const head = F.glowPath(ctx, sp, { p: q, color: PAL.cyan, width: 2.5 }); if (head && q > 0.98) F.dot(ctx, head[0], head[1], { r: 4.5, color: PAL.cyan }); });
+      // "Six years earlier": the 1970 panel gets a brief yellow highlight (on the existing whoosh at M.earlier - 0.12)
+      const hlE = env(t, M.earlier - 0.1, M.earlier + 1.1, 0.15, 0.45); if (hlE > 0) { ctx.save(); ctx.globalAlpha = hlE; ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 4; F.round(ctx, x - 10, Py - 10, PW + 20, PH + 20, 16); ctx.stroke(); ctx.restore(); }
+      // Holden's 1970 motion arrows (200 Ma -> today), drawn on "for real, how Pangaea broke apart" (on the existing whoosh at M.real - 0.12)
+      trkPanel.forEach((pts, i) => { const q = prog(t, M.real - 0.25 + i * 0.05, M.real + 1.25 + i * 0.05, E.inOut); if (q <= 0) return; const sp = pts.map(([a, b]) => [a + x, b + Py]);
+        F.glowPath(ctx, sp, { p: q, color: PAL.cyan, width: 2.5 });
+        const h = U.polyAt(sp, q), hb = U.polyAt(sp, Math.max(0, q - 0.12)), dx = h.x - hb.x, dy = h.y - hb.y, dl = Math.hypot(dx, dy);
+        if (dl > 2) { const c = dx / dl, s = dy / dl; ctx.save(); ctx.globalAlpha *= clamp(q * 6); ctx.fillStyle = PAL.cyan; ctx.beginPath(); ctx.moveTo(h.x + c * 5, h.y + s * 5); ctx.lineTo(h.x - c * 9 - s * 6, h.y - s * 9 + c * 6); ctx.lineTo(h.x - c * 9 + s * 6, h.y - s * 9 - c * 6); ctx.closePath(); ctx.fill(); ctx.restore(); }
+        else if (q > 0.98) F.dot(ctx, h.x, h.y, { r: 4.5, color: PAL.cyan }); });
     }
     if (rp > 0) { const x = lerp(W + 40, Rx, rp); frame(jokePanel, x, Py); }
-    // labels (faded before the name lands: max two text elements)
+    // labels: on as each half lands (faded before the name lands: max two text elements)
     const lblOut = M.apart2 + 0.35;
-    if (lp > 0) pillAt(ctx, '1970: THE REAL MAP (SIMPLIFIED)', Lx, Py - 52, t, M.earlier - 0.05, lblOut, { size: 34 });
-    if (rp > 0) pillAt(ctx, '1976: THE JOKE', Rx, Py - 52, t, M.real - 0.05, lblOut, { size: 34 });
+    if (lp > 0) pillAt(ctx, '1970: THE REAL MAP (SIMPLIFIED)', Lx, Py - 52, t, M.twist + 0.25, lblOut, { size: 34 });
+    if (rp > 0) pillAt(ctx, '1976: THE JOKE', Rx, Py - 52, t, M.twist + 0.4, lblOut, { size: 34 });
     // yellow bracket linking both under one name
     const bp = prog(t, M.apart2 - 0.08, M.apart2 + 0.55, E.inOut);
     if (bp > 0) { const yb = Py + PH + 22, ym = Py + PH + 90; const pts = [[Lx + PW / 2, yb], [Lx + PW / 2, ym], [Rx + PW / 2, ym], [Rx + PW / 2, yb]];
@@ -411,7 +434,7 @@ export async function build(api, C) {
   scenes.push(scene(G1a, G1b, (ctx, t) => {
     U.deskBg(ctx, t);
     const ip = prog(t, G1a, G1a + 0.55, E.outExpo), push = prog(t, G1a, G1b, E.inOut);
-    const sc = lerp(0.95, 1.12, push), x = 960 + lerp(0, 120, push), y = lerp(-500, 560, ip) + lerp(0, 40, push);
+    const sc = lerp(0.95, 1.12, push), x = 960 + lerp(0, 120, push), y = lerp(-220, 560, ip) + lerp(0, 40, push); // already entering on the cut frame
     U.drawPaper(ctx, PREF, x, y, lerp(-0.12, -0.025, ip), sc, 1, (g) => {
       const hp = prog(t, M.cited - 0.12, M.cited + 0.4, E.out);
       if (hp > 0) { g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = 'rgba(255,210,63,0.85)'; g.beginPath(); g.moveTo(78, 252); g.lineTo(78 + (refW + 26) * hp, 248); g.lineTo(78 + (refW + 26) * hp, 318); g.lineTo(78, 316); g.closePath(); g.fill(); g.restore(); }
@@ -577,11 +600,19 @@ export async function build(api, C) {
     U.dataBg(ctx, t);
     const lB = prog(t, M.york - 0.4, M.york + 0.25, E.inOut), z = 1 + 0.025 * prog(t, Ia, Ib);
     ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
-    // scan sweep before the snap
-    if (t < M.honest) { const y = lerp(0, H, prog(t, Ia, M.honest - 0.1, E.inOut)); ctx.fillStyle = 'rgba(61,227,255,0.5)'; ctx.fillRect(0, y, W, 3); const sg = ctx.createLinearGradient(0, y - 120, 0, y); sg.addColorStop(0, 'rgba(61,227,255,0)'); sg.addColorStop(1, 'rgba(61,227,255,0.12)'); ctx.fillStyle = sg; ctx.fillRect(0, y - 120, W, 120); }
+    // scan sweep before the snap. A dim ghost grid of the tiles is on screen from the first frame (the shot opens on content, not an
+    // empty navy frame); the scan line brightens each ghost as it passes (drawn on top of them, below); the real tiles snap in on "part"
+    const scanY = lerp(0, H, prog(t, Ia, M.honest - 0.1, E.lin));
     TILES.forEach((s, i) => {
-      const ta = M.honest - 0.12 + i * 0.035, ap = prog(t, ta, ta + 0.25, E.outBack); if (ap <= 0) return;
+      const ta = M.honest - 0.12 + i * 0.035, ap = prog(t, ta, ta + 0.25, E.outBack);
       const A = layA(i), B = layB(i), [x, y, w, h] = A.map((v, j) => lerp(v, B[j], lB));
+      const gK = 1 - clamp(ap);
+      if (gK > 0) { const lit = clamp((scanY - y) / h);
+        const ghost = (gA, clipH) => { ctx.save(); ctx.beginPath(); ctx.rect(x - 4, y - 4, w + 8, clipH + 4); ctx.clip();
+          ctx.save(); F.round(ctx, x, y, w, h, 12); ctx.clip(); ctx.globalAlpha = gA; ctx.drawImage(s.c, x, y, w, h); ctx.restore();
+          ctx.strokeStyle = `rgba(61,227,255,${Math.min(1, gA * 1.8)})`; ctx.lineWidth = 1.5; F.round(ctx, x, y, w, h, 12); ctx.stroke(); ctx.restore(); };
+        ghost(0.16 * gK, h + 8); if (lit > 0) ghost(0.2 * gK, lit * h); }
+      if (ap <= 0) return;
       const sw = s.north ? swingT[s.k] - 0.06 : null, hl = sw ? env(t, sw - 0.05, sw + 1.3, 0.15, 0.4) : 0;
       const dimS = !s.north ? 1 - 0.45 * lB : 1;
       const sc = lerp(0.8, 1, ap) * (1 + 0.05 * hl);
@@ -592,13 +623,16 @@ export async function build(api, C) {
       // needle: base -> tip; all start pointing south; north tiles swing on their word
       const np = prog(t, M.drips - 0.12 + i * 0.03, M.drips + 0.25 + i * 0.03, E.outBack);
       if (np > 0) { const kx = w / TW, bx = -w / 2 + s.b[0] * kx, by = -h / 2 + s.b[1] * kx;
-        let ang = s.ang, col = PAL.yellow;
-        if (s.north) { const q = prog(t, sw, sw + 0.55, E.outBack); ang = lerp(Math.PI / 2, s.ang < -Math.PI / 2 ? s.ang + 2 * Math.PI : s.ang, q); if (q > 0.5) col = '#dfe6ef'; }
+        let ang = s.ang, col = PAL.yellow, q = 0;
+        if (s.north) { q = prog(t, sw, sw + 0.55, E.outBack); ang = lerp(Math.PI / 2, s.ang < -Math.PI / 2 ? s.ang + 2 * Math.PI : s.ang, q); if (q > 0.5) col = '#dfe6ef'; }
         const L = Math.max(s.len * kx, 60 * kx * 1.67) * clamp(np);
-        U.arrow(ctx, bx, by, bx + Math.cos(ang) * L, by + Math.sin(ang) * L, { color: col, width: Math.max(3, 8 * kx * 1.67), head: Math.max(9, 20 * kx * 1.67) });
+        // north tiles: the base sits near the tile's bottom edge, so the south-pointing needle is kept inside the tile; it grows to full length as it swings north
+        const Ld = s.north ? lerp(Math.min(L, Math.max(24, h / 2 - 16 - by)), L, clamp(q)) : L;
+        U.arrow(ctx, bx, by, bx + Math.cos(ang) * Ld, by + Math.sin(ang) * Ld, { color: col, width: Math.max(3, 8 * kx * 1.67), head: Math.max(9, 20 * kx * 1.67) });
         F.dot(ctx, bx, by, { r: Math.max(3, 6 * kx * 1.67), color: col }); }
       ctx.restore();
     });
+    if (t < M.honest) { const y = scanY; ctx.fillStyle = 'rgba(61,227,255,0.7)'; ctx.fillRect(0, y, W, 3); const sg = ctx.createLinearGradient(0, y - 120, 0, y); sg.addColorStop(0, 'rgba(61,227,255,0)'); sg.addColorStop(1, 'rgba(61,227,255,0.14)'); ctx.fillStyle = sg; ctx.fillRect(0, y - 120, W, 120); }
     ctx.restore();
     pillAt(ctx, 'THE HONEST PART', 960 - 170, 92, t, M.honest - 0.1, M.york - 0.45, { size: 42 });
     pillAt(ctx, 'THESE POINT NORTH', 960 - 185, 92, t, M.york - 0.25, Ib + 0.2, { size: 42 });
@@ -627,15 +661,20 @@ export async function build(api, C) {
   // K  s092  Baja: torn from mainland Mexico (slides NW, Gulf of California opens)
   // ===================================================================================================
   const Ka = Jb, Kb = SEG('s093').start - 0.1;
-  const slideA = M.baja + 0.5, slideB = slideA + 2.5;
+  const slideA = M.baja + 0.5, slideB = slideA + 2.5, BAJA_SEA = '26,54,92'; // the shallow-shelf blue around the peninsula in this dimmed shot
   scenes.push(gshot({ t0: Ka, t1: Kb, overlay: { canvas: gulfOv, bounds: GULF_B }, patch: { url: 'tex/patch/baja.jpg', bounds: [-118, 21, -108, 33] }, drift: 0.25,
-    keys: [{ t: Ka, lat: 23, lon: -121, alt: 2.1 }, { t: M.stories - 0.2, lat: 23.6, lon: -119, alt: 1.8 }, { t: M.stories + 3.0, lat: 25.6, lon: -111.6, alt: 0.40, tilt: 42, heading: -16 }],
+    keys: [{ t: Ka, lat: 23, lon: -121, alt: 2.1 }, { t: M.stories + 3.0, lat: 25.6, lon: -111.6, alt: 0.40, tilt: 42, heading: -16 }], // one move: no stop mid-way
     look: (t) => ({ dim: 0.3 * prog(t, M.baja - 0.4, M.baja + 0.1), desat: 0.2, ovAlpha: prog(t, slideA + 0.4, slideB) * (0.75 + 0.25 * Math.sin(t * 5)), relief: 0.9 }),
     extra: (ctx, t, api) => {
       const g = api.g; if (t < M.baja - 0.12) return;
       const ap = prog(t, M.baja - 0.12, M.baja + 0.2), p = prog(t, slideA, slideB, E.inOut);
-      const R = moveRings(bajaStart, BAJA_Q, BAJA_P, p);
-      fillProjected(ctx, g, R, { color: PAL.hero, alpha: 0.8 * ap }); ctx.save(); ctx.globalAlpha = ap; strokeProjected(ctx, g, R, { color: '#ffffff', width: 2.4 }); ctx.restore();
+      const R = moveRings(bajaStart, BAJA_Q, BAJA_P, p), RO = moveRings(bajaOutStart, BAJA_Q, BAJA_P, p);
+      // the real peninsula is not there yet: shelf-coloured sea covers it while the red copy is away, fading as the copy slides home (no double Baja);
+      // the cover fades out over its northern end, where the peninsula joins the mainland (no straight sea edge along the border)
+      const hide = ap * (1 - prog(p, 0.75, 1));
+      if (hide > 0) { const qa = g.project(32.8, -116.2), qb = g.project(31.4, -115.6), sg = ctx.createLinearGradient(qa.x, qa.y, qb.x, qb.y); sg.addColorStop(0, `rgba(${BAJA_SEA},0)`); sg.addColorStop(1, `rgba(${BAJA_SEA},1)`);
+        ctx.save(); ctx.shadowColor = `rgba(${BAJA_SEA},0.9)`; ctx.shadowBlur = 14; fillProjected(ctx, g, bajaR0, { color: sg, alpha: 0.95 * hide }); ctx.restore(); }
+      fillProjected(ctx, g, R, { color: PAL.hero, alpha: 0.8 * ap }); ctx.save(); ctx.globalAlpha = ap; strokeProjected(ctx, g, RO, { color: '#ffffff', width: 2.4 }); ctx.restore();
       // Pacific Plate arrow (NW), pulsing; bigger pulse on "going"
       const aa = prog(t, M.baja + 0.35, M.baja + 0.7); if (aa > 0) { const a = g.project(23.6, -113.6), b = g.project(26.9, -118.4); if (a.visible && b.visible) { const pu = 1 + 0.1 * Math.sin(t * 6) + 0.25 * env(t, M.going - 0.1, M.going + 0.9, 0.15, 0.5);
         const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2; U.arrow(ctx, mx + (a.x - mx) * pu, my + (a.y - my) * pu, mx + (b.x - mx) * pu, my + (b.y - my) * pu, { color: '#ffffff', width: 12, head: 30, alpha: aa }); } }
@@ -658,7 +697,18 @@ export async function build(api, C) {
   // ===================================================================================================
   const L2a = L1b, L2b = M.wafr - 0.1;
   const SEA = 360, PT = 372, PB = 690, FLOOR = 780;
+  const drawBase = (g) => { const bg = g.createLinearGradient(0, PB, 0, H); bg.addColorStop(0, '#6a3530'); bg.addColorStop(1, '#2a1416'); g.fillStyle = bg; g.fillRect(0, PB + 10, W, H - PB);
+    const r = F.rng(9); g.fillStyle = 'rgba(255,200,180,0.18)'; for (let i = 0; i < 260; i++) { g.fillRect(r() * W, PB + 20 + r() * (H - PB - 20), 3 + r() * 5, 2 + r() * 3); } };
+  const baseTmp = U.cv(W, H);
   const platPoly = [[300, PT], [1590, PT], [1660, FLOOR], [1600, PB + 20], [380, PB + 20], [200, FLOOR]];
+  // the platform, pre-rendered once: gradient, strata, the shells and corals its layers are made of, outline
+  const NL = 13, LH = (PB + 20 - PT) / NL, wWater = C.words('s093').find(w => /^water/i.test(w.w)).start;
+  const platC = U.cv(W, H);
+  { const g = platC.getContext('2d'); const lg = g.createLinearGradient(0, PT, 0, PB); lg.addColorStop(0, '#f1e6c4'); lg.addColorStop(1, '#c9b386'); g.fillStyle = lg; g.beginPath(); U.polyPath(g, platPoly); g.fill();
+    g.save(); g.beginPath(); U.polyPath(g, platPoly); g.clip(); g.strokeStyle = 'rgba(120,95,55,0.35)'; g.lineWidth = 2; for (let y = PT + 24; y < PB + 20; y += 26) { g.beginPath(); for (let x = 150; x <= 1700; x += 30) { const yy = y + 3 * Math.sin(x / 90 + y); x === 150 ? g.moveTo(x, yy) : g.lineTo(x, yy); } g.stroke(); }
+    const r = F.rng(31); for (let n = 0; n < NL; n++) for (let q = 0; q < 3; q++) { const x = 420 + (q + r()) / 3 * 1120, y = PB + 20 - (n + 0.45) * LH + (r() - 0.5) * 4, coral = r() < 0.45;
+      g.save(); g.translate(x, y); g.rotate((r() - 0.5) * 0.9); if (coral) U.coralIcon(g, 0, 0, 0.42, 0.5, '#9c8458'); else U.shellIcon(g, 0, 2, 0.42, 0.55, '#9c8458'); g.restore(); }
+    g.restore(); g.strokeStyle = '#ffffff'; g.lineWidth = 2.5; g.beginPath(); U.polyPath(g, platPoly); g.stroke(); }
   const locator = U.cv(300, 210);
   { const g = locator.getContext('2d'); const s = { lat: 27.3, lon: -82.5, span: 10 }, k = 210 / s.span, cl = Math.cos(s.lat * D2R), dLat = 105 / k, dLon = 150 / (k * cl);
     g.drawImage(day, (s.lon - dLon + 180) / 360 * 8192, (90 - (s.lat + dLat)) / 180 * 4096, 2 * dLon / 360 * 8192, 2 * dLat / 180 * 4096, 0, 0, 300, 210);
@@ -666,27 +716,34 @@ export async function build(api, C) {
     const X = lo => 150 + (lo - s.lon) * cl * k, Y = la => 105 - (la - s.lat) * k; g.fillStyle = 'rgba(255,90,54,0.75)'; g.beginPath(); for (const r of flRings) { r.forEach(([lo, la], i) => i ? g.lineTo(X(lo), Y(la)) : g.moveTo(X(lo), Y(la))); g.closePath(); } g.fill();
     g.strokeStyle = PAL.yellow; g.lineWidth = 4; g.setLineDash([10, 6]); g.beginPath(); g.moveTo(X(-86.5), Y(27.2)); g.lineTo(X(-78.6), Y(27.2)); g.stroke(); }
   scenes.push(scene(L2a, L2b, (ctx, t) => {
-    const k = 1 + 0.05 * prog(t, L2a, L2b); ctx.save(); ctx.translate(W / 2, 560); ctx.scale(k, k); ctx.translate(-W / 2, -560);
+    const k = 1 + 0.07 * prog(t, L2a, L2b); ctx.save(); ctx.translate(W / 2, 560); ctx.scale(k, k); ctx.translate(-W / 2, -560);
     const sky = ctx.createLinearGradient(0, 0, 0, SEA); sky.addColorStop(0, '#07101f'); sky.addColorStop(1, '#16324f'); ctx.fillStyle = sky; ctx.fillRect(0, 0, W, SEA);
     const wat = ctx.createLinearGradient(0, SEA, 0, FLOOR); wat.addColorStop(0, '#1d6f9c'); wat.addColorStop(1, '#0a2440'); ctx.fillStyle = wat; ctx.fillRect(0, SEA, W, FLOOR - SEA + 4);
     ctx.fillStyle = '#0b0d14'; ctx.fillRect(0, FLOOR, W, H - FLOOR); ctx.fillRect(380, PB, 1220, FLOOR - PB);
-    // basement (revealed on "under"), glows near "West Africa"
+    // basement: on "under" it rises from below into place behind a soft upward-moving edge (no hard wipe); glows near "West Africa"
     const bp = prog(t, M.under - 0.12, M.under + 0.9, E.inOut);
-    if (bp > 0) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W * bp, H); ctx.clip(); const bg = ctx.createLinearGradient(0, PB, 0, H); bg.addColorStop(0, '#6a3530'); bg.addColorStop(1, '#2a1416'); ctx.fillStyle = bg; ctx.fillRect(0, PB + 10, W, H - PB);
-      const r = F.rng(9); ctx.fillStyle = 'rgba(255,200,180,0.18)'; for (let i = 0; i < 260; i++) { ctx.fillRect(r() * W, PB + 20 + r() * (H - PB - 20), 3 + r() * 5, 2 + r() * 3); }
-      const gl = prog(t, M.wafr - 1.1, M.wafr - 0.3) * (0.7 + 0.3 * Math.sin(t * 6)); if (gl > 0) { const gg = ctx.createLinearGradient(0, PB, 0, PB + 140); gg.addColorStop(0, `rgba(255,140,60,${0.55 * gl})`); gg.addColorStop(1, 'rgba(255,140,60,0)'); ctx.fillStyle = gg; ctx.fillRect(0, PB + 10, W, 140); ctx.strokeStyle = `rgba(255,190,120,${gl})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, PB + 12); ctx.lineTo(W, PB + 12); ctx.stroke(); }
+    if (bp > 0) {
+      if (bp >= 1) drawBase(ctx);
+      else { const tg = baseTmp.getContext('2d'), FE = 150, ey = lerp(H + 10, PB + 10 - FE, bp);
+        tg.setTransform(1, 0, 0, 1, 0, 0); tg.globalCompositeOperation = 'source-over'; tg.clearRect(0, 0, W, H);
+        tg.setTransform(ctx.getTransform()); tg.translate(0, 80 * (1 - bp)); drawBase(tg); tg.setTransform(ctx.getTransform());
+        tg.globalCompositeOperation = 'destination-in'; const mg = tg.createLinearGradient(0, ey, 0, ey + FE); mg.addColorStop(0, 'rgba(0,0,0,0)'); mg.addColorStop(1, 'rgba(0,0,0,1)'); tg.fillStyle = mg; tg.fillRect(-W, -H, 3 * W, 3 * H);
+        tg.globalCompositeOperation = 'source-over'; tg.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(baseTmp, 0, 0); ctx.restore(); }
+      ctx.save(); const gl = prog(t, M.wafr - 1.1, M.wafr - 0.3) * (0.7 + 0.3 * Math.sin(t * 6)); if (gl > 0) { const gg = ctx.createLinearGradient(0, PB, 0, PB + 140); gg.addColorStop(0, `rgba(255,140,60,${0.55 * gl})`); gg.addColorStop(1, 'rgba(255,140,60,0)'); ctx.fillStyle = gg; ctx.fillRect(0, PB + 10, W, 140); ctx.strokeStyle = `rgba(255,190,120,${gl})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, PB + 12); ctx.lineTo(W, PB + 12); ctx.stroke(); }
       ctx.restore(); }
-    // limestone platform rises (strata stack up from the bottom)
-    const rp = prog(t, M.lime - 0.12, M.lime + 2.2, E.outExpo), top = lerp(PB + 20, PT, rp);
-    if (rp > 0) { ctx.save(); ctx.beginPath(); ctx.rect(0, top, W, H); ctx.clip(); const lg = ctx.createLinearGradient(0, PT, 0, PB); lg.addColorStop(0, '#f1e6c4'); lg.addColorStop(1, '#c9b386'); ctx.fillStyle = lg; ctx.beginPath(); U.polyPath(ctx, platPoly); ctx.fill();
-      ctx.save(); ctx.beginPath(); U.polyPath(ctx, platPoly); ctx.clip(); ctx.strokeStyle = 'rgba(120,95,55,0.35)'; ctx.lineWidth = 2; for (let y = PT + 24; y < PB + 20; y += 26) { ctx.beginPath(); for (let x = 150; x <= 1700; x += 30) { const yy = y + 3 * Math.sin(x / 90 + y); x === 150 ? ctx.moveTo(x, yy) : ctx.lineTo(x, yy); } ctx.stroke(); } ctx.restore();
-      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.beginPath(); U.polyPath(ctx, platPoly); ctx.stroke(); ctx.restore(); }
+    // the limestone platform builds up layer by layer through "limestone platform, miles thick, built up by sea life in warm, shallow water":
+    // each stratum settles into place, then a beat, then the next (front-loaded: about two-thirds built on "miles thick", the last layers land through "sea life")
+    const bu = prog(t, M.lime - 0.12, wWater + 0.15, (x) => 1 - Math.pow(1 - x, 2.2)), fL = bu * NL, jL = Math.min(NL - 1, Math.floor(fL));
+    const top = PB + 20 - Math.min(NL, jL + E.out(clamp((fL - jL) / 0.45))) * LH;
+    if (bu > 0) { ctx.save(); ctx.beginPath(); ctx.rect(0, top, W, H); ctx.clip(); ctx.drawImage(platC, 0, 0); ctx.restore();
+      if (top > PT + 0.5) { const e = (top - PT) / (FLOOR - PT); ctx.strokeStyle = 'rgba(255,250,232,0.6)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(lerp(300, 200, e), top); ctx.lineTo(lerp(1590, 1660, e), top); ctx.stroke(); } }
     // the peninsula above sea level
     ctx.fillStyle = PAL.hero; ctx.beginPath(); ctx.moveTo(800, SEA + 2); ctx.quadraticCurveTo(820, SEA - 16, 860, SEA - 18); ctx.lineTo(1080, SEA - 18); ctx.quadraticCurveTo(1120, SEA - 16, 1140, SEA + 2); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, SEA); ctx.lineTo(800, SEA); ctx.moveTo(1140, SEA); ctx.lineTo(W, SEA); ctx.stroke();
-    // shallow-water sea life
-    [[470, 0], [640, 1], [730, 0], [1230, 1], [1380, 0], [1500, 1]].forEach(([x, kind], i) => { const a = prog(t, M.sealife - 0.12 + i * 0.1, M.sealife + 0.2 + i * 0.1, E.outBack); if (a <= 0) return; const bob = 3 * Math.sin(t * 2 + i);
-      if (kind) U.coralIcon(ctx, x, PT - 4 + bob * 0.2, a * 1.2, 1); else U.shellIcon(ctx, x, PT - 14 + bob * 0.2, a * 0.8, 1); });
+    // shallow-water sea life on the growing top, one by one through "sea life in warm, shallow water" (it rides up as the last layers land)
+    [[470, 0], [640, 1], [730, 0], [1230, 1], [1380, 0], [1500, 1]].forEach(([x, kind], i) => { const a = prog(t, M.sealife - 0.12 + i * 0.28, M.sealife + 0.2 + i * 0.28, E.outBack); if (a <= 0) return; const bob = 3 * Math.sin(t * 2 + i);
+      if (kind) U.coralIcon(ctx, x, top - 4 + bob * 0.2, a * 1.3, 1); else U.shellIcon(ctx, x, top - 14 + bob * 0.2, a * 0.9, 1); });
     ctx.restore();
     // locator inset
     const la = prog(t, L2a + 0.2, L2a + 0.6); if (la > 0) { ctx.save(); ctx.globalAlpha = la; ctx.fillStyle = 'rgba(0,0,0,0.45)'; F.round(ctx, 1514, 76, 312, 222, 14); ctx.fill(); ctx.save(); F.round(ctx, 1520, 70, 300, 210, 12); ctx.clip(); ctx.drawImage(locator, 1520, 70); ctx.restore(); ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2; F.round(ctx, 1520, 70, 300, 210, 12); ctx.stroke(); ctx.restore(); }
@@ -697,7 +754,8 @@ export async function build(api, C) {
   // ===================================================================================================
   // LM s093-s094  arc Florida -> West Africa (+ moving truck), then fly to the Cape; Good Hope vs Agulhas
   // ===================================================================================================
-  const LMa = L2b, LMb = M.agul - 0.07;
+  // LM keeps drawing under M2's 0.12-s fade-in (a real crossfade, not a dip from black)
+  const LMa = L2b, LMb = M.agul - 0.07 + 0.12;
   const FLA = [26.0, -81.2], WAF = [12.6, -16.4], GH = [-34.36, 18.48], AG = [-34.83, 20.0];
   const flyA = SEG('s094').start - 0.3;
   scenes.push(gshot({ t0: LMa, t1: LMb, overlay: { canvas: flOv, bounds: FL_B }, patch: { url: 'tex/patch/s_africa.jpg', bounds: [10, -37, 36, -20] }, drift: 0.3,
@@ -731,7 +789,7 @@ export async function build(api, C) {
   // ===================================================================================================
   // M2 s094  ASTER view of Cape Agulhas
   // ===================================================================================================
-  const M2a = LMb, M2b = M.compass - 0.12;
+  const M2a = M.agul - 0.07, M2b = M.compass - 0.12;
   const aster = api.img(IMG('cape_agulhas_aster.jpg'));
   const KBf = [0.5, 0.55, 1.04], KBt = [0.47, 0.72, 1.3];
   scenes.push(scene(M2a, M2b, (ctx, t) => {
@@ -781,7 +839,9 @@ export async function build(api, C) {
   // ===================================================================================================
   // N1 s095  the cold-open coin spins up again -> lands on its edge -> JUICE CHECK: IT'S COMPLICATED
   // ===================================================================================================
-  const N1a = M3b, N1b = M.likely + 2.25;
+  // N1 hands over to the scars shot just before "scars" (the stamp has had ~1 s on screen), so "they're scars" plays over the scars, not over a still stamp
+  const wScars = C.words('s095').find(w => /^scars/i.test(w.w)).start;
+  const N1a = M3b, N1b = wScars - 0.2;
   const stampC = U.stampCanvas('JUICE CHECK', "IT'S COMPLICATED", PAL.yellow, 5);
   const coinT0 = M.coin2 - 0.15, rate = Math.PI * 3;
   const coinPhase = (t) => { const tl = M.likely - 0.25; if (t < tl) return rate * (t - coinT0); const pl = rate * (tl - coinT0), tgt = (Math.floor(pl / Math.PI) + 1) * Math.PI + Math.PI / 2, u = (t - tl) / 0.7;
@@ -792,8 +852,9 @@ export async function build(api, C) {
     extra: (ctx, t, api) => {
       const [sx, sy] = U.shake(t, M.likely - 0.03, 10);
       ctx.save(); ctx.translate(sx, sy);
-      const ca = E.outBack(prog(t, coinT0, coinT0 + 0.35)); if (ca > 0) { const lean = t > M.likely ? 0.16 * Math.exp(-1.5 * (t - M.likely)) * Math.sin((t - M.likely) * 6) : 0; if (t > M.likely - 0.2) { ctx.save(); ctx.globalAlpha = 0.45 * prog(t, M.likely - 0.2, M.likely + 0.1); ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(960, 806, 100, 12, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } ctx.save(); ctx.translate(960, 640); ctx.rotate(lean); U.coin(ctx, 0, 0, 160 * ca, coinPhase(t)); ctx.restore(); }
-      U.drawStamp(ctx, stampC, 1230, 290, t, M.likely - 0.08, { scale: 0.66, rot: -0.07 });
+      const out = 1 - prog(t, N1b - 0.25, N1b); // coin and stamp fade before N2 tilts away
+      const ca = E.outBack(prog(t, coinT0, coinT0 + 0.35)); if (ca > 0) { const lean = t > M.likely ? 0.16 * Math.exp(-1.5 * (t - M.likely)) * Math.sin((t - M.likely) * 6) : 0; if (t > M.likely - 0.2) { ctx.save(); ctx.globalAlpha = 0.45 * prog(t, M.likely - 0.2, M.likely + 0.1) * out; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(960, 806, 100, 12, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } ctx.save(); ctx.translate(960, 640); ctx.rotate(lean); U.coin(ctx, 0, 0, 160 * ca, coinPhase(t), out); ctx.restore(); }
+      U.drawStamp(ctx, stampC, 1230, 290, t, M.likely - 0.08, { scale: 0.66, rot: -0.07, alpha: out });
       ctx.restore();
     } }));
   cue(M.coin2 - 0.12, 'bell_small', -16); cue(M.likely - 0.06, 'stamp', -10);
@@ -801,17 +862,22 @@ export async function build(api, C) {
   // ===================================================================================================
   // N2 s095  scars glow: seam lines from the three big drips to Antarctica
   // ===================================================================================================
-  const N2a = N1b, N2b = SEG('s095').start + 9.95;
+  // N2 opens on N1's last framing (heading drift 1.2 deg/s, alt breathing included) and tilts south in 0.8 s: no jump cut.
+  // The scars draw across "scars from a supercontinent that tore apart" and land on "Antarctica", where the ring flares;
+  // the cut to N3 is keyed to "The small ones".
+  const wSmall = C.words('s095').find(w => /^small/i.test(w.w)).start;
+  const N2a = N1b, N2b = wSmall - 0.12, tilt2 = (t) => prog(t, N2a, N2a + 0.8, E.inOut);
+  const n1End = { lat: -30, lon: 16, alt: 2.9 * (1 + 0.006 * Math.sin((N1b - N1a) * 0.7)), heading: 1.2 * (N1b - N1a) };
   scenes.push(gshot({ t0: N2a, t1: N2b, overlay: { canvas: dripOv, bounds: WORLD }, patch: null, drift: 0.6,
-    keys: [{ t: N2a, lat: -55, lon: 15, alt: 3.2, heading: 8 }, { t: N2b, lat: -58, lon: 12, alt: 3.1, heading: 8 }],
-    look: { desat: 0.3, dim: 0.35, ovAlpha: 0.85, relief: 0.7 },
+    keys: [Object.assign({ t: N2a }, n1End), { t: N2a + 0.8, lat: -55, lon: 15, alt: 3.2, heading: 8 }, { t: N2b, lat: -58, lon: 12, alt: 3.1, heading: 8 }],
+    look: (t) => ({ desat: 0.3, dim: lerp(0.55, 0.35, tilt2(t)), ovAlpha: lerp(1, 0.85, tilt2(t)), relief: 0.7 }),
     extra: (ctx, t, api) => {
-      const g = api.g; drawRing(ctx, g, t, null);
+      const g = api.g, fin = prog(t, N2a + 0.1, N2a + 0.6); ctx.save(); ctx.globalAlpha *= fin; drawRing(ctx, g, t, M.v_ant - 0.1); ctx.restore();
       TR3.forEach(([n, tip], i) => { const pts = [{ lat: tip[0], lon: tip[1] }, ...U.trackPts(tracks, n, 0, 180)];
-        const st = M.v_ant - 0.12 + i * 0.12, p = prog(t, st, st + 0.9, E.inOut);
-        for (const run of U.projRuns(g, pts)) { ctx.save(); ctx.globalAlpha = 0.55 * (1 - p); F.glowPath(ctx, run, { p: 1, color: PAL.yellow, width: 4, dash: [2, 13] }); ctx.restore(); if (p > 0) U.scarLine(ctx, run, p, { width: 4.5 }); } });
+        const st = wScars + 0.3 + i * 0.4, p = prog(t, st, st + 1.5, E.inOut);
+        for (const run of U.projRuns(g, pts)) { ctx.save(); ctx.globalAlpha = 0.55 * (1 - p) * fin; F.glowPath(ctx, run, { p: 1, color: PAL.yellow, width: 4, dash: [2, 13] }); ctx.restore(); if (p > 0) U.scarLine(ctx, run, p, { width: 4.5 }); } });
     } }));
-  cue(N2a, 'whoosh_soft', -18);
+  cue(N2a + 0.2, 'whoosh_soft', -18); // peaks mid-tilt, just after the onset of "scars"
 
   // ===================================================================================================
   // N3 s095  small drips: own icons (Baja tear-away, Florida shell, Greenland ?) -> connecting dots

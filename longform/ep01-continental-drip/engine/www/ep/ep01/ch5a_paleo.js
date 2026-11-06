@@ -29,15 +29,20 @@ export function axisRot(k, th) {
 
 export const PAIRS = { africa: ['africa_c', 'cape_agulhas'], samerica: ['samerica_c', 'cape_horn'], india: ['india_c', 'kanyakumari'], australia: ['australia_c', 'tasmania_s'], antarctica: ['antarctica_c', 'south_pole'] };
 export const TRACKED = ['samerica', 'africa', 'india', 'australia'];
+// Madagascar's coast_TTT polygon (217 points; coast_000 #913) is wrongly listed in EXCL for 171-180 Ma (export.py's loose
+// non-rigid match), so it vanished at 170.5 Ma. It belongs to no tracked plate: keep it in the base land at every Ma.
+const MADAGASCAR = { 171: 630, 172: 630, 173: 631, 174: 632, 175: 631, 176: 630, 177: 630, 178: 630, 179: 630, 180: 631 };
+// polygons of coast_TTT (polys) that the base land leaves out at integer Ma Ti (they belong to the tracked plates)
+export function exclSet(Ti, polys) { const ex = new Set(EXCL[Ti]), mj = MADAGASCAR[Ti]; if (mj != null && polys[mj] && polys[mj].length === 217) ex.delete(mj); return ex; }
 
 export class Paleo {
-  // w x h equirect overlay canvas. Base land (everything except the tracked plates and Antarctica) is cached per integer Ma;
-  // Antarctica (coast_TTT polygons) and the tracked plates (present-day rings rotated continuously) are redrawn on change.
+  // w x h equirect overlay canvas. Base land (everything except the tracked plates) comes from the coast_TTT snapshots, which
+  // exist per integer Ma: each snapshot is cached and the two neighbours of T are cross-blended, so the untracked land glides
+  // instead of ticking at every Ma. The tracked plates (present-day rings rotated continuously) are redrawn on change.
   constructor(api, tracks, w = 2048, h = 1024) {
     this.api = api; this.tracks = tracks; this.w = w; this.h = h; this.sc = w / 2048;
     this.cv = document.createElement('canvas'); this.cv.width = w; this.cv.height = h; this.g = this.cv.getContext('2d');
-    this.base = document.createElement('canvas'); this.base.width = w; this.base.height = h; this.bg = this.base.getContext('2d');
-    this.baseKey = null; this.sig = null;
+    this.bases = new Map(); this.mixC = null; this.sig = null;
     this.E = {}; for (const c in PAIRS) { const [a, b] = PAIRS[c]; this.E[c] = frame(this.pt(a, 0), this.pt(b, 0)); }
     const step = w <= 2048 ? 2 : 1; // ring decimation for whole-globe canvases (invisible at that scale, halves path cost)
     this.R0 = {}; for (const c of TRACKED) this.R0[c] = RINGS[c].map(r => r.filter((_, i) => i % step === 0 || i === r.length - 1).map(([lo, la]) => v3(la, lo)));
@@ -66,14 +71,22 @@ export class Paleo {
     return R;
   }
   cen0(c) { const [lo, la] = this.tracks[PAIRS[c][0]][0]; return [la, lo]; }
-  async drawBase(Ti, ant = 0, shelf = 0) {
+  // base-land canvas of integer Ma Ti (LRU cache of 3: the two neighbours of the current T plus one spare)
+  async baseCanvas(Ti, ant = 0, shelf = 0) {
     const key = Ti + '|' + ant.toFixed(2) + '|' + shelf;
-    if (this.baseKey === key) return;
-    this.baseKey = key;
-    const polys = await this.load(Ti), g = this.bg, W = this.w, H = this.h;
+    let c = this.bases.get(key);
+    if (c) { this.bases.delete(key); this.bases.set(key, c); return c; }
+    if (this.bases.size >= 3) { const k0 = this.bases.keys().next().value; c = this.bases.get(k0); this.bases.delete(k0); }
+    else { c = document.createElement('canvas'); c.width = this.w; c.height = this.h; }
+    await this.drawBase(c.getContext('2d'), Ti, ant, shelf);
+    this.bases.set(key, c);
+    return c;
+  }
+  async drawBase(g, Ti, ant = 0, shelf = 0) {
+    const polys = await this.load(Ti), W = this.w, H = this.h;
     const X = lo => (lo + 180) / 360 * W, Y = la => (90 - la) / 180 * H;
     g.clearRect(0, 0, W, H);
-    const ex = new Set(EXCL[Ti]), an = new Set(ANT[Ti]);
+    const ex = exclSet(Ti, polys), an = new Set(ANT[Ti]);
     // polygons lying wholly south of 58°S are Antarctic blocks (e.g. West Antarctica): they join the Antarctica layer
     this.antX = this.antX || {};
     this.antX[Ti] = polys.map((r, j) => (!ex.has(j) && !an.has(j) && r.every(q => q[1] < -58)) ? j : -1).filter(j => j >= 0);
@@ -90,18 +103,30 @@ export class Paleo {
   // o: {hl:{c:0..1}, ant:0..1, antGlow, explode:{c:deg}, spin:{c:deg}, center:[x,y,z], key, under(g,X,Y,P), over(g,X,Y,P), baseAlpha}
   async draw(T, o = {}) {
     T = F.clamp(T, 0, 200);
-    const Ti = Math.round(T);
     const hl = o.hl || {};
     const sig = [T.toFixed(3), (Math.round((o.ant || 0) * 50) / 50).toFixed(2), (o.baseAlpha ?? 1).toFixed(2), String(o.shelf || 0), ...TRACKED.map(c => (hl[c] || 0).toFixed(2) + ':' + ((o.explode && o.explode[c]) || 0).toFixed(3) + ':' + ((o.spin && o.spin[c]) || 0).toFixed(2)), o.key || ''].join('|');
     if (sig === this.sig) return false;
     this.sig = sig;
-    const antQ = Math.round((o.ant || 0) * 50) / 50;
-    await this.load(Ti); await this.drawBase(Ti, antQ, o.shelf || 0);
+    const antQ = Math.round((o.ant || 0) * 50) / 50, shelf = o.shelf || 0;
+    // base land: (1-f)*snapshot(T0) + f*snapshot(T0+1), summed with 'lighter' so shared land stays fully opaque
+    const T0 = Math.min(199, Math.floor(T)), f = T - T0, fa = f < 1e-3 ? 0 : f > 1 - 1e-3 ? 1 : f;
+    const b0 = fa < 1 ? await this.baseCanvas(T0, antQ, shelf) : null;
+    const b1 = fa > 0 ? await this.baseCanvas(T0 + 1, antQ, shelf) : null;
+    let base = b0 || b1;
+    if (b0 && b1) {
+      if (!this.mixC) { this.mixC = document.createElement('canvas'); this.mixC.width = this.w; this.mixC.height = this.h; this.mixG = this.mixC.getContext('2d'); }
+      const m = this.mixG;
+      m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1; m.clearRect(0, 0, this.w, this.h);
+      m.globalAlpha = 1 - fa; m.drawImage(b0, 0, 0);
+      m.globalCompositeOperation = 'lighter'; m.globalAlpha = fa; m.drawImage(b1, 0, 0);
+      m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1;
+      base = this.mixC;
+    }
     const g = this.g, W = this.w, H = this.h, sc = this.sc;
     const X = lo => (lo + 180) / 360 * W, Y = la => (90 - la) / 180 * H;
     g.clearRect(0, 0, W, H);
     if (o.under) o.under(g, X, Y, this);
-    g.save(); g.globalAlpha = o.baseAlpha ?? 1; g.drawImage(this.base, 0, 0); g.restore();
+    g.save(); g.globalAlpha = o.baseAlpha ?? 1; g.drawImage(base, 0, 0); g.restore();
     // tracked plates: rotate present-day rings continuously
     for (const c of TRACKED) {
       const R = this.plateRot(c, T, o);
