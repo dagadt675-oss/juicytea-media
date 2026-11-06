@@ -1,17 +1,5 @@
 # fix ch1 (still running; latest notes)
 
-Now let me measure the Explorer clips' natural stride speeds so root motion can be matched to them. I'll add a temporary debug probe (gated by a query flag) to the module.
-
----
-
-Now S2-4 (wave runs off-frame instead of vanishing) and S2-5 (bead shrinks out instead of popping):
-
----
-
-Let me test-render gag 1 now (with the foot logger) to validate the planted-feet approach before moving on.
-
----
-
 The teeter now rocks on the toe/heel edge with no sinking or skating. Let me check the full gag at normal framing, every frame through the walk-in and stop.
 
 ---
@@ -29,3 +17,15 @@ Now S1-5 (cutaway framing so the Kansas entry point and the antipode '?' are bot
 ---
 
 Now the Bacon-page sequence (S1-6/7/8). Let me check how `F.grade` composites before deciding between a slide-out and a fade for p387.
+
+---
+
+Now S2-1 (the toppling print keeps falling until it's out of frame):
+
+---
+
+The print now exits the frame at F3243, two frames before the cut. Next, S2-2 (one continuous whip that decays into a slow push instead of stop-and-go):
+
+---
+
+Now S2-7 (magnifier entrance/exit envelope) and S2-8 (byline ring off the title):

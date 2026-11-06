@@ -1,31 +1,31 @@
 # fix ch3 (still running; latest notes)
 
-`rings()` handles both forms. Now the S5-6 edit: a readable twitch (fills and coast strokes jolt apart together, with a decaying globe shake), settling back to the original end state.
-
----
-
-Let me review the full diff and syntax-check the modules.
-
----
-
-The diff is as intended. Let me check the rest of render.cjs (exit codes and logging) before the first test render.
-
----
-
-The machine is idle. First test render: the title push (S5-1), frames 10780-10919.
-
----
-
-Fast render (0.2 s/frame for the 2D page). Let me check for page errors, then measure motion and look at the frames.
-
----
-
-"FIGURE 1." no longer reads through the pill. Next the tetra shot: arrows (S5-2, S5-5) and the roll (S5-3), frames 11390-11539.
-
----
-
-The one-frame reset spikes at 11400/11420/11440/11460 (0.51-0.62) are gone (now 0.12-0.22, in line with neighbours). Now the roll.
-
----
-
 One roll now, ending upright at the corner. Let me check the end of the roll and the turn frame-by-frame at a closer crop.
+
+---
+
+The page lands before the outline draws. Let me verify the 1899 pill up close (frame 12520; this part of the scene is independent of the K2 change).
+
+---
+
+The body text no longer reads through the 1899 pill. Next, the kids page entrance (pill timing and slide landing), frames 12785-12820.
+
+---
+
+The "1918" pill now fades in only after the page has landed (from 12803), and the landing has no one-frame drop at 12810. Next, the s053/s054 arrows (13265-13344).
+
+---
+
+Reset spikes at 13280/13300/13320/13340 are gone. A quick look at the ring.
+
+---
+
+The ring now pulses half-and-half with no jumps. Next, the s055 stall shot: arrow cycles, the freeze at the stall and the fade-out (13690-13809).
+
+---
+
+Reset spikes at 13700/13720/13740/13760 are gone and the stall itself (13781+) matches the original. Let me check the frozen ring at the stall shows all ten arrows.
+
+---
+
+At the stall all ten arrows freeze fully visible, then fade together as the ball pops back. Next, the detective board (S5-9): clue cards and the suspect card pop-in, frames 13880-13964.
