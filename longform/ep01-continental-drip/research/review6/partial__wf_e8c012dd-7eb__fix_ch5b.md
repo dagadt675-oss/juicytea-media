@@ -1,9 +1,5 @@
 # fix ch5b (still running; latest notes)
 
-Now S8-9 (keep the drip highlight inside the bulb) and S8-8 (land the honey drop on the puddle exactly when it reacts and the existing pop cue plays).
-
----
-
 Now I'll move the scan line to draw after the tiles, so it sits on top of the ghosts.
 
 ---
@@ -29,3 +25,7 @@ Let me review the full diff before rendering.
 ---
 
 The machine is heavily loaded (load around 25, 11 other renders running), so it's about 3.6 s per frame. I'll keep test renders short. Checking the B1 to B2 result.
+
+---
+
+While the batch runs, I'll load the Monitor tool so I can wait for each render to finish.

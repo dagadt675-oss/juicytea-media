@@ -1,17 +1,5 @@
 # fix ch5a (still running; latest notes)
 
-Syntax is fine. Note: edit.js filters with `ch.id !== only && ch.id !== 'ch' + only`, so `"only":5` would skip `ch5a` entirely; I'll use `"only":"5a"`. First a short smoke render in the zipper scene.
-
----
-
-The module loads and the slider now travels. Frame 28 shows the slider turned sideways, so let me inspect consecutive frames there at full resolution.
-
----
-
-Now let me test the zipper from just before the slider appears (G scene).
-
----
-
 While that renders, let me review the full diff against the original.
 
 ---
@@ -29,3 +17,15 @@ Madagascar's 180-Ma polygon sits in the channel between Africa and India, which 
 ---
 
 My render completed fine (the OOM kill hit another agent's Chromium). Let me analyze the zipper render: slider track and tiles.
+
+---
+
+The slider now moves 1.0 to 1.8 px per frame with no jumps, and it scales in at 640.6 s. Let me look at the frames.
+
+---
+
+The slider rides smoothly up the seam with the cyan strip filling in behind it. Let me check one full-resolution frame for the chip plate and zipper details.
+
+---
+
+G looks right. While the H-scene renders run, let me pre-compute the expected time markers for the remaining checks.

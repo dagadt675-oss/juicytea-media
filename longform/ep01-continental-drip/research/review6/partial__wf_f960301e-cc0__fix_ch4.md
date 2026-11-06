@@ -1,13 +1,5 @@
 # fix ch4 (still running; latest notes)
 
-Both modules parse. Before rendering, I'll rerun the crop simulation with the new Villumsen keys to confirm the pan never touches the clamp and has no velocity kinks.
-
----
-
-The render exited 0 with 150 frames. Test-video frame 0 is film frame 15540, so I'll grab test frames 10-45 (film 15550-15585) to judge the push and the reveal.
-
----
-
 That crop missed the dot. I'll read the tile to locate it.
 
 ---
@@ -29,3 +21,11 @@ That render was killed for lack of memory. I'll check what else is running and h
 ---
 
 I'll run it in the background; it notifies me when it exits.
+
+---
+
+The render is running. I'll load the Monitor tool so I can wait on it without polling by hand.
+
+---
+
+I'll block in the foreground until the background render reports its exit line.
