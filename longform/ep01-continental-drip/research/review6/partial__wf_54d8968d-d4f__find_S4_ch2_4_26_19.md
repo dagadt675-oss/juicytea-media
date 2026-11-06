@@ -13,3 +13,15 @@ Now the scene code. Let me check sizes first.
 ---
 
 Let me look at the shared libs and the timing markers for my segment.
+
+---
+
+The code is clear on scene structure. Let me compute the exact narration-anchored times for this segment by replicating the `tm` calculations.
+
+---
+
+Key match: E12 (frame 9776) lands exactly on `tAusA`, where the hero's position switches source. Let me read the shared helpers (easings, headline, counter, globe).
+
+---
+
+Now let me start grabbing frames. First the hero teleport at E12 (frame 9776, `tAusA`).
