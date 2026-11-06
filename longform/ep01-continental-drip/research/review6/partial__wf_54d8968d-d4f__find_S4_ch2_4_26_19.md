@@ -8,20 +8,16 @@ Now the event filmstrips.
 
 ---
 
-Now the scene code. Let me check sizes first.
+Now let me look at the scene code.
 
 ---
 
-Let me look at the shared libs and the timing markers for my segment.
+Let me start stepping through frames. First the zoom into South America (E1) and the China flip earlier in the shot.
 
 ---
 
-The code is clear on scene structure. Let me compute the exact narration-anchored times for this segment by replicating the `tm` calculations.
+Confirmed a one-frame 5.75° roll at frame 8994. Now let me check every chunk seam in the segment numerically.
 
 ---
 
-Key match: E12 (frame 9776) lands exactly on `tAusA`, where the hero's position switches source. Let me read the shared helpers (easings, headline, counter, globe).
-
----
-
-Now let me start grabbing frames. First the hero teleport at E12 (frame 9776, `tAusA`).
+You've hit your 5-hour limit · resets 1:30am (UTC)

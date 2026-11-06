@@ -1,9 +1,5 @@
 # voice + audio (still running; latest notes)
 
-Let me look at the mix spec to map SFX to masking windows.
-
----
-
 Let me find the word-timing file so I can map each masking window and offset to the exact words.
 
 ---
@@ -29,3 +25,7 @@ The 1-4 kHz band tells the story: the voice stays 15-40 dB above the bed through
 ---
 
 The earlier pass ran medium.en on many windows, against both the stem and the final mix. That's useful as a third opinion. Let me read it all.
+
+---
+
+Nothing crossed the flag threshold. Let me see the raw numbers.
