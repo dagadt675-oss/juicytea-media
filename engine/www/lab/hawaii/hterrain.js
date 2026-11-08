@@ -93,7 +93,7 @@ vec3 seabed(float h, float slope, float cav, vec2 ll, float pf){
   // shallow carbonate shelf (cream reef), only where it is both shallow and gentle
   float shelf = (1.0 - smoothstep(70.0, 190.0, dep)) * (1.0 - smoothstep(0.03, 0.10, slope));
   c = mix(c, reefCol, shelf * reefAmt);
-  c *= 0.78 + 0.40 * n + 0.22 * (n2 - 0.5) + 0.18 * (n3 - 0.5) * detail;
+  c *= 0.85 + 0.28 * n + 0.14 * (n2 - 0.5) + 0.12 * (n3 - 0.5) * detail;
   c *= clamp(1.0 - cav * 1.5, 0.66, 1.25);
   return c;
 }
@@ -111,13 +111,21 @@ void main(){
   float sub = 1.0 - smoothstep(-30.0, 10.0, h);
   vec2 q = ll * 180.0; float e = 0.37;
   vec2 dn = vec2(fbm(q + vec2(e, 0.0)) - fbm(q - vec2(e, 0.0)), fbm(q + vec2(0.0, e)) - fbm(q - vec2(0.0, e))) * 0.16 * detail * sub * (1.0 - smoothstep(0.12, 0.45, 180.0 * pf));
-  vec3 n = normalize(vec3(-gx * rk + dn.x, 1.0, gy * rk - dn.y));
-  float cav = clamp((hl + hr + hd + hu - 4.0 * h) / max(fp.x * 4096.0, 1.0) / 90.0, -0.25, 0.25);
   float slope = length(vec2(gx, gy)) / vex;
+  // gullies and lava ribs on steep submarine flanks: ridged noise stretched along the fall line (about 0.7 km apart, km long)
+  vec2 fall = vec2(gx, gy) / (length(vec2(gx, gy)) + 1e-6), perp = vec2(-fall.y, fall.x);
+  vec2 km = vec2(ll.x * ${KM_DEG} * cos(lat), ll.y * ${KM_DEG});
+  float acr = dot(km, perp), alo = dot(km, fall), gf = 1.4;
+  float steep = smoothstep(0.05, 0.16, slope) * sub * (1.0 - smoothstep(0.12, 0.45, gf * pf * ${KM_DEG})) * detail;
+  float rid = 1.0 - abs(2.0 * fbm(vec2(acr * gf, alo * gf * 0.12)) - 1.0);
+  float rid2 = 1.0 - abs(2.0 * fbm(vec2((acr + 0.06) * gf, alo * gf * 0.12)) - 1.0);
+  vec2 pg = perp * (rid2 - rid) / 0.06 * 0.09 * steep;
+  vec3 n = normalize(vec3(-gx * rk + dn.x - pg.x, 1.0, gy * rk - dn.y + pg.y));
+  float cav = clamp((hl + hr + hd + hu - 4.0 * h) / max(fp.x * 4096.0, 1.0) / 90.0, -0.25, 0.25);
   float ao = texture2D(aoTex, vUv).r;
   float shadow = shadows > 0.5 ? sunVis(ll, h) : 1.0;
   vec3 land = texture2D(colTex, vUv).rgb; float l0 = dot(land, vec3(0.2126, 0.7152, 0.0722)); land = max(mix(vec3(l0), land, landSat), 0.0) * landGain * (0.86 + 0.20 * fbmL(ll, 520.0, pf) + 0.10 * (fbmL(ll, 2100.0, pf) - 0.5));
-  vec3 alb = mix(seabed(h, slope, cav, ll, pf), land, smoothstep(-6.0, 4.0, h));
+  vec3 alb = mix(seabed(h, slope, cav, ll, pf) * mix(1.0, 0.70 + 0.55 * rid, steep), land, smoothstep(-6.0, 4.0, h));
   float exposed = step(h, -1.0) * step(level, h);
   float above = h - level;
   // bathtub ring: pale mineral crust in a band just below the former sea level, broken up by noise
@@ -182,7 +190,7 @@ void main(){
   vec3 hv = normalize(v + sunDir); float nh = max(dot(n, hv), 0.0);
   float a2 = rough * rough; float dd = nh * nh * (a2 - 1.0) + 1.0; float spec = a2 / (3.14159 * dd * dd);
   vec3 glint = sunCol * sunI * spec * 0.08 * fres;
-  vec3 body = mix(wShallow, wMid, smoothstep(6.0, 80.0, depth)); body = mix(body, wDeep, smoothstep(120.0, 1600.0, depth));
+  vec3 body = mix(wShallow, wMid, smoothstep(6.0, 120.0, depth)); body = mix(body, wDeep, smoothstep(150.0, 900.0, depth));
   body *= 0.55 + 0.45 * sunI / 3.0;
   // foam rim + luminous shallow edge, sized in screen pixels via the depth derivative
   float fwD = max(fwidth(depth), 0.05);
@@ -261,7 +269,7 @@ export const LOOKS = {
   warm: { zenith: '#1e5fbf', horizon: '#b9d0ea', haze: ['#adc3dd', 0.72], sun: '#ffd6a8', glow: ['#ffbc7c', 0.40], sunI: 3.6, skyI: 0.64 },
 };
 export const WATERS = {  // linear RGB: shallow, mid, deep
-  turq: [[0.020, 0.40, 0.42], [0.006, 0.19, 0.26], [0.003, 0.095, 0.17]],
+  turq: [[0.020, 0.40, 0.42], [0.006, 0.17, 0.25], [0.002, 0.060, 0.125]],
   ocean: [[0.020, 0.22, 0.26], [0.006, 0.090, 0.16], [0.003, 0.035, 0.085]],
 };
 
@@ -302,7 +310,7 @@ export class HawaiiStage {
         sunI: { value: 3.2 }, skyI: { value: 0.9 }, shadows: { value: 1 },
         basaltCol: { value: V3([0.033, 0.034, 0.038]) }, sedCol: { value: V3([0.066, 0.062, 0.060]) }, reefCol: { value: V3([0.16, 0.165, 0.155]) },
         tubCol: { value: V3([0.42, 0.42, 0.40]) }, lineCol: { value: V3([0.55, 1.6, 1.9]) },
-        reefAmt: { value: 0.45 }, tubM: { value: 200 }, tubAmt: { value: 0 }, oldLine: { value: 0 }, lineW: { value: 2.2 }, detail: { value: 1.0 },
+        reefAmt: { value: 0.45 }, tubM: { value: 90 }, tubAmt: { value: 0 }, oldLine: { value: 0 }, lineW: { value: 2.2 }, detail: { value: 1.0 },
       }), vertexShader: TERRAIN_VS, fragmentShader: TERRAIN_FS,
     });
     this.heroMat = terrMat(hT, heroAO, heroCol, hb, this.hHero, 0);
