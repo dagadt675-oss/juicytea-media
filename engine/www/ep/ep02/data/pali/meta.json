@@ -1,0 +1,111 @@
+{
+ "name": "pali",
+ "bbox": [
+  -157.87,
+  21.32,
+  -157.7,
+  21.44
+ ],
+ "wh": [
+  1792,
+  1344
+ ],
+ "px_m": 9.9,
+ "hmin": -8000.0,
+ "hrange": 17000.0,
+ "vex": 1.0,
+ "files": {
+  "h16": "h16.png",
+  "ao": "ao.png",
+  "color": "color.jpg"
+ },
+ "sources": [
+  {
+   "id": "etopo15",
+   "res_arcsec": 15.0
+  },
+  {
+   "id": "ncei:oahu_13_mhw_2011",
+   "res_arcsec": 0.33,
+   "cover": 1.0
+  }
+ ],
+ "colour": {
+  "modis": [
+   "Terra_2024-06-03",
+   "Aqua_2024-06-03",
+   "Terra_2024-06-19",
+   "Aqua_2024-06-19",
+   "Terra_2024-07-08",
+   "Aqua_2024-07-08",
+   "Terra_2024-07-21",
+   "Aqua_2024-07-21",
+   "Terra_2024-08-06",
+   "Aqua_2024-08-06",
+   "Terra_2024-08-25",
+   "Aqua_2024-08-25",
+   "Terra_2024-09-10",
+   "Aqua_2024-09-10",
+   "Terra_2024-09-22",
+   "Aqua_2024-09-22",
+   "Terra_2022-06-14",
+   "Aqua_2022-06-14",
+   "Terra_2022-07-17",
+   "Aqua_2022-07-17",
+   "Terra_2022-08-09",
+   "Aqua_2022-08-09",
+   "Terra_2022-09-05",
+   "Aqua_2022-09-05"
+  ],
+  "hls": {
+   "level": 11,
+   "dates": [
+    "S30_2024-10-21",
+    "L30_2024-06-29",
+    "S30_2024-10-16",
+    "S30_2024-09-04",
+    "S30_2024-10-24",
+    "L30_2024-09-09",
+    "S30_2024-07-18",
+    "S30_2024-10-11"
+   ],
+   "gain": [
+    1.339,
+    1.339,
+    1.339
+   ],
+   "bbox": [
+    -157.87,
+    21.32,
+    -157.7,
+    21.44
+   ]
+  }
+ },
+ "facts": {
+  "peaks_m": {
+   "konahuanui": {
+    "h": 957,
+    "lon": -157.7882,
+    "lat": 21.3581
+   }
+  },
+  "point_h_m": {
+   "lookout": 343
+  },
+  "land_area_km2_at_0m": 194.6,
+  "h_range_m": [
+   -316,
+   957
+  ]
+ },
+ "purpose": "s026-s031 the Nu'uanu Pali Lookout ground shot (about 1,200 ft, looking NE over windward O'ahu), the tourist and hat gag, the dive down the cliff; s090 callback.",
+ "gaps": [],
+ "bake_s": 41.8,
+ "baked": "2026-11-08",
+ "bytes": {
+  "h16": 1602720,
+  "ao": 1065887,
+  "color": 447200
+ }
+}

@@ -1,0 +1,6 @@
+# Baked terrain data is large and rebuilt by ../tools/rebuild_regions.sh: commit only the index and each region's meta.json.
+*
+!.gitignore
+!regions.json
+!*/
+!*/meta.json

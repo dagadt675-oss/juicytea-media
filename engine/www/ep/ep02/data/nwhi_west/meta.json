@@ -1,0 +1,84 @@
+{
+ "name": "nwhi_west",
+ "bbox": [
+  -181.6,
+  27.2,
+  -175.4,
+  31.2
+ ],
+ "wh": [
+  1792,
+  1152
+ ],
+ "px_m": 361.4,
+ "hmin": -8000.0,
+ "hrange": 17000.0,
+ "vex": 1.0,
+ "files": {
+  "h16": "h16.png",
+  "ao": "ao.png",
+  "color": "color.jpg"
+ },
+ "sources": [
+  {
+   "id": "etopo15",
+   "res_arcsec": 15.0
+  },
+  {
+   "id": "ncei:midway_island_3_mhw_2012",
+   "res_arcsec": 6.0,
+   "cover": 0.0
+  },
+  {
+   "id": "terrarium_z10",
+   "res_m": 133.4,
+   "land_only": true
+  }
+ ],
+ "colour": {
+  "bmng": "BlueMarble_NextGeneration 2004-07"
+ },
+ "facts": {
+  "peaks_m": {
+   "pearl_hermes": {
+    "h": -2,
+    "lon": -175.7546,
+    "lat": 27.851
+   },
+   "midway": {
+    "h": -1,
+    "lon": -177.3461,
+    "lat": 28.2434
+   },
+   "kure": {
+    "h": -1,
+    "lon": -178.3253,
+    "lat": 28.3858
+   },
+   "hancock_area_top": {
+    "h": -279,
+    "lon": -181.2938,
+    "lat": 30.2677
+   }
+  },
+  "point_h_m": {
+   "yorktown_1942": -5312,
+   "akagi_1942": -5317,
+   "kaga_1942": -5439
+  },
+  "land_area_km2_at_0m": 0.0,
+  "h_range_m": [
+   -6178,
+   -1
+  ]
+ },
+ "purpose": "s123-s124 Midway regional, s133-s139 the carrier wreck sites more than 3 miles down (lines from the atoll), s140 flight to Kure, s144-s146 the Darwin Point line (about 29N) and the drowned seamounts NW of Kure (crosses the antimeridian).",
+ "gaps": [],
+ "bake_s": 15.4,
+ "baked": "2026-11-08",
+ "bytes": {
+  "h16": 2345147,
+  "ao": 585720,
+  "color": 34860
+ }
+}

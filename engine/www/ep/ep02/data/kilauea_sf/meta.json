@@ -1,0 +1,139 @@
+{
+ "name": "kilauea_sf",
+ "bbox": [
+  -155.6,
+  18.95,
+  -154.85,
+  19.5
+ ],
+ "wh": [
+  2560,
+  1920
+ ],
+ "px_m": 31.3,
+ "hmin": -8000.0,
+ "hrange": 17000.0,
+ "vex": 1.0,
+ "files": {
+  "h16": "h16.png",
+  "ao": "ao.png",
+  "color": "color.jpg"
+ },
+ "sources": [
+  {
+   "id": "etopo15",
+   "res_arcsec": 15.0
+  },
+  {
+   "id": "ncei:hilo_13_mhw_2011",
+   "res_arcsec": 0.67,
+   "cover": 0.496
+  },
+  {
+   "id": "terrarium_z13",
+   "res_m": 18.0,
+   "land_only": true
+  }
+ ],
+ "colour": {
+  "modis": [
+   "Terra_2024-06-03",
+   "Aqua_2024-06-03",
+   "Terra_2024-06-19",
+   "Aqua_2024-06-19",
+   "Terra_2024-07-08",
+   "Aqua_2024-07-08",
+   "Terra_2024-07-21",
+   "Aqua_2024-07-21",
+   "Terra_2024-08-06",
+   "Aqua_2024-08-06",
+   "Terra_2024-08-25",
+   "Aqua_2024-08-25",
+   "Terra_2024-09-10",
+   "Aqua_2024-09-10",
+   "Terra_2024-09-22",
+   "Aqua_2024-09-22",
+   "Terra_2022-06-14",
+   "Aqua_2022-06-14",
+   "Terra_2022-07-17",
+   "Aqua_2022-07-17",
+   "Terra_2022-08-09",
+   "Aqua_2022-08-09",
+   "Terra_2022-09-05",
+   "Aqua_2022-09-05",
+   "Terra_2021-06-10",
+   "Aqua_2021-06-10",
+   "Terra_2021-07-02",
+   "Aqua_2021-07-02",
+   "Terra_2021-07-25",
+   "Aqua_2021-07-25",
+   "Terra_2021-08-18",
+   "Aqua_2021-08-18",
+   "Terra_2021-09-07",
+   "Aqua_2021-09-07",
+   "Terra_2023-06-05",
+   "Aqua_2023-06-05",
+   "Terra_2023-06-28",
+   "Aqua_2023-06-28",
+   "Terra_2023-07-14",
+   "Aqua_2023-07-14",
+   "Terra_2023-09-12",
+   "Aqua_2023-09-12",
+   "Terra_2023-09-29",
+   "Aqua_2023-09-29",
+   "Terra_2022-06-28",
+   "Aqua_2022-06-28",
+   "Terra_2022-07-30",
+   "Aqua_2022-07-30"
+  ],
+  "hls": {
+   "level": 11,
+   "dates": [
+    "S30_2024-10-13",
+    "S30_2024-10-03",
+    "S30_2024-03-02",
+    "S30_2024-08-14",
+    "S30_2024-09-08",
+    "S30_2024-09-23"
+   ],
+   "gain": [
+    0.611,
+    0.611,
+    0.611
+   ],
+   "bbox": [
+    -155.6,
+    19.1199,
+    -154.85,
+    19.5
+   ]
+  }
+ },
+ "facts": {
+  "peaks_m": {
+   "kilauea_summit": {
+    "h": 1246,
+    "lon": -155.287,
+    "lat": 19.4211
+   }
+  },
+  "point_h_m": {
+   "halape": 3,
+   "offshore_5km": -516
+  },
+  "land_area_km2_at_0m": 2189.4,
+  "h_range_m": [
+   -5270,
+   4140
+  ]
+ },
+ "purpose": "s014-s024 Kilauea's south flank and coast (the 1975 slide, whole coast moving), s044-s046 the creeping flank, s086-s088 the south coast at the end of Chain of Craters Road and the Holei sea arch site.",
+ "gaps": [],
+ "bake_s": 85.7,
+ "baked": "2026-11-08",
+ "bytes": {
+  "h16": 3340894,
+  "ao": 385877,
+  "color": 382106
+ }
+}

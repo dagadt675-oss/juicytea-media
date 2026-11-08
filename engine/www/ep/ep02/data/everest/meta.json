@@ -1,0 +1,81 @@
+{
+ "name": "everest",
+ "bbox": [
+  86.85,
+  27.92,
+  87.0,
+  28.05
+ ],
+ "wh": [
+  1024,
+  1024
+ ],
+ "px_m": 14.3,
+ "hmin": -8000.0,
+ "hrange": 17000.0,
+ "vex": 1.0,
+ "files": {
+  "h16": "h16.png",
+  "ao": "ao.png",
+  "color": "color.jpg"
+ },
+ "sources": [
+  {
+   "id": "etopo15",
+   "res_arcsec": 15.0
+  },
+  {
+   "id": "terrarium_z14",
+   "res_m": 8.4,
+   "land_only": true
+  }
+ ],
+ "colour": {
+  "bmng": "BlueMarble_NextGeneration 2004-07",
+  "hls": {
+   "level": 11,
+   "dates": [
+    "L30_2023-11-23",
+    "L30_2023-11-15",
+    "S30_2023-11-23",
+    "S30_2023-11-18",
+    "S30_2023-11-13",
+    "L30_2023-11-07"
+   ],
+   "gain": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "bbox": [
+    86.85,
+    27.92,
+    87.0,
+    28.05
+   ]
+  }
+ },
+ "facts": {
+  "peaks_m": {
+   "everest": {
+    "h": 8748,
+    "lon": 86.9254,
+    "lat": 27.9893
+   }
+  },
+  "land_area_km2_at_0m": 213.4,
+  "h_range_m": [
+   5012,
+   8748
+  ]
+ },
+ "purpose": "s064 the paper climber on Everest's summit (real snow); the same-scale comparisons stay on BlockStage (lab/hawaii/data/everest_h16.png).",
+ "gaps": [],
+ "bake_s": 23.5,
+ "baked": "2026-11-08",
+ "bytes": {
+  "h16": 1160464,
+  "ao": 549359,
+  "color": 217265
+ }
+}

@@ -1,0 +1,80 @@
+{
+ "name": "everest_wide",
+ "bbox": [
+  86.5,
+  27.6,
+  87.4,
+  28.4
+ ],
+ "wh": [
+  1024,
+  910
+ ],
+ "px_m": 92.1,
+ "hmin": -8000.0,
+ "hrange": 17000.0,
+ "vex": 1.0,
+ "files": {
+  "h16": "h16.png",
+  "ao": "ao.png",
+  "color": "color.jpg"
+ },
+ "sources": [
+  {
+   "id": "etopo15",
+   "res_arcsec": 15.0
+  },
+  {
+   "id": "terrarium_z11",
+   "res_m": 67.5,
+   "land_only": true
+  }
+ ],
+ "colour": {
+  "bmng": "BlueMarble_NextGeneration 2004-07",
+  "hls": {
+   "level": 10,
+   "dates": [
+    "L30_2023-11-23",
+    "S30_2023-11-23",
+    "S30_2023-11-18",
+    "L30_2023-11-15",
+    "S30_2023-11-13"
+   ],
+   "gain": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "bbox": [
+    86.5,
+    27.6,
+    87.4,
+    28.4
+   ]
+  }
+ },
+ "facts": {
+  "peaks_m": {
+   "everest": {
+    "h": 8731,
+    "lon": 86.925,
+    "lat": 27.9881
+   }
+  },
+  "land_area_km2_at_0m": 7908.6,
+  "h_range_m": [
+   879,
+   8731
+  ]
+ },
+ "purpose": "Context layer for the Everest summit gag.",
+ "gaps": [],
+ "bake_s": 25.6,
+ "baked": "2026-11-08",
+ "bytes": {
+  "h16": 1402930,
+  "ao": 623710,
+  "color": 377905
+ }
+}

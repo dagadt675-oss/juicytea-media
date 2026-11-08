@@ -1,0 +1,1738 @@
+{
+ "about": "ep02 terrain/seafloor regions for the HawaiiStage (engine/www/lab/hawaii/hterrain.js loadRegion). Baked by engine/www/lab/hawaii/tools/region_bake.py into engine/www/ep/ep02/data/<name>/ (git-ignored except meta.json); index regions.json written by make_index.py. 'stack' = layers finest first, each must contain the previous (max 3). 'view' = the verification camera (lab_region.html), also a starting point for the shot builders. Segments refer to research/ep02/script/script_locked.json.",
+ "regions": [
+  {
+   "name": "bigisland",
+   "legacy": true,
+   "dir": "lab/hawaii/data",
+   "files": {
+    "h16": "hero_h16.png",
+    "ao": "hero_ao.png",
+    "color": "hero_color.jpg"
+   },
+   "bbox": [
+    -158.3,
+    17.9,
+    -153.8,
+    21.8
+   ],
+   "wh": [
+    4096,
+    4096
+   ],
+   "stack": [
+    "bigisland",
+    "hawaii_skirt"
+   ],
+   "rebuild": "bash engine/www/lab/hawaii/tools/fetch_hawaii.sh <dl> engine/www/lab/hawaii/data",
+   "facts": {
+    "points": {
+     "hawaii": [
+      -155.5,
+      19.6
+     ],
+     "maui": [
+      -156.25,
+      20.71
+     ],
+     "kahoolawe": [
+      -156.6,
+      20.55
+     ]
+    },
+    "saddles": [
+     [
+      "hawaii",
+      "maui"
+     ]
+    ],
+    "peaks": {
+     "mauna_loa": [
+      -155.6054,
+      19.4756,
+      3
+     ],
+     "mauna_kea": [
+      -155.4681,
+      19.8207,
+      3
+     ],
+     "kamaehuakanaloa_summit": [
+      -155.27,
+      18.92,
+      8,
+      "sea"
+     ]
+    },
+    "wet_at": [
+     -5000,
+     -5500
+    ]
+   },
+   "purpose": "Big Island hero (also covers Maui Nui at lower detail): frame 1 / thumbnail NO OCEAN, s001-s003, s047-s070 drained massif, s150-s176 payoff and refill. Unchanged so frame 1 still matches final_ep02_1.jpg.",
+   "view": {
+    "level": -9000,
+    "look": "warm",
+    "sun": [
+     300,
+     13
+    ],
+    "tub": 1,
+    "line": 1,
+    "lineCol": "cream",
+    "exposure": 1.35,
+    "cam": {
+     "lon": -155.32,
+     "lat": 18.42,
+     "alt": 26,
+     "tLon": -155.45,
+     "tLat": 19.6,
+     "tH": 0,
+     "fov": 34
+    }
+   },
+   "gaps": [
+    "Seafloor is ETOPO 2022 15\" (about 460 m) on a 120 m grid: flank gullies are procedural detail; the Kohala reef terraces are coarse (use kohala), Kamaʻehuakanaloa has no pit craters (use kamaehu, same limit).",
+    "The Hawaiian Deep (s057) is one water body at -5,000 m and three pools at -5,500 m (north of Molokaʻi and Maui, NE of the island, east of Hilo): pick the level from facts.grid.water_left_at, do not sculpt a ring."
+   ]
+  },
+  {
+   "name": "hawaii_skirt",
+   "legacy": true,
+   "dir": "lab/hawaii/data",
+   "files": {
+    "h16": "skirt_h16.png",
+    "ao": "skirt_ao.png",
+    "color": "skirt_color.jpg"
+   },
+   "bbox": [
+    -168.0,
+    12.0,
+    -144.0,
+    30.0
+   ],
+   "wh": [
+    1800,
+    1350
+   ],
+   "stack": [
+    "hawaii_skirt"
+   ],
+   "purpose": "ETOPO 30\" context around the main islands; the outer layer of every main-island stack."
+  },
+  {
+   "name": "mauinui",
+   "bbox": [
+    -157.75,
+    20.4,
+    -155.9,
+    21.35
+   ],
+   "wh": [
+    2560,
+    1312
+   ],
+   "bathy": [
+    "etopo15"
+   ],
+   "land": {
+    "z": 12,
+    "bbox": [
+     -157.33,
+     20.48,
+     -155.95,
+     21.24
+    ]
+   },
+   "colour": {
+    "modis_n": 48,
+    "hls": {
+     "level": 10,
+     "n": 8,
+     "bbox": [
+      -157.33,
+      20.48,
+      -155.95,
+      21.24
+     ]
+    }
+   },
+   "stack": [
+    "mauinui",
+    "bigisland",
+    "hawaii_skirt"
+   ],
+   "purpose": "s004-s013 Maui Nui -400 ft (-122 m) one island, the dry Au'au Channel, Penguin Bank, drain to -1,000 m and refill; s089 Maui (Haleakala); thumbnail arm B (final_ep02_2.jpg).",
+   "facts": {
+    "points": {
+     "maui": [
+      -156.25,
+      20.71
+     ],
+     "west_maui": [
+      -156.59,
+      20.89
+     ],
+     "molokai": [
+      -156.87,
+      21.11
+     ],
+     "lanai": [
+      -156.92,
+      20.83
+     ],
+     "kahoolawe": [
+      -156.6,
+      20.55
+     ],
+     "oahu": [
+      -157.7,
+      21.32
+     ]
+    },
+    "saddles": [
+     [
+      "maui",
+      "lanai"
+     ],
+     [
+      "maui",
+      "molokai"
+     ],
+     [
+      "molokai",
+      "lanai"
+     ],
+     [
+      "maui",
+      "kahoolawe"
+     ],
+     [
+      "lanai",
+      "kahoolawe"
+     ],
+     [
+      "molokai",
+      "oahu"
+     ]
+    ],
+    "peaks": {
+     "penguin_bank_top": [
+      -157.45,
+      20.98,
+      12,
+      "sea"
+     ],
+     "auau_channel_floor": [
+      -156.76,
+      20.885,
+      2,
+      "sea"
+     ],
+     "haleakala": [
+      -156.25,
+      20.71,
+      5
+     ]
+    },
+    "joined_at": [
+     -122,
+     -150,
+     -160
+    ]
+   },
+   "view": {
+    "level": -122,
+    "look": "day",
+    "sun": [
+     120,
+     38
+    ],
+    "water": "turq",
+    "foam": 1,
+    "landSat": 0.95,
+    "cam": {
+     "lon": -156.55,
+     "lat": 20.15,
+     "alt": 30,
+     "tLon": -156.65,
+     "tLat": 20.9,
+     "tH": 0,
+     "fov": 34
+    }
+   },
+   "gaps": [
+    "Seafloor ETOPO 2022 15\" (about 460 m): the dry Auʻau Channel floor for the 1.5 km pass and the 40 m ground camera (s007-s008) is smooth; only procedural micro-relief adds texture there.",
+    "Saddles on this grid: Maui-Lānaʻi -59 m, Maui-Molokaʻi -80 m, Kahoʻolawe -159 m; at -122 m Maui, Molokaʻi and Lānaʻi are one island and Kahoʻolawe is separate (matches the script)."
+   ]
+  },
+  {
+   "name": "oahu_nuuanu",
+   "bbox": [
+    -158.35,
+    20.95,
+    -155.65,
+    23.35
+   ],
+   "wh": [
+    2816,
+    2560
+   ],
+   "bathy": [
+    "etopo15",
+    "ncei:oahu_13_mhw_2011"
+   ],
+   "colour": {
+    "modis_n": 48,
+    "hls": {
+     "level": 10,
+     "n": 8,
+     "bbox": [
+      -158.3,
+      21.24,
+      -157.63,
+      21.73
+     ]
+    }
+   },
+   "stack": [
+    "oahu_nuuanu",
+    "hawaii_skirt"
+   ],
+   "purpose": "s025-s043 windward O'ahu, the Ko'olau pali, drain NE to -4,500 m, the Nu'uanu debris field and the largest block (summit about -2,691 m at 22.065N 157.072W), Manhattan drag; s090 O'ahu and Honolulu.",
+   "facts": {
+    "points": {
+     "oahu": [
+      -157.85,
+      21.45
+     ],
+     "big_block": [
+      -157.072,
+      22.065
+     ]
+    },
+    "peaks": {
+     "big_block_top": [
+      -157.072,
+      22.065,
+      6,
+      "sea"
+     ],
+     "koolau_crest": [
+      -157.79,
+      21.37,
+      3
+     ]
+    },
+    "joined_at": [
+     -2700,
+     -3000,
+     -3500,
+     -4000,
+     -4500
+    ]
+   },
+   "view": {
+    "level": -4500,
+    "look": "gold",
+    "sun": [
+     75,
+     12
+    ],
+    "tub": 1,
+    "line": 1,
+    "lineCol": "cream",
+    "cam": {
+     "lon": -156.45,
+     "lat": 22.75,
+     "alt": 22,
+     "tLon": -157.25,
+     "tLat": 21.95,
+     "tH": -3000,
+     "fov": 38
+    }
+   },
+   "gaps": [
+    "Offshore seafloor ETOPO 2022 15\": the large Nuʻuanu blocks are resolved (largest top -2,712 m here vs -2,691 m in the script source), smaller blocks are not; the deposit outline and other slide footprints must be traced from USGS I-2809, they are not in the data.",
+    "NCEI 1/3\" covers Oʻahu and its shelf to 22.06N / 157.45W only."
+   ]
+  },
+  {
+   "name": "kauai",
+   "bbox": [
+    -160.35,
+    21.72,
+    -159.25,
+    22.3
+   ],
+   "wh": [
+    2048,
+    1152
+   ],
+   "bathy": [
+    "etopo15",
+    "ncei:kauai_13_mhw_2012"
+   ],
+   "colour": {
+    "modis_n": 48,
+    "hls": {
+     "level": 10,
+     "n": 8,
+     "bbox": [
+      -160.3,
+      21.75,
+      -159.27,
+      22.25
+     ]
+    }
+   },
+   "stack": [
+    "kauai",
+    "hawaii_skirt"
+   ],
+   "purpose": "s080-s081 Kaua'i rim in the age sequence; s091 Kaua'i (label) before the Waimea Canyon drop; s092 the flight past Ni'ihau.",
+   "facts": {
+    "points": {
+     "kauai": [
+      -159.52,
+      22.06
+     ],
+     "niihau": [
+      -160.15,
+      21.9
+     ]
+    },
+    "saddles": [
+     [
+      "kauai",
+      "niihau"
+     ]
+    ],
+    "peaks": {
+     "waialeale": [
+      -159.5,
+      22.07,
+      4
+     ],
+     "niihau_top": [
+      -160.15,
+      21.9,
+      6
+     ]
+    }
+   },
+   "view": {
+    "level": 0,
+    "look": "day",
+    "sun": [
+     210,
+     30
+    ],
+    "water": "turq",
+    "foam": 1,
+    "cam": {
+     "lon": -159.95,
+     "lat": 21.62,
+     "alt": 14,
+     "tLon": -159.55,
+     "tLat": 22.06,
+     "tH": 0,
+     "fov": 36
+    }
+   },
+   "gaps": [
+    "NCEI 1/3\" topo-bathy covers both islands: no gap for the regional shots."
+   ]
+  },
+  {
+   "name": "main_chain",
+   "bbox": [
+    -160.9,
+    18.4,
+    -154.4,
+    22.7
+   ],
+   "wh": [
+    2048,
+    1426
+   ],
+   "bathy": [
+    "etopo15"
+   ],
+   "land": {
+    "z": 10
+   },
+   "colour": {
+    "modis_n": 16,
+    "modis_level": 7
+   },
+   "stack": [
+    "main_chain",
+    "hawaii_skirt"
+   ],
+   "purpose": "s049-s050 the -4,000 m pullback (all main islands on one ridge), s057 the Hawaiian Deep strip left at about -5,500 m, s080-s082 the age pullback and the crash zoom out, s092 flight NW past Ni'ihau.",
+   "facts": {
+    "points": {
+     "hawaii": [
+      -155.5,
+      19.6
+     ],
+     "maui": [
+      -156.25,
+      20.71
+     ],
+     "molokai": [
+      -157.0,
+      21.13
+     ],
+     "oahu": [
+      -157.95,
+      21.45
+     ],
+     "kauai": [
+      -159.52,
+      22.06
+     ],
+     "niihau": [
+      -160.15,
+      21.9
+     ]
+    },
+    "saddles": [
+     [
+      "hawaii",
+      "maui"
+     ],
+     [
+      "maui",
+      "molokai"
+     ],
+     [
+      "molokai",
+      "oahu"
+     ],
+     [
+      "oahu",
+      "kauai"
+     ],
+     [
+      "kauai",
+      "niihau"
+     ]
+    ],
+    "joined_at": [
+     -3500,
+     -4000,
+     -4500
+    ],
+    "wet_at": [
+     -5000,
+     -5500
+    ]
+   },
+   "view": {
+    "level": -4000,
+    "look": "day",
+    "sun": [
+     200,
+     24
+    ],
+    "tub": 1,
+    "line": 1,
+    "lineCol": "cream",
+    "cam": {
+     "lon": -154.6,
+     "lat": 17.7,
+     "alt": 140,
+     "tLon": -157.6,
+     "tLat": 21.2,
+     "tH": -3000,
+     "fov": 34
+    }
+   },
+   "gaps": [
+    "ETOPO 2022 15\" on a 333 m grid; the 30\" hawaii_skirt beyond it shows stair-stepped waterlines at deep levels, keep the horizon hazy.",
+    "All main islands are joined by dry land at -3,008 m (Kaʻieʻiewaho Channel, Oʻahu-Kauaʻi), so \"one ridge by about -4,000 m\" holds."
+   ]
+  },
+  {
+   "name": "kilauea_sf",
+   "bbox": [
+    -155.6,
+    18.95,
+    -154.85,
+    19.5
+   ],
+   "wh": [
+    2560,
+    1920
+   ],
+   "bathy": [
+    "etopo15",
+    "ncei:hilo_13_mhw_2011"
+   ],
+   "land": {
+    "z": 13,
+    "bbox": [
+     -155.6,
+     19.05,
+     -155.4,
+     19.5
+    ]
+   },
+   "colour": {
+    "modis_n": 48,
+    "hls": {
+     "level": 11,
+     "n": 6,
+     "bbox": [
+      -155.6,
+      19.12,
+      -154.85,
+      19.5
+     ]
+    }
+   },
+   "stack": [
+    "kilauea_sf",
+    "bigisland",
+    "hawaii_skirt"
+   ],
+   "purpose": "s014-s024 Kilauea's south flank and coast (the 1975 slide, whole coast moving), s044-s046 the creeping flank, s086-s088 the south coast at the end of Chain of Craters Road and the Holei sea arch site.",
+   "facts": {
+    "points": {
+     "halape": [
+      -155.2547,
+      19.2706
+     ]
+    },
+    "peaks": {
+     "kilauea_summit": [
+      -155.287,
+      19.407,
+      3
+     ]
+    },
+    "depths": {
+     "halape": [
+      -155.2547,
+      19.2706
+     ],
+     "offshore_5km": [
+      -155.25,
+      19.22
+     ]
+    }
+   },
+   "view": {
+    "level": 0,
+    "look": "gold",
+    "sun": [
+     250,
+     18
+    ],
+    "water": "ocean",
+    "foam": 1,
+    "cam": {
+     "lon": -155.33,
+     "lat": 19.02,
+     "alt": 6,
+     "tLon": -155.22,
+     "tLat": 19.33,
+     "tH": 0,
+     "fov": 38
+    }
+   },
+   "gaps": [
+    "NCEI 1/3\" (hilo_13) covers east of 155.47W and north of 19.17N; the Kaʻū side uses Terrarium z13, offshore south of 19.17N is ETOPO 15\".",
+    "The Hōlei Sea Arch (collapsed Sept 2026) is below the grid and the DEM predates the collapse: model it, both states, from the dated NPS photos."
+   ]
+  },
+  {
+   "name": "halape",
+   "bbox": [
+    -155.32,
+    19.24,
+    -155.18,
+    19.31
+   ],
+   "wh": [
+    1536,
+    768
+   ],
+   "bathy": [
+    "etopo15",
+    "ncei:hilo_13_mhw_2011"
+   ],
+   "colour": {
+    "modis_n": 24,
+    "hls": {
+     "level": 11,
+     "n": 8
+    }
+   },
+   "stack": [
+    "halape",
+    "kilauea_sf",
+    "hawaii_skirt"
+   ],
+   "purpose": "s016-s023 Halape cove at a 1-3 km oblique (pre-dawn), the coastal block dropping about 3.5 m and the flooded grove.",
+   "facts": {
+    "depths": {
+     "halape_beach": [
+      -155.2547,
+      19.2706
+     ]
+    },
+    "peaks": {
+     "pali_above_halape": [
+      -155.255,
+      19.285,
+      1.2
+     ]
+    }
+   },
+   "view": {
+    "level": 0,
+    "look": "gold",
+    "sun": [
+     95,
+     10
+    ],
+    "water": "turq",
+    "foam": 1,
+    "cam": {
+     "lon": -155.235,
+     "lat": 19.243,
+     "alt": 1.2,
+     "tLon": -155.255,
+     "tLat": 19.272,
+     "tH": 0,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "NCEI 1/3\" (2011) shows today's post-1975 shore: the pre-1975 ground for the 3.5 m drop must be rebuilt by raising the coastal block in the shot; palms, tents and the cove beach are not in the data; colour is HLS 30 m (soft at 1-3 km)."
+   ]
+  },
+  {
+   "name": "pali",
+   "bbox": [
+    -157.87,
+    21.32,
+    -157.7,
+    21.44
+   ],
+   "wh": [
+    1792,
+    1344
+   ],
+   "bathy": [
+    "etopo15",
+    "ncei:oahu_13_mhw_2011"
+   ],
+   "colour": {
+    "modis_n": 24,
+    "hls": {
+     "level": 11,
+     "n": 8
+    }
+   },
+   "stack": [
+    "pali",
+    "oahu_nuuanu",
+    "hawaii_skirt"
+   ],
+   "purpose": "s026-s031 the Nu'uanu Pali Lookout ground shot (about 1,200 ft, looking NE over windward O'ahu), the tourist and hat gag, the dive down the cliff; s090 callback.",
+   "facts": {
+    "points": {
+     "lookout": [
+      -157.7932,
+      21.3672
+     ]
+    },
+    "depths": {
+     "lookout": [
+      -157.7932,
+      21.3672
+     ]
+    },
+    "peaks": {
+     "konahuanui": [
+      -157.79,
+      21.355,
+      1.5
+     ]
+    }
+   },
+   "view": {
+    "level": 0,
+    "look": "day",
+    "sun": [
+     120,
+     30
+    ],
+    "water": "turq",
+    "foam": 1,
+    "cam": {
+     "lon": -157.7936,
+     "lat": 21.3667,
+     "agl": 0.03,
+     "heading": 42,
+     "pitch": -8,
+     "fov": 62,
+     "near": 0.005,
+     "far": 400
+    }
+   },
+   "gaps": [
+    "NCEI 1/3\" (USGS 10 m land): the lookout (343 m on this grid), its wall, the road and trees are not in the data; HLS 30 m colour is soft at ground level (needs a close-up texture or paper props)."
+   ]
+  },
+  {
+   "name": "waimea",
+   "bbox": [
+    -159.74,
+    21.93,
+    -159.56,
+    22.16
+   ],
+   "wh": [
+    1536,
+    2112
+   ],
+   "bathy": [
+    "etopo15",
+    "ncei:kauai_13_mhw_2012"
+   ],
+   "colour": {
+    "modis_n": 24,
+    "hls": {
+     "level": 11,
+     "n": 8
+    }
+   },
+   "stack": [
+    "waimea",
+    "kauai",
+    "hawaii_skirt"
+   ],
+   "purpose": "s091 the camera drops into the red walls of Waimea Canyon under a rain squall.",
+   "facts": {
+    "peaks": {
+     "canyon_rim_west": [
+      -159.67,
+      22.07,
+      2
+     ]
+    },
+    "depths": {
+     "canyon_floor": [
+      -159.661,
+      22.035
+     ]
+    }
+   },
+   "view": {
+    "level": 0,
+    "look": "day",
+    "sun": [
+     230,
+     28
+    ],
+    "water": "turq",
+    "cam": {
+     "lon": -159.655,
+     "lat": 21.955,
+     "alt": 2.2,
+     "tLon": -159.66,
+     "tLat": 22.06,
+     "tH": 600,
+     "fov": 45
+    }
+   },
+   "gaps": [
+    "NCEI 1/3\" land (USGS 10 m): canyon walls resolved; HLS 30 m colour; rain squall and waterfalls are effects."
+   ]
+  },
+  {
+   "name": "maunakea",
+   "bbox": [
+    -155.53,
+    19.77,
+    -155.4,
+    19.86
+   ],
+   "wh": [
+    1408,
+    1024
+   ],
+   "bathy": [
+    "etopo15",
+    "ncei:hilo_13_mhw_2011"
+   ],
+   "land": {
+    "z": 14
+   },
+   "colour": {
+    "modis_n": 24,
+    "hls": {
+     "level": 11,
+     "n": 6
+    }
+   },
+   "stack": [
+    "maunakea",
+    "bigisland",
+    "hawaii_skirt"
+   ],
+   "purpose": "s065 the summit access road gag on Mauna Kea's upper slope (never on Pu'uwekiu), s061 the Mauna Kea label.",
+   "facts": {
+    "peaks": {
+     "mauna_kea": [
+      -155.4681,
+      19.8207,
+      1.5
+     ]
+    }
+   },
+   "view": {
+    "level": 0,
+    "look": "day",
+    "sun": [
+     240,
+     30
+    ],
+    "cam": {
+     "lon": -155.505,
+     "lat": 19.785,
+     "alt": 4.7,
+     "tLon": -155.468,
+     "tLat": 19.82,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "Terrarium z14 (USGS 3DEP 10 m) plus hilo_13 in the east: the summit road is only a 30 m colour streak, no road geometry; telescopes not modelled (and not wanted)."
+   ]
+  },
+  {
+   "name": "kamaehu",
+   "bbox": [
+    -155.55,
+    18.6,
+    -155.0,
+    19.3
+   ],
+   "wh": [
+    1024,
+    1280
+   ],
+   "bathy": [
+    "etopo15",
+    "ncei:hilo_13_mhw_2011"
+   ],
+   "land": {
+    "z": 12,
+    "bbox": [
+     -155.55,
+     19.12,
+     -155.0,
+     19.3
+    ]
+   },
+   "colour": {
+    "modis_n": 24
+   },
+   "stack": [
+    "kamaehu",
+    "bigisland",
+    "hawaii_skirt"
+   ],
+   "purpose": "s150-s158 Kama'ehuakanaloa (Lo'ihi), the young volcano about 30 km off Kilauea's coast, water drained to about -1,500 m, the COMING SOON sign on the summit platform.",
+   "facts": {
+    "peaks": {
+     "kamaehuakanaloa_summit": [
+      -155.27,
+      18.92,
+      8,
+      "sea"
+     ]
+    },
+    "depths": {
+     "script_pin": [
+      -155.27,
+      18.92
+     ]
+    }
+   },
+   "view": {
+    "level": -1500,
+    "look": "gold",
+    "sun": [
+     250,
+     16
+    ],
+    "water": "turq",
+    "foam": 1,
+    "tub": 1,
+    "line": 0,
+    "cam": {
+     "lon": -155.52,
+     "lat": 18.72,
+     "agl": 2.5,
+     "tLon": -155.27,
+     "tLat": 18.92,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "Offshore it is ETOPO 2022 15\" only (hilo_13 stops at 19.17N): the summit ridge stands out (top about -1,000 m) but the summit platform and pit craters (s151) are below the grid. Higher-resolution multibeam (SOEST HMRG) was not reachable (TLS error); until then any pit craters drawn are approximate and must be marked so."
+   ]
+  },
+  {
+   "name": "kohala",
+   "bbox": [
+    -156.2,
+    19.85,
+    -155.8,
+    20.3
+   ],
+   "wh": [
+    1664,
+    2000
+   ],
+   "bathy": [
+    "etopo15",
+    "ncei:kawaihae_13_mhw_2011"
+   ],
+   "land": {
+    "z": 13
+   },
+   "colour": {
+    "modis_n": 24,
+    "hls": {
+     "level": 11,
+     "n": 6
+    }
+   },
+   "stack": [
+    "kohala",
+    "bigisland",
+    "hawaii_skirt"
+   ],
+   "purpose": "s076-s079 the drowned coral-reef terraces off west Hawai'i (Kohala), low raking light on the drained flank.",
+   "facts": {
+    "depths": {
+     "offshore_5km": [
+      -155.98,
+      20.05
+     ],
+     "offshore_15km": [
+      -156.08,
+      20.05
+     ]
+    }
+   },
+   "view": {
+    "level": -1400,
+    "look": "gold",
+    "sun": [
+     280,
+     12
+    ],
+    "tub": 1,
+    "line": 1,
+    "lineCol": "cream",
+    "cam": {
+     "lon": -156.17,
+     "lat": 19.93,
+     "agl": 2.0,
+     "tLon": -155.98,
+     "tLat": 20.08,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "NCEI 1/3\" (kawaihae_13) covers north of 19.87N: check the drowned-reef terraces on the still before highlighting steps (s077: only where the bathymetry shows them)."
+   ]
+  },
+  {
+   "name": "nwhi_chain",
+   "bbox": [
+    -182.0,
+    18.5,
+    -158.5,
+    31.5
+   ],
+   "wh": [
+    2820,
+    1560
+   ],
+   "bathy": [
+    "etopo30"
+   ],
+   "land": {
+    "z": 9,
+    "mask": true,
+    "keep": [
+     [
+      -160.4,
+      21.7,
+      -158.5,
+      22.4
+     ]
+    ]
+   },
+   "colour": {
+    "modis": false,
+    "bmng_level": 5
+   },
+   "stack": [
+    "nwhi_chain"
+   ],
+   "purpose": "Context layer for the Northwestern Hawaiian Islands flights (s092-s111, s140-s146): Ni'ihau to Kure on one grid, across the antimeridian.",
+   "facts": {
+    "points": {
+     "kauai": [
+      -159.52,
+      22.06
+     ],
+     "nihoa": [
+      -161.92,
+      23.06
+     ],
+     "mokumanamana": [
+      -164.7,
+      23.58
+     ],
+     "lalo": [
+      -166.26,
+      23.77
+     ],
+     "gardner": [
+      -168.0,
+      25.0
+     ],
+     "laysan": [
+      -171.74,
+      25.77
+     ],
+     "lisianski": [
+      -173.96,
+      26.06
+     ],
+     "pearl_hermes": [
+      -175.83,
+      27.85
+     ],
+     "midway": [
+      -177.37,
+      28.21
+     ],
+     "kure": [
+      -178.33,
+      28.42
+     ]
+    },
+    "joined_at": [
+     -2000,
+     -3000,
+     -4000
+    ]
+   },
+   "view": {
+    "level": -3000,
+    "look": "day",
+    "sun": [
+     200,
+     25
+    ],
+    "tub": 1,
+    "line": 1,
+    "lineCol": "cream",
+    "cam": {
+     "lon": -160.5,
+     "lat": 19.4,
+     "alt": 260,
+     "tLon": -168.5,
+     "tLat": 25.0,
+     "tH": -3000,
+     "fov": 34
+    }
+   },
+   "gaps": [
+    "ETOPO 2022 30\" (about 0.9 km): the NW Hawaiian islets are removed from this context layer (sub-pixel and partly false in ETOPO); the close regions carry them."
+   ]
+  },
+  {
+   "name": "nihoa",
+   "bbox": [
+    -162.1,
+    22.95,
+    -161.75,
+    23.18
+   ],
+   "wh": [
+    1792,
+    1280
+   ],
+   "bathy": [
+    "etopo15"
+   ],
+   "land": {
+    "z": 14,
+    "mask": "hls",
+    "replace": true
+   },
+   "colour": {
+    "sat": true,
+    "modis_n": 24,
+    "hls": {
+     "level": 11,
+     "n": 8
+    }
+   },
+   "stack": [
+    "nihoa",
+    "nwhi_chain"
+   ],
+   "purpose": "s093-s099 Nihoa fills the frame (sea cliffs, terraced valleys), then the pull wide over its big bank.",
+   "facts": {
+    "peaks": {
+     "nihoa_top": [
+      -161.92,
+      23.06,
+      1.5
+     ]
+    }
+   },
+   "view": {
+    "level": 0,
+    "look": "gold",
+    "sun": [
+     250,
+     20
+    ],
+    "water": "turq",
+    "foam": 1,
+    "cam": {
+     "lon": -161.945,
+     "lat": 23.035,
+     "alt": 0.7,
+     "tLon": -161.921,
+     "tLat": 23.061,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "Land from Terrarium (SRTM): plan area right (0.6 km2, real 0.69) but the relief is smoothed: top 179 m vs 273 m surveyed, so the sea cliffs are too gentle. Terraces and house sites are not in the data. The bank is ETOPO 15\" (false land removed)."
+   ]
+  },
+  {
+   "name": "lalo",
+   "bbox": [
+    -166.42,
+    23.55,
+    -165.95,
+    23.95
+   ],
+   "wh": [
+    2048,
+    1900
+   ],
+   "bathy": [
+    "etopo15"
+   ],
+   "land": {
+    "z": 14,
+    "mask": "hls",
+    "replace": true,
+    "cap": 4
+   },
+   "colour": {
+    "sat": true,
+    "modis_n": 24,
+    "hls": {
+     "level": 11,
+     "n": 8,
+     "centre": [
+      -166.25,
+      23.77
+     ]
+    }
+   },
+   "stack": [
+    "lalo",
+    "nwhi_chain"
+   ],
+   "purpose": "s100-s108 Lalo (French Frigate Shoals): the lagoon, La Perouse Pinnacle (last tooth), East Island before and after 2018.",
+   "facts": {
+    "peaks": {
+     "la_perouse_pinnacle": [
+      -166.2614,
+      23.7695,
+      0.6
+     ],
+     "east_island": [
+      -166.212,
+      23.787,
+      0.6
+     ]
+    }
+   },
+   "view": {
+    "level": 0,
+    "look": "day",
+    "sun": [
+     210,
+     35
+    ],
+    "water": "ocean",
+    "foam": 0.3,
+    "cam": {
+     "lon": -166.37,
+     "lat": 23.58,
+     "alt": 14,
+     "tLon": -166.22,
+     "tLat": 23.77,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "Worst gap: ETOPO 2022 15\" has a 57 km2 false island over French Frigate Shoals and no reef or lagoon relief; after cleanup the atoll is a featureless shallow platform. La Pérouse Pinnacle (about 37 m) is below every grid (-11 m at its spot): model it at its surveyed position. East Island is a 6 m speck. Use sat.jpg (HLS 30 m, reef and lagoon visible) for the look; the July and October 2018 before and after must come from dated Landsat/HLS scenes, not baked here. A real fix is satellite-derived depth calibrated on the NCEI Midway survey."
+   ]
+  },
+  {
+   "name": "gardner",
+   "bbox": [
+    -168.12,
+    24.88,
+    -167.88,
+    25.12
+   ],
+   "wh": [
+    1024,
+    1136
+   ],
+   "bathy": [
+    "etopo15"
+   ],
+   "land": {
+    "z": 14,
+    "mask": "hls",
+    "replace": true
+   },
+   "colour": {
+    "sat": true,
+    "modis_n": 24,
+    "hls": {
+     "level": 11,
+     "n": 6,
+     "centre": [
+      -167.998,
+      24.998
+     ]
+    }
+   },
+   "stack": [
+    "gardner",
+    "nwhi_chain"
+   ],
+   "purpose": "s109 Puhahonu (Gardner Pinnacles): the last pair of basalt rocks poking out of open sea.",
+   "facts": {
+    "peaks": {
+     "gardner_pinnacles": [
+      -167.998,
+      24.998,
+      1.0
+     ]
+    }
+   },
+   "view": {
+    "level": 0,
+    "look": "day",
+    "sun": [
+     210,
+     30
+    ],
+    "water": "turq",
+    "foam": 1,
+    "cam": {
+     "lon": -168.03,
+     "lat": 24.965,
+     "alt": 1.2,
+     "tLon": -167.998,
+     "tLat": 24.998,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "The two pinnacles (52 m) are a 13 m Terrarium speck at the right place: model the rocks at their surveyed position; bank from ETOPO 15\" (false 859 m land removed)."
+   ]
+  },
+  {
+   "name": "nwhi_west",
+   "bbox": [
+    -181.6,
+    27.2,
+    -175.4,
+    31.2
+   ],
+   "wh": [
+    1792,
+    1152
+   ],
+   "bathy": [
+    "etopo15",
+    "ncei:midway_island_3_mhw_2012"
+   ],
+   "land": {
+    "z": 10,
+    "mask": true,
+    "keep": []
+   },
+   "colour": {
+    "modis": false,
+    "bmng_level": 6
+   },
+   "stack": [
+    "nwhi_west",
+    "nwhi_chain"
+   ],
+   "purpose": "s123-s124 Midway regional, s133-s139 the carrier wreck sites more than 3 miles down (lines from the atoll), s140 flight to Kure, s144-s146 the Darwin Point line (about 29N) and the drowned seamounts NW of Kure (crosses the antimeridian).",
+   "facts": {
+    "depths": {
+     "yorktown_1942": [
+      -176.5678,
+      30.5997
+     ],
+     "akagi_1942": [
+      -178.6667,
+      30.5
+     ],
+     "kaga_1942": [
+      -179.2833,
+      30.3833
+     ]
+    },
+    "peaks": {
+     "pearl_hermes": [
+      -175.83,
+      27.85,
+      8
+     ],
+     "midway": [
+      -177.37,
+      28.21,
+      6
+     ],
+     "kure": [
+      -178.33,
+      28.42,
+      6
+     ],
+     "hancock_area_top": [
+      -181.15,
+      30.25,
+      40,
+      "sea"
+     ]
+    }
+   },
+   "view": {
+    "level": -5600,
+    "look": "day",
+    "sun": [
+     200,
+     28
+    ],
+    "tub": 1,
+    "line": 1,
+    "lineCol": "cream",
+    "cam": {
+     "lon": -177.0,
+     "lat": 26.9,
+     "alt": 90,
+     "tLon": -178.0,
+     "tLat": 29.4,
+     "tH": -4000,
+     "fov": 36
+    }
+   },
+   "gaps": [
+    "ETOPO 2022 15\": at the 1942 wreck positions the floor is -5,312 m (Yorktown), -5,317 m (Akagi), -5,439 m (Kaga), all more than 3 miles; the abyssal plain there is smooth interpolation, no abyssal hills (s138 needs procedural relief). Islets are removed (sub-pixel)."
+   ]
+  },
+  {
+   "name": "midway",
+   "bbox": [
+    -177.52,
+    28.12,
+    -177.22,
+    28.33
+   ],
+   "wh": [
+    2048,
+    1624
+   ],
+   "bathy": [
+    "etopo15",
+    "ncei:midway_island_3_mhw_2012",
+    "ncei:midway_island_13_mhw_2012"
+   ],
+   "colour": {
+    "sat": true,
+    "modis_n": 24,
+    "hls": {
+     "level": 11,
+     "n": 8,
+     "centre": [
+      -177.37,
+      28.22
+     ]
+    }
+   },
+   "stack": [
+    "midway",
+    "nwhi_west",
+    "nwhi_chain"
+   ],
+   "purpose": "s112-s122 Midway Atoll (reef ring, Sand Island, the albatross ground shot, drain and cut-away), s123 June 1942 hero shot, s137 drain around the atoll.",
+   "facts": {
+    "peaks": {
+     "sand_island": [
+      -177.38,
+      28.21,
+      1.5
+     ],
+     "eastern_island": [
+      -177.32,
+      28.21,
+      1.0
+     ]
+    },
+    "depths": {
+     "lagoon_centre": [
+      -177.37,
+      28.245
+     ]
+    }
+   },
+   "view": {
+    "level": 0,
+    "look": "day",
+    "sun": [
+     200,
+     35
+    ],
+    "water": "lagoon",
+    "foam": 0.3,
+    "cam": {
+     "lon": -177.44,
+     "lat": 28.13,
+     "alt": 7,
+     "tLon": -177.37,
+     "tLat": 28.23,
+     "fov": 42
+    }
+   },
+   "gaps": [
+    "Best data in the set: NCEI 1/3\" (2012) topo-bathy, referenced to mean high water, so the reef flat sits within about 1 m of level 0 and reads as foam: lower foam or level a little for clean water. HLS 30 m colour."
+   ]
+  },
+  {
+   "name": "kure",
+   "bbox": [
+    -178.45,
+    28.33,
+    -178.2,
+    28.5
+   ],
+   "wh": [
+    1600,
+    1232
+   ],
+   "bathy": [
+    "etopo15"
+   ],
+   "land": {
+    "z": 14,
+    "mask": "hls",
+    "replace": true,
+    "cap": 6
+   },
+   "colour": {
+    "sat": true,
+    "modis_n": 24,
+    "hls": {
+     "level": 11,
+     "n": 8,
+     "centre": [
+      -178.32,
+      28.42
+     ]
+    }
+   },
+   "stack": [
+    "kure",
+    "nwhi_west",
+    "nwhi_chain"
+   ],
+   "purpose": "s140-s143 Kure (Holaniku), the last atoll, its reef ring tinted blue, the cut-away where the reef barely keeps up.",
+   "facts": {
+    "peaks": {
+     "green_island": [
+      -178.29,
+      28.39,
+      1.0
+     ]
+    },
+    "depths": {
+     "lagoon_centre": [
+      -178.33,
+      28.43
+     ]
+    }
+   },
+   "view": {
+    "level": 0,
+    "look": "day",
+    "sun": [
+     200,
+     35
+    ],
+    "water": "lagoon",
+    "foam": 0.3,
+    "cam": {
+     "lon": -178.39,
+     "lat": 28.34,
+     "alt": 6,
+     "tLon": -178.32,
+     "tLat": 28.42,
+     "fov": 42
+    }
+   },
+   "gaps": [
+    "ETOPO 2022 15\" only: the reef ring and lagoon are not resolved (lagoon -2 m on the grid), Green Island 11 m from Terrarium (real about 6 m). Use sat.jpg for the reef ring; the cut-away (s143) is schematic."
+   ]
+  },
+  {
+   "name": "everest_wide",
+   "bbox": [
+    86.5,
+    27.6,
+    87.4,
+    28.4
+   ],
+   "wh": [
+    1024,
+    910
+   ],
+   "bathy": [
+    "etopo15"
+   ],
+   "land": {
+    "z": 11,
+    "replace": true
+   },
+   "colour": {
+    "modis": false,
+    "bmng_level": 7,
+    "hls": {
+     "level": 10,
+     "n": 5,
+     "months": [
+      "2023-10-15",
+      "2023-12-15"
+     ],
+     "pct": 0.5,
+     "match": false
+    }
+   },
+   "stack": [
+    "everest_wide"
+   ],
+   "purpose": "Context layer for the Everest summit gag.",
+   "facts": {
+    "peaks": {
+     "everest": [
+      86.925,
+      27.988,
+      3
+     ]
+    }
+   },
+   "gaps": [
+    "Terrarium z11 (SRTM): context only."
+   ]
+  },
+  {
+   "name": "everest",
+   "bbox": [
+    86.85,
+    27.92,
+    87.0,
+    28.05
+   ],
+   "wh": [
+    1024,
+    1024
+   ],
+   "bathy": [
+    "etopo15"
+   ],
+   "land": {
+    "z": 14,
+    "replace": true
+   },
+   "colour": {
+    "modis": false,
+    "bmng_level": 7,
+    "hls": {
+     "level": 11,
+     "n": 6,
+     "months": [
+      "2023-10-15",
+      "2023-12-15"
+     ],
+     "pct": 0.5,
+     "match": false
+    }
+   },
+   "stack": [
+    "everest",
+    "everest_wide"
+   ],
+   "purpose": "s064 the paper climber on Everest's summit (real snow); the same-scale comparisons stay on BlockStage (lab/hawaii/data/everest_h16.png).",
+   "facts": {
+    "peaks": {
+     "everest": [
+      86.925,
+      27.988,
+      1.5
+     ]
+    }
+   },
+   "view": {
+    "level": -9000,
+    "look": "day",
+    "sun": [
+     200,
+     32
+    ],
+    "cam": {
+     "lon": 86.93,
+     "lat": 27.935,
+     "alt": 9.6,
+     "tLon": 86.925,
+     "tLat": 27.988,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "Terrarium z14 (SRTM 30 m): summit 8,748 m on the grid vs 8,849 m surveyed (the same-scale comparisons stay on BlockStage, which scales to 8,849 m). HLS 30 m, November 2023 snow."
+   ]
+  }
+ ]
+}
