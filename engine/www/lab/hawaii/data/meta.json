@@ -1,0 +1,110 @@
+{
+ "hero_bbox": [
+  -158.3,
+  17.9,
+  -153.8,
+  21.8
+ ],
+ "skirt_bbox": [
+  -168.0,
+  12.0,
+  -144.0,
+  30.0
+ ],
+ "everest_bbox": [
+  86.7,
+  27.805,
+  87.15,
+  28.205
+ ],
+ "hero_wh": [
+  4096,
+  4096
+ ],
+ "skirt_wh": [
+  1800,
+  1350
+ ],
+ "everest_wh": [
+  1024,
+  1024
+ ],
+ "hmin": -8000.0,
+ "hrange": 17000.0,
+ "vex": 1.0,
+ "facts": {
+  "mauna_loa_dem_m": 4204,
+  "mauna_kea_dem_m": 4214,
+  "everest_dem_m": 8747,
+  "hero_min_m": -5796,
+  "maui_nui_saddles_m": {
+   "maui-molokai": {
+    "hero_grid": -79,
+    "etopo15": -79
+   },
+   "maui-lanai": {
+    "hero_grid": -59,
+    "etopo15": -59
+   },
+   "molokai-lanai": {
+    "hero_grid": -79,
+    "etopo15": -79
+   },
+   "maui-kahoolawe": {
+    "hero_grid": -159,
+    "etopo15": -159
+   }
+  },
+  "note": "DEM summits are smoothed by the grid (Mauna Loa survey 4,169 m, Mauna Kea 4,207 m, Everest 8,849 m)."
+ },
+ "modis_dates": [
+  "Aqua_2021-06-10",
+  "Aqua_2021-07-02",
+  "Aqua_2021-07-25",
+  "Aqua_2021-08-18",
+  "Aqua_2021-09-07",
+  "Aqua_2022-06-14",
+  "Aqua_2022-06-28",
+  "Aqua_2022-07-17",
+  "Aqua_2022-07-30",
+  "Aqua_2022-08-09",
+  "Aqua_2022-09-05",
+  "Aqua_2023-06-05",
+  "Aqua_2023-06-28",
+  "Aqua_2023-07-14",
+  "Aqua_2023-09-12",
+  "Aqua_2023-09-29",
+  "Aqua_2024-06-03",
+  "Aqua_2024-06-19",
+  "Aqua_2024-07-08",
+  "Aqua_2024-07-21",
+  "Aqua_2024-08-06",
+  "Aqua_2024-08-25",
+  "Aqua_2024-09-10",
+  "Aqua_2024-09-22",
+  "Terra_2021-06-10",
+  "Terra_2021-07-02",
+  "Terra_2021-07-25",
+  "Terra_2021-08-18",
+  "Terra_2021-09-07",
+  "Terra_2022-06-14",
+  "Terra_2022-06-28",
+  "Terra_2022-07-17",
+  "Terra_2022-07-30",
+  "Terra_2022-08-09",
+  "Terra_2022-09-05",
+  "Terra_2023-06-05",
+  "Terra_2023-06-28",
+  "Terra_2023-07-14",
+  "Terra_2023-09-12",
+  "Terra_2023-09-29",
+  "Terra_2024-06-03",
+  "Terra_2024-06-19",
+  "Terra_2024-07-08",
+  "Terra_2024-07-21",
+  "Terra_2024-08-06",
+  "Terra_2024-08-25",
+  "Terra_2024-09-10",
+  "Terra_2024-09-22"
+ ]
+}

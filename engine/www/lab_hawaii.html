@@ -1,0 +1,65 @@
+<!doctype html><html><head><meta charset="utf-8">
+<script type="importmap">{"imports":{"three":"/three.module.min.js"}}</script>
+<style>html,body{margin:0;background:#000;overflow:hidden}</style></head><body>
+<script type="module">
+// Lab: HAWAII hero stills for thumbnails (no text). Real ETOPO 2022 bathymetry + AWS Terrain Tiles land detail + NASA MODIS colour.
+// Render: node still.cjs --page lab_hawaii.html --q '{"shot":"half_low_se"}' --frames 0 --outdir <dir> [--w 1280 --h 720]
+// Q: {"shot": name, then any override: "cam":{...}, "level": m, "sun":[az,el], "look":"gold|day|warm", "water":"turq|ocean", "vex": 1,
+//     "foam":0..1, "tub":0..1, "line":0..1, "exposure", "sat", "contrast", "lift", "vignette", "samples", "fog":[dens,bg], "draft":1}
+// Shot list, camera params and data notes: research/packaging/renders/index.md (scratchpad) and the SHOTS table below.
+import * as THREE from 'three';
+import { HawaiiStage } from './lab/hawaii/hterrain.js';
+const P = new URLSearchParams(location.search);
+const W = +P.get('w') || 1920, H = +P.get('h') || 1080;
+const Q = JSON.parse(P.get('q') || '{}');
+const log = (s) => fetch('/log', { method: 'POST', body: String(s) });
+const out = document.createElement('canvas'); out.width = W; out.height = H; document.body.appendChild(out); const ox = out.getContext('2d');
+// camera: lon/lat of the eye, agl = km above the ground or water below it (or alt = km above present sea level),
+// target tLon/tLat (+ tH metres, default = surface there), fov = vertical degrees, shiftY = vertical lens shift (frame units)
+const SHOTS = {
+  // (1) Big Island, water half drained (-2,400 m): old shoreline + the enormous flank below. Several angles.
+  half_low_se:   { level: -2400, look: 'gold', sun: [228, 13], water: 'turq', foam: 1, tub: 1, line: 0,
+                   cam: { lon: -154.62, lat: 18.78, agl: 0.9, tLon: -155.50, tLat: 19.42, tH: 1200, fov: 24, shiftY: 0.0 } },
+  half_golden_w: { level: -2400, look: 'gold', sun: [275, 9], water: 'turq', foam: 1, tub: 1, line: 0,
+                   cam: { lon: -156.62, lat: 19.20, agl: 1.2, tLon: -155.62, tLat: 19.50, tH: 1500, fov: 22 } },
+  half_contrast_n: { level: -2400, look: 'day', sun: [95, 30], water: 'turq', foam: 1, tub: 1, line: 0, contrast: 1.16, sat: 1.25,
+                   cam: { lon: -155.20, lat: 20.75, agl: 1.4, tLon: -155.47, tLat: 19.80, tH: 1500, fov: 24 } },
+  // (2) fully drained massif standing on the sea floor
+  drained_massif_e: { level: -9000, look: 'gold', sun: [205, 14], tub: 1, line: 0,
+                   cam: { lon: -153.95, lat: 19.30, agl: 1.0, tLon: -155.45, tLat: 19.62, tH: 0, fov: 18 } },
+  drained_massif_s: { level: -9000, look: 'warm', sun: [262, 12], tub: 1, line: 0,
+                   cam: { lon: -155.55, lat: 18.05, agl: 1.2, tLon: -155.55, tLat: 19.55, tH: 0, fov: 20 } },
+  // (3) Maui Nui at -400 ft (-122 m): Maui, Moloka'i, Lana'i joined; Kaho'olawe separate (data saddle -159 m)
+  mauinui_400ft: { level: -122, look: 'day', sun: [120, 38], water: 'turq', foam: 1, tub: 0, line: 0,
+                   cam: { lon: -156.55, lat: 20.05, alt: 38, tLon: -156.68, tLat: 20.92, tH: 0, fov: 30 } },
+  // (6) mid-drain: turquoise water, foam rim halfway down the dark basalt flank
+  mid_drain_foam: { level: -2000, look: 'gold', sun: [240, 16], water: 'turq', foam: 1, tub: 1, line: 0,
+                   cam: { lon: -155.05, lat: 18.88, agl: 0.35, tLon: -155.42, tLat: 19.20, tH: -400, fov: 26 } },
+  // (7) clean plate for the postcard signature: low NE oblique, warm side light, dark basalt, minimal tan
+  plate_ne:      { level: -9000, look: 'warm', sun: [300, 13], tub: 0, line: 1,
+                   cam: { lon: -154.45, lat: 20.55, agl: 1.4, tLon: -155.50, tLat: 19.62, tH: 0, fov: 22 } },
+};
+const merge = (a, b) => { const o = Object.assign({}, a); for (const k in b) o[k] = (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k]) && a[k]) ? merge(a[k], b[k]) : b[k]; return o; };
+const S0 = SHOTS[Q.shot || 'half_low_se'] || {};
+const shot = merge(S0, Q);
+let S;
+window.ready = (async () => {
+  S = new HawaiiStage(W, H, { samples: shot.draft ? 0 : (shot.samples ?? 4), vex: shot.vex ?? 1.0, fogDens: shot.fog?.[0], fogBg: shot.fog?.[1],
+    heroGrid: shot.draft ? [700, 700] : undefined, skirtGrid: shot.draft ? [450, 340] : undefined });
+  await S.load('lab/hawaii/data');
+})();
+window.renderFrame = async (f) => {
+  const t0 = performance.now();
+  S.setLook(shot.look || 'gold'); S.setSun(...(shot.sun || [230, 15])); S.setWater(shot.water || 'turq');
+  S.setLevel(shot.level ?? 0);
+  S.set('foamAmt', shot.foam ?? 0); S.set('tubAmt', shot.tub ?? 0); S.set('oldLine', shot.line ?? 0);
+  for (const k of ['ringH', 'tubM', 'lineW', 'landSat', 'landGain', 'reefAmt', 'detail', 'foamPx', 'edgeGlow', 'seaRelief', 'shadows']) if (shot[k] != null) S.set(k, shot[k]);
+  if (shot.basalt) S.set('basaltCol', new THREE.Vector3(...shot.basalt));
+  if (shot.sed) S.set('sedCol', new THREE.Vector3(...shot.sed));
+  for (const k of ['exposure', 'sat', 'contrast', 'lift', 'vignette', 'grain']) if (shot[k] != null) S.post(k, shot[k]);
+  S.setCamera(shot.cam);
+  ox.drawImage(S.render(f / 30, f), 0, 0);
+  log(`shot=${Q.shot} level=${shot.level} render ${(performance.now() - t0).toFixed(0)} ms`);
+};
+window.grabBlob = () => new Promise(r => out.toBlob(r, 'image/jpeg', 0.94));
+</script></body></html>
