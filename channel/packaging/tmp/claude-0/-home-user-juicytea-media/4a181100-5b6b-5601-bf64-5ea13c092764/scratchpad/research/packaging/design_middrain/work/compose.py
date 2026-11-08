@@ -195,3 +195,20 @@ def grade_sky(im, dbg, top=(150, 186, 226), horizon=(246, 214, 176), amt=0.75, g
     tgt = g[:, None, :] * np.clip(lum, 0.8, 1.15)
     k = (m * amt)[..., None]
     return Image.fromarray((a * (1 - k) + tgt * k).clip(0, 255).astype(np.uint8))
+
+def water_grade(im, dbg, sat=1.0, bright=1.0, hue_shift=0):
+    a=np.asarray(im).astype(np.float32); yw=np.array(LINES[dbg]['water'])
+    m=np.zeros((H,W),np.float32)
+    for x in range(W):
+        if yw[x]>=0: m[yw[x]+2:,x]=1
+    hsv=np.asarray(im.convert('HSV')).astype(np.float32)
+    hsv[...,1]=np.where(m>0,hsv[...,1]*sat,hsv[...,1]).clip(0,255); hsv[...,2]=np.where(m>0,hsv[...,2]*bright,hsv[...,2]).clip(0,255)
+    hsv[...,0]=np.where(m>0,(hsv[...,0]+hue_shift)%256,hsv[...,0])
+    return Image.fromarray(hsv.astype(np.uint8),'HSV').convert('RGB')
+
+def prep(name, dbg, contrast=1.06, sat=1.06, sky=True, water_sat=0.85):
+    """Plate pipeline used by every candidate: resize + grade, foam rim lift, golden-hour sky, water saturation."""
+    im = whiten_foam(plate(name, contrast=contrast, sat=sat), dbg)
+    if sky: im = grade_sky(im, dbg, top=(120, 160, 212), horizon=(250, 200, 150), amt=0.85)
+    if water_sat != 1.0: im = water_grade(im, dbg, sat=water_sat)
+    return im

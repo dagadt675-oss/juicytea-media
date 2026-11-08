@@ -97,7 +97,7 @@ def postmark(w, seed=5, alpha=150):
 
 def make_card(face, w, aspect=1.5, border=0.045, text=None, cap_px=None, font='Oswald-700', track=0.04,
               text_pos='bl', text_col=(255, 252, 244), stamp_on=True, postmark_on=True, seed=1,
-              face_sat=1.12, face_con=1.06, face_zoom=1.0, face_fx=0.5, face_fy=0.5, sheen=0.10):
+              face_sat=1.12, face_con=1.06, face_zoom=1.0, face_fx=0.5, face_fy=0.5, sheen=0.10, stamp_w=0.115):
     """Return an RGBA postcard of width w (aspect = w/h). cap_px is the cap height of the place name in card pixels."""
     S = 3; W = w * S; H = round(w / aspect) * S
     card = Image.new('RGBA', (W, H), (0, 0, 0, 0))
@@ -140,7 +140,7 @@ def make_card(face, w, aspect=1.5, border=0.045, text=None, cap_px=None, font='O
     card.alpha_composite(edge)
     # stamp + postmark (top-right, overlapping the photo corner like a real card)
     if stamp_on:
-        sw = round(W * 0.115); st = stamp(sw, seed)
+        sw = round(W * stamp_w); st = stamp(sw, seed)
         sx, sy = W - b - sw - round(W * 0.025), b + round(W * 0.022)
         sshadow = Image.new('RGBA', st.size, (0, 0, 0, 0)); sshadow.putalpha(st.getchannel('A').point(lambda v: v * 0.35))
         card.alpha_composite(sshadow.filter(ImageFilter.GaussianBlur(S * 1.5)), (sx + S, sy + 2 * S))

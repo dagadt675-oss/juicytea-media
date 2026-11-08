@@ -1,0 +1,12 @@
+{
+ "_how": "tools/r.sh <name> '<q json>' 1920 1080  -> work/r/ours_r_<name>.jpg (engine/www/lab_hawaii.html, VE 1.0, real ETOPO 2022 + MODIS colour)",
+ "PL6":  {"sed":[0.05,0.048,0.05],"fog":[0.0009,0.00003],"tub":1,"tubM":140,"look":"warm","detail":1.4,"exposure":1.85,"sun":[350,5],"level":-9000,
+          "cam":{"lon":-154.85,"lat":20.40,"alt":-1.6,"tLon":-155.375,"tLat":19.845,"tH":-4300,"fov":15}},
+ "WL6":  {"sed":[0.05,0.048,0.05],"fog":[0.0009,0.00003],"tub":1,"tubM":140,"look":"warm","detail":1.4,"exposure":1.85,"sun":[350,5],"level":-4300,"water":"turq","foam":1,"foamPx":6,
+          "cam":{"lon":-154.85,"lat":20.40,"alt":-1.6,"tLon":-155.375,"tLat":19.845,"tH":-4300,"fov":15}},
+ "x2":   {"level":-9000,"look":"warm","tub":1,"line":0,"exposure":1.8,"sed":[0.05,0.048,0.05],"fog":[0.0009,0.00003],"tubM":140,"sun":[350,5],"detail":1.4,
+          "cam":{"lon":-154.70,"lat":20.55,"alt":-3.6,"tLon":-155.45,"tLat":19.85,"tH":-1500,"fov":17}},
+ "face1":{"level":0,"look":"day","water":"turq","foam":1,"tub":0,"line":0,"sat":1.15,"sun":[120,40],
+          "cam":{"lon":-155.0,"lat":20.05,"alt":2.5,"tLon":-155.47,"tLat":19.82,"tH":2500,"fov":30}},
+ "_use": {"cand_1":"PL6 + face1 card (HAWAII with okina U+02BB)","cand_2":"WL6 + face1 card","cand_3":"PL6 + falling face1 card","cand_4":"x2 + face1 card, no lettering"}
+}
