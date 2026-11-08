@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="fonts/fonts.css">
+<script type="importmap">{"imports":{"three":"/three.module.min.js"}}</script>
+<style>html,body{margin:0;background:#000;overflow:hidden}</style></head><body>
+<script type="module">
+// BEFORE reference for the drain lab: how the ep01 engine (globe.js, copied unchanged) shows the same place.
+// ep01 had no terrain mesh and no water level, so this is the best regional shot it could make (tilted globe + 500 m GIBS patch, ep01 label size).
+import { Globe, dirOf } from './lab/drain/globe_ep01.js';
+import * as F from './lab/drain/fx.js';
+const P = new URLSearchParams(location.search); const W = +P.get('w') || 1920, H = +P.get('h') || 1080; const Q = JSON.parse(P.get('q') || '{}');
+const out = document.createElement('canvas'); out.width = W; out.height = H; document.body.appendChild(out); const ox = out.getContext('2d');
+let g;
+window.ready = (async () => {
+  await Promise.all(['700 40px "Barlow Condensed"', '400 100px "Bebas Neue"'].map(f => document.fonts.load(f)));
+  g = new Globe(W, H); await g.init(); await g.setPatch('lab/drain/data/patch_ibmaroc.jpg', [-15, 28, 5, 44]);
+})();
+window.renderFrame = async (f) => {
+  const st = Object.assign({ lat: 35.6, lon: -6.2, alt: Q.alt ?? 0.12, tilt: Q.tilt ?? 55, heading: 67, fov: 34, sun: 'camera', lookOffset: null }, Q.cam || {});
+  g.set(st); g.starfield(ox, 1);
+  ox.fillStyle = '#05070D'; ox.fillRect(0, 0, W, H); ox.drawImage(g.render(), 0, 0);
+  F.post(ox, W, H, f);
+  // ep01 label style (Barlow 700, about 34 px, ENGINE.md 30-38 px rule)
+  const v = dirOf(35.95, -5.62, 1).project(g.camera); const p = [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H];
+  if (Q.ui !== 0) F.pill(ox, 'STRAIT OF GIBRALTAR', p[0] + 30, p[1] - 70, { anchor: 'left', leader: p, size: 34 });
+};
+window.grabBlob = () => new Promise(r => out.toBlob(r, 'image/jpeg', 0.93));
+</script></body></html>

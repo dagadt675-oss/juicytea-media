@@ -1,0 +1,66 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="fonts/fonts.css">
+<script type="importmap">{"imports":{"three":"/three.module.min.js"}}</script>
+<style>html,body{margin:0;background:#000;overflow:hidden}</style></head><body>
+<script type="module">
+// Lab: DRAIN hero shot. Real ETOPO 2022 terrain + seafloor around the Strait of Gibraltar, water level animated as a pure function of time.
+// Render: node still.cjs --page lab_drain.html --frames 0,240,450 --outdir <dir>   (Q: {"level":-350} forces a level, {"ui":0} hides overlays)
+import * as THREE from 'three';
+import * as F from './lab/drain/fx.js';
+import { TerrainStage } from './lab/drain/terrain.js';
+const P = new URLSearchParams(location.search);
+const W = +P.get('w') || 1920, H = +P.get('h') || 1080, FPS = +P.get('fps') || 30;
+const Q = JSON.parse(P.get('q') || '{}');
+const log = (s) => fetch('/log', { method: 'POST', body: String(s) });
+const out = document.createElement('canvas'); out.width = W; out.height = H; document.body.appendChild(out); const ox = out.getContext('2d');
+let S;
+// --- timeline (seconds) -------------------------------------------------------------------------------
+const SILL = -287;  // Atlantic and Mediterranean disconnect below this level in the ETOPO data (sill.py)
+const levelAt = (t) => Q.level ?? (0 + (-350 - 0) * F.prog(t, 1.5, 6.5, F.E.inOutSine) + (-1100 + 350) * F.prog(t, 8.5, 13.5, F.E.inOutSine));
+const camAt = (t) => {
+  const k = F.prog(t, 0, 16, F.E.inOutSine);
+  return Object.assign({ lon: F.lerp(-6.82, -6.68, k), lat: F.lerp(35.54, 35.58, k), alt: F.lerp(32, 27, k), heading: F.lerp(67, 69, k), pitch: F.lerp(-15.5, -16.0, k), fov: 32 }, Q.cam || {});
+};
+window.ready = (async () => {
+  await Promise.all(['800 60px "Barlow Condensed"', '400 100px "Bebas Neue"', '800 40px "Inter"'].map(f => document.fonts.load(f)));
+  S = new TerrainStage(W, H, { samples: Q.samples ?? 4, exposure: Q.exposure ?? 1.0 });
+  await S.load('lab/drain/data');
+  if (Q.coast != null) S.set('coastLine', Q.coast);
+  if (Q.dbg) S.set('dbg', Q.dbg);
+  S.set('seaRelief', Q.seaRelief ?? 1.6);
+})();
+function gauge(ctx, lv, t) {
+  const w = 560, h = 236, x = 64, y = 60;
+  ctx.save();
+  ctx.fillStyle = 'rgba(11,29,40,0.86)'; F.round(ctx, x, y, w, h, 22); ctx.fill();
+  // vertical gauge bar: 0 at top, -1500 at bottom
+  const bx = x + 34, by = y + 34, bh = h - 68, bw = 18, k = F.clamp(-lv / 1200);
+  ctx.fillStyle = 'rgba(244,246,250,0.18)'; F.round(ctx, bx, by, bw, bh, 9); ctx.fill();
+  ctx.fillStyle = '#3DB7E8'; F.round(ctx, bx, by + bh * k, bw, Math.max(bh * (1 - k), 0.01), 9); ctx.fill();
+  ctx.fillStyle = '#FFD23F'; ctx.fillRect(bx - 8, by + bh * k - 3, bw + 16, 6);
+  ctx.restore();
+  F.text(ctx, 'SEA LEVEL', x + 84, y + 78, { size: 58, fam: F.FAM.label, weight: 800, tracking: 0.08, color: '#FFD23F', shadow: false });
+  const v = Math.round(lv / 10) * 10;
+  const s = v === 0 ? '0' : '−' + Math.abs(v).toLocaleString('en-US');
+  const wNum = F.text(ctx, s, x + 80, y + 206, { size: 168, fam: F.FAM.head, weight: 400, color: '#F4F6FA', shadow: false });
+  F.text(ctx, 'M', x + 80 + wNum + 14, y + 206, { size: 84, fam: F.FAM.head, weight: 400, color: '#F4F6FA', shadow: false });
+}
+function label(ctx, txt, lon, lat, dx, dy, a = 1) {
+  const p = S.project(lon, lat); if (!p) return;
+  F.pill(ctx, txt, p[0] + dx, p[1] + dy, { anchor: 'center', leader: p, size: 84, weight: 800, tracking: 0.03, bg: 'rgba(11,29,40,0.86)', border: 'rgba(255,90,54,0.95)', alpha: a, dotColor: '#F4F6FA' });
+}
+window.renderFrame = async (f) => {
+  const t = f / FPS, lv = levelAt(t);
+  S.setCamera(camAt(t)); S.setLevel(lv);
+  const t0 = performance.now();
+  ox.drawImage(S.render(t, f), 0, 0);
+  if (Q.ui !== 0) {
+    gauge(ox, lv, t);
+    // one label at a time, chosen by state (the land-bridge label only once the data says the strait is dry)
+    if (lv > -60) label(ox, 'STRAIT OF GIBRALTAR', -5.62, 35.95, 190, -330);
+    else if (lv < SILL - 30 && lv > -800) label(ox, 'LAND BRIDGE', -5.75, 35.94, 150, -330);
+    else if (lv <= -1000) label(ox, 'ALBORAN SEA', -4.05, 36.02, -150, -150);
+  }
+  log(`f=${f} level=${lv.toFixed(0)} render ${(performance.now() - t0).toFixed(0)} ms`);
+};
+window.grabBlob = () => new Promise(r => out.toBlob(r, 'image/jpeg', 0.93));
+</script></body></html>
