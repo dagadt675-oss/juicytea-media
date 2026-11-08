@@ -1,0 +1,52 @@
+{
+ "candidates": [
+  {
+   "channel": "Myth Juice",
+   "views": "52 views",
+   "age": "2d ago",
+   "duration": "15:34",
+   "avatar": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/feedsim/ours_avatar.jpg",
+   "id": "live",
+   "thumb": "/home/user/juicytea-media/longform/ep01-continental-drip/release/thumb_B_pointing_at_what.jpg",
+   "title": "Why the Continents Point South (Not Just a Coincidence)"
+  },
+  {
+   "channel": "Myth Juice",
+   "views": "52 views",
+   "age": "2d ago",
+   "duration": "15:34",
+   "avatar": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/feedsim/ours_avatar.jpg",
+   "id": "r1_breakup",
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_ep01/cand_3.jpg",
+   "title": "Why the Continents Point South (It's a Breakup)"
+  },
+  {
+   "channel": "Myth Juice",
+   "views": "52 views",
+   "age": "2d ago",
+   "duration": "15:34",
+   "avatar": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/feedsim/ours_avatar.jpg",
+   "id": "f1_breakup",
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/final_work/ep01/ours_b_full4.jpg",
+   "title": "Why the Continents Point South (Pangaea's Breakup)"
+  },
+  {
+   "channel": "Myth Juice",
+   "views": "52 views",
+   "age": "2d ago",
+   "duration": "15:34",
+   "avatar": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/feedsim/ours_avatar.jpg",
+   "id": "f2_tips",
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/final_work/ep01/ours_t_full3.jpg",
+   "title": "Why the Continents Point South (Pangaea's Breakup)"
+  }
+ ],
+ "hosts": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/refs/hosts/hosts.json#ep01",
+ "now_playing": "VKq0pr4rbRs",
+ "seed": 3,
+ "n": {
+  "home": 6,
+  "upnext": 10,
+  "sidebar": 10
+ }
+}

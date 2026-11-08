@@ -1,0 +1,246 @@
+{
+ "ours_q3_d1": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P3_mauinui.jpg",
+  "crop": [
+   0.5,
+   0.55,
+   1.08
+  ],
+  "grade": {
+   "sat": 0.9,
+   "warm": [
+    1.02,
+    1.0,
+    0.96
+   ],
+   "contrast": 1.05,
+   "dodge": [
+    [
+     0.52,
+     0.5,
+     0.22,
+     0.16,
+     0.18
+    ]
+   ]
+  },
+  "text": [
+   {
+    "s": "ONE ISLAND",
+    "cap": 0.13,
+    "x": 0.045,
+    "y": 0.07,
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     120
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ],
+  "sky": {
+   "top": [
+    150,
+    186,
+    226
+   ],
+   "horizon": [
+    246,
+    214,
+    176
+   ],
+   "amt": 0.75
+  }
+ },
+ "ours_q3_d2": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P3_mauinui.jpg",
+  "crop": [
+   0.5,
+   0.55,
+   1.08
+  ],
+  "grade": {
+   "sat": 0.9,
+   "warm": [
+    1.02,
+    1.0,
+    0.96
+   ],
+   "contrast": 1.05,
+   "dodge": [
+    [
+     0.52,
+     0.5,
+     0.22,
+     0.16,
+     0.22
+    ]
+   ]
+  },
+  "text": [
+   {
+    "s": "ONE ISLAND",
+    "cap": 0.13,
+    "x": 0.045,
+    "y": 0.07,
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     120
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ],
+  "sky": {
+   "top": [
+    160,
+    180,
+    214
+   ],
+   "horizon": [
+    250,
+    206,
+    170
+   ],
+   "amt": 0.85
+  }
+ },
+ "ours_q3_d3": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/final_work/plates/P3_a.jpg",
+  "crop": [
+   0.5,
+   0.55,
+   1.08
+  ],
+  "grade": {
+   "sat": 0.9,
+   "warm": [
+    1.02,
+    1.0,
+    0.96
+   ],
+   "contrast": 1.05,
+   "dodge": [
+    [
+     0.52,
+     0.5,
+     0.22,
+     0.16,
+     0.2
+    ]
+   ]
+  },
+  "text": [
+   {
+    "s": "ONE ISLAND",
+    "cap": 0.13,
+    "x": 0.045,
+    "y": 0.07,
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     120
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ],
+  "sky": {
+   "top": [
+    150,
+    186,
+    226
+   ],
+   "horizon": [
+    246,
+    214,
+    176
+   ],
+   "amt": 0.75
+  }
+ },
+ "ours_q3_d4": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P3_mauinui.jpg",
+  "crop": [
+   0.5,
+   0.55,
+   1.08
+  ],
+  "grade": {
+   "sat": 0.9,
+   "warm": [
+    1.02,
+    1.0,
+    0.96
+   ],
+   "contrast": 1.05,
+   "dodge": []
+  },
+  "text": [
+   {
+    "s": "ONE ISLAND",
+    "cap": 0.13,
+    "x": 0.045,
+    "y": 0.07,
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     120
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ],
+  "sky": {
+   "top": [
+    150,
+    186,
+    226
+   ],
+   "horizon": [
+    246,
+    214,
+    176
+   ],
+   "amt": 0.75
+  }
+ }
+}

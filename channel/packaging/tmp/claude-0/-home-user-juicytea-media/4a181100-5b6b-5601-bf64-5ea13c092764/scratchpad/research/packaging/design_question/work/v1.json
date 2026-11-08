@@ -1,0 +1,11 @@
+{
+ "cand_1": {"plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P1_ridge.jpg", "crop": [0.47, 0.52, 1.12],
+            "grade": {"contrast": 1.08, "dodge": [[0.42, 0.42, 0.35, 0.25, 0.18]], "sat": 1.08}},
+ "cand_2": {"plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P2_tiny_low.jpg", "crop": [0.55, 0.50, 1.10],
+            "grade": {"contrast": 1.1, "dodge": [[0.62, 0.40, 0.25, 0.2, 0.25]], "sat": 1.1, "vignette": 0.25}},
+ "cand_3": {"plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P3_mauinui.jpg", "crop": [0.5, 0.55, 1.08],
+            "grade": {"contrast": 1.05, "sat": 1.0},
+            "text": [{"s": "ONE ISLAND", "cap": 0.13, "x": 0.045, "y": 0.07, "fill": [16, 22, 30], "shadow": [255, 255, 255, 120], "shadow_off": [0, 0], "blur": 8}]},
+ "cand_4": {"plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P4_side_n.jpg", "crop": [0.55, 0.45, 1.25],
+            "grade": {"contrast": 1.1, "dodge": [[0.55, 0.22, 0.45, 0.18, 0.25]], "burn_bottom": [[0.45, 1.0, 0.55]], "sat": 1.08}}
+}

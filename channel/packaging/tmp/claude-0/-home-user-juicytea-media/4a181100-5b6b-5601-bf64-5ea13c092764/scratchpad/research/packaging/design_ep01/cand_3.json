@@ -1,0 +1,12 @@
+{
+ "cam": {
+  "lat": -50.0,
+  "lon": -14.0,
+  "dist": 1.8,
+  "fov": 64.0,
+  "lift": -0.03,
+  "shift": 0.0
+ },
+ "T": 116,
+ "data": "GPlates web service, MULLER2019 coastlines, coast_116.json"
+}

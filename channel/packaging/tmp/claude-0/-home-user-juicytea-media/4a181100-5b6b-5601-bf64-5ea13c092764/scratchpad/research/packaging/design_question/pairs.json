@@ -1,0 +1,208 @@
+{
+ "philosophy": "QUESTION + ONE IMAGE (0-2 words)",
+ "recommended_order": [
+  "cand_2",
+  "cand_1",
+  "cand_3",
+  "cand_4"
+ ],
+ "compose_config": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/final_config.json",
+ "feed_sim": "feeds/design_question/final_* (hosts.json#hawaii, seed 2); also v3s5 (seed 5) and v3mix (+hawaii_direct, seed 3)",
+ "craft_median_bar": {
+  "A": 11.71,
+  "D": 11.43
+ },
+ "pairs": [
+  {
+   "id": "cand_1",
+   "title": "Why Can't You See Most of Hawaii? (Look Down)",
+   "chars": 45,
+   "thumb_text": "NO OCEAN",
+   "cap_height": 0.13,
+   "words": 2,
+   "formula": "access question 'Why Can't You...' (same-channel 1.56) + twist bracket (1.30)",
+   "render": {
+    "level": -9000,
+    "tub": 1,
+    "landSat": 1.25,
+    "basalt": [
+     0.026,
+     0.025,
+     0.026
+    ],
+    "sed": [
+     0.05,
+     0.045,
+     0.041
+    ],
+    "shot": "plate_ne",
+    "look": "gold",
+    "sun": [
+     262,
+     8
+    ],
+    "exposure": 1.45,
+    "landGain": 1.8,
+    "fog": [
+     0.003,
+     0.0001
+    ],
+    "cam": {
+     "lon": -155.32,
+     "lat": 18.42,
+     "alt": 26,
+     "tLon": -155.47,
+     "tLat": 19.52,
+     "tH": -2000,
+     "fov": 40
+    }
+   },
+   "luma": 89.9,
+   "gate": {
+    "A": 12.16,
+    "D": 11.63,
+    "pass": true
+   },
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/cand_1.jpg"
+  },
+  {
+   "id": "cand_2",
+   "title": "What's Holding Hawaii Up? (It's Slowly Sinking)",
+   "chars": 47,
+   "thumb_text": "BIG ISLAND",
+   "cap_height": 0.12,
+   "words": 2,
+   "formula": "what-question + twist bracket (1.56 for twist brackets); contradiction gap",
+   "render": {
+    "level": -9000,
+    "tub": 1,
+    "landSat": 1.25,
+    "basalt": [
+     0.026,
+     0.025,
+     0.026
+    ],
+    "sed": [
+     0.05,
+     0.045,
+     0.041
+    ],
+    "shot": "plate_ne",
+    "look": "warm",
+    "sun": [
+     275,
+     4
+    ],
+    "exposure": 1.6,
+    "landGain": 2.0,
+    "fog": [
+     0.002,
+     0.0001
+    ],
+    "cam": {
+     "lon": -155.05,
+     "lat": 17.75,
+     "alt": 70,
+     "tLon": -155.5,
+     "tLat": 19.6,
+     "tH": -3000,
+     "fov": 44
+    }
+   },
+   "luma": 96.4,
+   "gate": {
+    "A": 13.72,
+    "D": 11.8,
+    "pass": true
+   },
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/cand_2.jpg"
+  },
+  {
+   "id": "cand_3",
+   "title": "Hawaii Used to Be Bigger. Where Did It Go?",
+   "chars": 42,
+   "thumb_text": "ONE ISLAND",
+   "cap_height": 0.13,
+   "words": 2,
+   "formula": "deep-time statement (1.22) + where-question twist (statement+twist 1.32)",
+   "render": {
+    "shot": "mauinui_400ft_s",
+    "level": -122,
+    "look": "warm",
+    "sun": [
+     200,
+     18
+    ],
+    "water": "ocean",
+    "cam": {
+     "lon": -157.3,
+     "lat": 21.25,
+     "alt": 9,
+     "tLon": -156.65,
+     "tLat": 20.85,
+     "tH": 0,
+     "fov": 40
+    }
+   },
+   "luma": 132.9,
+   "gate": {
+    "A": 11.79,
+    "D": 11.45,
+    "pass": true
+   },
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/cand_3.jpg"
+  },
+  {
+   "id": "cand_4",
+   "title": "How Tall Is Hawaii? We Measured All of It.",
+   "chars": 42,
+   "thumb_text": "THE TOP",
+   "cap_height": 0.13,
+   "words": 2,
+   "formula": "size question + first-person proof twist (We/I 1.25-1.36; statement+twist 1.32); 'How X' opener itself is 0.71",
+   "render": {
+    "level": -9000,
+    "tub": 1,
+    "landSat": 1.25,
+    "basalt": [
+     0.026,
+     0.025,
+     0.026
+    ],
+    "sed": [
+     0.05,
+     0.045,
+     0.041
+    ],
+    "shot": "plate_ne",
+    "look": "warm",
+    "sun": [
+     300,
+     10
+    ],
+    "exposure": 1.45,
+    "landGain": 1.8,
+    "fog": [
+     0.002,
+     0.0001
+    ],
+    "cam": {
+     "lon": -155.05,
+     "lat": 20.22,
+     "alt": -1.5,
+     "tLon": -155.47,
+     "tLat": 19.82,
+     "tH": 2500,
+     "fov": 18
+    }
+   },
+   "luma": 87.9,
+   "gate": {
+    "A": 12.42,
+    "D": 12.05,
+    "pass": true
+   },
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/cand_4.jpg"
+  }
+ ]
+}

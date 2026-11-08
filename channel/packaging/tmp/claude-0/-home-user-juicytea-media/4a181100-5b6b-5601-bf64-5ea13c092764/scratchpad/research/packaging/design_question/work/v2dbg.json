@@ -1,0 +1,5 @@
+{
+ "cand_1": {"plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P1_ridge.jpg", "wet": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P1_ridge_wet.jpg", "crop": [0.47, 0.52, 1.12], "debug_mask": 1, "grade": {}},
+ "cand_2": {"plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P2_tiny_low.jpg", "wet": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P2_tiny_low_wet.jpg", "crop": [0.55, 0.50, 1.10], "debug_mask": 1, "grade": {}},
+ "cand_4": {"plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P4_tele.jpg", "line_band": [0.34, 0.50], "crop": [0.5, 0.62, 1.3], "debug_mask": 1, "grade": {}}
+}

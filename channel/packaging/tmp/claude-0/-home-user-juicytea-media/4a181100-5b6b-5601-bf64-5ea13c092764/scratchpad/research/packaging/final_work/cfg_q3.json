@@ -1,0 +1,166 @@
+{
+ "ours_q3_orig": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P3_mauinui.jpg",
+  "crop": [
+   0.5,
+   0.55,
+   1.08
+  ],
+  "grade": {
+   "sat": 0.9,
+   "warm": [
+    1.02,
+    1.0,
+    0.96
+   ],
+   "contrast": 1.05
+  },
+  "text": [
+   {
+    "s": "ONE ISLAND",
+    "cap": 0.13,
+    "x": 0.045,
+    "y": 0.07,
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     120
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ]
+ },
+ "ours_q3_P3_a": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/final_work/plates/P3_a.jpg",
+  "crop": [
+   0.5,
+   0.55,
+   1.08
+  ],
+  "grade": {
+   "sat": 0.9,
+   "warm": [
+    1.02,
+    1.0,
+    0.96
+   ],
+   "contrast": 1.05
+  },
+  "text": [
+   {
+    "s": "ONE ISLAND",
+    "cap": 0.13,
+    "x": 0.045,
+    "y": 0.07,
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     120
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ]
+ },
+ "ours_q3_P3_b": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/final_work/plates/P3_b.jpg",
+  "crop": [
+   0.5,
+   0.55,
+   1.08
+  ],
+  "grade": {
+   "sat": 0.9,
+   "warm": [
+    1.02,
+    1.0,
+    0.96
+   ],
+   "contrast": 1.05
+  },
+  "text": [
+   {
+    "s": "ONE ISLAND",
+    "cap": 0.13,
+    "x": 0.045,
+    "y": 0.07,
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     120
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ]
+ },
+ "ours_q3_P3_c": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/final_work/plates/P3_c.jpg",
+  "crop": [
+   0.5,
+   0.55,
+   1.08
+  ],
+  "grade": {
+   "sat": 0.9,
+   "warm": [
+    1.02,
+    1.0,
+    0.96
+   ],
+   "contrast": 1.05
+  },
+  "text": [
+   {
+    "s": "ONE ISLAND",
+    "cap": 0.13,
+    "x": 0.045,
+    "y": 0.07,
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     120
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ]
+ }
+}

@@ -1,0 +1,197 @@
+{
+ "cand_1": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r8/ours_P1_ridge.jpg",
+  "wet": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P1_ridge_wet.jpg",
+  "crop": [
+   0.47,
+   0.52,
+   1.2
+  ],
+  "grade": {
+   "hero": {
+    "exposure": 1.08,
+    "sat": 1.05
+   },
+   "bg": {
+    "exposure": 0.95,
+    "warm": [
+     1.03,
+     1.0,
+     0.94
+    ]
+   },
+   "contrast": 1.05
+  },
+  "text": [
+   {
+    "s": "NO OCEAN",
+    "cap": 0.13,
+    "x": 0.955,
+    "y": 0.04,
+    "anchor": "r",
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     110
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ]
+ },
+ "cand_2": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r8/ours_P2_tiny.jpg",
+  "wet": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P2_tiny_low_wet.jpg",
+  "crop": [
+   0.55,
+   0.5,
+   1.1
+  ],
+  "grade": {
+   "hero": {
+    "exposure": 1.2,
+    "sat": 1.05
+   },
+   "bg": {
+    "exposure": 0.92,
+    "warm": [
+     1.05,
+     1.0,
+     0.9
+    ]
+   },
+   "contrast": 1.05
+  },
+  "text": [
+   {
+    "s": "BIG ISLAND",
+    "cap": 0.12,
+    "x": 0.23,
+    "y": 0.73,
+    "fill": [
+     255,
+     255,
+     255
+    ],
+    "shadow": [
+     0,
+     0,
+     0,
+     200
+    ],
+    "shadow_off": [
+     0,
+     3
+    ],
+    "blur": 7
+   }
+  ]
+ },
+ "cand_3": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P3_mauinui.jpg",
+  "crop": [
+   0.5,
+   0.55,
+   1.08
+  ],
+  "grade": {
+   "sat": 0.9,
+   "warm": [
+    1.02,
+    1.0,
+    0.96
+   ],
+   "contrast": 1.05
+  },
+  "text": [
+   {
+    "s": "ONE ISLAND",
+    "cap": 0.13,
+    "x": 0.045,
+    "y": 0.07,
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     120
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ]
+ },
+ "cand_4": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r8/ours_P4_tele345.jpg",
+  "line_band": [
+   0.34,
+   0.5
+  ],
+  "crop": [
+   0.5,
+   0.64,
+   1.3
+  ],
+  "grade": {
+   "hero": {
+    "exposure": 1.05,
+    "sat": 1.05
+   },
+   "bg": {
+    "exposure": 1.2,
+    "warm": [
+     1.03,
+     1.0,
+     0.95
+    ]
+   },
+   "burn_bottom": [
+    [
+     0.7,
+     1.0,
+     0.25
+    ]
+   ]
+  },
+  "text": [
+   {
+    "s": "THE TOP",
+    "cap": 0.13,
+    "x": 0.045,
+    "y": 0.06,
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     110
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ]
+ }
+}
