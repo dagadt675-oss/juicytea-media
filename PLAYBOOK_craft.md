@@ -40,6 +40,8 @@ Sections 7-13 of the playbook (pacing, visuals, text, humour, audio, ending, pac
 - Pad equirect overlay bounds to plus or minus 181.5 degrees and fill each ring's -360/0/+360 copies into one opaque mask before tinting. (lib/globe.js drops pixels outside u (0,1), leaving a date-line hairline; ep02/lab/type/shots.js; commit 79e272e) [measured]
 - Fix satellite tile seams (different Esri acquisitions) with the water-seam polish or a lake-mask blur before compositing. (bundle:lake_peigneur_v4/orig/LONGFORM_lake_peigneur_production_table.md; bundle:san_juan/BUILD_REPORT.md caveat 7) [reviewed]
 - Keep any flashing at 3 flashes per second or fewer. (bundle:lake_peigneur_v4/orig/LONGFORM_lake_peigneur_production_table.md) [benchmark]
+- Build every ep02 shot with the shot toolkit engine/www/ep/ep02/shared.js (API.md): one WebGLRenderer for the page, stages created lazily (only the stages active at a frame render), each stage through the same shared grade pass, UI drawn after the grade; reproduce a thumbnail as frame 1 with its plate settings, its crop as a lens shift and its masked grade ported to the shader. (frame 1 vs the label-free NO OCEAN thumbnail: SSIM 0.969 at 320x180; lab_hawaii.html renders stayed pixel-identical after the stage changes, MAE 0; research/ep02/foundation/ch1/frame1_ssim.txt) [measured]
+- Recover a lost plate camera with a camera search scored on land / water / sky layout agreement, not grey SSIM: grey SSIM sat at 0.55-0.60 for every candidate, the layout score separated them (best 0.91 at 192x108). (engine/www/ep/ep02/tools/camsearch.html; CAMS.mauinui_one) [measured]
 
 ### DONT (banned)
 
@@ -56,16 +58,18 @@ Sections 7-13 of the playbook (pacing, visuals, text, humour, audio, ending, pac
 - Never show mock documents, fake papers with grey dash 'text' or placeholder graphics; use a real public-domain scan cropped to 5 big words or fewer, or tell the moment on the map. (ep01's 'THE DRIP, REVISITED' mock paper risked a false claim; vu diag.audit finding 8) [reviewed]
 - Never leave crossfade ghosts: clear the previous beat's elements before a card's plate appears, and hard-cut between contiguous diagram beats. (bundle:lake_peigneur_v4/QC_lake_peigneur_v4_full_2026-10-28.md item 7) [measured]
 - Never use a stock clip without a per-file licence check on the day of use (Pexels and Pixabay are not CC0; Wikimedia varies), and never film or franchise clips. (bundle:bats/bats_not_blind_script_v2_2026-10-26.md) [reviewed]
+- Never let a hold's push or heading drift accumulate through a flight: ch1's drift ran from the shot start and landed the flight 6.8 degrees off the ONE ISLAND framing; fade hold moves out during a flight and restart them on landing. (engine/www/ep/ep02/ch1.js cam) [measured]
 
 ## 9. Text and graphics
 
 ### DO (proven)
 
-- Size text by cap height with ep02/lab/type/type.js: must-read text (place labels, name plates, gauge titles) 64 px or more (about 13 px on a phone), connectors at least 48 px, headlines in Anton at 96-120 px with at most 4 words. type.js does not enforce this yet: its FLOOR is {must: 60, any: 44}, report() fails only caps under 44 px, and it has no text-block count or headline word check (see section 16). (ep01 caps were 26-35 px, 5-7 px on a phone; the type prototype took the panel teen from 2 to 8; vu diag.audit finding 2; look sections 2, 9) [reviewed]
+- Size text by cap height with ep02/lab/type/type.js: must-read text (place labels, name plates, gauge titles) 64 px or more (about 13 px on a phone), connectors at least 48 px, headlines in Anton at 96-120 px with at most 4 words. Since 2026-11-08 type.js FLOOR is {must: 64, any: 48}, and the ep02 toolkit (engine/www/ep/ep02/shared.js makeUI) enforces caps, one text block, 10 words, 4-word headlines and the safe area on every frame; other pages still need the hand check in section 16. (ep01 caps were 26-35 px, 5-7 px on a phone; the type prototype took the panel teen from 2 to 8; vu diag.audit finding 2; look sections 2, 9) [reviewed]
 - Use one type system: Anton for headlines and numbers, Barlow Condensed 800 caps for labels, #F4F6FA text on a rectangular rgba(6,9,15,0.86) plate with an 8 px accent bar in the colour of the thing it names, and always a plate (not just a scrim) on bright terrain or sky. (look sections 1.2, 1.3, 9) [reviewed]
 - Show 6-10 big vivid numbers per long-form, each landing on its spoken word. (owner rule; ctx 'The channel') [owner]
 - Turn each hero number into an image on its word (a true-scale prop, a gauge move, an overlay or a counter), with no single device used more than 3 times in a film; a counter uses Anton at 150-190 px cap height (14-18% of frame height). (look section 2; R6/synthesis fix 17) [reviewed]
 - Show at most one text block plus one map label plus the gauge (10 visible words or fewer); keep must-read text in the top 62% of the frame (above y=670), out of the top 8%, inside a 5% safe margin and in the third opposite the subject; rotate 3-4 layouts. (phone controls cover the bottom; vu diag.tech finding 1; vu panel type; look section 2) [reviewed]
+- In a shot's ui(), draw outlines and lines first, then the text block, then map labels with the auto placer (right, left, above, below inside the safe area and clear of the block): an island outline crossed the MAUI plate and the MAUNA LOA label sat on the payoff number block until the order changed; the ep02 toolkit logs every floor, block, word-count and safe-area breach per frame as [typeqc] FAIL. (engine/www/ep/ep02/shared.js makeUI; research/ep02/foundation) [reviewed]
 
 ### DONT (banned)
 

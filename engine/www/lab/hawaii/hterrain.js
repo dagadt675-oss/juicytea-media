@@ -7,6 +7,14 @@
 //  - old-shoreline devices: a pale "bathtub ring" band just below the former sea level and/or one luminous waterline on the 0 m contour;
 //  - water: turquoise palette option, a screen-space foam rim at the waterline and a luminous shallow edge;
 //  - grade: exposure, contrast, saturation, warm/cool split, vignette; haze is height-aware relative to the drained floor.
+// Production options (ep02 toolkit, engine/www/ep/ep02/shared.js; all default off, so lab_hawaii.html renders as before):
+//  - o.renderer: share one WebGLRenderer between stages; render(time, seed, target) can draw the final pass into a render target;
+//  - the scene target's alpha carries a class mask (sky 0, water 0.25, drained seabed 0.5, today's land 1) for masked grades;
+//    post('keepA', 1) passes it through to the output target;
+//  - setMask(texture, bbox): R = hero fill (heroAmt, heroCol), G = dimmed and desaturated (dimAmt); camera shiftX (lens shift);
+//  - decoded heights and textures are cached per URL, so several stages on one page load the data once.
+// Any region: loadRegion(root, name) (or load() on a region folder) reads <root>/regions.json (lab/hawaii/tools/region_bake.py) and
+// stacks 1-3 nested layers, finest first; the legacy two-layer folder renders pixel-identically to before (lab/hawaii/README.md, Regions).
 import * as THREE from 'three';
 
 export const R_EARTH = 6371.0, KM_DEG = 111.32;
@@ -43,12 +51,15 @@ float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 5; i++) { s += a 
 float fbmL(vec2 ll, float f, float pf){ return mix(0.47, fbm(ll * f), 1.0 - smoothstep(0.12, 0.45, f * pf)); }
 `;
 
-// height lookup across both grids (hero inside its bbox, wide skirt elsewhere) + sun visibility by ray-marching toward the sun
+// height lookup across the nested grids (hero inside its bbox, then the optional mid layer, wide skirt elsewhere; with two layers
+// mid = skirt) + sun visibility by ray-marching toward the sun
 const HEIGHT = /* glsl */`
-uniform sampler2D hHero, hSkirt; uniform vec4 bbHero, bbSkirt; uniform float vex, sunEl, penumbra;
+uniform sampler2D hHero, hMid, hSkirt; uniform vec4 bbHero, bbMid, bbSkirt; uniform float vex, sunEl, penumbra;
 float hAt(vec2 ll){
   vec2 uh = (ll - bbHero.xy) / (bbHero.zw - bbHero.xy);
   if (uh.x > 0.0 && uh.y > 0.0 && uh.x < 1.0 && uh.y < 1.0) return texture2D(hHero, uh).r;
+  vec2 um = (ll - bbMid.xy) / (bbMid.zw - bbMid.xy);
+  if (um.x > 0.0 && um.y > 0.0 && um.x < 1.0 && um.y < 1.0) return texture2D(hMid, um).r;
   return texture2D(hSkirt, (ll - bbSkirt.xy) / (bbSkirt.zw - bbSkirt.xy)).r;
 }
 float sunVis(vec2 ll, float h0){
@@ -82,6 +93,7 @@ uniform sampler2D hTex, aoTex, colTex; uniform vec2 texel; uniform vec4 bb;
 uniform float level, ringH, sunI, skyI, dbg, landSat, landGain, seaRelief, shadows;
 uniform vec3 basaltCol, sedCol, reefCol, tubCol, lineCol;
 uniform float reefAmt, tubM, tubAmt, oldLine, lineW, detail;
+uniform sampler2D maskTex; uniform vec4 maskBB; uniform float maskOn, heroAmt, dimAmt; uniform vec3 heroCol;
 varying vec2 vUv; varying vec3 vW;
 float Hm(vec2 uv){ return texture2D(hTex, uv).r; }
 vec3 seabed(float h, float slope, float cav, vec2 ll, float pf){
@@ -134,6 +146,13 @@ void main(){
   // dark wet band right above the new waterline
   float ring = exposed * (1.0 - smoothstep(0.0, ringH, above));
   alb *= 1.0 - 0.5 * ring;
+  if (maskOn > 0.5) {
+    vec2 mq = (ll - maskBB.xy) / (maskBB.zw - maskBB.xy);
+    vec4 mk = (mq.x > 0.0 && mq.y > 0.0 && mq.x < 1.0 && mq.y < 1.0) ? texture2D(maskTex, mq) : vec4(0.0);
+    float ml = dot(alb, vec3(0.2126, 0.7152, 0.0722));
+    alb = mix(alb, mix(vec3(ml), alb, 0.3) * 0.62, mk.g * dimAmt);
+    alb = mix(alb, heroCol * (0.55 + 0.9 * ml / (ml + 0.08)), mk.r * heroAmt);
+  }
   float ndl = max(dot(n, sunDir), 0.0);
   vec3 sky = mix(hazeCol, zenithCol, 0.55);
   vec3 col = alb * (sunCol * sunI * ndl * shadow + sky * skyI * ao * (0.55 + 0.45 * n.y) + vec3(0.05, 0.04, 0.03) * (1.0 - n.y));
@@ -147,7 +166,7 @@ void main(){
   float T; vec3 colA = aerial(col, vW, T);
   colA = mix(colA, lineCol, clamp(cl, 0.0, 1.0)) + lineCol * glow * T;
   if (dbg > 0.5) { vec3 o = dbg < 1.5 ? vec3(0.5 + h / 8000.0, 0.5 + h / 8000.0, h < 0.0 ? 1.0 : 0.0) : dbg < 2.5 ? vec3(T) : dbg < 3.5 ? alb : vec3(shadow, ao, 0.0); gl_FragColor = vec4(o * 0.6, 1.0); return; }
-  gl_FragColor = vec4(colA, 1.0);
+  gl_FragColor = vec4(colA, mix(0.5, 1.0, smoothstep(-2.0, 2.0, h)));   // alpha = class: drained seabed 0.5, today's land 1
 }`;
 
 const WATER_VS = /* glsl */`
@@ -169,6 +188,10 @@ varying vec3 vW; varying vec2 vLL;
 float hBlend(vec2 ll){
   vec2 us = (ll - bbSkirt.xy) / (bbSkirt.zw - bbSkirt.xy);
   float hs = texture2D(hSkirt, us).r;
+  vec2 um = (ll - bbMid.xy) / (bbMid.zw - bbMid.xy);
+  if (um.x > 0.0 && um.y > 0.0 && um.x < 1.0 && um.y < 1.0 && bbMid != bbSkirt) {
+    vec2 em = min(um, 1.0 - um); hs = mix(hs, texture2D(hMid, um).r, smoothstep(0.0, 0.025, min(em.x, em.y)));
+  }
   vec2 uh = (ll - bbHero.xy) / (bbHero.zw - bbHero.xy);
   if (uh.x < 0.0 || uh.y < 0.0 || uh.x > 1.0 || uh.y > 1.0) return hs;
   vec2 e = min(uh, 1.0 - uh); float w = smoothstep(0.0, 0.025, min(e.x, e.y));
@@ -219,15 +242,15 @@ void main(){ vDir = position; vec4 w = vec4(position + camPos, 1.0); gl_Position
 const SKY_FS = /* glsl */`
 ${COMMON}
 varying vec3 vDir;
-void main(){ vec3 d = normalize(vDir); gl_FragColor = vec4(skyColor(d), 1.0); }`;
+void main(){ vec3 d = normalize(vDir); gl_FragColor = vec4(skyColor(d), 0.0); }`;   // alpha = class: sky 0
 
 // final pass: exposure, ACES fit, saturation, split-tone, gamma, contrast around mid-grey, vignette, grain
 export const POST_FS = /* glsl */`
-uniform sampler2D src; uniform float exposure, vignette, grain, seed, sat, contrast, lift; uniform vec2 res; varying vec2 vUv;
+uniform sampler2D src; uniform float exposure, vignette, grain, seed, sat, contrast, lift, keepA; uniform vec2 res; varying vec2 vUv;
 vec3 aces(vec3 x){ return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
 float h12(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 void main(){
-  vec3 c = texture2D(src, vUv).rgb * exposure;
+  vec4 s0 = texture2D(src, vUv); vec3 c = s0.rgb * exposure;
   c = aces(c);
   float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
   c = max(mix(vec3(l), c, sat), 0.0);
@@ -237,11 +260,17 @@ void main(){
   vec2 q = vUv - 0.5; q.x *= res.x / res.y;
   c *= 1.0 - vignette * smoothstep(0.35, 1.05, length(q));
   c += (h12(gl_FragCoord.xy + seed * 61.7) - 0.5) * grain;
-  gl_FragColor = vec4(c, 1.0);
+  gl_FragColor = vec4(c, keepA > 0.5 ? s0.a : 1.0);
 }`;
 export const POST_VS = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
 
 export async function loadImage(url) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('img ' + url)); i.src = url; }); }
+// per-page caches: several stages (terrain, blocks) share decoded heights, textures and meta
+const CACHE = new Map();
+export function cached(key, fn) { if (!CACHE.has(key)) CACHE.set(key, fn()); return CACHE.get(key); }
+export const loadMeta = (dir) => cached('meta:' + dir, async () => (await fetch(dir + '/meta.json')).json());
+export const loadH16 = (url, meta) => cached('h16:' + url, async () => decodeH16(await loadImage(url), meta));
+export const loadTex = (url, srgb) => cached('tex:' + url + ':' + !!srgb, async () => { const t = await new THREE.TextureLoader().loadAsync(url); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = 8; t.minFilter = THREE.LinearMipmapLinearFilter; return t; });
 export function decodeH16(img, meta) {  // RG 16-bit -> Float32 metres, rows flipped so row 0 = south
   const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
   const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
@@ -277,22 +306,54 @@ export const WATERS = {  // linear RGB: shallow, mid, deep
 export class HawaiiStage {
   constructor(W, H, o = {}) {
     this.W = W; this.H = H; this.o = o;
-    this.R = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true, alpha: false });
-    this.R.setPixelRatio(1); this.R.setSize(W, H, false); this.R.autoClear = true;
+    if (o.renderer) this.R = o.renderer;
+    else { this.R = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true, alpha: false }); this.R.setPixelRatio(1); this.R.setSize(W, H, false); }
+    this.R.autoClear = true;
     this.rt = new THREE.WebGLRenderTarget(W, H, { type: THREE.HalfFloatType, samples: o.samples ?? 4, depthBuffer: true });
     this.scene = new THREE.Scene();
     this.cam = new THREE.PerspectiveCamera(o.fov ?? 30, W / H, 0.5, 9000);
     this.level = 0; this.time = 0;
   }
+  // legacy folder (hero_* + skirt_*: lab/hawaii/data), or a region folder baked by region_bake.py (then its stack from ../regions.json)
   async load(dir) {
-    const meta = this.meta = await (await fetch(dir + '/meta.json')).json();
+    const meta = await loadMeta(dir);
+    if (meta.files && meta.name) return this.loadRegion(dir.replace(/\/[^/]+\/?$/, ''), meta.name);
+    this.meta = meta;
     this.vex = this.o.vex ?? meta.vex ?? 1.0;
     this.c0 = this.o.origin ?? { lon: -155.6, lat: 19.6 };
-    const [hI, sI] = await Promise.all([loadImage(dir + '/hero_h16.png'), loadImage(dir + '/skirt_h16.png')]);
-    this.hHero = decodeH16(hI, meta); this.hSkirt = decodeH16(sI, meta);
-    const TL = new THREE.TextureLoader();
-    const tex = async (u, srgb) => { const t = await TL.loadAsync(dir + '/' + u); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = 8; t.minFilter = THREE.LinearMipmapLinearFilter; return t; };
+    [this.hHero, this.hSkirt] = await Promise.all([loadH16(dir + '/hero_h16.png', meta), loadH16(dir + '/skirt_h16.png', meta)]);
+    const tex = (u, srgb) => loadTex(dir + '/' + u, srgb);
     const [heroCol, heroAO, skCol, skAO] = await Promise.all([tex('hero_color.jpg', true), tex('hero_ao.png', false), tex('skirt_color.jpg', true), tex('skirt_ao.png', false)]);
+    const hT = await cached('htex:' + dir + '/hero', async () => heightTexture(this.hHero)), sT = await cached('htex:' + dir + '/skirt', async () => heightTexture(this.hSkirt));
+    return this.build([{ name: 'hero', bbox: meta.hero_bbox, hm: this.hHero, hT, col: heroCol, ao: heroAO, grid: this.o.heroGrid || [1500, 1500] },
+      { name: 'skirt', bbox: meta.skirt_bbox, hm: this.hSkirt, hT: sT, col: skCol, ao: skAO, grid: this.o.skirtGrid || [900, 680] }]);
+  }
+  // any region of an episode's regions.json (e.g. root 'ep/ep02/data', name 'midway'): its 'stack' = 1-3 nested layers, finest first,
+  // each inside the next (o.stack overrides it). meta.hero_bbox / hHero = the finest layer, meta.skirt_bbox / hSkirt = the outermost.
+  async loadRegion(root, name) {
+    const idx = await cached('regions:' + root, async () => (await fetch(root + '/regions.json')).json());
+    const R = idx.regions[name]; if (!R) throw new Error('unknown region ' + name);
+    const stack = (this.o.stack || R.stack || [name]).slice(0, 3), big = [1500, 1000, 900];
+    const L = await Promise.all(stack.map(async (n, i) => {
+      const r = idx.regions[n]; if (!r) throw new Error('unknown region ' + n);
+      const d = r.dir, hm = await loadH16(d + '/' + r.files.h16, { hmin: r.hmin ?? -8000, hrange: r.hrange ?? 17000 });
+      const [col, ao, hT] = await Promise.all([loadTex(d + '/' + r.files.color, true), loadTex(d + '/' + r.files.ao, false), cached('htex:' + d + '/' + r.files.h16, async () => heightTexture(hm))]);
+      const k = Math.min(1, big[i] / Math.max(...r.wh));  // mesh: at most 1500 / 1000 / 900 vertices on the long side, never more than the texels
+      const g = (i === 0 ? this.o.heroGrid : i === stack.length - 1 ? this.o.skirtGrid : this.o.midGrid) || [Math.max(2, Math.round(r.wh[0] * k)), Math.max(2, Math.round(r.wh[1] * k))];
+      return { name: n, bbox: r.bbox, hm, hT, col, ao, grid: g };
+    }));
+    for (let i = 1; i < L.length; i++) { const a = L[i - 1].bbox, b = L[i].bbox; if (a[0] < b[0] || a[1] < b[1] || a[2] > b[2] || a[3] > b[3]) console.error(`region stack: ${L[i - 1].name} is not inside ${L[i].name}`); }
+    const hb = L[0].bbox;
+    this.meta = { name, region: R, stack, layers: L.map(l => ({ name: l.name, bbox: l.bbox })), hero_bbox: hb, skirt_bbox: L[L.length - 1].bbox, hmin: -8000, hrange: 17000, vex: 1.0 };
+    this.hHero = L[0].hm; this.hSkirt = L[L.length - 1].hm;
+    this.vex = this.o.vex ?? 1.0;
+    this.c0 = this.o.origin ?? R.origin ?? { lon: (hb[0] + hb[2]) / 2, lat: (hb[1] + hb[3]) / 2 };
+    return this.build(L);
+  }
+  // layers finest first (1-3): { name, bbox, hm (decoded heights), hT (height texture), col, ao (textures), grid: [nx, ny] mesh vertices }
+  build(L) {
+    this.layers = L;
+    const hero = L[0], mid = L[Math.min(1, L.length - 1)], skirt = L[L.length - 1];
     this.U = {
       camPos: { value: new THREE.Vector3() }, sunDir: { value: new THREE.Vector3(0, 1, 0) }, horizonDip: { value: 0 },
       zenithCol: { value: C('#2c64a8') }, horizonCol: { value: C('#a9c3dc') }, hazeCol: { value: C('#aec2d6', 0.8) },
@@ -300,24 +361,27 @@ export class HawaiiStage {
       fogDens: { value: this.o.fogDens ?? 0.0028 }, fogH: { value: this.o.fogH ?? 6.0 }, fogBg: { value: this.o.fogBg ?? 0.00012 }, fogBase: { value: 0 },
       sunEl: { value: 0.4 }, penumbra: { value: THREE.MathUtils.degToRad(1.4) }, vex: { value: this.vex },
     };
-    const hT = heightTexture(this.hHero), sT = heightTexture(this.hSkirt);
-    const hb = meta.hero_bbox, sb = meta.skirt_bbox;
-    const HU = { hHero: { value: hT }, hSkirt: { value: sT }, bbHero: { value: new THREE.Vector4(...hb) }, bbSkirt: { value: new THREE.Vector4(...sb) } };
-    const terrMat = (hTex, aoTex, colTex, bb, hm, holeDrop) => new THREE.ShaderMaterial({
+    const hb = hero.bbox, sb = skirt.bbox;
+    const HU = { hHero: { value: hero.hT }, hMid: { value: mid.hT }, hSkirt: { value: skirt.hT },
+      bbHero: { value: new THREE.Vector4(...hb) }, bbMid: { value: new THREE.Vector4(...mid.bbox) }, bbSkirt: { value: new THREE.Vector4(...sb) } };
+    const blank = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1); blank.needsUpdate = true;
+    this.maskU = { tex: { value: blank }, bb: { value: new THREE.Vector4(0, 0, 1, 1) }, on: { value: 0 }, heroAmt: { value: 0 }, dimAmt: { value: 0 }, heroCol: { value: C('#FF5A36', 0.17) } };
+    const terrMat = (hTex, aoTex, colTex, bb, hm, holeDrop, hole = hb) => new THREE.ShaderMaterial({
       uniforms: Object.assign({}, this.U, HU, {
         hTex: { value: hTex }, aoTex: { value: aoTex }, colTex: { value: colTex }, texel: { value: new THREE.Vector2(1 / hm.W, 1 / hm.H) },
-        bb: { value: new THREE.Vector4(...bb) }, hole: { value: new THREE.Vector4(...hb) }, holeDrop: { value: holeDrop },
+        bb: { value: new THREE.Vector4(...bb) }, hole: { value: new THREE.Vector4(...hole) }, holeDrop: { value: holeDrop },
         level: { value: 0 }, ringH: { value: 40 }, dbg: { value: 0 }, landSat: { value: 1.2 }, landGain: { value: 1.15 }, seaRelief: { value: 1.0 },
         sunI: { value: 3.2 }, skyI: { value: 0.9 }, shadows: { value: 1 },
         basaltCol: { value: V3([0.033, 0.034, 0.038]) }, sedCol: { value: V3([0.066, 0.062, 0.060]) }, reefCol: { value: V3([0.16, 0.165, 0.155]) },
         tubCol: { value: V3([0.42, 0.42, 0.40]) }, lineCol: { value: V3([0.55, 1.6, 1.9]) },
         reefAmt: { value: 0.45 }, tubM: { value: 90 }, tubAmt: { value: 0 }, oldLine: { value: 0 }, lineW: { value: 2.2 }, detail: { value: 1.0 },
+        maskTex: this.maskU.tex, maskBB: this.maskU.bb, maskOn: this.maskU.on, heroAmt: this.maskU.heroAmt, dimAmt: this.maskU.dimAmt, heroCol: this.maskU.heroCol,
       }), vertexShader: TERRAIN_VS, fragmentShader: TERRAIN_FS,
     });
-    this.heroMat = terrMat(hT, heroAO, heroCol, hb, this.hHero, 0);
-    this.skirtMat = terrMat(sT, skAO, skCol, sb, this.hSkirt, 4.0 + 6.0 * this.vex);
-    this.scene.add(new THREE.Mesh(this.grid(hb, this.hHero, this.o.heroGrid || [1500, 1500]), this.heroMat));
-    this.scene.add(new THREE.Mesh(this.grid(sb, this.hSkirt, this.o.skirtGrid || [900, 680]), this.skirtMat));
+    // one mesh per layer; each coarser layer drops out of sight inside the next finer layer's bbox
+    this.mats = L.map((l, i) => terrMat(l.hT, l.ao, l.col, l.bbox, l.hm, i ? 4.0 + 6.0 * this.vex : 0, i ? L[i - 1].bbox : hb));
+    this.heroMat = this.mats[0]; this.skirtMat = this.mats[L.length - 1];
+    L.forEach((l, i) => this.scene.add(new THREE.Mesh(this.grid(l.bbox, l.hm, l.grid), this.mats[i])));
     this.waterMat = new THREE.ShaderMaterial({
       uniforms: Object.assign({}, this.U, HU, {
         bb: { value: new THREE.Vector4(...sb) }, level: { value: 0 }, yLevel: { value: 0 }, time: { value: 0 }, sunI: { value: 3.2 }, dbg: { value: 0 },
@@ -326,12 +390,13 @@ export class HawaiiStage {
       }),
       vertexShader: WATER_VS, fragmentShader: WATER_FS, transparent: true, depthWrite: false,
       blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
+      blendSrcAlpha: THREE.ConstantAlphaFactor, blendDstAlpha: THREE.OneMinusSrcAlphaFactor, blendAlpha: 0.25,   // alpha = class: water 0.25
     });
     const water = new THREE.Mesh(this.grid(sb, null, [600, 450]), this.waterMat); water.renderOrder = 2; this.scene.add(water);
     const sky = new THREE.Mesh(new THREE.SphereGeometry(6000, 64, 32), new THREE.ShaderMaterial({ uniforms: this.U, vertexShader: SKY_VS, fragmentShader: SKY_FS, side: THREE.BackSide, depthWrite: false }));
     sky.renderOrder = -1; sky.frustumCulled = false; this.scene.add(sky);
     this.postMat = new THREE.ShaderMaterial({
-      uniforms: { src: { value: this.rt.texture }, exposure: { value: 1.2 }, vignette: { value: 0.20 }, grain: { value: 0.012 }, seed: { value: 0 }, sat: { value: 1.2 }, contrast: { value: 1.1 }, lift: { value: 0 }, res: { value: new THREE.Vector2(this.W, this.H) } },
+      uniforms: { src: { value: this.rt.texture }, exposure: { value: 1.2 }, vignette: { value: 0.20 }, grain: { value: 0.012 }, seed: { value: 0 }, sat: { value: 1.2 }, contrast: { value: 1.1 }, lift: { value: 0 }, keepA: { value: 0 }, res: { value: new THREE.Vector2(this.W, this.H) } },
       vertexShader: POST_VS, fragmentShader: POST_FS, depthTest: false, depthWrite: false,
     });
     this.postScene = new THREE.Scene(); const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.postMat); q.frustumCulled = false; this.postScene.add(q);
@@ -349,10 +414,10 @@ export class HawaiiStage {
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(new THREE.BufferAttribute(idx, 1));
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e5); return g;
   }
-  heightAt(lon, lat) {
-    const hb = this.meta.hero_bbox, sb = this.meta.skirt_bbox;
-    if (lon > hb[0] && lon < hb[2] && lat > hb[1] && lat < hb[3]) return sampleH(this.hHero, (lon - hb[0]) / (hb[2] - hb[0]), (lat - hb[1]) / (hb[3] - hb[1]));
-    return sampleH(this.hSkirt, (lon - sb[0]) / (sb[2] - sb[0]), (lat - sb[1]) / (sb[3] - sb[1]));
+  heightAt(lon, lat) {  // metres from the finest layer that contains the point (the outermost layer clamps)
+    const L = this.layers;
+    for (let i = 0; i < L.length - 1; i++) { const b = L[i].bbox; if (lon > b[0] && lon < b[2] && lat > b[1] && lat < b[3]) return sampleH(L[i].hm, (lon - b[0]) / (b[2] - b[0]), (lat - b[1]) / (b[3] - b[1])); }
+    const s = L[L.length - 1].bbox; return sampleH(L[L.length - 1].hm, (lon - s[0]) / (s[2] - s[0]), (lat - s[1]) / (s[3] - s[1]));
   }
   // camera: lon/lat + alt (km above sea level, may be negative in drained shots) or agl (km above the ground/water under the camera);
   // aim with heading/pitch (deg) or a target tLon/tLat/tH (m; default = ground height there)
@@ -369,8 +434,10 @@ export class HawaiiStage {
     }
     this.cam.position.copy(p); this.cam.up.set(0, 1, 0); this.cam.lookAt(t);
     if (c.roll) this.cam.rotateZ(THREE.MathUtils.degToRad(c.roll));
-    this.cam.fov = c.fov ?? this.cam.fov; this.cam.updateProjectionMatrix();
-    if (c.shiftY) { this.cam.projectionMatrix.elements[9] += c.shiftY; this.cam.projectionMatrixInverse.copy(this.cam.projectionMatrix).invert(); }  // vertical lens shift (keeps verticals straight)
+    this.cam.fov = c.fov ?? this.cam.fov;
+    this.cam.near = c.near ?? this.o.near ?? 0.5; this.cam.far = c.far ?? this.o.far ?? 9000;  // km; ground cameras (agl < 0.5) need near ~0.005-0.02 and a smaller far
+    this.cam.updateProjectionMatrix();
+    if (c.shiftY || c.shiftX) { this.cam.projectionMatrix.elements[9] += c.shiftY || 0; this.cam.projectionMatrix.elements[8] += c.shiftX || 0; this.cam.projectionMatrixInverse.copy(this.cam.projectionMatrix).invert(); }  // lens shift (keeps verticals straight)
     this.cam.updateMatrixWorld();
     this.U.camPos.value.copy(p); this.U.horizonDip.value = Math.sqrt(2 * Math.max(p.y - gnd, 0.01) / R_EARTH);
     this.camGround = gnd;
@@ -387,19 +454,22 @@ export class HawaiiStage {
   }
   setWater(name) { const w = WATERS[name] || WATERS.turq; this.set('wShallow', V3(w[0])); this.set('wMid', V3(w[1])); this.set('wDeep', V3(w[2])); }
   setLevel(m) {
-    this.level = m; for (const M of [this.heroMat, this.skirtMat, this.waterMat]) M.uniforms.level.value = m; this.waterMat.uniforms.yLevel.value = m * this.vex * 0.001;
+    this.level = m; for (const M of [...this.mats, this.waterMat]) M.uniforms.level.value = m; this.waterMat.uniforms.yLevel.value = m * this.vex * 0.001;
     this.U.fogBase.value = Math.max(Math.min(m, 0), -5500) * this.vex * 0.001;  // haze sits on the new floor (water surface or drained seabed)
   }
-  set(k, v) { for (const M of [this.heroMat, this.skirtMat, this.waterMat]) if (M.uniforms[k]) M.uniforms[k].value = v; }
+  set(k, v) { for (const M of [...this.mats, this.waterMat]) if (M.uniforms[k]) M.uniforms[k].value = v; }
+  // highlight mask over a lon/lat bbox: R = hero fill, G = dimmed (texture: THREE.DataTexture RGBA8, row 0 = south). null switches it off.
+  setMask(tex, bb) { if (!tex) { this.maskU.on.value = 0; return; } this.maskU.tex.value = tex; this.maskU.bb.value.set(...bb); this.maskU.on.value = 1; }
   post(k, v) { this.postMat.uniforms[k].value = v; }
   project(lon, lat, hm) {
     const p = this.xyz(lon, lat, hm ?? Math.max(this.heightAt(lon, lat), this.level)); const d = p.clone().sub(this.cam.position); p.y -= (d.x * d.x + d.z * d.z) / (2 * R_EARTH);
     const q = p.project(this.cam); if (q.z > 1) return null; return [(q.x + 1) / 2 * this.W, (1 - q.y) / 2 * this.H];
   }
-  render(time = 0, seed = 0) {
+  render(time = 0, seed = 0, target = null) {
     this.waterMat.uniforms.time.value = time; this.postMat.uniforms.seed.value = seed;
+    this.R.autoClear = true; this.R.setClearColor(0x000000, 0);
     this.R.setRenderTarget(this.rt); this.R.render(this.scene, this.cam);
-    this.R.setRenderTarget(null); this.R.render(this.postScene, this.postCam);
+    this.R.setRenderTarget(target); this.R.render(this.postScene, this.postCam);
     return this.R.domElement;
   }
 }

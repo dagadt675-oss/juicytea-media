@@ -14,6 +14,30 @@ One dated entry per episode, project or major task, newest first. Each entry: wh
 
 ---
 
+## 2026-11-08: ep02 shot toolkit (foundation for the chapter builders)
+
+What was made (engine/www/ep/ep02/, API.md documents it with examples):
+- shared.js: one WebGLRenderer for the page with lazily created, cached stages (terrain per region, Mauna Loa vs Everest blocks, CineGlobe); only active stages render; every stage goes through one shared grade pass (navy lift, cool shadows, warm highlights, vignette, frame-seeded grain) before a crisp UI layer. terrainShot (named regions, keyframed camera, water level, sun, state blends, flights, island masks and outlines from a flood-fill on the production grid), blockShot, cineGlobeShot (STORY, HERO, ESTABLISH presets), paper and postcard devices from story.js, the type.js system with the floors enforced per frame ([typeqc] FAIL logs), the SEA LEVEL gauge, an odometer with commas, xfade and seq, and timing helpers (K.T, K.lead, K.word, K.chapter, tools/frames.py).
+- Small backward-compatible options in the lab stages (hterrain.js, blocks.js, cineglobe.js): a shared renderer, render into a target, a class mask in alpha, a hero / dim mask, a lens shift X; lab_hawaii.html renders stayed pixel-identical (MAE 0). type.js FLOOR raised to {must: 64, any: 48}.
+- edit.js orchestrator, ch2-ch6 stubs, ch1 s001-s006 built end to end (DEMO 1 and 2), payoff.js with the stand-alone payoff_test.html (DEMO 3), toolkit_test.html smoke tests (globe, paper and postcard, crossfade, region).
+- Stills at the markers: scratchpad research/ep02/foundation/ (ch1, payoff, each with a 390 px phone sheet).
+
+Real results (measurements, nothing published):
+- Frame 1 against the label-free NO OCEAN thumbnail: SSIM 0.969 at 320x180, luma 105.7 vs 109.8, colourfulness 54.3 vs 56.6.
+- ONE ISLAND: the plate camera was lost; a camera search recovered it (layout agreement 0.91). At -400 ft (-121.92 m, so the counter lands exactly on 400) the fused island measures 5,683 km2 on the grid and Kahoʻolawe stays separate.
+- Type QC: no [typeqc] FAIL on the final ch1 and payoff stills; frame luma 98-149 on terrain and blocks, 79 on the STORY globe.
+- Local cost per frame with a GPU sync: terrain 10-14 s, globe about 3 s, blocks 1.5-2.8 s, shared grade 0.1-0.35 s.
+
+What worked: porting the thumbnail's masked grade into the shader through a class mask in alpha (water untouched, so the grade can fade while the sea refills); one renderer with lazy stages; QC built into the draw calls; marker-keyed timing (the voice was re-timed once and the payoff followed).
+
+What failed (fixed): closed rings simplified to 2 points (Douglas-Peucker on a zero chord); a zoom helper that converted degrees twice and doubled the field of view (caught by logging the camera, {"dbgCam":1}); a hold drift that accumulated through the flight (6.8 degrees off the landing framing); outlines drawn over a text plate; a map label on the number block; the cap and fused-island hero fills too opaque at first; unsynced in-page timings (1-4 ms) that hid the real cost.
+
+Open for the chapter builders: the BlockStage base is flat (the bowl-shaped dent of s163-s168 needs a terrain cut-away); the postcard beat (s003) waits for a public-domain Big Island photo; the CineGlobe cloud seam near 160 W; ch1 Maui Nui close shots should move to the finer 'mauinui' region.
+
+Rules added: PLAYBOOK_craft 8 (toolkit, camera search, no accumulated hold drift), 9 (UI draw order and label placer); PLAYBOOK_production 15 (marker-keyed timing, GPU-synced timing).
+
+---
+
 ## 2026-11-08: playbook check against its sources, fixes and the competitive-edge section
 
 What was made:

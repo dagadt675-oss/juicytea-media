@@ -1,0 +1,49 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="/fonts/fonts.css">
+<script type="importmap">{"imports":{"three":"/three.module.min.js"}}</script>
+<style>html,body{margin:0;background:#000;overflow:hidden}</style></head><body>
+<script type="module">
+// Smoke tests for the ep02 toolkit stages that ch1 does not use yet. q.test: 'globe' (cineGlobeShot STORY preset + crisp outline +
+// label) | 'paper' (terrainShot + the postcard device + a paper standee on the terrain) | 'xfade' (terrain -> globe crossfade, one renderer)
+// | 'region' (terrainShot on a baked region stack: q.region, default 'mauinui'; q.cam, default 'mauinui_one').
+// Test image: img/_test/photo.jpg (git-ignored; any of our own renders). Frames: film frames 0-149 (0-5 s).
+//   cd engine && node still.cjs --page ep/ep02/toolkit_test.html --q '{"test":"globe"}' --frames 30,90 --outdir DIR
+import { runPage } from './testrt.js';
+import { PAL, E, F } from './shared.js';
+import { fillEquirect, makeCanvas, rings } from '/lib/geo.js';
+runPage(async (api, kit, scenes) => {
+  const { ui } = kit, W = api.W, px = ui.px, test = api.Q.test || 'globe';
+  const land = await (await fetch('/geo/ne_50m_land.geojson')).json();
+  const B = [-161, 18, -154, 23];
+  const isl = land.features.filter(f => rings(f).some(r => r.every(([lo, la]) => lo > B[0] && lo < B[2] && la > B[1] && la < B[3])));
+  const islRings = isl.flatMap(f => rings(f));
+  const globe = (t0, t1, fadeIn) => kit.cineGlobeShot({ id: 'test-globe', t0, t1, fadeIn, preset: 'STORY', subject: [20.6, -157.3],
+    keys: [{ t: 0, lat: 19.0, lon: -158.6, alt: 0.42, tilt: 28, heading: 8, fov: 30, lookOffset: [-0.12, 0.02] }, { t: 5, lat: 19.2, lon: -158.4, alt: 0.38, tilt: 30, heading: 10, fov: 30, lookOffset: [-0.12, 0.02] }],
+    overlay: (() => { const c = makeCanvas(1024, 512); fillEquirect(c, [-180, -90, 180, 90], isl, { color: PAL.hero, alpha: 0.6 }); return { canvas: c, bounds: [-180, -90, 180, 90] }; })(),
+    look: { ovAlpha: 0.6, dim: 0.12 },
+    ui(ctx, lt, t, v) { ui.outline(ctx, v.runs(islRings), { width: 5 }); const q = v.project(19.6, -155.5); if (q.visible) ui.label(ctx, 'HAWAIʻI', q.x, q.y, { t }); } });
+  const terrain = (t0, t1) => kit.terrainShot({ id: 'test-terrain', t0, t1, preset: 'today', drift: 0.5, push: 0.3,
+    cam: { lon: -155.62, lat: 18.98, agl: 3.2, tLon: -155.45, tLat: 19.33, tH: 900, fov: 38 },
+    async world(ctx, lt, t, v) {
+      if (test !== 'paper') return;
+      const pc = card.post; kit.drawPostcard(ctx, v, pc, { lon: -155.585, lat: 19.07, wKm: 2.4, rot: -18, p: F.clamp(lt / 0.8), lift: 0.1 * F.clamp((lt - 1.5) / 0.3) });
+      const hop = Math.max(0, Math.sin(F.clamp((lt - 2.2) / 0.6) * Math.PI)) * px(120);
+      const r = kit.drawStandee(ctx, v, card.stand, { lon: -155.55, lat: 19.16, hPx: api.H * 0.37, hop, squash: hop > 0 ? -0.04 : 0.02 * Math.sin(lt * 9) });
+      if (r) ui.label(ctx, 'TEST CARD', r.x, r.top, { t, p: F.clamp((lt - 0.4) / 0.4) });
+    } });
+  let card = {};
+  if (test === 'paper') {
+    await api.loadImages(['/ep/ep02/img/_test/photo.jpg']);
+    const ph = api.img('/ep/ep02/img/_test/photo.jpg');
+    card.post = kit.makePostcard(ph, 'HAWAIʻI');
+    const c = document.createElement('canvas'); c.width = 420; c.height = 900; const g = c.getContext('2d');      // a stand-in paper cut-out (rectangle of our own render)
+    g.fillStyle = '#F2EBDD'; g.fillRect(0, 0, 420, 900); g.drawImage(ph, 700, 150, 500, 1071, 10, 10, 400, 880);
+    card.stand = kit.prepPaper(c);
+  }
+  if (test === 'globe') scenes.push(globe(0, 5));
+  else if (test === 'paper') scenes.push(terrain(0, 5));
+  else if (test === 'region') scenes.push(kit.terrainShot({ id: 'test-region', t0: 0, t1: 5, region: api.Q.region || 'mauinui', preset: 'mauinui', cam: api.Q.cam || 'mauinui_one', push: 0.3, drift: 0.4,
+    ui(ctx, lt, t, v) { const q = v.project(-156.92, 20.83); if (q) ui.label(ctx, 'LĀNAʻI', q[0], q[1], { t }); } }));
+  else if (test === 'xfade') { const a = terrain(0, 2.5), b = globe(2.0, 5, 0.5); kit.xfade(a, b, 0.5); scenes.push(a, b); }
+  return { t0: 0, t1: 5 };
+});
+</script></body></html>

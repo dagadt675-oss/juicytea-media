@@ -307,9 +307,10 @@ export const CINE_DEFAULTS = {
 export class CineGlobe {
   constructor(W, H, o = {}) {
     this.W = W; this.H = H; this.cine = Object.assign({}, CINE_DEFAULTS, o);
-    this.renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true, alpha: false });
+    // o.renderer (ep02 toolkit): share one WebGLRenderer between stages; render(frame, target) can draw the final pass into a render target
+    if (o.renderer) this.renderer = o.renderer;
+    else { this.renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true, alpha: false }); this.renderer.setPixelRatio(1); this.renderer.setSize(W, H, false); }
     this.renderer.setClearColor(0x000000, 1); this.renderer.autoClear = false;
-    this.renderer.setPixelRatio(1); this.renderer.setSize(W, H, false);
     this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
     this.canvas = this.renderer.domElement;
     this.scene = new THREE.Scene();
@@ -451,8 +452,9 @@ export class CineGlobe {
   // look keys: every earth uniform (ep01 names), plus 'atmo' (limb shell strength) and 'cloudBump'
   look(k, v) { if (k === 'atmo') this.atmoU.strength.value = v; else if (k === 'cloudBump') this.cloudU.bump.value = v; else if (this.u[k]) this.u[k].value = v; }
   starfield(ctx, alpha = 1) { this.starMul = alpha; }
-  render(frame = 0) {
+  render(frame = 0, target = null) {
     const S = this.state, r = this.renderer, cam = this.fsCam, W = this.W, H = this.H;
+    r.autoClear = false; r.setClearColor(0x000000, 1); r.outputColorSpace = THREE.LinearSRGBColorSpace;
     this.bgU.off.value.set(((S.lon * 6 + (S.heading || 0) * 4) / W) % 1, ((S.lat * 4 + (S.tilt || 0) * 6) / H) % 1);
     this.bgU.alpha.value = (this.starAlpha ?? 1) * (this.starMul ?? 1);
     // clouds fade out on low, close shots unless a shot asks for them (texture is ~5 km/px)
@@ -473,7 +475,7 @@ export class CineGlobe {
     const f = this.fu, c = this.camera;
     f.invProj.value.copy(c.projectionMatrixInverse); f.camWorld.value.copy(c.matrixWorld); f.camPos.value.copy(c.position);
     f.focus.value = this.focusDist; f.seed.value = (frame * 0.6180339) % 1 * 100.0;
-    this.pFinal.run(r, cam, null);
+    this.pFinal.run(r, cam, target);
     return this.canvas;
   }
   project(lat, lon, hgt = 0) {

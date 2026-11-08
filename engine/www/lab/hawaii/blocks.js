@@ -5,7 +5,9 @@
 // Everest block: AWS Terrain Tiles (SRTM) top, scaled so the summit is the surveyed 8,849 m (29,032 ft), column from sea level.
 // Both blocks share the footprint size, the base plane y = 0 and the vertical scale (vex, default 1 = true scale). 1 unit = 1 km.
 import * as THREE from 'three';
-import { decodeH16, sampleH, loadImage, POST_FS, POST_VS, C, LOOKS, KM_DEG } from './hterrain.js';
+import { decodeH16, sampleH, loadImage, POST_FS, POST_VS, C, LOOKS, KM_DEG, loadMeta, loadH16, loadTex } from './hterrain.js';
+// Production options (ep02 toolkit): o.renderer shares one WebGLRenderer; render(seed, target) can draw into a render target;
+// this.mlGroup / this.evGroup are the two blocks (the toolkit raises Everest from below the base line).
 
 const VS = /* glsl */`
 attribute float elev; attribute float wall;
@@ -78,16 +80,15 @@ const GUIDE_FS = /* glsl */`uniform vec3 col; uniform float a; void main(){ gl_F
 export class BlockStage {
   constructor(W, H, o = {}) {
     this.W = W; this.H = H; this.o = o; this.vex = o.vex ?? 1.0;
-    this.R = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true, alpha: false });
-    this.R.setPixelRatio(1); this.R.setSize(W, H, false);
+    if (o.renderer) this.R = o.renderer;
+    else { this.R = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true, alpha: false }); this.R.setPixelRatio(1); this.R.setSize(W, H, false); }
     this.rt = new THREE.WebGLRenderTarget(W, H, { type: THREE.HalfFloatType, samples: o.samples ?? 4, depthBuffer: true });
     this.scene = new THREE.Scene(); this.cam = new THREE.PerspectiveCamera(30, W / H, 0.5, 5000);
   }
   async load(dir) {
-    const meta = this.meta = await (await fetch(dir + '/meta.json')).json();
-    const [hI, eI] = await Promise.all([loadImage(dir + '/hero_h16.png'), loadImage(dir + '/everest_h16.png')]);
-    const hero = decodeH16(hI, meta), ev = decodeH16(eI, meta);
-    const colTex = await new THREE.TextureLoader().loadAsync(dir + '/hero_color.jpg'); colTex.colorSpace = THREE.SRGBColorSpace; colTex.anisotropy = 8;
+    const meta = this.meta = await loadMeta(dir);
+    const [hero, ev] = await Promise.all([loadH16(dir + '/hero_h16.png', meta), loadH16(dir + '/everest_h16.png', meta)]);
+    const colTex = await loadTex(dir + '/hero_color.jpg', true);
     const half = this.o.half ?? 14, gap = this.o.gap ?? 10, N = this.o.n ?? 360;
     const hb = meta.hero_bbox, eb = meta.everest_bbox;
     // summit positions = DEM maxima near the named peaks
@@ -137,8 +138,8 @@ export class BlockStage {
     const evFn = (u, v) => { const lon = es.lon + (u * 2 - 1) * half / kmLon(es.lat), lat = es.lat + (v * 2 - 1) * half / KM_DEG;
       return { e: sampleH(ev, (lon - eb[0]) / (eb[2] - eb[0]), (lat - eb[1]) / (eb[3] - eb[1])) * evScale, uv: [0, 0] }; };
     this.xML = -(half + gap / 2); this.xEV = half + gap / 2;
-    this.scene.add(mk(mlFn, this.xML, 0, this.mlBase));
-    this.scene.add(mk(evFn, this.xEV, 1, 0));
+    this.mlGroup = mk(mlFn, this.xML, 0, this.mlBase); this.scene.add(this.mlGroup);
+    this.evGroup = mk(evFn, this.xEV, 1, 0); this.scene.add(this.evGroup);
     this.topML = ML_TOTAL * 0.001 * this.vex; this.topEV = EV * 0.001 * this.vex; this.seaY = -this.mlBase * 0.001 * this.vex;
     // floor
     this.floorMat = new THREE.ShaderMaterial({ uniforms: Object.assign({}, this.U, { floorCol: { value: new THREE.Vector3(0.05, 0.06, 0.075) },
@@ -154,7 +155,7 @@ export class BlockStage {
       const m = new THREE.Mesh(new THREE.BoxGeometry(4 * half + gap + 10, 0.06 * this.vex + 0.04, 0.06), new THREE.ShaderMaterial({ uniforms: { col: { value: new THREE.Vector3(1, 1, 1) }, a: { value: 0.75 } }, fragmentShader: GUIDE_FS, vertexShader: 'void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }', transparent: true, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor }));
       m.position.set(0, y, 0); this.guides.add(m);
     }
-    this.postMat = new THREE.ShaderMaterial({ uniforms: { src: { value: this.rt.texture }, exposure: { value: 1.15 }, vignette: { value: 0.18 }, grain: { value: 0.01 }, seed: { value: 0 }, sat: { value: 1.15 }, contrast: { value: 1.08 }, lift: { value: 0 }, res: { value: new THREE.Vector2(this.W, this.H) } },
+    this.postMat = new THREE.ShaderMaterial({ uniforms: { src: { value: this.rt.texture }, exposure: { value: 1.15 }, vignette: { value: 0.18 }, grain: { value: 0.01 }, seed: { value: 0 }, sat: { value: 1.15 }, contrast: { value: 1.08 }, lift: { value: 0 }, keepA: { value: 0 }, res: { value: new THREE.Vector2(this.W, this.H) } },
       vertexShader: POST_VS, fragmentShader: POST_FS, depthTest: false, depthWrite: false });
     this.postScene = new THREE.Scene(); const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.postMat); q.frustumCulled = false; this.postScene.add(q);
     this.postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -170,9 +171,10 @@ export class BlockStage {
     this.cam.position.set(...c.eye); this.cam.lookAt(new THREE.Vector3(...c.target)); this.cam.fov = c.fov ?? 30; this.cam.updateProjectionMatrix(); this.cam.updateMatrixWorld();
     this.U.camPos.value.copy(this.cam.position);
   }
-  render(seed = 0) {
+  render(seed = 0, target = null) {
     this.postMat.uniforms.seed.value = seed;
+    this.R.autoClear = true; this.R.setClearColor(0x000000, 1);
     this.R.setRenderTarget(this.rt); this.R.render(this.scene, this.cam);
-    this.R.setRenderTarget(null); this.R.render(this.postScene, this.postCam); return this.R.domElement;
+    this.R.setRenderTarget(target); this.R.render(this.postScene, this.postCam); return this.R.domElement;
   }
 }

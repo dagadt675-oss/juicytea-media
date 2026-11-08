@@ -7,7 +7,8 @@
 //   headline   Anton                       96-120       9-11%   20-24 px    the idea of the shot, 2-4 words, colour-coded words = legend
 //   label      Barlow Condensed 800 caps   64           6%      13 px       place / thing names, ALWAYS on a plate or with a 0.12-cap stroke
 //   kicker     Barlow Condensed 800 caps   48 (floor)   4.4%    10 px       connector words, tags ("NEARLY", "MODEL"); never the key fact
-//   FLOOR: nothing a viewer must read under 60 px cap; nothing at all under 44 px cap. No grey text: #F4F6FA or a hue.
+//   FLOOR: nothing a viewer must read under 64 px cap; nothing at all under 48 px cap (PLAYBOOK_craft 9). No grey text: #F4F6FA or a hue.
+//   Block count, word caps and safe-area checks live in the ep02 toolkit (engine/www/ep/ep02/shared.js makeUI).
 //
 // Lines & shapes (px @1080): meaningful line core 9-12 + dark under-stroke +8; shape outline 5 white + 12 glow + dark under;
 // arrows 14 body, head >= 56 long; fills 45-60 % so relief shows through. Hues: hero #FF5A36 (the subject), cyan #3DE3FF
@@ -19,7 +20,7 @@ export const C = {
   hero: '#FF5A36', cyan: '#3DE3FF', yellow: '#FFD23F', white: '#FFFFFF', navyTop: '#0D1B30', navyBot: '#04070D',
 };
 export const CAP = { number: 170, headline: 108, label: 64, kicker: 48 };
-export const FLOOR = { must: 60, any: 44 };
+export const FLOOR = { must: 64, any: 48 };
 export const FAM = { num: 'Anton', head: 'Anton', label: 'Barlow Condensed' };
 const WEIGHT = { 'Anton': 400, 'Barlow Condensed': 800, 'Inter': 900, 'Bebas Neue': 400 };
 
