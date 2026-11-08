@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="fonts/fonts.css">
+<script type="importmap">{"imports":{"three":"/three.module.min.js"}}</script>
+<style>html,body{margin:0;background:#000}</style></head><body>
+<script type="module">
+import { Stage, Actor, tinyPlanet, THREE } from './lib/actors.js';
+import * as F from './lib/fx.js';
+const W=1920,H=1080,FPS=30;
+const comp=document.createElement('canvas'); comp.width=W; comp.height=H; document.body.appendChild(comp); const cx=comp.getContext('2d');
+let st, hero, planet, mini;
+window.ready=(async()=>{
+  await document.fonts.load('400 100px "Bebas Neue"');
+  st=new Stage(W,H,{shadowExtent:4});
+  planet=await tinyPlanet(st,{radius:3});
+  planet.position.set(0,-3,0);
+  hero=await Actor.create(st,'models/adventurer.glb',{scale:0.55});
+  hero.root.position.set(0,0,0);
+  hero.play(0,'Idle').play(1.2,'Walk',{fade:0.3}).play(4.0,'Wave',{fade:0.25}).play(5.6,'HitRecieve',{fade:0.15,once:true}).play(6.4,'Death',{fade:0.2,once:true});
+  st.lookFrom([0,1.6,6.5],[0,0.9,0],30);
+})();
+window.renderFrame=async(f)=>{
+  const t=f/FPS;
+  // treadmill: rotate planet under the walking hero
+  const walk = Math.max(0, Math.min(t,4.0)-1.2);
+  planet.rotation.x = walk*0.22;
+  planet.rotation.y = 0.6 + t*0.02;
+  hero.root.rotation.y = (t<4.0? 0 : F.lerp(0, 0.6, F.prog(t,4.0,4.4)));
+  st.camera.position.x = Math.sin(t*0.15)*1.2;
+  st.camera.lookAt(0,0.9,0);
+  // space background
+  const g=cx.createRadialGradient(W/2,H*0.7,50,W/2,H*0.6,H); g.addColorStop(0,'#0e1a33'); g.addColorStop(1,'#03050a'); cx.fillStyle=g; cx.fillRect(0,0,W,H);
+  cx.drawImage(st.render(t),0,0);
+  F.post(cx,W,H,f);
+};
+window.grabBlob=()=>new Promise(r=>comp.toBlob(r,'image/jpeg',0.95));
+</script></body></html>

@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="fonts/fonts.css">
+<style>html,body{margin:0;background:#000}</style></head><body>
+<script type="module">
+import { Globe } from './lib/globe.js';
+const P = new URLSearchParams(location.search); const W = +P.get('w'), H = +P.get('h');
+const comp = document.createElement('canvas'); comp.width = W; comp.height = H; document.body.appendChild(comp);
+const cx = comp.getContext('2d');
+const g = new Globe(W, H);
+const shots = [
+  { lat: 25, lon: -30, alt: 2.6, tilt: 0, fov: 34 },
+  { lat: 40, lon: -100, alt: 1.1, tilt: 0, fov: 34 },
+  { lat: 35, lon: -100, alt: 0.35, tilt: 40, fov: 34 },
+  { lat: -75, lon: 30, alt: 1.6, tilt: 0, fov: 34 },
+  { lat: 30, lon: 60, alt: 2.0, tilt: 0, fov: 34, sun: 'world', sunLat: -10, sunLon: -40 },
+  { lat: 0, lon: 150, alt: 0.12, tilt: 55, fov: 40 },
+];
+window.ready = (async () => { await document.fonts.load('700 40px "Barlow Condensed"'); await g.init(); })();
+window.renderFrame = async (f) => {
+  g.set(Object.assign({ sun: 'camera', lookOffset: null }, shots[f % shots.length]));
+  cx.drawImage(g.render(), 0, 0);
+  const s = shots[f % shots.length];
+  cx.font = '700 34px "Barlow Condensed"'; cx.fillStyle = '#fff'; cx.fillText(JSON.stringify(s), 40, H - 40);
+};
+window.grabBlob = () => new Promise(r => comp.toBlob(r, 'image/jpeg', 0.92));
+</script></body></html>

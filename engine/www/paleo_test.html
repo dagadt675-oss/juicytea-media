@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="fonts/fonts.css">
+<script type="importmap">{"imports":{"three":"/three.module.min.js"}}</script>
+<style>html,body{margin:0;background:#000}</style></head><body>
+<script type="module">
+import { Globe } from './lib/globe.js';
+import * as F from './lib/fx.js';
+const W=1920,H=1080; const comp=document.createElement('canvas'); comp.width=W; comp.height=H; document.body.appendChild(comp); const cx=comp.getContext('2d');
+const g=new Globe(W,H); const ov=document.createElement('canvas'); ov.width=4096; ov.height=2048; const og=ov.getContext('2d');
+const cache={};
+async function coast(t){ const k=String(t).padStart(3,'0'); if(!cache[k]) cache[k]=await (await fetch('paleo/coast_'+k+'.json')).json(); return cache[k]; }
+function draw(polys){ og.clearRect(0,0,4096,2048); og.fillStyle='#b9a77a'; og.strokeStyle='rgba(255,255,255,0.0)';
+  const X=l=>(l+180)/360*4096, Y=l=>(90-l)/180*2048;
+  og.beginPath(); for(const r of polys){ r.forEach(([lo,la],i)=> i? og.lineTo(X(lo),Y(la)) : og.moveTo(X(lo),Y(la))); og.closePath(); } og.fill('nonzero'); }
+const shots=[0,60,120,160,200];
+window.ready=(async()=>{ await document.fonts.load('400 100px "Bebas Neue"'); await g.init(); g.setOverlay(ov,[-180,-90,180,90]); })();
+window.renderFrame=async(f)=>{ const T=shots[f%shots.length]; draw(await coast(T)); g.refreshOverlay();
+  g.set({lat:-50,lon:20,alt:2.4,tilt:0,heading:0,fov:34,sun:'camera'}); for(const [k,v] of Object.entries({flatBase:1,ovAlpha:1,ovMul:1,nightAmt:0,relief:0,dim:0})) g.look(k,v);
+  cx.drawImage(g.render(),0,0); F.text(cx, T+' MILLION YEARS AGO', 80, 120, {size:64, fam:F.FAM.head});
+};
+window.grabBlob=()=>new Promise(r=>comp.toBlob(r,'image/jpeg',0.92));
+</script></body></html>

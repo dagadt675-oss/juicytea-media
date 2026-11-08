@@ -1,0 +1,7 @@
+node_modules
+chunks/
+stills*/
+out/
+*.mp4
+*.log
+qc_*/

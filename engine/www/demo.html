@@ -1,0 +1,46 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="fonts/fonts.css">
+<style>html,body{margin:0;background:#000}</style></head><body>
+<script type="module">
+import { Globe, slerpLL } from './lib/globe.js';
+import * as F from './lib/fx.js';
+import { loadGeo, findFeature, fillEquirect, makeCanvas, strokeProjected, rings, gcLine, projectPath } from './lib/geo.js';
+const P = new URLSearchParams(location.search); const W = +P.get('w'), H = +P.get('h'), FPS = +P.get('fps') || 30;
+const comp = document.createElement('canvas'); comp.width = W; comp.height = H; document.body.appendChild(comp);
+const cx = comp.getContext('2d');
+const g = new Globe(W, H);
+let AUS;
+window.ready = (async () => {
+  await Promise.all(['400 100px "Bebas Neue"', '700 40px "Barlow Condensed"', '800 100px "Inter"'].map(f => document.fonts.load(f)));
+  await g.init();
+  const fc = await loadGeo('ne_50m_admin_0_countries');
+  AUS = findFeature(fc, 'Australia');
+  const b = [100, -50, 170, -5];
+  const ov = makeCanvas(2048, 1400);
+  fillEquirect(ov, b, [AUS], { color: '#FF5A36', alpha: 0.78, glow: 30 });
+  g.setOverlay(ov, b);
+})();
+window.renderFrame = async (f) => {
+  const t = f / FPS;
+  // camera: from wide Atlantic view, travel + zoom to Australia with tilt
+  const k = F.prog(t, 0.5, 5.5, F.E.inOutExpo);
+  const ll = slerpLL([20, -30], [-26, 134], k);
+  const alt = Math.exp(F.lerp(Math.log(2.8), Math.log(0.75), k));
+  g.set({ lat: ll[0] - 6 * k, lon: ll[1], alt, tilt: 28 * F.prog(t, 3.5, 6.5), heading: 0, fov: 34 });
+  g.look('ovAlpha', F.prog(t, 5.0, 6.0));
+  g.look('dim', 0.35 * F.prog(t, 5.0, 6.0));
+  cx.fillStyle='#04060B'; cx.fillRect(0,0,W,H); g.starfield(cx); cx.drawImage(g.render(), 0, 0);
+  // outline draw-on
+  if (t > 5.2) strokeProjected(cx, g, rings(AUS), { p: F.prog(t, 5.2, 6.8, F.E.out), color: '#ffffff', width: 2.2 });
+  // label with leader
+  if (t > 6.2) { const q = g.project(-25.3, 131.0); F.pill(cx, 'ULURU', q.x + 140, q.y - 120, { anchor: 'left', leader: [q.x, q.y], ring: (t * 0.8) % 1, alpha: F.prog(t, 6.2, 6.6) }); }
+  // arc from Sydney to Perth
+  if (t > 6.8) { const pts = projectPath(g, gcLine([-33.87, 151.21], [-31.95, 115.86], 80, 0.02)); F.glowPath(cx, pts, { p: F.prog(t, 6.8, 8.0, F.E.inOut), color: '#3DE3FF', width: 3.5 }); }
+  // counter
+  if (t > 7.4) F.counter(cx, 0, 2531, F.prog(t, 7.4, 8.6, F.E.outExpo), W - 330, 220, { size: 120, unit: 'MI', alpha: F.prog(t, 7.4, 7.7) });
+  // hook headline in the first seconds
+  if (t < 3.6) F.headline(cx, [{ w: 'NOBODY' }, { w: 'LIVES', c: '#FF5A36' }, { w: 'HERE' }], W / 2, H * 0.82, t, { size: 150, t0: 0.2, tOut: 3.1 });
+  if (t > 8.8) F.chapterCard(cx, W, H, t - 8.8, 2.4, 'CHAPTER 1', 'THE EMPTY CONTINENT');
+  F.post(cx, W, H, f);
+};
+window.grabBlob = () => new Promise(r => comp.toBlob(r, 'image/jpeg', 0.95));
+</script></body></html>
