@@ -1,0 +1,112 @@
+====================================================================================================
+QUERY: hawaii drained ocean
+SUMMARY: {"query": "hawaii drained ocean", "n_results": 58, "longform_matching": 5, "longform_matching_100k": 1, "max_longform_matching_views": 119999, "best_short_views": 23000000, "top_any_views": 23000000}
+  [s]  23,000,000    0m00s                                        | What If The Ocean Got Flushed? 🤔
+  [v]  19,503,085  480m10s  10y ago        Relaxing Soundzzz      | 🌴 Ocean Ambience on a Tropical Island (Maldives) with Soothing Waves & Paradise View for R
+  [s]  10,000,000    0m00s                                        | Can You Drain The Atlantic Ocean
+  [v]   8,137,268   47m05s  3y ago         National Geographic    | Gulf of Mexico (Full Episode) | Drain the Oceans
+  [v]   3,972,640  232m09s  1y ago         National Geographic    | The Greatest Mysteries of the Pacific Ocean | Drain the Oceans | MEGA EPISODE | Nat Geo
+  [v]   2,729,162    1m49s  1mo ago        Big Island Video News  | Iconic Hawaiʻi Sea Arch Collapses Into Ocean (October 2, 2026)
+  [v]   2,467,436   47m23s  1y ago         National Geographic    | Pacific War Wrecks (Full Episode) | Drain the Oceans | National Geographic
+  [s]   1,600,000    0m00s                                        | Hawaii landmark crumbles into Pacific
+  [v]     818,628  325m51s  2y ago         National Geographic    | Secrets of WWII REVEALED | Drain the Oceans MEGA EPISODE | U-Boats, Warships, & Pearl Harb
+  [v]     798,311   44m17s  1y ago         National Geographic    | World War II: Attack on Pearl Harbor (Full Episode) | Drain the Oceans | Nat Geo
+  [v]     626,118   51m49s  6mo ago        Law&Crime Network      | Dark Secrets of Hawaii’s Big Island Exposed: Vanished in Paradise
+  [v]     623,117   44m25s  1y ago         National Geographic    | Islands of Fire (Full Episode) | Wild Hawaii | National Geographic
+  [s]     371,000    0m00s                                        | Before-and-after video reveals Hawaii’s iconic Hōlei Sea Arch vanished after 500 years
+  [v]     311,328  600m37s  2y ago         Relaxing White Noise   | Rain Noise & Ocean Waves for Deep Sleep
+  [v]     307,066    0m32s  1mo ago        Hawaii News Now        | Famed 90-foot Holei Sea Arch collapses on Hawaii Island
+  [s]     247,000    0m00s                                        | This machine destroyed a beautiful beach in Hawaii! #shorts
+  [s]     192,000    0m00s                                        | Hawaii’s Hōlei Sea Arch collapses into the ocean
+  [v]     119,999   16m19s  4d ago         Unseen Works           | What the Pacific Ocean Looks Like Drained?
+  [s]      66,000    0m00s                                        | What If The Atlantic Ocean Drained?
+  [v]      55,143    0m43s  1y ago         Hawaii News Now        | TIME-LAPSE: Water recedes ahead of Tsunami in Hanalei Bay
+  [s]      29,000    0m00s                                        | What If The Pacific Ocean Drained?
+  [v]      16,214    0m23s  1mo ago        ABC10                  | Hawaii's iconic 90-foot sea arch is gone after collapsing into the ocean
+  [v]      11,585   42m57s  2w ago         Vanished Worlds        | The Volcano Hiding Under the Ocean Off Oregon Is Waking Up | Axial Seamount
+  [v]       9,046  105m23s  8mo ago        Bright Side Dark Secre | What Hawaii Looks Like Without Water (The 30,000 ft Drop)
+  [s]       5,800    0m00s                                        | We drained the Pacific and found a 15 km wall
+====================================================================================================
+QUERY: hawaii is only the summit
+SUMMARY: {"query": "hawaii is only the summit", "n_results": 57, "longform_matching": 6, "longform_matching_100k": 0, "max_longform_matching_views": 15541, "best_short_views": 20803, "top_any_views": 75517}
+  [v]      75,517   25m00s  1d ago         HawaiianTraveler | Sea | Don't Come to Hawaii vs Reality: What Locals and Visitors Really Think
+  [v]      56,616  221m53s  3d ago         Best Documentary       | The Great Fracture: The Origins of Trump's America
+  [v]      31,838   23m38s  5y ago         Malihini on Maui - The | Is Driving Up Haleakala National Park Summit Worth It & Is It It Safe? Maui 2021
+  [v]      20,803    0m32s  2y ago         USA TODAY              | Snow coats Hawaii’s Mauna Kea Summit | USA TODAY
+  [v]      15,541   14m35s  7y ago         Laura Leanne           | MAUNA KEA Summit by foot (Highest Mountain in Hawaii)
+  [s]      14,000    0m00s                                        | While on Big Island Hawaii, a must do thing to do is to drive up Mauna Kea to see the suns
+  [v]       9,200  116m37s  3w ago         Project Nightwatch and | Hawaii's Most Dangerous Volcano Is Holding Back Something Big Right Now
+  [v]       8,472   65m58s  Streamed 3y ago HVERI                  | UPDATE: Maunaloa Erupts at Summit, Moves Into Northeast Rift
+  [v]       6,847    1m41s  11y ago        hawaiidiscount         | Mauna Kea Summit Tour with Hawaii Forest and Trail
+  [s]       6,800    0m00s                                        | Why Is This Island in Hawaii Completely Off-Limits? #shorts #maps #geography
+  [v]       6,311  112m36s  2w ago         Project Nightwatch     | Hawaii's Most Active Volcano Finally Let Go
+  [v]       6,074    5m12s  9y ago         Ampman.Travels         | Sunset from Mauna Kea Summit, Big Island Hawaii (Tallest Mountain in the world)
+  [v]       2,552  101m45s  Streamed 1y ago HVERI                  | Hawaiian Volcano Update: Kīlauea Summit Eruption’s Episode 23 - May 29, 2025
+  [s]       2,300    0m00s                                        | Hawaii Made Sung Kang Feel Accepted
+  [s]       2,200    0m00s                                        | Sunset from the summit of Haleakala National Park in Maui, Hawaii. #hawaii #maui #haleakal
+  [v]       2,196   24m24s  3mo ago        EARTH SIGNAL and WALTE | Kilauea Just Went Quiet — And Scientists Say the Next Eruption Is Only Days Away
+  [v]       1,968    8m15s  2w ago         UPDATE NEWS            | 🚨Hawaii Now!! Something frightening is happening at summit of Kīlauea — Science Scramble f
+  [v]       1,907   85m39s  Streamed 2w ago HVERI                  | Hawaiian Volcano Update: Kīlauea Summit Eruption’s Episode 55 & New Fissure - October 21, 
+  [v]       1,741   46m01s  7y ago         America Road Trip-오프로드 | Driving up the summit of Mauna Kea || Big Island, Hawaii || Visiting the Summit || 4KUHD
+  [s]       1,700    0m00s                                        | Only in Hawaii #sunsetview
+  [v]       1,653   83m57s  9mo ago        Driving Hawaii 4K      | Haleakalā Summit to Kahului Airport | Above the Clouds Scenic Drive 4K
+  [v]       1,574   99m09s  Streamed 2d ago HVERI                  | Hawaiian Volcano Update: Episode 56 Begins at Kīlauea Summit - November 5, 2026
+  [s]       1,500    0m00s                                        | Hawaii Is NOT Just 8 Islands 🌋🇺🇸 The 1,500-Mile Volcano Chain #shorts
+  [v]       1,428    4m42s  4y ago         Murphy Travels         | Diamond Head (Le'ahi) Crater Summit Trail | Best Hikes on Oahu | HAWAII Hiking
+  [s]       1,200    0m00s                                        | The Forbidden Island of Hawaii: Only 84 People Live Here #youtubeshorts #hawaii #geography
+====================================================================================================
+QUERY: hawaii is only the tip
+SUMMARY: {"query": "hawaii is only the tip", "n_results": 53, "longform_matching": 3, "longform_matching_100k": 2, "max_longform_matching_views": 1294633, "best_short_views": 10000000, "top_any_views": 10584912}
+  [v]  10,584,912   32m52s  2y ago         Tyler Oliveira         | Hawaii: Paradise Turned to Hell
+  [s]  10,000,000    0m00s                                        | 7 rules for haoles (foreigners) in Hawaii
+  [v]   7,068,316   24m44s  1y ago         RealLifeLore           | Why You Can't Travel Between Hawaii's Islands by Boat
+  [v]   3,905,581   20m30s  8y ago         Matt's Travel Tips     | Hawaii Travel Guide - 13 Tips for a FANTASTIC Trip to Oahu
+  [v]   1,294,633   31m43s  1mo ago        Jeb Brooks             | FIRST CLASS on HAWAII’s ONLY Cruise Ship (7 Nights!)
+  [v]     956,709   30m09s  9mo ago        Hawaii HammaHs         | Catch and Cook Hawaiian Style Food
+  [v]     426,284   31m43s  3y ago         Scottsdale Travel Chic | The Oahu & Waikiki Ultimate Guide (w Maps) - Everything You Need To Know, and More!
+  [v]     382,868   23m20s  1y ago         HawaiianTraveler | Sea | Top 10 Things You Should NOT Do in Hawaii - Travel Tips & How To Get Along With The Locals
+  [v]     338,147   37m58s  2y ago         Scottsdale Travel Chic | The Big Island Ultimate Guide (w Maps) - Everything You Need to Know and More!!
+  [v]     325,409   21m39s  1y ago         The Hawaii Vacation Gu | MAUI Hawaii Travel Guide 2025 | More tips than that other video for THE BEST Maui Vacation
+  [v]     200,018   33m53s  1y ago         Exotic Vacation        | How to Spend 5 Days in OAHU Hawaii | Travel Itinerary
+  [v]     196,347   20m54s  3y ago         Wanderlust Wellman     | How To Travel Oahu, Hawaii Without A Rental Car | 7 Day Itinerary
+  [v]     123,631   13m19s  10mo ago       The Hawaii Vacation Gu | 12 Things You MUST Know Before Visiting Oahu, Hawaii (First Timer's Guide)
+  [v]     122,830   23m27s  4y ago         Tripped Travel Gear    | HAWAII PACKING TIPS 🌺 WATCH THIS before your trip to Hawaii
+  [v]     114,603   21m30s  1y ago         The Hawaii Vacation Gu | Step-by-Step Hawaii Trip Planning 2025 | The 7 Minute Abs of Hawaii Vacation Planning
+  [v]     111,478   11m56s  8mo ago        The Hawaii Vacation Gu | Kauai 2026: The Only Hawaii Travel Guide You Need
+  [v]      92,752   31m54s  8mo ago        HawaiianTraveler | Sea | Hawaii's Tipping Culture Has Gone Too Far (A Local Speaks Up)
+  [v]      91,309   25m17s  4y ago         Jasmine Way            | Big Island Hawaii Travel Guide - Don't miss these UNIQUE places! 🌴🐢
+  [v]      84,601   20m27s  6mo ago        World Wild Hearts      | O’AHU, HAWAII (2026) | 15 Best Things To Do On The Island Of Oahu (+ Travel Tips)
+  [v]      81,133   10m08s  3y ago         The Hawaii Vacation Gu | 5 Mistakes When Island Hopping in Hawaii | Plus Tips for Hawaii Inter-Island Travel
+  [v]      75,517   25m00s  1d ago         HawaiianTraveler | Sea | Don't Come to Hawaii vs Reality: What Locals and Visitors Really Think
+  [v]      63,256    6m19s  1y ago         Irish Drifter          | This Cruise Changed How I Feel About Hawaii Forever!
+  [v]      61,530    9m08s  1y ago         The Hawaii Vacation Gu | Our Complete HAWAII PACKING Guide: No Overpacking, No Regrets (Your Packing List!)
+  [v]      55,660   21m33s  7mo ago        Travel Tips by Laurie  | Do Not Forget Hawaii's Travel Essentials When You Visit This Year
+  [v]      37,825   16m10s  1y ago         Travel Tips by Laurie  | 21 Genius Hawaii Essentials That Will Change Your Vacation
+====================================================================================================
+QUERY: how tall is hawaii really
+SUMMARY: {"query": "how tall is hawaii really", "n_results": 46, "longform_matching": 4, "longform_matching_100k": 0, "max_longform_matching_views": 75517, "best_short_views": 2300000, "top_any_views": 32114049}
+  [v]  32,114,049   23m12s  1y ago         The Royalty Family     | We’re Moving to Hawaii *emotional*
+  [v]  15,543,435  182m44s  1y ago         Outdoor Boys           | Exploring Every Island in Hawaii - 9 weeks fishing, camping, hiking, diving & exploring
+  [v]  10,584,912   32m52s  2y ago         Tyler Oliveira         | Hawaii: Paradise Turned to Hell
+  [v]   2,557,792   60m57s  2y ago         Peter Santenello       | Living in America's Most Expensive State - Hawaii
+  [s]   2,300,000    0m00s                                        | The True Size of Hawaii 🏝️ #Hawaii #USA #Geography
+  [v]   1,294,633   31m43s  1mo ago        Jeb Brooks             | FIRST CLASS on HAWAII’s ONLY Cruise Ship (7 Nights!)
+  [v]   1,205,535   29m02s  2y ago         Eureka Travel Explorer | The Real Hawaii Most People Miss | 4K Travel Documentary
+  [v]     949,166   28m11s  1y ago         Map Pack               | Harsh Reality of Living in Hawaii No One Tells You
+  [v]     257,196   51m51s  3y ago         Timeline - World Histo | How Hawaii Became America's 50th State
+  [s]     180,000    0m00s                                        | The true size of Hawaii compared to the USA
+  [v]     171,497   43m18s  7mo ago        Unearthed History - Ar | The Menehune: Did The Tiny Natives Of Ancient Hawaii Actually Exist?
+  [s]     110,000    0m00s                                        | Hawaii Is WAY Bigger Than You Think
+  [s]     109,000    0m00s                                        | Is Everest really the tallest mountain on Earth?
+  [v]      75,517   25m00s  1d ago         HawaiianTraveler | Sea | Don't Come to Hawaii vs Reality: What Locals and Visitors Really Think
+  [v]      27,980   22m56s  3y ago         Moving Hawaii          | Hiding In Plain Sight - AIEA Is Hawaii's City That's Not Really A "City"
+  [s]      25,000    0m00s                                        | Hawaii Is Way Bigger Than You Think 🌋#shorts
+  [s]      18,000    0m00s                                        | Hawaii is actually bigger than you think…
+  [v]      11,797   22m53s  5mo ago        Diamond Index          | The Secret Billionaire Family That OWNS Hawaii
+  [s]       9,300    0m00s                                        | Hawaii's Youngest Island Is Also Its Tallest. Why? 🌋
+  [v]       7,997   21m59s  5y ago         Vivi Winks             | What its really like to move to Hawaii & is it worth it?
+  [s]       4,400    0m00s                                        | Hawaii Is Bigger Than Expected #hawaii #usa #geography
+  [s]       1,700    0m00s                                        | The True Size of Hawaii 🌺🏝️ Not Just 8 Islands 🤯 #hawaii #hawaiianislands #History #geogra
+  [s]       1,600    0m00s                                        | The true size of Hawaii #shorts
+  [s]       1,600    0m00s                                        | Hawaii Is WAY Bigger Than You Think🌎
+  [s]       1,600    0m00s                                        | How Did Hawaii Form? (Taller Than Everest)
