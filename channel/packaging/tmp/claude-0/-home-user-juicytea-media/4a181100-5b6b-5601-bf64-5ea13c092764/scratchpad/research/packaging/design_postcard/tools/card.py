@@ -123,6 +123,7 @@ def make_card(face, w, aspect=1.5, border=0.045, text=None, cap_px=None, font='O
         adv = [fnt.getlength(ch) for ch in text]; sp = track * fnt.size
         tw = sum(adv) + sp * (len(text) - 1)
         mx = round(pw * 0.055)
+        if tw > pw - 2 * mx: print(f'WARNING text {tw/S:.0f}px wider than photo {(pw-2*mx)/S:.0f}px')
         tx = mx if text_pos[1] == 'l' else (pw - tw) / 2 if text_pos[1] == 'c' else pw - mx - tw
         ty = (ph - mx * 0.9 - cap_px * S - cap_top) if text_pos[0] == 'b' else (mx - cap_top)
         lay = Image.new('RGBA', (pw, ph), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay)

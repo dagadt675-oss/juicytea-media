@@ -42,12 +42,12 @@ save(im, 2, f'cap {capm}px = {capm/H:.1%}; pin at x={px}, shore y={py}')
 # 3: tilted HAWAIʻI postcard sinking at the new waterline
 c = CFG.get('c3', {})
 dbg = c.get('dbg', 'dbgT'); im = whiten_foam(plate(c.get('plate', 'plateT')), dbg)
-card = postcard(f"{WK}/r_{c.get('photo', 'pc2')}.jpg", w=c.get('card_w', 540), cap_px=int(H * c.get('cap', 0.12)))
+card = postcard(f"{WK}/r_{c.get('photo', 'pc2')}.jpg", w=c.get('card_w', 540), cap_px=int(H * c.get('cap', 0.12)), word_pos=c.get('word_pos', 'top'), stamp=c.get('stamp', True))
 im = sink_card(im, card, tuple(c.get('center', (930, 545))), c.get('angle', 7), c.get('water_y', 640))
 save(im, 3, f"card {c.get('card_w', 540)}px = {c.get('card_w', 540)/W:.0%} width")
 
 # 4: the wall, no text, no anchor
 c = CFG.get('c4', {})
-im = whiten_foam(plate(c.get('plate', 'plateW'), contrast=c.get('contrast', 1.08)), c.get('dbg', 'dbgW'))
+im = whiten_foam(plate(c.get('plate', 'plateW'), contrast=c.get('contrast', 1.08), sat=c.get('sat', 1.06)), c.get('dbg', 'dbgW'))
 save(im, 4, 'no text')
 json.dump(log, open(f'{WK}/make_log.json', 'w'), indent=1)

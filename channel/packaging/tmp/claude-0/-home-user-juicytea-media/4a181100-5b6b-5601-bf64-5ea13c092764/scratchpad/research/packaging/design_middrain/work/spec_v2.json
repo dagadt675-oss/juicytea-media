@@ -1,0 +1,52 @@
+{
+ "candidates": [
+  {
+   "id": "c1",
+   "thumb": "v2/cand_1.jpg",
+   "title": "Where Does Hawaii Begin? (Not at Sea Level)",
+   "channel": "Myth Juice",
+   "views": "52 views",
+   "age": "1d ago",
+   "duration": "13:05",
+   "avatar": "../../feedsim/ours_avatar.jpg"
+  },
+  {
+   "id": "c2",
+   "thumb": "v2/cand_2.jpg",
+   "title": "Hawaii Is Only the Summit. You Can't See the Rest.",
+   "channel": "Myth Juice",
+   "views": "52 views",
+   "age": "1d ago",
+   "duration": "13:05",
+   "avatar": "../../feedsim/ours_avatar.jpg"
+  },
+  {
+   "id": "c3",
+   "thumb": "v2/cand_3.jpg",
+   "title": "Hawaii Is Only the Summit. We Measured the Rest.",
+   "channel": "Myth Juice",
+   "views": "52 views",
+   "age": "1d ago",
+   "duration": "13:05",
+   "avatar": "../../feedsim/ours_avatar.jpg"
+  },
+  {
+   "id": "c4",
+   "thumb": "v2/cand_4.jpg",
+   "title": "Hawaii's Volcanoes Go Down Farther Than They Go Up",
+   "channel": "Myth Juice",
+   "views": "52 views",
+   "age": "1d ago",
+   "duration": "13:05",
+   "avatar": "../../feedsim/ours_avatar.jpg"
+  }
+ ],
+ "hosts": "../../refs/hosts/hosts.json#hawaii",
+ "now_playing": "34Ojnyi9xLw",
+ "seed": 2,
+ "n": {
+  "home": 6,
+  "upnext": 10,
+  "sidebar": 10
+ }
+}

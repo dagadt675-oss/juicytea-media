@@ -113,7 +113,7 @@ def put(base, layer, xy, shadow=None):
         S, off = drop_shadow(layer, *shadow); b.alpha_composite(S, (int(xy[0] + off[0]), int(xy[1] + off[1])))
     b.alpha_composite(layer, (int(xy[0]), int(xy[1]))); return b.convert('RGB')
 
-def postcard(photo, w=540, word='HAWAIʻI', fnt='BarlowCondensed-800', cap_px=88, stamp=True):
+def postcard(photo, w=540, word='HAWAIʻI', fnt='BarlowCondensed-800', cap_px=88, stamp=True, word_pos='top'):
     """Off-white postcard: our render as the photo, plain condensed type, a small volcano stamp (picture, no words)."""
     h = int(w * 0.68); bw = int(w * 0.045)
     C = Image.new('RGBA', (w, h), (244, 239, 228, 255))
@@ -129,10 +129,10 @@ def postcard(photo, w=540, word='HAWAIʻI', fnt='BarlowCondensed-800', cap_px=88
         if cb[3] - cb[1] >= cap_px: break
         size += 2
     L, cap, pad = text_layer(word, f, fill=(255, 255, 255, 255), shadow=(10, 30, 40, 170), shadow_blur=5, shadow_off=(0, 3))
-    tx = bw + int(w * 0.05); ty = h - bw - int(h * 0.07) - cap
+    tx = bw + int(w * 0.05); ty = (h - bw - int(h * 0.07) - cap) if word_pos == 'bottom' else bw + int(h * 0.07)
     C.alpha_composite(L, (tx - pad, ty - pad))
     if stamp:
-        sw, sh = int(w * 0.15), int(w * 0.18); sx, sy = w - bw - sw - int(w * 0.03), bw + int(w * 0.03)
+        sw, sh = int(w * 0.13), int(w * 0.155); sx, sy = w - bw - sw - int(w * 0.03), (bw + int(w * 0.03)) if word_pos == 'bottom' else bw + int(h * 0.40)
         S = Image.new('RGBA', (sw, sh), (0, 0, 0, 0)); d = ImageDraw.Draw(S)
         d.rectangle([0, 0, sw - 1, sh - 1], fill=(250, 246, 236, 255))
         # perforation
@@ -173,3 +173,25 @@ def sink_card(base, card, center, angle, water_y, wcol=(30, 170, 200)):
     fd.ellipse([xs[0] - 14, water_y - 7, xs[1] + 14, water_y + 9], outline=(240, 248, 250, 235), width=5)
     F = F.filter(ImageFilter.GaussianBlur(1.6)); b.alpha_composite(F)
     return b.convert('RGB')
+
+def sky_mask(dbg):
+    """Sky = rows above the first terrain pixel (land yellow or submerged lilac) in the debug pass, per column."""
+    a = np.asarray(Image.open(f'{WK}/r_{dbg}.jpg').convert('RGB')).astype(int)
+    R, G, B = a[..., 0], a[..., 1], a[..., 2]
+    terr = ((B < 90) & (R > 120)) | ((np.abs(R - G) < 14) & (B - R > 25))
+    m = np.zeros(terr.shape, np.float32)
+    for x in range(terr.shape[1]):
+        t = np.nonzero(terr[:, x])[0]; top = t.min() if len(t) else terr.shape[0]
+        m[:max(0, top - 1), x] = 1
+    return np.asarray(Image.fromarray((m * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.2))).astype(np.float32) / 255
+
+def grade_sky(im, dbg, top=(150, 186, 226), horizon=(246, 214, 176), amt=0.75, gamma=1.6):
+    """Golden-hour sky grade: blend the rendered sky toward a warm horizon / soft blue zenith gradient."""
+    a = np.asarray(im).astype(np.float32); m = sky_mask(dbg)
+    ys = np.nonzero(m.max(1) > 0.5)[0]; ymax = ys.max() if len(ys) else H
+    t = np.clip(np.arange(H) / max(ymax, 1), 0, 1) ** gamma
+    g = np.array(top, np.float32)[None, :] * (1 - t[:, None]) + np.array(horizon, np.float32)[None, :] * t[:, None]
+    lum = a.mean(2, keepdims=True) / 200.0
+    tgt = g[:, None, :] * np.clip(lum, 0.8, 1.15)
+    k = (m * amt)[..., None]
+    return Image.fromarray((a * (1 - k) + tgt * k).clip(0, 255).astype(np.uint8))

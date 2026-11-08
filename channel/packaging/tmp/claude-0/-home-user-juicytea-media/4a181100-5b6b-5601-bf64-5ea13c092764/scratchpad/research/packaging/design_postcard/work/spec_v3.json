@@ -1,0 +1,12 @@
+{
+ "candidates": [
+  {"id": "1", "thumb": "v3/cand_1.jpg", "title": "Hawaii Is Only the Summit. We Measured the Rest.", "channel": "Myth Juice", "views": "52 views", "age": "1d ago", "duration": "13:02", "avatar": "../../feedsim/ours_avatar.jpg"},
+  {"id": "2", "thumb": "v3/cand_2.jpg", "title": "Hawaii Is Only the Summit. You Can't See the Rest.", "channel": "Myth Juice", "views": "52 views", "age": "1d ago", "duration": "13:02", "avatar": "../../feedsim/ours_avatar.jpg"},
+  {"id": "3", "thumb": "v3/cand_3.jpg", "title": "Where Does Hawaii's Mountain Begin? (Not the Beach)", "channel": "Myth Juice", "views": "52 views", "age": "1d ago", "duration": "13:02", "avatar": "../../feedsim/ours_avatar.jpg"},
+  {"id": "4", "thumb": "v3/cand_4.jpg", "title": "The Hawaii on Your Postcard Is Only the Summit", "channel": "Myth Juice", "views": "52 views", "age": "1d ago", "duration": "13:02", "avatar": "../../feedsim/ours_avatar.jpg"}
+ ],
+ "hosts": "../../refs/hosts/hosts.json#hawaii",
+ "now_playing": "34Ojnyi9xLw",
+ "seed": 2,
+ "n": {"home": 6, "upnext": 10, "sidebar": 10}
+}
