@@ -15,5 +15,5 @@
 | `www/d3.min.js` | d3 v7 | d3 | ISC |
 | `www/lab/globe/clouds_8k.jpg` | Cloud layer for the cinematic globe | NASA (built with `www/lab/scripts_globe/clouds.py`) | Public domain (NASA) |
 
-Not committed, rebuilt by tools when needed: regional DEM/terrain bakes for drain shots (`www/lab/drain/tools/terrain_bake.py`, `fetch_drain_data.sh`), episode-specific photo cut-outs (`www/lab/story/tools/cutout.py`), renders, chunks, audio.
+Not committed, rebuilt by tools when needed: regional DEM/terrain bakes for drain shots (`www/lab/drain/tools/terrain_bake.py`, `fetch_drain_data.sh`; Hawaii: `www/lab/hawaii/tools/fetch_hawaii.sh`, NOAA ETOPO 2022 + AWS Terrain Tiles + NASA GIBS MODIS/BMNG), episode-specific photo cut-outs (`www/lab/story/tools/cutout.py`), renders, chunks, audio.
 Episode credits for the video description: list NASA imagery, Natural Earth, GPlates/EarthByte (CC BY 4.0), Quaternius/Kenney and every public-domain archival image used.
