@@ -78,3 +78,6 @@ for i,r in add.items():
     out[i]=row
 json.dump(out,open(P+'/anat/merged.json','w'),indent=0)
 print('final total',len(out),'with subs',sum(1 for r in out.values() if r['subs']))
+# Extremities (postcard thumbnail in Hawaii lane), fetched 2026-11-08
+r=out['W9e5Un7VLUg']; r.update(subs=156000,chmed=203000,subs_how='chpage-fetch',handle='/@Extremities'); r['ratio']=r['views']/r['subs']; r['outlier']=r['views']/r['chmed']
+json.dump(out,open(P+'/anat/merged.json','w'),indent=0)
