@@ -166,3 +166,7 @@ Rules added: facts (status keys, primary over listicles, verbatim quotes with el
 - Two blind feed rounds with 5 simulated viewer personas in a dark-mode phone feed simulator. Winners: concrete question titles ("Why Can't You See Most of Hawaii? (Look Down)", 9/10 in round 1). Losers: the postcard signature on thumbnails (read as travel), no-text renders (1 of 40), "Only the Summit" titles.
 - Ep02 Test & Compare: NO OCEAN (default) + ONE ISLAND; YOU ARE HERE retired (0/10).
 - Ep01 repackage withdrawn: the live package beat it 8/10 vs 0/20 with a control arm. Lesson: never trust a repackage test without the live package as control; simulated personas are direction only, real CTR outranks them.
+
+## 2026-11-08 Ep02 script and narration
+- Script locked: 92 sourced facts, 47-word Hawaiian pronunciation lexicon, 1,584 words, 178 segments; four review lenses cut about 330 words of filler (the Pali setup before 2:11, the repeated hot-spot explanation, the pre-payoff recap).
+- Rodney narration: 12:15, 212 markers. ASR check passed except the acronym AF ('ay-eff' heard as 'IF'); fixed as 'A.F.' and re-synthesised only those segments (tts.py caches by content hash).

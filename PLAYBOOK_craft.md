@@ -94,6 +94,8 @@ Sections 7-13 of the playbook (pacing, visuals, text, humour, audio, ending, pac
 
 ## 11. Audio, voice and music
 
+- DO: before the full TTS run, render every respelled name and acronym in a short context sentence with the episode voice and run faster-whisper on it; after the full run, run engine/tools/asr_check.py and fix every real mismatch (2026-11-08, ep02: all Hawaiian respellings were recognised correctly, but 'ay-eff' was heard as 'IF' and had to be written 'A.F.'; inserts reported by the diff were alignment artefacts, the heard and script word counts matched 1584 = 1584). [measured]
+
 ### DO (proven)
 
 - Narrate every long-form and Short from ep02 on with ElevenLabs 'Rodney - Clear Educator' (voice_id eY2VJs4Gi8QKG2RV01sS, model eleven_v4), passed explicitly ('voice' in segments.json or --voice), and budget scripts at about 153 wpm including pauses (13:00 is about 1,900-2,000 words). (owner decision 2026-11-08; ctx; ep02/README.md) [owner]

@@ -635,7 +635,7 @@
   },
   {
    "id": "s126",
-   "text": "Weeks before, American codebreakers kept seeing one target in intercepted {m:msgs}messages: {m:af}Ay-eff.",
+   "text": "Weeks before, American codebreakers kept seeing one target in intercepted {m:msgs}messages: {m:af}A.F..",
    "pause": 0.3
   },
   {
@@ -660,12 +660,12 @@
   },
   {
    "id": "s131",
-   "text": "Ay-eff is short of {m:shortwater}water.",
+   "text": "A.F. is short of {m:shortwater}water.",
    "pause": 0.6
   },
   {
    "id": "s132",
-   "text": "That {m:conf}confirmed it. Ay-eff was {m:mid2}Midway.",
+   "text": "That {m:conf}confirmed it. A.F. was {m:mid2}Midway.",
    "pause": 1.2
   },
   {
