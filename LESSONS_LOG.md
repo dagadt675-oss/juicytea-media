@@ -161,3 +161,8 @@ Rules added: facts (status keys, primary over listicles, verbatim quotes with el
 ## 2026-11-08 Competitor research and repo hygiene
 - Niche study (channel/niche/niche_report.md): the niche is not saturated; the drain template is (96 uploads from 50 channels in 35 days, median 448 views). Signature-format small channels: median 99K views vs 2,650 for clone channels. Decision: broad umbrella, one signature series ("Below the Postcard"), Hawaii kept with new packaging.
 - Failure: the autosave pushed 106 competitor thumbnails and 13 contact sheets to the public repo. Removed from the tree in commit 1282012; history rewrite needs a force push and the owner's OK. Rule added to PLAYBOOK.md.
+
+## 2026-11-08 Packaging lab (channel/packaging/)
+- Two blind feed rounds with 5 simulated viewer personas in a dark-mode phone feed simulator. Winners: concrete question titles ("Why Can't You See Most of Hawaii? (Look Down)", 9/10 in round 1). Losers: the postcard signature on thumbnails (read as travel), no-text renders (1 of 40), "Only the Summit" titles.
+- Ep02 Test & Compare: NO OCEAN (default) + ONE ISLAND; YOU ARE HERE retired (0/10).
+- Ep01 repackage withdrawn: the live package beat it 8/10 vs 0/20 with a control arm. Lesson: never trust a repackage test without the live package as control; simulated personas are direction only, real CTR outranks them.

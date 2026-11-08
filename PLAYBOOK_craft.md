@@ -134,6 +134,8 @@ Sections 7-13 of the playbook (pacing, visuals, text, humour, audio, ending, pac
 
 ## 13. Packaging (title, thumbnail, description)
 
+> Authoritative packaging rules, evidence and the testing protocol: `channel/packaging/packaging_playbook.md` (2026-11-08, two blind rounds). Where this section disagrees, that file wins. Key corrections: concrete question titles won (23 of 30 picks); postcard and no-text thumbnails lost (travel or stock reads); the live ep01 package beat its repackage 8/10 vs 0/20, so the darkness diagnosis of the ep01 thumbnail is not supported; always test a repackage against the live package as a control arm. [measured, simulated personas]
+
 ### DO (proven)
 
 - Pre-test every title and thumbnail pair before upload: mock it in dark mode at 390x220 pt, 168x94 px and 120 px next to the 5 strongest Suggested competitors; if it is not the brightest, most readable card in the strip, redo it or use the no-text variant. Log the result (PLAYBOOK.md section 18). (ep01 Suggested CTR 1.97% on 93% of impressions; ctx; brief section 5) [hypothesis]

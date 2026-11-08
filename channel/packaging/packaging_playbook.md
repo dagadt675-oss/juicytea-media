@@ -33,7 +33,7 @@ Paths are relative to `research/packaging/` unless they start with `research/` o
 | A hedge bracket | "(Not Just a Coincidence)" spends the bracket on doubt; the title wraps to 3 lines in Up next (55 characters). |
 | Wrong premise for the feed | An abstract myth with no named place; ~0 search demand. |
 
-The blind test of the ep01 repackage confirmed the direction: the breakup-seam globe was clicked in **8 of 10** trials (4 first clicks), the real-Earth globe in 5 of 10, the wax-drip globe in 3 of 10.
+**Correction after blind round 2 (2026-11-08, `round2.md`):** with a live control arm and the same hosts, the live ep01 package beat both repackage proposals, **8/10 against 0/20** (5 of 5 personas preferred it, one-sided p = 0.03). The thumbnail rows of the table above (darkness, "a question nobody had", the hedge bracket) are therefore **not supported**: three personas picked it from the last Up next slot because of the question, and the bracket read as the promise of a real answer. The rows about the premise (an abstract myth, no named place, about 0 search demand, no host cluster) remain the most likely cause of the 1.97% Suggested CTR. Real CTR data outranks simulated personas; any ep01 challenger must start from the live concept (a visible question plus the shapes that pose it) and beat it head to head. Round 1's 8/10 for the seam globe was measured without a control arm.
 
 ---
 
@@ -226,7 +226,7 @@ Ranked by our evidence. "Same-channel" = the formula vs the same channel's other
    - `cd research/niche/work && python3 -I gate.py <thumb>`: PASS and 11.71 / 11.43 or more.
 3. **Feed simulator.** `cd research/packaging/feedsim && python3 -I feedsim.py SPEC --out ../feeds/NAME --report --glance` with the place's host set, at least 3 runs (seeds 2 and 5, plus seed 3 with the same-premise uploads mixed in, e.g. `hosts.json#hawaii+hawaii_direct`). Pass: the label reads in every glance; mean luma in the top half and p90 in the top 3 on the compact surfaces.
 4. **Blind persona test** (round 1: all packages; round 2: the refined top 3 under the launch title).
-   - Render shuffled feeds with `feedsim/blind/blind_r1.py PAIRS.json` (writes `feeds/r<N>_*.png` and the key): each package in a mobile Up next list (our card + 7 hosts) and a mobile Home feed (our card + 3 hosts), slots balanced, identical small-channel meta-line.
+   - Render shuffled feeds with `feedsim/blind/blind_r1.py PAIRS.json` (writes `feeds/r<N>_*.png` and the key): each package in a mobile Up next list (our card + 7 hosts) and a mobile Home feed (our card + 3 hosts), with the SAME host set for every arm and fixed or rotated slots per arm (round 2 showed slot 8 carries about 0.19x the pick weight of slot 1), identical small-channel meta-line. Whenever an existing video is being repackaged, include its live package as a control arm.
    - 5 fixed viewer personas (e.g. a novelty-seeking teen, a commuter, a trust-driven retiree) pick a first and second click per feed and give reasons; a separate cold reader writes what each card is about from a 2 s glance.
    - Score with `score.py`: 0.45 x choice strength (Plackett-Luce top-2 with a per-slot position term) + 0.15 x first-click index + 0.2 x glance match + 0.2 x quality of the skips.
    - **Launch gate:** picked in 7 or more of 10 trials, glance MATCH, no objection repeated by 3 or more personas, and the default tops its round. Round 2 places our card in middle slots (Home 2-3, Up next 5-7) and away from the strongest same-topic host.
@@ -254,11 +254,11 @@ Ranked by our evidence. "Same-channel" = the formula vs the same channel's other
 | `final_ep02_2.jpg` | ONE ISLAND, Ice Age Maui Nui | Tried the judge's palette fixes (dawn sky, warmer shelf, deeper water): all failed the craft-median bar (tan up to 20%, clone distance down to 10.84). Ships as tested with a +15% dodge on the Molokaʻi-Maui land bridge. | Round 1 (own title): 7/10 picks, 3 near-miss skips. Gate 11.79 / 11.45 (thin). Luma 133, rank 1-2 on every surface. |
 | `final_ep02_3.jpg` | YOU ARE HERE pin on today's shore, mid-drain | Pin radius 40 to 54 px, label 12.6% to 15%, paper tourist 22 to 28 px | Round 1 lost on the "Summit" title (2/10); both picks cited the pin; glance MATCH. Gate 11.87 / 11.65. |
 
-**Open item: round 2.** The refined arms have not yet had their own blind round under the launch title. Run it before upload (protocol step 4); keep arm 1 as the default unless round 2 contradicts it.
+**Round 2 result (`round2.md`):** A (NO OCEAN) 3/10 with 2 first clicks, B (ONE ISLAND) 4/10, C (YOU ARE HERE) **0/10** ("a pin on a brown hill" in all 10 exposures). A and B are statistically tied; A stays the default on the tie-breakers (4 of 20 first clicks across both rounds vs 0 of 20, its glance read states the title's promise, and frame 1 is built for it). **Test & Compare runs 2 arms: A (default) and B. C is retired.** BIG ISLAND (`design_question/cand_2.jpg`) is a reserve third arm only after a luma and chroma fix and a mini blind check at a low Up next slot. Open risk for A: in 8 of 10 Up next exposures the personas called it grey, muted or small; the optional fix is more chroma on the island cap (not more luma), then re-run `gate.py` and the 168x94 glance. Condition for B: by 0:14 the narration names Maui, Molokaʻi and Lānaʻi as the islands that join (3 of its 4 pickers over-read it as all the islands becoming one).
 
 ### Backup titles (stall rule, in this order)
 
-1. **"What's Holding Hawaii Up? (It's Slowly Sinking)"** (47). Blind 7/10, 5 of the 7 picks driven by the title. True: Hawaiʻi Island subsides about 2.5 mm a year (fact 4); the payoff shows the crust pushed down by the weight. Keep "Slowly".
+1. **"What's Holding Hawaii Up? (It's Slowly Sinking)"** (47). Blind 7/10, 5 of the 7 picks driven by the title. Round 2: 2/10 with the NO OCEAN image, which was blamed in all 8 skips ("no sinking in the image"); if the stall rule fires, pair it with an image that shows subsidence (e.g. BIG ISLAND, its round 1 pairing). True: Hawaiʻi Island subsides about 2.5 mm a year (fact 4); the payoff shows the crust pushed down by the weight. Keep "Slowly".
 2. **"Hawaii Used to Be Bigger. Where Did It Go?"** (42). Blind 7/10. Pairs best with arm 2. Condition: the 0:30-0:47 line must name both causes (the sea rose after the Ice Age, and the islands sink).
 3. **"Hawaii's Volcanoes Go Down Farther Than They Go Up"** (50). The title drew 3 favourable mentions while its no-text image failed. Condition: a ledger line for the plural (Mauna Kea 4,205 m up and about 6,000 m down to the sea floor; Mauna Loa about 17 km from its true base), or narrate Mauna Kea and Mauna Loa only.
 
@@ -274,24 +274,14 @@ Retired: every "Only the Summit" title, "How Tall Is Hawaii?", "Where Does Hawai
 | "(Look Down)" | The camera tips down the flank by about 0:27, and again at the payoff |
 | Arm 1, NO OCEAN | **Frame 1 = this composition** (camera lon -155.32, lat 18.42, 26 km up, looking north; SSIM 0.8+ at 320x180 without the label). This replaces the brief's dashed SEA LEVEL frame (clone kit) |
 | Arm 2, ONE ISLAND | 0:14 Maui Nui hero shot at about -400 ft (Kahoʻolawe stays separate) |
-| Arm 3, YOU ARE HERE | Add a 1-2 s "you are here" pin on the old shore before 0:30 (e.g. under "The shore becomes a ledge"), using the same paper tourist as the 0:25 gag. Without it, replace arm 3 with BIG ISLAND (reserve, `design_question/cand_2.jpg`, after its luma fix) |
+| Arm 3 | Retired after round 2 (YOU ARE HERE 0/10). Reserve: BIG ISLAND after its fix and a blind check |
 | Never | "Taller than Everest" or 56,000 in the package or the first 30 s |
 
 ---
 
-## 10. Ep01 repackage proposal (needs the owner's OK; nothing has been changed on YouTube)
+## 10. Ep01 repackage: WITHDRAWN (blind round 2)
 
-| | Title | Thumbnail |
-|---|---|---|
-| Live | "Why the Continents Point South (Not Just a Coincidence)" | `/home/user/juicytea-media/longform/ep01-continental-drip/release/thumb_B_pointing_at_what.jpg` (gate FAIL) |
-| **Proposed** | **"Why the Continents Point South (Pangaea's Breakup)"** (50) | `final_ep01_1.jpg` default; `final_ep01_2.jpg` Test & Compare arm B |
-
-- **final_ep01_1:** the South Atlantic opening 116 million years ago (GPlates / Mueller et al. 2019, the film's own data): South America and Africa as two tapering wedges, the cyan seam between them, Antarctica below. Round 1: clicked in **8 of 10** trials, 4 first clicks, best of three. Changes: camera pulled back so the globe is no longer cropped and Antarctica reads as one shape; near-black backdrop lifted to slate. Mean luma **80 to 104**; Up next luma rank 8-9/10 to 5-6/10. Gate 12.42 / 11.82.
-- **final_ep01_2:** the real Earth from the south, both tips now fully inside the disc, aimed at Antarctica. Round 1: 5/10 (Home 5/5, Up next 0/5; "the pointing didn't read"). Gate 12.02 / 12.09; luma 113.
-- **Title:** keeps the phrase that hooked 4 of 5 personas and the host anchor (Atlas Pro's 7.2M "What Did Pangaea Look like?" tops the probe); replaces the slang bracket. Truth flag: the film hedges ("most likely", 12:55-13:02) but ends unhedged ("It wasn't an accident. It was a breakup.") and ties the answer to "how Pangaea broke apart" (s087-s088). If the owner wants the hedge in the package, use backup 1.
-- **Backups:** "Why South America and Africa Point at Antarctica" (48); "South America Points at Antarctica. So Does Africa" (50).
-- **Rejected:** "Why Every Continent Points South (Blame Pangaea)": "Every" is false (Cape York points north in the film).
-- **How to apply, if approved:** run blind round 2 on the two arms first (Home slot 2-3, Up next slot 5-7, not next to Astrum); then change the title and start Test & Compare with the two thumbnails on the same day (the whole failing package is replaced, so there is nothing to attribute); leave it for 2 weeks. Known gap: the live video's frame 1 is still the orange "?" globe, so P2 cannot be met without re-editing.
+The proposal ("Why the Continents Point South (Pangaea's Breakup)" with `final_ep01_1.jpg` / `final_ep01_2.jpg`) lost to the live package 0/20 against 8/10 in a controlled blind round (`round2.md` section 5). Nothing was changed on YouTube and nothing should be. Keep the live title and thumbnail. If ep01 is worked on again, start from the live concept (a visible question plus the shapes that pose it), keep its bracket, and require a head-to-head win against the live package in a balanced round with a control arm. Lessons kept: no-text thumbnails lost in both rounds (1 of 40 picks), and a mean luma floor did not predict picks (the live card at luma 62 won).
 
 ---
 

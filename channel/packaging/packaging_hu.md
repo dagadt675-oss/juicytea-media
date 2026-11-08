@@ -1,5 +1,7 @@
 # Címek és bélyegképek: a végleges csomag (2026-11-08)
 
+**Javítás a 2. kör után:** a jelenlegi 1. részes csomag a vak tesztben megverte mindkét új javaslatot (8/10 kontra 0/20), ezért az alábbi, bélyegképre vonatkozó diagnózis nem igazolódott. A gyenge kattintás fő oka valószínűleg a téma volt (elvont mítosz, nincs konkrét hely, szinte nulla keresés).
+
 **Mi volt a baj az 1. résszel?** A javasolt videók között (a megjelenések 93%-a) csak 1,97% kattintott. A bélyegkép mindenhol a legsötétebb kártya volt (fényesség 61, a szomszédoké 90-143), öt elem versengett rajta, és a „POINTING AT WHAT?” kis méretben olvashatatlan. A cím zárójele bizonytalankodott („Not Just a Coincidence”).
 
 **Az 5 legfontosabb új szabály**
@@ -24,3 +26,14 @@
 - A film „most likely”-t mond, a zárójel a záró mondatát ismétli. Óvatosabb változat: „Why South America and Africa Point at Antarctica”.
 
 Képek: `final_overview.jpg`; részletek: `packaging_playbook.md`.
+
+## Második vak kör
+
+Csak 5 szimulált néző, jelöltenként 10 próba: csak a nagy különbségek biztosak.
+
+- **A 2. rész címe marad:** „Why Can't You See Most of Hawaii? (Look Down)”. Ugyanazzal a képpel 3/10, a tartalék cím 2/10. Ez zaj, váltani nem kell.
+- **Test & Compare két képpel:** NO OCEAN az alapértelmezett (két kör alatt 12/20 választás, 4 első kattintás), mellette ONE ISLAND (11/20, 0 első). A YOU ARE HERE kiesik: 0/10, mind az öt néző szerint „csak egy domb”.
+- **Kockázat:** a NO OCEAN kis kártyán szürkének, fakónak tűnt.
+- **1. rész: nem cseréljük.** A jelenlegi csomag 8/10 (5 első kattintás), a két új földgömb 0/10 („nincs rajta szöveg”, „tanórának hangzik”). A javaslatot visszavonjuk.
+
+Részletek: `round2.md`.
