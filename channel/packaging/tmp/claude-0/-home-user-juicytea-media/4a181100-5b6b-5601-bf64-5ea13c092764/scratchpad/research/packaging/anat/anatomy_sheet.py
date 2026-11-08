@@ -24,7 +24,7 @@ for n,k in enumerate(EX):
     sheet.paste(tile(r['id'],W,H),(x,y))
     d.rectangle((x,y,x+34,y+26),fill=(255,214,0)); d.text((x+5,y+3),str(n+1),fill=(0,0,0),font=fb)
     rel=f"{r['ratio']:.0f}x subs" if r['ratio']>=1 else f"{r['outlier']:.0f}x ch. median"
-    d.text((x,y+H+5),f"{r['channel'][:15]}  {fmt(r['views'])} / {fmt(r['subs'])} subs ({rel})",fill=(235,235,235),font=fs)
+    d.text((x,y+H+5),f"{r['channel'][:16]}  {fmt(r['views'])} / {fmt(r['subs'])} subs ({rel})",fill=(235,235,235),font=fs)
     v=r['v']; d.text((x,y+H+24),f"{v['words']} words, text {v['txt_h']:.0f}% h, focal {v['focal']}, luma {r['m']['bright']:.0f}",fill=(170,170,170),font=fr)
 y0=top_h+grid_h
 d.text((G,y0+8),'Same 15 at compact-card size (168x94, YouTube dark mode #0F0F0F): what survives the squint',fill=(240,240,240),font=fb)
