@@ -39,6 +39,8 @@ float hash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32);
 float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
 float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 5; i++) { s += a * vnoise(p); p = p * 2.03 + 17.1; a *= 0.5; } return s; }
+// noise at frequency f (cycles per degree) faded to its mean where one cycle spans fewer than ~4 pixels (pf = pixel footprint in degrees)
+float fbmL(vec2 ll, float f, float pf){ return mix(0.47, fbm(ll * f), 1.0 - smoothstep(0.12, 0.45, f * pf)); }
 `;
 
 // height lookup across both grids (hero inside its bbox, wide skirt elsewhere) + sun visibility by ray-marching toward the sun
@@ -82,9 +84,9 @@ uniform vec3 basaltCol, sedCol, reefCol, tubCol, lineCol;
 uniform float reefAmt, tubM, tubAmt, oldLine, lineW, detail;
 varying vec2 vUv; varying vec3 vW;
 float Hm(vec2 uv){ return texture2D(hTex, uv).r; }
-vec3 seabed(float h, float slope, float cav, vec2 ll){
+vec3 seabed(float h, float slope, float cav, vec2 ll, float pf){
   float dep = -h;
-  float n = fbm(ll * 6.0), n2 = fbm(ll * 33.0 + 3.0), n3 = fbm(vec2(ll.x * 170.0, ll.y * 170.0) + n * 3.0);
+  float n = fbm(ll * 6.0), n2 = fbmL(ll + 3.0, 33.0, pf), n3 = fbmL(ll + n * 0.02, 170.0, pf);
   // sediment ponds on gentle slopes (abyssal plain, moat), bare basalt on the flanks and slide blocks
   float rocky = smoothstep(0.035, 0.11, slope + (n2 - 0.5) * 0.05);
   vec3 c = mix(sedCol, basaltCol, rocky);
@@ -100,25 +102,26 @@ void main(){
   float lat = radians(ll.y);
   float h = Hm(vUv);
   vec2 fp = max(texel, fwidth(vUv) * 0.75);
+  float pf = max(fwidth(ll.x), fwidth(ll.y));
   float hl = Hm(vUv - vec2(fp.x, 0.0)), hr = Hm(vUv + vec2(fp.x, 0.0)), hd = Hm(vUv - vec2(0.0, fp.y)), hu = Hm(vUv + vec2(0.0, fp.y));
   float dxk = (bb.z - bb.x) * fp.x * ${KM_DEG} * cos(lat), dyk = (bb.w - bb.y) * fp.y * ${KM_DEG};
   float gx = (hr - hl) * vex * 0.001 / (2.0 * dxk), gy = (hu - hd) * vex * 0.001 / (2.0 * dyk);
   float rk = mix(seaRelief, 1.0, smoothstep(-40.0, 0.0, h));
   // procedural micro-relief on the seabed (sonar grids are 100-450 m; this keeps close flanks from looking like plastic)
   float sub = 1.0 - smoothstep(-30.0, 10.0, h);
-  vec2 q = ll * 260.0; float e = 0.37;
-  vec2 dn = vec2(fbm(q + vec2(e, 0.0)) - fbm(q - vec2(e, 0.0)), fbm(q + vec2(0.0, e)) - fbm(q - vec2(0.0, e))) * 0.55 * detail * sub;
+  vec2 q = ll * 180.0; float e = 0.37;
+  vec2 dn = vec2(fbm(q + vec2(e, 0.0)) - fbm(q - vec2(e, 0.0)), fbm(q + vec2(0.0, e)) - fbm(q - vec2(0.0, e))) * 0.16 * detail * sub * (1.0 - smoothstep(0.12, 0.45, 180.0 * pf));
   vec3 n = normalize(vec3(-gx * rk + dn.x, 1.0, gy * rk - dn.y));
   float cav = clamp((hl + hr + hd + hu - 4.0 * h) / max(fp.x * 4096.0, 1.0) / 90.0, -0.25, 0.25);
   float slope = length(vec2(gx, gy)) / vex;
   float ao = texture2D(aoTex, vUv).r;
   float shadow = shadows > 0.5 ? sunVis(ll, h) : 1.0;
-  vec3 land = texture2D(colTex, vUv).rgb; float l0 = dot(land, vec3(0.2126, 0.7152, 0.0722)); land = max(mix(vec3(l0), land, landSat), 0.0) * landGain;
-  vec3 alb = mix(seabed(h, slope, cav, ll), land, smoothstep(-6.0, 4.0, h));
+  vec3 land = texture2D(colTex, vUv).rgb; float l0 = dot(land, vec3(0.2126, 0.7152, 0.0722)); land = max(mix(vec3(l0), land, landSat), 0.0) * landGain * (0.86 + 0.20 * fbmL(ll, 520.0, pf) + 0.10 * (fbmL(ll, 2100.0, pf) - 0.5));
+  vec3 alb = mix(seabed(h, slope, cav, ll, pf), land, smoothstep(-6.0, 4.0, h));
   float exposed = step(h, -1.0) * step(level, h);
   float above = h - level;
   // bathtub ring: pale mineral crust in a band just below the former sea level, broken up by noise
-  float tb = exposed * (1.0 - smoothstep(tubM * 0.35, tubM, -h)) * smoothstep(0.25, 0.6, fbm(ll * 420.0) + 0.25 * (1.0 + h / tubM));
+  float tb = exposed * (1.0 - smoothstep(tubM * 0.35, tubM, -h)) * smoothstep(0.25, 0.6, fbmL(ll, 420.0, pf) + 0.25 * (1.0 + h / tubM));
   alb = mix(alb, tubCol, tb * tubAmt);
   // dark wet band right above the new waterline
   float ring = exposed * (1.0 - smoothstep(0.0, ringH, above));
@@ -152,7 +155,7 @@ void main(){
 const WATER_FS = /* glsl */`
 ${COMMON}
 ${HEIGHT}
-uniform float level, time, sunI, dbg, foamAmt, foamPx, foamM, edgeGlow;
+uniform float level, time, sunI, dbg, foamAmt, foamPx, foamM, edgeGlow, fresMax;
 uniform vec3 wShallow, wMid, wDeep;
 varying vec3 vW; varying vec2 vLL;
 float hBlend(vec2 ll){
@@ -174,8 +177,8 @@ void main(){
   float rough = mix(0.035, 0.11, slick);
   vec3 n = normalize(vec3(g.x * rough * 2.0, 1.0, g.y * rough * 2.0));
   vec3 v = normalize(camPos - vW);
-  float fres = 0.02 + 0.98 * pow(1.0 - max(dot(n, v), 0.0), 5.0);
-  vec3 refl = skyColor(reflect(-v, n));
+  float fres = 0.02 + fresMax * pow(1.0 - max(dot(n, v), 0.0), 5.0);
+  vec3 refl = skyColor(reflect(-v, n)) * mix(vec3(1.0), wShallow * 2.2 + 0.25, 0.35);
   vec3 hv = normalize(v + sunDir); float nh = max(dot(n, hv), 0.0);
   float a2 = rough * rough; float dd = nh * nh * (a2 - 1.0) + 1.0; float spec = a2 / (3.14159 * dd * dd);
   vec3 glint = sunCol * sunI * spec * 0.08 * fres;
@@ -184,9 +187,10 @@ void main(){
   // foam rim + luminous shallow edge, sized in screen pixels via the depth derivative
   float fwD = max(fwidth(depth), 0.05);
   float fr = foamPx * fwD + foamM;
-  float fn = fbm(vLL * 2400.0) * 0.7 + fbm(vLL * 300.0) * 0.6;
+  float pf = max(fwidth(vLL.x), fwidth(vLL.y));
+  float fn = fbmL(vLL, 2400.0, pf) * 0.7 + fbmL(vLL, 300.0, pf) * 0.6;
   float foam = foamAmt * (1.0 - smoothstep(fr * (0.35 + 0.5 * fn), fr * (0.7 + 0.6 * fn), depth));
-  float edge = edgeGlow * (1.0 - smoothstep(fr, fr * 5.0, depth));
+  float edge = edgeGlow * (1.0 - smoothstep(fr, fr * 3.0, depth));
   body = mix(body, wShallow * 1.9, edge * 0.7);
   float aBody = 1.0 - exp(-depth / 7.0);
   float alpha = 1.0 - (1.0 - aBody) * (1.0 - fres);
@@ -252,12 +256,12 @@ const V3 = (a) => new THREE.Vector3(...a);
 
 // looks: sky, haze and sun colours (sRGB hex), intensities
 export const LOOKS = {
-  gold: { zenith: '#4a7fc0', horizon: '#f0c9a2', haze: ['#e8c7a6', 0.78], sun: '#ffcf98', glow: ['#ffb46e', 1.0], sunI: 3.4, skyI: 0.85 },
-  day: { zenith: '#2d6cba', horizon: '#b7d3ec', haze: ['#bcd2e6', 0.82], sun: '#fff2e0', glow: ['#ffe6c4', 0.8], sunI: 3.2, skyI: 0.95 },
-  warm: { zenith: '#3f78bd', horizon: '#f3d3ae', haze: ['#ecd2b4', 0.80], sun: '#ffd9a8', glow: ['#ffc07c', 0.9], sunI: 3.4, skyI: 0.9 },
+  gold: { zenith: '#1b58bd', horizon: '#a9c9ee', haze: ['#a6bfdd', 0.70], sun: '#ffc68c', glow: ['#ffae66', 0.40], sunI: 3.6, skyI: 0.62 },
+  day: { zenith: '#1553b5', horizon: '#9fc4ee', haze: ['#a5c0e0', 0.74], sun: '#fff3e2', glow: ['#ffe6c8', 0.5], sunI: 3.5, skyI: 0.70 },
+  warm: { zenith: '#1e5fbf', horizon: '#b9d0ea', haze: ['#adc3dd', 0.72], sun: '#ffd6a8', glow: ['#ffbc7c', 0.40], sunI: 3.6, skyI: 0.64 },
 };
 export const WATERS = {  // linear RGB: shallow, mid, deep
-  turq: [[0.020, 0.36, 0.40], [0.008, 0.16, 0.24], [0.004, 0.075, 0.15]],
+  turq: [[0.020, 0.40, 0.42], [0.006, 0.19, 0.26], [0.003, 0.095, 0.17]],
   ocean: [[0.020, 0.22, 0.26], [0.006, 0.090, 0.16], [0.003, 0.035, 0.085]],
 };
 
@@ -294,11 +298,11 @@ export class HawaiiStage {
       uniforms: Object.assign({}, this.U, HU, {
         hTex: { value: hTex }, aoTex: { value: aoTex }, colTex: { value: colTex }, texel: { value: new THREE.Vector2(1 / hm.W, 1 / hm.H) },
         bb: { value: new THREE.Vector4(...bb) }, hole: { value: new THREE.Vector4(...hb) }, holeDrop: { value: holeDrop },
-        level: { value: 0 }, ringH: { value: 40 }, dbg: { value: 0 }, landSat: { value: 1.15 }, landGain: { value: 1.0 }, seaRelief: { value: 1.0 },
+        level: { value: 0 }, ringH: { value: 40 }, dbg: { value: 0 }, landSat: { value: 1.2 }, landGain: { value: 1.15 }, seaRelief: { value: 1.0 },
         sunI: { value: 3.2 }, skyI: { value: 0.9 }, shadows: { value: 1 },
-        basaltCol: { value: V3([0.060, 0.056, 0.054]) }, sedCol: { value: V3([0.085, 0.064, 0.050]) }, reefCol: { value: V3([0.30, 0.295, 0.27]) },
+        basaltCol: { value: V3([0.033, 0.034, 0.038]) }, sedCol: { value: V3([0.066, 0.062, 0.060]) }, reefCol: { value: V3([0.16, 0.165, 0.155]) },
         tubCol: { value: V3([0.42, 0.42, 0.40]) }, lineCol: { value: V3([0.55, 1.6, 1.9]) },
-        reefAmt: { value: 0.7 }, tubM: { value: 140 }, tubAmt: { value: 0 }, oldLine: { value: 0 }, lineW: { value: 2.2 }, detail: { value: 1.0 },
+        reefAmt: { value: 0.45 }, tubM: { value: 200 }, tubAmt: { value: 0 }, oldLine: { value: 0 }, lineW: { value: 2.2 }, detail: { value: 1.0 },
       }), vertexShader: TERRAIN_VS, fragmentShader: TERRAIN_FS,
     });
     this.heroMat = terrMat(hT, heroAO, heroCol, hb, this.hHero, 0);
@@ -308,7 +312,7 @@ export class HawaiiStage {
     this.waterMat = new THREE.ShaderMaterial({
       uniforms: Object.assign({}, this.U, HU, {
         bb: { value: new THREE.Vector4(...sb) }, level: { value: 0 }, yLevel: { value: 0 }, time: { value: 0 }, sunI: { value: 3.2 }, dbg: { value: 0 },
-        foamAmt: { value: 0 }, foamPx: { value: 2.5 }, foamM: { value: 2.0 }, edgeGlow: { value: 0.6 },
+        foamAmt: { value: 0 }, foamPx: { value: 2.5 }, foamM: { value: 2.0 }, edgeGlow: { value: 0.6 }, fresMax: { value: 0.55 },
         wShallow: { value: V3(WATERS.turq[0]) }, wMid: { value: V3(WATERS.turq[1]) }, wDeep: { value: V3(WATERS.turq[2]) },
       }),
       vertexShader: WATER_VS, fragmentShader: WATER_FS, transparent: true, depthWrite: false,
@@ -318,7 +322,7 @@ export class HawaiiStage {
     const sky = new THREE.Mesh(new THREE.SphereGeometry(6000, 64, 32), new THREE.ShaderMaterial({ uniforms: this.U, vertexShader: SKY_VS, fragmentShader: SKY_FS, side: THREE.BackSide, depthWrite: false }));
     sky.renderOrder = -1; sky.frustumCulled = false; this.scene.add(sky);
     this.postMat = new THREE.ShaderMaterial({
-      uniforms: { src: { value: this.rt.texture }, exposure: { value: 1.0 }, vignette: { value: 0.22 }, grain: { value: 0.014 }, seed: { value: 0 }, sat: { value: 1.18 }, contrast: { value: 1.08 }, lift: { value: 0 }, res: { value: new THREE.Vector2(this.W, this.H) } },
+      uniforms: { src: { value: this.rt.texture }, exposure: { value: 1.2 }, vignette: { value: 0.20 }, grain: { value: 0.012 }, seed: { value: 0 }, sat: { value: 1.2 }, contrast: { value: 1.1 }, lift: { value: 0 }, res: { value: new THREE.Vector2(this.W, this.H) } },
       vertexShader: POST_VS, fragmentShader: POST_FS, depthTest: false, depthWrite: false,
     });
     this.postScene = new THREE.Scene(); const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.postMat); q.frustumCulled = false; this.postScene.add(q);

@@ -41,7 +41,7 @@ const SHOTS = {
 };
 const merge = (a, b) => { const o = Object.assign({}, a); for (const k in b) o[k] = (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k]) && a[k]) ? merge(a[k], b[k]) : b[k]; return o; };
 const S0 = SHOTS[Q.shot || 'half_low_se'] || {};
-const shot = merge(S0, Q);
+const shot = merge(S0, Q); if (Q.cam) shot.cam = Q.cam;  // a camera override replaces the whole camera
 let S;
 window.ready = (async () => {
   S = new HawaiiStage(W, H, { samples: shot.draft ? 0 : (shot.samples ?? 4), vex: shot.vex ?? 1.0, fogDens: shot.fog?.[0], fogBg: shot.fog?.[1],
@@ -53,7 +53,7 @@ window.renderFrame = async (f) => {
   S.setLook(shot.look || 'gold'); S.setSun(...(shot.sun || [230, 15])); S.setWater(shot.water || 'turq');
   S.setLevel(shot.level ?? 0);
   S.set('foamAmt', shot.foam ?? 0); S.set('tubAmt', shot.tub ?? 0); S.set('oldLine', shot.line ?? 0);
-  for (const k of ['ringH', 'tubM', 'lineW', 'landSat', 'landGain', 'reefAmt', 'detail', 'foamPx', 'edgeGlow', 'seaRelief', 'shadows']) if (shot[k] != null) S.set(k, shot[k]);
+  for (const k of ['ringH', 'tubM', 'lineW', 'landSat', 'landGain', 'reefAmt', 'detail', 'foamPx', 'foamM', 'edgeGlow', 'fresMax', 'seaRelief', 'shadows', 'dbg']) if (shot[k] != null) S.set(k, shot[k]);
   if (shot.basalt) S.set('basaltCol', new THREE.Vector3(...shot.basalt));
   if (shot.sed) S.set('sedCol', new THREE.Vector3(...shot.sed));
   for (const k of ['exposure', 'sat', 'contrast', 'lift', 'vignette', 'grain']) if (shot[k] != null) S.post(k, shot[k]);
