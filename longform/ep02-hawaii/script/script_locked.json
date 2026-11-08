@@ -1,0 +1,3481 @@
+{
+ "title": "Why Can't You See Most of Hawaii? (Look Down)",
+ "voice": {
+  "name": "Rodney - Clear Educator",
+  "voice_id": "eY2VJs4Gi8QKG2RV01sS",
+  "model": "eleven_v4"
+ },
+ "chapters": [
+  {
+   "n": 1,
+   "title": "Only the Top",
+   "start_s": 0.0,
+   "start_s_fast": 0.0
+  },
+  {
+   "n": 2,
+   "title": "Oʻahu's Missing Side",
+   "start_s": 89.7,
+   "start_s_fast": 82.6
+  },
+  {
+   "n": 3,
+   "title": "The Island Stands Up",
+   "start_s": 178.1,
+   "start_s_fast": 164.2
+  },
+  {
+   "n": 4,
+   "title": "Watch It Grow Old",
+   "start_s": 316.0,
+   "start_s_fast": 291.0
+  },
+  {
+   "n": 5,
+   "title": "Fought Over a Volcano",
+   "start_s": 428.5,
+   "start_s_fast": 394.7
+  },
+  {
+   "n": 6,
+   "title": "We Haven't Hit Bottom",
+   "start_s": 584.1,
+   "start_s_fast": 538.0
+  }
+ ],
+ "segments": [
+  {
+   "id": "s001",
+   "chapter": 1,
+   "text": "Hawaiʻi's Big Island, with the ocean {m:drained}drained.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "S4 GROUND hero. FRAME 1 = THUMBNAIL ARM A (NO OCEAN, round-3 default, packaging/final_ep02_1.jpg) IN MOTION. TerrainStage with the plate d3 settings (landSat 1.6, landGain 2.7, darker cool basalt and sediment; masked grade: saturated rainforest green and rust on the cap, cool slate flank, deeper blue sky top), VE 1.0. Camera lon -155.32, lat 18.42, 26 km up, looking north; framing = the 1.32 zoom crop (centre 0.47/0.49); frame 0 must score SSIM >= 0.8 at 320x180 (label off) against final_ep02_1.jpg. No water anywhere in frame. The thin, solid, terrain-following white line on today's 0 m coast is on from frame 0 (never dashed, straight or labelled). Motion from frame 0 that clears the still_s gate: push 4% per 10 s plus 0.6 deg/s heading drift. The thumbnail's 'NO OCEAN' text block is on frame 0 (same plate and place as the thumbnail); its 8 px accent bar wipes on over frames 2-10 (the first motion graphic before frame 10); the block dissolves out over 8 frames starting 0.6 s after {m:drained}. No gauge yet.",
+   "onscreen": [
+    "NO OCEAN"
+   ],
+   "humor": "",
+   "sfx": [
+    "wind_high_soft (-26) bed from frame 0",
+    "low_drone swell under {m:drained}"
+   ],
+   "music": "Cold-open cue: airy, curious pulse from frame 1. No logo, no sting.",
+   "fact_ids": [
+    "C12-01"
+   ],
+   "est_start_s": 0.35,
+   "est_start_s_fast": 0.35
+  },
+  {
+   "id": "s002",
+   "chapter": 1,
+   "text": "{m:most}Most of this mountain is normally {m:under}underwater.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "Same camera, push continues. At {m:most}: a 2.5 s eased tilt DOWN (pitch about -5 deg) along the south flank, from the white line toward the base (first hint of '(Look Down)'). At {m:under}: the white coast line brightens over 6 frames and back, so the eye finds where the sea normally stops. No text.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-01",
+    "C3-02-most-below-sea"
+   ],
+   "est_start_s": 3.4,
+   "est_start_s_fast": 3.15
+  },
+  {
+   "id": "s003",
+   "chapter": 1,
+   "text": "The Hawaiʻi you see on {m:card}postcards? Only the {m:top}top.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "Same drained camera; still NO water (the thumbnail state stays on screen until about 0:10). At {m:card}: a paper postcard (off-white #F6F1E4, a real public-domain photo of a Big Island coast, place name 'HAWAIʻI' in large postcard type, 2-4 px warm paper edge, soft contact shadow, same sun) drops from the top of frame and lands flat ONTO the dry summit cap above the white coast line, tilted 4 deg, roughly the cap's footprint in perspective, while the whole drained flank below stays bare. At {m:top}: the card lifts 10% on its paper hinge and the cap under it takes a hero-orange outline (#FF5A36, 55% fill, 5-6 px white outline) for 1.0 s: 'only the top', shown literally at true scale against everything below it.",
+   "onscreen": [
+    "HAWAIʻI"
+   ],
+   "humor": "",
+   "sfx": [
+    "paper_flap (-14) as the card lands on {m:card}"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-01"
+   ],
+   "est_start_s": 6.44,
+   "est_start_s_fast": 5.95
+  },
+  {
+   "id": "s004",
+   "chapter": 1,
+   "text": "Start with {m:maui}Maui, {m:molo}Molokaʻi and {m:lanai}Lānaʻi.",
+   "pause_after": 0.5,
+   "speed": 1.0,
+   "visual": "As s003 ends the postcard flutters off frame-right and an eased 2.0 s flight northwest begins (ease on the destination key). The sea refills to 0 m DURING the flight (live, foam rim, turquoise depth gradient); the flight lands on the arm B 'ONE ISLAND' composition (packaging/final_ep02_2.jpg camera: south of Lānaʻi, about 60 km up, looking NNW), VE 1.0, water at 0 m. Persistent SEA LEVEL gauge top-left (plate 12-15% of frame height, moving water marker, no running digits; hero mode shows one big number only at a hero-number moment) slides in during the flight. NAMES (packaging arm-B condition, by 0:14): ONE text block in the free upper third (Barlow 800 caps, 64 px cap or more, plate with accent bar), its three words revealed whole on their spoken words: MAUI at {m:maui}, MOLOKAʻI at {m:molo}, LĀNAʻI at {m:lanai}; at the same moments each island's coast gets a 6 px white rim pulse (0.6 s), so name and place match on the word. The block holds until the 'ONE ISLAND' beat in s006 (about 5 s; never three separate map labels at once). Kahoʻolawe is dimmed and desaturated from the moment the flight lands, no label.",
+   "onscreen": [
+    "SEA LEVEL",
+    "MAUI MOLOKAʻI LĀNAʻI"
+   ],
+   "humor": "",
+   "sfx": [
+    "whoosh_soft (-12) on the flight",
+    "water_surge_up (-16) under the refill",
+    "pop_ui (-18) x3 on the names"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-03",
+    "C12-05"
+   ],
+   "est_start_s": 10.37,
+   "est_start_s_fast": 9.56
+  },
+  {
+   "id": "s005",
+   "chapter": 1,
+   "text": "Drop the sea {m:fourhundred}four hundred {m:ft400}feet.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "HERO SHOT #1 (arm B composition). S4 GROUND live drain: water eases 0 to -122 m over 3.5 s. At {m:fourhundred}: the gauge goes to hero mode: a yellow #FFD23F Anton counter (cap 150-190 px) rolls to '−400 FT' and lands exactly on {m:ft400}. The islands fuse during the drain (the ʻAuʻau saddle surfaces first, at about -50 m, then the Kalohi side at about -78 m); banks surface as cream-tan reef flats; Penguin Bank rises as a big flat lobe off West Molokaʻi. The names block stays up. Hold the live drain 3 s longer than the draft (retention review backfill).",
+   "onscreen": [
+    "−400 FT"
+   ],
+   "humor": "",
+   "sfx": [
+    "drain_riser (-14)",
+    "tick_counter (-16) under the counter",
+    "impact_deep (-10) on {m:ft400}"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-03",
+    "C12-04"
+   ],
+   "est_start_s": 13.22,
+   "est_start_s_fast": 12.21
+  },
+  {
+   "id": "s006",
+   "chapter": 1,
+   "text": "They become one {m:one}island.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "Same camera; water held at -122 m (never below -150 m in this shot, or Kahoʻolawe joins). At {m:one}: the names block dissolves (6 frames) into the headline 'ONE ISLAND' in the same place; the fused island (Molokaʻi + Lānaʻi + West Maui + Haleakalā + Penguin Bank; outline from sill.py flood-fill at -122 m on the production grid) takes the hero-orange 55% fill and white outline. The Pailolo Channel stays water (a bay inside the horseshoe). Kahoʻolawe stays separate, dimmed and desaturated, no label; Oʻahu and the Big Island stay separate.",
+   "onscreen": [
+    "ONE ISLAND"
+   ],
+   "humor": "",
+   "sfx": [
+    "impact_soft (-12) on {m:one}"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-03",
+    "C12-05",
+    "C12-06"
+   ],
+   "est_start_s": 15.88,
+   "est_start_s_fast": 14.65
+  },
+  {
+   "id": "s007",
+   "chapter": 1,
+   "text": "That's not a what-if. In the last {m:ice}Ice Age, it really happened.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "Low golden-hour pass (2.5 s, eased) over the dry land bridge between Lānaʻi and West Maui (the ʻAuʻau Channel floor near 20.885N 156.758W), camera 1.5 km up, VE 1.0, three seabirds crossing the dry channel at true scale. At {m:ice}: kicker 'LAST ICE AGE' in the top third for 2 s.",
+   "onscreen": [
+    "LAST ICE AGE"
+   ],
+   "humor": "",
+   "sfx": [
+    "seabirds_distant (-24)",
+    "wind_soft (-26)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-04",
+    "C12-05"
+   ],
+   "est_start_s": 17.84,
+   "est_start_s_fast": 16.48
+  },
+  {
+   "id": "s008",
+   "chapter": 1,
+   "text": "No ferry {m:ferry}needed.",
+   "pause_after": 0.7,
+   "speed": 1.0,
+   "visual": "GAG (3.5 s), S11 paper standee on the real terrain. The recurring paper tourist (cut-out of a real public-domain 1950s Hawaiʻi tourist photo, aloha shirt; 2-4 px warm off-white paper edge, fold-out base tab, soft contact shadow, same sun) hop-walks across the dry ʻAuʻau Channel floor from Lānaʻi toward West Maui pulling a paper suitcase, at 35-40% of frame height, ground camera about 40 m up. The walk starts under the end of the previous line. At {m:ferry}: he tips his hat to camera. Never on the Pailolo side. Tourist appearance 1 of 4.",
+   "onscreen": [],
+   "humor": "Deadpan: at the Ice Age low stand you could walk from Lānaʻi to Maui. 1.2 s music dip (-10 dB) right before the line; suitcase-wheel rattle in the gap after it.",
+   "sfx": [
+    "suitcase_wheels_gravel (-16) in the gap after {m:ferry}",
+    "paper_flap (-18) on each hop"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-03",
+    "C12-05"
+   ],
+   "est_start_s": 22.85,
+   "est_start_s_fast": 21.06
+  },
+  {
+   "id": "s009",
+   "chapter": 1,
+   "text": "Keep draining. And {m:look}look down.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "'(LOOK DOWN)' MOVE #1 (promise map: by about 0:27). At {m:look}: from the tourist the camera rises 300 m and pitches down 40 deg over Maui Nui's new north shore, then rides down the submarine slope as the water resumes falling (-122 m toward -1,000 m over 6 s; gauge marker dropping, no digits).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "drain_riser (-14)",
+    "rumble_low (-18)"
+   ],
+   "music": "",
+   "fact_ids": [],
+   "est_start_s": 24.73,
+   "est_start_s_fast": 22.84
+  },
+  {
+   "id": "s010",
+   "chapter": 1,
+   "text": "Even with every drop gone, we won't hit {m:nobottom}bottom.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "The camera keeps riding down the slope while the water falls away below it. At {m:nobottom}: the slope ahead fades into blue depth with no floor in sight (a tease; no text, no number). LOOP PLANTED (the film's one forward promise, the story's own question): paid by the Ch6 card 'WE HAVEN'T HIT BOTTOM', s160 and the payoff.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-04-havent-hit-bottom"
+   ],
+   "est_start_s": 26.99,
+   "est_start_s_fast": 24.92
+  },
+  {
+   "id": "s011",
+   "chapter": 1,
+   "text": "The shore becomes a {m:ledge}ledge. Then the slope {m:plunge}plunges.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:ledge}: the camera passes the edge of the shallow shelf; at {m:plunge}: it tips over and follows the submarine slope down (say 'plunges', never 'cliffs').",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-10",
+    "C12-03"
+   ],
+   "est_start_s": 30.82,
+   "est_start_s_fast": 28.44
+  },
+  {
+   "id": "s012",
+   "chapter": 1,
+   "text": "See that flat {m:bank}bank? It was dry land once.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Eased 2 s pull-back and swing west: Penguin Bank, the big flat table off West Molokaʻi (top at about -30 to -60 m), stands high and dry above the falling water. At {m:bank}: hero-orange outline on the bank top; map label 'PENGUIN BANK'.",
+   "onscreen": [
+    "PENGUIN BANK"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-07"
+   ],
+   "est_start_s": 34.55,
+   "est_start_s_fast": 31.85
+  },
+  {
+   "id": "s013",
+   "chapter": 1,
+   "text": "The sea rose after the Ice Age and {m:drowned}drowned it.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:drowned}: reverse drain, 3 s: the water rises from -1,000 m back to 0 m over Maui Nui; the land bridge and Penguin Bank go under and Maui, Molokaʻi and Lānaʻi separate again. Gauge marker climbs. (Backup title 2 condition: this line names cause 1, the sea rose; s014 names cause 2, sinking.)",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "water_rise (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-09b",
+    "C12-04",
+    "C12-07"
+   ],
+   "est_start_s": 38.28,
+   "est_start_s_fast": 35.26
+  },
+  {
+   "id": "s014",
+   "chapter": 1,
+   "text": "And the Big Island is sinking right {m:now}now.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "Whip-pan (8 frames, motion blur) southeast to the Big Island's south coast, sea at 0 m, morning light. At {m:now}: one yellow down-arrow (15 px body) beside the coast pulses once (no number).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "whip (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-09b",
+    "C3-06-subsidence-rate"
+   ],
+   "est_start_s": 42.5,
+   "est_start_s_fast": 39.14
+  },
+  {
+   "id": "s015",
+   "chapter": 1,
+   "text": "Usually, that's slow. {m:notalways}Not always.",
+   "pause_after": 0.6,
+   "speed": 1.0,
+   "visual": "Eased push toward Kīlauea's south-flank coast while the light falls to pre-dawn blue. Music thins out on {m:notalways}.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "Cold-open cue resolves and thins to a low sustained pad (no sting).",
+   "fact_ids": [
+    "C12-12",
+    "C12-15"
+   ],
+   "est_start_s": 45.93,
+   "est_start_s_fast": 42.29
+  },
+  {
+   "id": "s016",
+   "chapter": 1,
+   "text": "One night, campers were asleep at {m:hal}Halapē, a beach on this coast.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "RE-HOOK, human story. Staged at a 1-3 km oblique (NOT at ground level: the look book rates close terrain 'not yet good enough') on the USGS 3DEP 10 m DEM blended with the NCEI coastal DEM at Halapē (pin from GNIS/NPS), pre-dawn blue light, stars: the cove, the coconut grove as instanced palms in the scene's own grade (not paper), a few small tents (no people shown), still water. At the start of the line: kicker 'NOVEMBER 1975' (small, free third, 2 s; the year is shown, not spoken, to keep the 60 s number cap). At {m:hal}: map label 'HALAPĒ' on its pin (holds 2 s). GATE: this staging must pass a 10-15 s phone motion test before lock of the render.",
+   "onscreen": [
+    "NOVEMBER 1975",
+    "HALAPĒ"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "Solemn low pad only.",
+   "fact_ids": [
+    "C12-12",
+    "C12-13"
+   ],
+   "est_start_s": 48.5,
+   "est_start_s_fast": 44.68
+  },
+  {
+   "id": "s017",
+   "chapter": 1,
+   "text": "Before dawn, a smaller earthquake woke them {m:woke}up.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:woke}: a short tremor: the palms shiver, the water surface ripples, a lantern glow comes on inside one tent.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "rumble_small (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-12",
+    "C12-13"
+   ],
+   "est_start_s": 53.5,
+   "est_start_s_fast": 49.26
+  },
+  {
+   "id": "s018",
+   "chapter": 1,
+   "text": "More than an hour later, the big one {m:hit}hit.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Hold on the quiet cove for 1.5 s, then at {m:hit}: a hard jolt (camera shake 6 frames), dust off the low cliff behind the grove.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "rumble_deep (-12) on {m:hit}"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-12",
+    "C12-13"
+   ],
+   "est_start_s": 56.94,
+   "est_start_s_fast": 52.42
+  },
+  {
+   "id": "s019",
+   "chapter": 1,
+   "text": "The south coast {m:lurch}lurched toward the sea.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:lurch}: the whole coastal block slides seaward in one move; quick pull-up to show a long stretch of coast moving together.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-12",
+    "C12-17b"
+   ],
+   "est_start_s": 60.67,
+   "est_start_s_fast": 55.84
+  },
+  {
+   "id": "s020",
+   "chapter": 1,
+   "text": "The ground gave way. Parts of the shore {m:drop}dropped farther than a basketball hoop is high.",
+   "pause_after": 0.3,
+   "speed": 0.95,
+   "visual": "At {m:drop}: the coastal block subsides about 3.5 m in 1.5 s and the sea floods in among the palms. The palms STAY STANDING, now in about 1.2 m of water (visual truth). Scale: a side-on section inset in the free upper third (same grade as the scene, about 35% of frame height) shows the old ground line, the new one and a plain basketball pole-and-hoop silhouette at true scale (rim at 10 ft), drawn in the scene's own grade: no paper edge, no hinge, no wobble, no SFX (a scale marker, never a prop gag; deaths follow). The drop visibly exceeds the rim. The inset fades out over 8 frames before the wave in s021. No numbers on screen.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "ground_crack (-12)",
+    "water_flood (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-15"
+   ],
+   "est_start_s": 63.61,
+   "est_start_s_fast": 58.54
+  },
+  {
+   "id": "s021",
+   "chapter": 1,
+   "text": "Within seconds, the sea rushed {m:rush}in.",
+   "pause_after": 0.4,
+   "speed": 0.95,
+   "visual": "At {m:rush}: a local wave surges over the dropped shore from the east (frame right) and fills the low ground; framed at human scale, never as a hero wave; the palms remain, a few low bushes are torn out.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "wave_rush (-12)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-14",
+    "C12-16"
+   ],
+   "est_start_s": 70.52,
+   "est_start_s_fast": 64.85
+  },
+  {
+   "id": "s022",
+   "chapter": 1,
+   "text": "{m:two}Two people died.",
+   "pause_after": 2.0,
+   "speed": 0.9,
+   "visual": "From {m:two}: hold on our render of the flooded grove at first light: wide, slow drift back, colour desaturated 20%, mean luma 70 or more. No text, no gag, no sting.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "Single sustained low note; music down 3 dB.",
+   "fact_ids": [
+    "C12-14"
+   ],
+   "est_start_s": 73.39,
+   "est_start_s_fast": 67.51
+  },
+  {
+   "id": "s023",
+   "chapter": 1,
+   "text": "By {m:morning}morning, the palm grove was standing in the sea.",
+   "pause_after": 1.0,
+   "speed": 0.95,
+   "visual": "[PD] USGS 'Submerged coconut grove at Halapē after 1975 quake' (marked Public Domain, no photographer named; check the credit line), full-bleed in the shared grade, Ken Burns 2%, 3 s max, in on {m:morning}; then back to our render of the same standing grove in the water at first light. The film's first archival still (event evidence, not an idea-history aside). The image ends the beat; no cut to a new topic until the next line.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-15",
+    "C12-13"
+   ],
+   "est_start_s": 76.7,
+   "est_start_s_fast": 70.7
+  },
+  {
+   "id": "s024",
+   "chapter": 1,
+   "text": "All that, from several {m:yards}yards of sliding.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "Pull back to a regional oblique of the Big Island's south side; Kīlauea's south flank gets the hero-orange fill; at {m:yards}: a short yellow arrow points seaward. Never 'just' a few yards.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-17b"
+   ],
+   "est_start_s": 81.83,
+   "est_start_s_fast": 75.46
+  },
+  {
+   "id": "s025",
+   "chapter": 1,
+   "text": "Now picture a whole side of a volcano letting {m:go}go. One {m:did}did.",
+   "pause_after": 1.0,
+   "speed": 1.0,
+   "visual": "At {m:go}: whip-pan northwest along the chain (8 frames, motion blur) toward Oʻahu; at {m:did} the whip lands on windward Oʻahu's green cliffs. Chapter card 'OʻAHU'S MISSING SIDE' rides over the moving bright shot (near-opaque plate, 0.26 s in, 1.1 s hold, 0.26 s out); the voice gap covers the card's first 0.9 s.",
+   "onscreen": [
+    "OʻAHU'S MISSING SIDE"
+   ],
+   "humor": "",
+   "sfx": [
+    "whip (-14)"
+   ],
+   "music": "Crossfade to the Ch2 cue: lighter, windy, playful.",
+   "fact_ids": [
+    "C12-17b",
+    "C12-21b"
+   ],
+   "est_start_s": 84.87,
+   "est_start_s_fast": 78.26
+  },
+  {
+   "id": "s026",
+   "chapter": 2,
+   "text": "This is the {m:pali}Pali Lookout, on {m:oahu}Oʻahu.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "S3 HERO OBLIQUE settling into a ground shot: Nuʻuanu Pali State Wayside (pin from DLNR/GNIS), the green fluted Koʻolau cliffs, trade-wind clouds streaming over the ridge. Camera behind the lookout wall at about 1,200 ft, looking northeast over the windward side. Map label 'PALI LOOKOUT' at {m:pali}, held 2 s; at {m:oahu} the camera settles behind the wall.",
+   "onscreen": [
+    "PALI LOOKOUT"
+   ],
+   "humor": "",
+   "sfx": [
+    "wind_strong (-20) bed"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-18"
+   ],
+   "est_start_s": 90.58,
+   "est_start_s_fast": 83.54
+  },
+  {
+   "id": "s027",
+   "chapter": 2,
+   "text": "Pali means {m:cliff}cliff.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:cliff}: the camera tilts to take in the full height of the cliff face beyond the wall.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-18"
+   ],
+   "est_start_s": 93.53,
+   "est_start_s_fast": 86.24
+  },
+  {
+   "id": "s028",
+   "chapter": 2,
+   "text": "The wind here is usually so strong, you can {m:lean}lean on it.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "The recurring paper tourist (same card as 0:22) stands BEHIND the waist-high stone wall at 35-40% of frame height; the wall stays between him and the drop the whole time. The trade wind blows FROM the northeast, up the cliff, into his face. At {m:lean}: he leans forward into the wind at an absurd 25-30 deg and stays up (paper hinge wobble, shirt flutter); his upper body stays behind the wall line, never out over the edge. Tourist appearance 2 of 4.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-18"
+   ],
+   "est_start_s": 94.9,
+   "est_start_s_fast": 87.51
+  },
+  {
+   "id": "s029",
+   "chapter": 2,
+   "text": "Hold on to your {m:hat}hat.",
+   "pause_after": 0.7,
+   "speed": 1.0,
+   "visual": "GAG (3 s): at {m:hat} his hat lifts off and flies BACKWARD over his head, inland toward Honolulu (physically true for a wind blowing into his face); he turns and runs after it out of frame-left. The camera does NOT follow him: it rises over the wall and dives down the cliff face alone ('(Look Down)' echo, 2 s eased). Nothing and nobody falls off the Pali.",
+   "onscreen": [],
+   "humor": "The joke is the wind, not the drop (taste: the 1795 battle). Gust plus a comic paper flap in the gap after the line.",
+   "sfx": [
+    "wind_gust (-14) on {m:hat}",
+    "paper_flap_comic (-16) in the gap",
+    "whoosh_dive (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-18"
+   ],
+   "est_start_s": 99.81,
+   "est_start_s_fast": 92.0
+  },
+  {
+   "id": "s030",
+   "chapter": 2,
+   "text": "If you've stood here, you've stood at the edge of something {m:huge}huge.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "The dive levels out and pulls back to a regional oblique of windward Oʻahu from the northeast, 30 km up: the Koʻolau pali reads as one long curved wall. At {m:huge}: a thin white line traces the cliff top. (Comment hook: the pinned comment asks who has stood here.)",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-19"
+   ],
+   "est_start_s": 102.47,
+   "est_start_s_fast": 94.48
+  },
+  {
+   "id": "s031",
+   "chapter": 2,
+   "text": "These cliffs may trace where a volcano tore {m:tore}apart.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "At {m:tore}: a soft hero-orange glow runs along the cliff line (the scar). Nothing is drawn offshore yet. (Keep 'may': USGS hedges this.)",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-19"
+   ],
+   "est_start_s": 107.37,
+   "est_start_s_fast": 98.97
+  },
+  {
+   "id": "s032",
+   "chapter": 2,
+   "text": "To find the rest of that volcano, drain the sea {m:ne}northeast of Oʻahu.",
+   "pause_after": 0.9,
+   "speed": 1.0,
+   "visual": "At {m:ne}: eased 2.5 s move out to sea: camera about 80 km northeast of Oʻahu, 25 km up, looking southwest back at the island, VE 1.0, low sun from the east so the blocks will throw long shadows, hypsometric seabed tint (never grey mush). The live drain starts (water 0 to -4,500 m over the next 10 s, gauge marker dropping).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "drain_riser (-14)",
+    "rumble_low (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-20",
+    "C12-21b"
+   ],
+   "est_start_s": 111.3,
+   "est_start_s_fast": 102.58
+  },
+  {
+   "id": "s033",
+   "chapter": 2,
+   "text": "Past the {m:shelf}shelf. Down the {m:slope}slope.",
+   "pause_after": 0.7,
+   "speed": 1.0,
+   "visual": "Same live drain: at {m:shelf} the shallow shelf around Oʻahu surfaces; at {m:slope} the water drops down the island's submarine slope.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-21b"
+   ],
+   "est_start_s": 117.3,
+   "est_start_s_fast": 108.13
+  },
+  {
+   "id": "s034",
+   "chapter": 2,
+   "text": "{m:first}First, the tops of giant blocks. Then {m:more}more blocks. Then a whole {m:field}field of rubble.",
+   "pause_after": 2.0,
+   "speed": 1.0,
+   "visual": "RE-HOOK. Same live drain, physically true order (highest points surface first): at {m:first} the tops of the tallest blocks break the falling water surface (the largest summit is at about -2,691 m); at {m:more} more blocks surface one after another (a new one every 1-2 s), spreading northeast; at {m:field} the lower, hummocky debris field emerges around them. Hold the surfacing 3 s longer than the draft (retention backfill): the pause after the line is the held live drain.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "rock_emerge (-20) per block"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-20",
+    "C12-21b"
+   ],
+   "est_start_s": 120.35,
+   "est_start_s_fast": 110.97
+  },
+  {
+   "id": "s035",
+   "chapter": 2,
+   "text": "This is the debris of one of the largest {m:slides}landslides on Earth.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:slides}: the whole debris field (outline traced from USGS I-2809 / Moore et al. 1989, never invented) takes the hero-orange 55% fill and white outline.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-20"
+   ],
+   "est_start_s": 128.24,
+   "est_start_s_fast": 118.33
+  },
+  {
+   "id": "s036",
+   "chapter": 2,
+   "text": "The volcano that built eastern Oʻahu split right through its {m:summit}summit.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Eased 2 s swing back toward Oʻahu's east side. At {m:summit}: a white line marks where the old summit caldera was cut in two (schematic marker on the real cliffs).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-21b"
+   ],
+   "est_start_s": 133.14,
+   "est_start_s_fast": 122.81
+  },
+  {
+   "id": "s037",
+   "chapter": 2,
+   "text": "Its whole northeast side is lying out {m:outhere}here.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:outhere}: fast eased flight (2 s) from the cliffs out along the real mapped deposit at low altitude; blocks rush past in the foreground (the path is the mapped deposit, never a simulated collapse; no tsunami).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "whoosh_long (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-21b",
+    "C12-20"
+   ],
+   "est_start_s": 137.66,
+   "est_start_s_fast": 126.94
+  },
+  {
+   "id": "s038",
+   "chapter": 2,
+   "text": "Look at this one {m:block}block.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:block}: push in to the largest block (summit about -2,691 m at 22.065N 157.072W; never name it), low sun, long shadow, VE 1.0, water now below its base.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-23b"
+   ],
+   "est_start_s": 141.09,
+   "est_start_s_fast": 130.1
+  },
+  {
+   "id": "s039",
+   "chapter": 2,
+   "text": "It's bigger than {m:manh}Manhattan.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "HERO SHOT, S7 TRUE-SIZE DRAG: at {m:manh} a true-scale Manhattan outline (US Census TIGER New York County polygon, public domain; 5-6 px white outline, 40% cyan fill) drops from above and drapes along the block's LONG axis over the WHOLE block (its footprint at about the -4,000 m contour, about 27 x 18 km), VE 1.0. Never place it on the small summit area (above -2,900 m the top is only about 37 km2 and 6 km long; Manhattan is 21.6 km long). Map label 'MANHATTAN' on the outline.",
+   "onscreen": [
+    "MANHATTAN"
+   ],
+   "humor": "",
+   "sfx": [
+    "drag_whoosh (-14)",
+    "impact_deep (-10) on landing"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-23b"
+   ],
+   "est_start_s": 143.25,
+   "est_start_s_fast": 132.08
+  },
+  {
+   "id": "s040",
+   "chapter": 2,
+   "text": "With room to {m:spare}spare.",
+   "pause_after": 0.6,
+   "speed": 1.0,
+   "visual": "Dry gag (2.5 s): at {m:spare} the outline settles with a tiny 'tok'; a 1.5 s camera rise shows wide bare block on both long sides of the narrow island (the spare room shows mostly in WIDTH: block about 18 km wide, Manhattan about 3.7 km). No turning or sliding around; no 'room on every side' staging.",
+   "onscreen": [],
+   "humor": "A true-size drag that fits far too easily. Music dip before the line.",
+   "sfx": [
+    "tok_small (-18) in the gap"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-23b"
+   ],
+   "est_start_s": 145.02,
+   "est_start_s_fast": 133.71
+  },
+  {
+   "id": "s041",
+   "chapter": 2,
+   "text": "The debris runs for more than a hundred {m:miles}miles.",
+   "pause_after": 0.8,
+   "speed": 1.0,
+   "visual": "HERO NUMBER #2: pull back to a regional oblique; a 10 px yellow line with a moving head dot draws along the mapped deposit (USGS I-2809) from Oʻahu's coast out to the farthest blocks; at {m:miles} the number block lands: kicker 'MORE THAN', number '100 MILES'.",
+   "onscreen": [
+    "MORE THAN",
+    "100 MILES"
+   ],
+   "humor": "",
+   "sfx": [
+    "line_draw (-18)",
+    "impact_soft (-12) on {m:miles}"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-22"
+   ],
+   "est_start_s": 147.19,
+   "est_start_s_fast": 135.74
+  },
+  {
+   "id": "s042",
+   "chapter": 2,
+   "text": "And it's one of dozens of giant slides along this island {m:chain}chain.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "Quick pullback over the chain (4 s or less): about 8-10 other giant slide footprints (a sample, traced only from USGS I-2809 / Moore et al. 1989) light up in hero orange one every 0.25 s, finishing on {m:chain}; then they dim to 30%.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "pop_ui (-20) per footprint"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-24"
+   ],
+   "est_start_s": 151.52,
+   "est_start_s_fast": 139.76
+  },
+  {
+   "id": "s043",
+   "chapter": 2,
+   "text": "They're rare. But they {m:happen}happen.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "The footprints hold at 30%, then fade after {m:happen}. No interval number, no tsunami.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-25"
+   ],
+   "est_start_s": 156.53,
+   "est_start_s_fast": 144.34
+  },
+  {
+   "id": "s044",
+   "chapter": 2,
+   "text": "The coast that dropped in the dark? It's part of Kīlauea's south {m:flank}flank.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Eased 2.5 s flight back southeast to the Big Island. At {m:flank}: Kīlauea's south flank outlined in hero orange; map label 'KĪLAUEA'.",
+   "onscreen": [
+    "KĪLAUEA"
+   ],
+   "humor": "",
+   "sfx": [
+    "whoosh_soft (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C12-26",
+    "C12-12"
+   ],
+   "est_start_s": 158.89,
+   "est_start_s_fast": 146.53
+  },
+  {
+   "id": "s045",
+   "chapter": 2,
+   "text": "And it's still {m:creep}creeping toward the sea, a couple of inches a year.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:creep}: small yellow arrows on the flank point seaward and inch forward (no rate, no digits).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-26",
+    "C12-17b"
+   ],
+   "est_start_s": 164.19,
+   "est_start_s_fast": 151.37
+  },
+  {
+   "id": "s046",
+   "chapter": 2,
+   "text": "Not falling. {m:creeping}Creeping.",
+   "pause_after": 0.5,
+   "speed": 1.0,
+   "visual": "At {m:creeping}: the arrows keep inching; nothing collapses. Dry button.",
+   "onscreen": [],
+   "humor": "Dry laugh in the 2:35-4:00 gap: a 1.0 s music dip (-10 dB) right before 'Creeping'.",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-26",
+    "C12-25"
+   ],
+   "est_start_s": 169.48,
+   "est_start_s_fast": 156.21
+  },
+  {
+   "id": "s047",
+   "chapter": 2,
+   "text": "So how big is the mountain under the Big Island, {m:really}really?",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:really}: the camera rises to a high oblique of the whole Big Island, water at 0 m.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [],
+   "est_start_s": 171.16,
+   "est_start_s_fast": 157.78
+  },
+  {
+   "id": "s048",
+   "chapter": 2,
+   "text": "Let's drain all the way {m:alldown}down.",
+   "pause_after": 1.0,
+   "speed": 1.0,
+   "visual": "At {m:alldown}: the drain starts (the water plane begins to fall). Chapter card 'THE ISLAND STANDS UP' over the moving drain shot.",
+   "onscreen": [
+    "THE ISLAND STANDS UP"
+   ],
+   "humor": "",
+   "sfx": [
+    "drain_riser (-14)"
+   ],
+   "music": "Crossfade to the Ch3 cue: big, rising, wide.",
+   "fact_ids": [],
+   "est_start_s": 175.67,
+   "est_start_s_fast": 161.91
+  },
+  {
+   "id": "s049",
+   "chapter": 3,
+   "text": "Drain this far, and the islands stop being {m:isl}islands.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "RE-HOOK. S4 GROUND live drain on the Big Island, low camera off the northeast flank (about 35 km northeast of Hilo, 1,000 m above the falling waterline, looking southwest), water -1,000 to -4,000 m over 8 s, gauge marker dropping. At {m:isl}: a quick high pullback (4 s or less) shows that by about -4,000 m every main island from the Big Island to Niʻihau sits on one continuous dry ridge (approximate ETOPO sill check; confirm on the HMRG grid before any label).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "drain_riser (-14)",
+    "rumble_low (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C3-08-deep-drain-geometry"
+   ],
+   "est_start_s": 179.03,
+   "est_start_s_fast": 165.06
+  },
+  {
+   "id": "s050",
+   "chapter": 3,
+   "text": "It's one long mountain {m:range}range.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:range}: a hero-orange line runs along the ridge crest from Hawaiʻi to Niʻihau, then fades.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-08-deep-drain-geometry"
+   ],
+   "est_start_s": 182.96,
+   "est_start_s_fast": 168.67
+  },
+  {
+   "id": "s051",
+   "chapter": 3,
+   "text": "And at this end, the Big Island stands {m:up}up.",
+   "pause_after": 2.5,
+   "speed": 1.0,
+   "visual": "Eased 2 s dive back to the Big Island end of the ridge, low camera; at {m:up} the whole massif towers over the frame. Do NOT animate volcanoes merging: they are already one island; the drain only reveals the body. Hold the stand-up 3 s longer than the draft (retention backfill; live drain continues).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "impact_deep (-12) on {m:up}"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C3-07-five-volcanoes",
+    "C3-08-deep-drain-geometry"
+   ],
+   "est_start_s": 185.12,
+   "est_start_s_fast": 170.66
+  },
+  {
+   "id": "s052",
+   "chapter": 3,
+   "text": "Several volcanoes grew together into this one {m:mtn}mountain.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:mtn}: the summits of the island's volcanoes each get a brief white pin pulse (no names, no count), then the whole massif one hero-orange outline.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-07-five-volcanoes"
+   ],
+   "est_start_s": 191.15,
+   "est_start_s_fast": 176.37
+  },
+  {
+   "id": "s053",
+   "chapter": 3,
+   "text": "Without the ocean, you can finally see its {m:shape}shape.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:shape}: slow lateral move along the base of the massif, low sun raking the real ridges and gullies of the submarine flanks (VE 1.0, HMRG 50 m synthesis blended into ETOPO; real grid relief only, no procedural or noise relief in this shot). The trust line 'Every ridge down here is real.' is CUT (owner's ban on provenance lines); it may come back only with the owner's explicit OK, and never on screen.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-07-five-volcanoes"
+   ],
+   "est_start_s": 194.48,
+   "est_start_s_fast": 179.43
+  },
+  {
+   "id": "s054",
+   "chapter": 3,
+   "text": "Today's shoreline is a thin white line, high up its {m:slopes}slopes.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:slopes}: the thin white coast line on the standing massif brightens; the camera holds it in the upper third of frame. At VE 1.0 it sits a little more than halfway up from the moat floor (about 57-59%); never stage it as 'near the top'.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-02-most-below-sea"
+   ],
+   "est_start_s": 198.31,
+   "est_start_s_fast": 182.94
+  },
+  {
+   "id": "s055",
+   "chapter": 3,
+   "text": "Every beach on this island is up {m:upthere}there.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:upthere}: the cap above the white line (the dry island) takes a soft hero-orange tint for 1 s.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-01"
+   ],
+   "est_start_s": 202.83,
+   "est_start_s_fast": 187.07
+  },
+  {
+   "id": "s056",
+   "chapter": 3,
+   "text": "Below it, the mountain keeps {m:going}going. And {m:going2}going.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "'(Look Down)' beat inside the chapter: at {m:going} the camera tilts down the flank from the white line; at {m:going2} it keeps tilting, down and down to the base.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "whoosh_soft (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C3-02-most-below-sea",
+    "C3-01-maunakea-height"
+   ],
+   "est_start_s": 206.26,
+   "est_start_s_fast": 190.23
+  },
+  {
+   "id": "s057",
+   "chapter": 3,
+   "text": "Along its east side, the sea floor dips into a deep {m:trench}trench.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "Water continues to about -5,500 m. The last water is the real strip in the Hawaiian Deep, from north of Molokaʻi and Maui to about 100 km east of Hilo (flood-fill at the shot's level on the real grid; west and south-west of the island are dry; NO sculpted ring). At {m:trench}: the leftover band glows bright cyan.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-04-hawaiian-deep"
+   ],
+   "est_start_s": 209.7,
+   "est_start_s_fast": 193.38
+  },
+  {
+   "id": "s058",
+   "chapter": 3,
+   "text": "Remember that {m:rem}trench. It's a {m:clue}clue.",
+   "pause_after": 0.8,
+   "speed": 1.0,
+   "visual": "At {m:rem}: slow push toward the cyan strip; at {m:clue} one soft pulse. No label. LOOP PLANTED: paid at s161 and s167 ('That trench at its feet is the edge of that dent').",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-04-hawaiian-deep",
+    "C6-04-havent-hit-bottom"
+   ],
+   "est_start_s": 214.71,
+   "est_start_s_fast": 197.97
+  },
+  {
+   "id": "s059",
+   "chapter": 3,
+   "text": "Now bring in {m:ev}Everest, at the same scale.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "RE-HOOK. S4 comparison shot, VE 1.0, camera about 120 km to the north, 70 mm, low. At {m:ev} the SRTM Everest mesh rises (3 s, rumble) beside the massif STANDING ON THE SEA-LEVEL LINE (a thin white horizontal line across both; Everest on a plain pedestal so it stands its full 8,849 m; never the 5,000 m base cut). Map label 'EVEREST'.",
+   "onscreen": [
+    "EVEREST"
+   ],
+   "humor": "",
+   "sfx": [
+    "rumble_rise (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C3-03-everest-comparison"
+   ],
+   "est_start_s": 217.86,
+   "est_start_s_fast": 200.91
+  },
+  {
+   "id": "s060",
+   "chapter": 3,
+   "text": "Above sea level, Everest wins {m:easily}easily.",
+   "pause_after": 0.6,
+   "speed": 1.0,
+   "visual": "At {m:easily}: above the white sea-level line, Everest's peak (8,849 m) towers over Mauna Kea's cap (4,205 m). True as staged: both stand on the same sea-level line here.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-03-everest-comparison",
+    "C3-01-maunakea-height"
+   ],
+   "est_start_s": 221.2,
+   "est_start_s_fast": 203.97
+  },
+  {
+   "id": "s061",
+   "chapter": 3,
+   "text": "But measured from the sea {m:seafloor}floor, Mauna Kea is more than thirty-three thousand feet {m:tall33}tall.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "HERO NUMBER #3. At {m:seafloor}: Everest sinks 6,000 m (eased 1.2 s) so its base sits on the shared USGS base line at -6,000 m beside Mauna Kea's foot (its peak now at about +2,849 m); the EVEREST label fades. The yellow height bar starts at that same base line and climbs Mauna Kea while the counter rolls; it lands '33,000+ FT' exactly on {m:tall33} (a label, never driven by the rendered moat floor). Kicker 'FROM THE SEA FLOOR' (4 words: logged exception to the look book's 2-word kicker cap, because the qualifier is mandatory, ledger C3-01 and PLAYBOOK_craft 9). Map label 'MAUNA KEA' on the summit. Visible words 8 of 10.",
+   "onscreen": [
+    "MAUNA KEA",
+    "FROM THE SEA FLOOR",
+    "33,000+ FT"
+   ],
+   "humor": "",
+   "sfx": [
+    "tick_counter (-16)",
+    "impact_deep (-10) on {m:tall33}"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C3-01-maunakea-height",
+    "C3-03-everest-comparison"
+   ],
+   "est_start_s": 224.15,
+   "est_start_s_fast": 206.71
+  },
+  {
+   "id": "s062",
+   "chapter": 3,
+   "text": "That's taller than {m:ev2}Everest.",
+   "pause_after": 0.5,
+   "speed": 1.0,
+   "visual": "At {m:ev2}: the bar's top passes Everest's summit on the same base line; a thin white tick marks Everest's top; Mauna Kea's summit stands clearly higher.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-01-maunakea-height",
+    "C3-03-everest-comparison"
+   ],
+   "est_start_s": 230.33,
+   "est_start_s_fast": 212.37
+  },
+  {
+   "id": "s063",
+   "chapter": 3,
+   "text": "You may have heard that {m:heard}one.",
+   "pause_after": 0.6,
+   "speed": 1.0,
+   "visual": "At {m:heard}: JUICE CHECK stamp 'TRUE' (S13, 1.2 s) over the still-moving comparison shot.",
+   "onscreen": [
+    "JUICE CHECK",
+    "TRUE"
+   ],
+   "humor": "",
+   "sfx": [
+    "stamp (-12)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C3-01-maunakea-height"
+   ],
+   "est_start_s": 232.4,
+   "est_start_s_fast": 214.3
+  },
+  {
+   "id": "s064",
+   "chapter": 3,
+   "text": "On Everest, getting to the top looks like {m:this}this.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "GAG part 1 (3 s), S11 on Everest's summit (SRTM terrain, real snow): at {m:this} a paper cut-out climber (public-domain photo, for example an NPS mountaineering photo; down suit, oxygen mask; not a named person) at 35-40% of frame height, frost on the card edge, plants a small flag while the card shudders in the wind.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "wind_summit (-18)",
+    "breathing_mask (-20)"
+   ],
+   "music": "",
+   "fact_ids": [],
+   "est_start_s": 235.35,
+   "est_start_s_fast": 217.04
+  },
+  {
+   "id": "s065",
+   "chapter": 3,
+   "text": "There's a road almost to the top of this {m:road}one.",
+   "pause_after": 0.8,
+   "speed": 1.0,
+   "visual": "GAG part 2: at {m:road} whip-pan (8 frames) to Mauna Kea's summit access road on the upper slope, well below the summit area: a paper 4WD (public-domain photo) rolls up the road with a little dust. Whip back: the climber's flag droops on its paper hinge. No car or figure on Puʻuwēkiu, no telescope joke; the domes are never the punchline.",
+   "onscreen": [],
+   "humor": "The joke lands on the climber's ordeal. Music dip before the line; comic 'deflate' in the gap after it.",
+   "sfx": [
+    "whip (-14) x2",
+    "engine_4wd_small (-20)",
+    "deflate_comic (-16) in the gap"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C3-09-maunakea-road"
+   ],
+   "est_start_s": 239.08,
+   "est_start_s_fast": 220.46
+  },
+  {
+   "id": "s066",
+   "chapter": 3,
+   "text": "But Mauna Kea isn't the giant {m:giant}here.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:giant}: eased 2 s orbit to the southwest of the massif; Mauna Kea dims.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-11-maunakea-not-the-giant"
+   ],
+   "est_start_s": 243.81,
+   "est_start_s_fast": 224.83
+  },
+  {
+   "id": "s067",
+   "chapter": 3,
+   "text": "Its neighbor, {m:loa}Mauna Loa, is a little lower, and far {m:bigger}bigger.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:loa}: Mauna Loa's whole edifice, above and below the old waterline, takes the hero-orange fill and white outline; map label 'MAUNA LOA'. At {m:bigger}: the fill swells across its full broad mass beside the dimmed Mauna Kea.",
+   "onscreen": [
+    "MAUNA LOA"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-11-maunakea-not-the-giant"
+   ],
+   "est_start_s": 246.75,
+   "est_start_s_fast": 227.53
+  },
+  {
+   "id": "s068",
+   "chapter": 3,
+   "text": "It's the largest {m:active}active volcano on Earth.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "At {m:active}: headline 'LARGEST ACTIVE VOLCANO' (the qualifier 'ACTIVE' always stays) in the free third.",
+   "onscreen": [
+    "LARGEST ACTIVE VOLCANO"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-10-maunaloa-largest-active"
+   ],
+   "est_start_s": 251.26,
+   "est_start_s_fast": 231.66
+  },
+  {
+   "id": "s069",
+   "chapter": 3,
+   "text": "It covers about half of this {m:half}island.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "3 s cut to TODAY's island at sea level, high oblique: Mauna Loa's above-sea outline (USGS geologic map) fills in hero orange and the other volcanoes' areas in dim white; at {m:half} the orange reads as about half of the island (it is about 50/50: never stage it as outweighing the rest).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-11-maunakea-not-the-giant"
+   ],
+   "est_start_s": 254.41,
+   "est_start_s_fast": 234.56
+  },
+  {
+   "id": "s070",
+   "chapter": 3,
+   "text": "And even now, we haven't seen all of {m:allofit}it.",
+   "pause_after": 0.6,
+   "speed": 1.0,
+   "visual": "Back to the drained massif; at {m:allofit} the camera lowers toward Mauna Loa's base, where the slope disappears into the trench shadow; slow push. (Loop: re-planted at s085, paid at the payoff.)",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-04-havent-hit-bottom"
+   ],
+   "est_start_s": 257.45,
+   "est_start_s_fast": 237.36
+  },
+  {
+   "id": "s071",
+   "chapter": 3,
+   "text": "But this giant can't {m:stay}stay. It's already {m:moving}moving.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "TWIST. At {m:stay}: S4 cut-away under the Big Island: a glowing hot spot below (picture only, no labels; the ONLY time this glow cut-away is shown). At {m:moving}: the plate carrying the island begins to slide northwest off the glow.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "rumble_deep (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C4-01-hotspot-plate-motion",
+    "C3-12-giant-already-dying"
+   ],
+   "est_start_s": 261.58,
+   "est_start_s_fast": 241.17
+  },
+  {
+   "id": "s072",
+   "chapter": 3,
+   "text": "Picture a {m:candle}candle under a sheet of paper.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Physical metaphor in motion (the whole mechanism about 20 s, no jargon on screen): at {m:candle}, in the same cut-away, the plate becomes a sheet of paper and the glow becomes a candle flame beneath it, in the same place.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "flame_soft (-22)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C4-01-hotspot-plate-motion"
+   ],
+   "est_start_s": 265.02,
+   "est_start_s_fast": 244.33
+  },
+  {
+   "id": "s073",
+   "chapter": 3,
+   "text": "Slide the paper, and the flame scorches a line of {m:spots}spots.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "The paper slides; a line of scorch marks forms; at {m:spots} the marks cross-dissolve (0.5 s) into the real island chain at chain oblique.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "paper_slide (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C4-01-hotspot-plate-motion"
+   ],
+   "est_start_s": 268.36,
+   "est_start_s_fast": 247.38
+  },
+  {
+   "id": "s074",
+   "chapter": 3,
+   "text": "The paper is the Pacific {m:plate}plate. The flame is a hot spot, deep {m:deepbelow}below.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Back on the real Earth: at {m:plate} the Pacific plate takes a 35% hero-orange tint and a big yellow arrow (15 px body, 50-63 px head) points northwest along the chain; at {m:deepbelow}: a small warm marker pulses at the hot spot's position under the Big Island (map marker, not a second cut-away; no 'plume from the core').",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-01-hotspot-plate-motion"
+   ],
+   "est_start_s": 272.87,
+   "est_start_s_fast": 251.51
+  },
+  {
+   "id": "s075",
+   "chapter": 3,
+   "text": "So the island rides away from the heat that {m:built}built it.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:built}: the Big Island's outline edges northwest, off the warm marker.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-01-hotspot-plate-motion",
+    "C3-12-giant-already-dying"
+   ],
+   "est_start_s": 278.56,
+   "est_start_s_fast": 256.71
+  },
+  {
+   "id": "s076",
+   "chapter": 3,
+   "text": "And as it goes, it {m:sinks}sinks.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:sinks}: hard cut to the drained west (Kohala) flank at low raking light.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-12-giant-already-dying",
+    "C12-09b"
+   ],
+   "est_start_s": 283.08,
+   "est_start_s_fast": 260.84
+  },
+  {
+   "id": "s077",
+   "chapter": 3,
+   "text": "See those {m:steps}steps on the island's side? They're old coral {m:reefs}reefs.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "S4 GROUND close on the drowned-reef terraces off west Hawaiʻi (the documented series off Kohala; draw or highlight steps only where the bathymetry really shows terraces). At {m:steps}: the terrace edges catch the light; at {m:reefs}: a thin cream highlight runs along each step.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-10"
+   ],
+   "est_start_s": 285.63,
+   "est_start_s_fast": 263.18
+  },
+  {
+   "id": "s078",
+   "chapter": 3,
+   "text": "They grew at the shoreline, and the island sank out from under {m:them}them.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Short schematic loop on one step (3 s): a reef grows at the waterline, then the step and the reef ride down as the water line stays; at {m:them} the next reef starts at the new shoreline above.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-10"
+   ],
+   "est_start_s": 290.14,
+   "est_start_s_fast": 267.31
+  },
+  {
+   "id": "s079",
+   "chapter": 3,
+   "text": "The deepest ones are now thousands of feet {m:deepreef}down.",
+   "pause_after": 0.6,
+   "speed": 1.0,
+   "visual": "At {m:deepreef}: the camera tilts down the flank along the lowest terraces into the blue (no depth text; mean luma 70 or more).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C12-10"
+   ],
+   "est_start_s": 295.44,
+   "est_start_s_fast": 272.16
+  },
+  {
+   "id": "s080",
+   "chapter": 3,
+   "text": "Every island to the northwest was born right {m:bornhere}here.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:bornhere}: regional pullback (4 s or less) along the chain to the northwest; each main island takes a brief hero-orange rim in turn (Maui, Oʻahu, Kauaʻi).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-13-same-mountain-older"
+   ],
+   "est_start_s": 299.57,
+   "est_start_s_fast": 275.97
+  },
+  {
+   "id": "s081",
+   "chapter": 3,
+   "text": "Each one is older than the {m:last}last.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:last}: the rims fade in order of age, youngest to oldest.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-13-same-mountain-older"
+   ],
+   "est_start_s": 303.3,
+   "est_start_s_fast": 279.38
+  },
+  {
+   "id": "s082",
+   "chapter": 3,
+   "text": "That makes the Big Island the baby of the {m:baby}islands. A very big {m:bigbaby}baby.",
+   "pause_after": 0.5,
+   "speed": 1.0,
+   "visual": "At {m:baby}: the Big Island alone takes a hero-orange rim at the young end of the chain. At {m:bigbaby}: crash zoom OUT (8 frames, motion blur) to a frame where the Big Island visibly outweighs all the older islands put together (true: about 10,430 km2 against about 6,400 km2 for the rest).",
+   "onscreen": [],
+   "humor": "Dry button in the mid-film laugh gap. 1.0 s music dip before 'A very big baby'; tiny comic 'boing' on the crash zoom.",
+   "sfx": [
+    "crash_zoom (-16)",
+    "boing_small (-20) in the gap"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C4-02-bigisland-age"
+   ],
+   "est_start_s": 306.35,
+   "est_start_s_fast": 282.18
+  },
+  {
+   "id": "s083",
+   "chapter": 3,
+   "text": "And each one shows what this island will {m:become}become.",
+   "pause_after": 1.0,
+   "speed": 1.0,
+   "visual": "At {m:become}: the camera settles back on the Big Island. Chapter card 'WATCH IT GROW OLD' over the moving shot.",
+   "onscreen": [
+    "WATCH IT GROW OLD"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "Crossfade to the Ch4 cue: travelling, steady pulse.",
+   "fact_ids": [
+    "C3-13-same-mountain-older",
+    "C5-19-big-island-headed"
+   ],
+   "est_start_s": 312.34,
+   "est_start_s_fast": 287.68
+  },
+  {
+   "id": "s084",
+   "chapter": 4,
+   "text": "So let's ride the plate, and watch the Big Island grow {m:old}old.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "RE-HOOK, THE TIME MACHINE (the film's second engine). For this chapter the top-left gauge becomes an AGE gauge (same corner and plate; a yellow marker on a slim bar, starting at 'NOW'). At {m:old}: the camera lifts off the Big Island at regional oblique.",
+   "onscreen": [
+    "AGE"
+   ],
+   "humor": "",
+   "sfx": [
+    "whoosh_soft (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C3-13-same-mountain-older"
+   ],
+   "est_start_s": 316.86,
+   "est_start_s_fast": 291.9
+  },
+  {
+   "id": "s085",
+   "chapter": 4,
+   "text": "Then we'll come back for the part we haven't {m:notseen}seen.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:notseen}: a 1 s glance down the drained south flank into the dark of the trench (no text), then the camera swings to the south coast. LOOP RE-PLANTED (the payoff's forward promise across the 4:47 tour).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-04-havent-hit-bottom"
+   ],
+   "est_start_s": 321.77,
+   "est_start_s_fast": 296.38
+  },
+  {
+   "id": "s086",
+   "chapter": 4,
+   "text": "First stop: its own {m:coast}coast. The sea is already wearing it down.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Eased flight down; at {m:coast} the camera arrives at the Big Island's south coast near the end of Chain of Craters Road, water at 0 m, surf breaking white against black lava sea cliffs (real 10 m DEM, true colour).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "surf_wash (-20)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C6-10-holei-arch"
+   ],
+   "est_start_s": 325.99,
+   "est_start_s_fast": 300.26
+  },
+  {
+   "id": "s087",
+   "chapter": 4,
+   "text": "This September, a sea arch on this coast {m:arch}collapsed into the ocean.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Before/after from two DATED National Park Service photos of the Hōlei Sea Arch (standing, and the gap after the 23-27 Sept 2026 collapse; NPS photos are usually public domain but some are by volunteers, so check each credit line), shown as one 3.5 s wipe in the shared grade with a slow Ken Burns; the wipe lands on {m:arch}. Map label 'HŌLEI SEA ARCH' (the name is shown, not narrated, to remove a pronunciation risk). No cause shown or implied; nothing ties it to sinking. Counts as this stretch's archival moment.",
+   "onscreen": [
+    "HŌLEI SEA ARCH"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-10-holei-arch"
+   ],
+   "est_start_s": 330.9,
+   "est_start_s_fast": 304.74
+  },
+  {
+   "id": "s088",
+   "chapter": 4,
+   "text": "Waves had carved it out of lava over {m:cent}centuries.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "At {m:cent}: back on our terrain, waves wash through the coast where the arch stood; slow pull back up and away.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-10-holei-arch"
+   ],
+   "est_start_s": 335.8,
+   "est_start_s_fast": 309.23
+  },
+  {
+   "id": "s089",
+   "chapter": 4,
+   "text": "Give the Big Island time, and it looks like {m:maui2}Maui.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Eased flight northwest lands on Maui (Haleakalā fills the frame; real island at its real position, no morphing). At {m:maui2}: map label 'MAUI'; the age marker slides right.",
+   "onscreen": [
+    "MAUI"
+   ],
+   "humor": "",
+   "sfx": [
+    "whoosh_long (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C4-03-maui-age"
+   ],
+   "est_start_s": 339.73,
+   "est_start_s_fast": 312.84
+  },
+  {
+   "id": "s090",
+   "chapter": 4,
+   "text": "Older still: {m:oahu2}Oʻahu, home of {m:hnl}Honolulu. Here, a whole side of a volcano slid into the sea.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Flight to Oʻahu's windward side, the Koʻolau cliffs and the debris field offshore. At {m:oahu2}: map label 'OʻAHU'; at {m:hnl} a small pin pulses on Honolulu (no second label). Callback GAG (2 s): back at the Pali Lookout, the paper tourist now holds his hat on with both hands, still behind the wall. Tourist appearance 3 of 4.",
+   "onscreen": [
+    "OʻAHU"
+   ],
+   "humor": "Callback: he learned.",
+   "sfx": [
+    "wind_gust (-20)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C4-04-oahu-age",
+    "C12-21b"
+   ],
+   "est_start_s": 343.85,
+   "est_start_s_fast": 316.61
+  },
+  {
+   "id": "s091",
+   "chapter": 4,
+   "text": "Older still: {m:kauai}Kauaʻi. Its big eruptions ended long ago, and rain has carved it into {m:canyons}canyons.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "Flight to Kauaʻi. At {m:kauai}: map label 'KAUAʻI'; at {m:canyons}: the camera drops into the red walls of Waimea Canyon while a rain squall sweeps over the rim and water threads down the gullies.",
+   "onscreen": [
+    "KAUAʻI"
+   ],
+   "humor": "",
+   "sfx": [
+    "rain_light (-22)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C4-05-kauai-age"
+   ],
+   "est_start_s": 350.72,
+   "est_start_s_fast": 322.88
+  },
+  {
+   "id": "s092",
+   "chapter": 4,
+   "text": "After that, the islands get smaller and {m:lower}lower.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:lower}: fast eased flight northwest past Niʻihau and out over open ocean; the age marker keeps sliding right.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "whoosh_long (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C5-02-atoll-formation",
+    "C4-06-nihoa-age-size"
+   ],
+   "est_start_s": 357.3,
+   "est_start_s_fast": 328.9
+  },
+  {
+   "id": "s093",
+   "chapter": 4,
+   "text": "This is {m:nihoa}Nihoa.",
+   "pause_after": 0.6,
+   "speed": 1.0,
+   "visual": "RE-HOOK. Nihoa fills the frame: a small steep island with tall sea cliffs. At {m:nihoa}: map label 'NIHOA'.",
+   "onscreen": [
+    "NIHOA"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-06-nihoa-age-size"
+   ],
+   "est_start_s": 360.63,
+   "est_start_s_fast": 331.96
+  },
+  {
+   "id": "s094",
+   "chapter": 4,
+   "text": "{m:seven}Seven million years in, it's a sliver of {m:rock}rock.",
+   "pause_after": 0.8,
+   "speed": 1.0,
+   "visual": "HERO NUMBER #4: at {m:seven} the AGE gauge marker lands and the number block lands: kicker 'ABOUT', number '7 MILLION YEARS' (Anton, yellow); at {m:rock} the camera pulls wide to show how little is left; the block fades before the next line.",
+   "onscreen": [
+    "ABOUT",
+    "7 MILLION YEARS"
+   ],
+   "humor": "",
+   "sfx": [
+    "tick_counter (-16)",
+    "impact_soft (-12)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C4-06-nihoa-age-size"
+   ],
+   "est_start_s": 362.41,
+   "est_start_s_fast": 333.63
+  },
+  {
+   "id": "s095",
+   "chapter": 4,
+   "text": "Even so, it's the biggest volcanic island left out {m:outhere2}here.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "At {m:outhere2}: a quick eased pull-out over the open northwest chain: nothing else above water comes close (a dry, true irony; no label, no number).",
+   "onscreen": [],
+   "humor": "Dry irony: a sliver, and still the biggest.",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-06-nihoa-age-size"
+   ],
+   "est_start_s": 366.74,
+   "est_start_s_fast": 337.64
+  },
+  {
+   "id": "s096",
+   "chapter": 4,
+   "text": "And people {m:lived}lived here.",
+   "pause_after": 0.6,
+   "speed": 1.0,
+   "visual": "At {m:lived}: slow push into Nihoa's terraced valleys; music softens.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-07-nihoa-people"
+   ],
+   "est_start_s": 371.06,
+   "est_start_s_fast": 341.61
+  },
+  {
+   "id": "s097",
+   "chapter": 4,
+   "text": "Centuries ago, they built homes, farm terraces and shrines on this {m:shrine}rock.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "On our terrain: house and terrace sites appear as soft white outlines ONLY where drawn from a published site map (otherwise marked approximate or left out), landing on {m:shrine}. No archival still here (it would fall under 60 s after the Hōlei photos). No gags (there are burials).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-07-nihoa-people"
+   ],
+   "est_start_s": 373.23,
+   "est_start_s_fast": 343.64
+  },
+  {
+   "id": "s098",
+   "chapter": 4,
+   "text": "And they buried their dead {m:dead}here.",
+   "pause_after": 1.0,
+   "speed": 1.0,
+   "visual": "At {m:dead}: slow drift over the terraces in late light; no markers, no SFX; music softens further.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-07-nihoa-people"
+   ],
+   "est_start_s": 378.24,
+   "est_start_s_fast": 348.23
+  },
+  {
+   "id": "s099",
+   "chapter": 4,
+   "text": "Today, nobody lives {m:nobody}here.",
+   "pause_after": 0.8,
+   "speed": 1.0,
+   "visual": "At {m:nobody}: wind over empty rock; seabird specks; pull away.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-07-nihoa-people"
+   ],
+   "est_start_s": 381.59,
+   "est_start_s_fast": 351.37
+  },
+  {
+   "id": "s100",
+   "chapter": 4,
+   "text": "Farther on: French Frigate {m:ffs}Shoals. In Hawaiian, {m:lalo}Lalo.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "Eased flight northwest to the lagoon at Lalo. At {m:ffs}: one map label 'LALO' fades in and holds 3 s, through {m:lalo} (both names are spoken; the label carries the Hawaiian one).",
+   "onscreen": [
+    "LALO"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-08-la-perouse-pinnacle",
+    "C4-14-name-spellings"
+   ],
+   "est_start_s": 383.96,
+   "est_start_s_fast": 353.6
+  },
+  {
+   "id": "s101",
+   "chapter": 4,
+   "text": "Only one rock of its volcano still stands above the sea. Its last {m:tooth}tooth.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "Close oblique on the lone basalt pinnacle standing out of the lagoon; at {m:tooth}: hero-orange outline on the pinnacle; map label 'LA PÉROUSE PINNACLE' (label only, not narrated). No height spoken or shown.",
+   "onscreen": [
+    "LA PÉROUSE PINNACLE"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-08-la-perouse-pinnacle",
+    "C4-09-gardner-last-basalt"
+   ],
+   "est_start_s": 387.39,
+   "est_start_s_fast": 356.76
+  },
+  {
+   "id": "s102",
+   "chapter": 4,
+   "text": "This strip of sand was East {m:east}Island.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "BEFORE state, from dated imagery (July 2018): East Island's sandy outline at low oblique; map label 'EAST ISLAND' at {m:east}. The picture runs before-to-after ONCE in this beat.",
+   "onscreen": [
+    "EAST ISLAND"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-10-walaka-east-island"
+   ],
+   "est_start_s": 393.28,
+   "est_start_s_fast": 362.16
+  },
+  {
+   "id": "s103",
+   "chapter": 4,
+   "text": "Endangered Hawaiian monk seals came here to rest and raise {m:pups}pups.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "Still the before state: a paper Hawaiian monk seal (public-domain NOAA photo; grey-brown, no ear flaps) resting on the sand at 35-40% of frame height; at {m:pups} a pup shape shuffles in beside it, on the real terrain with contact shadows and the same sun.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-12-monk-seals-east-island",
+    "C4-13-monk-seal-status"
+   ],
+   "est_start_s": 396.23,
+   "est_start_s_fast": 364.86
+  },
+  {
+   "id": "s104",
+   "chapter": 4,
+   "text": "Only about sixteen hundred are {m:left}left.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "At {m:left}: the seal lifts its head toward camera; slow push. No number on screen.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-13-monk-seal-status"
+   ],
+   "est_start_s": 400.84,
+   "est_start_s_fast": 369.08
+  },
+  {
+   "id": "s105",
+   "chapter": 4,
+   "text": "Then, not long ago, a hurricane passed right over these {m:shoals}shoals.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:shoals}: a storm spiral (soft cloud texture, true colour, no category label) comes in from the SOUTH-SOUTHWEST moving north-northeast; its eye passes just WEST of the atoll and its eastern eyewall sweeps across the lagoon (2 s). Physically true to the NHC track.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "storm_whoosh (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C4-10-walaka-east-island"
+   ],
+   "est_start_s": 403.6,
+   "est_start_s_fast": 371.63
+  },
+  {
+   "id": "s106",
+   "chapter": 4,
+   "text": "It washed almost all of East Island {m:away}away.",
+   "pause_after": 2.4,
+   "speed": 1.0,
+   "visual": "At {m:away}: wipe to the AFTER state from dated imagery (October 2018): East Island is a sliver. Then GAG (3 s) in the pause: the seal swims up to where its beach was, finds water, bobs, looks left, looks right (paper turn), blinks. Nothing implies a seal was hurt. No 'overnight', no storm category.",
+   "onscreen": [],
+   "humor": "The seal comes home and the beach is missing. Music dip; tiny comic 'bloop' in the gap.",
+   "sfx": [
+    "sand_wash (-18)",
+    "bloop_comic (-18) in the gap"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C4-10-walaka-east-island",
+    "C4-12-monk-seals-east-island"
+   ],
+   "est_start_s": 408.11,
+   "est_start_s_fast": 375.76
+  },
+  {
+   "id": "s107",
+   "chapter": 4,
+   "text": "Since then, the sand has been coming {m:sandback}back.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:sandback}: time-lapse from the monthly shorelines: the sand outline regrows to about half its old size (no percent on screen); keep it bare (no vegetation).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-11-east-island-regrowth"
+   ],
+   "est_start_s": 413.65,
+   "est_start_s_fast": 381.01
+  },
+  {
+   "id": "s108",
+   "chapter": 4,
+   "text": "And so have the {m:seals}seals.",
+   "pause_after": 0.8,
+   "speed": 1.0,
+   "visual": "At {m:seals}: the seal flops onto the regrown sandbar and settles; two more seals haul out beside it (real terrain, contact shadows, same sun).",
+   "onscreen": [],
+   "humor": "Twist on the gag: the seals came back.",
+   "sfx": [
+    "thump_soft (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C4-11-east-island-regrowth",
+    "C4-12-monk-seals-east-island"
+   ],
+   "est_start_s": 416.98,
+   "est_start_s_fast": 384.07
+  },
+  {
+   "id": "s109",
+   "chapter": 4,
+   "text": "Farther on, one last pair of rocks pokes {m:pokes}out.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Flight northwest: at {m:pokes} the Gardner Pinnacles appear, two small basalt rocks in open sea; map label 'PŪHĀHONU (GARDNER PINNACLES)' (label only).",
+   "onscreen": [
+    "PŪHĀHONU (GARDNER PINNACLES)"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-09-gardner-last-basalt"
+   ],
+   "est_start_s": 419.75,
+   "est_start_s_fast": 386.66
+  },
+  {
+   "id": "s110",
+   "chapter": 4,
+   "text": "After that, no volcanic rock reaches the surface at {m:atall}all.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:atall}: the flight continues northwest over open water; the AGE marker slides on; pale reef rings appear ahead.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C4-09-gardner-last-basalt"
+   ],
+   "est_start_s": 423.47,
+   "est_start_s_fast": 390.07
+  },
+  {
+   "id": "s111",
+   "chapter": 4,
+   "text": "Only {m:onlyreef}reef.",
+   "pause_after": 1.0,
+   "speed": 1.0,
+   "visual": "At {m:onlyreef}: arrival over a ring of reef. Chapter card 'FOUGHT OVER A VOLCANO' over the moving shot.",
+   "onscreen": [
+    "FOUGHT OVER A VOLCANO"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "Crossfade to the Ch5 cue: bright, open, a little mischievous.",
+   "fact_ids": [
+    "C5-02-atoll-formation"
+   ],
+   "est_start_s": 427.6,
+   "est_start_s_fast": 393.84
+  },
+  {
+   "id": "s112",
+   "chapter": 5,
+   "text": "This ring of reef is {m:midway}Midway.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "RE-HOOK. S3 HERO OBLIQUE: Midway Atoll (28.21N 177.37W), true colour, the reef ring and Sand Island at regional oblique. At {m:midway}: map label 'MIDWAY'. The top-left gauge is the SEA LEVEL gauge again.",
+   "onscreen": [
+    "MIDWAY"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-01-midway-age",
+    "C5-02-atoll-formation"
+   ],
+   "est_start_s": 429.38,
+   "est_start_s_fast": 395.56
+  },
+  {
+   "id": "s113",
+   "chapter": 5,
+   "text": "It's farther from Honolulu than {m:ny}New York is from {m:miami}Miami.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "S7 TRUE-SIZE DRAG on a STORY globe filling the frame height (8 s or less, proof-overlay exception): a 10 px white line draws from Honolulu to Midway; at {m:ny} the true-length great-circle line from New York to Miami (1,092 mi) lifts off the US East Coast with a drag whoosh; at {m:miami} it lands beside the Honolulu-Midway line (1,312 mi) and visibly comes up short (no distance labels, no digits). Then back down to the atoll.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "drag_whoosh (-14) on {m:ny}",
+    "tok_small (-18) on {m:miami}"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C5-20-midway-distance-honolulu"
+   ],
+   "est_start_s": 431.93,
+   "est_start_s_fast": 397.9
+  },
+  {
+   "id": "s114",
+   "chapter": 5,
+   "text": "It has the biggest albatross colony on {m:earth}Earth.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:earth}: dive to Sand Island at ground level: a field of nesting albatrosses as small shapes; one paper Laysan albatross (public-domain USFWS photo) in the foreground at 35-40% of frame height; map label 'LAYSAN ALBATROSS' for 2 s.",
+   "onscreen": [
+    "LAYSAN ALBATROSS"
+   ],
+   "humor": "",
+   "sfx": [
+    "albatross_colony (-22) bed"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C5-08-albatross-colony"
+   ],
+   "est_start_s": 436.15,
+   "est_start_s_fast": 401.77
+  },
+  {
+   "id": "s115",
+   "chapter": 5,
+   "text": "In the air, they're {m:grace}graceful.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:grace}: the paper albatross glides across the frame, wings out, smooth.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-09-gooney-landing"
+   ],
+   "est_start_s": 439.49,
+   "est_start_s_fast": 404.83
+  },
+  {
+   "id": "s116",
+   "chapter": 5,
+   "text": "Landing is another {m:story}story.",
+   "pause_after": 0.8,
+   "speed": 1.0,
+   "visual": "GAG (3 s): at {m:story} the albatross comes in to land in a light wind, wings out, and tumbles into a forward roll on the sand (believable, on the real terrain); dust puff; it ends upright and ruffled.",
+   "onscreen": [],
+   "humor": "The clumsy landing. Music dip before the line; comic thump in the gap.",
+   "sfx": [
+    "thump_comic (-16) in the gap"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C5-09-gooney-landing"
+   ],
+   "est_start_s": 441.65,
+   "est_start_s_fast": 406.81
+  },
+  {
+   "id": "s117",
+   "chapter": 5,
+   "text": "Here, they're known as gooney {m:gooney}birds.",
+   "pause_after": 2.0,
+   "speed": 1.0,
+   "visual": "At {m:gooney}: the bird shakes its head; slow pull back up to the atoll, where the water starts to fall around the reef (the held live drain of s118 starts in this pause).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-09-gooney-landing"
+   ],
+   "est_start_s": 444.02,
+   "est_start_s_fast": 409.04
+  },
+  {
+   "id": "s118",
+   "chapter": 5,
+   "text": "Under this reef lies a volcano about twenty-eight million years {m:old28}old.",
+   "pause_after": 1.0,
+   "speed": 1.0,
+   "visual": "RE-HOOK, HERO NUMBER #5. Drain plus cut-away (S4 'cake cut'): the water falls around the atoll, then the atoll is sliced open: a dark basalt volcano under a thick cream reef cap. At {m:old28}: number block 'ABOUT 28 MILLION YEARS' with a thin pointer to the basalt (the age belongs to the volcano, not the reef). Hold the cut-away drain 3 s longer than the draft (retention backfill).",
+   "onscreen": [
+    "ABOUT 28 MILLION YEARS"
+   ],
+   "humor": "",
+   "sfx": [
+    "drain_riser (-16)",
+    "impact_deep (-10) on {m:old28}"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C5-01-midway-age"
+   ],
+   "est_start_s": 448.37,
+   "est_start_s_fast": 413.18
+  },
+  {
+   "id": "s119",
+   "chapter": 5,
+   "text": "As it sank, the reef on top kept growing {m:upward}upward.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:upward}: the cut-away animates: the volcano sinks in uneven steps (pauses between them, never smooth) and the reef cap grows upward to stay at the surface.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-02-atoll-formation"
+   ],
+   "est_start_s": 453.69,
+   "est_start_s_fast": 418.11
+  },
+  {
+   "id": "s120",
+   "chapter": 5,
+   "text": "Charles {m:darwin}Darwin came up with this idea: reefs like this sit on sinking islands.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "Told on OUR cut-away (not the 1842 woodcut, to keep archival stills 60 s apart): the same atoll cut-away replays its sink-and-grow loop in 3 s while a name plate 'CHARLES DARWIN' slides in at {m:darwin}. No portrait, no book page.",
+   "onscreen": [
+    "CHARLES DARWIN"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-04-darwin-idea"
+   ],
+   "est_start_s": 457.91,
+   "est_start_s_fast": 421.98
+  },
+  {
+   "id": "s121",
+   "chapter": 5,
+   "text": "Long after he died, drills here went down through hundreds of feet of reef {m:reefrock}rock.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Cut-away: two drill strings (Sand Island, and the north rim of the lagoon) descend through the cream reef rock, reaching the bottom of it on {m:reefrock}; the basalt top sits about 515 ft under Sand Island and deepens to about 1,250 ft under the north rim (optional thin clay band on the basalt). No depth numbers on screen.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "drill_grind (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C5-03-midway-drill",
+    "C5-06-drill-proof"
+   ],
+   "est_start_s": 463.7,
+   "est_start_s_fast": 427.28
+  },
+  {
+   "id": "s122",
+   "chapter": 5,
+   "text": "And hit the {m:hitvolc}volcano.",
+   "pause_after": 0.8,
+   "speed": 1.0,
+   "visual": "At {m:hitvolc}: the bits strike basalt; a spark flash on the basalt top (one flash).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "impact_deep (-10) on {m:hitvolc}"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C5-03-midway-drill"
+   ],
+   "est_start_s": 469.78,
+   "est_start_s_fast": 432.84
+  },
+  {
+   "id": "s123",
+   "chapter": 5,
+   "text": "In June {m:y1942}nineteen forty-two, a battle was fought over this sunken {m:volc42}volcano.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "TWIST, RE-HOOK. Hard cut back to the atoll from above, water restored, early-morning light. At {m:y1942}: kicker 'JUNE 1942'. At {m:volc42}: the reef ring takes a thin hero-orange rim.",
+   "onscreen": [
+    "JUNE 1942"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "Ch5 cue switches section to a taut pulse (story turn).",
+   "fact_ids": [
+    "C5-10-battle-turning-point"
+   ],
+   "est_start_s": 472.15,
+   "est_start_s_fast": 435.07
+  },
+  {
+   "id": "s124",
+   "chapter": 5,
+   "text": "It turned the war in the {m:pac}Pacific.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:pac}: pull out to a regional S2 STORY map of the central Pacific centred on Midway.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-10-battle-turning-point"
+   ],
+   "est_start_s": 477.06,
+   "est_start_s_fast": 439.56
+  },
+  {
+   "id": "s125",
+   "chapter": 5,
+   "text": "And part of the story is a fake complaint about {m:water0}water.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "At {m:water0}: a paper water-drop icon pops on Midway's pin and wobbles (story humour; no one has died yet).",
+   "onscreen": [],
+   "humor": "Teaser for the decoy.",
+   "sfx": [
+    "drip_comic (-20)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C5-11-af-water-decoy"
+   ],
+   "est_start_s": 480.0,
+   "est_start_s_fast": 442.26
+  },
+  {
+   "id": "s126",
+   "chapter": 5,
+   "text": "Weeks before, American codebreakers kept seeing one target in intercepted {m:msgs}messages: {m:af}AF.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:msgs}: coded radio traffic drawn as scrambled glyph streams crossing the map; at {m:af}: the letters 'AF' light up yellow inside the stream.",
+   "onscreen": [
+    "AF"
+   ],
+   "humor": "",
+   "sfx": [
+    "morse_texture (-22)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C5-11-af-water-decoy"
+   ],
+   "est_start_s": 484.72,
+   "est_start_s_fast": 446.58
+  },
+  {
+   "id": "s127",
+   "chapter": 5,
+   "text": "They were fairly sure AF was Midway. Washington {m:wasnt}wasn't.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:wasnt}: a small paper telegram flutters from the Hawaiʻi side of the map toward the edge of frame (toward Washington), then flutters back with a paper question-mark tag (no readable text).",
+   "onscreen": [],
+   "humor": "Light office comedy.",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-11-af-water-decoy"
+   ],
+   "est_start_s": 489.72,
+   "est_start_s_fast": 451.17
+  },
+  {
+   "id": "s128",
+   "chapter": 5,
+   "text": "So they had Midway radio a message in plain {m:plain}language.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:plain}: a clean, readable radio ring pulses out from Midway into the air (no cable drawn; the cable detail is dropped).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "radio_ping (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C5-11-af-water-decoy"
+   ],
+   "est_start_s": 493.55,
+   "est_start_s_fast": 454.68
+  },
+  {
+   "id": "s129",
+   "chapter": 5,
+   "text": "The {m:bait}bait: its fresh-water plant had broken {m:broke}down.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "At {m:bait}: a paper water-drop dangles from a paper fishing line off Midway's pin; at {m:broke}: a paper water tank on Sand Island gives a sad little wobble and a drip. Reported speech: no quote marks and no message text on screen or in captions (accounts word it differently).",
+   "onscreen": [],
+   "humor": "Deadpan fake complaint, told as bait.",
+   "sfx": [
+    "drip_comic (-20) in the gap"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C5-11-af-water-decoy"
+   ],
+   "est_start_s": 497.67,
+   "est_start_s_fast": 458.46
+  },
+  {
+   "id": "s130",
+   "chapter": 5,
+   "text": "Japan {m:bit}bit. A coded Japanese report passed it {m:along}along.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:bit}: the paper fishing line twitches with a tiny tug; then a scrambled glyph stream travels back across the map; at {m:along} it starts to decode.",
+   "onscreen": [],
+   "humor": "'Japan bit': the trick lands in one word.",
+   "sfx": [
+    "line_tug (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C5-11-af-water-decoy"
+   ],
+   "est_start_s": 501.21,
+   "est_start_s_fast": 461.71
+  },
+  {
+   "id": "s131",
+   "chapter": 5,
+   "text": "AF is short of {m:shortwater}water.",
+   "pause_after": 0.6,
+   "speed": 1.0,
+   "visual": "At {m:shortwater}: the glyph stream settles (no text block; this line is never captioned in quote marks).",
+   "onscreen": [],
+   "humor": "The punchline is the enemy repeating the fake plea. Music dip -10 dB under the line.",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-11-af-water-decoy"
+   ],
+   "est_start_s": 505.04,
+   "est_start_s_fast": 465.23
+  },
+  {
+   "id": "s132",
+   "chapter": 5,
+   "text": "That {m:conf}confirmed it. AF was {m:mid2}Midway.",
+   "pause_after": 1.2,
+   "speed": 1.0,
+   "visual": "At {m:conf}: the question-mark tag falls off the telegram; at {m:mid2}: 'AF = MIDWAY' lands beside Midway's pin with a soft thunk (not the Juice Check stamp). In the 1.2 s pause the comedy ends: the paper props fade and the map darkens slightly toward the open ocean.",
+   "onscreen": [
+    "AF = MIDWAY"
+   ],
+   "humor": "",
+   "sfx": [
+    "thunk_soft (-14)"
+   ],
+   "music": "Music cue changes in the pause: the playful pulse ends; a low, respectful pad begins. No gags from here through the war graves.",
+   "fact_ids": [
+    "C5-11-af-water-decoy"
+   ],
+   "est_start_s": 507.6,
+   "est_start_s_fast": 467.61
+  },
+  {
+   "id": "s133",
+   "chapter": 5,
+   "text": "Japan lost every carrier in its strike {m:force}force.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:force}: the story map pulls out to open ocean north and west of Midway; four simple home-built Japanese carrier silhouettes fade down to dark grey one after another (no flames, no explosions).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-12-carriers-sunk"
+   ],
+   "est_start_s": 511.15,
+   "est_start_s_fast": 470.96
+  },
+  {
+   "id": "s134",
+   "chapter": 5,
+   "text": "America lost the carrier {m:york}Yorktown.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:york}: [PD] NHHC photo of USS Yorktown (check the catalog credit line; some NHHC images are donated), full-bleed, Ken Burns 2%, 3 s max.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-12-carriers-sunk"
+   ],
+   "est_start_s": 514.49,
+   "est_start_s_fast": 474.01
+  },
+  {
+   "id": "s135",
+   "chapter": 5,
+   "text": "Already crippled, it was sunk by a Japanese {m:sub}submarine.",
+   "pause_after": 0.6,
+   "speed": 1.0,
+   "visual": "At {m:sub}: back on the map, the Yorktown silhouette fades down to dark grey (no explosion, no torpedo animation).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-12-carriers-sunk"
+   ],
+   "est_start_s": 516.65,
+   "est_start_s_fast": 476.0
+  },
+  {
+   "id": "s136",
+   "chapter": 5,
+   "text": "{m:york2}Yorktown, {m:kaga}Kaga and {m:akagi}Akagi have since been found.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "RE-HOOK. Back on the map: one respectful wreck marker (home-built hull silhouette, 64 px or more) per name, each at its RECORDED 1942 sinking position (Yorktown 30°35'59\"N 176°34'04\"W; Akagi 30°30'N 178°40'W; Kaga 30°23'N 179°17'W; approximate at chain scale). Names: ONE text block whose three words reveal whole on their spoken words (YORKTOWN at {m:york2}, KAGA at {m:kaga}, AKAGI at {m:akagi}) and hold together at least 2.5 s; each marker pulses on its word. Never three separate map labels.",
+   "onscreen": [
+    "YORKTOWN KAGA AKAGI"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-13-wrecks-found",
+    "C5-15-wreck-distance"
+   ],
+   "est_start_s": 520.78,
+   "est_start_s_fast": 479.81
+  },
+  {
+   "id": "s137",
+   "chapter": 5,
+   "text": "Drain the sea, and you'd find them nowhere near the {m:atoll}atoll.",
+   "pause_after": 0.5,
+   "speed": 1.0,
+   "visual": "Drain the ocean around Midway on the GEBCO chain terrain; at {m:atoll} a thick yellow line (10 px core, dark under-stroke) draws from the atoll to each wreck marker; its length shows the distance (no distance labels, no coordinates).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-15-wreck-distance"
+   ],
+   "est_start_s": 524.22,
+   "est_start_s_fast": 482.97
+  },
+  {
+   "id": "s138",
+   "chapter": 5,
+   "text": "They lie far out, more than three miles {m:threemi}down, on the deep ocean floor.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "HERO NUMBER #6, quiet: inset zoom (the wrecks are tiny at chain scale): low camera on the deep ocean floor (gentle abyssal hills, not flat), one hull silhouette resting in a LIT POOL of soft blue light (mean luma 70 or more; no run over 4 s below luma 40, a dark stretch reads as buffering on a phone). At {m:threemi}: the SEA LEVEL gauge goes to hero mode with kicker 'MORE THAN' and number '3 MILES DOWN', a soft tick only (no impact hit: war graves).",
+   "onscreen": [
+    "MORE THAN",
+    "3 MILES DOWN"
+   ],
+   "humor": "",
+   "sfx": [
+    "tick_soft (-20) on {m:threemi}"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C5-14-wreck-depth",
+    "C5-15-wreck-distance"
+   ],
+   "est_start_s": 529.03,
+   "est_start_s_fast": 487.4
+  },
+  {
+   "id": "s139",
+   "chapter": 5,
+   "text": "These are war graves, for American and Japanese sailors {m:alike}alike.",
+   "pause_after": 2.2,
+   "speed": 0.9,
+   "visual": "At {m:alike}: hold, slow drift around the lit pool; the number block has faded. No gags, no 'treasure', no gore.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "Soft pad, then lift into the Kure section after the pause.",
+   "fact_ids": [
+    "C5-16-war-graves"
+   ],
+   "est_start_s": 534.92,
+   "est_start_s_fast": 492.8
+  },
+  {
+   "id": "s140",
+   "chapter": 5,
+   "text": "Past Midway lies {m:kure}Kure, the last atoll in the chain.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Eased flight northwest to Kure Atoll (28.39N 178.29W), water restored, reef ring. At {m:kure}: map label 'KURE (HŌLANIKŪ)' (label only, the Hawaiian name is not narrated).",
+   "onscreen": [
+    "KURE (HŌLANIKŪ)"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-17b-kure-darwin-point"
+   ],
+   "est_start_s": 541.48,
+   "est_start_s_fast": 498.97
+  },
+  {
+   "id": "s141",
+   "chapter": 5,
+   "text": "Darwin never saw it. But on his reef map, he colored it {m:blue}blue.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Told on OUR map (no archival crop: a world-map crop of the 1842 map is unreadable at 390 px and would break the 60 s still spacing): Kure fills at least a third of the frame at regional oblique; at {m:blue} its reef ring takes a soft cyan-blue tint (35-40%). No old-map pastiche, no fake document.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-05-darwin-kure-blue"
+   ],
+   "est_start_s": 545.6,
+   "est_start_s_fast": 502.74
+  },
+  {
+   "id": "s142",
+   "chapter": 5,
+   "text": "Blue meant a reef on sinking {m:sinkground}ground.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:sinkground}: one text block, 'BLUE = SINKING' (BLUE in cyan, the coloured word is the legend; 3 words), 2 s, while the ring holds its tint; a slow push toward the reef edge.",
+   "onscreen": [
+    "BLUE = SINKING"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-05-darwin-kure-blue"
+   ],
+   "est_start_s": 550.9,
+   "est_start_s_fast": 507.58
+  },
+  {
+   "id": "s143",
+   "chapter": 5,
+   "text": "Here the water is so cool, the reef can barely keep up with the {m:sinking}sinking.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "Cut-away under Kure: the reef cap just keeping pace at the surface while the volcano sinks; at {m:sinking} the reef's top flickers at the waterline.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-17b-kure-darwin-point"
+   ],
+   "est_start_s": 553.94,
+   "est_start_s_fast": 510.38
+  },
+  {
+   "id": "s144",
+   "chapter": 5,
+   "text": "Scientists call this line the Darwin {m:point}Point.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:point}: a thin hero-orange line across the chain at about 29N lights up; map label 'DARWIN POINT'. (Pays the Darwin plant.)",
+   "onscreen": [
+    "DARWIN POINT"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-17b-kure-darwin-point"
+   ],
+   "est_start_s": 560.03,
+   "est_start_s_fast": 515.94
+  },
+  {
+   "id": "s145",
+   "chapter": 5,
+   "text": "Past it, every island has {m:drowned2}drowned.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:drowned2}: the water drains northwest of Kure (GEBCO): drowned flat-topped seamounts appear beyond the line.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-17b-kure-darwin-point"
+   ],
+   "est_start_s": 562.97,
+   "est_start_s_fast": 518.64
+  },
+  {
+   "id": "s146",
+   "chapter": 5,
+   "text": "That's the road the Big Island is {m:roadon}on.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:roadon}: a faint hero-orange ghost of the Big Island's outline appears for 1.5 s beside one drowned seamount past the line (its fate, not a place), then fades.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-19-big-island-headed"
+   ],
+   "est_start_s": 565.52,
+   "est_start_s_fast": 520.98
+  },
+  {
+   "id": "s147",
+   "chapter": 5,
+   "text": "The drowned volcanoes {m:bend}bend north and march on, all the way to {m:kam}Kamchatka.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "S2 STORY globe filling the frame height (4 s or less): the Hawaiian-Emperor chain lit in hero orange; at {m:bend} the bend lights up; at {m:kam} the line reaches Kamchatka; map label 'KAMCHATKA' on the peninsula. No bend age, no cause for the bend.",
+   "onscreen": [
+    "KAMCHATKA"
+   ],
+   "humor": "",
+   "sfx": [
+    "whoosh_long (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C5-18-emperor-to-kamchatka"
+   ],
+   "est_start_s": 568.96,
+   "est_start_s_fast": 524.14
+  },
+  {
+   "id": "s148",
+   "chapter": 5,
+   "text": "There, the sea floor dives back into the Earth, and takes them with {m:takes}it.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "Close globe cut-away at the far end: at {m:takes} the plate slides down into the trench, carrying the last seamount down with it (no text, or at most 'TRENCH').",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C5-18-emperor-to-kamchatka"
+   ],
+   "est_start_s": 574.26,
+   "est_start_s_fast": 528.98
+  },
+  {
+   "id": "s149",
+   "chapter": 5,
+   "text": "But every volcano in this chain had to start {m:somewhere}somewhere.",
+   "pause_after": 1.0,
+   "speed": 1.0,
+   "visual": "At {m:somewhere}: whip back down the chain toward the Big Island (3 s or less). Chapter card 'WE HAVEN'T HIT BOTTOM' over the moving shot (the card pays the cold-open line 'we won't hit bottom').",
+   "onscreen": [
+    "WE HAVEN'T HIT BOTTOM"
+   ],
+   "humor": "",
+   "sfx": [
+    "whip (-14)"
+   ],
+   "music": "Crossfade to the Ch6 cue: deep, building toward the payoff.",
+   "fact_ids": [
+    "C3-13-same-mountain-older"
+   ],
+   "est_start_s": 580.05,
+   "est_start_s_fast": 534.28
+  },
+  {
+   "id": "s150",
+   "chapter": 6,
+   "text": "Back to the start of the line: the Big Island's south {m:coast6}coast.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "RE-HOOK. At {m:coast6}: fast eased flight southeast (2.5 s) down to the Big Island's south flank; water drained to about -1,500 m so the young volcano's top stands exposed; SEA LEVEL gauge back top-left.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "whoosh_long (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C6-01-kamaehuakanaloa-where"
+   ],
+   "est_start_s": 584.97,
+   "est_start_s_fast": 538.85
+  },
+  {
+   "id": "s151",
+   "chapter": 6,
+   "text": "Off this coast, under the sea, a young volcano is {m:growing}growing.",
+   "pause_after": 0.5,
+   "speed": 1.0,
+   "visual": "At {m:growing}: the gauge marker drops to the young volcano's summit level (no digits: its depth is neither spoken nor shown as a number, keeping the 90 s before the payoff clear). The volcano is rendered from the real bathymetry as an ELONGATED RIDGE with a summit platform and pit craters (never a neat cone), about 30 km south of Kīlauea's coast (18°55'12\"N 155°16'12\"W).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-01-kamaehuakanaloa-where"
+   ],
+   "est_start_s": 590.08,
+   "est_start_s_fast": 543.54
+  },
+  {
+   "id": "s152",
+   "chapter": 6,
+   "text": "Its name is {m:kama}Kamaʻehuakanaloa.",
+   "pause_after": 0.7,
+   "speed": 0.9,
+   "visual": "Map label 'KAMAʻEHUAKANALOA' fades in 4 frames before {m:kama} and stays at least 2.5 s. Own take, speed 0.9, about 0.5 s of silence before it, no other new proper noun within 10 s either side.",
+   "onscreen": [
+    "KAMAʻEHUAKANALOA"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-01-kamaehuakanaloa-where",
+    "C4-14-name-spellings"
+   ],
+   "est_start_s": 594.89,
+   "est_start_s_fast": 547.97
+  },
+  {
+   "id": "s153",
+   "chapter": 6,
+   "text": "It means reddish child of {m:kanaloa}Kanaloa.",
+   "pause_after": 0.6,
+   "speed": 1.0,
+   "visual": "At {m:kanaloa}: slow orbit along the ridge in warm low light; the KAMAʻEHUAKANALOA label is still up (no second label). Respectful beat: no gag, no SFX on the name.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-01-kamaehuakanaloa-where"
+   ],
+   "est_start_s": 597.33,
+   "est_start_s_fast": 550.25
+  },
+  {
+   "id": "s154",
+   "chapter": 6,
+   "text": "This summer, it set off an earthquake people felt across the island's {m:south}south.",
+   "pause_after": 0.6,
+   "speed": 1.0,
+   "visual": "At {m:south}: soft felt-shaking rings spread from the volcano across the south of the island (no magnitude, no 'strong', no eruption shown).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "rumble_low (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C6-02b-alive"
+   ],
+   "est_start_s": 600.29,
+   "est_start_s_fast": 553.0
+  },
+  {
+   "id": "s155",
+   "chapter": 6,
+   "text": "You may know it by its old name, {m:loihi}Lōʻihi.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:loihi}: map label 'LŌʻIHI' for 2 s, below the main label's old position (the new name came first).",
+   "onscreen": [
+    "LŌʻIHI"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-01-kamaehuakanaloa-where"
+   ],
+   "est_start_s": 605.98,
+   "est_start_s_fast": 558.24
+  },
+  {
+   "id": "s156",
+   "chapter": 6,
+   "text": "It could become the next Hawaiian {m:next}island.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "At {m:next}: slow push toward the summit platform; in the gap after the line a paper 'COMING SOON' sign pops up on the platform on its paper hinge (close shot, sign at 35-40% of frame height), wobbles and settles.",
+   "onscreen": [
+    "COMING SOON"
+   ],
+   "humor": "",
+   "sfx": [
+    "pop_comic (-16) in the gap"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C6-03-emergence"
+   ],
+   "est_start_s": 609.81,
+   "est_start_s_fast": 561.75
+  },
+  {
+   "id": "s157",
+   "chapter": 6,
+   "text": "Opening date: thousands of years from {m:fromnow}now.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "The sign holds, upright and proud, in the slow push; at {m:fromnow} a tiny dust puff at its base.",
+   "onscreen": [],
+   "humor": "The joke is the sign, never the name Kanaloa.",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-03-emergence"
+   ],
+   "est_start_s": 612.96,
+   "est_start_s_fast": 564.65
+  },
+  {
+   "id": "s158",
+   "chapter": 6,
+   "text": "At {m:least}least.",
+   "pause_after": 0.8,
+   "speed": 1.0,
+   "visual": "At {m:least}: the sign's paper hinge droops a few degrees and it wobbles to a tilt. Tag gets its own beat.",
+   "onscreen": [],
+   "humor": "Deadpan tag, 0.3 s after the setup line.",
+   "sfx": [
+    "creak_paper (-18) in the gap"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C6-03-emergence"
+   ],
+   "est_start_s": 616.0,
+   "est_start_s_fast": 567.45
+  },
+  {
+   "id": "s159",
+   "chapter": 6,
+   "text": "We've drained the whole {m:whole}ocean.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "RE-HOOK. At {m:whole}: drain again, all the way: pull out to the full Big Island massif with every bit of water gone from the frame except the cyan strip in the trench; gauge marker at the bottom of its bar.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "drain_riser (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C6-04-havent-hit-bottom"
+   ],
+   "est_start_s": 617.59,
+   "est_start_s_fast": 568.97
+  },
+  {
+   "id": "s160",
+   "chapter": 6,
+   "text": "But we still haven't reached the bottom of this {m:bottom}mountain.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:bottom}: slow push down toward the base. (Pays the cold-open promise and the Ch6 card.)",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-04-havent-hit-bottom"
+   ],
+   "est_start_s": 619.75,
+   "est_start_s_fast": 570.95
+  },
+  {
+   "id": "s161",
+   "chapter": 6,
+   "text": "Remember that deep trench at its {m:feet}feet?",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "At {m:feet}: callback to the Ch3 plant: the cyan strip pulses once.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-04-hawaiian-deep",
+    "C6-04-havent-hit-bottom"
+   ],
+   "est_start_s": 623.97,
+   "est_start_s_fast": 574.83
+  },
+  {
+   "id": "s162",
+   "chapter": 6,
+   "text": "Slice through the {m:slice}rock, and you'll see why it's there.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "PAYOFF CUT-AWAY: at {m:slice} the terrain slices cleanly along a north-south plane through Mauna Loa; the crust and Moho sag beneath the island (schematic curve from the USGS flexure description, up to 8 km under Mauna Loa), with the trench at the outer rim of the sag.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "slice_reveal (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C3-04-hawaiian-deep",
+    "C6-05-sea-floor-pushed-down"
+   ],
+   "est_start_s": 627.12,
+   "est_start_s_fast": 577.73
+  },
+  {
+   "id": "s163",
+   "chapter": 6,
+   "text": "This island is so heavy, it has bent the sea floor {m:bent}down.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:bent}: the sag deepens to its full shape in 1.5 s.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-04-hawaiian-deep",
+    "C6-05-sea-floor-pushed-down"
+   ],
+   "est_start_s": 631.24,
+   "est_start_s_fast": 581.5
+  },
+  {
+   "id": "s164",
+   "chapter": 6,
+   "text": "Like a bowling ball on a {m:matt}mattress.",
+   "pause_after": 0.2,
+   "speed": 1.0,
+   "visual": "At {m:matt}: 3 s or less metaphor inset drawn IN THE CUT-AWAY'S OWN LOOK (same grade, light and section style: a dark heavy ball pressing a layered mattress section), never a separate stylised set; dissolve straight back to the cut-away.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "thud_soft (-18)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C6-05-sea-floor-pushed-down"
+   ],
+   "est_start_s": 636.14,
+   "est_start_s_fast": 585.98
+  },
+  {
+   "id": "s165",
+   "chapter": 6,
+   "text": "Under {m:loa2}Mauna Loa, the real giant, it's pushed down by {m:miles2}miles.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:loa2}: map label 'MAUNA LOA' on the summit, held from here through s169 (one label plus the number block later fits the text rule). At {m:miles2}: a yellow line marks the dented true base under Mauna Loa.",
+   "onscreen": [
+    "MAUNA LOA"
+   ],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-05-sea-floor-pushed-down",
+    "C3-11-maunakea-not-the-giant"
+   ],
+   "est_start_s": 639.09,
+   "est_start_s_fast": 588.68
+  },
+  {
+   "id": "s166",
+   "chapter": 6,
+   "text": "So this mountain doesn't sit on the sea floor. It sits in a {m:dent}dent.",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "At {m:dent}: the dented base line glows; the old flat sea-floor level is drawn as a faint white line across the sag for comparison.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-05-sea-floor-pushed-down",
+    "C6-04-havent-hit-bottom"
+   ],
+   "est_start_s": 643.7,
+   "est_start_s_fast": 592.91
+  },
+  {
+   "id": "s167",
+   "chapter": 6,
+   "text": "That trench at its feet is the edge of that {m:edge}dent.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "At {m:edge}: the cyan trench strip pulses at the outer rim of the sag in the cut-away (the 'It's a clue' loop paid in words and picture).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C3-04-hawaiian-deep",
+    "C6-05-sea-floor-pushed-down"
+   ],
+   "est_start_s": 649.49,
+   "est_start_s_fast": 598.21
+  },
+  {
+   "id": "s168",
+   "chapter": 6,
+   "text": "Look {m:look2}down. Past the old sea floor. All the way to the bottom of the {m:basedent}dent.",
+   "pause_after": 0.9,
+   "speed": 1.0,
+   "visual": "'(LOOK DOWN)' MOVE #2: at {m:look2} the camera tips down Mauna Loa's flank, past the trench and the old sea floor, through the cut, and arrives at the dented base line on {m:basedent}. Pause 0.9 s before the payoff take (own take).",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "whoosh_dive (-14)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C6-06-maunaloa-56000",
+    "C6-05-sea-floor-pushed-down"
+   ],
+   "est_start_s": 654.21,
+   "est_start_s_fast": 602.54
+  },
+  {
+   "id": "s169",
+   "chapter": 6,
+   "text": "Measured from its true base, Mauna Loa is about fifty-six thousand feet {m:tall56}tall.",
+   "pause_after": 1.8,
+   "speed": 0.9,
+   "visual": "HERO NUMBER #7, THE PAYOFF: a yellow height bar climbs from the true base (about -13,000 m under the summit, from the USGS figures, not the DEM) to the summit while the counter rolls; it lands 'ABOUT 56,000 FT' on {m:tall56}, kicker 'FROM ITS TRUE BASE' (4 words: logged exception to the 2-word kicker cap; the qualifier is mandatory, ledger C6-06). The old sea-level line, the dented base line, the MAUNA LOA label and the summit are in one frame, VE 1.0. Visible words 9 of 10.",
+   "onscreen": [
+    "FROM ITS TRUE BASE",
+    "ABOUT 56,000 FT"
+   ],
+   "humor": "",
+   "sfx": [
+    "tick_counter (-16)",
+    "impact_deep (-8) on {m:tall56}"
+   ],
+   "music": "Payoff swell; 1.2 s dip right before {m:tall56}, full after.",
+   "fact_ids": [
+    "C6-06-maunaloa-56000"
+   ],
+   "est_start_s": 661.38,
+   "est_start_s_fast": 609.15
+  },
+  {
+   "id": "s170",
+   "chapter": 6,
+   "text": "Almost twice as tall as {m:ev3}Everest.",
+   "pause_after": 0.5,
+   "speed": 1.0,
+   "visual": "At {m:ev3}: Everest (true scale, 8,849 m above the shared base line, VE 1.0) rises on the same dented base line beside Mauna Loa and reaches about halfway.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "rumble_rise (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C6-07-almost-twice-everest",
+    "C3-03-everest-comparison"
+   ],
+   "est_start_s": 668.85,
+   "est_start_s_fast": 616.11
+  },
+  {
+   "id": "s171",
+   "chapter": 6,
+   "text": "Stand Everest on that same base, and its peak would still be deep {m:underwater}underwater.",
+   "pause_after": 2.0,
+   "speed": 1.0,
+   "visual": "At {m:underwater}: the old sea-level line glows white; Everest's summit sits far below it.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-08-everest-underwater-option"
+   ],
+   "est_start_s": 671.7,
+   "est_start_s_fast": 618.76
+  },
+  {
+   "id": "s172",
+   "chapter": 6,
+   "text": "That's how much of this mountain you never get to {m:see}see.",
+   "pause_after": 2.3,
+   "speed": 1.0,
+   "visual": "At {m:see}: the camera eases back to frame the whole cut-away, from the dented base to the summit, with the old sea-level line high up the mountain. (Pays the title's 'Why can't you see most of'.)",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-06-maunaloa-56000",
+    "C12-01"
+   ],
+   "est_start_s": 679.19,
+   "est_start_s_fast": 625.76
+  },
+  {
+   "id": "s173",
+   "chapter": 6,
+   "text": "Now put the ocean {m:back}back.",
+   "pause_after": 15.0,
+   "speed": 1.0,
+   "visual": "THE REFILL, MUSIC ONLY (about 15 s, three live compositions, each 10 s or less with level and camera moving): at {m:back} the cut-away closes and the water starts to rise from the dented base; composition A, the trench floods and spreads; composition B, the water climbs the lower flanks and the reef steps; composition C, the camera's continuous journey ends on the frame-1 composition (lon -155.32, lat 18.42, 26 km up, looking north, 1.32 crop) as the water reaches the thin white line at 0 m. No narration over the refill.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "water_rise_long (-14)"
+   ],
+   "music": "Opening theme returns under the refill.",
+   "fact_ids": [
+    "C3-04-hawaiian-deep",
+    "C12-01"
+   ],
+   "est_start_s": 685.8,
+   "est_start_s_fast": 631.98
+  },
+  {
+   "id": "s174",
+   "chapter": 6,
+   "text": "Every postcard of the Big Island shows only the top of a {m:giant2}giant.",
+   "pause_after": 0.4,
+   "speed": 1.0,
+   "visual": "Frame-1 composition with the sea at 0 m; at {m:giant2} the paper postcard from the cold open drops back into the same spot on the cap.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "paper_flap (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "C6-09b-final-line"
+   ],
+   "est_start_s": 702.76,
+   "est_start_s_fast": 648.77
+  },
+  {
+   "id": "s175",
+   "chapter": 6,
+   "text": "One that's slowly sinking into its own dent in the {m:planet}planet.",
+   "pause_after": 0.6,
+   "speed": 1.0,
+   "visual": "Hold the frame-1 composition, slow push; at {m:planet} a ghost of the dent shows under the island for 1.5 s, then fades. No end-screen element yet.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-09b-final-line",
+    "C3-06-subsidence-rate",
+    "C6-05-sea-floor-pushed-down"
+   ],
+   "est_start_s": 708.26,
+   "est_start_s_fast": 653.81
+  },
+  {
+   "id": "s176",
+   "chapter": 6,
+   "text": "So next time you see one, look {m:lookdown3}down.",
+   "pause_after": 0.5,
+   "speed": 1.0,
+   "visual": "Optional light button (tourist appearance 4 of 4, gated by the phone motion test): at {m:lookdown3} the paper tourist peeks over the postcard's bottom edge and looks down the flank. The last story words are the title's own '(Look Down)'.",
+   "onscreen": [],
+   "humor": "Final light button; nowhere near a death or a grave.",
+   "sfx": [],
+   "music": "",
+   "fact_ids": [
+    "C6-09b-final-line"
+   ],
+   "est_start_s": 713.17,
+   "est_start_s_fast": 658.34
+  },
+  {
+   "id": "s177",
+   "chapter": 6,
+   "text": "And what happens when a real lake drains, straight down a {m:hole}hole?",
+   "pause_after": 0.3,
+   "speed": 1.0,
+   "visual": "HAND-OFF (within 0-3 s of the final line): at {m:hole} the postcard flips over to a Louisiana postcard of Lake Peigneur; the shot keeps moving. GATE: voice only after the owner confirms the Lake Peigneur video is live; fallback hand-off to ep01 is in the notes.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [
+    "paper_flip (-16)"
+   ],
+   "music": "",
+   "fact_ids": [
+    "EXT-lake-peigneur"
+   ],
+   "est_start_s": 716.81,
+   "est_start_s_fast": 661.7
+  },
+  {
+   "id": "s178",
+   "chapter": 6,
+   "text": "Louisiana found {m:la}out.",
+   "pause_after": 1.0,
+   "speed": 1.0,
+   "visual": "End-screen elements (the Lake Peigneur video large, plus Subscribe) appear only after {m:la} finishes (the last voiced word), over the still-moving refill shot (slow orbit, waves moving). Cut to the end screen about 1 s after the word; the end screen holds about 12 s over moving picture.",
+   "onscreen": [],
+   "humor": "",
+   "sfx": [],
+   "music": "Back-timed final cue ends on the last frame.",
+   "fact_ids": [
+    "EXT-lake-peigneur"
+   ],
+   "est_start_s": 721.82,
+   "est_start_s_fast": 666.28
+  }
+ ],
+ "word_count": 1584,
+ "timing_model": {
+  "A_primary": "Rodney speaking at 153 wpm (2.55 words/s) plus the scripted pauses and a 0.35 s lead-in; est_start_s and chapters[].start_s use it",
+  "B_fast": "168 wpm (2.8 words/s, the draft's model) plus the same pauses; est_start_s_fast and chapters[].start_s_fast use it",
+  "runtime_A": "12:16.0",
+  "runtime_B": "11:20.4",
+  "end_screen_s": 12.0,
+  "cut_after_last_word_s": 1.0,
+  "rule": "Re-time every beat, caption and camera key from Rodney's real word timings (timing.json from the voice run); never from these estimates."
+ },
+ "loop_ledger": [
+  {
+   "opened_in": "s001-s003",
+   "closed_in": "s172, s174",
+   "loop": "Title promise 'Why can't you see most of Hawaiʻi?': 'Most of this mountain is normally underwater' and 'The Hawaiʻi you see on postcards? Only the top' (postcard dropped on the drained cap). Paid by 'That's how much of this mountain you never get to see' after the payoff and by the final line over the frame-1 composition, with the same postcard back on the cap."
+  },
+  {
+   "opened_in": "s010",
+   "closed_in": "s159-s169",
+   "loop": "The film's one forward promise: 'Even with every drop gone, we won't hit bottom.' Paid by the Ch6 card 'WE HAVEN'T HIT BOTTOM', 'We've drained the whole ocean. But we still haven't reached the bottom of this mountain.' and the 56,000 ft true-base payoff."
+  },
+  {
+   "opened_in": "s025",
+   "closed_in": "s032-s041",
+   "loop": "'Now picture a whole side of a volcano letting go. One did.' Paid by the Nuʻuanu drain: the debris surfaces, the split summit, the Manhattan-size block, the 100-mile deposit."
+  },
+  {
+   "opened_in": "s016-s023",
+   "closed_in": "s044-s046",
+   "loop": "The 1975 coast drop. Called back with 'The coast that dropped in the dark? It's part of Kīlauea's south flank' and 'still creeping ... Not falling. Creeping.'"
+  },
+  {
+   "opened_in": "s047",
+   "closed_in": "s051, s169",
+   "loop": "'So how big is the mountain under the Big Island, really?' First answer: the island stands up (s051) and Mauna Kea's 33,000+ ft; full answer: Mauna Loa's 56,000 ft from its true base."
+  },
+  {
+   "opened_in": "s058",
+   "closed_in": "s161, s167",
+   "loop": "'Remember that trench. It's a clue.' Paid by 'Remember that deep trench at its feet?' and 'That trench at its feet is the edge of that dent.' (cut-away: the trench sits at the outer rim of the sag)."
+  },
+  {
+   "opened_in": "s070, re-planted s085",
+   "closed_in": "s159-s172",
+   "loop": "'And even now, we haven't seen all of it.' Re-planted across the 4:47 time-machine tour with 'Then we'll come back for the part we haven't seen.' Paid by the drain-the-rock payoff."
+  },
+  {
+   "opened_in": "s083",
+   "closed_in": "s084-s146",
+   "loop": "'And each one shows what this island will become.' Paid by the time machine (Maui, Oʻahu, Kauaʻi, Nihoa, Lalo, Midway, Kure) and closed with 'That's the road the Big Island is on.'"
+  },
+  {
+   "opened_in": "s120",
+   "closed_in": "s141-s144",
+   "loop": "Darwin's idea (reefs sit on sinking islands). Paid by Kure coloured blue on his reef map and 'Scientists call this line the Darwin Point.'"
+  },
+  {
+   "opened_in": "s149",
+   "closed_in": "s150-s158",
+   "loop": "'But every volcano in this chain had to start somewhere.' Paid by Kamaʻehuakanaloa, the newborn volcano, and the COMING SOON gag."
+  },
+  {
+   "opened_in": "s008, s028-s029",
+   "closed_in": "s090, s176",
+   "loop": "The recurring paper tourist: suitcase on the dry ʻAuʻau Channel (s008), leaning into the Pali wind and losing his hat (s028-s029), holding his hat on in the callback (s090), and (optional) peeking over the postcard on 'look down' (s176). Four appearances, none near a death or a grave."
+  }
+ ],
+ "notes": "SCRIPT LOCK (script editor, 2026-11-08). Source: lock_tools/segments_locked.py; built and checked by lock_tools/build_lock.py (run `python3 -I build_lock.py --write` from that folder after any edit; ids and times below are for this version). All automated checks pass on BOTH timing models: every fact_id exists in ledger.json and none is false or disputed; every {m:} marker is unique in the film and referenced in its own segment's cues; no digits in spoken text; Hawaiian spelling (ʻokina U+02BB, kahakō, NFC) in narration and on screen, no ASCII forms; no sentence over 15 words (12 in the first 30 s); no on-screen string over 4 words; the channel's whole-word banned-wording grep (PLAYBOOK section 1) and the banned-word list are clean; no emojis; at most 2 spoken numbers and 1 hero number in any 60 s window; at most 3 new proper nouns in any 10 s; Kamaʻehuakanaloa isolated by 10 s from any other new name; at least 0.5 s of silence before every hero-number take; archival stills at least 60 s apart; no 30 s window over 165 wpm.\n\nLENGTH AND TIMING. 1584 spoken words in 178 segments, 100.5 s of scripted pauses. Model A (Rodney at the documented 153 wpm speaking rate, plus pauses and a 0.35 s lead-in): last word 12:03.0, total 12:16.0 with a 1 s cut and a 12 s end screen. Model B (168 wpm, the draft's model): last word 11:07.4, total 11:20.4. The four reviews removed about 330 words of filler, repeats, provenance lines and trivia (the draft had 1,861 words); the backfill used only the reviewers' own high-retention items plus a few new ledger-backed beats (the palm-grove image, the forward promise, the Midway true-size distance drag, the Nihoa irony, the creep rate, the name meaning, the Kure-blue payoff, the re-plant, the trench-clue lines). RESULT: on model A the film runs about 12:16.0, about 30 s UNDER the owner's 12:45-13:00 target; on model B about 11:20.4. The owner's 'about 1,900-2,000 words' assumes 153 wpm INCLUDING pauses; with this film's 100 s of deliberate pauses (gag beats, the two death beats, the war graves, a 15 s music-only refill) 1,950 words would run about 14:40 at 153 wpm speaking and about 13:30 even at 168 wpm, and would break the 165 wpm window cap. Runtime, not word count, is the target. OWNER DECISION NEEDED (retention review must-fix 9): (a) accept a tighter film of about 12:15 (the reviewers' preferred shape), or (b) add the checked RESERVE PACK below (+24 words, about +10 s: model A about 12:26), or (c) after the Ch1 Rodney test take, if he runs at 160 wpm or faster, add the reserve pack and lengthen the held drains. Measure Rodney's real rate on a Ch1 test take BEFORE the full voice run, then re-time everything from timing.json.\n\nRESERVE PACK (built and checked as a variant: lock_tools/reserve_variant_test.py passes every check on both models; adds 24 words, model A about 12:26, model B about 11:29, payoff still 90.2-90.5%): RES-1 replace s079 with 'Under Hilo, a drill found lava that cooled on dry land. It's now more than three thousand feet down.' (C12-11; a spoken number, windows pass); RES-2 after s114 'Most of the world's Laysan albatrosses nest here.' (C5-08); RES-3 before s098 'Some may have stayed all year.' (C4-07 hedge both sources allow). Further holds (no words): the Maui Nui drain cannot grow (chapter 1 is at 1:29.7 of its 1:30 cap); the Nuʻuanu surfacing, the stand-up and the Midway cut-away already carry +1.7 to +2.0 s holds.\n\nPAYOFF POSITION. The word 'fifty-six' lands at 11:05.3 (90.4%) on model A and 10:12.7 (90.1%) on model B (target 87-91%). After it: two payoff-image lines (Everest at half height; Everest's peak still underwater), one closing line ('That's how much of this mountain you never get to see'), 'Now put the ocean back.', about 15 s of music-only refill in three live compositions, the final line in two sentences plus the '(Look Down)' button, and the hand-off. No narration was added to fix the payoff percentage; the refill and the end screen carry the tail.\n\nPACKAGING PROMISE MAP (launch title 'Why Can't You See Most of Hawaii? (Look Down)'). 'Hawaiʻi' is the first spoken word and 'drained' ends the first line (s001; the 7-word hook lands at 0:03.1 on A, 0:02.9 on B). Frame 1 = the NO OCEAN round-3 default in motion (s001: camera, crop, plate, SSIM gate, thin solid white coast line; accent bar wipes on by frame 10; the camera move clears still_s). 'See' is spoken at 0:06.4 (fast 0:05.9) ('The Hawaiʻi you see on postcards? Only the top.'), with the postcard dropped ONTO the drained cap so 'only the top' is literal; the NO OCEAN state stays on screen until about 0:10 and the sea refills during the flight to Maui Nui. ARM B (ONE ISLAND): Maui, Molokaʻi and Lānaʻi are spoken at 0:11.2, 0:11.5, 0:12.3 on A (0:10.3, 0:10.6, 0:11.3 on B), before the drain, as one 3-word text block with a rim pulse per island; −400 FT lands at 0:15.2 (after 0:10); 'They become one island' at 0:15.9 (fast 0:14.6). '(Look Down)': camera move #1 on 'look down' at 0:26.3 (B 0:24.3); echoed by the Pali dive (s029), the Ch3 tilt (s056) and the payoff dive (s168); the last story words are 'So next time you see one, look down.' (s176). 'Most of': s002 (the MOUNTAIN, not land area), s054-s056 and s172. Never in the first 30 s: Everest, 33,000, 56,000 (checked).\n\nHERO NUMBERS (7, owner range 6-10; each its own image, no device more than 3 times): −400 FT at 0:13.2 (fast 0:12.2) (gauge counter); MORE THAN 100 MILES at 2:27.2 (fast 2:15.7) (line along the mapped deposit); 33,000+ FT FROM THE SEA FLOOR at 3:44.2 (fast 3:26.7) (height bar plus Everest on the shared base); ABOUT 7 MILLION YEARS at 6:02.4 (fast 5:33.6) (age gauge); ABOUT 28 MILLION YEARS at 7:28.4 (fast 6:53.2) (cut-away pointer); MORE THAN 3 MILES DOWN at 8:49.0 (fast 8:07.4) (gauge, quiet); ABOUT 56,000 FT FROM ITS TRUE BASE at 11:01.4 (fast 10:09.2) (height bar plus Everest on the dented base). Other spoken numbers: 'Two' (people died, s022), 'about half' (s069), 'sixteen hundred' (monk seals, s104), June 1942 (s123), 'twice' (s170). Shown but not spoken: NOVEMBER 1975 (kicker), JUNE 1942 (kicker). Numberless on purpose: the 1975 year in narration, the Kamaʻehuakanaloa depth, the plate rate, the slide's thickness, the four carriers, the three wrecks, the quake magnitude, the arch height.\n\nCHAPTERS (card text = YouTube chapter title, 4 words or fewer; card at the previous chapter's last word): 1 Only the Top 0:00; 2 Oʻahu's Missing Side 1:29.7 (fast 1:22.6); 3 The Island Stands Up 2:58.1 (2:44.2); 4 Watch It Grow Old 5:16.0 (4:51.0); 5 Fought Over a Volcano 7:08.5 (6:34.7); 6 We Haven't Hit Bottom 9:44.1 (8:58.0). Chapter 1 is under its 1:30 cap on both models. Re-time the YouTube chapter list from the real take (within 1 s of the cards).\n\nRE-HOOKS AND GAGS. Longest gap between re-hooks: 58.7 s (A). Gags (real animation on the real terrain; none near the 1975 deaths, Nihoa's graves or the war graves): ferry suitcase (s008), Pali lean and hat (s028-s029), Manhattan 'with room to spare' (s040), 'Not falling. Creeping.' dry button (s046), JUICE CHECK: TRUE (s063), Everest climber vs the road (s064-s065), 'A very big baby' crash zoom (s082), hat callback (s090), Nihoa irony (s095), the seal finds water, then the seals come back (s106-s108), the albatross landing (s116), the AF bait (s127-s132; story humour before any death; the comedy ends in the 1.2 s pause after 'AF was Midway' with a music change), COMING SOON / 'At least.' (s156-s158), the tourist peeking on 'look down' (s176, optional). The longest gag-free stretch (112.1 s from 8:17.7) is the battle, the wrecks and the war graves, where gags are banned.\n\nREVIEW FIXES APPLIED (segment ids in this paragraph and the next are the DRAFT ids, as the reviews cite them; every other id in these notes is a locked id). Retention review, all 9 must-fixes: names by 0:14 with 'Start with Maui, Molokaʻi and Lānaʻi.' / 'Drop the sea four hundred feet.' / 'They become one island.'; the Pali sag (s025 'One did.', s028 and s033 cut, s032 rewritten); s014 cut; creep beat trimmed (s051, s054 cut); Nuʻuanu repeats cut and merged; the mechanism restructured inside Ch3 (about 20 s, told once; 'Here's how it works.', 'slowly', s093, s095, s096 cut; Ch4 opens on 'So let's ride the plate'); the pre-payoff runway cut (s177-s179 cut, Hōlei moved out of Ch6); s157 and s100-s101 cut; runtime re-timed on a 153 wpm model and backfilled only with high-retention material (see LENGTH). Should-fixes applied: NO OCEAN held to about 0:10 with the postcard dropped on the drained cap; shorter hook line; s007 reworded; the palm-grove image; 'It's a clue.' and the mid-film re-plant; 'the real giant' plus the MAUNA LOA label through the payoff; s170 depth and s040 age cut (number load); the time-machine name load cut (s099, s116, s127 cut; La Pérouse is a label only); Nihoa and seal wind-downs merged or cut; Darwin cut to one idea beat; Midway s145 and s150 fixed; the newborn's trivia trimmed; Ch3 filler cut (s066, s078, the ridge line); 'giant' repetition in the tail fixed; the war-graves shot kept bright. Red-team review, all 5 must-fixes: s100 cut; Everest staged on the sea-level line, then sunk onto the shared base; the Manhattan overlay on the whole block's long axis; s111 cut with the conflict logged in C4-07; s167 moved and reworded as fate ('That's the road the Big Island is on.'). Its should-fixes: s079 'about half', s084 'the island's side', s104 'big eruptions ended', 'along this island chain', s062 'high up its slopes', the storm track, reported speech for the AF bait, the ridge line cut, the hand-off tied to the Lake Peigneur fact file, the number window (the year is shown, not spoken), 'several yards', s095-s096 cut, s115 'still stands above the sea', 'Off this coast', 'the baby of the islands'. Story review, all 8 must-fixes: the forward promise s010; Ch1 density (the cake-cut cut, both causes kept); 1975 respect (plain silhouette hoop, the grove image, 'All that, from several yards of sliding.'); the seal gag order; Hōlei moved to Ch4; Midway losses ('Already crippled, it was sunk', the pause and cue change, s157 cut); the AF decoy ('The bait:', 'Japan bit.'); the ending rewritten (music-only refill, final line in two sentences, 'So next time you see one, look down.', 'And what happens when a real lake drains, straight down a hole? Louisiana found out.'). Its should-fixes: 'Pali means cliff' kept, the lean framed behind the wall, 'If you've stood here, you've stood at the edge of something huge.', 'Not falling. Creeping.' as the button, 'But this giant can't stay.', 'A very big baby.', Nihoa rewritten, 'every volcano in this chain', COMING SOON's tag as its own beat, s193 rewritten, the trench loop paid in words, the fourth tourist appearance (optional). Compliance review, all 4 must-fixes: the names by 0:14; 0.5 s or more before every hero take (0.9 s before the payoff); archival stills 60 s apart (Darwin's woodcut and the reef-map crop replaced by our own cut-away and map); the name labels as one text block held 2 s or more (Maui Nui and the wrecks). Its should-fixes: the ridge line cut; runtime reported on two models with an owner question; the payoff at 90%; the post-payoff tail cut from 7 to 4 sentences; the 7-word hook with 'see' at 0:06; the hand-off gate and fallback; the pronunciation gate (Hōlei no longer narrated; AF added as 'ay-eff'); a top-level voice entry; the year dropped from narration; frame-0 motion; 'LALO' label; the 4-word kickers logged as exceptions; the bowling-ball inset in the cut-away's own look; the hoop as a plain marker; reported speech for the AF bait.\n\nNOT APPLIED, AND WHY. Story review: 'Remember that joined island from the start? At its biggest...' (fact review must-fix: no traced outline, the line would contradict the picture); the Kure-blue beat with the 1842 map crop (kept the beat, told on our own map instead, because the crop is unreadable on a phone and breaks the still spacing); 'They lie on the sea floor, out of sight.' and 'Hōlei in Ch6 only' (retention review cuts win before the payoff). Story review owner call (1): it would keep 'Every ridge down here is real.'; the other three reviews and the owner rule point to cutting it, so it is cut and listed as an owner decision. The draft's '3,200 FT DOWN' hero number is dropped (retention review), which leaves 7 hero numbers after the new 3-miles depth image.\n\nTEXT-RULE EXCEPTIONS (logged): the kickers 'FROM THE SEA FLOOR' (s061) and 'FROM ITS TRUE BASE' (s169) have 4 words against the look book's 2-word kicker cap, because the qualifiers are mandatory (ledger C3-01, C6-06; PLAYBOOK_craft 9 'never drop a qualifier'); both blocks stay at 10 visible words or fewer. 'PŪHĀHONU (GARDNER PINNACLES)' and 'KURE (HŌLANIKŪ)' are 3- and 2-word labels.\n\nOWNER DECISIONS (ask in Hungarian before voicing): (1) Length: accept about 12:15 at 153 wpm, or add the reserve pack (see LENGTH). (2) 'Every ridge down here is real.' stays cut unless he OKs it. (3) Hand-off: is the Lake Peigneur video live? If not, fallback hand-off to ep01: 'And why do the continents all seem to point south? We checked.' (4) Date-sensitive lines, true for an upload in late 2026 only: 'This September' (s087, Hōlei, 23-27 Sept 2026) and 'This summer' (s154, the August 2026 quake). If the upload slips into 2027, change both. (5) Hōlei in Ch4: keep, or cut s086-s088 and leave Hōlei to its standalone Short. (6) The optional fourth tourist appearance (s176). (7) Pronunciation: the lexicon is DRAFT; Halapē, Kamaʻehuakanaloa, Lōʻihi and Kanaloa are narrated and need the test render, the wehewehe.org check and ideally a Hawaiian speaker before any full voice run; 'AF' (ay-eff) must be added to the lexicon and the ASR list.\n\nRENDER-TEAM NOTES (from the ledger and the reviews): re-run sill.py on the production grid for the -122 m Maui Nui outline (Pailolo stays water; Kahoʻolawe separate; never past -150 m in that shot) and for the -4,000 m one-ridge claim (s049); the 1975 cove is staged at a 1-3 km oblique and must pass a phone motion test; trace the slide outlines and the 100-mile line only from USGS I-2809 or Moore et al. 1989; Manhattan from the TIGER New York County polygon, on the block's long axis over the whole block, VE 1.0; Everest stands on the sea-level line in s059-s060, then on the shared -6,000 m base from s061, and on the dented base at the payoff (a pedestal under the SRTM mesh, never the 5,000 m cut); the 33,000+ counter starts at the USGS -6,000 m base and the 56,000 counter at about -13,000 m under Mauna Loa (USGS figures, not the DEM); the highest Nuʻuanu block tops surface first; drowned-reef steps only where the bathymetry shows terraces (off Kohala); the hot-spot glow cut-away appears once; Kamaʻehuakanaloa as an elongated ridge 30 km south of Kīlauea's coast, never a cone, and with no depth digits; the Walaka storm from the south-southwest, eye just west of the atoll; the NY-Miami line at true great-circle length beside Honolulu-Midway; wreck markers at the recorded 1942 sinking positions with home-built silhouettes, never OET, NOAA or Vulcan imagery; the war-graves shot at mean luma 70 or more with a lit pool; the bowling-ball inset in the cut-away's own look; every shot at VE 1.0 (if any texture shot goes above 1.0, add 'Heights are exaggerated here.' once to that segment).\n\n[PD] STILLS TO CLEAR (credit line per item, 3 s max each, at least 60 s apart): USGS 'Submerged coconut grove at Halapē after 1975 quake' (s023); two DATED NPS photos of the Hōlei Sea Arch, before and after the September 2026 collapse, shown as one wipe (s087); the NHHC USS Yorktown photo (s134). Paper cut-outs need public-domain sources: a 1950s Hawaiʻi tourist, a climber, a 4WD, a monk seal (NOAA), a Laysan albatross (USFWS), a water tank, a fishing line and water-drop prop; the postcard photo of a Big Island coast.\n\nCUT ORDER if the real take runs long: s027 ('Pali means cliff'), s113 (the NY-Miami drag), s095 (the Nihoa irony), s141-s142 (Kure blue), s153 (the name meaning), s086-s088 (Hōlei). Never cut s001-s010, the 1975 beat, the payoff runway s159-s169 or the final line."
+}
