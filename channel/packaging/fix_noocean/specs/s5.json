@@ -1,0 +1,52 @@
+{
+ "candidates": [
+  {
+   "title": "Why Can't You See Most of Hawaii? (Look Down)",
+   "channel": "Myth Juice",
+   "views": "1.2K views",
+   "age": "2d ago",
+   "duration": "12:53",
+   "avatar": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/feedsim/ours_avatar.jpg",
+   "id": "old",
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/final_ep02_1.jpg"
+  },
+  {
+   "title": "Why Can't You See Most of Hawaii? (Look Down)",
+   "channel": "Myth Juice",
+   "views": "1.2K views",
+   "age": "2d ago",
+   "duration": "12:53",
+   "avatar": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/feedsim/ours_avatar.jpg",
+   "id": "c1",
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/fix_noocean/cand_1.jpg"
+  },
+  {
+   "title": "Why Can't You See Most of Hawaii? (Look Down)",
+   "channel": "Myth Juice",
+   "views": "1.2K views",
+   "age": "2d ago",
+   "duration": "12:53",
+   "avatar": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/feedsim/ours_avatar.jpg",
+   "id": "c2",
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/fix_noocean/cand_2.jpg"
+  },
+  {
+   "title": "Why Can't You See Most of Hawaii? (Look Down)",
+   "channel": "Myth Juice",
+   "views": "1.2K views",
+   "age": "2d ago",
+   "duration": "12:53",
+   "avatar": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/feedsim/ours_avatar.jpg",
+   "id": "c3",
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/fix_noocean/cand_3.jpg"
+  }
+ ],
+ "hosts": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/refs/hosts/hosts.json#hawaii",
+ "now_playing": "34Ojnyi9xLw",
+ "seed": 5,
+ "n": {
+  "home": 6,
+  "upnext": 10,
+  "sidebar": 10
+ }
+}

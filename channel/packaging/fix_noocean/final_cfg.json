@@ -1,0 +1,348 @@
+{
+ "_about": "NO OCEAN chroma fix, 2026-11-08. Build: python3 -I tools/build.py final_cfg.json OUTDIR. Plates: work/r/*.jpg from tools/rend.py (queries in work/r/queries.json).",
+ "cand_1": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/fix_noocean/work/r/d1.jpg",
+  "wet": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P1_ridge_wet.jpg",
+  "crop": [
+   0.47,
+   0.52,
+   1.2
+  ],
+  "cap": {
+   "pulls": [
+    [
+     50,
+     100,
+     137,
+     0.487
+    ],
+    [
+     5,
+     45,
+     13,
+     0.419
+    ]
+   ],
+   "vibrance": 0.423,
+   "smax": 0.8,
+   "exposure": 1.3,
+   "shadow_tint": [
+    0.1,
+    0.232,
+    0.218,
+    [
+     0.88,
+     0.96,
+     1.2
+    ]
+   ],
+   "lc": [
+    12,
+    0.15
+   ]
+  },
+  "flank": {
+   "exposure": 0.949,
+   "sat": 0.582,
+   "warm": [
+    0.882,
+    1.0,
+    1.08
+   ]
+  },
+  "flank_burn": [
+   0.57,
+   1.0,
+   0.082
+  ],
+  "sky": {
+   "exposure": 1.013
+  },
+  "text": [
+   {
+    "s": "NO OCEAN",
+    "cap": 0.155,
+    "x": 0.955,
+    "y": 0.035,
+    "anchor": "r",
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     110
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ],
+  "sky_grad": {
+   "top": [
+    90,
+    145,
+    215
+   ],
+   "amt": 0.0,
+   "gamma": 1.6
+  },
+  "belt": {
+   "col": [
+    230,
+    194,
+    210
+   ],
+   "amt": 0.573,
+   "floor": 0.5,
+   "gamma": 2.0
+  },
+  "flank_far": [
+   0.15,
+   1.0
+  ],
+  "flank_haze": {
+   "sat": 0.5,
+   "warm": [
+    0.92,
+    1.0,
+    1.06
+   ]
+  }
+ },
+ "cand_2": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/fix_noocean/work/r/d3.jpg",
+  "wet": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P1_ridge_wet.jpg",
+  "crop": [
+   0.47,
+   0.49,
+   1.321
+  ],
+  "cap": {
+   "pulls": [
+    [
+     50,
+     100,
+     117,
+     0.5
+    ],
+    [
+     5,
+     45,
+     17,
+     0.171
+    ]
+   ],
+   "vibrance": 0.417,
+   "smax": 0.8,
+   "exposure": 1.248,
+   "shadow_tint": [
+    0.1,
+    0.256,
+    0.515,
+    [
+     0.88,
+     0.96,
+     1.2
+    ]
+   ],
+   "lc": [
+    12,
+    0.34
+   ]
+  },
+  "flank": {
+   "exposure": 0.95,
+   "sat": 0.65,
+   "warm": [
+    0.891,
+    1.0,
+    1.021
+   ]
+  },
+  "flank_burn": [
+   0.59,
+   1.0,
+   0.008
+  ],
+  "sky": {
+   "exposure": 1.048
+  },
+  "text": [
+   {
+    "s": "NO OCEAN",
+    "cap": 0.16,
+    "x": 0.955,
+    "y": 0.035,
+    "anchor": "r",
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     110
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ],
+  "sky_grad": {
+   "top": [
+    108,
+    136,
+    224
+   ],
+   "amt": 0.609,
+   "gamma": 1.6
+  },
+  "belt": {
+   "col": [
+    230,
+    194,
+    210
+   ],
+   "amt": 0.787,
+   "floor": 0.5,
+   "gamma": 2.0
+  },
+  "flank_far": [
+   0.15,
+   1.0
+  ],
+  "flank_haze": {
+   "sat": 0.5,
+   "warm": [
+    0.92,
+    1.0,
+    1.06
+   ]
+  }
+ },
+ "cand_3": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/fix_noocean/work/r/d2.jpg",
+  "wet": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P1_ridge_wet.jpg",
+  "crop": [
+   0.47,
+   0.5,
+   1.266
+  ],
+  "cap": {
+   "pulls": [
+    [
+     50,
+     100,
+     129,
+     0.554
+    ],
+    [
+     5,
+     45,
+     11,
+     0.526
+    ]
+   ],
+   "vibrance": 0.285,
+   "smax": 0.727,
+   "exposure": 1.3,
+   "shadow_tint": [
+    0.1,
+    0.306,
+    0.539,
+    [
+     0.88,
+     0.96,
+     1.2
+    ]
+   ],
+   "lc": [
+    12,
+    0.34
+   ]
+  },
+  "flank": {
+   "exposure": 0.941,
+   "sat": 0.582,
+   "warm": [
+    0.84,
+    1.0,
+    1.04
+   ]
+  },
+  "flank_burn": [
+   0.59,
+   1.0,
+   0.25
+  ],
+  "sky": {
+   "exposure": 1.06
+  },
+  "text": [
+   {
+    "s": "NO OCEAN",
+    "cap": 0.16,
+    "x": 0.955,
+    "y": 0.035,
+    "anchor": "r",
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     110
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ],
+  "sky_grad": {
+   "top": [
+    108,
+    136,
+    224
+   ],
+   "amt": 0.15,
+   "gamma": 1.6
+  },
+  "belt": {
+   "col": [
+    230,
+    194,
+    210
+   ],
+   "amt": 0.9,
+   "floor": 0.5,
+   "gamma": 2.0
+  },
+  "flank_far": [
+   0.15,
+   1.0
+  ],
+  "flank_haze": {
+   "sat": 0.5,
+   "warm": [
+    0.92,
+    1.0,
+    1.06
+   ]
+  }
+ }
+}

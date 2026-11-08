@@ -97,15 +97,15 @@ def layout(ends):
     cards = [
         (PK + '/final_ep02_1.jpg', '1. INDÍTÓ BÉLYEGKÉP (Test & Compare A)', OK, None,
          ['NO OCEAN: a teljesen leengedett óceán, a hegy alsó része látszik.',
-          'Kör 1 (ezzel a címmel): 9/10 választás (a véletlen 2,4-szerese), 2/10 első kattintás; Home-on az utolsó helyről is 5/5.',
-          'Javítva: világosabb szürke bazalt (fényesség 90 -> 109), felirat 13% -> 15%. Feedsim (3 futás): fényesség-rang 3-5/6 -> 2-3/6 (Home), 7-8/10 -> 3-4/10 (Up next).',
-          'Kapu: klón 12.04 (küszöb 11.71), farm 11.48 (11.43).']),
+          'Kör 3 nyertese (új kép): színes sziget (esőerdő-zöld és rozsda), hidegebb, sötétebb hegyoldal, vékony fehér egykori partvonal, szorosabb kivágás.',
+          'Kör 3: 10/25 választás, 4 első kattintás; a régi szürke kép ugyanott 2/25, 0 első. A "szürke, fakó" kifogás 22/25-ről 1/25-re esett. Up next 5. és 7. hely: továbbra is 0.',
+          'Kapu: klón 11.92 (küszöb 11.71), farm 11.51 (11.43). Előző kép: final_ep02_1_prev.jpg.']),
         (PK + '/final_ep02_2.jpg', '2. TESZT B', ACC, None,
          ['ONE ISLAND: a jégkori Maui Nui, ahol Maui, Molokaʻi és Lānaʻi egy sziget (Kahoʻolawe külön).',
           'Kör 1 (saját címével): 7/10 választás, 3 kihagyás is "majdnem".',
           'A melegebb ég és a tónusjavítás elbukott a kapun, ezért a tesztelt kép marad, a földhíd kissé kivilágosítva.',
           'Kapu: klón 11.79, farm 11.45 (szűk, de átment).']),
-        (PK + '/final_ep02_3.jpg', '3. TESZT C', ACC, None,
+        (PK + '/final_ep02_3.jpg', '3. KIESETT (2. kör: 0/10)', (150, 150, 156), None,
          ['YOU ARE HERE: térképtű a mai partvonalon, alatta a sötét hegyoldal a félig leengedett vízig.',
           'Kör 1-ben a "Summit" cím buktatta (2/10), a tű mindkét választásnál ok volt. Most a nyertes címmel, nagyobb tűvel és felirattal (12.6% -> 15%).',
           'Feltétel: a filmben legyen egy "you are here" pillanat 30 mp-en belül.',
@@ -128,20 +128,20 @@ def layout(ends):
     # ---------------- ep01 ----------------
     y = 175 + h1 + 40
     if ends is not None: d.rounded_rectangle([M - 20, y, W - M + 20, H - 40], radius=22, fill=PANEL)
-    d.text((M, y + 26), '1. rész: JAVASLAT, CSAK A TULAJDONOS JÓVÁHAGYÁSÁVAL. A YouTube-on még semmi nem változott.', font=F('Inter-Bold.otf', 30), fill=WARN)
+    d.text((M, y + 26), '1. rész: A JAVASLAT VISSZAVONVA (2. kör: az élő csomag 8/10, az új globuszok 0/20). A YouTube-on semmi nem változik.', font=F('Inter-Bold.otf', 30), fill=WARN)
     ty = y + 82
     cards = [
-        ('/home/user/juicytea-media/longform/ep01-continental-drip/release/thumb_B_pointing_at_what.jpg', 'JELENLEGI (élő)', (200, 120, 120),
+        ('/home/user/juicytea-media/longform/ep01-continental-drip/release/thumb_B_pointing_at_what.jpg', 'JELENLEGI (élő, marad)', OK,
          'Why the Continents Point South (Not Just a Coincidence)',
          ['Suggested CTR 1,97% (862 megjelenés), összesen 2,27%.',
           'A legsötétebb kártya minden felületen (fényesség 61, a szomszédok mediánja 90-143). Kapu: BUKOTT (68% kék, 9% piros).',
           'A zárójel bizonytalankodás ("Not Just"), az Up next listában 3 sorra törik.']),
-        (PK + '/final_ep01_1.jpg', 'JAVASOLT 1 (alapértelmezett)', OK,
+        (PK + '/final_ep01_1.jpg', 'JAVASOLT 1 (visszavonva)', (150, 150, 156),
          "Why the Continents Point South (Pangaea's Breakup)",
          ['A Dél-Atlanti-óceán felnyílása 116 millió éve: Dél-Amerika és Afrika két ék, alattuk Antarktisz.',
           'Kör 1: 8/10 kattintás, 4/10 első kattintás (a legjobb a 3 közül). Javítva: hátrébb a kamera, palaszürke háttér (fényesség 80 -> 104).',
           'Kapu: klón 12.42, farm 11.82.']),
-        (PK + '/final_ep01_2.jpg', 'JAVASOLT 2 (Test & Compare B)', ACC,
+        (PK + '/final_ep01_2.jpg', 'JAVASOLT 2 (visszavonva)', (150, 150, 156),
          "Why the Continents Point South (Pangaea's Breakup)",
          ['A valódi Föld délről: a két csúcs a korongon belül, Antarktisz felé mutat.',
           'Kör 1: 5/10 (Home-on 5/5, Up next-ben 0/5). Javítva: a csúcsok most teljesen látszanak.',

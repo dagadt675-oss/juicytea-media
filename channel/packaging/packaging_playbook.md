@@ -127,22 +127,22 @@ Paths are relative to `research/packaging/` unless they start with `research/` o
 
 | Item | Spec | Ep02 finals (1 / 2 / 3) |
 |---|---|---|
-| Canvas | 1280x720, 16:9, sRGB JPEG, quality 92 progressive, under 2 MB (upload 1280x720 or larger: one arm under 720p downscales every arm to 480p) | 1280x720, 192 / 145 / 153 KB |
+| Canvas | 1280x720, 16:9, sRGB JPEG, quality 92 progressive, under 2 MB (upload 1280x720 or larger: one arm under 720p downscales every arm to 480p) | 1280x720, 196 / 145 / 153 KB |
 | Words | 2-3, one line, naming the shown state; no digits | 2 / 2 / 3 |
-| Text height | Cap height 13-16% of frame height (93-115 px) | 15% / 13% / 15% |
-| Text width | 62% of frame width at most | 44% / 45% / 61% |
+| Text height | Cap height 13-16% of frame height (93-115 px) | 16% / 13% / 15% |
+| Text width | 62% of frame width at most | 47% / 45% / 61% |
 | Font | Barlow Condensed ExtraBold (800). Use the latin-ext file whenever a kahakō appears and check that every glyph renders (no boxes) | Barlow Condensed 800 |
 | Text colour, pale sky | Charcoal #10161E with a soft white glow (blur 8 px, alpha 110/255) | 1, 2 |
 | Text colour, mixed ground | Navy #101E2C with an 8 px white halo (map-label style) | 3 |
 | Text colour, dark ground | White #FFFFFF, soft black shadow (alpha 200/255, blur 7 px, offset 0/3 px) | (BIG ISLAND, reserve) |
 | Never | Boxes, banners, bars, outlines in accent colours, script or retro type | - |
-| Label legibility | Text vs surround at least 100 levels at 168x94 after a 1.1 px blur. Measured: charcoal NO OCEAN 133; the white variant 9, so it was rejected | 133 / - / - |
-| Mean luma | Floor 100, target 105-120, up to ~135 for bright sea scenes | 109 / 133 / 103 |
-| p90 luma | 190 or more (one luminous region) | 223 / 215 / 193 |
-| Contrast | Luma SD 55 or more; hero vs background 40+ levels | SD 68 / 61 / 66 |
-| Colour shares | Tan 10% or less, red 3% or less (an accent icon 2% or less), blue 45% or less | 2/0/27, 8/1/7, 2/1/22 |
+| Label legibility | Text vs surround at least 100 levels at 168x94 after a 1.1 px blur. Measured: charcoal NO OCEAN 133; the white variant 9, so it was rejected. Round 3 default: 147 | 147 / - / - |
+| Mean luma | Floor 100, target 105-120, up to ~135 for bright sea scenes | 101 / 133 / 103 (round 3: the old 109 lost to the new 101, so treat the target as soft) |
+| p90 luma | 190 or more (one luminous region) | 200 / 215 / 193 |
+| Contrast | Luma SD 55 or more; hero vs background 40+ levels | SD 66 / 61 / 66 |
+| Colour shares | Tan 10% or less, red 3% or less (an accent icon 2% or less), blue 45% or less | 1/1/35, 8/1/7, 2/1/22 |
 | Palette | Grey-dark basalt, green and rust island cap, pale blue sky band, turquoise only where water is the point. Ep01 globes: slate backdrop #6B7078 to #42454D, pale stone land, one cyan seam #73EBF2 | - |
-| Distinctiveness | `gate.py` PASS, drain clones 11.71+, template farms 11.43+ | 12.04/11.48, 11.79/11.45, 11.87/11.65 |
+| Distinctiveness | `gate.py` PASS, drain clones 11.71+, template farms 11.43+ | 11.92/11.51, 11.79/11.45, 11.87/11.65 |
 | Focal size | Hero 50%+ of frame, or a lit subject 12%+ in a vast field | terrain ~78% / land ~50% / cap + flank ~50% (sky-mask estimates) |
 | Camera | Low oblique, true vertical scale (VE 1.0); never top-down | all |
 | Anchor | 0 or 1 (map pin, true-scale object); no faces, no logo | 0 / 0 / 1 pin |
@@ -151,7 +151,8 @@ Paths are relative to `research/packaging/` unless they start with `research/` o
 | Brand | No wordmark, logo, stamp text or series frame | none |
 
 Reproduce (all PIL/numpy; plates from `engine/www/lab_hawaii.html` via `design_question/tools/rb19.sh`):
-- `final_ep02_1`: plate `final_work/plates/ours_P1_lift_a.jpg` (query in `design_question/pairs.json` cand_1 with `"exposure":1.7,"basalt":[0.036,0.036,0.039],"sed":[0.058,0.055,0.054]`), then `python3 -I final_work/tools/finalize.py final_work/cfg_q1c.json OUT` (key `ours_q1_s4`; reproduces the final pixel for pixel).
+- `final_ep02_1` (round 3 default): plate `fix_noocean/work/r/d3.jpg` (engine query `d3` in `fix_noocean/work/r/queries.json`, rendered with `fix_noocean/tools/rend.py`), then `python3 -I fix_noocean/tools/build.py fix_noocean/final_cfg.json OUTDIR cand_2` (writes `OUTDIR/cand_2.jpg`; reproduces the installed file byte for byte, checked 2026-11-08).
+- `final_ep02_1_prev` (the default before round 3): plate `final_work/plates/ours_P1_lift_a.jpg` (query in `design_question/pairs.json` cand_1 with `"exposure":1.7,"basalt":[0.036,0.036,0.039],"sed":[0.058,0.055,0.054]`), then `python3 -I final_work/tools/finalize.py final_work/cfg_q1c.json OUT` (key `ours_q1_s4`; reproduces it pixel for pixel).
 - `final_ep02_2`: `finalize.py final_work/cfg_q3c.json OUT` (key `ours_q3_e3`).
 - `final_ep02_3`: `python3 -I final_work/tools/pin_arm.py ours_pin_a 54 0.15 70 28 800`.
 - `final_ep01_1`: `cd design_ep01/work && python3 breakup.py OUT.jpg T=116 lat=-45 lon=-14 dist=2.45 fov=50 bgtop=0.42,0.44,0.47 bgbot=0.26,0.27,0.3 rim=0.6 sea=0.14,0.17,0.18`.
@@ -250,11 +251,18 @@ Ranked by our evidence. "Same-channel" = the formula vs the same channel's other
 
 | File | Arm | What changed after round 1 | Tests |
 |---|---|---|---|
-| `final_ep02_1.jpg` | **Default.** NO OCEAN on the fully drained massif | Lifted in the renderer (exposure 1.45 to 1.7, lighter cool basalt) and graded the dry flank to cool grey (saturation 0.5): mean luma **90 to 109**; NO OCEAN **13% to 15%** cap height; the white-text alternative was measured and rejected (9 vs 133 levels of contrast at 168x94). Warmer lifts failed the gate. | Gate 12.04 / 11.48. Feed sim luma rank 2-3/6 Home, 3-4/10 Up next, 1-3/5 sidebar (was 3-5, 7-8, 3-5); p90 rank 1-3 everywhere. |
+| `final_ep02_1.jpg` | **Default.** NO OCEAN on the fully drained massif, **round 3 colour fix** (installed 2026-11-08; the previous default is `final_ep02_1_prev.jpg`) | Round 3: new engine plate (`landSat` 1.6, `landGain` 2.7, darker cool basalt and sediment, a thin white line on today's coast); a masked grade gives the cap saturated rainforest green and rust, the flank goes darker cool slate, the sky top deeper blue; tighter crop (zoom 1.20 to 1.32). Mean luma 109 to **101**, colourfulness 33 to **55**, NO OCEAN 15% to 16% cap height, label contrast 147 at 168x94. (Before that, after round 1: lifted in the renderer, luma 90 to 109; warmer lifts failed the gate.) | **Blind round 3: 10/25 picks, 4 first clicks; the previous version 2/25, 0 first** (same hosts, same slots; all 5 personas picked the fix more often). Gate 11.92 / 11.51. Feed sim Up next: bright-saturated rank 3-4/10 (was 7), luma rank 4-5/10. |
 | `final_ep02_2.jpg` | ONE ISLAND, Ice Age Maui Nui | Tried the judge's palette fixes (dawn sky, warmer shelf, deeper water): all failed the craft-median bar (tan up to 20%, clone distance down to 10.84). Ships as tested with a +15% dodge on the Molokaʻi-Maui land bridge. | Round 1 (own title): 7/10 picks, 3 near-miss skips. Gate 11.79 / 11.45 (thin). Luma 133, rank 1-2 on every surface. |
 | `final_ep02_3.jpg` | YOU ARE HERE pin on today's shore, mid-drain | Pin radius 40 to 54 px, label 12.6% to 15%, paper tourist 22 to 28 px | Round 1 lost on the "Summit" title (2/10); both picks cited the pin; glance MATCH. Gate 11.87 / 11.65. |
 
 **Round 2 result (`round2.md`):** A (NO OCEAN) 3/10 with 2 first clicks, B (ONE ISLAND) 4/10, C (YOU ARE HERE) **0/10** ("a pin on a brown hill" in all 10 exposures). A and B are statistically tied; A stays the default on the tie-breakers (4 of 20 first clicks across both rounds vs 0 of 20, its glance read states the title's promise, and frame 1 is built for it). **Test & Compare runs 2 arms: A (default) and B. C is retired.** BIG ISLAND (`design_question/cand_2.jpg`) is a reserve third arm only after a luma and chroma fix and a mini blind check at a low Up next slot. Open risk for A: in 8 of 10 Up next exposures the personas called it grey, muted or small; the optional fix is more chroma on the island cap (not more luma), then re-run `gate.py` and the 168x94 glance. Condition for B: by 0:14 the narration names Maui, Molokaʻi and Lānaʻi as the islands that join (3 of its 4 pickers over-read it as all the islands becoming one).
+
+**Round 3 result (`round3.md`): the NO OCEAN colour fix replaced the default.** Three colour fixes against the old card, in a balanced design (one host set and order per surface, every arm in the same five slots, 25 trials each, the same five personas): cand_2 **10/25** (4 first clicks), cand_1 9/25 (1), cand_3 8/25 (4), the old card **2/25** (0). cand_1 and cand_2 were each picked more often than the old card by all 5 personas (one-sided p = 0.03, the floor for five); in matched cells cand_2 won 9 to 1. The old card was called grey, washed out or dark in 22 of its 25 trials, each fix in 1. The three fixes tie with each other; **cand_2 is installed** on the tie-breakers (most picks, 4 of 5 first clicks at Home slot 1, top arm in 85% of persona resamples, widest clone margin). Fallback: `fix_noocean/cand_1.jpg` (same camera and crop as the old card). Sample-size caveat: five simulated personas who each saw all four versions; the direction is credible, the size is probably inflated.
+- **Still open 1, low Up next slots:** slots 5 and 7 gave **0 of 40** trials to every arm, the old card included. The fix wins on Home and at Up next slot 2 only.
+- **Still open 2, "small":** 3-4 personas per arm, the old card included. Not new, and not fixable by grading.
+- **New package risk, PACIFIC DRAINED** (Unseen Works, "What the Pacific Ocean Looks Like Drained?", 120K views, 4 days old): 3-4 personas per fix skipped our card as "the same idea", and 3 personas skipped PACIFIC DRAINED for ours in 8 trials. It is a premise collision (rule T2) that any readable NO OCEAN card meets, not an image flaw. After upload, watch whether it shows up in our Suggested sources. It raises the value of arm B (ONE ISLAND), whose premise it does not cover. "(Look Down)" is our differentiator; keep it.
+- **Test & Compare is unchanged:** 2 arms, the new A (default) and B (ONE ISLAND). B was not in round 3 and has not met the new A.
+- **Guardrail:** the white line on the old coast stays thin, solid and terrain-following. Dashed, straight or labelled, it would become the clone kit's sea-level line.
 
 ### Backup titles (stall rule, in this order)
 
@@ -272,7 +280,7 @@ Retired: every "Only the Summit" title, "How Tall Is Hawaii?", "Where Does Hawai
 | "Most of" | Ledger: Mauna Kea about 6,000 m below vs 4,205 m above sea level (USGS); Mauna Loa about 56,000 ft from its true base. The narration must say it means the mountain, not the land area |
 | "Why can't you see" | 0:00-0:10: the ocean hides it; fully at the 11:10-11:45 payoff |
 | "(Look Down)" | The camera tips down the flank by about 0:27, and again at the payoff |
-| Arm 1, NO OCEAN | **Frame 1 = this composition** (camera lon -155.32, lat 18.42, 26 km up, looking north; SSIM 0.8+ at 320x180 without the label). This replaces the brief's dashed SEA LEVEL frame (clone kit) |
+| Arm 1, NO OCEAN | **Frame 1 = the round 3 default** (camera lon -155.32, lat 18.42, 26 km up, looking north; plate `d3` engine settings, including the thin white line on today's coast; the zoom 1.32 framing (crop centre 0.47/0.49) or the same framing from the camera; the cap and flank grade; SSIM 0.8+ at 320x180 without the label against the new `final_ep02_1.jpg`). This replaces the brief's dashed SEA LEVEL frame (clone kit) |
 | Arm 2, ONE ISLAND | 0:14 Maui Nui hero shot at about -400 ft (Kahoʻolawe stays separate) |
 | Arm 3 | Retired after round 2 (YOU ARE HERE 0/10). Reserve: BIG ISLAND after its fix and a blind check |
 | Never | "Taller than Everest" or 56,000 in the package or the first 30 s |
@@ -289,8 +297,9 @@ The proposal ("Why the Continents Point South (Pangaea's Breakup)" with `final_e
 
 | What | Path |
 |---|---|
-| Final thumbnails | `final_ep02_1.jpg`, `final_ep02_2.jpg`, `final_ep02_3.jpg`, `final_ep01_1.jpg`, `final_ep01_2.jpg` |
-| Overview (Hungarian labels) | `final_overview.jpg` |
+| Final thumbnails | `final_ep02_1.jpg` (round 3 default), `final_ep02_2.jpg`, `final_ep02_3.jpg`, `final_ep01_1.jpg`, `final_ep01_2.jpg`; `final_ep02_1_prev.jpg` (the default before round 3, kept as a record) |
+| Overview (Hungarian labels) | `final_overview.jpg` (re-rendered after round 3; previous `final_overview_prev.jpg`) |
+| Round 3 blind test (NO OCEAN colour fix) | `round3.md`; `feeds/r3_*.png`, `feeds/r3_key.json`; candidates `fix_noocean/cand_1.jpg` to `cand_3.jpg`, `fix_noocean/final_cfg.json`, `fix_noocean/tools/build.py`, `rend.py`, plates `fix_noocean/work/r/`; scorer `/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/r3score/score_r3.py` |
 | Owner summary (Hungarian) | `packaging_hu.md` |
 | Rebuild scripts and configs | `final_work/tools/finalize.py`, `pin_arm.py`, `overview.py`; `final_work/cfg_q1c.json`, `cfg_q3c.json`; plate `final_work/plates/ours_P1_lift_a.jpg`; intermediates `final_work/out1-3/ours_*.jpg`, `final_work/ep01/ours_*.jpg` |
 | Feed-sim specs and ranks | `final_work/specs/`, `final_work/feed_final_ranks.json`, `final_work/feed_ep01_ranks.json`; screens in `feeds/final_ep02/`, `feeds/final_ep01/` (never committed) |

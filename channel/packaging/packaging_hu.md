@@ -37,3 +37,13 @@ Csak 5 szimulált néző, jelöltenként 10 próba: csak a nagy különbségek b
 - **1. rész: nem cseréljük.** A jelenlegi csomag 8/10 (5 első kattintás), a két új földgömb 0/10 („nincs rajta szöveg”, „tanórának hangzik”). A javaslatot visszavonjuk.
 
 Részletek: `round2.md`.
+
+## Harmadik kör: NO OCEAN javítás
+
+**A csere megtörtént.** Az új NO OCEAN kép (élénk zöld-rozsda sziget, sötétebb, hideg hegyoldal, vékony fehér partvonal, szorosabb kivágás) ugyanazokon a helyeken 10/25 választást és 4 első kattintást kapott, a régi szürke kép 2/25-öt és 0-t. Mind az öt néző gyakrabban választotta az újat. A „szürke, fakó” kifogás 22/25-ről 1/25-re esett.
+
+**Óvatosan:** csak 5 szimulált néző; a három új változat közti különbség zaj.
+
+**Nyitott:** az Up next lista 5. és 7. helyéről egyik változat sem kapott választást, és többen a PACIFIC DRAINED videóval azonos ötletnek látták.
+
+Régi kép: `final_ep02_1_prev.jpg`. Részletek: `round3.md`.
