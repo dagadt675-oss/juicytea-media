@@ -157,3 +157,7 @@ What worked: the fact sheet with status keys and its banned-number list; an 8-wo
 What failed: the "v4" sent to re-QC was byte-identical to v3, so nothing had been fixed; static stretches and small labels; source tags on screen; three generated stills had been planned (removed in v3); the description claimed quote cards were exact when two were not.
 
 Rules added: facts (status keys, primary over listicles, verbatim quotes with ellipses, undetermined causes, absolute claims checked), pacing (pause lengths, freeze limits), text (no mid-word highlighter, no overlaps), visuals (chapter cards on top, physically true animation, seam fixes, crossfade ghosts), QC (8.0 gate, md5 before re-QC, measured battery, batched fix lists, no ear verdicts), owner rules (no AI generators, no publishing from operator sessions, no Drive mount).
+
+## 2026-11-08 Competitor research and repo hygiene
+- Niche study (channel/niche/niche_report.md): the niche is not saturated; the drain template is (96 uploads from 50 channels in 35 days, median 448 views). Signature-format small channels: median 99K views vs 2,650 for clone channels. Decision: broad umbrella, one signature series ("Below the Postcard"), Hawaii kept with new packaging.
+- Failure: the autosave pushed 106 competitor thumbnails and 13 contact sheets to the public repo. Removed from the tree in commit 1282012; history rewrite needs a force push and the owner's OK. Rule added to PLAYBOOK.md.
