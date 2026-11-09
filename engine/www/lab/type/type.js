@@ -50,7 +50,7 @@ export function txt(ctx, s, x, y, o = {}) {
   const st = o.stroke === true ? cap * 0.13 : (o.stroke || 0);
   QC.add(s, cap, o.alpha ?? 1);
   return F.text(ctx, s, x, y, { size, fam, weight: WEIGHT[fam] || 700, color: o.color || C.text, align: o.align, tracking: o.tracking ?? (fam === FAM.label ? 0.04 : 0.01),
-    alpha: o.alpha ?? 1, stroke: st, strokeColor: o.strokeColor || C.inkA(0.92), shadow: o.shadow ?? true, shadowBlur: cap * 0.35, shadowY: cap * 0.05, shadowColor: 'rgba(0,0,0,0.6)' });
+    alpha: o.alpha ?? 1, stroke: st, strokeColor: o.strokeColor || C.inkA(0.92), shadow: o.shadow ?? true, shadowBlur: o.shadowBlur ?? cap * 0.35, shadowY: o.shadowY ?? cap * 0.05, shadowColor: o.shadowColor || 'rgba(0,0,0,0.6)' });
 }
 export function width(ctx, s, o = {}) {
   const fam = o.fam || FAM.label, cap = px(o.cap || CAP.label);

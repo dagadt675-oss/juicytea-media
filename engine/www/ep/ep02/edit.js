@@ -2,7 +2,7 @@
 // Render: node still.cjs --page film.html --q '{"ep":"ep02"}' --frames 0,90 --outdir DIR   (Q.only: "ch1".."ch6", Q.draft, Q.qc, Q.strict, Q.dev)
 // Each chapter module chN.js exports build(api, kit, scenes) and pushes its scenes with the shared toolkit (shared.js, API.md).
 // Base shots (layer 0) must cover every frame: uncovered stretches get a placeholder (navy gradient, logged) until a chapter fills them.
-import { setup, frameStart, frameEnd } from './shared.js';
+import { setup, frameStart, frameEnd, chapterCard } from './shared.js';
 import * as F from '../../lib/fx.js';
 export const scenes = [];
 let KIT = null;
@@ -15,6 +15,7 @@ export async function init(api) {
     const before = scenes.length;
     await mod.build(api, kit, scenes);
     for (const s of scenes.slice(before)) s.chapter = n;
+    if (n > 1) scenes.push(Object.assign(chapterCard(kit, n), { chapter: n }));   // chapter cards are the orchestrator's, not the builders'
   }
   // placeholders for every uncovered stretch of the base layer (0 .. film end)
   const base = scenes.filter(s => (s.layer || 0) === 0).map(s => [s.t0, s.t1]).sort((a, b) => a[0] - b[0]);

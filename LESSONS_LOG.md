@@ -14,6 +14,34 @@ One dated entry per episode, project or major task, newest first. Each entry: wh
 
 ---
 
+## 2026-11-09: ep02 toolkit round 2 (review fixes before the six chapter builds)
+
+What was made: every must-fix and most should-fixes of the toolkit review, in `engine/www/ep/ep02/` (shared.js, ch1.js, payoff.js, edit.js, API.md, tools/) and the stages (`lab/hawaii/hterrain.js` new optional uniforms, new `lab/hawaii/section.js`, `lab/type/type.js` shadow options). Frame 1 and ONE ISLAND now use the thumbnails' own type (Barlow Condensed 800, ink rgb 16,22,30, soft white glow, no plate). ch1's demo stage is region `mauinui` (78 m) nested in the legacy Big Island bake, so landing, drain and outlines come from the 78 m grid. The payoff is a terrain cut-away (east-west section through Mauna Loa, sagging crust and Moho, old sea-floor line, trench water, Everest's real profile on the same base line) instead of the BlockStage box. The gauge carries its value in the plate. A public-domain postcard photo (USGS, Pohoiki) is in. API.md is rewritten as the manual for six parallel chapter builders (what each may and may not change, windows, regions, shot factories, timing, text rules, checks). Stills: scratch:research/ep02/foundation2/ (ch1, payoff, toolkit). Nothing was published, uploaded or posted.
+
+Real results (measurements on the stills):
+- Clone gate (channel/niche/work/gate.py): every ch1 frame from 0 to s006 passes. ONE ISLAND end state red 0 %, tan 3 %, drain-clone distance 11.87-11.92 (was red 17 %, FAIL); Maui Nui landing f344 drain-clone 12.14 (was 9.61), f509 tan 4 % (was 11 %).
+- Brightness: look-down frames 91.5-95.8 (was 75.6-82); Maui Nui 122.6-130.0 with the bottom half 99-104 (thumbnail 133 and 92; was 139.6 and 118-123); payoff 95.7-113.6 (was 97-138 with a grey void); STORY globe 97 (was 79); everest_wide 168 with 0 % blown (was 196 and 6.7 %).
+- Frame 1: SSIM 0.943 label-free against the label-free thumbnail (0.969 before: the far islands are now muted by design and the white rim fades with distance), 0.837 with the label against final_ep02_1.jpg (the label sits at y = 96 for the safe area where the thumbnail has it at y = 38). ONE ISLAND f586 against final_ep02_2.jpg: SSIM 0.50 (was 0.43), colourfulness 57.5 (thumbnail 65.6; was 111).
+- Type QC: no [typeqc] FAIL on the 13 ch1 and 9 payoff stills; payoff 9 visible words; the number block clears the bar by about 400 px.
+- lab_hawaii.html renders pixel-identically after all stage changes (MAE 0).
+
+What worked:
+- Reading the thumbnails' build configs (packaging cfg_q1c.json, cfg_q3c.json) instead of guessing their type: the review assumed Anton, the files say Barlow Condensed 800 with a white glow.
+- Nesting the finer region in the frame-1 stage (stack mauinui > bigisland > skirt, legacy origin and mesh): one continuous camera, frame 1 unchanged, Maui Nui at 78 m.
+- Hero fill only on new land bridges (land at the level within 11 km of two of today's islands) plus the exact-level contour; the natural colours carry the shot.
+- A class value for hero-filled pixels (0.75) that the shared grade passes through: the cap fill reads #FF5A36, not crimson.
+- Refilling the sea as -9000 (1 - p)^5 over the 1.6 s flight: the Maui Nui shelf is wet before it fills the frame.
+- A section wall built in world space with the clip plane from the same frame: wall and terrain meet exactly; the section shader shares the stage's sun and haze (with 0.3 of its fog) and the shared grade.
+
+What failed or stays open:
+- The first cut-away rendered the wrong half (camera side sign) and lilac rock (full sun on the face plus haze); fixed by the sign, 0.38 sun and 0.3 fog on the section.
+- The first contour closed open chains (a ring cut by the grid edge) with a straight line across Maui Nui; open chains now stay open.
+- Kahakō on stacked lines need about 30 px of line gap (the Ā macron touched the line above at 16 px).
+- Wikimedia Commons' API was rate-limited from the proxy; usgs.gov pages refuse curl but a text fetch gives the licence and the S3 original downloads.
+- Open: the section face reads as a fairly uniform brown-grey at phone size during the long holds; the cloud seam near 160° W and the cyan shelf glow on the STORY globe; region data faults (Pali, Nihoa, Gardner, nwhi_west caps, the everest_wide shadow blob only lifted, not re-baked); sub-frame motion blur; the L4 timing of the new stages; the payoff's tip-down start frames are mostly grey section.
+
+Rules added: PLAYBOOK_craft section 8 (thumbnail type as set, joins with natural colours, one seabed and film water, cut-away for height comparisons; DONT masked grade over a fill, dry shelf mid-flight, coarse or closed contours, blocks in a void; the coloured-word rule reworded to a two-colour legend only), section 9 (gauge value in the plate, obstacles for placers, ʻokina in Anton); PLAYBOOK_production section 15 (parallel chapter builders by file, USGS public-domain photos).
+
 ## 2026-11-09: ep02 mix v1 (re-recording mixer pass, sound only)
 
 What was made: the full 12:26.9 mix of ep02 from the spotting session (14 music cues, 147 one-shots, 47 ambience beds, 19 dips and lifts) on the prepared Rodney narration: the spec (longform/ep02-hawaii/audio/mix_ep02_v1.json, built by longform/ep02-hawaii/tools/build_mix.py), a 48 kHz mix with four stems (vo, music, sfx, ambience) and a 192 kbps sound-only preview for the owner (scratchpad deliver/ep02/hawaii_hang_elozetes_v1.mp3; media not in git). Tools: mix.py gained spectral ducking ('band' in duck, amb_duck and a new sfx_duck) and limiter runs in its report; audio_scan.py now rebuilds its buses with mix.build; mix_qc.py is new. An ep01 spec still mixes identically (max sample difference 3.6e-7).

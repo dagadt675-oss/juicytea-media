@@ -13,6 +13,12 @@
 //    post('keepA', 1) passes it through to the output target;
 //  - setMask(texture, bbox): R = hero fill (heroAmt, heroCol), G = dimmed and desaturated (dimAmt); camera shiftX (lens shift);
 //  - decoded heights and textures are cached per URL, so several stages on one page load the data once.
+//  - (2026-11-09, all default off) clipN: a vertical cut plane (terrain and water discarded on one side, for cut-aways; see
+//    lab/hawaii/section.js); capBB: land outside this lon/lat box is classed 0.5 (graded like the flank, not the cap);
+//    heroPass: hero-filled pixels are classed 0.75 (the shared grade passes them through, so the fill keeps its colour);
+//    lineFar: the old-coast line and bathtub ring fade out between these distances (km); seaMat 1: one depth-coded seabed
+//    (reef flat 0 to -150 m, grey sediment, dark slate basalt deep and on steep flanks); nearAmt: near-field seabed detail;
+//    water wRamp (shallow->mid->deep depths in m), waveAmt (wave normals), glintAmt, surfAmt (broken surf band offshore).
 // Any region: loadRegion(root, name) (or load() on a region folder) reads <root>/regions.json (lab/hawaii/tools/region_bake.py) and
 // stacks 1-3 nested layers, finest first; the legacy two-layer folder renders pixel-identically to before (lab/hawaii/README.md, Regions).
 import * as THREE from 'three';
@@ -94,6 +100,7 @@ uniform float level, ringH, sunI, skyI, dbg, landSat, landGain, seaRelief, shado
 uniform vec3 basaltCol, sedCol, reefCol, tubCol, lineCol;
 uniform float reefAmt, tubM, tubAmt, oldLine, lineW, detail;
 uniform sampler2D maskTex; uniform vec4 maskBB; uniform float maskOn, heroAmt, dimAmt; uniform vec3 heroCol;
+uniform vec4 clipN, capBB; uniform float heroPass, seaMat, nearAmt, landLift; uniform vec2 lineFar;
 varying vec2 vUv; varying vec3 vW;
 float Hm(vec2 uv){ return texture2D(hTex, uv).r; }
 vec3 seabed(float h, float slope, float cav, vec2 ll, float pf){
@@ -101,15 +108,27 @@ vec3 seabed(float h, float slope, float cav, vec2 ll, float pf){
   float n = fbm(ll * 6.0), n2 = fbmL(ll + 3.0, 33.0, pf), n3 = fbmL(ll + n * 0.02, 170.0, pf);
   // sediment ponds on gentle slopes (abyssal plain, moat), bare basalt on the flanks and slide blocks
   float rocky = smoothstep(0.035, 0.11, slope + (n2 - 0.5) * 0.05);
-  vec3 c = mix(sedCol, basaltCol, rocky);
-  // shallow carbonate shelf (cream reef), only where it is both shallow and gentle
-  float shelf = (1.0 - smoothstep(70.0, 190.0, dep)) * (1.0 - smoothstep(0.03, 0.10, slope));
-  c = mix(c, reefCol, shelf * reefAmt);
+  vec3 c;
+  if (seaMat > 0.5) {
+    // one depth-coded seabed for every shot: reef flat 0 to -150 m, grey sediment (olive-brown drapes), dark slate basalt
+    // deep and on steep flanks (the NO OCEAN look), so the shelf of the ONE ISLAND shot and the drained massif read as one world
+    float deep = smoothstep(700.0, 2600.0, dep + (n - 0.5) * 500.0);
+    vec3 sed = sedCol * mix(vec3(1.0), vec3(1.10, 1.04, 0.84), smoothstep(0.35, 0.75, n2));
+    c = mix(sed, basaltCol, max(rocky, deep));
+    float shelf = (1.0 - smoothstep(115.0, 170.0, dep + (n2 - 0.5) * 40.0)) * (1.0 - 0.65 * smoothstep(0.06, 0.16, slope));
+    c = mix(c, reefCol * (0.9 + 0.2 * n2), shelf * reefAmt);
+  } else {
+    c = mix(sedCol, basaltCol, rocky);
+    // shallow carbonate shelf (cream reef), only where it is both shallow and gentle
+    float shelf = (1.0 - smoothstep(70.0, 190.0, dep)) * (1.0 - smoothstep(0.03, 0.10, slope));
+    c = mix(c, reefCol, shelf * reefAmt);
+  }
   c *= 0.85 + 0.28 * n + 0.14 * (n2 - 0.5) + 0.12 * (n3 - 0.5) * detail;
   c *= clamp(1.0 - cav * 1.5, 0.66, 1.25);
   return c;
 }
 void main(){
+  if (clipN.w > 0.5 && dot(vW.xz, clipN.xy) + clipN.z > 0.0) discard;
   vec2 ll = bb.xy + vUv * (bb.zw - bb.xy);
   float lat = radians(ll.y);
   float h = Hm(vUv);
@@ -132,26 +151,41 @@ void main(){
   float rid = 1.0 - abs(2.0 * fbm(vec2(acr * gf, alo * gf * 0.12)) - 1.0);
   float rid2 = 1.0 - abs(2.0 * fbm(vec2((acr + 0.06) * gf, alo * gf * 0.12)) - 1.0);
   vec2 pg = perp * (rid2 - rid) / 0.06 * 0.09 * steep;
-  vec3 n = normalize(vec3(-gx * rk + dn.x - pg.x, 1.0, gy * rk - dn.y + pg.y));
+  // near-field detail (nearAmt): ~150 m and ~45 m basalt relief, faded by the pixel footprint (look book U6)
+  vec2 dn2 = vec2(0.0); float nearV = 0.5;
+  if (nearAmt > 0.001) {
+    vec2 q2 = ll * 760.0; float e2 = 0.31;
+    float fade2 = (1.0 - smoothstep(0.12, 0.45, 760.0 * pf)) * sub, fade3 = (1.0 - smoothstep(0.12, 0.45, 2600.0 * pf)) * sub;
+    dn2 = vec2(fbm(q2 + vec2(e2, 0.0)) - fbm(q2 - vec2(e2, 0.0)), fbm(q2 + vec2(0.0, e2)) - fbm(q2 - vec2(0.0, e2))) * 0.22 * fade2;
+    vec2 q3 = ll * 2600.0 + 7.3;
+    dn2 += vec2(vnoise(q3 + vec2(e2, 0.0)) - vnoise(q3 - vec2(e2, 0.0)), vnoise(q3 + vec2(0.0, e2)) - vnoise(q3 - vec2(0.0, e2))) * 0.10 * fade3;
+    dn2 *= nearAmt; nearV = mix(0.5, fbmL(ll + 11.0, 760.0, pf), nearAmt * sub);
+  }
+  vec3 n = normalize(vec3(-gx * rk + dn.x + dn2.x - pg.x, 1.0, gy * rk - dn.y - dn2.y + pg.y));
   float cav = clamp((hl + hr + hd + hu - 4.0 * h) / max(fp.x * 4096.0, 1.0) / 90.0, -0.25, 0.25);
   float ao = texture2D(aoTex, vUv).r;
   float shadow = shadows > 0.5 ? sunVis(ll, h) : 1.0;
   vec3 land = texture2D(colTex, vUv).rgb; float l0 = dot(land, vec3(0.2126, 0.7152, 0.0722)); land = max(mix(vec3(l0), land, landSat), 0.0) * landGain * (0.86 + 0.20 * fbmL(ll, 520.0, pf) + 0.10 * (fbmL(ll, 2100.0, pf) - 0.5));
-  vec3 alb = mix(seabed(h, slope, cav, ll, pf) * mix(1.0, 0.70 + 0.55 * rid, steep), land, smoothstep(-6.0, 4.0, h));
+  // landLift: baked-in topographic shadow (black texels in a satellite composite) lifted to a rock grey; real shade comes from the sun
+  if (landLift > 0.0) { float ld = dot(land, vec3(0.2126, 0.7152, 0.0722)); land = mix(land, max(land, vec3(landLift) * vec3(1.0, 0.97, 0.92)), 1.0 - smoothstep(landLift * 0.4, landLift * 1.4, ld)); }
+  vec3 alb = mix(seabed(h, slope, cav, ll, pf) * mix(1.0, 0.70 + 0.55 * rid, steep) * (0.82 + 0.36 * nearV), land, smoothstep(-6.0, 4.0, h));
   float exposed = step(h, -1.0) * step(level, h);
   float above = h - level;
   // bathtub ring: pale mineral crust in a band just below the former sea level, broken up by noise
+  float camD = length(vW - camPos), farK = 1.0 - smoothstep(lineFar.x, lineFar.y, camD);
   float tb = exposed * (1.0 - smoothstep(tubM * 0.35, tubM, -h)) * smoothstep(0.25, 0.6, fbmL(ll, 420.0, pf) + 0.25 * (1.0 + h / tubM));
-  alb = mix(alb, tubCol, tb * tubAmt);
+  alb = mix(alb, tubCol, tb * tubAmt * farK);
   // dark wet band right above the new waterline
   float ring = exposed * (1.0 - smoothstep(0.0, ringH, above));
   alb *= 1.0 - 0.5 * ring;
+  float heroW = 0.0;
   if (maskOn > 0.5) {
     vec2 mq = (ll - maskBB.xy) / (maskBB.zw - maskBB.xy);
     vec4 mk = (mq.x > 0.0 && mq.y > 0.0 && mq.x < 1.0 && mq.y < 1.0) ? texture2D(maskTex, mq) : vec4(0.0);
     float ml = dot(alb, vec3(0.2126, 0.7152, 0.0722));
     alb = mix(alb, mix(vec3(ml), alb, 0.3) * 0.62, mk.g * dimAmt);
     alb = mix(alb, heroCol * (0.55 + 0.9 * ml / (ml + 0.08)), mk.r * heroAmt);
+    heroW = mk.r * heroPass;
   }
   float ndl = max(dot(n, sunDir), 0.0);
   vec3 sky = mix(hazeCol, zenithCol, 0.55);
@@ -161,12 +195,15 @@ void main(){
   // one luminous line on the former coastline (0 m contour), constant width in pixels
   float fw = max(fwidth(h), 1e-3);
   float dl = abs(h + 0.5) / fw;
-  float cl = oldLine * step(level, -25.0) * (1.0 - smoothstep(lineW * 0.5, lineW * 0.5 + 1.0, dl));
-  float glow = oldLine * step(level, -25.0) * exp(-dl / (lineW * 1.6)) * 0.35;
+  float cl = oldLine * farK * step(level, -25.0) * (1.0 - smoothstep(lineW * 0.5, lineW * 0.5 + 1.0, dl));
+  float glow = oldLine * farK * step(level, -25.0) * exp(-dl / (lineW * 1.6)) * 0.35;
   float T; vec3 colA = aerial(col, vW, T);
   colA = mix(colA, lineCol, clamp(cl, 0.0, 1.0)) + lineCol * glow * T;
   if (dbg > 0.5) { vec3 o = dbg < 1.5 ? vec3(0.5 + h / 8000.0, 0.5 + h / 8000.0, h < 0.0 ? 1.0 : 0.0) : dbg < 2.5 ? vec3(T) : dbg < 3.5 ? alb : vec3(shadow, ao, 0.0); gl_FragColor = vec4(o * 0.6, 1.0); return; }
-  gl_FragColor = vec4(colA, mix(0.5, 1.0, smoothstep(-2.0, 2.0, h)));   // alpha = class: drained seabed 0.5, today's land 1
+  // alpha = class: drained seabed 0.5, today's land 1 (0.5 outside capBB), hero-filled 0.75 (heroPass: the shared grade leaves it)
+  float inCap = step(capBB.x, ll.x) * step(ll.x, capBB.z) * step(capBB.y, ll.y) * step(ll.y, capBB.w);
+  float cls = mix(0.5, mix(0.5, 1.0, inCap), smoothstep(-2.0, 2.0, h));
+  gl_FragColor = vec4(colA, mix(cls, 0.75, clamp(heroW, 0.0, 1.0)));
 }`;
 
 const WATER_VS = /* glsl */`
@@ -182,8 +219,8 @@ void main(){
 const WATER_FS = /* glsl */`
 ${COMMON}
 ${HEIGHT}
-uniform float level, time, sunI, dbg, foamAmt, foamPx, foamM, edgeGlow, fresMax;
-uniform vec3 wShallow, wMid, wDeep;
+uniform float level, time, sunI, dbg, foamAmt, foamPx, foamM, edgeGlow, fresMax, waveAmt, glintAmt, surfAmt;
+uniform vec3 wShallow, wMid, wDeep; uniform vec4 wRamp, clipN;
 varying vec3 vW; varying vec2 vLL;
 float hBlend(vec2 ll){
   vec2 us = (ll - bbSkirt.xy) / (bbSkirt.zw - bbSkirt.xy);
@@ -198,6 +235,7 @@ float hBlend(vec2 ll){
   return mix(hs, texture2D(hHero, uh).r, w);
 }
 void main(){
+  if (clipN.w > 0.5 && dot(vW.xz, clipN.xy) + clipN.z > 0.0) discard;
   float h = hBlend(vLL);
   float depth = level - h;
   if (depth <= 0.0) discard;
@@ -207,13 +245,23 @@ void main(){
                 fbm(p * 0.6 + vec2(0.0, 0.37) + vec2(0.0, time * 0.02)) - fbm(p * 0.6 + vec2(0.0, time * 0.02)));
   float rough = mix(0.035, 0.11, slick);
   vec3 n = normalize(vec3(g.x * rough * 2.0, 1.0, g.y * rough * 2.0));
+  if (waveAmt > 0.001) {   // wind waves: two crossing swell trains + chop, faded by the pixel footprint (no shimmer far away)
+    float pw = max(fwidth(p.x), fwidth(p.y));
+    vec2 w1 = vec2(0.82, 0.57), w2 = vec2(-0.37, 0.93);
+    // swell about 150 m and 100 m long (real ocean scale), chop about 40 m: sub-pixel far away, so only the near water carries them
+    float k1 = 42.0, k2 = 63.0, f1 = 1.0 - smoothstep(0.05, 0.25, k1 * pw / 6.283), f2 = 1.0 - smoothstep(0.05, 0.25, k2 * pw / 6.283);
+    vec2 sl = w1 * cos(dot(p, w1) * k1 - time * 2.6) * 0.5 * f1 + w2 * cos(dot(p, w2) * k2 + time * 3.1) * 0.35 * f2;
+    float f3 = 1.0 - smoothstep(0.05, 0.25, 150.0 * pw / 6.283);
+    vec2 ch = vec2(fbm(p * 150.0 + time * 0.8) - 0.5, fbm(p * 150.0 + 9.1 - time * 0.6) - 0.5) * f3;
+    n = normalize(n + vec3(sl.x + ch.x * 0.6, 0.0, sl.y + ch.y * 0.6) * 0.06 * waveAmt);
+  }
   vec3 v = normalize(camPos - vW);
   float fres = 0.02 + fresMax * pow(1.0 - max(dot(n, v), 0.0), 5.0);
   vec3 refl = skyColor(reflect(-v, n)) * mix(vec3(1.0), wShallow * 2.2 + 0.25, 0.35);
   vec3 hv = normalize(v + sunDir); float nh = max(dot(n, hv), 0.0);
   float a2 = rough * rough; float dd = nh * nh * (a2 - 1.0) + 1.0; float spec = a2 / (3.14159 * dd * dd);
-  vec3 glint = sunCol * sunI * spec * 0.08 * fres;
-  vec3 body = mix(wShallow, wMid, smoothstep(6.0, 120.0, depth)); body = mix(body, wDeep, smoothstep(150.0, 900.0, depth));
+  vec3 glint = sunCol * sunI * spec * glintAmt * fres;
+  vec3 body = mix(wShallow, wMid, smoothstep(wRamp.x, wRamp.y, depth)); body = mix(body, wDeep, smoothstep(wRamp.z, wRamp.w, depth));
   body *= 0.55 + 0.45 * sunI / 3.0;
   // foam rim + luminous shallow edge, sized in screen pixels via the depth derivative
   float fwD = max(fwidth(depth), 0.05);
@@ -222,6 +270,10 @@ void main(){
   float fn = fbmL(vLL, 2400.0, pf) * 0.7 + fbmL(vLL, 300.0, pf) * 0.6;
   float foam = foamAmt * (1.0 - smoothstep(fr * (0.35 + 0.5 * fn), fr * (0.7 + 0.6 * fn), depth));
   float edge = edgeGlow * (1.0 - smoothstep(fr, fr * 3.0, depth));
+  // broken surf band a little offshore (surfAmt): white water where the bottom shoals, in streaks along the swell
+  // (in metres of depth, faded where one metre of depth spans more than a pixel row: no streaks at grazing angles)
+  if (surfAmt > 0.001) { float sb = smoothstep(1.5, 3.0, depth) * (1.0 - smoothstep(5.0, 9.0, depth)) * (1.0 - smoothstep(0.6, 2.0, fwD));
+    foam = max(foam, surfAmt * sb * smoothstep(0.45, 0.8, fbmL(vLL + time * 0.0004, 1500.0, pf) * 0.8 + fn * 0.4)); }
   body = mix(body, wShallow * 1.9, edge * 0.7);
   float aBody = 1.0 - exp(-depth / 7.0);
   float alpha = 1.0 - (1.0 - aBody) * (1.0 - fres);
@@ -365,6 +417,7 @@ export class HawaiiStage {
     const HU = { hHero: { value: hero.hT }, hMid: { value: mid.hT }, hSkirt: { value: skirt.hT },
       bbHero: { value: new THREE.Vector4(...hb) }, bbMid: { value: new THREE.Vector4(...mid.bbox) }, bbSkirt: { value: new THREE.Vector4(...sb) } };
     const blank = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1); blank.needsUpdate = true;
+    this.clipU = { value: new THREE.Vector4(0, 0, 0, 0) };   // (nx, nz, d, on): discard where dot(xz, n) + d > 0 (shared by terrain and water)
     this.maskU = { tex: { value: blank }, bb: { value: new THREE.Vector4(0, 0, 1, 1) }, on: { value: 0 }, heroAmt: { value: 0 }, dimAmt: { value: 0 }, heroCol: { value: C('#FF5A36', 0.17) } };
     const terrMat = (hTex, aoTex, colTex, bb, hm, holeDrop, hole = hb) => new THREE.ShaderMaterial({
       uniforms: Object.assign({}, this.U, HU, {
@@ -376,6 +429,7 @@ export class HawaiiStage {
         tubCol: { value: V3([0.42, 0.42, 0.40]) }, lineCol: { value: V3([0.55, 1.6, 1.9]) },
         reefAmt: { value: 0.45 }, tubM: { value: 90 }, tubAmt: { value: 0 }, oldLine: { value: 0 }, lineW: { value: 2.2 }, detail: { value: 1.0 },
         maskTex: this.maskU.tex, maskBB: this.maskU.bb, maskOn: this.maskU.on, heroAmt: this.maskU.heroAmt, dimAmt: this.maskU.dimAmt, heroCol: this.maskU.heroCol,
+        clipN: this.clipU, capBB: { value: new THREE.Vector4(-1e4, -1e4, 1e4, 1e4) }, heroPass: { value: 0 }, seaMat: { value: 0 }, nearAmt: { value: 0 }, landLift: { value: 0 }, lineFar: { value: new THREE.Vector2(1e5, 2e5) },
       }), vertexShader: TERRAIN_VS, fragmentShader: TERRAIN_FS,
     });
     // one mesh per layer; each coarser layer drops out of sight inside the next finer layer's bbox
@@ -386,6 +440,7 @@ export class HawaiiStage {
       uniforms: Object.assign({}, this.U, HU, {
         bb: { value: new THREE.Vector4(...sb) }, level: { value: 0 }, yLevel: { value: 0 }, time: { value: 0 }, sunI: { value: 3.2 }, dbg: { value: 0 },
         foamAmt: { value: 0 }, foamPx: { value: 2.5 }, foamM: { value: 2.0 }, edgeGlow: { value: 0.6 }, fresMax: { value: 0.55 },
+        wRamp: { value: new THREE.Vector4(6, 120, 150, 900) }, waveAmt: { value: 0 }, glintAmt: { value: 0.08 }, surfAmt: { value: 0 }, clipN: this.clipU,
         wShallow: { value: V3(WATERS.turq[0]) }, wMid: { value: V3(WATERS.turq[1]) }, wDeep: { value: V3(WATERS.turq[2]) },
       }),
       vertexShader: WATER_VS, fragmentShader: WATER_FS, transparent: true, depthWrite: false,
@@ -461,6 +516,8 @@ export class HawaiiStage {
   // highlight mask over a lon/lat bbox: R = hero fill, G = dimmed (texture: THREE.DataTexture RGBA8, row 0 = south). null switches it off.
   setMask(tex, bb) { if (!tex) { this.maskU.on.value = 0; return; } this.maskU.tex.value = tex; this.maskU.bb.value.set(...bb); this.maskU.on.value = 1; }
   post(k, v) { this.postMat.uniforms[k].value = v; }
+  // vertical cut plane through lon/lat with horizontal normal (world x east, z south): discard where dot(p - A, n) > 0. null = off.
+  setClip(c) { if (!c) { this.clipU.value.set(0, 0, 0, 0); return; } const A = this.xyz(c.lon, c.lat, 0); this.clipU.value.set(c.nx, c.nz, -(A.x * c.nx + A.z * c.nz), 1); }
   project(lon, lat, hm) {
     const p = this.xyz(lon, lat, hm ?? Math.max(this.heightAt(lon, lat), this.level)); const d = p.clone().sub(this.cam.position); p.y -= (d.x * d.x + d.z * d.z) / (2 * R_EARTH);
     const q = p.project(this.cam); if (q.z > 1) return null; return [(q.x + 1) / 2 * this.W, (1 - q.y) / 2 * this.H];

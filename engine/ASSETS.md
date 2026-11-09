@@ -14,6 +14,7 @@
 | `www/three.module.min.js`, `www/jsm/` | three.js r170 and its example modules | three.js | MIT |
 | `www/d3.min.js` | d3 v7 | d3 | ISC |
 | `www/lab/globe/clouds_8k.jpg` | Cloud layer for the cinematic globe | NASA (built with `www/lab/scripts_globe/clouds.py`) | Public domain (NASA) |
+| `www/ep/ep02/img/postcard_bigisland.jpg` | ep02 s003/s174 postcard face: Pohoiki black sand beach, Puna coast, Island of Hawaiʻi, 2018-08-05 (crop 300,250-5100,3450 of the 6000x4000 original, 1200x800) | USGS Volcano Hazards Program, "A large black sand beach remains at Pohoiki..." https://www.usgs.gov/media/images/large-black-sand-beach-remains-pohoiki-sand-continues-block-access (original file `img6955.jpg`), checked 2026-11-09 | Public domain (USGS page: "Public Domain"); credit "USGS" in the description |
 
 Not committed, rebuilt by tools when needed: regional DEM/terrain bakes for drain shots (`www/lab/drain/tools/terrain_bake.py`, `fetch_drain_data.sh`; Hawaii: `www/lab/hawaii/tools/fetch_hawaii.sh`, NOAA ETOPO 2022 + AWS Terrain Tiles + NASA GIBS MODIS/BMNG), episode-specific photo cut-outs (`www/lab/story/tools/cutout.py`), renders, chunks, audio.
 Episode credits for the video description: list NASA imagery, Natural Earth, GPlates/EarthByte (CC BY 4.0), Quaternius/Kenney and every public-domain archival image used.

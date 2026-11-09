@@ -6,7 +6,8 @@ Prototype, not yet production. `lab_hawaii.html` renders named hero stills (no t
 |---|---|
 | `../../lab_hawaii.html` | The page. `SHOTS` table at the top: one entry per hero still (camera, water level, sun, look, devices). Any field can be overridden with `--q` |
 | `hterrain.js` | `HawaiiStage`, forked from `lab/drain/terrain.js` (the Gibraltar lab is unchanged). Ray-marched sun shadows (any sun, any exaggeration), dark basalt / sediment seabed, old-shoreline devices, turquoise water with a foam rim, grade |
-| `blocks.js` | `BlockStage`: Mauna Loa and Everest as two cut-out DEM blocks on one base line, same scale |
+| `blocks.js` | `BlockStage`: Mauna Loa and Everest as two cut-out DEM blocks on one base line, same scale (thumbnail stills only; the film's payoff uses `section.js`) |
+| `section.js` | `Section`: a terrain cut-away for a `HawaiiStage` (clip plane, section wall with layered basalt, the sagging crust and Moho, old sea floor, trench water, the old ocean in cross-section; optional Everest slab on the same base). Used by the ep02 toolkit's `cutawayShot` |
 | `tools/fetch_hawaii.sh` | Downloads and bakes everything into `data/` (about 2-4 min; 24 MB baked, about 130 MB of downloads that can be deleted afterwards) |
 | `tools/hawaii_bake.py` | The bake: heights, AO, cloud-free MODIS colour composite, Everest heights, and facts from the data (summits, Maui Nui saddle levels) into `data/meta.json` |
 | `tools/region_bake.py` | The general bake for any region (name, bbox, size): ETOPO 2022, NOAA NCEI coastal DEMs, Terrarium land detail, MODIS + HLS colour, AO and sea-level facts into `<out>/<name>/` (see Regions below) |
