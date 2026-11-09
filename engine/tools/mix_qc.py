@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """mix_qc.py MIX_JSON FINAL_WAV STEMS_DIR TIMING_JSON OUT_JSON
 Measures a finished mix against PLAYBOOK_craft section 11 and the ep02 sound principles (R1-R4, R12, R16, R18, R22),
-on the real files: the final mix and the four stems that mix.py --stems writes (vo, music, sfx, amb; they carry the same
+on the real files: the final mix and the four stems that mix.py --stems writes (vo, music, sfx, amb as .wav, or losslessly packed .flac; they carry the same
 loudness and limiter gain as the mix, so they sum to it). Prints a PASS/FAIL table and writes every number to OUT_JSON.
 
 Checks (gate in brackets; [info] = reported, no gate):
@@ -84,7 +84,8 @@ def main():
     gate('silence', not sil, sil, 'no -45 dB / 0.3 s silence mid-film')
 
     # --- stems
-    S = {k: sf.read(os.path.join(stems, f'{k}.wav'), dtype='float32')[0] for k in ('vo', 'music', 'sfx', 'amb')}
+    stem = lambda k: next(p for p in (os.path.join(stems, f'{k}.wav'), os.path.join(stems, f'{k}.flac')) if os.path.exists(p))
+    S = {k: sf.read(stem(k), dtype='float32')[0] for k in ('vo', 'music', 'sfx', 'amb')}
     n = min(len(fin), *(len(x) for x in S.values()))
     diff = float(np.abs(S['vo'][:n] + S['music'][:n] + S['sfx'][:n] + S['amb'][:n] - fin[:n]).max())
     gate('stems_sum', diff <= 1e-3, round(diff, 6), 'stems sum to the mix')

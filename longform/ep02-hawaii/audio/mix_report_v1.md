@@ -12,7 +12,7 @@ All in the scratchpad `audio/ep02_sound/` unless noted (media are never committe
 |---|---|
 | `mix_ep02_v1.json` | the mix spec for engine/tools/mix.py (14 cues, 19 dips/lifts, 151 SFX entries, 47 beds, a `qc` block and a `placement_log`) |
 | `mix_ep02_v1.wav` | the mix, 48 kHz stereo 24-bit, 746.93 s, md5 fe4f7ab9d5bb76d9f6a7f3837a9dbe2d |
-| `stems_v1/vo.wav`, `music.wav`, `sfx.wav`, `amb.wav` | the four stems (amb = ambience), same loudness and limiter gain as the mix; they sum to the mix (max error 0.0) |
+| `stems_v1/vo.flac`, `music.flac`, `sfx.flac`, `amb.flac` | the four stems (amb = ambience), same loudness and limiter gain as the mix; they sum to the mix (max error 0.0). Rendered as 24-bit WAV, then packed to FLAC because the disk reached 99% (decoded md5 identical to the WAVs; 252 MB instead of 821 MB) |
 | `mix_ep02_v1_report.json` | mix.py report: loudness passes, limiter, per-bus loudness, every cue and event as placed |
 | `mix_ep02_v1_qc.json` | engine/tools/mix_qc.py: every gate and number in section 4 |
 | `mix_ep02_v1_audio_scan.json` | engine/tools/audio_scan.py (now rebuilt on mix.build) |
