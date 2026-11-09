@@ -27,7 +27,8 @@
   {
    "id": "terrarium_z14",
    "res_m": 8.4,
-   "land_only": true
+   "land_only": true,
+   "cap_m": null
   }
  ],
  "colour": {
@@ -35,12 +36,12 @@
   "hls": {
    "level": 11,
    "dates": [
-    "L30_2023-11-23",
-    "L30_2023-11-15",
-    "S30_2023-11-23",
-    "S30_2023-11-18",
-    "S30_2023-11-13",
-    "L30_2023-11-07"
+    "S30_2024-06-10",
+    "L30_2024-06-10",
+    "S30_2024-04-26",
+    "S30_2024-06-05",
+    "S30_2024-05-01",
+    "L30_2024-05-01"
    ],
    "gain": [
     0.7,
@@ -72,13 +73,14 @@
  "purpose": "s064 the paper climber on Everest's summit (real snow); the same-scale comparisons stay on BlockStage (lab/hawaii/data/everest_h16.png).",
  "gaps": [
   "Terrarium z14 (SRTM 30 m): summit 8,748 m on the grid vs 8,849 m surveyed (the same-scale comparisons stay on BlockStage, which scales to 8,849 m). HLS 30 m, November 2023 snow.",
-  "HLS shadows are baked into the colour (Oct-Dec scenes, low sun): about 2-3.5 % of the colour pixels are near black on north faces, so light the stage from the south."
+  "Colour (round 3, 2026-11-09): HLS 30 m from the pre-monsoon high-sun window (10 April-10 June 2022-2024, the 6 clearest days, median): near-black texels 3.3 % to 0.09 %, on north faces 6.1 % to 0.07 % (was October-December, low sun). The monsoon months are cloud-covered and the HLS Fmask calls the high snowfields cloud (half the pixels above 6,500 m never clear), so they are not used. Light from the south still reads best (preset everest); AO tangent."
  ],
- "bake_s": 23.5,
- "baked": "2026-11-08",
+ "bake_s": 23.2,
+ "baked": "2026-11-09",
+ "ao": "tangent (horizon above the local slope)",
  "bytes": {
   "h16": 1160464,
-  "ao": 549359,
-  "color": 217265
+  "ao": 771940,
+  "color": 181056
  }
 }

@@ -14,6 +14,28 @@ One dated entry per episode, project or major task, newest first. Each entry: wh
 
 ---
 
+## 2026-11-09: ep02 region data round 3 (the open region faults)
+
+What was made: engine/www/lab/hawaii/tools/region_bake.py gained opt-in spec options (README lists them): HLS v2 with its Fmask cloud mask from the Microsoft Planetary Computer ('pc', median of cloud-free observations through the measured GIBS tone curve), one measured chroma factor, sea-floor texels by depth or by the HLS picture, slope-relative AO, a surveyed-top rescale, modelled features (sea stacks), a parent region as height source and dated Landsat scenes as regions of their own; make_index.py lists the dated scenes and per-region 'film' state hints. Re-baked: pali, oahu_nuuanu, nihoa, lalo, nwhi_west, everest_wide, everest; new: laperouse (2.5 m nest), lalo_2018_before, lalo_2018_after. Stills: scratchpad regfix/ (before b_*, after a_*, comparisons cmp_*.jpg). Nothing was published, uploaded or posted.
+
+Real results (measurements on the grids and stills):
+- Pali / O'ahu: the white Ko'olau cloud blobs are gone (HLS Fmask, 24 summer scenes, 3-4 % of pixels never clear); luminance gain re-measured on O'ahu 0.734 (0.758 with the GIBS composite) and chroma 0.6 (median MODIS / HLS chroma, 53,000 clear land px); Pali land texture saturation median 0.54 to 0.35 (Maui Nui 0.38) and cloud-white texels 8.1 % to 2.0 % (the rest roofs and roads); Kane'ohe Bay's sea floor shows the HLS picture instead of the nearest land's olive. Ground view near-black 16.7 % (sun [120, 30]) to 3.2 % with film.today sun [75, 55], luma 149: the black spur was sky-only shade on a west-facing slope, not a texture fault (dbg 3 / 4).
+- Nihoa: land x1.522, top 179 m to 273 m (Millers Peak, GNIS position; sources 272-275 m).
+- nwhi_west: middle cap mean luma 202 to 137 in the view camera with film.drained (tubAmt 0, reefAmt 0.55); atoll tops kept at -1 to -2 m (mask floor -2 m).
+- La Perouse Pinnacle: modelled at -166.2610, 23.7689 (Landsat near-infrared peak, 13 Oct 2018; GNIS gives only the rounded minute), 37 m, plan shape approximate (37 m on Lalo's 23 m grid and on the 2.5 m 'laperouse' nest; the crags never raise the top).
+- East Island: dry sand about 33,000 m2 on 9 July 2018 (published about 45,000 m2) and about 2,700 m2 on 13 October 2018, nine days after Walaka (near-infrared unmixing at 30 m, 0.6 km focus).
+- Everest: near-black colour texels 6.3 % to 0.03 % (everest_wide; north faces above 5,000 m 8.6 % to 0.07 %), everest 3.3 % to 0.09 %, from the pre-monsoon window.
+
+What worked: a real per-scene cloud mask instead of a percentile; measuring the gain and the chroma on the same clear pixels; reading the stage's debug views (albedo, shadow, AO) before blaming the data; a sandbox www root (still.cjs --www) so test bakes never touched the live data other builders render from; checking every number against a second reading (the first East Island figure, 104,000 m2, used a sand end-member of 0.30 and a 1.6 km circle that took in other sand islets).
+
+What failed: Fmask over snow (half of Everest's high pixels never clear; the GIBS pre-monsoon composite is used); a summer window at Everest is monsoon cloud; Lalo's AO had been 80 % zero since round 2 (a float64 grid misread by Image.fromarray(h, 'F')); a re-bake of nwhi_west with the round-2 refill floor (-10 m) would have sunk the atoll tops to -7 to -18 m; the first modelled pinnacle was a smooth dome with a white cap on a round disc (crags, guano streaks, a domain-warped reef flat and a cap at the surveyed top fixed it); East Island's vanished sand drawn with that day's bright picture read as an island still there (now a shoal 2 m down, coloured by depth).
+
+Open: the Pali and Waimea ground views stay soft (10 m grid, 30 m colour); Kane'ohe Bay's foam rim covers its reef flats (keep foamAmt at 0.25 or less); the Gardner pinnacles are still below the grids (the 'features' option can model them); API.md section 6 still lists the old faults (toolkit owner's file).
+
+Rules added: PLAYBOOK_production section 15 (per-scene cloud mask with a measured gain and chroma; model unresolved features and dated scenes as regions; DONT Fmask over snow or Himalayan winter colour; check the stage's own looks before the texture; float64 into Image.fromarray 'F').
+
+---
+
 ## 2026-11-09: ep02 toolkit round 2 (review fixes before the six chapter builds)
 
 What was made: every must-fix and most should-fixes of the toolkit review, in `engine/www/ep/ep02/` (shared.js, ch1.js, payoff.js, edit.js, API.md, tools/) and the stages (`lab/hawaii/hterrain.js` new optional uniforms, new `lab/hawaii/section.js`, `lab/type/type.js` shadow options). Frame 1 and ONE ISLAND now use the thumbnails' own type (Barlow Condensed 800, ink rgb 16,22,30, soft white glow, no plate). ch1's demo stage is region `mauinui` (78 m) nested in the legacy Big Island bake, so landing, drain and outlines come from the 78 m grid. The payoff is a terrain cut-away (east-west section through Mauna Loa, sagging crust and Moho, old sea-floor line, trench water, Everest's real profile on the same base line) instead of the BlockStage box. The gauge carries its value in the plate. A public-domain postcard photo (USGS, Pohoiki) is in. API.md is rewritten as the manual for six parallel chapter builders (what each may and may not change, windows, regions, shot factories, timing, text rules, checks). Stills: scratch:research/ep02/foundation2/ (ch1, payoff, toolkit). Nothing was published, uploaded or posted.

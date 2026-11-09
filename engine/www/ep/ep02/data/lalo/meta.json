@@ -30,6 +30,13 @@
    "res_m": 8.7,
    "land_only": true,
    "cap_m": 4
+  },
+  {
+   "id": "model:la_perouse_pinnacle",
+   "lon": -166.261,
+   "lat": 23.7689,
+   "top_m": 37,
+   "note": "La Perouse Pinnacle: 122 ft (37 m) basalt outcrop (Papahanaumokuakea, fact ledger C4); position from the near-infrared peak of Landsat 8 2018-10-13 (30 m; GNIS 1853047 gives only the rounded 23 45 N 166 15 W); plan shape, orientation and the lower second rock are approximate (sub-pixel in every grid); the reef platform under it from the bright patch in HLS"
   }
  ],
  "colour": {
@@ -82,14 +89,15 @@
     -165.95,
     23.95
    ]
-  }
+  },
+  "sea": "the HLS picture where HLS covers, else by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
  },
  "facts": {
   "peaks_m": {
    "la_perouse_pinnacle": {
-    "h": -21,
-    "lon": -166.2556,
-    "lat": 23.7741
+    "h": 37,
+    "lon": -166.2611,
+    "lat": 23.7688
    },
    "east_island": {
     "h": 4,
@@ -100,19 +108,85 @@
   "land_area_km2_at_0m": 0.1,
   "h_range_m": [
    -3795,
-   4
+   37
   ]
  },
  "purpose": "s100-s108 Lalo (French Frigate Shoals): the lagoon, La Perouse Pinnacle (last tooth), East Island before and after 2018.",
  "gaps": [
-  "Worst gap: ETOPO 2022 15\" has a 57 km2 false island over French Frigate Shoals and no reef or lagoon relief; after cleanup the atoll is a featureless shallow platform. Only Tern Island and East Island are land on the grid (East Island a 4 m speck after the 4 m cap); the smaller sand islets are not resolved, and about 20 false islets on the SE rim (surf on the reef crest over ghost land-tile heights) were dropped by the islet vote. La Perouse Pinnacle (about 37 m) is below every grid (-21 m within 600 m of its spot): model it at its surveyed position. Use sat.jpg (HLS 30 m, reef and lagoon visible) for the look; the July and October 2018 before and after must come from dated Landsat/HLS scenes, not baked here. A real fix is satellite-derived depth calibrated on the NCEI Midway survey."
+  "ETOPO 2022 15\" has a 57 km2 false island over French Frigate Shoals and no reef or lagoon relief; after cleanup the atoll is a featureless shallow platform. Only Tern Island and East Island are land on the grid (East Island a 4 m speck after the 4 m cap); the smaller sand islets are not resolved, and about 20 false islets on the SE rim (surf on the reef crest over ghost land-tile heights) were dropped by the islet vote. Use sat.jpg (HLS 30 m, reef and lagoon visible) for the look; the shallow sea floor in color.jpg now shows the same HLS picture (not the nearest land). A real fix is satellite-derived depth calibrated on the NCEI Midway survey.",
+  "La Perouse Pinnacle (37 m, 122 ft) is modelled since 2026-11-09 at its imagery position (-166.2610, 23.7689: the near-infrared peak of Landsat 8 on 13 Oct 2018; GNIS gives only the rounded 23 45 N 166 15 W): on this 23 m grid it is a 33 m spike, use region 'laperouse' (2.5 m grid, 37 m) for the close oblique. Plan shape, orientation and the lower second rock are approximate. The AO of this grid was 80 % zero before (a float64 grid misread by the AO resample); fixed.",
+  "East Island 2018: regions lalo_2018_before (Landsat 8, 9 July 2018) and lalo_2018_after (13 October 2018, nine days after Hurricane Walaka) share this grid; inside a 0.6 km circle around East Island their land is that day's dry sand (near-infrared unmixing at 30 m between water 0.02 and dry coral sand 0.60, area-preserving on the grid): about 33,000 m2 before (published: about 11 acres, 45,000 m2) and about 2,700 m2 after, a sliver of about 8 %. Inside the circle the land takes that day's picture and sand that is gone becomes a shoal 2 m down, coloured by depth (that day's picture of the bright shoal, drawn under the stage's water, read as a white island still there); sat_<date>.jpg keeps the full picture. Outside the circle cloud holes are filled from the 2024 composite (13 % and 26 % of the picture). Staging data only: no number on screen or in the narration."
  ],
- "bake_s": 74.7,
+ "bake_s": 97.4,
  "baked": "2026-11-09",
  "bytes": {
-  "h16": 1540716,
-  "ao": 211638,
-  "color": 102553,
+  "h16": 1540630,
+  "ao": 168103,
+  "color": 247755,
   "sat": 223104
+ },
+ "variants": {
+  "lalo_2018_before": {
+   "date": "2018-07-09",
+   "scenes": [
+    "LC08_L2SR_070043_20180709_02_T2",
+    "LC08_L2SR_070044_20180709_02_T2"
+   ],
+   "source": "USGS Landsat 8 Collection 2 Level-2 surface reflectance (Planetary Computer)",
+   "files": {
+    "h16": "h16_2018-07-09.png",
+    "ao": "ao.png",
+    "color": "color_2018-07-09.jpg",
+    "sat": "sat_2018-07-09.jpg"
+   },
+   "focus": [
+    -166.2115,
+    23.787,
+    0.6
+   ],
+   "clear_in_focus": 1.0,
+   "filled_from_composite_pct": 12.8,
+   "land_m2_in_focus": 33200.0,
+   "land_px_on_grid": 61,
+   "purpose": "s102-s104 East Island BEFORE Hurricane Walaka (Landsat 8, 9 July 2018): the sand island the monk seals used.",
+   "note": "",
+   "bytes": {
+    "h16": 1540659,
+    "ao": 168103,
+    "color": 247826,
+    "sat": 956392
+   }
+  },
+  "lalo_2018_after": {
+   "date": "2018-10-13",
+   "scenes": [
+    "LC08_L2SR_070043_20181013_02_T2",
+    "LC08_L2SR_070044_20181013_02_T2"
+   ],
+   "source": "USGS Landsat 8 Collection 2 Level-2 surface reflectance (Planetary Computer)",
+   "files": {
+    "h16": "h16_2018-10-13.png",
+    "ao": "ao.png",
+    "color": "color_2018-10-13.jpg",
+    "sat": "sat_2018-10-13.jpg"
+   },
+   "focus": [
+    -166.2115,
+    23.787,
+    0.6
+   ],
+   "clear_in_focus": 1.0,
+   "filled_from_composite_pct": 26.2,
+   "land_m2_in_focus": 2700.0,
+   "land_px_on_grid": 5,
+   "purpose": "s106 East Island AFTER Hurricane Walaka (Landsat 8, 13 October 2018, nine days after the storm): a sliver left.",
+   "note": "",
+   "bytes": {
+    "h16": 1540582,
+    "ao": 168103,
+    "color": 247758,
+    "sat": 509206
+   }
+  }
  }
 }

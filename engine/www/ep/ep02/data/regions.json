@@ -1,6 +1,6 @@
 {
  "about": "ep02 terrain/seafloor regions for HawaiiStage.loadRegion(root, name) (engine/www/lab/hawaii/hterrain.js). Heights: RG 16-bit PNG, h = v / 65535 * hrange + hmin, row 0 = north. stack = layers finest first, each inside the next. Facts are measured on the baked grid (not survey values): use them to stage shots, check every narrated number against the fact ledger.",
- "generated": "2026-11-09 07:28",
+ "generated": "2026-11-09 09:32",
  "root": "ep/ep02/data",
  "rebuild": "bash engine/www/ep/ep02/tools/rebuild_regions.sh [DL_DIR] [name,name]",
  "regions": {
@@ -483,7 +483,8 @@
    },
    "gaps": [
     "Offshore seafloor ETOPO 2022 15\": the large Nuʻuanu blocks are resolved (largest top -2,712 m here vs -2,691 m in the script source), smaller blocks are not; the deposit outline and other slide footprints must be traced from USGS I-2809, they are not in the data.",
-    "NCEI 1/3\" covers Oʻahu and its shelf to 22.06N / 157.45W only."
+    "NCEI 1/3\" covers Oʻahu and its shelf to 22.06N / 157.45W only.",
+    "Colour (round 3, 2026-11-09): HLS v2 with Fmask, 24 summer scenes 2023-2024, median of cloud-free observations (4 % of the HLS window never clear); luminance gain measured here 0.734 (MODIS / HLS) and chroma factor 0.6 (the same measurement), reused by pali; AO tangent; the shallow sea shows the HLS picture."
    ],
    "dir": "/ep/ep02/data/oahu_nuuanu",
    "files": {
@@ -508,29 +509,52 @@
    "colour": {
     "modis": "48 MODIS Terra/Aqua days",
     "hls": {
-     "level": 10,
+     "level": 11,
      "dates": [
-      "L30_2024-10-18",
-      "L30_2024-10-19",
-      "S30_2024-10-24",
+      "L30_2023-06-11",
+      "L30_2023-06-27",
+      "L30_2023-08-13",
+      "L30_2023-08-13",
+      "L30_2023-08-21",
+      "L30_2023-08-22",
+      "L30_2023-09-07",
+      "L30_2023-09-07",
+      "L30_2023-09-15",
+      "L30_2023-09-15",
+      "L30_2024-07-22",
+      "L30_2024-08-07",
       "L30_2024-08-15",
-      "L30_2024-06-29",
-      "L30_2024-06-13",
-      "L30_2024-09-25",
-      "S30_2024-09-14"
+      "L30_2024-09-09",
+      "S30_2023-08-13",
+      "S30_2023-08-28",
+      "S30_2023-09-05",
+      "S30_2023-09-07",
+      "S30_2023-09-10",
+      "S30_2024-05-22",
+      "S30_2024-07-18",
+      "S30_2024-08-07",
+      "S30_2024-09-04",
+      "S30_2024-09-11"
      ],
      "gain": [
-      0.758,
-      0.758,
-      0.758
+      0.734,
+      0.734,
+      0.734
      ],
      "bbox": [
       -158.3001,
       21.2397,
       -157.6299,
       21.7309
-     ]
-    }
+     ],
+     "source": "HLS v2 S30+L30 with Fmask (Planetary Computer)",
+     "stat": 50,
+     "scenes": 24,
+     "clear_obs_median": 6,
+     "never_clear_pct": 4.0,
+     "sat": 0.6
+    },
+    "sea": "the HLS picture where HLS covers, else by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
    },
    "facts": {
     "peaks_m": {
@@ -614,11 +638,12 @@
    },
    "bytes": {
     "h16": 5919313,
-    "ao": 581014,
-    "color": 200475
+    "ao": 687145,
+    "color": 204088
    },
-   "bake_s": 118.3,
-   "baked": "2026-11-08"
+   "bake_s": 115.6,
+   "baked": "2026-11-09",
+   "ao": "tangent (horizon above the local slope)"
   },
   "kauai": {
    "bbox": [
@@ -1338,9 +1363,22 @@
      "far": 400
     }
    },
+   "film": {
+    "today": {
+     "sun": [
+      75,
+      55
+     ],
+     "set": {
+      "foamAmt": 0.25
+     },
+     "why": "Lights the windward pali and the west-facing spur by the lookout (near-black 16.7 % to 3.2 % in the view camera); low foam over the shallow bay."
+    }
+   },
    "gaps": [
     "NCEI 1/3\" (USGS 10 m land): the lookout (343 m on this grid), its wall, the road and trees are not in the data; HLS 30 m colour is soft at ground level (needs a close-up texture or paper props).",
-    "The windward Ko'olau is under cloud on most HLS days and on the MODIS composite: the colour uses the 16 clearest HLS days of the 2023 and 2024 summers (high sun: winter scenes left the NE-facing pali in black topographic shadow) and a fixed gain (0.758, measured on O'ahu in oahu_nuuanu), because a gain matched to the cloudy MODIS reference came out 1.34 and turned the ridges neon green."
+    "Colour (round 3, 2026-11-09): HLS v2 (Sentinel-2 + Landsat, 30 m) with its Fmask cloud mask from the Planetary Computer, 24 summer scenes of 2023 and 2024, the per-pixel median of cloud-free observations: the Ko'olau crest cloud blobs are gone (3 % of pixels never clear, filled from neighbours). One luminance gain 0.734 and one chroma factor 0.6, both measured on clear O'ahu land (median MODIS / HLS over 53,000 px in oahu_nuuanu): the HLS greens were 1.7x more saturated than the MODIS colours the stage grade was tuned on (land texture saturation median 0.54, now 0.35; Maui Nui 0.38; cloud-white texels 8.1 % to 2.0 %, the rest roofs and roads). Winter scenes left the NE-facing pali black and a gain matched to the cloudy MODIS reference (1.34) turned it neon: neither is used. AO counts the horizon above the local slope (tangent).",
+    "Ground view: the spur just east of the lookout faces west, so a morning sun leaves it in shade, and the stage's shade is near black (16.7 % near-black with sun [120, 30]); film.today uses sun [75, 55] (3.2 %, frame luma 149) or keep that spur out of frame. Kane'ohe Bay's reef flats are 0-2 m deep and its sea floor now shows the HLS picture: keep foamAmt at 0.25 or less there (the foam rim covers the whole flat)."
    ],
    "dir": "/ep/ep02/data/pali",
    "files": {
@@ -1367,35 +1405,50 @@
     "hls": {
      "level": 11,
      "dates": [
-      "S30_2023-08-13",
-      "L30_2023-08-13",
-      "L30_2024-06-29",
-      "S30_2024-07-18",
+      "L30_2023-05-10",
+      "L30_2023-06-11",
+      "L30_2023-06-27",
       "L30_2023-08-22",
-      "S30_2023-07-14",
-      "S30_2023-08-28",
-      "S30_2024-05-24",
+      "L30_2023-09-07",
+      "L30_2023-09-15",
       "L30_2024-06-13",
-      "S30_2024-08-07",
-      "S30_2024-08-15",
-      "S30_2023-08-11",
-      "S30_2023-07-27",
+      "L30_2024-06-29",
+      "L30_2024-07-07",
+      "L30_2024-09-09",
+      "S30_2023-06-19",
+      "S30_2023-07-14",
+      "S30_2023-08-13",
+      "S30_2023-08-28",
+      "S30_2023-09-05",
+      "S30_2023-09-07",
+      "S30_2023-09-15",
+      "S30_2024-05-24",
       "S30_2024-06-08",
-      "S30_2023-06-17",
-      "L30_2023-06-11"
+      "S30_2024-07-18",
+      "S30_2024-08-27",
+      "S30_2024-09-04",
+      "S30_2024-09-06",
+      "S30_2024-09-11"
      ],
      "gain": [
-      0.758,
-      0.758,
-      0.758
+      0.734,
+      0.734,
+      0.734
      ],
      "bbox": [
       -157.87,
       21.32,
       -157.7,
       21.44
-     ]
-    }
+     ],
+     "source": "HLS v2 S30+L30 with Fmask (Planetary Computer)",
+     "stat": 50,
+     "scenes": 24,
+     "clear_obs_median": 8,
+     "never_clear_pct": 3.05,
+     "sat": 0.6
+    },
+    "sea": "the HLS picture where HLS covers, else by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
    },
    "facts": {
     "peaks_m": {
@@ -1416,11 +1469,12 @@
    },
    "bytes": {
     "h16": 1602720,
-    "ao": 1065887,
-    "color": 405716
+    "ao": 1299845,
+    "color": 353193
    },
-   "bake_s": 62.1,
-   "baked": "2026-11-09"
+   "bake_s": 43.2,
+   "baked": "2026-11-09",
+   "ao": "tangent (horizon above the local slope)"
   },
   "waimea": {
    "bbox": [
@@ -2115,7 +2169,7 @@
     }
    },
    "gaps": [
-    "Land from Terrarium (SRTM): plan area right (0.6 km2, real 0.69) but the relief is smoothed: top 179 m vs 273 m surveyed, so the sea cliffs are too gentle. Terraces and house sites are not in the data. The bank is ETOPO 15\" (false land removed)."
+    "Land from Terrarium (SRTM): plan area right (0.6 km2, real 0.69) but the relief is smoothed (top 179 m). Since 2026-11-09 the island's land heights are scaled x1.522 so Millers Peak is 273 m (895 ft; sources give 272-275 m; GNIS 1890767 position): slopes are 1.5x steeper, the coastline is unchanged, the cliff profile is still SRTM-smooth. Terraces and house sites are not in the data. In the 'gold' look the HLS colour reads flat ochre (dry rock, 30 m). The bank is ETOPO 15\" (false land removed); AO tangent."
    ],
    "dir": "/ep/ep02/data/nihoa",
    "files": {
@@ -2137,6 +2191,13 @@
      "res_m": 8.8,
      "land_only": true,
      "cap_m": null
+    },
+    {
+     "id": "survey_top",
+     "top_from_m": 179,
+     "top_to_m": 273,
+     "factor": 1.522,
+     "note": "Millers Peak (GNIS 1890767, 23.0623 N 161.9264 W); 273 m / 895 ft (sources give 272-275 m); the land tiles top out at 179 m"
     }
    ],
    "colour": {
@@ -2164,12 +2225,13 @@
       -161.75,
       23.18
      ]
-    }
+    },
+    "sea": "by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
    },
    "facts": {
     "peaks_m": {
      "nihoa_top": {
-      "h": 179,
+      "h": 273,
       "lon": -161.9271,
       "lat": 23.0626
      }
@@ -2177,17 +2239,18 @@
     "land_area_km2_at_0m": 0.6,
     "h_range_m": [
      -2639,
-     179
+     273
     ]
    },
    "bytes": {
-    "h16": 872086,
-    "ao": 283831,
-    "color": 59936,
+    "h16": 872537,
+    "ao": 285061,
+    "color": 37041,
     "sat": 51581
    },
-   "bake_s": 49.1,
-   "baked": "2026-11-09"
+   "bake_s": 32.6,
+   "baked": "2026-11-09",
+   "ao": "tangent (horizon above the local slope)"
   },
   "lalo": {
    "bbox": [
@@ -2224,7 +2287,9 @@
     }
    },
    "gaps": [
-    "Worst gap: ETOPO 2022 15\" has a 57 km2 false island over French Frigate Shoals and no reef or lagoon relief; after cleanup the atoll is a featureless shallow platform. Only Tern Island and East Island are land on the grid (East Island a 4 m speck after the 4 m cap); the smaller sand islets are not resolved, and about 20 false islets on the SE rim (surf on the reef crest over ghost land-tile heights) were dropped by the islet vote. La Perouse Pinnacle (about 37 m) is below every grid (-21 m within 600 m of its spot): model it at its surveyed position. Use sat.jpg (HLS 30 m, reef and lagoon visible) for the look; the July and October 2018 before and after must come from dated Landsat/HLS scenes, not baked here. A real fix is satellite-derived depth calibrated on the NCEI Midway survey."
+    "ETOPO 2022 15\" has a 57 km2 false island over French Frigate Shoals and no reef or lagoon relief; after cleanup the atoll is a featureless shallow platform. Only Tern Island and East Island are land on the grid (East Island a 4 m speck after the 4 m cap); the smaller sand islets are not resolved, and about 20 false islets on the SE rim (surf on the reef crest over ghost land-tile heights) were dropped by the islet vote. Use sat.jpg (HLS 30 m, reef and lagoon visible) for the look; the shallow sea floor in color.jpg now shows the same HLS picture (not the nearest land). A real fix is satellite-derived depth calibrated on the NCEI Midway survey.",
+    "La Perouse Pinnacle (37 m, 122 ft) is modelled since 2026-11-09 at its imagery position (-166.2610, 23.7689: the near-infrared peak of Landsat 8 on 13 Oct 2018; GNIS gives only the rounded 23 45 N 166 15 W): on this 23 m grid it is a 33 m spike, use region 'laperouse' (2.5 m grid, 37 m) for the close oblique. Plan shape, orientation and the lower second rock are approximate. The AO of this grid was 80 % zero before (a float64 grid misread by the AO resample); fixed.",
+    "East Island 2018: regions lalo_2018_before (Landsat 8, 9 July 2018) and lalo_2018_after (13 October 2018, nine days after Hurricane Walaka) share this grid; inside a 0.6 km circle around East Island their land is that day's dry sand (near-infrared unmixing at 30 m between water 0.02 and dry coral sand 0.60, area-preserving on the grid): about 33,000 m2 before (published: about 11 acres, 45,000 m2) and about 2,700 m2 after, a sliver of about 8 %. Inside the circle the land takes that day's picture and sand that is gone becomes a shoal 2 m down, coloured by depth (that day's picture of the bright shoal, drawn under the stage's water, read as a white island still there); sat_<date>.jpg keeps the full picture. Outside the circle cloud holes are filled from the 2024 composite (13 % and 26 % of the picture). Staging data only: no number on screen or in the narration."
    ],
    "dir": "/ep/ep02/data/lalo",
    "files": {
@@ -2246,6 +2311,13 @@
      "res_m": 8.7,
      "land_only": true,
      "cap_m": 4
+    },
+    {
+     "id": "model:la_perouse_pinnacle",
+     "lon": -166.261,
+     "lat": 23.7689,
+     "top_m": 37,
+     "note": "La Perouse Pinnacle: 122 ft (37 m) basalt outcrop (Papahanaumokuakea, fact ledger C4); position from the near-infrared peak of Landsat 8 2018-10-13 (30 m; GNIS 1853047 gives only the rounded 23 45 N 166 15 W); plan shape, orientation and the lower second rock are approximate (sub-pixel in every grid); the reef platform under it from the bright patch in HLS"
     }
    ],
    "colour": {
@@ -2273,14 +2345,15 @@
       -165.95,
       23.95
      ]
-    }
+    },
+    "sea": "the HLS picture where HLS covers, else by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
    },
    "facts": {
     "peaks_m": {
      "la_perouse_pinnacle": {
-      "h": -21,
-      "lon": -166.2556,
-      "lat": 23.7741
+      "h": 37,
+      "lon": -166.2611,
+      "lat": 23.7688
      },
      "east_island": {
       "h": 4,
@@ -2291,17 +2364,380 @@
     "land_area_km2_at_0m": 0.1,
     "h_range_m": [
      -3795,
-     4
+     37
     ]
    },
    "bytes": {
-    "h16": 1540716,
-    "ao": 211638,
-    "color": 102553,
+    "h16": 1540630,
+    "ao": 168103,
+    "color": 247755,
     "sat": 223104
    },
-   "bake_s": 74.7,
+   "bake_s": 97.4,
    "baked": "2026-11-09"
+  },
+  "lalo_2018_before": {
+   "bbox": [
+    -166.42,
+    23.55,
+    -165.95,
+    23.95
+   ],
+   "wh": [
+    2048,
+    1900
+   ],
+   "stack": [
+    "lalo_2018_before",
+    "nwhi_chain"
+   ],
+   "purpose": "s102-s104 East Island BEFORE Hurricane Walaka (Landsat 8, 9 July 2018): the sand island the monk seals used.",
+   "view": {
+    "level": 0,
+    "look": "day",
+    "sun": [
+     210,
+     35
+    ],
+    "water": "ocean",
+    "foam": 0.3,
+    "cam": {
+     "lon": -166.37,
+     "lat": 23.58,
+     "alt": 14,
+     "tLon": -166.22,
+     "tLat": 23.77,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "Same grid as lalo: only the focus circle differs (land from that date's near-infrared); everything else is the base grid."
+   ],
+   "dir": "/ep/ep02/data/lalo",
+   "files": {
+    "h16": "h16_2018-07-09.png",
+    "ao": "ao.png",
+    "color": "color_2018-07-09.jpg",
+    "sat": "sat_2018-07-09.jpg"
+   },
+   "hmin": -8000.0,
+   "hrange": 17000.0,
+   "px_m": 23.4,
+   "sources": [
+    {
+     "id": "etopo15",
+     "res_arcsec": 15.0
+    },
+    {
+     "id": "terrarium_z14",
+     "res_m": 8.7,
+     "land_only": true,
+     "cap_m": 4
+    },
+    {
+     "id": "model:la_perouse_pinnacle",
+     "lon": -166.261,
+     "lat": 23.7689,
+     "top_m": 37,
+     "note": "La Perouse Pinnacle: 122 ft (37 m) basalt outcrop (Papahanaumokuakea, fact ledger C4); position from the near-infrared peak of Landsat 8 2018-10-13 (30 m; GNIS 1853047 gives only the rounded 23 45 N 166 15 W); plan shape, orientation and the lower second rock are approximate (sub-pixel in every grid); the reef platform under it from the bright patch in HLS"
+    }
+   ],
+   "colour": {
+    "modis": "24 MODIS Terra/Aqua days",
+    "hls": {
+     "level": 11,
+     "dates": [
+      "S30_2024-06-15",
+      "S30_2024-06-25",
+      "S30_2024-09-28",
+      "L30_2024-09-11",
+      "S30_2024-07-15",
+      "S30_2024-10-08",
+      "L30_2024-08-10",
+      "S30_2024-10-03"
+     ],
+     "gain": [
+      0.7,
+      0.7,
+      0.7
+     ],
+     "bbox": [
+      -166.42,
+      23.55,
+      -165.95,
+      23.95
+     ]
+    },
+    "sea": "the HLS picture where HLS covers, else by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
+   },
+   "facts": {
+    "land_m2_in_focus": 33200.0,
+    "land_px_on_grid": 61
+   },
+   "bytes": {
+    "h16": 1540659,
+    "ao": 168103,
+    "color": 247826,
+    "sat": 956392
+   },
+   "bake_s": 97.4,
+   "baked": "2026-11-09",
+   "dated": {
+    "date": "2018-07-09",
+    "scenes": [
+     "LC08_L2SR_070043_20180709_02_T2",
+     "LC08_L2SR_070044_20180709_02_T2"
+    ],
+    "source": "USGS Landsat 8 Collection 2 Level-2 surface reflectance (Planetary Computer)",
+    "focus": [
+     -166.2115,
+     23.787,
+     0.6
+    ],
+    "clear_in_focus": 1.0,
+    "filled_from_composite_pct": 12.8,
+    "note": ""
+   }
+  },
+  "lalo_2018_after": {
+   "bbox": [
+    -166.42,
+    23.55,
+    -165.95,
+    23.95
+   ],
+   "wh": [
+    2048,
+    1900
+   ],
+   "stack": [
+    "lalo_2018_after",
+    "nwhi_chain"
+   ],
+   "purpose": "s106 East Island AFTER Hurricane Walaka (Landsat 8, 13 October 2018, nine days after the storm): a sliver left.",
+   "view": {
+    "level": 0,
+    "look": "day",
+    "sun": [
+     210,
+     35
+    ],
+    "water": "ocean",
+    "foam": 0.3,
+    "cam": {
+     "lon": -166.37,
+     "lat": 23.58,
+     "alt": 14,
+     "tLon": -166.22,
+     "tLat": 23.77,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "Same grid as lalo: only the focus circle differs (land from that date's near-infrared); everything else is the base grid."
+   ],
+   "dir": "/ep/ep02/data/lalo",
+   "files": {
+    "h16": "h16_2018-10-13.png",
+    "ao": "ao.png",
+    "color": "color_2018-10-13.jpg",
+    "sat": "sat_2018-10-13.jpg"
+   },
+   "hmin": -8000.0,
+   "hrange": 17000.0,
+   "px_m": 23.4,
+   "sources": [
+    {
+     "id": "etopo15",
+     "res_arcsec": 15.0
+    },
+    {
+     "id": "terrarium_z14",
+     "res_m": 8.7,
+     "land_only": true,
+     "cap_m": 4
+    },
+    {
+     "id": "model:la_perouse_pinnacle",
+     "lon": -166.261,
+     "lat": 23.7689,
+     "top_m": 37,
+     "note": "La Perouse Pinnacle: 122 ft (37 m) basalt outcrop (Papahanaumokuakea, fact ledger C4); position from the near-infrared peak of Landsat 8 2018-10-13 (30 m; GNIS 1853047 gives only the rounded 23 45 N 166 15 W); plan shape, orientation and the lower second rock are approximate (sub-pixel in every grid); the reef platform under it from the bright patch in HLS"
+    }
+   ],
+   "colour": {
+    "modis": "24 MODIS Terra/Aqua days",
+    "hls": {
+     "level": 11,
+     "dates": [
+      "S30_2024-06-15",
+      "S30_2024-06-25",
+      "S30_2024-09-28",
+      "L30_2024-09-11",
+      "S30_2024-07-15",
+      "S30_2024-10-08",
+      "L30_2024-08-10",
+      "S30_2024-10-03"
+     ],
+     "gain": [
+      0.7,
+      0.7,
+      0.7
+     ],
+     "bbox": [
+      -166.42,
+      23.55,
+      -165.95,
+      23.95
+     ]
+    },
+    "sea": "the HLS picture where HLS covers, else by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
+   },
+   "facts": {
+    "land_m2_in_focus": 2700.0,
+    "land_px_on_grid": 5
+   },
+   "bytes": {
+    "h16": 1540582,
+    "ao": 168103,
+    "color": 247758,
+    "sat": 509206
+   },
+   "bake_s": 97.4,
+   "baked": "2026-11-09",
+   "dated": {
+    "date": "2018-10-13",
+    "scenes": [
+     "LC08_L2SR_070043_20181013_02_T2",
+     "LC08_L2SR_070044_20181013_02_T2"
+    ],
+    "source": "USGS Landsat 8 Collection 2 Level-2 surface reflectance (Planetary Computer)",
+    "focus": [
+     -166.2115,
+     23.787,
+     0.6
+    ],
+    "clear_in_focus": 1.0,
+    "filled_from_composite_pct": 26.2,
+    "note": ""
+   }
+  },
+  "laperouse": {
+   "bbox": [
+    -166.269,
+    23.7617,
+    -166.253,
+    23.7761
+   ],
+   "wh": [
+    640,
+    640
+   ],
+   "stack": [
+    "laperouse",
+    "lalo",
+    "nwhi_chain"
+   ],
+   "purpose": "s101 close oblique on La Perouse Pinnacle, the last rock of its volcano (modelled stack at its imagery position, 2.6 m grid).",
+   "view": {
+    "level": 0,
+    "look": "day",
+    "sun": [
+     210,
+     35
+    ],
+    "water": "ocean",
+    "foam": 0.6,
+    "cam": {
+     "lon": -166.2665,
+     "lat": 23.7655,
+     "alt": 0.09,
+     "tLon": -166.261,
+     "tLat": 23.7689,
+     "tH": 12,
+     "fov": 40,
+     "near": 0.005,
+     "far": 200
+    }
+   },
+   "gaps": [
+    "The pinnacle is a model: 37 m top from the fact ledger (122 ft), position from Landsat near-infrared, plan shape approximate; the lagoon floor around it is ETOPO 15\" (smooth, about -20 m) plus a modelled reef platform at -1.5 m; colour around it is HLS 30 m (soft at this scale)."
+   ],
+   "dir": "/ep/ep02/data/laperouse",
+   "files": {
+    "h16": "h16.png",
+    "ao": "ao.png",
+    "color": "color.jpg",
+    "sat": "sat.jpg"
+   },
+   "hmin": -8000.0,
+   "hrange": 17000.0,
+   "px_m": 2.5,
+   "sources": [
+    {
+     "id": "region:lalo",
+     "res_arcsec": 0.83,
+     "px_m": 23.4
+    },
+    {
+     "id": "model:la_perouse_pinnacle",
+     "lon": -166.261,
+     "lat": 23.7689,
+     "top_m": 37,
+     "note": "La Perouse Pinnacle: 122 ft (37 m) basalt outcrop (Papahanaumokuakea, fact ledger C4); position from the near-infrared peak of Landsat 8 2018-10-13 (30 m; GNIS 1853047 gives only the rounded 23 45 N 166 15 W); plan shape, orientation and the lower second rock are approximate (sub-pixel in every grid); the reef platform under it from the bright patch in HLS"
+    }
+   ],
+   "colour": {
+    "modis": "24 MODIS Terra/Aqua days",
+    "hls": {
+     "level": 11,
+     "dates": [
+      "S30_2024-06-15",
+      "S30_2024-06-25",
+      "S30_2024-09-28",
+      "L30_2024-09-11",
+      "S30_2024-07-15",
+      "S30_2024-10-08",
+      "L30_2024-08-10",
+      "S30_2024-10-03"
+     ],
+     "gain": [
+      0.7,
+      0.7,
+      0.7
+     ],
+     "bbox": [
+      -166.269,
+      23.7617,
+      -166.253,
+      23.7761
+     ]
+    },
+    "sea": "the HLS picture where HLS covers, else by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
+   },
+   "facts": {
+    "peaks_m": {
+     "la_perouse_pinnacle": {
+      "h": 37,
+      "lon": -166.2611,
+      "lat": 23.7689
+     }
+    },
+    "land_area_km2_at_0m": 0.0,
+    "h_range_m": [
+     -25,
+     37
+    ]
+   },
+   "bytes": {
+    "h16": 9631,
+    "ao": 38290,
+    "color": 22363,
+    "sat": 19793
+   },
+   "bake_s": 26.0,
+   "baked": "2026-11-09",
+   "ao": "tangent (horizon above the local slope)"
   },
   "gardner": {
    "bbox": [
@@ -2446,8 +2882,18 @@
      "fov": 36
     }
    },
+   "film": {
+    "drained": {
+     "set": {
+      "tubAmt": 0,
+      "reefAmt": 0.55
+     },
+     "why": "The drained caps (atoll banks and guyot tops, 0 to -150 m) are broad and flat: the bathtub ring (tubCol, the top 90 m below the old sea level) and the reef-flat shelf cover the whole cap and read as snow. With tubAmt 0 and reefAmt 0.55 the caps read as grey-tan carbonate rock, coloured by depth."
+    }
+   },
    "gaps": [
-    "ETOPO 2022 15\": at the 1942 wreck positions the floor is -5,312 m (Yorktown), -5,317 m (Akagi), -5,439 m (Kaga), all more than 3 miles; the abyssal plain there is smooth interpolation, no abyssal hills (s138 needs procedural relief). Islets are removed (sub-pixel)."
+    "ETOPO 2022 15\": at the 1942 wreck positions the floor is -5,312 m (Yorktown), -5,317 m (Akagi), -5,439 m (Kaga), all more than 3 miles; the abyssal plain there is smooth interpolation, no abyssal hills (s138 needs procedural relief). Islets are removed (sub-pixel).",
+    "Drained caps (round 3): the snow look came from the stage, not the colour texture: the bathtub ring and the reef shelf cover a whole flat cap (middle cap mean luma 202 in the view camera, 202 also with the colour texture blacked out). film.drained (tubAmt 0, reefAmt 0.55) brings it to about 137 (p95 244 to 195; flanks 94): grey-tan carbonate, not snow. The sea-floor texels are now coloured by depth, so the Blue Marble shallow-reef cyan no longer shows on the atoll rims when drained. Land mask refill floor -2 m keeps the atoll tops at -1 to -2 m (a -10 m floor lowered them to -7 to -18 m)."
    ],
    "dir": "/ep/ep02/data/nwhi_west",
    "files": {
@@ -2471,11 +2917,13 @@
     {
      "id": "terrarium_z10",
      "res_m": 133.4,
-     "land_only": true
+     "land_only": true,
+     "cap_m": null
     }
    ],
    "colour": {
-    "bmng": "BlueMarble_NextGeneration 2004-07"
+    "bmng": "BlueMarble_NextGeneration 2004-07",
+    "sea": "by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
    },
    "facts": {
     "peaks_m": {
@@ -2512,12 +2960,12 @@
     ]
    },
    "bytes": {
-    "h16": 2345147,
-    "ao": 585720,
-    "color": 34860
+    "h16": 2345163,
+    "ao": 585726,
+    "color": 33173
    },
-   "bake_s": 15.4,
-   "baked": "2026-11-08"
+   "bake_s": 8.8,
+   "baked": "2026-11-09"
   },
   "midway": {
    "bbox": [
@@ -2788,7 +3236,7 @@
    },
    "gaps": [
     "Terrarium z11 (SRTM): context only.",
-    "HLS shadows are baked into the colour (Oct-Dec scenes, low sun): about 2-3.5 % of the colour pixels are near black on north faces, so light the stage from the south."
+    "Colour (round 3, 2026-11-09): HLS 30 m from the pre-monsoon high-sun window (10 April-10 June 2022-2024, the 6 clearest days, median): near-black texels 6.3 % to 0.03 %, on north faces above 5,000 m 8.6 % to 0.07 % (was October-December, low sun). The monsoon months are cloud-covered and the HLS Fmask calls the high snowfields cloud (half the pixels above 6,500 m never clear), so they are not used. Light from the south still reads best (preset everest); AO tangent."
    ],
    "dir": "/ep/ep02/data/everest_wide",
    "files": {
@@ -2807,7 +3255,8 @@
     {
      "id": "terrarium_z11",
      "res_m": 67.5,
-     "land_only": true
+     "land_only": true,
+     "cap_m": null
     }
    ],
    "colour": {
@@ -2815,11 +3264,12 @@
     "hls": {
      "level": 10,
      "dates": [
-      "L30_2023-11-23",
-      "S30_2023-11-23",
-      "S30_2023-11-18",
-      "L30_2023-11-15",
-      "S30_2023-11-13"
+      "L30_2024-06-10",
+      "S30_2024-06-10",
+      "S30_2024-04-26",
+      "S30_2022-04-12",
+      "L30_2024-04-23",
+      "S30_2024-06-05"
      ],
      "gain": [
       0.7,
@@ -2850,11 +3300,12 @@
    },
    "bytes": {
     "h16": 1402930,
-    "ao": 623710,
-    "color": 377905
+    "ao": 723515,
+    "color": 294857
    },
-   "bake_s": 25.6,
-   "baked": "2026-11-08"
+   "bake_s": 28.2,
+   "baked": "2026-11-09",
+   "ao": "tangent (horizon above the local slope)"
   },
   "everest": {
    "bbox": [
@@ -2890,7 +3341,7 @@
    },
    "gaps": [
     "Terrarium z14 (SRTM 30 m): summit 8,748 m on the grid vs 8,849 m surveyed (the same-scale comparisons stay on BlockStage, which scales to 8,849 m). HLS 30 m, November 2023 snow.",
-    "HLS shadows are baked into the colour (Oct-Dec scenes, low sun): about 2-3.5 % of the colour pixels are near black on north faces, so light the stage from the south."
+    "Colour (round 3, 2026-11-09): HLS 30 m from the pre-monsoon high-sun window (10 April-10 June 2022-2024, the 6 clearest days, median): near-black texels 3.3 % to 0.09 %, on north faces 6.1 % to 0.07 % (was October-December, low sun). The monsoon months are cloud-covered and the HLS Fmask calls the high snowfields cloud (half the pixels above 6,500 m never clear), so they are not used. Light from the south still reads best (preset everest); AO tangent."
    ],
    "dir": "/ep/ep02/data/everest",
    "files": {
@@ -2909,7 +3360,8 @@
     {
      "id": "terrarium_z14",
      "res_m": 8.4,
-     "land_only": true
+     "land_only": true,
+     "cap_m": null
     }
    ],
    "colour": {
@@ -2917,12 +3369,12 @@
     "hls": {
      "level": 11,
      "dates": [
-      "L30_2023-11-23",
-      "L30_2023-11-15",
-      "S30_2023-11-23",
-      "S30_2023-11-18",
-      "S30_2023-11-13",
-      "L30_2023-11-07"
+      "S30_2024-06-10",
+      "L30_2024-06-10",
+      "S30_2024-04-26",
+      "S30_2024-06-05",
+      "S30_2024-05-01",
+      "L30_2024-05-01"
      ],
      "gain": [
       0.7,
@@ -2953,11 +3405,12 @@
    },
    "bytes": {
     "h16": 1160464,
-    "ao": 549359,
-    "color": 217265
+    "ao": 771940,
+    "color": 181056
    },
-   "bake_s": 23.5,
-   "baked": "2026-11-08"
+   "bake_s": 23.2,
+   "baked": "2026-11-09",
+   "ao": "tangent (horizon above the local slope)"
   }
  }
 }

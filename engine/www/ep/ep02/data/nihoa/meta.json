@@ -30,6 +30,13 @@
    "res_m": 8.8,
    "land_only": true,
    "cap_m": null
+  },
+  {
+   "id": "survey_top",
+   "top_from_m": 179,
+   "top_to_m": 273,
+   "factor": 1.522,
+   "note": "Millers Peak (GNIS 1890767, 23.0623 N 161.9264 W); 273 m / 895 ft (sources give 272-275 m); the land tiles top out at 179 m"
   }
  ],
  "colour": {
@@ -82,12 +89,13 @@
     -161.75,
     23.18
    ]
-  }
+  },
+  "sea": "by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
  },
  "facts": {
   "peaks_m": {
    "nihoa_top": {
-    "h": 179,
+    "h": 273,
     "lon": -161.9271,
     "lat": 23.0626
    }
@@ -95,19 +103,20 @@
   "land_area_km2_at_0m": 0.6,
   "h_range_m": [
    -2639,
-   179
+   273
   ]
  },
  "purpose": "s093-s099 Nihoa fills the frame (sea cliffs, terraced valleys), then the pull wide over its big bank.",
  "gaps": [
-  "Land from Terrarium (SRTM): plan area right (0.6 km2, real 0.69) but the relief is smoothed: top 179 m vs 273 m surveyed, so the sea cliffs are too gentle. Terraces and house sites are not in the data. The bank is ETOPO 15\" (false land removed)."
+  "Land from Terrarium (SRTM): plan area right (0.6 km2, real 0.69) but the relief is smoothed (top 179 m). Since 2026-11-09 the island's land heights are scaled x1.522 so Millers Peak is 273 m (895 ft; sources give 272-275 m; GNIS 1890767 position): slopes are 1.5x steeper, the coastline is unchanged, the cliff profile is still SRTM-smooth. Terraces and house sites are not in the data. In the 'gold' look the HLS colour reads flat ochre (dry rock, 30 m). The bank is ETOPO 15\" (false land removed); AO tangent."
  ],
- "bake_s": 49.1,
+ "bake_s": 32.6,
  "baked": "2026-11-09",
+ "ao": "tangent (horizon above the local slope)",
  "bytes": {
-  "h16": 872086,
-  "ao": 283831,
-  "color": 59936,
+  "h16": 872537,
+  "ao": 285061,
+  "color": 37041,
   "sat": 51581
  }
 }

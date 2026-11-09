@@ -60,35 +60,50 @@
   "hls": {
    "level": 11,
    "dates": [
-    "S30_2023-08-13",
-    "L30_2023-08-13",
-    "L30_2024-06-29",
-    "S30_2024-07-18",
+    "L30_2023-05-10",
+    "L30_2023-06-11",
+    "L30_2023-06-27",
     "L30_2023-08-22",
-    "S30_2023-07-14",
-    "S30_2023-08-28",
-    "S30_2024-05-24",
+    "L30_2023-09-07",
+    "L30_2023-09-15",
     "L30_2024-06-13",
-    "S30_2024-08-07",
-    "S30_2024-08-15",
-    "S30_2023-08-11",
-    "S30_2023-07-27",
+    "L30_2024-06-29",
+    "L30_2024-07-07",
+    "L30_2024-09-09",
+    "S30_2023-06-19",
+    "S30_2023-07-14",
+    "S30_2023-08-13",
+    "S30_2023-08-28",
+    "S30_2023-09-05",
+    "S30_2023-09-07",
+    "S30_2023-09-15",
+    "S30_2024-05-24",
     "S30_2024-06-08",
-    "S30_2023-06-17",
-    "L30_2023-06-11"
+    "S30_2024-07-18",
+    "S30_2024-08-27",
+    "S30_2024-09-04",
+    "S30_2024-09-06",
+    "S30_2024-09-11"
    ],
    "gain": [
-    0.758,
-    0.758,
-    0.758
+    0.734,
+    0.734,
+    0.734
    ],
    "bbox": [
     -157.87,
     21.32,
     -157.7,
     21.44
-   ]
-  }
+   ],
+   "source": "HLS v2 S30+L30 with Fmask (Planetary Computer)",
+   "stat": 50,
+   "scenes": 24,
+   "clear_obs_median": 8,
+   "never_clear_pct": 3.05,
+   "sat": 0.6
+  },
+  "sea": "the HLS picture where HLS covers, else by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
  },
  "facts": {
   "peaks_m": {
@@ -110,13 +125,15 @@
  "purpose": "s026-s031 the Nu'uanu Pali Lookout ground shot (about 1,200 ft, looking NE over windward O'ahu), the tourist and hat gag, the dive down the cliff; s090 callback.",
  "gaps": [
   "NCEI 1/3\" (USGS 10 m land): the lookout (343 m on this grid), its wall, the road and trees are not in the data; HLS 30 m colour is soft at ground level (needs a close-up texture or paper props).",
-  "The windward Ko'olau is under cloud on most HLS days and on the MODIS composite: the colour uses the 16 clearest HLS days of the 2023 and 2024 summers (high sun: winter scenes left the NE-facing pali in black topographic shadow) and a fixed gain (0.758, measured on O'ahu in oahu_nuuanu), because a gain matched to the cloudy MODIS reference came out 1.34 and turned the ridges neon green."
+  "Colour (round 3, 2026-11-09): HLS v2 (Sentinel-2 + Landsat, 30 m) with its Fmask cloud mask from the Planetary Computer, 24 summer scenes of 2023 and 2024, the per-pixel median of cloud-free observations: the Ko'olau crest cloud blobs are gone (3 % of pixels never clear, filled from neighbours). One luminance gain 0.734 and one chroma factor 0.6, both measured on clear O'ahu land (median MODIS / HLS over 53,000 px in oahu_nuuanu): the HLS greens were 1.7x more saturated than the MODIS colours the stage grade was tuned on (land texture saturation median 0.54, now 0.35; Maui Nui 0.38; cloud-white texels 8.1 % to 2.0 %, the rest roofs and roads). Winter scenes left the NE-facing pali black and a gain matched to the cloudy MODIS reference (1.34) turned it neon: neither is used. AO counts the horizon above the local slope (tangent).",
+  "Ground view: the spur just east of the lookout faces west, so a morning sun leaves it in shade, and the stage's shade is near black (16.7 % near-black with sun [120, 30]); film.today uses sun [75, 55] (3.2 %, frame luma 149) or keep that spur out of frame. Kane'ohe Bay's reef flats are 0-2 m deep and its sea floor now shows the HLS picture: keep foamAmt at 0.25 or less there (the foam rim covers the whole flat)."
  ],
- "bake_s": 62.1,
+ "bake_s": 43.2,
  "baked": "2026-11-09",
+ "ao": "tangent (horizon above the local slope)",
  "bytes": {
   "h16": 1602720,
-  "ao": 1065887,
-  "color": 405716
+  "ao": 1299845,
+  "color": 353193
  }
 }

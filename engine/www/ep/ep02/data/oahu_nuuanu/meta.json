@@ -82,29 +82,52 @@
    "Aqua_2022-07-30"
   ],
   "hls": {
-   "level": 10,
+   "level": 11,
    "dates": [
-    "L30_2024-10-18",
-    "L30_2024-10-19",
-    "S30_2024-10-24",
+    "L30_2023-06-11",
+    "L30_2023-06-27",
+    "L30_2023-08-13",
+    "L30_2023-08-13",
+    "L30_2023-08-21",
+    "L30_2023-08-22",
+    "L30_2023-09-07",
+    "L30_2023-09-07",
+    "L30_2023-09-15",
+    "L30_2023-09-15",
+    "L30_2024-07-22",
+    "L30_2024-08-07",
     "L30_2024-08-15",
-    "L30_2024-06-29",
-    "L30_2024-06-13",
-    "L30_2024-09-25",
-    "S30_2024-09-14"
+    "L30_2024-09-09",
+    "S30_2023-08-13",
+    "S30_2023-08-28",
+    "S30_2023-09-05",
+    "S30_2023-09-07",
+    "S30_2023-09-10",
+    "S30_2024-05-22",
+    "S30_2024-07-18",
+    "S30_2024-08-07",
+    "S30_2024-09-04",
+    "S30_2024-09-11"
    ],
    "gain": [
-    0.758,
-    0.758,
-    0.758
+    0.734,
+    0.734,
+    0.734
    ],
    "bbox": [
     -158.3001,
     21.2397,
     -157.6299,
     21.7309
-   ]
-  }
+   ],
+   "source": "HLS v2 S30+L30 with Fmask (Planetary Computer)",
+   "stat": 50,
+   "scenes": 24,
+   "clear_obs_median": 6,
+   "never_clear_pct": 4.0,
+   "sat": 0.6
+  },
+  "sea": "the HLS picture where HLS covers, else by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
  },
  "facts": {
   "peaks_m": {
@@ -187,12 +210,17 @@
   ]
  },
  "purpose": "s025-s043 windward O'ahu, the Ko'olau pali, drain NE to -4,500 m, the Nu'uanu debris field and the largest block (summit about -2,691 m at 22.065N 157.072W), Manhattan drag; s090 O'ahu and Honolulu.",
- "gaps": [],
- "bake_s": 118.3,
- "baked": "2026-11-08",
+ "gaps": [
+  "Offshore seafloor ETOPO 2022 15\": the large Nuʻuanu blocks are resolved (largest top -2,712 m here vs -2,691 m in the script source), smaller blocks are not; the deposit outline and other slide footprints must be traced from USGS I-2809, they are not in the data.",
+  "NCEI 1/3\" covers Oʻahu and its shelf to 22.06N / 157.45W only.",
+  "Colour (round 3, 2026-11-09): HLS v2 with Fmask, 24 summer scenes 2023-2024, median of cloud-free observations (4 % of the HLS window never clear); luminance gain measured here 0.734 (MODIS / HLS) and chroma factor 0.6 (the same measurement), reused by pali; AO tangent; the shallow sea shows the HLS picture."
+ ],
+ "bake_s": 115.6,
+ "baked": "2026-11-09",
+ "ao": "tangent (horizon above the local slope)",
  "bytes": {
   "h16": 5919313,
-  "ao": 581014,
-  "color": 200475
+  "ao": 687145,
+  "color": 204088
  }
 }

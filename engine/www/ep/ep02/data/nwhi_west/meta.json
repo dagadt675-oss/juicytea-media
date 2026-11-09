@@ -32,11 +32,13 @@
   {
    "id": "terrarium_z10",
    "res_m": 133.4,
-   "land_only": true
+   "land_only": true,
+   "cap_m": null
   }
  ],
  "colour": {
-  "bmng": "BlueMarble_NextGeneration 2004-07"
+  "bmng": "BlueMarble_NextGeneration 2004-07",
+  "sea": "by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
  },
  "facts": {
   "peaks_m": {
@@ -73,12 +75,15 @@
   ]
  },
  "purpose": "s123-s124 Midway regional, s133-s139 the carrier wreck sites more than 3 miles down (lines from the atoll), s140 flight to Kure, s144-s146 the Darwin Point line (about 29N) and the drowned seamounts NW of Kure (crosses the antimeridian).",
- "gaps": [],
- "bake_s": 15.4,
- "baked": "2026-11-08",
+ "gaps": [
+  "ETOPO 2022 15\": at the 1942 wreck positions the floor is -5,312 m (Yorktown), -5,317 m (Akagi), -5,439 m (Kaga), all more than 3 miles; the abyssal plain there is smooth interpolation, no abyssal hills (s138 needs procedural relief). Islets are removed (sub-pixel).",
+  "Drained caps (round 3): the snow look came from the stage, not the colour texture: the bathtub ring and the reef shelf cover a whole flat cap (middle cap mean luma 202 in the view camera, 202 also with the colour texture blacked out). film.drained (tubAmt 0, reefAmt 0.55) brings it to about 137 (p95 244 to 195; flanks 94): grey-tan carbonate, not snow. The sea-floor texels are now coloured by depth, so the Blue Marble shallow-reef cyan no longer shows on the atoll rims when drained. Land mask refill floor -2 m keeps the atoll tops at -1 to -2 m (a -10 m floor lowered them to -7 to -18 m)."
+ ],
+ "bake_s": 8.8,
+ "baked": "2026-11-09",
  "bytes": {
-  "h16": 2345147,
-  "ao": 585720,
-  "color": 34860
+  "h16": 2345163,
+  "ao": 585726,
+  "color": 33173
  }
 }

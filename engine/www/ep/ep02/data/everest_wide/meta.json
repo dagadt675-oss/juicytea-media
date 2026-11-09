@@ -27,7 +27,8 @@
   {
    "id": "terrarium_z11",
    "res_m": 67.5,
-   "land_only": true
+   "land_only": true,
+   "cap_m": null
   }
  ],
  "colour": {
@@ -35,11 +36,12 @@
   "hls": {
    "level": 10,
    "dates": [
-    "L30_2023-11-23",
-    "S30_2023-11-23",
-    "S30_2023-11-18",
-    "L30_2023-11-15",
-    "S30_2023-11-13"
+    "L30_2024-06-10",
+    "S30_2024-06-10",
+    "S30_2024-04-26",
+    "S30_2022-04-12",
+    "L30_2024-04-23",
+    "S30_2024-06-05"
    ],
    "gain": [
     0.7,
@@ -71,13 +73,14 @@
  "purpose": "Context layer for the Everest summit gag.",
  "gaps": [
   "Terrarium z11 (SRTM): context only.",
-  "HLS shadows are baked into the colour (Oct-Dec scenes, low sun): about 2-3.5 % of the colour pixels are near black on north faces, so light the stage from the south."
+  "Colour (round 3, 2026-11-09): HLS 30 m from the pre-monsoon high-sun window (10 April-10 June 2022-2024, the 6 clearest days, median): near-black texels 6.3 % to 0.03 %, on north faces above 5,000 m 8.6 % to 0.07 % (was October-December, low sun). The monsoon months are cloud-covered and the HLS Fmask calls the high snowfields cloud (half the pixels above 6,500 m never clear), so they are not used. Light from the south still reads best (preset everest); AO tangent."
  ],
- "bake_s": 25.6,
- "baked": "2026-11-08",
+ "bake_s": 28.2,
+ "baked": "2026-11-09",
+ "ao": "tangent (horizon above the local slope)",
  "bytes": {
   "h16": 1402930,
-  "ao": 623710,
-  "color": 377905
+  "ao": 723515,
+  "color": 294857
  }
 }
