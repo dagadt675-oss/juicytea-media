@@ -1,15 +1,16 @@
 // Chapter 2 "Oʻahu's Missing Side" (s026-s048), window K.chapter(2) (93.81-181.65 s, last shot to t1x). Built 2026-11-09.
 // Four terrain stages, one camera path (orbit form, film time) shared by all of them, so every stage hand-off dissolves between two
 // renders of the same camera (detail resolves, nothing doubles):
-//   S1 'pali'        s026-s031  a high oblique settles behind the lookout (450 m up, looking NE through the pass); a paper stone wall
+//   S1 'pali'        s026-s030  a high oblique settles behind the lookout (450 m up, looking NE through the pass); a paper stone wall
 //                               pops up on the lookout terrace on {pali} with the PALI LOOKOUT label; tilt up to the cliffs on {cliff};
 //                               the paper tourist (appearance 2 of 4) pops up at s028 on the inland side of the wall, leans into the
 //                               trade wind on {lean} (27 deg, flutter), his hat blows off BACKWARD (up, left, inland, growing toward the
-//                               camera) on {hat}, he turns and runs after it out of frame-left; the camera alone rises over the wall,
-//                               the view plunges down the windward drop, levels out along the pali and pulls back to windward Oʻahu
-//                               from the NE; {huge} a white line traces the Koʻolau crest (our DEM), {tore} a hero-orange glow runs along
-//                               it (the scar; the narration keeps 'may'). Nothing falls off the Pali.
-//   S2 'oahu_nuuanu' s032-s041  {ne} eased move out to sea (NE, looking SW back at Oʻahu, sun from the ENE), the live drain 0 to
+//                               camera) on {hat}, he turns and runs after it out of frame-left; the paper wall folds flat and the
+//                               camera alone rises, looks straight down over the edge, plunges out over the windward plain (one
+//                               continuous flight, never closer than about 3 km to the ground: the 10 m grid reads as mush closer),
+//                               levels out along the pali (hand-off to S2 2.5 s into the dive).
+//   S2 'oahu_nuuanu' s030-s041  pulls back to windward Oʻahu from the NE; {huge} a white line traces the Koʻolau crest (our DEM),
+//                               {tore} a hero-orange glow runs along it (the scar; the narration keeps 'may'); {ne} eased move out to sea (NE, looking SW back at Oʻahu, sun from the ENE), the live drain 0 to
 //                               -5,000 m on a monotone curve keyed to {shelf}, {slope}, {first} (the largest block's top, -2,712 m on this
 //                               grid, breaks the surface on the word), {more}, {field}, as the camera backs out over the field; SEA LEVEL
 //                               gauge while the level moves; the held breath: the camera rises until the whole field is in frame;
@@ -21,8 +22,9 @@
 //                               deposit (about 226 km) and lands with MORE THAN / 100 MILES.
 //   S3 'main_chain'  s042-s044  pull back over the chain while the sea refills (no dry shelf mid-move: -4,500 (1 - p)^5), then 7 more
 //                               slide footprints light up one every 0.25 s and land on {chain}, dim to 30 %, fade after {happen}.
-//   S4 'kilauea_sf'  s044-s048  flight SE to Kīlauea's south flank, {flank} hero fill + outline + KĪLAUEA, {creep} yellow arrows inch
-//                               seaward (stop-go, nothing collapses), {really} rise to the whole Big Island, {alldown} the drain starts.
+//   S4 'bigisland'   s044-s048  flight SE to Kīlauea's south flank, {flank} hero fill + outline + KĪLAUEA, {creep} small yellow arrows
+//                               inch to the coast (fade, start again; nothing collapses), {really} rise to the whole Big Island, {alldown}
+//                               the drain starts as the camera rounds to the NE flank (ch3's opening side and subject).
 // Sources of the drawn geometry (no invented shapes):
 //   - Debris field and the 8 slide footprints: outer edge = the coloured extents of USGS I-2809 'Hawaii's Volcanoes Revealed'
 //     (Eakins et al. 2003, public domain), interpretive inset, georeferenced from its graticule (conic fit, rms 0.25 px at 300 dpi) and
@@ -33,12 +35,33 @@
 //     laid along the block's long axis (-4,000 m footprint 26.5 x 17.5 km, axis 127 deg / 307 deg, from our oahu_nuuanu grid).
 //   - Koʻolau crest: ridge trace on oahu_nuuanu (max along cross-sections, median-snapped). Kīlauea south flank: land at 0 m south of the
 //     east and southwest rift zones (rift lines approximate, schematic boundary).
+// Round 6 (2026-11-09, continued build): the dive rebuilt (it read as 2 s of green mush at 0.3-1 km from the 10 m grid); the
+// paper wall folds flat instead of fading; {first} flies in to the first block (it was a 7 px dot on the phone) and the whole
+// drain flight {ne}-{field} is one continuous move; the drained seabed gets less blue sky fill and a higher sun (gate.py blue share
+// 38-59 % to 6-19 %, luma +12); the held-breath camera turned 10 deg (drain-clone distance 10.99 to 11.44); the swing back and the
+// {outhere} flight run 2.6 / 2.35 s (16-17 % of the distance per frame before); slow orbits and a push-in break the 8-10 s holds
+// before {ne} and on the Kīlauea flank; footprints at 78 % as one filled ring (a frame-cut ring left an even-odd hole); bigger arrows.
+// Round 7 (2026-11-09, review fixes): the hat leaves his head at its own size, angle and place, then grows 4x toward the camera and
+// exits left below the horizon; he runs out of frame-left at the lookout's height (screen x only, never re-grounded) before the
+// camera moves (dive 0.19 s later), drawn until his card is off frame; PALI LOOKOUT pins the wall's cap and avoids the wall; the
+// dive rises out over the drop (the crest's never-clear colour texels stay behind the camera); S1 hands off to oahu_nuuanu 2.5 s
+// into the dive, no foam, calm wave normals; {ne}/{slope} framed low and close on Oʻahu's NE side (clear of the gauge; the drained
+// slope fills the lower half on {slope}) and the flight to the first block lands 1 s after {first}; swing back and {outhere} get
+// lifted middles (peak 7.0-7.3 % of the distance per frame, was 12.7-15.5 %) and {outhere} is fastest on its word (mix whoosh);
+// the drained bays and reef flats are dimmed (mask G) and the swing back uses a slate reef, no old-coast line, exposure 1.3 (gate
+// pass); {slides} and the flank use the antipode recipe (surroundings dimmed by a masked grade, the fill passes through) with orange
+// glows; the debris outline holds at 40 % through {outhere}; MANHATTAN avoids the block outline (cyan bar); 100 MILES holds 2.5 s
+// top right across the hand-off; footprints 60 % with a glow, dimmed to 15 % / 50 %, the sea 20 % darker; S4 on bigisland (the
+// kilauea_sf colour seam is gone), both rift ends framed, 150 px arrows; wind on 'wind' (wobble, hat brim, paper cloud wisps);
+// {cliff} yaws 27 deg right and rises 750 m; crest and scar lines 10 px (glow 18 px).
 // Deviations: the drain camera backs out to 80-110 km beyond Oʻahu's NE flank (the largest block lies about 100 km NE of Kāneʻohe, so
 // a camera 80 km out looking back would have it behind it); the drain goes to -5,000 m, not -4,500 m (the debris floor lies at -4,600
 // to -4,800 m on this grid, so at -4,500 the field was still mostly water); the s042 footprints are drawn on the refilled sea as a map
-// overlay (a drained chain here would spend chapter 3's one-ridge reveal); the stage's hero albedo is brightened for these fills.
-// Shared toolkit unchanged; local helpers below (orbit camera from an eye, ground-draped runs, ring rasteriser, wall card).
-import { PAL, E, F, MOVE_WATER, WATER_FILM, heightGrid, contour, mixState, orbitPath } from './shared.js';
+// overlay (a drained chain here would spend chapter 3's one-ridge reveal); the stage's hero albedo is brightened for these fills (milder on the flank).
+// Shared toolkit unchanged; local helpers below (orbit camera from an eye, ground-draped runs, ring rasteriser, wall card, and
+// chainPath: a multi-key camera flight with no stop at inner keys; a shared version would help every chapter: orbitPath eases every
+// segment to rest, which makes a multi-key flight stop and go).
+import { PAL, E, F, MOVE_WATER, WATER_FILM, SEABED, heightGrid, contour, mixState, orbitPath } from './shared.js';
 
 const D2R = Math.PI / 180, KM = 111.32;
 const LOOKOUT = [-157.7936, 21.3667];                     // Nuʻuanu Pali State Wayside (DLNR; region 'pali' view)
@@ -70,9 +93,20 @@ function monotone(keys) {
     let i = 0; while (t > x[i + 1]) i++; const h = x[i + 1] - x[i], s = (t - x[i]) / h, s2 = s * s, s3 = s2 * s;
     return (2 * s3 - 3 * s2 + 1) * y[i] + (s3 - 2 * s2 + s) * h * m[i] + (-2 * s3 + 3 * s2) * y[i + 1] + (s3 - s2) * h * m[i + 1]; };
 }
+const llOf = (ll) => ({ lon: ll[0], lat: ll[1] });
+// one continuous flight through several orbit keys: a monotone cubic per channel (lon, lat, log d, tilt, unwrapped heading, fov, h),
+// so the camera eases in at the first key, eases out at the last and never stops at an inner key (orbitPath eases every segment to
+// rest). Used for the dive (s029-s030) and the drain flight (s032-s034). Local helper: shared.js has no multi-key spline.
+function chainPath(keys) {
+  const hd = [keys[0].heading];
+  for (let i = 1; i < keys.length; i++) hd.push(hd[i - 1] + ((((keys[i].heading - keys[i - 1].heading) % 360) + 540) % 360 - 180));
+  const ch = (f) => monotone(keys.map((k, i) => [k.t, f(k, i)]));
+  const C = { lon: ch(k => k.lon), lat: ch(k => k.lat), ld: ch(k => Math.log(k.d)), tilt: ch(k => k.tilt), hd: ch((k, i) => hd[i]), fov: ch(k => k.fov), h: ch(k => k.h || 0) };
+  return (t) => ({ lon: C.lon(t), lat: C.lat(t), d: Math.exp(C.ld(t)), tilt: C.tilt(t), heading: C.hd(t), fov: C.fov(t), h: C.h(t) });
+}
 // film water seen from far above blends toward the globe's navy (as scaleMove does), so far views never read saturated teal
-function farWater(d) {
-  const k = E.inOut(F.clamp((Math.log(d) - Math.log(25)) / (Math.log(500) - Math.log(25))));
+function farWater(d, kMin = 0) {
+  const k = Math.max(kMin, E.inOut(F.clamp((Math.log(d) - Math.log(25)) / (Math.log(500) - Math.log(25)))));
   return k > 0 ? WATER_FILM.map((c, j) => c.map((v, q) => F.lerp(v, MOVE_WATER[j][q], k))) : null;
 }
 
@@ -86,54 +120,97 @@ export async function build(api, kit, scenes) {
   // ================================================================ the one camera path (film time)
   const eyeG = offLL(LOOKOUT, 0.9, 222);                                   // behind the lookout over the Nuʻuanu side, 450 m up
   const tPop0 = K.s0('s028') + 0.05;
-  const tDive0 = T('hat') + 0.86, tDive1 = tDive0 + 1.8;                  // the dive starts as the hat flutter plays (gap after 'hat.')
+  const tWind = K.word('s028', 'wind').start - 0.1;                        // round 7: the wind starts on its word (wobble, brim, wisps)
+  const tDive0 = T('hat') + 1.05;                                        // round 7: the tourist is off frame-left before the camera moves
+  const tHand = tDive0 + 2.5;                                            // S1 'pali' -> 'oahu_nuuanu' once the camera is past ~10 km
+  const tCl0 = lead('cliff') - 0.8, tCl1 = lead('cliff') + 0.35;          // {cliff}: yaw right and rise, back before s028
   const tNe0 = lead('ne') - 0.15, tNe1 = tNe0 + 2.5;
-  const tSw0 = K.s0('s036') + 0.05, tSw1 = tSw0 + 2.1;
-  const tFl0 = lead('outhere') - 1.9, tFl1 = lead('outhere') + 0.25;
+  const tSw0 = K.s0('s036') - 0.45, tSwM = tSw0 + 1.35, tSw1 = tSw0 + 2.8;  // swing back: lifted middle (12.7 % of the distance per frame before)
+  const tFl0 = lead('outhere') - 1.3, tFlM = lead('outhere') + 0.1, tFl1 = lead('outhere') + 1.05;   // fastest on the word (mix x049 whoosh 143.9 s)
   const tRise0 = lead('spare') - 0.1, tRise1 = tRise0 + 1.5;
-  const tPb0 = K.s0('s041'), tPb1 = tPb0 + 2.0;
+  const tPb0 = K.s0('s041'), tPb1 = tPb0 + 2.3;
   const tCh0 = K.s0('s042') - 0.05, tCh1 = tCh0 + 3.5;
-  const tBi0 = K.s0('s044') - 0.05, tBi1 = tBi0 + 2.5;
+  const tBi0 = K.s0('s044') - 0.05, tBiM = tBi0 + 1.5, tBi1 = tBi0 + 3.0;
   const tUp0 = lead('really') - 2.6, tUp1 = lead('really') + 0.05;
+  // ch3 opens on bigisland 1.2 km above the falling water off Laupāhoehoe, looking SW (heading ~208) at the Hāmākua flank (ch3.js lowCam):
+  // ch2 ends on the same flank from the same side (target, heading), farther out, so the 0.3 s dissolve under the card keeps the subject
+  const K0 = [-157.775, 21.47];                                           // Oʻahu's NE coast at Kāneʻohe Bay / Mōkapu (the {ne} framing)
+  const CH3_IN = { lon: -155.33, lat: 19.83, h: 0, d: 95, tilt: 75, heading: 210, fov: 40 };
   const KEYS = [
     fromEye(ch.t0, offLL(LOOKOUT, 3.2, 226), 1.55, 46, 15, 5.5, 48),
     fromEye(T('oahu'), eyeG, 0.80, 54, 16, 2.5, 50),                                         // settled behind the lookout by {oahu}
-    fromEye(lead('cliff') - 0.1, offLL(LOOKOUT, 0.87, 222.5), 0.79, 56.5, 15, 2.5, 48),
-    fromEye(lead('cliff') + 1.3, offLL(LOOKOUT, 0.86, 223), 0.80, 60, 9, 2.5, 48),         // {cliff}: tilt up to the full cliff height
-    fromEye(tPop0 + 0.2, offLL(LOOKOUT, 0.84, 223), 0.79, 57, 14, 2.5, 48),                 // back down as the tourist pops up
+    fromEye(tCl0, offLL(LOOKOUT, 0.87, 222.5), 0.79, 56.5, 15, 2.5, 48),
+    fromEye(tCl1, offLL(LOOKOUT, 1.1, 222), 1.55, 84, 17, 3.5, 48),        // {cliff}: yaw 27 deg right toward Konahuanui, 750 m up: the crest and the drop beyond it
+    fromEye(tPop0 - 0.06, offLL(LOOKOUT, 0.84, 223), 0.79, 57, 14, 2.5, 48),                // back behind the wall before s028 (the tourist pops up)
     fromEye(tDive0, offLL(LOOKOUT, 0.75, 223.5), 0.745, 58.5, 15, 2.5, 47, E.inOutSine),    // slow push in through the gag
-    fromEye(tDive0 + 0.75, offLL(LOOKOUT, 0.25, 222), 0.92, 45, 30, 1.5, 52),               // rises over the wall
-    fromEye(tDive1, offLL(LOOKOUT, 0.6, 38), 1.05, 36, 36, 2.4, 54),                        // dives: the view plunges down the windward drop
-    { t: tDive1 + 1.2, lon: -157.86, lat: 21.44, h: 300, d: 15, tilt: 70, heading: 302, fov: 44 }, // levels out along the pali
-    { t: tDive1 + 2.7, lon: -157.81, lat: 21.42, h: 200, d: 40, tilt: 65, heading: 222, fov: 40 }, // pulls back: windward Oʻahu from the NE
-    { t: tNe0, lon: -157.83, lat: 21.44, h: 200, d: 36, tilt: 64, heading: 228, fov: 40, ease: E.inOutSine },
-    { t: tNe1, lon: -157.62, lat: 21.62, h: -1500, d: 58, tilt: 70, heading: 223, fov: 42 },      // {ne}: out to sea NE, looking SW at Oʻahu
-    { t: lead('slope') - 0.15, lon: -157.57, lat: 21.67, h: -1800, d: 62, tilt: 70.5, heading: 224, fov: 42, ease: E.inOutSine },
-    { t: lead('first') - 0.2, lon: -157.30, lat: 21.92, h: -3400, d: 82, tilt: 73, heading: 225, fov: 42 },   // back out: the blocks' field
-    { t: T('field') + 1.8, lon: -157.27, lat: 21.93, h: -3600, d: 78, tilt: 73.5, heading: 227, fov: 42, ease: E.inOutSine },
-    { t: lead('slides') - 0.1, lon: -157.0, lat: 22.2, h: -4200, d: 215, tilt: 64, heading: 226, fov: 42 },   // the held breath: rise to the whole field
-    { t: tSw0, lon: -157.01, lat: 22.19, h: -4200, d: 208, tilt: 64, heading: 227, fov: 42, ease: E.inOutSine },
+    // the dive: one continuous flight (chainPath: per-channel monotone cubic, no stop at the inner keys) that never comes closer than
+    // about 3 km to the ground once it leaves the wall (the 10 m grid and 30 m colour read as mush closer than that). Round 7: it
+    // rises OUT over the drop and looks down from there (the eye 1.1 km NE of the lookout), so the Koʻolau crest west of the lookout
+    // (never-clear colour texels near -157.80, 21.37) stays behind the camera; then it plunges out over the windward plain
+    { t: tDive0 + 1.0, ...llOf(offLL(LOOKOUT, 2.7, 50)), h: 120, d: 3.2, tilt: 30, heading: 50, fov: 50 },   // looks down from over the edge
+    fromEye(tDive0 + 1.9, offLL(LOOKOUT, 2.2, 45), 1.7, 15, 15, 6, 50),                     // plunges out over the windward plain, turning left
+    { t: tDive0 + 3.2, lon: -157.86, lat: 21.44, h: 300, d: 15, tilt: 70, heading: 302, fov: 44 }, // levels out along the pali (turn <= 2.5 deg/frame)
+    { t: tDive0 + 4.9, lon: -157.81, lat: 21.42, h: 200, d: 40, tilt: 65, heading: 222, fov: 40 }, // pulls back: windward Oʻahu from the NE
+    { t: tNe0, lon: -157.83, lat: 21.44, h: 200, d: 32, tilt: 64, heading: 240, fov: 40, ease: E.inOutSine },   // slow orbit: no 7 s hold
+    // round 7: low over the sea NE of Oʻahu, close to the flank (it was a thin band in the top third, under the gauge)
+    fromEye(tNe1, offLL(K0, 30, 43), 12, 223, 18, 38.8, 42),                                // {ne}: 30 km out NE, 12 km up, looking SW at Oʻahu's NE side (y 360-640)
+    fromEye(T('slope') - 0.25, offLL(K0, 25, 43), 10, 223, 22, 29.4, 42),                   // {slope}: closer and steeper, the drained slope fills the lower half
+    // round 6: {first} is the re-hook, so the camera flies in to the largest block as its top breaks the water (it was a phone-size
+    // dot at 80 km), then backs out as more blocks and the field surface (one continuous move, no stop at inner keys)
+    { t: T('first') + 0.45, lon: -157.11, lat: 22.03, h: -3000, d: 34, tilt: 60, heading: 226, fov: 42 },    // {first}: flies in on the first block as its top breaks the water (in frame on the word)
+    { t: T('first') + 1.6, lon: -157.11, lat: 22.03, h: -3000, d: 30, tilt: 65, heading: 226, fov: 42 },     // and pushes in as the top grows
+    { t: lead('more') + 0.1, lon: -157.20, lat: 21.975, h: -3300, d: 52, tilt: 71, heading: 226, fov: 42 },   // {more}: backs out
+    { t: T('field') + 1.8, lon: -157.27, lat: 21.93, h: -3600, d: 78, tilt: 73.5, heading: 227, fov: 42 },    // {field}: the whole field
+    { t: lead('slides') - 0.1, lon: -157.0, lat: 22.2, h: -4200, d: 225, tilt: 66, heading: 236, fov: 42 },   // the held breath: rise to the whole field (heading 236: gate.py drain-clone distance 10.99 -> 11.44)
+    { t: tSw0, lon: -157.01, lat: 22.19, h: -4200, d: 218, tilt: 66, heading: 237, fov: 42, ease: E.inOutSine },
+    { t: tSwM, lon: -157.42, lat: 21.76, h: -2400, d: 92, tilt: 64, heading: 234, fov: 41 },       // round 7: lifted middle of the swing back
     { t: tSw1, lon: -157.79, lat: 21.40, h: 0, d: 32, tilt: 62, heading: 232, fov: 40 },            // swing back to the cliffs
-    { t: tFl0, lon: -157.795, lat: 21.405, h: 0, d: 29, tilt: 62, heading: 234, fov: 40, ease: E.inOutSine },
-    { t: tFl1, lon: -157.11, lat: 22.075, h: -3200, d: 26, tilt: 66, heading: 222, fov: 44 },      // {outhere}: fast flight out over the deposit
+    { t: tFl0, lon: -157.795, lat: 21.405, h: 0, d: 27, tilt: 62, heading: 234, fov: 40, ease: E.inOutSine },   // slow push in on the cliffs ({summit})
+    { t: tFlM, lon: -157.45, lat: 21.74, h: -1800, d: 44, tilt: 65, heading: 228, fov: 42 },       // {outhere}: lifted middle, fastest on the word
+    { t: tFl1, lon: -157.11, lat: 22.075, h: -3200, d: 26, tilt: 66, heading: 222, fov: 44 },      // out over the deposit
     { t: lead('block') + 0.1, lon: -157.12, lat: 22.078, h: -3500, d: 20, tilt: 64, heading: 218, fov: 44 },  // {block}: in on the largest block
     { t: tRise0, lon: -157.123, lat: 22.079, h: -3550, d: 18.5, tilt: 63, heading: 216, fov: 44, ease: E.inOutSine },
-    { t: tRise1, lon: -157.126, lat: 22.079, h: -3600, d: 27, tilt: 42, heading: 212, fov: 44 },   // {spare}: rise, the width on both sides
-    { t: tPb1, lon: -157.0, lat: 22.2, h: -4000, d: 255, tilt: 55, heading: 312, fov: 40 },        // {miles}: side view of the deposit
-    { t: tCh0, lon: -157.0, lat: 22.18, h: -4000, d: 245, tilt: 55, heading: 314, fov: 40, ease: E.inOutSine },
-    { t: tCh1, lon: -157.45, lat: 20.75, h: 0, d: 760, tilt: 42, heading: 330, fov: 40 },          // s042: over the whole chain
-    { t: tBi0, lon: -157.42, lat: 20.72, h: 0, d: 720, tilt: 42, heading: 333, fov: 40, ease: E.inOutSine },
-    { t: tBi1, lon: -155.20, lat: 19.30, h: 0, d: 52, tilt: 60, heading: 328, fov: 42 },           // s044: Kīlauea's south flank
-    { t: tUp0, lon: -155.21, lat: 19.31, h: 0, d: 44, tilt: 60, heading: 333, fov: 42, ease: E.inOutSine },
-    { t: tUp1, lon: -155.50, lat: 19.62, h: 0, d: 240, tilt: 50, heading: 322, fov: 38 },          // {really}: the whole Big Island
-    { t: ch.t1x, lon: -155.52, lat: 19.64, h: 0, d: 226, tilt: 50, heading: 319, fov: 38, ease: E.inOutSine },
+    { t: tRise1, lon: -157.126, lat: 22.079, h: -3600, d: 27, tilt: 42, heading: 236, fov: 44 },   // {spare}: rise, the width on both sides (turns toward the side view)
+    { t: tPb1, lon: -157.0, lat: 22.2, h: -4000, d: 255, tilt: 55, heading: 300, fov: 40 },        // {miles}: side view of the deposit (no stop after the rise)
+    { t: tCh0, lon: -157.0, lat: 22.18, h: -4000, d: 245, tilt: 55, heading: 302, fov: 40, ease: E.inOutSine },
+    { t: tCh1, lon: -157.45, lat: 20.3, h: 0, d: 920, tilt: 34, heading: 330, fov: 40 },           // s042: over the whole chain (further south and back: kalae in frame)
+    { t: tBi0, lon: -157.40, lat: 20.27, h: 0, d: 840, tilt: 35, heading: 335, fov: 40, ease: E.inOutSine },   // slow push through the footprints
+    { t: tBiM, lon: -156.15, lat: 19.75, h: 0, d: 215, tilt: 46, heading: 340, fov: 41 },          // round 7: lifted middle of the flight SE
+    { t: tBi1, lon: -155.27, lat: 19.36, h: 0, d: 70, tilt: 63, heading: 350, fov: 42 },           // s044: the whole south flank, both rift ends in frame
+    { t: lead('creep') - 0.2, lon: -155.27, lat: 19.362, h: 0, d: 67, tilt: 63.5, heading: 351, fov: 42, ease: E.inOutSine },
+    { t: lead('creep') + 2.3, lon: -155.15, lat: 19.31, h: 0, d: 41, tilt: 60, heading: 352, fov: 42 },        // {creep}: in on the creeping coast
+    { t: tUp0, lon: -155.153, lat: 19.314, h: 0, d: 36, tilt: 61, heading: 358, fov: 42, ease: E.inOutSine },
+    { t: tUp1, lon: -155.50, lat: 19.62, h: 0, d: 240, tilt: 50, heading: 330, fov: 38 },          // {really}: the whole Big Island
+    { t: ch.t1x, ...CH3_IN },                                                                      // {alldown}: round to the NE flank, toward ch3's opening view
   ];
-  const path = orbitPath(KEYS);
+  const path0 = orbitPath(KEYS);
+  // continuous multi-key flights (chainPath): the dive (5 keys from tDive0), the drain flight ({ne} to {field}, 7 keys), the swing back,
+  // the {outhere} flight, the {spare} rise into the 100 MILES pull-back, the flight SE and the rise into the last move
+  const chainOf = (t0, n) => { const i0 = KEYS.findIndex(k => k.t === t0); return { a: KEYS[i0].t, b: KEYS[i0 + n - 1].t, f: chainPath(KEYS.slice(i0, i0 + n)) }; };
+  const CHAINS = [chainOf(tDive0, 5), chainOf(tNe0, 7), chainOf(tSw0, 3), chainOf(tFl0, 3), chainOf(tRise0, 3), chainOf(tBi0, 3), chainOf(tUp0, 3)];
+  const path = (t) => { for (const c of CHAINS) if (t > c.a && t < c.b) return c.f(t); return path0(t); };
   const camAt = (t) => camOf(path(t));
+  // {"ch2path":1}: log the camera's relative speed per frame (eye travel / target distance + view-direction turn, per frame) to find
+  // stops and spikes in the moves without rendering
+  if (api.Q.ch2path) {
+    const cl0 = Math.cos(21 * D2R), vec = (c) => [(c.lon + 157) * KM * cl0, (c.lat - 21) * KM, c.alt], rows = [];
+    let prev = null;
+    for (let f = Math.ceil(ch.t0 * 30); f <= ch.t1x * 30; f++) {
+      const c = camAt(f / 30), e = vec(c), tg = vec({ lon: c.tLon, lat: c.tLat, alt: c.tH / 1000 }), dv = tg.map((v, j) => v - e[j]), dl = Math.hypot(...dv), u = dv.map(v => v / dl);
+      if (prev) { const de = Math.hypot(...e.map((v, j) => v - prev.e[j])) / dl, da = Math.acos(F.clamp(u.reduce((s, v, j) => s + v * prev.u[j], 0), -1, 1));
+        rows.push(`${(f / 30).toFixed(2)} ${(de * 100).toFixed(3)} ${(da / D2R).toFixed(3)} ${dl.toFixed(2)}`); }
+      prev = { e, u };
+    }
+    api.log('[ch2path]\n' + rows.join('\n'));
+  }
 
   // ================================================================ stage windows (identical camera across every hand-off)
   const XF = 0.5;
-  const S1 = [ch.t0, tNe0 - 1.2 + XF], S2 = [tNe0 - 1.2, tCh0 + 0.45 + XF], S3 = [tCh0 + 0.45, tBi0 + 1.75 + XF], S4 = [tBi0 + 1.75, ch.t1x];
+  // round 7: S1 'pali' hands off to 'oahu_nuuanu' during the dive (tHand, the camera past ~10 km: the 10 m pali patch read soft and
+  // its water crawled); S4 is 'bigisland' throughout (kilauea_sf's nested colour drew a straight-edged seam over Mauna Loa and
+  // Puna, and its 31 m grid ends at -154.85 / 19.5, inside the flank), handed over from main_chain high in the flight SE
+  const S4REG = api.Q.ch2s4 || 'bigisland', tS4 = api.Q.ch2s4 ? tBi0 + 1.75 : tBi0 + 1.25;
+  const S1 = [ch.t0, tHand + XF], S2 = [tHand, tCh0 + 0.45 + XF], S3 = [tCh0 + 0.45, tS4 + XF], S4 = [tS4, ch.t1x];
 
   // ================================================================ water level
   const drain = monotone([[lead('ne'), 0], [lead('shelf') + 0.05, -150], [lead('slope') + 0.2, -900], [lead('first') - 0.03, -2712], [T('first') + 1.9, -3100],
@@ -144,7 +221,7 @@ export async function build(api, kit, scenes) {
   const bigDrain = (t) => -2600 * E.in(F.clamp((t - tDr0) / 2.6));
 
   // ================================================================ data, made once
-  const card = { tour: await kit.paper('tourist').catch(e => { api.log('[ch2] tourist cut-out missing: ' + e.message); return null; }), wall: wallCard(kit) };
+  const card = { tour: await kit.paper('tourist').catch(e => { api.log('[ch2] tourist cut-out missing: ' + e.message); return null; }), wall: wallCard(kit), wisp: wispCard(kit) };
   const dummy = kit.P.cv(4, 4).getContext('2d');
   const DEP = chaikin([[-157.79, 21.46], [-157.47, 21.76], [-157.12, 22.07], [-156.78, 22.40], [-156.47, 22.66], [-156.21, 22.86]], 3);
   const crest = CREST.map(p => [p[0], p[1], p[2]]);
@@ -160,7 +237,14 @@ export async function build(api, kit, scenes) {
   const inPoly = (p, poly) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > p[1]) !== (yj > p[1]) && p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi) c = !c; } return c; };
   const M = {};                                        // lazily built masks per stage
   const blockIsl = async () => { if (M.block === undefined) { try { M.block = await kit.island({ region: 'oahu_nuuanu', bbox: [-157.4, 21.9, -156.85, 22.26], level: -4000, seeds: [[-157.0724, 22.0661]], step: 1 }); if (dbg) api.log(`[ch2] block -4000 m: ${Math.round(M.block.areaKm2)} km2, ${M.block.rings.length} rings`); } catch (e) { api.log('[ch2] block outline: ' + e.message); M.block = null; } } return M.block; };
-  const nuuMask = (S) => { if (!M.nuu) { const g = heightGrid(S, [-158.25, 21.48, -156.03, 23.06], 2); M.nuu = { tex: kit.maskTexture(g, { r: raster(g, SLIDES.nuuanu) }), bb: g.bb }; } return M.nuu; };
+  // S2 mask: R = the debris field (the {slides} hero fill), G = the shallow reef flats, bays and fishponds (-14 to +0.3 m): the stage
+  // colours everything above -6 m with the satellite picture, which is the picture of WATER there, so drained they read as turquoise
+  // lakes 5 km above the new sea; G dims and desaturates them toward the grey sediment (toolkit request: seaMat for drained flats)
+  const nuuMask = (S) => { if (!M.nuu) { const g = heightGrid(S, [-158.33, 21.22, -156.03, 23.06], 2), r = raster(g, SLIDES.nuuanu), gg = new Uint8Array(g.nx * g.ny);
+    for (let k = 0; k < gg.length; k++) if (!r[k] && g.h[k] < 0.3 && g.h[k] > -14) gg[k] = 1;
+    M.nuu = { tex: kit.maskTexture(g, { r, g: gg }), bb: g.bb }; } return M.nuu; };
+  // the arrows' coast points: march seaward (bearing 158) from inland anchors until the grid's 0 m (S4's own stage)
+  const coastAlong = (S, ll, brg) => { for (let d = 0; d < 30; d += 0.08) { const p = offLL(ll, d, brg); if (S.heightAt(p[0], p[1]) <= 0) return p; } return offLL(ll, 30, brg); };
   const flank = (S) => {
     if (!M.flank) {
       const g = heightGrid(S, [-155.6, 19.0, -154.75, 19.55], 1), m = new Uint8Array(g.nx * g.ny);
@@ -175,7 +259,10 @@ export async function build(api, kit, scenes) {
   // the stage's hero albedo (#FF5A36 x 0.17) reads crimson on the dark drained basalt (round-3 still): brighter and less red for this
   // chapter's fills, set in mask()
   // just before the render and put back in world() right after it, so no other shot on the same stage ever sees it
-  const heroBright = (S) => { const u = S.maskU?.heroCol; if (!u) return; if (!S._heroDef) S._heroDef = u.value.clone(); u.value.setRGB(0.34, 0.068, 0.018); };   // linear: brighter, a touch more green than the default, so it renders as #FF5A36
+  const NUC = (api.Q.ch2nuc || '0.34,0.068,0.018').split(',').map(Number);
+  const heroBright = (S) => { const u = S.maskU?.heroCol; if (!u) return; if (!S._heroDef) S._heroDef = u.value.clone(); u.value.setRGB(...NUC); };   // linear: brighter, a touch more green than the default, so it renders as #FF5A36
+  const FKC = (api.Q.ch2fkc || '0.30,0.080,0.020').split(',').map(Number);   // the flank's milder hero albedo (linear): orange, not crimson, on green land
+  const heroMild = (S) => { const u = S.maskU?.heroCol; if (!u) return; if (!S._heroDef) S._heroDef = u.value.clone(); u.value.setRGB(...FKC); };
   const heroReset = (S) => { const u = S.maskU?.heroCol; if (u && S._heroDef) u.value.copy(S._heroDef); };
 
   // ================================================================ UI helpers (crisp, after the grade)
@@ -198,97 +285,159 @@ export async function build(api, kit, scenes) {
       ctx.fillStyle = 'rgba(6,9,15,0.6)'; ctx.beginPath(); ctx.arc(q[0], q[1], r + px(4), 0, 7); ctx.fill(); ctx.fillStyle = o.color || PAL.text; ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 7); ctx.fill(); ctx.restore(); } } };
 
   // ================================================================ S1 'pali': the lookout, the paper wall, the tourist, the dive
-  const tPop = tPop0, tLean = lead('lean'), tHat = lead('hat'), tTurn = tHat + 0.38, tRun = tTurn + 0.24;
+  const tPop = tPop0, tLean = lead('lean'), tHat = lead('hat'), tTurn = tHat + 0.16, tRun = tHat + 0.42;
+  // round 7: the wind starts on its word (wobble 0.018 -> 0.035, eased: a step in the amplitude would jump the angle), turns
+  // 0.2 s after the hat goes, runs 0.55 s (screen x only, at the lookout's height: off frame-left before the camera moves)
   const tourPose = (t) => {
     const lean = t < tHat + 0.12 ? 0.06 + 0.41 * E.outBack(F.clamp((t - tLean) / 0.45)) : F.lerp(0.47, 0.03, pr(t, tHat + 0.12, tHat + 0.36));
-    return { pop: F.clamp((t - tPop) / 0.5), lean, wobble: t > tLean && t < tHat + 0.3 ? 0.035 : 0.018, turn: pr(t, tTurn, tTurn + 0.22), run: Math.max(0, t - tRun) };
+    const wob = 0.018 + 0.017 * pr(t, tWind, tWind + 0.4) * (1 - pr(t, tHat + 0.2, tHat + 0.5));
+    return { pop: F.clamp((t - tPop) / 0.5), lean, wobble: wob, turn: pr(t, tTurn, tTurn + 0.2), run: Math.max(0, t - tRun) };
   };
+  // the hat brim flutters on his head from the word 'wind', hardest in the gust before {hat} (rad / px at the card's scale)
+  const brimAt = (t, s) => { const a = pr(t, tWind, tWind + 0.4) * (0.55 + 0.45 * pr(t, tHat - 0.35, tHat - 0.05));
+    return { rot: a * (0.07 * Math.sin(t * 29) + 0.04 * Math.sin(t * 47 + 1.3)), off: [a * 1.5 * s * Math.sin(t * 37), -a * 4 * s * Math.abs(Math.sin(t * 23))] }; };
+  const wobAt = (P, t, seed) => P.wobble * (Math.sin(t * 7.3 + seed * 2.1) * 0.6 + Math.sin(t * 12.9 + seed * 5.7) * 0.4);   // drawCutout's own wobble
+  // the cast shadow of a cut-out stood on the lookout (drawCutout's sun shadow, reused while he runs in screen space)
+  const shadowVec = (view, lon, lat, hm, hPx) => { const sun = view.sun, b = view.project(lon, lat, hm), up = view.project(lon, lat, hm + 10); if (!sun || !b || !up) return null;
+    const ppm = Math.max(1e-3, Math.hypot(up[0] - b[0], up[1] - b[1]) / 10), Hm = hPx / ppm, L = Math.min(Hm / Math.tan(Math.max(8, sun[1]) * D2R), Hm * 4), az = (sun[0] + 180) * D2R;
+    const e = view.project(lon + L * Math.sin(az) / (111320 * Math.cos(lat * D2R)), lat + L * Math.cos(az) / 111320, hm); return e ? [e[0] - b[0], e[1] - b[1]] : null; };
   const DREF = 1.004;                                                     // camera-to-lookout distance (km) of the settled framing
-  scenes.push(kit.terrainShot({ id: 'ch2-pali', t0: S1[0], t1: S1[1], fadeIn: K.XF, region: 'pali', preset: 'today',
+  // the lookout wall's screen quad (one helper for world() and ui(): the label avoids it): a paper stone wall that pops up on {pali},
+  // standing on the real ground just beyond the lookout and running along the edge, between the tourist and the drop; it folds flat
+  // as the dive starts (no ghost fade)
+  const wallAt = (view, t) => {
+    const wp = F.clamp((t - (lead('pali') - 0.15)) / 0.5), wOut = pr(t, tDive0 + 0.15, tDive0 + 0.45);
+    if (wp <= 0 || wOut >= 1) return null;
+    const S = view.S, cam = S.cam.position, hL = gh(view, ...LOOKOUT);
+    const W0 = offLL(LOOKOUT, 0.04, 42), E1 = offLL(W0, 0.17, 312), E2 = offLL(W0, 0.30, 132);
+    const end = (ll) => { const q = view.project(ll[0], ll[1], hL); if (!q) return null; const k = DREF / S.xyz(ll[0], ll[1], hL).distanceTo(cam); return [q, 0.40 * H * 0.36 * F.clamp(k, 0, 1.6) * E.outBack(wp) * (1 - E.in(wOut))]; };
+    const A = end(E1), B = end(E2); if (!A || !B) return null;
+    const quad = [[A[0][0], A[0][1] - A[1]], [B[0][0], B[0][1] - B[1]], B[0], A[0]];
+    return { A, B, quad, al: F.clamp(wp * 4) * (wOut < 0.97 ? 1 : 0), cap: [(quad[0][0] + quad[1][0]) / 2, (quad[0][1] + quad[1][1]) / 2] };
+  };
+  // trade-wind clouds streaming over the ridge (script s026), as fast paper wisps, from the word 'wind' until the dive: they cross
+  // the upper frame right to left (the gag's wind blows from screen right) and enter and leave past the frame edges
+  const WISPS = [[0.0, 0.13, 0.9, 560], [0.36, 0.2, 0.62, 620], [0.7, 0.1, 0.75, 590]];   // phase, y (frame height at the right edge), scale, px/s
+  const S1shot = kit.terrainShot({ id: 'ch2-pali', t0: S1[0], t1: S1[1], fadeIn: K.XF, region: 'pali', preset: 'today',
     cam: (lt) => camAt(S1[0] + lt),
-    state: (lt) => { const t = S1[0] + lt, c = path(t), k = F.clamp(Math.log(c.d / 2) / Math.log(20));
-      const st = { sun: [F.lerp(75, 68, k), F.lerp(55, 30, k)], set: { foamAmt: 0.25 } }; const wc = farWater(c.d); if (wc) st.waterCols = wc; return st; },
+    // round 7: no foam, calmer wave normals and less glint once the dive leaves the ground (the regular ripple crawled in motion)
+    state: (lt) => { const t = S1[0] + lt, c = path(t), k = F.clamp(Math.log(c.d / 2) / Math.log(20)), q = pr(t, tDive0, tDive0 + 1.0);
+      const st = { sun: [F.lerp(75, 68, k), F.lerp(55, 30, k)], set: { foamAmt: 0.25 * (1 - q), waveAmt: F.lerp(1, 0.4, q), glintAmt: F.lerp(0.12, 0.05, q) } }; const wc = farWater(c.d); if (wc) st.waterCols = wc; return st; },
     world(ctx, lt, t, view) {
-      if (t > tDive0 + 0.7) return;
       const S = view.S, cam = S.cam.position, dist = (lon, lat, hm) => S.xyz(lon, lat, hm).distanceTo(cam);
       const hL = gh(view, ...LOOKOUT), b = view.project(LOOKOUT[0], LOOKOUT[1], hL);
       if (!b) return;
       const s = F.clamp(DREF / dist(LOOKOUT[0], LOOKOUT[1], hL), 0, 1.4), hPx = H * 0.36 * s;
-      // the lookout wall: a paper stone wall that pops up on {pali}, standing on the real ground just beyond the lookout and running
-      // along the edge (perpendicular to the view), between the tourist and the drop; paper-scale like the tourist (waist high to him)
-      const wp = F.clamp((t - (lead('pali') - 0.15)) / 0.5), wOut = pr(t, tDive0 + 0.15, tDive0 + 0.45);
-      if (wp > 0 && wOut < 1) {
-        const W0 = offLL(LOOKOUT, 0.04, 42), E1 = offLL(W0, 0.17, 312), E2 = offLL(W0, 0.30, 132);
-        const end = (ll) => { const h = hL, q = view.project(ll[0], ll[1], h); if (!q) return null; const k = DREF / dist(ll[0], ll[1], h); return [q, 0.40 * H * 0.36 * F.clamp(k, 0, 1.6) * E.outBack(wp)]; };
-        const A = end(E1), B = end(E2);
-        if (A && B) {
-          const al = F.clamp(wp * 4) * (1 - wOut);
-          ctx.save(); ctx.globalAlpha = 0.3 * al; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.moveTo(A[0][0], A[0][1] - 2); ctx.lineTo(B[0][0], B[0][1] - 2);
-          ctx.lineTo(B[0][0] + B[1] * 0.25, B[0][1] + B[1] * 0.09); ctx.lineTo(A[0][0] + A[1] * 0.25, A[0][1] + A[1] * 0.09); ctx.closePath(); ctx.fill(); ctx.restore();
-          kit.drawQuad(ctx, card.wall.img, [[A[0][0], A[0][1] - A[1]], [B[0][0], B[0][1] - B[1]], B[0], A[0]], 10, al);
-          // the paper's thickness at the near end (a cream strip)
-          ctx.save(); ctx.globalAlpha = al; ctx.fillStyle = '#E9E0CC'; ctx.fillRect(B[0][0] - 3, B[0][1] - B[1], Math.max(5, B[1] * 0.05), B[1]); ctx.restore();
-        }
+      // paper wisps over the ridge (behind the wall and the tourist)
+      const wa = pr(t, tWind, tWind + 0.5) * (1 - pr(t, tDive0, tDive0 + 0.35));
+      if (wa > 0 && card.wisp) for (const [ph, yf, sc, v] of WISPS) {
+        const w = 560 * sc * s, h = w * card.wisp.h / card.wisp.w, span = W + w * 1.2;
+        const x = W + w * 0.6 - ((t - tWind) * v * s + ph * span) % span, y = H * yf + 0.045 * (W - x) + 10 * Math.sin(t * 3.1 + ph * 9);
+        if (x - w * 0.6 > W || x + w * 0.6 < 0) continue;                  // they cross the sky above the windward plain, edge to edge
+        ctx.save(); ctx.translate(x, y); ctx.rotate(0.03 * Math.sin(t * 4.3 + ph * 7));
+        ctx.globalAlpha = wa * 0.16; ctx.drawImage(card.wisp.sil, -w / 2 + 10 * s, -h / 2 + 18 * s, w, h);      // soft shadow on the haze
+        ctx.globalAlpha = wa; ctx.drawImage(card.wisp.img, -w / 2, -h / 2, w, h); ctx.restore();
+      }
+      const wall = wallAt(view, t);
+      if (wall) {
+        const { A, B, al } = wall;
+        ctx.save(); ctx.globalAlpha = 0.3 * al; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.moveTo(A[0][0], A[0][1] - 2); ctx.lineTo(B[0][0], B[0][1] - 2);
+        ctx.lineTo(B[0][0] + B[1] * 0.25, B[0][1] + B[1] * 0.09); ctx.lineTo(A[0][0] + A[1] * 0.25, A[0][1] + A[1] * 0.09); ctx.closePath(); ctx.fill(); ctx.restore();
+        kit.drawQuad(ctx, card.wall.img, wall.quad, 10, al);
+        // the paper's thickness at the near end (a cream strip)
+        ctx.save(); ctx.globalAlpha = al; ctx.fillStyle = '#E9E0CC'; ctx.fillRect(B[0][0] - 3, B[0][1] - B[1], Math.max(5, B[1] * 0.05), B[1]); ctx.restore();
       }
       // the paper tourist (appearance 2 of 4): pops up at s028, leans into the trade wind on {lean}, loses his hat on {hat}, turns
-      // and runs after it out of frame-left (the hat flies BACKWARD, inland: the wind blows up the cliff into his face)
+      // and runs after it out of frame-left at the lookout's own height (never re-grounded: nobody goes near the edge)
       const TOUR = card.tour; if (!TOUR || t < tPop) return;
-      const P = tourPose(t);
-      const runX = -1350 * E.in(F.clamp(P.run / 0.75)) * s, hop = P.run > 0 ? Math.abs(Math.sin(P.run * 15)) * 28 * s : 0;
-      if (b[0] + runX < -0.5 * hPx) return;
+      const P = tourPose(t), cw = hPx * TOUR.w / TOUR.h;
+      const runX = -(b[0] + 0.6 * cw + 40) * E.in(F.clamp(P.run / 0.55)), hop = P.run > 0 ? Math.abs(Math.sin(P.run * 15)) * 28 * s : 0;
       const base = { hPx, pop: P.pop, lean: P.lean, wobble: P.wobble, t, seed: 3, turn: P.turn, hop };
-      let o;
-      if (runX === 0) o = Object.assign({ lon: LOOKOUT[0], lat: LOOKOUT[1] }, base);
-      else { const g = view.ground(b[0] + runX, b[1]); o = g ? Object.assign({ lon: g[0], lat: g[1], hm: g[2] }, base) : Object.assign({ x: b[0] + runX, y: b[1] }, base); }
-      if (t < tHat) { kit.drawCutout(ctx, view, TOUR, o); return; }
-      kit.drawCutout(ctx, view, TOUR, Object.assign({}, o, { parts: { hat: { alpha: 0 } } }));
-      // the detached hat: from where it sat at tHat, up and backward (left, toward the camera, so it grows a little), tumbling
-      const P0 = tourPose(tHat), r0 = kit.drawCutout(dummy, view, TOUR, Object.assign({ lon: LOOKOUT[0], lat: LOOKOUT[1] }, base, { pop: 1, lean: P0.lean, wobble: 0, turn: 0, hop: 0, alpha: 0.5 }));
+      if (b[0] + runX + 0.6 * cw > 0) {                                    // drawn until his card is fully off frame-left
+        const o = runX === 0 ? Object.assign({ lon: LOOKOUT[0], lat: LOOKOUT[1] }, base)
+          : Object.assign({ x: b[0] + runX, y: b[1], shadow: shadowVec(view, LOOKOUT[0], LOOKOUT[1], hL, hPx) || [hPx * 0.55, hPx * 0.12] }, base);
+        o.parts = { hat: t < tHat ? brimAt(t, s) : { alpha: 0 } };
+        kit.drawCutout(ctx, view, TOUR, o);
+      }
+      if (t < tHat) return;
+      // the detached hat (round 7): it starts exactly where, as big as and at the angle it sat on his head at tHat, lifts, then flies
+      // BACKWARD toward the camera (1x to 4x in 0.6 s), below the horizon, and leaves past the top-left corner, as if over the camera
+      const P0 = tourPose(tHat), br0 = brimAt(tHat, s);
+      const r0 = kit.drawCutout(dummy, view, TOUR, Object.assign({ lon: LOOKOUT[0], lat: LOOKOUT[1] }, base, { pop: P0.pop, lean: P0.lean, wobble: P0.wobble, t: tHat, turn: P0.turn, hop: 0, parts: { hat: br0 } }));
       const h0 = r0?.parts?.hat, hc = TOUR.parts?.hat;
       if (h0 && hc) {
-        const u = t - tHat, gr = 1.6 + 1.9 * E.inOut(F.clamp(u / 1.1));
-        const x = h0.x - 1500 * s * Math.pow(F.clamp(u / 1.25), 1.5), y = h0.y - 230 * s * Math.sin(F.clamp(u / 0.9) * Math.PI / 2) + 300 * s * Math.pow(Math.max(0, u - 0.55), 2);
-        if (x > -h0.w * 2) { ctx.save(); ctx.translate(x, y); ctx.rotate(-u * 7.5 - 0.3 * Math.sin(u * 11)); ctx.drawImage(hc.img, -h0.w * gr / 2, -h0.h * gr / 2, h0.w * gr, h0.h * gr); ctx.restore(); }
+        const rot0 = P0.lean + wobAt(P0, tHat, 3), x0 = h0.x + Math.cos(rot0) * br0.off[0] - Math.sin(rot0) * br0.off[1], y0 = h0.y + Math.sin(rot0) * br0.off[0] + Math.cos(rot0) * br0.off[1];
+        const u = t - tHat, p = F.clamp(u / 0.75), gr = 1 + 3 * E.inOut(F.clamp(u / 0.6));
+        const xe = -0.62 * h0.w * 4, ye = H * 0.36, cx1 = x0 - 140 * s, cy1 = y0 - 90 * s;               // quadratic path: up off the head, then out low (below the horizon)
+        const q = Math.pow(p, 1.35), x = (1 - q) * (1 - q) * x0 + 2 * q * (1 - q) * cx1 + q * q * xe, y = (1 - q) * (1 - q) * y0 + 2 * q * (1 - q) * cy1 + q * q * ye;
+        const ang = rot0 + br0.rot - (u * 6.5 + 0.3 * Math.sin(u * 11)), hw = 0.75 * Math.hypot(h0.w, h0.h) * gr;
+        if (x + hw > 0 && y + hw > 0 && x - hw < W) { ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.drawImage(hc.img, -h0.w * gr / 2, -h0.h * gr / 2, h0.w * gr, h0.h * gr); ctx.restore(); }
       }
     },
     ui(ctx, lt, t, view) {
-      // s030 {huge}: a white line traces the Koʻolau crest (the cliff top); s031 {tore}: a soft hero-orange glow runs along it
-      const out = pr(t, tNe0 - 1.6, tNe0 - 1.0);
-      if (t > lead('huge') - 0.05 && out < 1) {
-        const runs = druns(view, crest, 30, 4);
-        lineOn(ctx, runs, pr(t, lead('huge'), lead('huge') + 0.9), { color: PAL.text, width: 6, alpha: 1 - out });
-        const g = pr(t, lead('tore'), lead('tore') + 1.1);
-        if (g > 0) { ui.line(ctx, runs, { color: PAL.hero, width: 14, alpha: 0.38 * (1 - out), p: g, under: 0 }); lineOn(ctx, runs, g, { color: PAL.hero, width: 8, alpha: 0.95 * (1 - out) }); }
-      }
-      // s026 {pali}: PALI LOOKOUT on the lookout, held 2 s and more (clear of the chapter card while it shows)
+      // s026 {pali}: PALI LOOKOUT, held 2 s and more (clear of the chapter card while it shows); round 7: the pin sits on the wall's cap
+      // and the wall is an obstacle, so neither the plate nor the leader crosses the paper wall
       const la = env(t, lead('pali') - 0.1, T('oahu') + 1.1, 0.3, 0.35);
-      if (la > 0) { const q = gp(view, ...LOOKOUT, 10); if (t < ch.card + 1.65) ui.avoid({ x: W / 2 - px(560), y: px(280), w: px(1120), h: px(190) });
-        if (q) ui.label(ctx, 'PALI LOOKOUT', q[0], q[1], { t, p: la, order: ['above-right', 'above', 'right', 'above-left'] }); }
-    } }));
-  api.cue(tLean, 'card_creak', -17.7); api.cue(T('hat') - 0.2, 'wind_gust', -14); api.cue(K.s1('s029') + 0.14, 'paper_flutter', -10); api.cue(tDive0 + 0.4, 'whoosh_soft', -20);
+      if (la > 0) { const wall = wallAt(view, t), q = wall ? wall.cap : gp(view, ...LOOKOUT, 10);
+        if (t < ch.card + 1.65) ui.avoid({ x: W / 2 - px(560), y: px(280), w: px(1120), h: px(190) });
+        if (wall) ui.avoid(ui.boxOf(wall.quad, px(30)));
+        if (q) ui.label(ctx, 'PALI LOOKOUT', q[0], q[1], { t, p: la, order: ['above', 'above-right', 'above-left', 'right', 'left'] }); }
+    } });
+  scenes.push(S1shot);
+  api.cue(tLean, 'card_creak', -17.7); api.cue(T('hat') - 0.2, 'wind_gust', -14); api.cue(K.s1('s029') + 0.14, 'paper_flutter', -10); api.cue(tDive0 + 0.2, 'whoosh_soft', -20);
 
-  // ================================================================ S2 'oahu_nuuanu': the drain, the debris, the block, Manhattan, 100 MILES
+  // ================================================================ S2 'oahu_nuuanu': the dive's pull-back, the drain, the debris, the block, Manhattan, 100 MILES
   const tSl = lead('slides'), tManh = lead('manh'), tDrop0 = tManh - 0.48;
+  // the drained Nuʻuanu seabed: less blue sky fill and a little more direct sun than the 'day' look, so the slate basalt reads as rock,
+  // not a navy blue field (gate.py blue share), with the low sun's long shadows kept
+  const DRY = { exp: api.Q.ch2exp ?? 1.7, sky: api.Q.ch2sky ?? 0.5, el: api.Q.ch2el ?? 24 };   // round 6: blue share 38-59 % to 6-19 %, luma +12
   const NUU_FILL = api.Q.ch2fill ?? 0.4;                                  // 0.6 read red 19 % and failed the clone gate; 0.38: red 0 %
+  const slidesA = (t) => pr(t, tSl - 0.05, tSl + 0.2) * (1 - pr(t, tSw0 + (api.Q.ch2so ?? 0), tSw0 + (api.Q.ch2so ?? 0) + 0.7));
+  // round 7, {slides}: the antipode recipe instead of more opacity: everything around the fill (drained seabed and land) is dimmed and
+  // desaturated by a masked grade (capBB empty: all land in the 'flank' class), the hero-filled pixels pass through it
+  const SLIDE_LOOK = { flExp: api.Q.ch2dimE ?? 0.93, flSat: api.Q.ch2dimS ?? 0.75, flWarm: [0.97, 1.0, 1.04] };
+  const SLATE = [0.045, 0.045, 0.048];                                    // the drained preset's grey sediment
   const S2shot = kit.terrainShot({ id: 'ch2-nuuanu', t0: S2[0], t1: S2[1], fadeIn: XF, region: 'oahu_nuuanu',
     cam: (lt) => camAt(S2[0] + lt),
     level: (lt) => drain(S2[0] + lt),
     state: (lt) => { const t = S2[0] + lt, lv = drain(t), k = F.clamp(-lv / 700), st = mixState('today', 'drained', k);
-      st.sun = [F.lerp(72, 118, k), F.lerp(30, 19, k)]; st.set.foamAmt = 0.4 * (1 - k); st.set.oldLine = 0.6 * k; st.set.tubAmt = 0;
-      st.post.exposure = F.lerp(1.2, 1.55, k); const wc = farWater(path(t).d); if (wc) st.waterCols = wc; return st; },
-    mask: (lt, S) => { const t = S2[0] + lt, a = pr(t, tSl - 0.05, tSl + 0.2) * (1 - pr(t, tSw0 + 0.2, tSw0 + 0.9)); if (a <= 0) return null; const m = nuuMask(S); heroBright(S); return { tex: m.tex, bb: m.bb, hero: NUU_FILL * a }; },
+      // round 7: the drained-Oʻahu swing back and its hold on the cliffs (it failed the clone gate: tan 12-15 %, drain-clone 10.4-10.6):
+      // a slate reef flat at half strength, no old-coast line (it drew squiggles round inland fishponds), less exposure
+      const sw = pr(t, tSw0 + 0.3, tSw0 + 1.3) * (1 - pr(t, tFl0 + 0.4, tFl0 + 1.1));
+      st.sun = [F.lerp(72, 118, k), F.lerp(30, 19, k)]; st.set.tubAmt = 0;
+      st.set.foamAmt = 0; st.set.waveAmt = 0.4; st.set.glintAmt = 0.05;          // round 7: no foam, calm normals (the patterns crawled)
+      st.set.oldLine = 0.6 * k * (1 - sw); st.set.reefAmt = F.lerp(0.85, 0.45, sw); st.set.reefCol = SEABED.reef.map((v, j) => F.lerp(v, SLATE[j], 0.75 * sw));
+      st.set.nearAmt = 0.6 * k;   // near-field basalt relief on the close drained seabed (s037-s040: the low flight and the block)
+      st.post.exposure = F.lerp(F.lerp(1.2, DRY.exp, k), 1.3, sw); st.set.skyI = F.lerp(0.70, DRY.sky, k); st.sun[1] = F.lerp(30, DRY.el, k);
+      const ha = slidesA(t); if (ha > 0) { st.mlook = SLIDE_LOOK; st.mlookAmt = ha; st.set.capBB = [0, 0, 0, 0]; }
+      const wc = farWater(path(t).d); if (wc) st.waterCols = wc; return st; },
+    // R: the debris fill on {slides}; G: the drained reef flats and bays dimmed to grey as soon as they are dry
+    mask: (lt, S) => { const t = S2[0] + lt, a = slidesA(t), bay = F.clamp((-drain(t) - 1) / 10); if (a <= 0 && bay <= 0) return null;
+      const m = nuuMask(S); if (a > 0) heroBright(S); return { tex: m.tex, bb: m.bb, hero: NUU_FILL * a, dim: bay, pass: 1 }; },
     world(ctx, lt, t, view) { heroReset(view.S); },
     async ui(ctx, lt, t, view) {
-      // s035 {slides}: the debris field's white outline (the 55 % hero fill is in the terrain)
-      const fa = pr(t, tSl - 0.05, tSl + 0.2) * (1 - pr(t, tSw0 + 0.2, tSw0 + 0.9));
-      if (fa > 0) for (const r of SLIDES.nuuanu) ui.outline(ctx, druns(view, r, 60, 3, true), { width: 6, alpha: fa, p: pr(t, tSl, tSl + 0.5) });
+      // s030 {huge}: a white line traces the Koʻolau crest (the cliff top); s031 {tore}: a soft hero-orange glow runs along it
+      // (round 7: 10 px cores, the glow 18 px: meaningful lines need 9-12 px)
+      const out = pr(t, tNe0 - 1.6, tNe0 - 1.0);
+      if (t > lead('huge') - 0.05 && out < 1) {
+        const runs = druns(view, crest, 30, 4);
+        lineOn(ctx, runs, pr(t, lead('huge'), lead('huge') + 0.9), { color: PAL.text, width: 10, alpha: 1 - out });
+        const g = pr(t, lead('tore'), lead('tore') + 1.1);
+        if (g > 0) { ui.line(ctx, runs, { color: PAL.hero, width: 18, alpha: 0.4 * (1 - out), p: g, under: 0 }); lineOn(ctx, runs, g, { color: PAL.hero, width: 10, alpha: 0.95 * (1 - out) }); }
+      }
+      // s035 {slides}: the debris field's white outline with a soft orange glow (the fill is in the terrain); round 7: held at 40 %
+      // through the {outhere} flight, so 'out here' points at the mapped deposit, gone as the camera reaches the block
+      const fa = Math.max(slidesA(t), 0.4 * pr(t, tFl0 - 0.2, tFl0 + 0.3) * (1 - pr(t, lead('block') - 0.3, lead('block') + 0.3)));
+      if (fa > 0) for (const r of SLIDES.nuuanu) { const runs = druns(view, r, 60, 3, true), p = t < tSw0 ? pr(t, tSl, tSl + 0.5) : 1;
+        if (!api.Q.ch2noglow) ui.line(ctx, runs, { color: PAL.hero, width: 16, alpha: 0.45 * fa, p, under: 0 }); ui.outline(ctx, runs, { width: 6, alpha: fa, p, glow: PAL.hero }); }
       // s036 {summit}: a white line on the cliffs where the old summit caldera was cut in two (schematic marker on the real crest)
       const ca = pr(t, lead('summit'), lead('summit') + 0.6), cOut = pr(t, tFl0 - 0.1, tFl0 + 0.35);
       if (ca > 0 && cOut < 1) lineOn(ctx, druns(view, caldera, 40, 2), ca, { color: PAL.text, width: 10, alpha: 1 - cOut });
       // s038 {block}: a white outline around the largest block (its -4,000 m footprint on this grid: the contour the Manhattan
-      // comparison is made against, 26.5 x 17.5 km), held through Manhattan
+      // comparison is made against, 26.5 x 17.5 km), held through Manhattan; round 7: it is an obstacle for the MANHATTAN label
       const ba = pr(t, lead('block'), lead('block') + 0.5) * (1 - pr(t, tPb0 + 0.1, tPb0 + 0.6));
-      if (ba > 0) { const bk = await blockIsl(); if (bk) for (const r of bk.rings) ui.outline(ctx, druns(view, r, 40, 1, true, -4000), { width: 5, alpha: 0.85 * Math.min(1, ba * 3), p: ba }); }
+      let blockRuns = [];
+      if (ba > 0) { const bk = await blockIsl(); if (bk) for (const r of bk.rings) { const rr = druns(view, r, 40, 1, true, -4000); blockRuns = blockRuns.concat(rr); ui.outline(ctx, rr, { width: 5, alpha: 0.85 * Math.min(1, ba * 3), p: ba }); } }
       // s039 {manh}: true-scale Manhattan drops from above and drapes along the block's long axis; s040 {spare}: it settles ('tok')
       const dp = pr(t, tDrop0, tManh, E.in), mOut = pr(t, tPb0 + 0.1, tPb0 + 0.6);
       if (t > tDrop0 && mOut < 1) {
@@ -297,87 +446,106 @@ export async function build(api, kit, scenes) {
         const runs = [ring.map(([lo, la]) => view.project(lo, la, F.lerp(top, gh(view, lo, la) + 30, dp) + fall))].filter(r => r.every(Boolean));
         ui.fill(ctx, runs, { color: PAL.cyan, fill: 0.4, alpha: (1 - mOut) * F.clamp((t - tDrop0) / 0.2) });
         ui.outline(ctx, runs, { width: 6, alpha: (1 - mOut) * F.clamp((t - tDrop0) / 0.2) });
-        ui.avoidRuns(runs, 4);
+        ui.avoidRuns(runs, 4); ui.avoidRuns(blockRuns, 2);
         const la = env(t, tManh, tPb0 + 0.4, 0.3, 0.3);
-        if (la > 0) { const q = gp(view, BLOCK.lon, BLOCK.lat, 40); if (q) ui.label(ctx, 'MANHATTAN', q[0], q[1], { t, p: la, dist: 110, order: ['above', 'above-right', 'above-left', 'right', 'left'] }); }
+        // round 7: the label's bar takes the cyan of the thing it names; left and right placements allowed
+        if (la > 0) { const q = gp(view, BLOCK.lon, BLOCK.lat, 40); if (q) ui.label(ctx, 'MANHATTAN', q[0], q[1], { t, p: la, dist: 110, accent: PAL.cyan, order: ['above', 'above-right', 'above-left', 'right', 'left'] }); }
       }
       // s041 {miles}: a 10 px yellow line with a head dot runs along the mapped deposit, Oʻahu's coast to the farthest blocks (~226 km),
-      // landing with the line-draw sound; the number block lands on the word
+      // landing with the line-draw sound (the number block is its own scene below: it holds across the hand-off to S3)
       const lp = pr(t, tPb0, tPb0 + 2.0, E.inOutSine), lOut = pr(t, S2[1] - XF - 0.55, S2[1] - XF - 0.1);
-      if (lp > 0 && lOut < 1) {
-        const runs = druns(view, DEP, 150, 4); lineOn(ctx, runs, lp, { color: PAL.yellow, width: 10, alpha: 1 - lOut }); ui.avoidRuns(runs, 3);
-        const kp = F.clamp((t - lead('miles')) / 0.3);
-        if (kp > 0) {
-          const nOpt = { cap: 160, to: 100, unit: 'MILES', unitCap: 100 };
-          const m = ui.number(ctx, 0, 0, 0, Object.assign({ measure: true }, nOpt));
-          const box = ui.block(ctx, [{ text: 'MORE THAN', role: 'kicker', cap: 60 }], px(96), px(96),
-            { anchor: 'left', p: kp, out: lOut, extra: { w: m.w, h: m.h + px(10) }, bar: PAL.yellow, clear: 40,
-              at: [{ x: px(96), y: px(96), anchor: 'left' }, { x: W - px(96), y: px(96), anchor: 'right' }, { x: W / 2, y: px(96), anchor: 'center' }] });
-          if (box) ui.number(ctx, 100, box.inner.x, box.inner.y + m.h, Object.assign({ alpha: F.clamp(kp * 2) * (1 - E.in(lOut)) }, nOpt));
-        }
-      }
+      if (lp > 0 && lOut < 1) { const runs = druns(view, DEP, 150, 4); lineOn(ctx, runs, lp, { color: PAL.yellow, width: 10, alpha: 1 - lOut }); ui.avoidRuns(runs, 3); }
       // the SEA LEVEL gauge while the level moves (s032-s034); out in the held breath
       const gpIn = F.clamp((t - (tNe0 - 0.1)) / 0.6), gOut = pr(t, K.s1('s034') + 0.3, K.s1('s034') + 0.7);
       if (gpIn > 0 && gOut < 1) ui.gauge(ctx, { p: gpIn, out: gOut, level: view.level, range: 5000, to: 16404, unit: 'FT' });
     } });
   S2shot.uiFrom = S2[0] + XF;
   scenes.push(S2shot);
+  // s041 MORE THAN / 100 MILES: lands on {miles} and holds 2.5 s (round 7: it showed fully for 1.5 s), top right first (the line runs
+  // left to right below it), across the S2 -> S3 hand-off
+  const tMi = lead('miles'), tMiOut = tMi + 2.85;
+  scenes.push({ id: 'ch2-miles', t0: tMi, t1: tMiOut + 0.4, layer: 60, draw(ctx, lt, t) {
+    const kp = F.clamp((t - tMi) / 0.3), out = pr(t, tMiOut, tMiOut + 0.35); if (kp <= 0 || out >= 1) return;
+    const nOpt = { cap: 160, to: 100, unit: 'MILES', unitCap: 100 }, m = ui.number(ctx, 0, 0, 0, Object.assign({ measure: true }, nOpt));
+    const box = ui.block(ctx, [{ text: 'MORE THAN', role: 'kicker', cap: 60 }], W - px(96), px(96),
+      { anchor: 'right', textAlign: 'left', p: kp, out, extra: { w: m.w, h: m.h + px(10) }, bar: PAL.yellow, clear: 40,
+        at: [{ x: W - px(96), y: px(96), anchor: 'right' }, { x: px(96), y: px(96), anchor: 'left' }] });
+    if (box) ui.number(ctx, 100, box.inner.x, box.inner.y + m.h, Object.assign({ alpha: F.clamp(kp * 2) * (1 - E.in(out)) }, nOpt));
+  } });
   api.cue(lead('ne') - 0.28, 'drain_start', -12); api.cue(T('first'), 'block_surface', -16); api.cue(T('more'), 'block_surface', -18); api.cue(T('field') - 1.0, 'rubble_emerge', -14);
-  api.cue(T('slides') - 0.08, 'impact_deep', -10); api.cue(tFl0 + 0.3, 'whoosh_big', -15); api.cue(tDrop0, 'whoosh_big', -16); api.cue(tManh, 'impact_short', -14);
+  api.cue(T('slides') - 0.08, 'impact_deep', -10); api.cue(tFlM - 0.22, 'whoosh_big', -15); api.cue(tDrop0, 'whoosh_big', -16); api.cue(tManh, 'impact_short', -14);
   api.cue(K.Te('spare') + 0.05, 'pop_ui', -18); api.cue(tPb0, 'line_draw', -18); api.cue(tPb0 + 2.0, 'impact_short', -12);
 
   // ================================================================ S3 'main_chain': refill, the slide footprints along the chain
   const ORDER = ['n_kauai', 's_kauai', 'waianae', 'wailau', 'clark', 'alika', 'kalae'];
   const tLast = lead('chain'), tFirst = tLast - 0.25 * (ORDER.length - 1), tNuu = Math.min(tRf1 - 0.1, tFirst - 0.3);
   const tDim0 = T('chain') + 0.7, tFade0 = T('happen') + 0.45;
+  const fpOn = (t) => pr(t, tNuu - 0.3, tNuu + 0.2) * (1 - pr(t, tFade0, tFade0 + 0.6));
   const S3shot = kit.terrainShot({ id: 'ch2-chain', t0: S3[0], t1: S3[1], fadeIn: XF, region: 'main_chain',
     cam: (lt) => camAt(S3[0] + lt),
     level: (lt) => refill(S3[0] + lt),
     state: (lt) => { const t = S3[0] + lt, p = F.clamp((t - tRf0) / (tRf1 - tRf0)), st = mixState('drained', 'today', p);
       st.sun = [150, 42]; st.set.foamAmt = 0; const wc = farWater(path(t).d); if (wc) st.waterCols = wc; return st; },
+    grade: (lt) => ({ exposure: 1 - 0.2 * fpOn(S3[0] + lt) }),          // round 7: the sea dims 20 % under the footprints (antipode recipe)
     ui(ctx, lt, t, view) {
       // the footprints, drawn on the sea as a map overlay: Nuʻuanu first (as the refill ends), then 7 more, one every 0.25 s,
-      // the last on {chain}; dimmed to 30 % after it, gone after {happen}
-      const dim = 1 - 0.7 * pr(t, tDim0, tDim0 + 0.5), fade = 1 - pr(t, tFade0, tFade0 + 0.6);
+      // the last on {chain}; round 7: 60 % fill with a soft glow, dimmed to a 15 % fill and a 50 % outline after it, gone after {happen}
+      const dk = pr(t, tDim0, tDim0 + 0.5), fade = 1 - pr(t, tFade0, tFade0 + 0.6);
       const list = [['nuuanu', tNuu]].concat(ORDER.map((k, i) => [k, tFirst + 0.25 * i]));
       for (const [k, t0] of list) {
-        const a = F.clamp((t - t0) / 0.2) * dim * fade; if (a <= 0) continue;
+        const a = F.clamp((t - t0) / 0.2) * fade; if (a <= 0) continue;
         const pop = 1 + 0.06 * Math.sin(F.clamp((t - t0) / 0.25) * Math.PI);
         for (const r of SLIDES[k]) {
           const c = r.reduce((s, p) => [s[0] + p[0] / r.length, s[1] + p[1] / r.length], [0, 0]);
-          const runs = druns(view, r.map(p => [c[0] + (p[0] - c[0]) * pop, c[1] + (p[1] - c[1]) * pop]), 0, 1, true, Math.max(view.level, 0));
-          ui.fill(ctx, runs, { color: PAL.hero, fill: 0.74, alpha: a }); ui.outline(ctx, runs, { width: 5, alpha: a });
+          const ring = r.map(p => [c[0] + (p[0] - c[0]) * pop, c[1] + (p[1] - c[1]) * pop]), lv = Math.max(view.level, 0);
+          const runs = druns(view, ring, 0, 1, true, lv);
+          // the fill takes the whole ring (a ring cut by the frame edge into two runs left an even-odd hole)
+          const full = ring.map(([lo, la]) => view.project(lo, la, lv)); const fr = full.every(Boolean) ? [full] : runs;
+          ui.line(ctx, runs, { color: PAL.hero, width: 14, alpha: 0.5 * a * (1 - dk), under: 0 });             // soft glow
+          ui.fill(ctx, fr, { color: PAL.hero, fill: F.lerp(0.6, 0.15, dk), alpha: a });
+          ui.outline(ctx, runs, { width: 5, alpha: a * F.lerp(1, 0.5, dk), glow: PAL.hero });
         }
       }
-      const gpIn = F.clamp((t - (S3[0] + XF)) / 0.35), gOut = pr(t, tRf1 + 0.1, tRf1 + 0.5);
+      // the gauge waits until MORE THAN / 100 MILES has gone (never two numbers at once)
+      const gpIn = F.clamp((t - (tMiOut + 0.3)) / 0.35), gOut = pr(t, tRf1 + 0.1, tRf1 + 0.5);
       if (gpIn > 0 && gOut < 1) ui.gauge(ctx, { p: gpIn, out: gOut, level: view.level, range: 5000, to: 16404, unit: 'FT' });
     } });
   S3shot.uiFrom = S3[0] + XF;
   scenes.push(S3shot);
   api.cue(tFirst - 0.28, 'pop_cascade', -12.8); api.cue(tBi0 + 0.1, 'whoosh_soft', -14);
 
-  // ================================================================ S4 'kilauea_sf': the creeping south flank, the whole Big Island, drain
+  // ================================================================ S4 'bigisland': the creeping south flank, the whole Big Island, drain
   const tFk = lead('flank'), tFkOut = tUp0 + 0.05, tCr = lead('creep');
   const ARROWS = [[-155.36, 19.29], [-155.22, 19.31], [-155.08, 19.33], [-154.96, 19.38]];
-  const S4shot = kit.terrainShot({ id: 'ch2-kilauea', t0: S4[0], t1: S4[1], fadeIn: XF, region: 'kilauea_sf', preset: 'today',
+  const flankA = (t) => pr(t, tFk - 0.05, tFk + 0.25) * (1 - pr(t, tFkOut, tFkOut + 0.6));
+  // round 7: hero 0.5 in the stage's own hero colour (0.58 with the brighter colour read as a flat orange band, clone distance 10.6),
+  // the rest of the island dimmed and desaturated by the masked grade while the flank is lit (it passes through)
+  const FLANK_LOOK = { flExp: 0.8, flSat: 0.55, flWarm: [0.97, 1.0, 1.04] };
+  const S4shot = kit.terrainShot({ id: 'ch2-kilauea', t0: S4[0], t1: S4[1], fadeIn: XF, region: S4REG, preset: 'today',
     cam: (lt) => camAt(S4[0] + lt),
     level: (lt) => bigDrain(S4[0] + lt),
-    state: (lt) => { const t = S4[0] + lt, st = { sun: [215, 38], set: { foamAmt: 0.6 } }; const wc = farWater(path(t).d); if (wc) st.waterCols = wc;
-      const k = F.clamp(-bigDrain(t) / 300); if (k > 0) Object.assign(st.set, { tubAmt: 0.8 * k, oldLine: k, lineCol: [1.15, 1.1, 1.0] }); return st; },
-    mask: (lt, S) => { const t = S4[0] + lt, a = pr(t, tFk - 0.05, tFk + 0.25) * (1 - pr(t, tFkOut, tFkOut + 0.6)); if (a <= 0) return null; const m = flank(S); heroBright(S); return { tex: m.tex, bb: m.bb, hero: 0.58 * a }; },
+    state: (lt) => { const t = S4[0] + lt, st = { sun: [215, 38], set: { foamAmt: 0.3, waveAmt: 0.6, glintAmt: 0.04 } }; const wc = farWater(path(t).d, (api.Q.ch2s4w ?? 0) * flankA(t)); if (wc) st.waterCols = wc;
+      const k = F.clamp(-bigDrain(t) / 300); if (k > 0) Object.assign(st.set, { tubAmt: 0.8 * k, oldLine: k, lineCol: [1.15, 1.1, 1.0] });
+      const fa = flankA(t) * (api.Q.ch2fkdim ?? 1); if (fa > 0) { st.mlook = FLANK_LOOK; st.mlookAmt = fa; st.set.capBB = [0, 0, 0, 0]; } return st; },
+    mask: (lt, S) => { const a = flankA(S4[0] + lt); if (a <= 0) return null; const m = flank(S); heroMild(S); return { tex: m.tex, bb: m.bb, hero: (api.Q.ch2fk ?? 0.5) * a, pass: 1 }; },
     world(ctx, lt, t, view) { heroReset(view.S); },
     ui(ctx, lt, t, view) {
-      const a = pr(t, tFk - 0.05, tFk + 0.25) * (1 - pr(t, tFkOut, tFkOut + 0.6));
+      const a = flankA(t);
       if (a <= 0) return;
       const fl = flank(view.S);
-      for (const r of fl.rings) ui.outline(ctx, druns(view, r, 25, 3, true), { width: 6, alpha: a, p: pr(t, tFk, tFk + 0.5) });
-      // s045 {creep} / s046 {creeping}: yellow arrows on the flank point seaward and inch forward, stop-go (no rate, nothing collapses)
+      for (const r of fl.rings) { const runs = druns(view, r, 25, 3, true); ui.outline(ctx, runs, { width: 6, alpha: a, p: pr(t, tFk, tFk + 0.5) }); ui.avoidRuns(runs, 6); }
+      // s045 {creep} / s046 {creeping}: small yellow arrows (about 150 px) at the coast point seaward and inch 0.3 km, fade and start
+      // again in place, heads ending at the coast (no rate, nothing collapses, nothing races out to sea)
       const ap = pr(t, tCr, tCr + 0.45);
-      if (ap > 0) for (let i = 0; i < ARROWS.length; i++) {
-        const u = Math.max(0, t - tCr - i * 0.08), n = Math.floor(u / 1.15), f = E.inOut(F.clamp((u % 1.15) / 0.55)), step = 0.55 * (n + f);
-        const p0 = offLL(ARROWS[i], step, 158), p1 = offLL(p0, 5.5, 158);
-        const A0 = gp(view, p0[0], p0[1], 40), A1 = gp(view, p1[0], p1[1], 40);
-        if (A0 && A1) ui.arrow(ctx, [A0, A1], { p: ap, alpha: a, width: 13 });
+      if (ap > 0) { if (!M.coast) M.coast = ARROWS.map(ll => coastAlong(view.S, offLL(ll, 4.5, 338), 158));
+        for (let i = 0; i < ARROWS.length; i++) {
+          const C = M.coast[i], u = Math.max(0, t - tCr - i * 0.13), cyc = 1.4, ph = (u % cyc) / cyc;
+          const inch = 0.3 * E.inOut(F.clamp(ph / 0.6)), al = (u < cyc ? 1 : F.clamp(ph / 0.12)) * (1 - F.clamp((ph - 0.8) / 0.2));
+          const Hd = offLL(C, 0.3 - inch, 338), back = offLL(C, 2.0, 338);
+          const hs = gp(view, Hd[0], Hd[1], 40), bs = gp(view, back[0], back[1], 40); if (!hs || !bs) continue;
+          const dl = Math.hypot(bs[0] - hs[0], bs[1] - hs[1]) || 1, tail = [hs[0] + (bs[0] - hs[0]) / dl * px(150), hs[1] + (bs[1] - hs[1]) / dl * px(150)];
+          ui.arrow(ctx, [tail, hs], { p: ap, alpha: a * al, width: 15 }); ui.avoid(ui.boxOf([tail, hs], px(40)));
+        }
       }
       const q = gp(view, ...KILAUEA, 30);
       if (q) ui.label(ctx, 'KĪLAUEA', q[0], q[1], { t, p: F.clamp((t - tFk) / 0.3) * a, order: ['above', 'above-left', 'above-right', 'left', 'right'] });
@@ -385,7 +553,7 @@ export async function build(api, kit, scenes) {
   S4shot.uiFrom = S4[0] + XF;
   scenes.push(S4shot);
   api.cue(T('alldown'), 'drain_start', -10.4);
-  if (dbg) api.log(`[ch2] windows S1 ${S1.map(v => v.toFixed(2))} S2 ${S2.map(v => v.toFixed(2))} S3 ${S3.map(v => v.toFixed(2))} S4 ${S4.map(v => v.toFixed(2))} dive ${tDive0.toFixed(2)}`);
+  if (dbg) api.log(`[ch2] windows S1 ${S1.map(v => v.toFixed(2))} S2 ${S2.map(v => v.toFixed(2))} S3 ${S3.map(v => v.toFixed(2))} S4 ${S4.map(v => v.toFixed(2))} dive ${tDive0.toFixed(2)} hand ${tHand.toFixed(2)}`);
 }
 
 // a paper stone wall (the lookout's waist-high wall): grey basalt stones in mortar under a pale cap, cream paper edge, shared grade
@@ -412,6 +580,26 @@ function wallCard(kit) {
   }
   g.fillStyle = '#b3ab9c'; g.fillRect(0, 0, w, 24); g.fillStyle = 'rgba(0,0,0,0.22)'; g.fillRect(0, 22, w, 7);   // the cap
   return kit.prepPaper(c, { edge: 5 });
+}
+
+// a paper trade-wind cloud (round 7, s026 'clouds streaming over the ridge'): overlapping puffs, a flat grey-shaded base, its head on
+// the left (the gag's wind blows from screen right), cream paper edge and the shared grade; plus a dark silhouette for its soft shadow
+function wispCard(kit) {
+  const w = 900, h = 260, c = kit.P.cv(w, h), g = c.getContext('2d'), R = F.rng(29), base = 205;
+  // a cumulus head (overlapping puffs, biggest a third of the way in), thinning to the right (a dotted tail of small puffs read as beads)
+  const P = [];
+  for (let i = 0; i < 18; i++) { const u = i / 17, x = 90 + u * 680 + (R() - 0.5) * 40, r = (34 + 62 * Math.exp(-Math.pow((u - 0.32) / 0.32, 2))) * (0.8 + R() * 0.35);
+    P.push([x, base - r * (0.55 + R() * 0.3), r]); }
+  g.fillStyle = '#F7F5EF'; g.beginPath(); for (const [x, y, r] of P) { g.moveTo(x + r, y); g.arc(x, y, r, 0, 7); } g.fill();
+  g.globalCompositeOperation = 'destination-out'; g.fillRect(0, base, w, h);
+  // light from above: a warm-white top, a cool grey-blue underside, a faint inner shade between puffs
+  g.globalCompositeOperation = 'source-atop'; const lg = g.createLinearGradient(0, 40, 0, base); lg.addColorStop(0, 'rgba(255,252,244,0)'); lg.addColorStop(0.55, 'rgba(210,218,228,0.18)'); lg.addColorStop(1, 'rgba(128,142,162,0.55)');
+  g.fillStyle = lg; g.fillRect(0, 0, w, h);
+  for (const [x, y, r] of P) { const rg = g.createRadialGradient(x - r * 0.25, y - r * 0.35, r * 0.2, x, y, r); rg.addColorStop(0, 'rgba(255,255,255,0.35)'); rg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = rg; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
+  g.globalCompositeOperation = 'source-over';
+  const cd = kit.prepPaper(c, { edge: 5 }), sil = kit.P.cv(cd.img.width, cd.img.height), sg = sil.getContext('2d');
+  sg.drawImage(cd.img, 0, 0); sg.globalCompositeOperation = 'source-in'; sg.fillStyle = 'rgb(20,30,45)'; sg.fillRect(0, 0, sil.width, sil.height);
+  return { img: cd.img, sil, w: cd.img.width, h: cd.img.height };
 }
 
 // Kīlauea's mobile south flank, closed through the sea: from the summit along the east rift zone to Cape Kumukahi, offshore, back up the
