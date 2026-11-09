@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """audio_scan.py MIX_JSON FINAL_MIX_WAV TIMING_JSON OUT_JSON
-Rebuilds the three buses exactly as mix.py does (VO, ducked music, SFX), scales them by the same loudness gain as the final mix,
+Rebuilds the buses with mix.build() (VO, ducked music, SFX + ambience), scales them by the same loudness gain as the final mix,
 and reports what a listener could trip over:
   - masking:   speech windows where music+SFX come within 8 dB of the voice
   - sfx_loud:  SFX hits louder than the voice's typical level by more than 3 dB
@@ -13,7 +13,7 @@ Levels are dBFS of the final mix scale."""
 import json, sys
 import numpy as np, soundfile as sf, pyloudnorm as pyln
 sys.path.insert(0, __file__.rsplit('/', 1)[0])
-from mix import load, db, SR
+from mix import load, db, SR, build
 
 def rms_db(x, win, hop):
     x = x.astype(np.float64)
@@ -24,33 +24,15 @@ def rms_db(x, win, hop):
 def main():
     spec = json.load(open(sys.argv[1])); final = sys.argv[2]; timing = json.load(open(sys.argv[3])); outp = sys.argv[4]
     N = int(spec['duration'] * SR)
-    vo = np.zeros(N, np.float32); bus_m = np.zeros((N, 2), np.float32); bus_s = np.zeros((N, 2), np.float32)
-    v = load(spec['vo'], 1)[:, 0] * db(spec.get('vo_gain_db', 0)); n = min(N, len(v)); vo[:n] = v[:n]
-    cues = []
-    for m in spec.get('music', []):
-        y = load(m['file']) * db(m.get('gain_db', -16))
-        s0, s1 = int(m['start'] * SR), int(min(spec['duration'], m['end']) * SR)
-        L = s1 - s0; off = int(m.get('offset', 0) * SR); y = y[off:]
-        if m.get('loop') and len(y) < L: y = np.tile(y, (L // len(y) + 1, 1))
-        y = y[:L].copy()
-        fi, fo = int(m.get('fade_in', 1.0) * SR), int(m.get('fade_out', 2.0) * SR)
-        if fi: y[:fi] *= np.linspace(0, 1, min(fi, len(y)))[:, None]
-        if fo: y[-fo:] *= np.linspace(1, 0, min(fo, len(y)))[:, None]
-        bus_m[s0:s0 + len(y)] += y
-        cues.append({'file': m['file'].rsplit('/', 1)[-1], 'start': m['start'], 'end': m['end'], 'audio_ends_at': round(m['start'] + len(y) / SR, 2),
-                     'ends_early': len(y) < L - SR // 10, 'fade_in': m.get('fade_in', 1.0), 'fade_out': m.get('fade_out', 2.0), 'gain_db': m.get('gain_db')})
-    for e in spec.get('sfx', []):
-        y = load(e['file']) * db(e.get('gain_db', -8)); s0 = int(e['t'] * SR)
-        if s0 >= N: continue
-        y = y[:N - s0]; bus_s[s0:s0 + len(y)] += y
-    d = spec.get('duck', {'db': -8, 'attack': 0.06, 'release': 0.45}); hop = 480
-    r = np.sqrt(np.convolve(vo ** 2, np.ones(hop) / hop, 'same'))[::hop]
-    act = (r > db(-42)).astype(np.float32)
-    ca, cr = np.exp(-1 / (d['attack'] * 100)), np.exp(-1 / (d['release'] * 100))
-    g = np.empty_like(act); e = 0.0
-    for i, a in enumerate(act): c = ca if a > e else cr; e = c * e + (1 - c) * a; g[i] = e
-    gain = np.interp(np.arange(N), np.arange(len(g)) * hop, db(d['db'] * g)).astype(np.float32)
-    bus_m *= gain[:, None]
+    # buses rebuilt by mix.build() itself (2026-11-09), so every mix.py key counts: norm_lufs, offsets, trims, loops, EQ, the
+    # ambience bus and its duck, dips. Before this, the scan rebuilt ep01-style buses and ignored dips. The ambience bus is
+    # counted with the SFX bus ("sfx" levels below = SFX + ambience).
+    B = build(spec)
+    vo = B['vo'][:, 0].copy(); bus_m = B['music']; bus_s = B['sfx'] + B['amb']
+    en = [m for m in spec.get('music', []) if m.get('enabled', True) is True]
+    cues = [{'file': m['file'].rsplit('/', 1)[-1], 'start': m['start'], 'end': m['end'], 'audio_ends_at': round(c['audio_ends_at'], 2),
+             'ends_early': c['ends_early'], 'fade_in': m.get('fade_in', 1.0), 'fade_out': m.get('fade_out', 2.0), 'gain_db': m.get('gain_db')}
+            for m, c in zip(en, B['cues'])]
     mix = np.stack([vo, vo], 1) + bus_m + bus_s
     meter = pyln.Meter(SR); lg = db(spec.get('target_lufs', -14) - meter.integrated_loudness(mix.astype(np.float64)))
     vo *= lg; bus_m *= lg; bus_s *= lg

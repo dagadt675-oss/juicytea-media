@@ -1,0 +1,651 @@
+{
+ "final": {
+  "integrated_lufs": -14.0,
+  "lra_lu": 3.8,
+  "true_peak_dbtp": -1.7,
+  "silences": [],
+  "clipped_samples": 0,
+  "sample_peak_dbfs": -1.71
+ },
+ "vo_minus_music_3s": {
+  "median": 21.7,
+  "p10": 19.0,
+  "p90": 27.2,
+  "min": 14.4,
+  "n": 628
+ },
+ "vo_minus_amb_3s": {
+  "median": 22.9,
+  "p10": 18.5,
+  "p90": 26.3,
+  "min": 12.7,
+  "n": 628
+ },
+ "vo_minus_bed_3s": {
+  "median": 19.2,
+  "p10": 15.9,
+  "p90": 22.2,
+  "min": 12.1,
+  "n": 628
+ },
+ "segments_worst10": [
+  {
+   "seg": "s172",
+   "t0": 692.27,
+   "t1": 695.71,
+   "vo": -14.7,
+   "vo_minus_music": 16.6,
+   "vo_minus_bed": 14.7
+  },
+  {
+   "seg": "s058",
+   "t0": 219.49,
+   "t1": 221.81,
+   "vo": -15.0,
+   "vo_minus_music": 16.7,
+   "vo_minus_bed": 15.9
+  },
+  {
+   "seg": "s043",
+   "t0": 159.81,
+   "t1": 162.53,
+   "vo": -15.5,
+   "vo_minus_music": 17.9,
+   "vo_minus_bed": 16.4
+  },
+  {
+   "seg": "s057",
+   "t0": 214.39,
+   "t1": 219.19,
+   "vo": -14.9,
+   "vo_minus_music": 18.3,
+   "vo_minus_bed": 17.1
+  },
+  {
+   "seg": "s056",
+   "t0": 210.01,
+   "t1": 214.09,
+   "vo": -14.9,
+   "vo_minus_music": 18.5,
+   "vo_minus_bed": 17.2
+  },
+  {
+   "seg": "s167",
+   "t0": 664.11,
+   "t1": 667.55,
+   "vo": -15.9,
+   "vo_minus_music": 18.7,
+   "vo_minus_bed": 18.1
+  },
+  {
+   "seg": "s168",
+   "t0": 667.95,
+   "t1": 673.31,
+   "vo": -15.2,
+   "vo_minus_music": 18.7,
+   "vo_minus_bed": 14.6
+  },
+  {
+   "seg": "s055",
+   "t0": 206.99,
+   "t1": 209.71,
+   "vo": -15.2,
+   "vo_minus_music": 18.9,
+   "vo_minus_bed": 17.5
+  },
+  {
+   "seg": "s046",
+   "t0": 172.21,
+   "t1": 174.77,
+   "vo": -17.3,
+   "vo_minus_music": 19.0,
+   "vo_minus_bed": 16.3
+  },
+  {
+   "seg": "s174",
+   "t0": 714.93,
+   "t1": 719.41,
+   "vo": -15.0,
+   "vo_minus_music": 19.0,
+   "vo_minus_bed": 15.6
+  }
+ ],
+ "segments_vo_minus_music": {
+  "median": 22.2,
+  "p10": 20.0,
+  "p90": 28.5,
+  "min": 16.6,
+  "n": 178
+ },
+ "band_1_4k": {
+  "windows": 2719,
+  "median_db": 31.7,
+  "p5_db": 15.8,
+  "pct_below_15": 4.2,
+  "pct_below_10": 0.6,
+  "under_10db_runs": [
+   [
+    45.0,
+    45.1
+   ],
+   [
+    55.0,
+    55.1
+   ],
+   [
+    181.0,
+    181.1
+   ],
+   [
+    201.5,
+    201.6
+   ],
+   [
+    221.0,
+    221.1
+   ],
+   [
+    389.8,
+    389.9
+   ],
+   [
+    410.1,
+    410.2
+   ],
+   [
+    411.6,
+    411.7
+   ],
+   [
+    509.0,
+    509.1
+   ],
+   [
+    720.2,
+    720.3
+   ]
+  ]
+ },
+ "momentary_bed_within_10LU": {
+  "count": 154,
+  "runs": [
+   [
+    1.3,
+    1.6
+   ],
+   [
+    3.0,
+    3.1
+   ],
+   [
+    6.1,
+    6.2
+   ],
+   [
+    8.6,
+    8.8
+   ],
+   [
+    11.7,
+    11.8
+   ],
+   [
+    17.1,
+    17.3
+   ],
+   [
+    19.2,
+    19.4
+   ],
+   [
+    21.5,
+    21.7
+   ],
+   [
+    24.4,
+    24.5
+   ],
+   [
+    31.9,
+    32.0
+   ],
+   [
+    33.3,
+    33.4
+   ],
+   [
+    35.5,
+    35.8
+   ],
+   [
+    37.5,
+    37.8
+   ],
+   [
+    39.5,
+    39.7
+   ],
+   [
+    41.2,
+    41.6
+   ],
+   [
+    47.6,
+    47.8
+   ],
+   [
+    50.1,
+    50.2
+   ],
+   [
+    55.0,
+    55.3
+   ],
+   [
+    56.6,
+    56.9
+   ],
+   [
+    78.1,
+    78.3
+   ],
+   [
+    92.3,
+    92.4
+   ],
+   [
+    96.1,
+    96.2
+   ],
+   [
+    97.1,
+    97.3
+   ],
+   [
+    99.4,
+    99.6
+   ],
+   [
+    109.7,
+    110.0
+   ],
+   [
+    113.6,
+    113.9
+   ],
+   [
+    121.3,
+    121.4
+   ],
+   [
+    126.2,
+    126.5
+   ],
+   [
+    130.2,
+    130.3
+   ],
+   [
+    136.4,
+    136.6
+   ],
+   [
+    150.2,
+    150.3
+   ],
+   [
+    153.7,
+    154.1
+   ],
+   [
+    161.7,
+    162.0
+   ],
+   [
+    166.8,
+    167.0
+   ],
+   [
+    178.2,
+    178.3
+   ],
+   [
+    185.3,
+    185.7
+   ],
+   [
+    188.0,
+    188.4
+   ],
+   [
+    197.7,
+    197.9
+   ],
+   [
+    204.7,
+    204.8
+   ],
+   [
+    206.0,
+    206.3
+   ]
+  ]
+ },
+ "pumping": {
+  "events": 20,
+  "per_min": 1.61,
+  "times": [
+   85.08,
+   120.02,
+   154.91,
+   181.89,
+   246.8,
+   264.32,
+   316.05,
+   363.88,
+   386.58,
+   425.92,
+   436.24,
+   452.04,
+   455.49,
+   461.9,
+   524.67,
+   599.48,
+   612.84,
+   616.67,
+   673.75,
+   680.76
+  ]
+ },
+ "reveals": [
+  {
+   "name": "ft400",
+   "t": 16.97,
+   "longest_pause_in_4s_before": 0.5,
+   "music_min_300ms_in_4s_before_lufs": -61.4,
+   "music_median_12_to_4s_before_lufs": -35.9,
+   "music_drop_db": 25.5,
+   "vo_minus_music_last_1.5s_lu": 26.6,
+   "breathing_room": true
+  },
+  {
+   "name": "slides",
+   "t": 135.17,
+   "longest_pause_in_4s_before": 1.92,
+   "music_min_300ms_in_4s_before_lufs": -69.2,
+   "music_median_12_to_4s_before_lufs": -42.0,
+   "music_drop_db": 27.2,
+   "vo_minus_music_last_1.5s_lu": 20.8,
+   "breathing_room": true
+  },
+  {
+   "name": "miles",
+   "t": 153.51,
+   "longest_pause_in_4s_before": 0.52,
+   "music_min_300ms_in_4s_before_lufs": -41.5,
+   "music_median_12_to_4s_before_lufs": -37.6,
+   "music_drop_db": 3.9,
+   "vo_minus_music_last_1.5s_lu": 22.5,
+   "breathing_room": true
+  },
+  {
+   "name": "up",
+   "t": 191.39,
+   "longest_pause_in_4s_before": 0.16,
+   "music_min_300ms_in_4s_before_lufs": -65.2,
+   "music_median_12_to_4s_before_lufs": -36.3,
+   "music_drop_db": 28.9,
+   "vo_minus_music_last_1.5s_lu": 28.4,
+   "breathing_room": true
+  },
+  {
+   "name": "tall33",
+   "t": 234.05,
+   "longest_pause_in_4s_before": 0.16,
+   "music_min_300ms_in_4s_before_lufs": -54.9,
+   "music_median_12_to_4s_before_lufs": -50.3,
+   "music_drop_db": 4.6,
+   "vo_minus_music_last_1.5s_lu": 40.6,
+   "breathing_room": true
+  },
+  {
+   "name": "seven",
+   "t": 364.21,
+   "longest_pause_in_4s_before": 0.6,
+   "music_min_300ms_in_4s_before_lufs": -38.3,
+   "music_median_12_to_4s_before_lufs": -36.4,
+   "music_drop_db": 1.9,
+   "vo_minus_music_last_1.5s_lu": 16.4,
+   "breathing_room": true
+  },
+  {
+   "name": "old28",
+   "t": 460.65,
+   "longest_pause_in_4s_before": 2.0,
+   "music_min_300ms_in_4s_before_lufs": -36.4,
+   "music_median_12_to_4s_before_lufs": -36.8,
+   "music_drop_db": -0.4,
+   "vo_minus_music_last_1.5s_lu": 22.2,
+   "breathing_room": true
+  },
+  {
+   "name": "threemi",
+   "t": 547.87,
+   "longest_pause_in_4s_before": 0.5,
+   "music_min_300ms_in_4s_before_lufs": -40.1,
+   "music_median_12_to_4s_before_lufs": -38.9,
+   "music_drop_db": 1.2,
+   "vo_minus_music_last_1.5s_lu": 23.8,
+   "breathing_room": true
+  },
+  {
+   "name": "tall56",
+   "t": 679.09,
+   "longest_pause_in_4s_before": 0.24,
+   "music_min_300ms_in_4s_before_lufs": -150.7,
+   "music_median_12_to_4s_before_lufs": -33.9,
+   "music_drop_db": 116.7,
+   "vo_minus_music_last_1.5s_lu": 26.8,
+   "breathing_room": true
+  }
+ ],
+ "music_holes": [
+  [
+   15.85,
+   16.9
+  ],
+  [
+   131.0,
+   132.0
+  ],
+  [
+   158.0,
+   160.5
+  ],
+  [
+   190.65,
+   191.3
+  ],
+  [
+   224.8,
+   226.9
+  ],
+  [
+   256.45,
+   257.2
+  ],
+  [
+   381.75,
+   382.05
+  ],
+  [
+   382.15,
+   382.45
+  ],
+  [
+   382.55,
+   382.85
+  ],
+  [
+   383.0,
+   383.3
+  ],
+  [
+   412.8,
+   413.7
+  ],
+  [
+   480.2,
+   480.65
+  ],
+  [
+   523.6,
+   524.75
+  ],
+  [
+   677.9,
+   679.05
+  ]
+ ],
+ "music_holes_intended": [
+  [
+   480.24,
+   480.64,
+   "1942 hard cut"
+  ],
+  [
+   677.89,
+   679.05,
+   "payoff dropout"
+  ]
+ ],
+ "hush_violations": [],
+ "hush_ambience_swells": [
+  [
+   "x158",
+   "drain_flow",
+   540.91,
+   "Midway losses and war graves"
+  ]
+ ],
+ "comic_overlaps": [],
+ "density": {
+  "one_shots": 147,
+  "per_minute": [
+   16,
+   14,
+   15,
+   16,
+   12,
+   11,
+   9,
+   18,
+   6,
+   6,
+   11,
+   12,
+   1
+  ],
+  "max_in_10s": 7
+ },
+ "identical_3x_in_60s": [],
+ "gates": [
+  {
+   "check": "integrated",
+   "pass": true,
+   "value": -14.0,
+   "rule": "-14 +-0.5 LUFS"
+  },
+  {
+   "check": "true_peak",
+   "pass": true,
+   "value": -1.7,
+   "rule": "<= -1.5 dBTP"
+  },
+  {
+   "check": "clipping",
+   "pass": true,
+   "value": 0,
+   "rule": "0 samples at 0 dBFS"
+  },
+  {
+   "check": "silence",
+   "pass": true,
+   "value": [],
+   "rule": "no -45 dB / 0.3 s silence mid-film"
+  },
+  {
+   "check": "stems_sum",
+   "pass": true,
+   "value": 0.0,
+   "rule": "stems sum to the mix"
+  },
+  {
+   "check": "vo_music_p10",
+   "pass": true,
+   "value": 19.0,
+   "rule": "voice minus music >= 15 LU in 90% of speech windows"
+  },
+  {
+   "check": "vo_music_median",
+   "pass": true,
+   "value": 21.7,
+   "rule": "median 17-23 LU"
+  },
+  {
+   "check": "vo_amb_p10",
+   "pass": true,
+   "value": 18.5,
+   "rule": "voice minus ambience >= 15 LU in 90%"
+  },
+  {
+   "check": "segments_min",
+   "pass": true,
+   "value": 16.6,
+   "rule": "every sentence: voice >= 12 LU over music"
+  },
+  {
+   "check": "band_1_4k",
+   "pass": true,
+   "value": 4.2,
+   "rule": "<= 5% of speech windows under 15 dB at 1-4 kHz"
+  },
+  {
+   "check": "pumping",
+   "pass": true,
+   "value": 1.61,
+   "rule": "<= 2 duck pumps per minute"
+  },
+  {
+   "check": "reveals",
+   "pass": true,
+   "value": [],
+   "rule": "pause >= 0.5 s, music drop >= 6 dB or music >= 25 LU under the voice before every reveal"
+  },
+  {
+   "check": "hush",
+   "pass": true,
+   "value": [],
+   "rule": "no SFX one-shot inside a hush window"
+  },
+  {
+   "check": "comic",
+   "pass": true,
+   "value": [],
+   "rule": "comic SFX sit in gaps, never on a word"
+  },
+  {
+   "check": "density_10s",
+   "pass": true,
+   "value": 7,
+   "rule": "<= 7 one-shots in any 10 s"
+  },
+  {
+   "check": "repeats",
+   "pass": true,
+   "value": [],
+   "rule": "no identical sound more than twice in 60 s"
+  }
+ ],
+ "pass": true
+}

@@ -82,6 +82,7 @@ Sections 14-17 of the playbook (Shorts, pipeline and rendering, QC gates, delive
 - After every assembly assert output frames = expected frames (ffprobe -count_frames), and run assemble_edl.py --test first. (28016 expected = 28016 read; scratch:engine/finalize_v3b.log) [measured]
 - Gate every script and video at a weighted 8.0/10 or more (long-form: 10 areas, visuals and retention x2, divided by 12; Short script: hook and facts x2, divided by 9), and rewrite anything below 8 before production. (Lake Peigneur 8.00; San Juan 7.1 to 8.4; Bats 7.0 to 8.1; bundle QC files) [reviewed]
 - Return QC fixes as one batched list split into MANDATORY and NICE-TO-HAVE, each with exact timecodes and target values (px, s, dB). (bundle:lake_peigneur_v4/QC_lake_peigneur_v4_full_2026-10-28.md section 6) [reviewed]
+- Gate every mix with engine/tools/mix_qc.py on the final file and the stems mix.py --stems writes (loudness, true peak, clipping, the silence gate, stems sum, voice over music and ambience per 3 s window and per sentence, 1-4 kHz margin, duck pumping, breathing room before each reveal, hush windows, comic SFX off words, density, repeats) plus audio_scan.py, which rebuilds its buses with mix.build since 2026-11-09 (before, it ignored dips and every ep02 key). (ep02 v1 passed all 16 gates on its third render; ep02/audio/mix_report_v1.md) [measured]
 
 ### DONT (banned)
 

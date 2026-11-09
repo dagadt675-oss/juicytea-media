@@ -27,6 +27,11 @@ Optional keys added for ep02 (2026-11-08); a spec without them mixes exactly as 
   "duck":     "threshold_db" (VO activity gate, default -42), "hold" (s the duck stays down after the voice stops, default 0),
               "lookahead" (s the duck starts before the voice, default 0).
   "amb_duck": {"db", "attack", "release", "hold", "lookahead", "threshold_db"}: ducking of the ambience bus (default none).
+  "band" in "duck" or "amb_duck": {"lo": 1000, "hi": 5000, "db": -10, "attack", "release"}: a spectral duck on top of the broadband
+              one, cutting only that band of the bus while the voice is active (2026-11-09: ep02 wind and surf beds sat 3 dB under the
+              voice at 1-4 kHz in the worst 5 % of speech windows although they were 18 LU under it overall).
+  "sfx_duck": the same keys for the SFX bus ("db": 0 = no broadband duck, only the band); use a short release and no hold so
+              sounds in the voice gaps (gags, hits) are untouched.
   "dips":     entries [t0, t1, db], [t0, t1, db, ramp_s], [t0, t1, db, "note"] or {"t0", "t1", "db", "ramp", "ramp_in",
               "ramp_out", "note"}; ramps default 0.25 s; a positive db is a lift (dips multiply).
   "amb_dips": the same, applied to the ambience bus.
@@ -198,6 +203,17 @@ def duck_gain(act, d, N):
     gain = db(d['db'] * g)
     return np.interp(np.arange(N), np.arange(len(gain)) * hop, gain).astype(np.float32)
 
+def band_duck(bus, act, d, N):
+    """Spectral duck: lowers only the speech band of a bus while the voice is active (a dynamic EQ cut on top of the broadband duck).
+    d['band'] = {"lo": 1000, "hi": 5000, "db": -10, "attack", "release" (default: the duck's own)}. The band is split with a zero-phase
+    Butterworth band-pass, so with no voice the bus comes back sample-exact (bus + band * (g - 1), g = 1)."""
+    b = d['band']
+    sos = butter(b.get('order', 2), [b.get('lo', 1000), b.get('hi', 5000)], 'bandpass', fs=SR, output='sos')
+    from scipy.signal import sosfiltfilt
+    band = sosfiltfilt(sos, bus, axis=0).astype(np.float32)
+    g = duck_gain(act, {'db': b['db'], 'attack': b.get('attack', d['attack']), 'release': b.get('release', d['release'])}, N)
+    return (bus + band * (g - 1)[:, None]).astype(np.float32)
+
 def dip_env(dips, N):
     env = np.ones(N, np.float32)
     for dp in dips:
@@ -244,9 +260,17 @@ def build(spec):
     dips = spec.get('dips', [])
     if dips: gain = gain * dip_env(dips, N)
     ad = spec.get('amb_duck')
-    again = duck_gain(vo_activity(vo[:, 0], ad), ad, N) if ad else np.ones(N, np.float32)
+    aact = vo_activity(vo[:, 0], ad) if ad else None
+    again = duck_gain(aact, ad, N) if ad else np.ones(N, np.float32)
     if spec.get('amb_dips'): again = again * dip_env(spec['amb_dips'], N)
     bus_m *= gain[:, None]; bus_a *= again[:, None]
+    if d.get('band'): bus_m = band_duck(bus_m, act, d, N)
+    if ad and ad.get('band'): bus_a = band_duck(bus_a, aact, ad, N)
+    sd = spec.get('sfx_duck')
+    if sd:
+        sact = vo_activity(vo[:, 0], sd)
+        if sd.get('db'): bus_s *= duck_gain(sact, sd, N)[:, None]
+        if sd.get('band'): bus_s = band_duck(bus_s, sact, sd, N)
     return {'vo': vo, 'music': bus_m, 'sfx': bus_s, 'amb': bus_a, 'music_gain': gain, 'amb_gain': again, 'cues': cues, 'events': placed, 'act': act}
 
 def true_peak_env(mix, chunk=SR * 10, pad=2048):
@@ -286,8 +310,18 @@ def master(mix, spec):
         if p < passes - 1:
             if abs(lufs2 - target) < 0.05: break
             g *= db(target - lufs2)
+    # where the limiter works hardest: runs (10 ms blocks) with more than 1 dB of gain reduction, deepest first
+    blk = SR // 100; gb = gr[:len(gr) // blk * blk].reshape(-1, blk).min(axis=1); hot = gb < db(-1.0); runs_ = []; i = 0
+    while i < len(hot):
+        if hot[i]:
+            j = i
+            while j < len(hot) and hot[j]: j += 1
+            runs_.append([round(i / 100, 2), round(j / 100, 2), round(float(20 * np.log10(gb[i:j].min())), 2)]); i = j
+        else: i += 1
+    runs_.sort(key=lambda r: r[2])
     return g, gr, {'lufs_raw': round(float(lufs), 2), 'lufs_out': hist[-1], 'passes': hist, 'gain_db': round(float(20 * np.log10(g)), 2),
-                   'limiter_max_gr_db': round(float(20 * np.log10(gr.min())), 2), 'limiter_active_s': round(float((gr < 0.999).sum() / SR), 2)}
+                   'limiter_max_gr_db': round(float(20 * np.log10(gr.min())), 2), 'limiter_active_s': round(float((gr < 0.999).sum() / SR), 2),
+                   'limiter_over_1db_s': round(float(hot.sum() / 100), 2), 'limiter_over_1db_runs': runs_[:25]}
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('spec'); ap.add_argument('out'); ap.add_argument('--stems'); ap.add_argument('--report')
