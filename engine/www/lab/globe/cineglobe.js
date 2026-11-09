@@ -20,8 +20,11 @@
 // Extra camera-state keys (globeShot keys / sun objects):
 //   clouds: 0..1 cloud amount (0.6-0.8 for story shots)      cloudOff: deg of cloud drift (e.g. 0.04 * t)
 //   cloudsLow: override the automatic cloud fade on low shots  clear: [lat, lon, innerDeg, outerDeg, amount] clouds part over the subject
+//   cloudSeam: deg either side of the cloud map's date-line seam (at lon 180 - cloudOff) cross-faded to the map shifted 180 deg (0 = off)
 //   focus: [lat, lon] DOF focus point (default: the look-at target)   (clear: null switches the clear zone off)
 // Extra look keys: haze (aerial perspective, .2-.4), detail (albedo local contrast), oceanTone, waterRelief, cityI, cloudGamma,
+//   shelf (0..1: compress the texture's bathymetric glow over open water; ep02 0.85), shelfCol (muted teal), oceanSmooth (0..1: average
+//   out the ocean's 16x16 JPEG macroblocks and relief streaks; ep02 1.0),
 //   cloudShadow, ovGain, atmo (limb strength), cloudBump.  Lens / grade per shot: globe.post({ dof, exposure, bloom, vignette, grain,
 //   contrast, sat, lift, shadowTint, highTint, ca, sharpen, tm }) - see CINE_DEFAULTS. dof 6-8 on low oblique shots, 0 on whole-globe shots.
 import * as THREE from '../../three.module.min.js';
@@ -38,6 +41,10 @@ const vec3 BETA = vec3(0.17, 0.40, 1.0);          // Rayleigh ~ lambda^-4 for 68
 uniform float tauZ; uniform float tauM; uniform float sunI; uniform vec3 sunCol;
 uniform vec3 clearDir; uniform vec2 clearCos; uniform float clearAmt;
 float clearMul(vec3 p){ return 1.0 - clearAmt * smoothstep(clearCos.x, clearCos.y, dot(normalize(p), clearDir)); }
+// the cloud map's own date-line seam (its u = 0 and u = 1 edges come from different passes and do not match; the drift carries the
+// seam to lon 180 - cloudOff): within seamBand (u units) of it, cross-fade to the same map shifted half a world (seamless there)
+uniform float seamBand;
+float seamW(float u){ float f = fract(u), d = min(f, 1.0 - f); return seamBand > 0.0 ? smoothstep(0.0, seamBand, d) : 1.0; }
 float airmass(float mu){ float m = clamp(mu, 0.0, 1.0); float deg = degrees(acos(m)); return 1.0 / (m + 0.15 * pow(max(93.885 - deg, 0.6), -1.253)); }
 vec3 tauOf(float m){ return (BETA * tauZ + tauM) * m; }
 // sunlight reaching a point whose local sun cosine is mu (normalised so noon light is neutral)
@@ -60,9 +67,15 @@ uniform float dim; uniform float desat; uniform float nightAmt; uniform float ex
 uniform vec3 tint; uniform float specAmt; uniform float rimAmt; uniform float flatBase; uniform vec3 flatColor; uniform float ovMul;
 uniform float detail; uniform float haze; uniform float waterRelief; uniform float oceanTone; uniform float cloudAmt; uniform float cloudGamma;
 uniform float cloudShadow; uniform float cloudOff; uniform float cloudH; uniform float cityI; uniform float ovGain;
+uniform float shelf; uniform vec3 shelfCol; uniform float oceanSmooth;
 varying vec2 vUv; varying vec3 vN; varying vec3 vW;
+// open water in the day texture (sRGB): blue clearly above red, not snow or cloud-white (deep ocean is about rgb 3,9,27)
+// (very dark blue-black texels count too: the deepest macroblocks drop to rgb 0,4,15, where blue minus red alone reads half water)
+float wmask(vec3 c){ return max(smoothstep(0.025, 0.06, c.b - c.r), (1.0 - smoothstep(0.05, 0.10, max(c.r, c.g))) * step(c.r, c.b)) * (1.0 - smoothstep(0.55, 0.8, c.r)); }
 vec2 ll(vec3 p){ vec3 n=normalize(p); return vec2(atan(-n.z, n.x)*180.0/PI, asin(clamp(n.y,-1.0,1.0))*180.0/PI); }
-float cloudA(vec2 g, vec3 p){ float a = textureLod(cloudTex, vec2(fract((g.x + 180.0 + cloudOff) / 360.0), (g.y + 90.0) / 180.0), 1.5).r; return pow(a, cloudGamma) * cloudAmt * clearMul(p); }
+float cloudA(vec2 g, vec3 p){ vec2 uv = vec2((g.x + 180.0 + cloudOff) / 360.0, (g.y + 90.0) / 180.0); float w = seamW(uv.x);
+  float a = textureLod(cloudTex, uv, 1.5).r; if (w < 1.0) a = mix(textureLod(cloudTex, uv + vec2(0.5, 0.0), 1.5).r, a, w);
+  return pow(a, cloudGamma) * cloudAmt * clearMul(p); }
 float D_ggx(float ndh, float r){ float a = r*r; float a2 = a*a; float d = ndh*ndh*(a2-1.0)+1.0; return a2 / (PI*d*d); }
 void main(){
   vec3 n0=normalize(vN); vec3 v=normalize(camPos-vW);
@@ -79,6 +92,25 @@ void main(){
       vec3 pc = texture2D(patchTex, pq).rgb; vec3 pb = texture2D(patchTex, pq, 2.0).rgb;
       day = mix(day, clamp(pc + detail * (pc - pb), 0.0, 1.0), e);
     }
+  }
+  // ocean clean-up (ep02 toolkit round 3): the day texture paints bathymetric relief into the ocean (seamount chains and shelves
+  // glow cyan-white, the 'cyan shelf smears') and its dark ocean carries 8x8 JPEG blocks that the detail boost and exposure lift into
+  // visible squares (the 'seam' west of Hawaii). Over open water: the macroblock-free mip 4 (oceanSmooth) and the brightness above the deep
+  // ocean compressed by shelf and pulled toward a muted teal (shelfCol). Both samples must read as water, so coasts never bleed.
+  if (shelf > 0.0 || oceanSmooth > 0.0) {
+    // the texture is a 4:2:0 JPEG: its dark ocean steps in 16x16-texel macroblocks; mip 4 (one texel per macroblock, bilinear between
+    // them) has no steps; farther out the natural mip is coarser anyway
+    vec2 tq = vUv * vec2(textureSize(dayTex, 0));
+    float lodN = 0.5 * log2(max(max(dot(dFdx(tq), dFdx(tq)), dot(dFdy(tq), dFdy(tq))), 1e-8));
+    vec3 dS = textureLod(dayTex, vUv, max(lodN, 4.0)).rgb;
+    float wm = wmask(day) * wmask(dS);
+    vec3 dw = mix(day, dS, oceanSmooth);
+    float Lw = dot(dw, vec3(0.2126, 0.7152, 0.0722));
+    float ex = max(Lw - 0.035, 0.0), Ln = 0.035 + ex * (1.0 - shelf);
+    vec3 cw = dw * (Ln / max(Lw, 1e-4));
+    float tl = dot(shelfCol, vec3(0.2126, 0.7152, 0.0722));
+    cw = mix(cw, shelfCol * (Ln / max(tl, 1e-4)), clamp(ex * 5.0, 0.0, 1.0) * shelf * 0.5);
+    day = mix(day, cw, wm);
   }
   float water = smoothstep(0.03,0.16, day.b - max(day.r, day.g*0.9));
   float lum = dot(day, vec3(0.299,0.587,0.114));
@@ -153,9 +185,11 @@ uniform sampler2D cloudTex; uniform vec3 sunDir; uniform vec3 camPos; uniform fl
 uniform float exposure; uniform float haze; uniform float dim; uniform float bump; uniform float rimAmt; uniform float fadeLow;
 uniform sampler2D ovTex; uniform vec4 ovB; uniform float ovOn; uniform float ovAlpha; uniform float ovClear;
 varying vec2 vUv; varying vec3 vN; varying vec3 vW;
-float cA(vec2 uv){ return pow(texture2D(cloudTex, uv).r, cloudGamma); }
+float cA(vec2 uv){ float a = texture2D(cloudTex, uv).r, w = seamW(uv.x); if (w < 1.0) a = mix(texture2D(cloudTex, uv + vec2(0.5, 0.0)).r, a, w); return pow(a, cloudGamma); }
 void main(){
-  vec2 uv = vec2(fract(vUv.x + cloudOff / 360.0), vUv.y);
+  // no fract(): the cloud texture repeats in u (wrapS = Repeat); fract() put a derivative jump at lon 180 - cloudOff, where the GPU
+  // picked the smallest mip and drew a hairline seam that crawled west as the clouds drifted
+  vec2 uv = vec2(vUv.x + cloudOff / 360.0, vUv.y);
   float a = cA(uv) * cloudAmt * clearMul(vW);
   if (ovOn > 0.5 && ovAlpha > 0.0) {
     vec3 nn = normalize(vW); vec2 g = vec2(atan(-nn.z, nn.x)*180.0/PI, asin(clamp(nn.y,-1.0,1.0))*180.0/PI);
@@ -330,7 +364,7 @@ export class CineGlobe {
     nm.anisotropy = 4; cl.wrapS = THREE.RepeatWrapping;
     const blank = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1); blank.needsUpdate = true;
     const common = { tauZ: { value: 0.25 }, tauM: { value: 0.035 }, sunI: { value: 1.55 }, sunCol: { value: new THREE.Vector3(1.0, 0.985, 0.96) },
-      clearDir: { value: new THREE.Vector3(1, 0, 0) }, clearCos: { value: new THREE.Vector2(0.99, 0.995) }, clearAmt: { value: 0 } };
+      clearDir: { value: new THREE.Vector3(1, 0, 0) }, clearCos: { value: new THREE.Vector2(0.99, 0.995) }, clearAmt: { value: 0 }, seamBand: { value: 0 } };
     this.common = common;
     this.u = Object.assign({
       dayTex: { value: d }, nightTex: { value: n }, nrmTex: { value: nm }, cloudTex: { value: cl }, relief: { value: 0.8 },
@@ -341,6 +375,7 @@ export class CineGlobe {
       tint: { value: new THREE.Vector3(1, 1, 1) }, specAmt: { value: 1.0 }, rimAmt: { value: 0.35 }, flatBase: { value: 0 }, flatColor: { value: new THREE.Vector3(0.035, 0.09, 0.19) }, ovMul: { value: 0 },
       detail: { value: 0.55 }, haze: { value: 0.32 }, waterRelief: { value: 0.18 }, oceanTone: { value: 0.80 },
       cloudAmt: { value: 0.82 }, cloudGamma: { value: 2.15 }, cloudShadow: { value: 0.55 }, cloudOff: { value: 0 }, cloudH: { value: 0.0045 }, cityI: { value: 2.6 }, ovGain: { value: 1.0 },
+      shelf: { value: 0 }, shelfCol: { value: new THREE.Vector3(0.16, 0.30, 0.34) }, oceanSmooth: { value: 0 },
     }, common);
     this.earth = new THREE.Mesh(new THREE.SphereGeometry(1, segments, segments / 2), new THREE.ShaderMaterial({ uniforms: this.u, vertexShader: EARTH_VS, fragmentShader: EARTH_FS }));
     this.scene.add(this.earth);
@@ -445,12 +480,14 @@ export class CineGlobe {
     this.starAlpha = Math.min(1, Math.max(0, (S.alt - 0.02) / 0.15));
     if (S.clouds !== undefined) this.u.cloudAmt.value = S.clouds;
     if (S.cloudOff !== undefined) this.u.cloudOff.value = S.cloudOff;
+    if (S.cloudSeam !== undefined) this.common.seamBand.value = S.cloudSeam / 360;      // deg either side of the cloud map's seam
     // clouds part over the subject: clear: [lat, lon, innerDeg, outerDeg, amount]
     if (S.clear) { const c = S.clear; this.common.clearDir.value.copy(dirOf(c[0], c[1], 1)); this.common.clearCos.value.set(Math.cos((c[3] ?? c[2] * 2) * D2R), Math.cos(c[2] * D2R)); this.common.clearAmt.value = c[4] ?? 1; }
     else if (S.clear === null) this.common.clearAmt.value = 0;
   }
   // look keys: every earth uniform (ep01 names), plus 'atmo' (limb shell strength) and 'cloudBump'
-  look(k, v) { if (k === 'atmo') this.atmoU.strength.value = v; else if (k === 'cloudBump') this.cloudU.bump.value = v; else if (this.u[k]) this.u[k].value = v; }
+  look(k, v) { if (k === 'atmo') this.atmoU.strength.value = v; else if (k === 'cloudBump') this.cloudU.bump.value = v;
+    else if (this.u[k]) { const u = this.u[k]; if (Array.isArray(v) && u.value && u.value.set) u.value.set(...v); else u.value = v; } }   // arrays set vec uniforms in place
   starfield(ctx, alpha = 1) { this.starMul = alpha; }
   render(frame = 0, target = null) {
     const S = this.state, r = this.renderer, cam = this.fsCam, W = this.W, H = this.H;

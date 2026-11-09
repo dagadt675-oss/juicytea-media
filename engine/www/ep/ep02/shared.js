@@ -459,6 +459,17 @@ function terrainView(S, W, H) {
     S, W, H, level: S.level,
     project: (lon, lat, hm) => S.project(lon, lat, hm),
     visible: vis,
+    // ground(x, y): the [lon, lat, hm] where the screen pixel's ray meets the terrain or water (null: sky). Place a cut-out at a
+    // screen spot with `const g = view.ground(x, y); kit.drawCutout(ctx, view, cut, { lon: g[0], lat: g[1], hm: g[2], ... })`
+    ground(x, y, maxKm = 400) {
+      const d = new THREE.Vector3(x / W * 2 - 1, 1 - y / H * 2, 0.5).unproject(cam).sub(eye).normalize();
+      const at = (s) => { const px = eye.x + d.x * s, pz = eye.z + d.z * s, lat = S.c0.lat - pz / KM_DEG, lon = S.c0.lon + px / (KM_DEG * Math.cos(lat * D2R));
+        const gh = Math.max(S.heightAt(lon, lat), S.level), gy = gh * S.vex * 0.001 - (d.x * d.x + d.z * d.z) * s * s / (2 * R_EARTH);
+        return { above: eye.y + d.y * s - gy, lon, lat, gh }; };
+      let s0 = 0, s1 = Math.max(0.005, (cam.near || 0.01)), a = at(s0);
+      while (s1 < maxKm) { const b = at(s1); if (b.above <= 0) { for (let k = 0; k < 30; k++) { const m = (s0 + s1) / 2; if (at(m).above > 0) s0 = m; else s1 = m; } const r = at(s1); return [r.lon, r.lat, r.gh]; }
+        s0 = s1; s1 *= 1.08; }
+      return null; },
     // project lon/lat rings at height hm (default: the stage level) -> screen runs, split where hidden or off-screen
     runs(rings, hm, o = {}) {
       const out = []; const hh = hm ?? S.level;
@@ -568,7 +579,7 @@ export function terrainShot(kit, spec) {
       const cm = liveCam(kit.cam(camSpec, lt), lt, valAt(spec.push, lt), valAt(spec.drift, lt)); S.setCamera(cm);
       if (api.Q.dbgCam) api.log('[dbg cam] ' + JSON.stringify(cm));
       if (cm.dPitch || cm.dYaw) { S.cam.rotateY((cm.dYaw || 0) * D2R); S.cam.rotateX((cm.dPitch || 0) * D2R); S.cam.updateMatrixWorld(); }
-      const view = terrainView(S, api.W, api.H); view.sec = sec;
+      const view = terrainView(S, api.W, api.H); view.sec = sec; view.sun = st.sun;      // view.sun: the paper kit's shadows follow the stage sun
       const ml = spec.mlook || (st.mlook ? { look: st.mlook, amt: st.mlookAmt ?? 1 } : null);
       const mlook = ml ? { look: ml.look, amt: valAt(ml.amt ?? 1, lt), hz: view.horizonY() } : {};
       const grade = typeof spec.grade === 'function' ? spec.grade(lt) : spec.grade;
@@ -633,11 +644,16 @@ export const GLOBE_PRESETS = {
   // more (alt about 0.25-0.32 for the main Hawaiian chain, never the 0.4 of the smoke test that left the Big Island 110 px wide)
   STORY: { state: { clouds: 0.25, sun: 'camera', sunAz: -25, sunEl: 32 }, clear: [5, 16, 0.95], look: { haze: 0.24, exposure: 1.25 * 2.2 * 1.41, oceanTone: 1.0, desat: 0.02, nightAmt: 0, specAmt: 0.6 },
     post: { dof: 0, bloom: 0.12, vignette: 0, grain: 0, ca: 0, lift: [0, 0, 0], shadowTint: [1, 1, 1], highTint: [1, 1, 1], contrast: 1.06, sat: 1.06 } },
-  HERO: { state: { clouds: 0.6, sun: 'camera', sunAz: -30, sunEl: 30 }, clear: [4, 12, 0.85], look: { haze: 0.24, exposure: 1.25 * 1.2, nightAmt: 0 },
+  HERO: { state: { clouds: 0.6, sun: 'camera', sunAz: -30, sunEl: 30 }, clear: [4, 12, 0.85], look: { haze: 0.24, exposure: 1.25 * 2.2, nightAmt: 0 },   // round 3: x1.83 (an oblique test read luma 56, under the 70 floor)
     post: { dof: 6, bloom: 0.2, vignette: 0, grain: 0, ca: 0, lift: [0, 0, 0], shadowTint: [1, 1, 1], highTint: [1, 1, 1], contrast: 1.12, sat: 1.06 } },
   ESTABLISH: { state: { clouds: 0.6, sun: 'world', sunLat: 10, sunLon: 0 }, clear: null, look: { haze: 0.25, exposure: 1.25 },
     post: { dof: 0, bloom: 0.26, vignette: 0, grain: 0, ca: 0, lift: [0, 0, 0], shadowTint: [1, 1, 1], highTint: [1, 1, 1], contrast: 1.08, sat: 1.08 } },
 };
+// the globe's open water (round 3): the day texture's bathymetric glow compressed by 85 % toward a muted teal, the ocean read from the
+// texture's mip 4 (one texel per 16x16 JPEG macroblock: the blocky squares west of Hawaii and the relief streaks gone); coasts stay sharp
+export const GLOBE_OCEAN = { shelf: 0.85, oceanSmooth: 1.0, shelfCol: [0.16, 0.30, 0.34] };
+// cloud drift (deg of longitude: base + drift * film time) and the seam cross-fade band (deg)
+export const GLOBE_CLOUDS = { base: 60, drift: 0.04, seam: 3 };
 export function cineGlobeShot(kit, spec) {
   const pre = GLOBE_PRESETS[spec.preset || 'STORY'];
   return { id: spec.id || 'globe', t0: spec.t0, t1: spec.t1, layer: spec.layer || 0, fadeIn: spec.fadeIn, fadeOut: spec.fadeOut,
@@ -647,8 +663,13 @@ export function cineGlobeShot(kit, spec) {
       const k = globeKey(spec.keys, lt);
       const subj = spec.subject || [k.lat, k.lon];
       const clear = pre.clear ? [subj[0], subj[1], ...pre.clear] : null;
-      g.set(Object.assign({ lookOffset: null, tilt: 0, heading: 0, fov: 30 }, pre.state, spec.sun || {}, k, { clear, cloudOff: 0.04 * t }));
-      const look = Object.assign({ dim: 0, desat: 0.04, ovAlpha: 0.6, relief: 0.8, ambient: 0.1, flatBase: 0, ovMul: 0, specAmt: 1, nightAmt: 1 }, pre.look, typeof spec.look === 'function' ? spec.look(lt) : spec.look);
+      // clouds drift 0.04 deg/s from a 60 deg base offset: the cloud map's own date-line seam (at lon 180 - cloudOff) stays between 120 E
+      // and 90 E, behind the limb of every Hawaiian shot, and is cross-faded over 3 deg either side anyway (round 3)
+      g.set(Object.assign({ lookOffset: null, tilt: 0, heading: 0, fov: 30 }, pre.state, spec.sun || {}, k, { clear, cloudOff: GLOBE_CLOUDS.base + GLOBE_CLOUDS.drift * t, cloudSeam: GLOBE_CLOUDS.seam }));
+      // every look key a shot can touch is reset each frame; shelf / oceanSmooth / shelfCol: the ocean clean-up (no cyan shelf glow, no
+      // JPEG blocks west of Hawaii; round 3), on in every ep02 globe shot
+      const look = Object.assign({ dim: 0, desat: 0.04, ovAlpha: 0.6, relief: 0.8, ambient: 0.1, flatBase: 0, ovMul: 0, specAmt: 1, nightAmt: 1, tint: [1, 1, 1],
+        shelf: GLOBE_OCEAN.shelf, oceanSmooth: GLOBE_OCEAN.oceanSmooth, shelfCol: GLOBE_OCEAN.shelfCol }, pre.look, typeof spec.look === 'function' ? spec.look(lt) : spec.look);
       for (const kk in look) g.look(kk, look[kk]);
       g.post(Object.assign({}, pre.post, spec.post));
       g.starfield(null, spec.stars ?? 1);
@@ -660,6 +681,7 @@ export function cineGlobeShot(kit, spec) {
     } };
 }
 function globeKey(keys, lt) {
+  if (typeof keys === 'function') return keys(lt);
   if (!Array.isArray(keys)) return keys;
   if (lt <= keys[0].t) return Object.assign({}, keys[0]);
   for (let i = 1; i < keys.length; i++) { const a = keys[i - 1], b = keys[i]; if (lt <= b.t) {
@@ -669,13 +691,111 @@ function globeKey(keys, lt) {
   return Object.assign({}, keys[keys.length - 1]);
 }
 
+// ============================================================================================ scale moves: space to place
+// A scale jump (globe to terrain, terrain to globe, one region stack to another) is ONE camera path shared by every stage of the move,
+// so at each hand-off both stages render the same camera and the dissolve shows detail resolving, never two pictures on top of each
+// other (no double exposure). Path keys in orbit form (the CineGlobe convention): the point looked at (lat, lon, on the sea-level
+// sphere), d = km from that point to the eye, tilt = deg from straight down, heading = deg the camera faces (clockwise from north),
+// fov = vertical deg, h = target height (m, terrain legs only: keep 0 until the last hand-off), ease on the destination key.
+// d is log-interpolated (a log-altitude move: the same relative speed from orbit to the ground), lat/lon slerped, heading the short way.
+const R_KM = 6371.0;
+// open water of a terrain leg seen from far above (linear shallow, mid, deep): the globe's navy-blue ocean (see scaleMove)
+export const MOVE_WATER = [[0.030, 0.085, 0.170], [0.024, 0.060, 0.135], [0.020, 0.050, 0.120]];
+export function orbitPath(keys) {
+  const one = (k) => ({ lat: k.lat, lon: k.lon, d: k.d, tilt: k.tilt ?? 0, heading: k.heading ?? 0, fov: k.fov ?? 30, h: k.h ?? 0 });
+  return (lt) => {
+    if (lt <= keys[0].t) return one(keys[0]);
+    for (let i = 1; i < keys.length; i++) {
+      const a = one(keys[i - 1]), b = one(keys[i]);
+      if (lt <= keys[i].t) {
+        const p = (keys[i].ease || E.inOut)(clamp((lt - keys[i - 1].t) / Math.max(1e-6, keys[i].t - keys[i - 1].t)));
+        const [lat, lon] = slerpLL([a.lat, a.lon], [b.lat, b.lon], p), dh = ((b.heading - a.heading) % 360 + 540) % 360 - 180;
+        return { lat, lon, d: Math.exp(lerp(Math.log(a.d), Math.log(b.d), p)), tilt: lerp(a.tilt, b.tilt, p), heading: a.heading + dh * p, fov: lerp(a.fov, b.fov, p), h: lerp(a.h, b.h, p) };
+      }
+    }
+    return one(keys[keys.length - 1]);
+  };
+}
+// the eye of an orbit camera on the sphere: {lat, lon, alt (km above sea level)} (same geometry as CineGlobe.set)
+export function orbitEye(c) {
+  const la = c.lat * D2R, lo = c.lon * D2R, P = new THREE.Vector3(Math.cos(la) * Math.cos(lo), Math.sin(la), -Math.cos(la) * Math.sin(lo));
+  let north = new THREE.Vector3(0, 1, 0).sub(P.clone().multiplyScalar(P.y)); if (north.lengthSq() < 1e-10) north.set(1, 0, 0); north.normalize();
+  const east = new THREE.Vector3().crossVectors(north, P).normalize(), h = (c.heading || 0) * D2R, t = (c.tilt || 0) * D2R;
+  const fwd = north.multiplyScalar(Math.cos(h)).add(east.multiplyScalar(Math.sin(h)));
+  const Ev = P.clone().multiplyScalar(R_KM).add(P.clone().multiplyScalar(Math.cos(t) * c.d)).add(fwd.multiplyScalar(-Math.sin(t) * c.d)), r = Ev.length();
+  return { lat: Math.asin(Ev.y / r) / D2R, lon: Math.atan2(-Ev.z, Ev.x) / D2R, alt: r - R_KM };
+}
+// the terrain stage camera for an orbit camera (HawaiiStage curves the ground from the camera's nadir: the same sphere to well under
+// 1 % over a few hundred km). The stage cannot look straight down (lookAt with a vertical up), so tilt is kept at 0.5 deg or more.
+export function terrainCamOf(c) {
+  const e = orbitEye(Object.assign({}, c, { tilt: Math.max(0.5, c.tilt) }));
+  return { lon: e.lon, lat: e.lat, alt: e.alt, tLon: c.lon, tLat: c.lat, tH: c.h || 0, fov: c.fov, near: clamp(c.d * 0.004, 0.005, 2), far: Math.max(9000, c.d * 6) };
+}
+// scaleMove(spec): the shots of one scale move. spec: { id, t0, t1, layer, fadeIn, fadeOut, path: keys (above), xf: hand-off dissolve s
+//   (default 0.5; 0.2 = a match-cut), at: [hand-off times, local s] (default: where d crosses each leg's handD km, default 900),
+//   legs: [{ stage: 'globe', ...cineGlobeShot spec (preset, subject, overlay, look, post, ui) } | { stage: 'terrain', ...terrainShot
+//   spec (region, stage, preset, state, level, sun, mask, mlook, world, ui), handD, match: [lowKm, highKm] | false }] }  (a leg's camera,
+//   push and drift come from the path; match: the far-view ocean colour blend, default [25, 500] km, off when the leg sets its water)
+// Each later leg fades in over xf while the earlier one keeps drawing (no dip), on the identical camera; its UI starts after the dissolve.
+// Returns { shots, at: [film times of the hand-offs], cam(t): the orbit camera at film time t (for UI scenes that span the move) }.
+// Hand off where both stages read well: the 8k globe goes soft below about d = 700 km; the terrain stage must cover the whole view
+// (the log warns when a frame corner falls outside every layer of the region at the hand-off).
+export function scaleMove(kit, spec) {
+  const path = orbitPath(spec.path), t0 = spec.t0, t1 = spec.t1, legs = spec.legs, xf = spec.xf ?? 0.5, T = t1 - t0;
+  const cross = (dKm) => { let a = 0, b = T; const up = path(0).d > dKm; for (let k = 0; k < 60; k++) { const m = (a + b) / 2; if ((path(m).d > dKm) === up) a = m; else b = m; } return (a + b) / 2; };
+  const at = legs.slice(0, -1).map((L, i) => spec.at?.[i] ?? cross(L.handD ?? legs[i + 1].handD ?? 900));
+  const shots = legs.map((L, i) => {
+    const s0 = i === 0 ? t0 : t0 + at[i - 1], s1 = i === legs.length - 1 ? t1 : t0 + at[i] + xf, off = s0 - t0;
+    const base = { id: (spec.id || 'move') + '-' + i + '-' + L.stage, t0: s0, t1: s1, layer: spec.layer || 0, fadeIn: i ? xf : spec.fadeIn, fadeOut: i === legs.length - 1 ? spec.fadeOut : undefined };
+    const L2 = Object.assign({}, L); delete L2.stage; delete L2.handD;
+    let shot;
+    if (L.stage === 'globe') shot = cineGlobeShot(kit, Object.assign(L2, base, { keys: (lt) => { const c = path(lt + off); return { lat: c.lat, lon: c.lon, alt: c.d / R_KM, tilt: c.tilt, heading: c.heading, fov: c.fov }; } }));
+    else {
+      let warned = false;
+      // seen from far above, the film water (turquoise shallows, steel-blue offshore) renders as a saturated teal (red channel near 0)
+      // next to the globe's navy ocean: blend the water toward MOVE_WATER and the post saturation toward 1 with distance (full above
+      // match[1] km, none below match[0] km), so the hand-off does not flip the ocean's colour; low shots are untouched
+      const mt = L.match === false || L.water || L.waterCols ? null : (L.match || [25, 500]);
+      const pre = typeof L.preset === 'string' ? PRESETS[L.preset] : L.preset, sat0 = pre?.post?.sat ?? TERRAIN_DEFAULTS.post.sat;
+      const userState = L.state;
+      L2.state = (lt) => { const u = typeof userState === 'function' ? userState(lt) : userState; if (!mt) return u;
+        const k = E.inOut(clamp((Math.log(path(lt + off).d) - Math.log(mt[0])) / (Math.log(mt[1]) - Math.log(mt[0])))); if (k <= 0) return u;
+        return mergeState(u, { waterCols: WATER_FILM.map((c, j) => c.map((v, q) => lerp(v, MOVE_WATER[j][q], k))), post: { sat: lerp(u?.post?.sat ?? sat0, 1.0, k) } }); };
+      shot = terrainShot(kit, Object.assign(L2, base, { push: 0, drift: 0, cam: (lt) => terrainCamOf(path(lt + off)),
+        world(ctx, lt, t, view) {
+          // at the hand-off: every frame corner must land inside the region stack (else the dissolve shows the stage's empty edge)
+          if (!warned && i > 0 && lt < xf + 0.05) { const bb = (view.S.layers || []).reduce((b, l) => [Math.min(b[0], l.bbox[0]), Math.min(b[1], l.bbox[1]), Math.max(b[2], l.bbox[2]), Math.max(b[3], l.bbox[3])], [1e9, 1e9, -1e9, -1e9]);
+            const out = cornersLL(view, kit.api).filter(p => !p || p[0] < bb[0] || p[0] > bb[2] || p[1] < bb[1] || p[1] > bb[3]);
+            if (out.length && view.S.layers?.length) { warned = true; kit.api.log(`[scaleMove] ${base.id}: ${out.length} frame corner(s) outside region '${L.region}' at the hand-off (move it lower or pick a wider region)`); } }
+          return L.world ? L.world(ctx, lt, t, view) : undefined; } }));
+    }
+    if (i) shot.uiFrom = s0 + xf;
+    return shot;
+  });
+  return { shots, at: at.map(a => t0 + a), path, cam: (t) => path(t - t0) };
+}
+// lon/lat where the four frame corners hit the sea-level sphere on a terrain stage view (null: sky)
+function cornersLL(view, api) {
+  const S = view.S, cam = S.cam, out = [];
+  for (const [x, y] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
+    const d = new THREE.Vector3(x * 2 - 1, 1 - y * 2, 0.5).unproject(cam).sub(cam.position).normalize();
+    if (d.y >= -1e-4) { out.push(null); continue; }
+    // flat-plane hit refined once for the curvature drop (y = -s^2 / 2R)
+    let s = -cam.position.y / d.y; for (let k = 0; k < 4; k++) { const hx = d.x * s, hz = d.z * s; s = (-cam.position.y - (hx * hx + hz * hz) / (2 * R_KM)) / d.y; if (!(s > 0)) break; }
+    if (!(s > 0)) { out.push(null); continue; }
+    const px = cam.position.x + d.x * s, pz = cam.position.z + d.z * s, lat = S.c0.lat - pz / KM_DEG;
+    out.push([S.c0.lon + px / (KM_DEG * Math.cos(lat * D2R)), lat]);
+  }
+  return out;
+}
+
 // ============================================================================================ paper (story.js) and the postcard device
 // prepPaper(img): story.prepCard + the shared grade baked in (cards are world-layer assets: same grade as the stages)
 // (look book U9: warm off-white paper edge of 2-4 px, no blue rim); o.edge px of paper edge on the source image (default 3)
 export function prepPaper(img, o = {}) {
   const e = o.edge ?? 3, w = img.width + 2 * e, h = img.height + 2 * e, pc = P.cv(w, h), g = pc.getContext('2d');
-  // paper edge: the cut-out's silhouette dilated by e px in warm off-white, the photo on top
-  const sil = P.cv(w, h), sg = sil.getContext('2d'); sg.drawImage(img, e, e); sg.globalCompositeOperation = 'source-in'; sg.fillStyle = '#F1E8D6'; sg.fillRect(0, 0, w, h);
+  // paper edge: the cut-out's silhouette dilated by e px in warm off-white (o.edgeColor: e.g. frost on the climber), the photo on top
+  const sil = P.cv(w, h), sg = sil.getContext('2d'); sg.drawImage(img, e, e); sg.globalCompositeOperation = 'source-in'; sg.fillStyle = o.edgeColor || '#F1E8D6'; sg.fillRect(0, 0, w, h);
   for (let a = 0; a < 16; a++) g.drawImage(sil, Math.round(Math.cos(a / 16 * 6.283) * e), Math.round(Math.sin(a / 16 * 6.283) * e));
   g.drawImage(img, e, e);
   const c = P.prepCard(pc, Object.assign({ light: 'left', rimColor: '#FFE9C8', rimAlpha: 0.35 }, o));
@@ -765,6 +885,160 @@ export function drawStandee(ctx, view, card, o) {
   ctx.drawImage(card.img, -ws / 2, -hs, ws, hs);
   ctx.restore();
   return { x: b[0], y: b[1] - hop, top: b[1] - hop - hs, w: ws, h: hs };
+}
+
+// ============================================================================================ paper cut-out kit (round 3)
+// The recurring paper characters, cut from public-domain photos (img/paper/*.png, cut by tools/paper_cut.py from the specs in
+// tools/paper_specs/, every source and licence in img/SOURCES.md) plus procedural paper props (no photo needed, no text but the sign's).
+// kit.paper(name, o) loads a character once (paper edge, warm rim, the shared grade) -> a Cutout {img, sil, w, h, parts, meta};
+// kit.drawCutout(ctx, view, cut, o) stands it on the real terrain (or at a screen point) with base tab, contact and sun shadows,
+// pop-up hinge, hop, squash, lean, wobble, paper turn and detachable parts (the tourist's hat). Pure function of its options.
+export const PAPER = {
+  tourist: { file: 'tourist', parts: ['hat'], note: 'FSA/OWI 1939 (LOC 2017740557), hand-tinted red aloha shirt; hat is a part' },
+  suitcase: { file: 'suitcase', base: false, note: 'the same FSA photo: his Gladstone bag' },
+  climber: { file: 'climber', edge: '#EAF4FF', note: 'NPS Denali mountaineering volunteer (frosted paper edge)' },
+  seal: { file: 'seal', base: false, sink: 0.12, tilt: -0.07, note: 'USFWS Hawaiian monk seal, side view' },
+  seal_pup: { file: 'seal_pup', base: false, note: 'USFWS monk seal pup' },
+  albatross: { file: 'albatross', note: 'USFWS Laysan albatross standing' },
+  albatross_fly: { file: 'albatross_fly', base: false, note: 'USFWS Laysan albatross in flight (wings out)' },
+  jeep: { file: 'jeep', base: false, note: 'FSA/OWI 1942 jeep on a steep track (LOC 2017872210), olive tint' },
+};
+const PAPER_DIR = '/ep/ep02/img/paper/';
+const loadImg = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('paper: cannot load ' + src)); i.src = src; });
+const PAPER_CACHE = new Map();
+export function loadPaper(name, o = {}) {
+  const key = name + JSON.stringify(o);
+  if (!PAPER_CACHE.has(key)) PAPER_CACHE.set(key, (async () => {
+    const D = PAPER[name]; if (!D) throw new Error('paper: unknown cut-out ' + name);
+    const meta = await fetch(PAPER_DIR + D.file + '.json').then(r => r.ok ? r.json() : {}).catch(() => ({}));
+    const edge = o.edge ?? D.edge ?? '#F1E8D6';
+    const card = prepPaper(await loadImg(PAPER_DIR + D.file + '.png'), { edge: o.edgePx ?? 3, edgeColor: edge });
+    const parts = {};
+    for (const pn of D.parts || []) { const pi = await loadImg(PAPER_DIR + D.file + '_' + pn + '.png'); const pm = meta.parts?.[pn] || {};
+      parts[pn] = Object.assign(prepPaper(pi, { edge: o.edgePx ?? 3, edgeColor: edge }), { at: pm.at || [0, 0] }); }
+    return Object.assign(card, { name, parts, meta, base: D.base ?? true, sink: D.sink ?? 0, tilt: D.tilt ?? 0 });
+  })());
+  return PAPER_CACHE.get(key);
+}
+// screen vector of a cast shadow on the ground: from the base (lon, lat) away from the sun [az, el] (deg), for a figure hPx tall;
+// null if the stage cannot project the points (then a default lean to the right is used)
+function sunShadow(view, lon, lat, hm, hPx, sun) {
+  if (!view?.project || !sun) return null;
+  const b = view.project(lon, lat, hm), up = view.project(lon, lat, (hm ?? 0) + 10); if (!b || !up) return null;
+  const ppm = Math.max(1e-3, Math.hypot(up[0] - b[0], up[1] - b[1]) / 10), Hm = hPx / ppm;          // the figure's height in metres
+  const L = Math.min(Hm / Math.tan(Math.max(8, sun[1]) * D2R), Hm * 4), az = (sun[0] + 180) * D2R;   // shadow length (m), away from the sun
+  const dLat = L * Math.cos(az) / 111320, dLon = L * Math.sin(az) / (111320 * Math.cos(lat * D2R));
+  const e = view.project(lon + dLon, lat + dLat, hm); if (!e) return null;
+  return [e[0] - b[0], e[1] - b[1]];
+}
+// drawCutout: o = { lon, lat, hm (default: the ground there) | x, y (screen base point), hPx (screen height: 35-40 % of the frame
+//   for a person; or wPx: screen width, for a seal or a car), alpha, hinge (0 standing .. 1 lying flat), pop (0..1: the pop-up from flat with an overshoot; overrides hinge),
+//   hop (px up), squash (-0.2..0.2; + = squashed), lean (rad, about the base), wobble (rad amplitude of a paper wobble), t (time for
+//   the wobble), seed, turn (0..1: a paper turn about the vertical axis; 0.5 = edge-on, 1 = facing the other way), flip (mirror),
+//   shadow: true (sun from view.sun) | [dx, dy] (screen vector of the shadow tip) | false, shadowA (0.3), contact (soft shadow
+//   under the base; off for a flying cut-out), base: true (fold-out tab; PAPER sets false for animals, the bag and the jeep), sink
+//   (fraction of the height drawn below the base point: the seal's belly on the sand), parts: { hat: { off: [dx, dy] px from its place, rot (rad), x, y (absolute screen centre: a detached part), alpha } } }
+// Returns { x, y (base), top, w, h, parts: {name: {x, y, w, h}} } for labels and props.
+export function drawCutout(ctx, view, cut, o = {}) {
+  let b = o.x != null ? [o.x, o.y] : view.project(o.lon, o.lat, o.hm);
+  if (!b) return null;
+  const sink = (o.sink ?? cut.sink ?? 0) * (o.hPx ?? o.wPx * cut.h / cut.w);     // a body whose lowest point is not under its middle (seal)
+  b = [b[0], b[1] + sink];
+  const A = o.alpha ?? 1; if (A <= 0.002) return null;
+  const h = o.hPx ?? o.wPx * cut.h / cut.w, w = h * cut.w / cut.h, hop = o.hop || 0, sq = o.squash || 0;
+  const hinge = o.pop != null ? clamp(1 - E.outBack(clamp(o.pop))) : clamp(o.hinge || 0);
+  const hs = h * Math.cos(clamp(hinge, -0.2, 1) * Math.PI / 2 * 0.96) * (1 - sq), ws0 = w * (1 + sq * 0.55);
+  const turn = o.turn || 0, sx = Math.cos(turn * Math.PI) * (o.flip ? -1 : 1), ws = ws0 * Math.max(Math.abs(sx), 0.04);
+  const seed = o.seed ?? 1, tt = o.t ?? 0, wob = (o.wobble || 0) * (Math.sin(tt * 7.3 + seed * 2.1) * 0.6 + Math.sin(tt * 12.9 + seed * 5.7) * 0.4);
+  const rot = (o.lean || 0) + (cut.tilt || 0) * (o.flip ? -1 : 1) + wob;      // cut.tilt: levels a body photographed on a slope (seal)
+  const gl = clamp(1 - hop / (h * 0.9));
+  ctx.save();
+  // cast shadow: the silhouette laid on the ground along the sun's shadow direction (or o.shadow vector)
+  if (o.shadow !== false && cut.sil && gl > 0.01) {
+    let s = Array.isArray(o.shadow) ? o.shadow : (view && o.lon != null ? sunShadow(view, o.lon, o.lat, o.hm, hs, view.sun) : null);
+    if (!s) s = [hs * 0.55, hs * 0.12];
+    if (!cut.silFade) { const c = P.cv(cut.sil.width, cut.sil.height), g = c.getContext('2d'); g.drawImage(cut.sil, 0, 0); g.globalCompositeOperation = 'destination-in';
+      const lg = g.createLinearGradient(0, 0, 0, c.height); lg.addColorStop(0, 'rgba(0,0,0,0.25)'); lg.addColorStop(1, 'rgba(0,0,0,1)'); g.fillStyle = lg; g.fillRect(0, 0, c.width, c.height); cut.silFade = c; }
+    ctx.save(); ctx.globalAlpha = (o.shadowA ?? 0.3) * gl * A; ctx.translate(b[0], b[1]);
+    ctx.transform(1, 0, -s[0] / hs, -s[1] / hs, 0, 0);                 // image (x, y in -hs..0) -> base + x * (1, 0) + (-y / hs) * s
+    ctx.drawImage(cut.silFade, -ws / 2, -hs, ws, hs); ctx.restore();
+  }
+  // soft contact shadow under the base (none for a flying cut-out: contact false, or shadow false without a base point)
+  if (o.contact ?? (o.shadow !== false || o.lon != null)) {
+  const rg = ctx.createRadialGradient(b[0], b[1], 0, b[0], b[1], ws0 * 0.62);
+  rg.addColorStop(0, `rgba(0,0,0,${0.6 * gl * A})`); rg.addColorStop(0.55, `rgba(0,0,0,${0.28 * gl * A})`); rg.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.save(); ctx.translate(b[0], b[1]); ctx.scale(1, 0.2); ctx.translate(-b[0], -b[1]); ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(b[0], b[1], ws0 * 0.62, 0, 7); ctx.fill(); ctx.restore(); }
+  // fold-out base tab (paper lit from the sky, a darker crease)
+  if (o.base ?? cut.base ?? true) { const tb = ws0 * 0.14, tw2 = Math.min(ws0 * 0.46, h * 0.2);
+    ctx.save(); ctx.globalAlpha *= A; ctx.translate(b[0], b[1] - hop * 0.15);
+    ctx.fillStyle = '#E3D9C4'; ctx.beginPath(); ctx.moveTo(-tw2, 0); ctx.lineTo(tw2, 0); ctx.lineTo(tw2 * 1.12, tb * 0.55); ctx.lineTo(-tw2 * 1.12, tb * 0.55); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(60,45,30,0.35)'; ctx.fillRect(-tw2, -1, tw2 * 2, Math.max(2, tb * 0.08)); ctx.restore(); }
+  // the card: anchored at its base centre, leaning and wobbling about the base, turning about its vertical axis
+  ctx.translate(b[0], b[1] - hop); ctx.rotate(rot); ctx.globalAlpha = A;
+  const drawCard = (img, x, y, ww, hh) => {
+    if (Math.abs(sx) < 0.18) {                                            // edge-on: the paper's thickness (a warm off-white strip)
+      ctx.fillStyle = '#E9E0CC'; ctx.fillRect(-Math.max(2, ws * 0.5), y, Math.max(4, ws), hh); if (Math.abs(sx) < 0.06) return; }
+    ctx.save(); ctx.scale(sx < 0 ? -1 : 1, 1); ctx.drawImage(img, x, y, ww, hh); ctx.restore(); };
+  drawCard(cut.img, -ws / 2, -hs, ws, hs);
+  // parts (hat): at their place on the card unless moved; a detached part flies in screen space (x, y = its centre)
+  const pb = {};
+  for (const [pn, pc] of Object.entries(cut.parts || {})) {
+    const po = o.parts?.[pn] || {}; if ((po.alpha ?? 1) <= 0.002) continue;
+    const k = hs / cut.h, pw = pc.w * k * Math.max(Math.abs(sx), 0.04), ph = pc.h * k;
+    let px = -ws / 2 + (sx < 0 ? (cut.w - pc.at[0] - pc.w) : pc.at[0]) * k * Math.abs(sx), py = -hs + pc.at[1] * k;
+    if (po.x != null) {                                                    // detached: absolute screen centre, own rotation
+      ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.translate(po.x, po.y); ctx.rotate(po.rot || 0); ctx.globalAlpha = A * (po.alpha ?? 1);
+      ctx.drawImage(pc.img, -pw / 2, -ph / 2, pw, ph); ctx.restore(); pb[pn] = { x: po.x, y: po.y, w: pw, h: ph }; continue; }
+    ctx.save(); ctx.translate(px + pw / 2 + (po.off?.[0] || 0), py + ph / 2 + (po.off?.[1] || 0)); ctx.rotate(po.rot || 0); ctx.globalAlpha = A * (po.alpha ?? 1);
+    drawCard(pc.img, -pw / 2, -ph / 2, pw, ph); ctx.restore();
+    const m = ctx.getTransform(), cx = m.a * (px + pw / 2) + m.c * (py + ph / 2) + m.e, cy = m.b * (px + pw / 2) + m.d * (py + ph / 2) + m.f;
+    pb[pn] = { x: cx, y: cy, w: pw, h: ph };
+  }
+  ctx.restore();
+  return { x: b[0], y: b[1] - hop, top: b[1] - hop - hs, w: ws, h: hs, parts: pb };
+}
+// procedural paper props (drawn once on a canvas, then the same paper edge and grade): 'sign' (o.text, default COMING SOON: a
+// cream board with a hero-orange border on a stake), 'flag' (a plain hero-orange pennant on a pole: no national flag), 'drop' (a
+// cyan paper water drop), 'envelope' (folded paper, no writing), 'tag' (a paper tag with a big '?'), 'tank' (a water tank on legs)
+export function paperProp(kind, o = {}) {
+  const S = 2, mk = (w, h) => { const c = P.cv(w * S, h * S), g = c.getContext('2d'); g.scale(S, S); g.lineJoin = 'round'; return [c, g]; };
+  let c, g;
+  if (kind === 'sign') {
+    const text = (o.text || 'COMING SOON').split(' '), W = 420, H = 470; [c, g] = mk(W, H);
+    g.fillStyle = '#8A6A48'; g.fillRect(W / 2 - 14, 200, 28, H - 200);                                  // stake
+    g.fillStyle = 'rgba(0,0,0,0.25)'; g.fillRect(W / 2 - 14, 200, 8, H - 200);
+    F.round(g, 10, 10, W - 20, 250, 10); g.fillStyle = PAL.hero; g.fill();
+    F.round(g, 26, 26, W - 52, 218, 6); g.fillStyle = '#F6F1E4'; g.fill();
+    g.fillStyle = PAL.ink; g.textAlign = 'center'; g.font = `400 ${92}px "Anton"`;
+    text.forEach((t2, i) => g.fillText(okina(t2.toUpperCase()), W / 2, 122 + i * 100));
+  } else if (kind === 'flag') {
+    const W = 260, H = 420; [c, g] = mk(W, H);
+    g.fillStyle = '#6E6A64'; g.fillRect(20, 10, 12, H - 10);
+    g.fillStyle = PAL.hero; g.beginPath(); g.moveTo(32, 18); g.quadraticCurveTo(140, 40, 240, 80); g.quadraticCurveTo(140, 120, 32, 150); g.closePath(); g.fill();
+    g.fillStyle = 'rgba(0,0,0,0.12)'; g.beginPath(); g.moveTo(32, 90); g.quadraticCurveTo(140, 110, 240, 80); g.quadraticCurveTo(140, 120, 32, 150); g.closePath(); g.fill();
+  } else if (kind === 'drop') {
+    const W = 220, H = 300; [c, g] = mk(W, H);
+    g.beginPath(); g.moveTo(W / 2, 12); g.bezierCurveTo(W / 2 + 30, 90, W - 12, 150, W - 12, 195); g.arc(W / 2, 195, W / 2 - 12, 0, Math.PI); g.bezierCurveTo(12, 150, W / 2 - 30, 90, W / 2, 12); g.closePath();
+    g.fillStyle = PAL.cyan; g.fill(); g.fillStyle = 'rgba(255,255,255,0.55)'; g.beginPath(); g.ellipse(W / 2 - 38, 190, 16, 34, -0.3, 0, 7); g.fill();
+  } else if (kind === 'envelope') {
+    const W = 360, H = 240; [c, g] = mk(W, H);
+    g.fillStyle = '#F3EBD8'; g.fillRect(8, 8, W - 16, H - 16);
+    g.strokeStyle = 'rgba(120,95,60,0.55)'; g.lineWidth = 4; g.beginPath(); g.moveTo(10, 12); g.lineTo(W / 2, H * 0.58); g.lineTo(W - 10, 12); g.stroke();
+    g.beginPath(); g.moveTo(10, H - 12); g.lineTo(W * 0.4, H * 0.5); g.moveTo(W - 10, H - 12); g.lineTo(W * 0.6, H * 0.5); g.stroke();
+  } else if (kind === 'tag') {
+    const W = 240, H = 300; [c, g] = mk(W, H);
+    g.fillStyle = '#F6F1E4'; g.beginPath(); g.moveTo(W / 2, 10); g.lineTo(W - 14, 70); g.lineTo(W - 14, H - 12); g.lineTo(14, H - 12); g.lineTo(14, 70); g.closePath(); g.fill();
+    g.fillStyle = '#B8A88A'; g.beginPath(); g.arc(W / 2, 52, 13, 0, 7); g.fill();
+    g.fillStyle = PAL.hero; g.textAlign = 'center'; g.font = `400 ${170}px "Anton"`; g.fillText('?', W / 2, H - 46);
+  } else if (kind === 'tank') {
+    const W = 300, H = 380; [c, g] = mk(W, H);
+    g.fillStyle = '#7C7468'; for (const x of [50, 130, 210]) g.fillRect(x, 220, 16, H - 220);
+    g.fillStyle = '#C9C2B5'; F.round(g, 20, 40, W - 40, 190, 18); g.fill();
+    g.fillStyle = '#B5AE9F'; g.beginPath(); g.ellipse(W / 2, 46, W / 2 - 20, 26, 0, 0, 7); g.fill();
+    g.fillStyle = 'rgba(0,0,0,0.14)'; g.fillRect(20, 100, W - 40, 10); g.fillRect(20, 160, W - 40, 10);
+  } else throw new Error('paperProp: unknown kind ' + kind);
+  return prepPaper(c, { edge: o.edgePx ?? 4 * S / 2 });
 }
 
 // ============================================================================================ UI: phone-first type with enforced floors
@@ -980,8 +1254,8 @@ export function makeUI(api) {
 
 // ============================================================================================ transitions
 // xfade(a, b, dur): b fades in over dur while a keeps drawing underneath until b's fade ends (no dip to black: PLAYBOOK_craft 7).
-// The incoming shot's own UI starts only when its dissolve has finished (b.uiFrom); a scale jump (globe to terrain) should use
-// one continuous move instead (look book S14: log-altitude zoom over 3-5 s) or a match-cut at the same lon/lat/heading.
+// The incoming shot's own UI starts only when its dissolve has finished (b.uiFrom). Never xfade between very different scales
+// (globe to terrain): use scaleMove() (one shared log-altitude camera path, aligned hand-off) instead.
 export function xfade(a, b, dur = 0.5) { b.fadeIn = dur; b.uiFrom = b.t0 + dur; a.t1 = Math.max(a.t1, b.t0 + dur); return [a, b]; }
 // seq(shots, {fade}): consecutive shots, each b.t0 = previous t1 (as given), crossfaded by `fade` s (0 = hard cut)
 export function seq(shots, o = {}) { for (let i = 1; i < shots.length; i++) if (o.fade) xfade(shots[i - 1], shots[i], o.fade); return shots; }
@@ -1016,6 +1290,8 @@ export async function setup(api) {
     // land-bridge weights: new land of `joined` within dKm of two of `parts` (today's islands), on the same grid (see bridges())
     bridges: (joined, parts, dKm) => bridges(joined.g, joined.mask, parts.map(p => p.mask), dKm),
     maskTexture, makePostcard, drawPostcard, drawStandee, drawQuad, prepPaper, gradeCanvas, flight, mixState, keyAt, valAt, xfade, seq,
+    scaleMove: (s) => scaleMove(kit, s), orbitPath, orbitEye, terrainCamOf,
+    paper: (name, o) => loadPaper(name, o), drawCutout, paperProp, PAPER,
     perfLog: [],
   };
   return kit;

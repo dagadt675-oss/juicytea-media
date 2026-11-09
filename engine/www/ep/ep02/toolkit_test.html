@@ -4,7 +4,8 @@
 <script type="module">
 // Smoke tests for the ep02 toolkit stages that ch1 does not use yet. q.test: 'globe' (cineGlobeShot STORY preset + crisp outline +
 // label) | 'paper' (terrainShot + the postcard device + a paper standee on the terrain) | 'xfade' (terrain -> globe crossfade, one renderer)
-// | 'region' (terrainShot on a baked region stack: q.region, default 'mauinui'; q.cam, default 'mauinui_one'; q.preset, default 'mauinui').
+// | 'region' (terrainShot on a baked region stack: q.region, default 'mauinui'; q.cam, default 'mauinui_one'; q.preset, default 'mauinui')
+// | 'globeq' (any globe camera at film time q.at) | 'move' (scaleMove globe -> terrain, 0-6 s) | 'cast' (the paper kit, 0-8 s).
 // Test image: img/_test/photo.jpg (git-ignored; any of our own renders). Frames: film frames 0-149 (0-5 s).
 //   cd engine && node still.cjs --page ep/ep02/toolkit_test.html --q '{"test":"globe"}' --frames 30,90 --outdir DIR
 import { runPage } from './testrt.js';
@@ -40,6 +41,52 @@ runPage(async (api, kit, scenes) => {
     g.drawImage(ph, 700, 100, 420, 900, 0, 0, 420, 900);
     card.stand = kit.prepPaper(c);
   }
+  // 'globeq': one globe camera from the query (lat, lon, alt, tilt, heading, fov, preset, clouds, at = film time of the shot, which
+  // sets the cloud drift 0.04 * t), for seam and shelf checks anywhere on the globe; render frames at*30 .. at*30+149
+  if (test === 'globeq') { const q = api.Q, at = q.at || 0, k = { t: 0, lat: q.lat ?? 22, lon: q.lon ?? -160, alt: q.alt ?? 0.5, tilt: q.tilt ?? 20, heading: q.heading ?? 0, fov: q.fov ?? 30 };
+    scenes.push(kit.cineGlobeShot({ id: 'test-globeq', t0: at, t1: at + 5, preset: q.preset || 'STORY', subject: q.subject || [k.lat, k.lon], keys: [Object.assign(k, q.clouds != null ? { clouds: q.clouds } : {})], look: q.look }));
+    return { t0: at, t1: at + 5 }; }
+  // 'move': scaleMove() from space to the Big Island's west flank (globe STORY -> terrain 'bigisland' today), 0-6 s; q.handD (km),
+  // q.xf (s), q.region, q.preset; the log prints the hand-off frame
+  if (test === 'move') { const q = api.Q;
+    const mv = kit.scaleMove({ id: 'test-move', t0: 0, t1: 6, xf: q.xf ?? 0.5,
+      path: [{ t: 0, lat: 20.3, lon: -157.6, d: 7000, tilt: 0, heading: 0, fov: 30 }, { t: 6, lat: 19.47, lon: -155.92, d: 42, tilt: 60, heading: 75, fov: 42, ease: E.inOut }],
+      legs: [{ stage: 'globe', preset: 'STORY', subject: [19.6, -155.6] }, { stage: 'terrain', region: q.region || 'bigisland', preset: q.preset || 'today', handD: q.handD ?? 900,
+        ui(ctx, lt, t, v) { const p = v.project(-155.6054, 19.4756, 4169); if (p) ui.label(ctx, 'MAUNA LOA', p[0], p[1], { t, p: F.clamp(lt * 2) }); } }] });
+    api.log(`[test] hand-off at ${mv.at.map(a => a.toFixed(3) + ' s = frame ' + (a * 30).toFixed(1)).join(', ')}`);
+    if (q.leg != null) { const sh = mv.shots[q.leg]; sh.fadeIn = 0; sh.uiFrom = 0; scenes.push(sh); } else scenes.push(...mv.shots);   // q.leg: one stage only (alignment check)
+    return { t0: 0, t1: 6 }; }
+  // 'cast': the paper kit on the real terrain (q.region, default 'mauinui' at -122 m: the dry ʻAuʻau Channel floor), 4 groups of 2 s:
+  // 0-2 tourist (pop-up, wind lean, hat flies off) + suitcase; 2-4 monk seal + pup (paper turn) + COMING SOON sign;
+  // 4-6 albatross standing + one gliding + climber with flag (frosted edge); 6-8 jeep on the slope + the small props
+  if (test === 'cast') { const q = api.Q, H = api.H, W = api.W;
+    const C = {}; for (const n of ['tourist', 'suitcase', 'seal', 'seal_pup', 'albatross', 'albatross_fly', 'jeep']) C[n] = await kit.paper(n);
+    C.climber = await kit.paper('climber'); for (const k of ['sign', 'flag', 'drop', 'envelope', 'tag', 'tank']) C[k] = kit.paperProp(k);
+    scenes.push(kit.terrainShot({ id: 'test-cast', t0: 0, t1: 8, region: q.region || 'mauinui', preset: q.preset || 'mauinui', push: 0.25, drift: 0.3,
+      cam: q.cam || { lon: -156.80, lat: 20.835, agl: 0.05, tLon: -156.66, tLat: 20.875, fov: 50, near: 0.004, far: 300 },
+      world(ctx, lt, t, v) {
+        const at = (x, y) => { const g = v.ground(x, y); return g ? { lon: g[0], lat: g[1], hm: g[2] } : { x, y }; };
+        const seg = Math.floor(lt / 2), u = lt - seg * 2;
+        if (seg === 0) {
+          kit.drawCutout(ctx, v, C.suitcase, Object.assign(at(1500, 900), { hPx: H * 0.13, pop: F.clamp(u / 0.4), t: lt, seed: 2 }));
+          const fly = F.clamp((u - 1.0) / 0.9), hat = fly > 0 ? { x: 1230 - 420 * fly, y: 470 - 260 * Math.sin(fly * 2.4) - 60 * fly, rot: -fly * 5.5 } : {};
+          kit.drawCutout(ctx, v, C.tourist, Object.assign(at(1250, 900), { hPx: H * 0.38, pop: F.clamp(u / 0.5), lean: 0.32 * E.inOut(F.clamp((u - 0.4) / 0.5)), wobble: 0.025, t: lt, parts: { hat } }));
+        } else if (seg === 1) {
+          kit.drawCutout(ctx, v, C.seal, Object.assign(at(860, 880), { wPx: W * 0.36, pop: F.clamp(u / 0.4), t: lt, wobble: 0.01 }));
+          kit.drawCutout(ctx, v, C.seal_pup, Object.assign(at(1260, 900), { wPx: W * 0.16, pop: F.clamp((u - 0.3) / 0.4), turn: F.clamp((u - 1.0) / 0.5) * 0.5 + F.clamp((u - 1.5) / 0.3) * 0.5, t: lt }));
+          kit.drawCutout(ctx, v, C.sign, Object.assign(at(1600, 760), { hPx: H * 0.36, pop: F.clamp((u - 0.2) / 0.5), wobble: 0.03, t: lt, lean: -0.08 * F.clamp((u - 1.4) / 0.4) }));
+        } else if (seg === 2) {
+          kit.drawCutout(ctx, v, C.albatross, Object.assign(at(560, 900), { hPx: H * 0.38, pop: F.clamp(u / 0.4), t: lt, wobble: 0.015 }));
+          kit.drawCutout(ctx, v, C.albatross_fly, { x: 860 + 220 * u, y: 470 - 20 * Math.sin(u * 3), wPx: W * 0.26, shadow: false, contact: false, lean: -0.06 + 0.04 * Math.sin(u * 4) });
+          const cl = kit.drawCutout(ctx, v, C.climber, Object.assign(at(1450, 880), { hPx: H * 0.38, pop: F.clamp(u / 0.4), wobble: 0.04, t: lt }));
+          if (cl) kit.drawCutout(ctx, v, C.flag, Object.assign(at(1610, 885), { hPx: H * 0.3, pop: F.clamp((u - 0.6) / 0.4), wobble: 0.05, t: lt, seed: 4 }));
+        } else {
+          kit.drawCutout(ctx, v, C.jeep, Object.assign(at(1000 + 120 * u, 860 - 30 * u), { wPx: W * 0.3, lean: -0.12, hop: 6 * Math.abs(Math.sin(lt * 9)), t: lt, wobble: 0.01, flip: true }));
+          ['drop', 'envelope', 'tag', 'tank'].forEach((k, i) => kit.drawCutout(ctx, v, C[k], Object.assign(at(300 + i * 140, 950), { hPx: H * 0.12, pop: F.clamp((u - i * 0.15) / 0.4), t: lt, seed: i })));
+        }
+      },
+      ui(ctx, lt, t, v) { if (Math.floor(lt / 2) === 2) ui.label(ctx, 'LAYSAN ALBATROSS', 560, 900 - H * 0.38, { t, p: F.clamp((lt - 4.3) / 0.3) }); } }));
+    return { t0: 0, t1: 8 }; }
   if (test === 'globe') scenes.push(globe(0, 5));
   else if (test === 'paper') scenes.push(terrain(0, 5));
   else if (test === 'region') scenes.push(kit.terrainShot({ id: 'test-region', t0: 0, t1: 5, region: api.Q.region || 'mauinui', preset: api.Q.preset || 'mauinui', cam: api.Q.cam || 'mauinui_one', push: 0.3, drift: 0.4,

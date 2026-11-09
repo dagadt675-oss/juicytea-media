@@ -78,30 +78,32 @@ void main(){
       float pid = floor(s / 1100.0), hp = hash(vec2(pid, 3.1)), th = mix(110.0, 240.0, hp);
       float b = fract(s / th), fid = floor(s / th);
       float seam = 1.0 - smoothstep(0.0, 0.09, b);
-      alb = mix(vec3(0.092, 0.080, 0.066), vec3(0.070, 0.063, 0.056), hash(vec2(pid, 7.7))) * (0.92 + 0.16 * hash(vec2(fid, 1.3)));
+      // tones (round 3, phone-size separation): the pile is the LIGHT layer (warm basalt grey-brown, L about 0.11), the oceanic crust
+      // the DARK cool slate band (L about 0.035), the mantle a MID olive green (L about 0.075): three bands that read at 390 px
+      alb = mix(vec3(0.132, 0.112, 0.090), vec3(0.108, 0.094, 0.079), hash(vec2(pid, 7.7))) * (0.92 + 0.16 * hash(vec2(fid, 1.3)));
       alb *= (0.90 + 0.14 * (n3 - 0.5)) * (1.0 - 0.38 * seam);
       float ox = smoothstep(0.86, 0.97, b) * step(0.82, hash(vec2(fid, 5.9)));
-      alb = mix(alb, vec3(0.115, 0.064, 0.046), ox * 0.6);
+      alb = mix(alb, vec3(0.150, 0.083, 0.058), ox * 0.6);
       float deep = smoothstep(oldFloor + 300.0, oldFloor - 300.0, e);
-      alb = mix(alb, alb * vec3(0.66, 0.70, 0.80), deep);
+      alb = mix(alb, alb * vec3(0.80, 0.82, 0.88), deep);
     } else if (e > ct - crustM) {
       // oceanic crust: pillow basalt, sheeted dikes (vertical grain), gabbro; a darker blue-slate than the pile
       float dc = ct - e;
-      vec3 slate = vec3(0.038, 0.044, 0.055);
+      vec3 slate = vec3(0.027, 0.034, 0.050);
       float pil = fbm(vec2(u * 4.0, e * 0.006)), dik = fbm(vec2(u * 3.0, e * 0.0005)), gab = fbm(vec2(u * 1.2, e * 0.0012) + 7.0);
-      float g = dc < 1500.0 ? 0.86 + 0.24 * pil : dc < 3200.0 ? 0.88 + 0.16 * dik : 0.88 + 0.18 * gab;
-      alb = slate * g * mix(1.0, 0.86, smoothstep(0.0, crustM, dc));
+      float g = dc < 1500.0 ? 0.82 + 0.34 * pil : dc < 3200.0 ? 0.84 + 0.26 * dik : 0.86 + 0.24 * gab;
+      alb = slate * g * mix(1.0, 0.9, smoothstep(0.0, crustM, dc));
     } else {
       // mantle (peridotite): dark olive green-brown, slowly warmer with depth
       float dm = ct - crustM - e;
-      alb = mix(vec3(0.046, 0.050, 0.034), vec3(0.060, 0.046, 0.032), smoothstep(0.0, 12000.0, dm)) * (0.9 + 0.2 * n1);
+      alb = mix(vec3(0.068, 0.082, 0.044), vec3(0.082, 0.074, 0.040), smoothstep(0.0, 14000.0, dm)) * (0.88 + 0.24 * n1) * (0.94 + 0.12 * n2);
     }
     // depth falloff toward the bottom of the section (soft, like ambient occlusion in a deep cut)
-    alb *= mix(1.0, 0.72, smoothstep(-8000.0, -30000.0, e));
+    alb *= mix(1.0, 0.86, smoothstep(-8000.0, -30000.0, e));
     col = shade(alb, faceN);
     // lines in the rock: the crust top (the sag) as a dark seam, the Moho faint and pale, the old sea floor (floorLine) white
-    col = mix(col, col * 0.45, line(e - ct, 2.2) * 0.8);
-    col = mix(col, vec3(0.55, 0.52, 0.48), line(e - (ct - crustM), 1.6) * 0.35);
+    col = mix(col, col * 0.35, line(e - ct, 2.6) * 0.85);
+    col = mix(col, vec3(0.62, 0.60, 0.52), line(e - (ct - crustM), 2.0) * 0.5);
     float inDent = smoothstep(oldFloor - 40.0, oldFloor - 400.0, ct);
     col = mix(col, vec3(0.92, 0.95, 1.0), line(e - oldFloor, 2.2) * floorLine * inDent * step(ct, e + 1.0) * 0.85);
     // freshly cut top edge: a thin bright rim where the section meets the surface
@@ -115,7 +117,8 @@ void main(){
     else {
       // Everest's rock: pale limestone and granite (warm light grey), clearly not the basalt behind it
       float s = e + (fbm(vec2(u * 0.3, e * 0.0008)) - 0.5) * 400.0, b = fract(s / 700.0);
-      alb = vec3(0.122, 0.110, 0.095) * (0.88 + 0.16 * smoothstep(0.1, 0.3, b) * (1.0 - smoothstep(0.75, 0.95, b)) + 0.12 * (fbm(vec2(u * 2.0, e * 0.004)) - 0.5));
+      // (round 3: lifted to stay clearly lighter than the now lighter volcanic pile behind it)
+      alb = vec3(0.200, 0.186, 0.165) * (0.88 + 0.16 * smoothstep(0.1, 0.3, b) * (1.0 - smoothstep(0.75, 0.95, b)) + 0.12 * (fbm(vec2(u * 2.0, e * 0.004)) - 0.5));
       // snow and ice on the cut face just under the summit ridge (vS = the profile top at this column, vR = height above its base)
       float sn = smoothstep(5600.0, 6300.0, vR + (fbm(vec2(u * 2.0, vR * 0.004)) - 0.5) * 700.0) * (1.0 - smoothstep(120.0, 420.0, vS - vR));
       alb = mix(alb, vec3(0.80, 0.82, 0.86), sn);
