@@ -14,6 +14,24 @@ One dated entry per episode, project or major task, newest first. Each entry: wh
 
 ---
 
+## 2026-11-09: ep02 terrain data (a baked stage for every terrain shot)
+
+What was made (2026-11-08, finished 2026-11-09): engine/www/lab/hawaii/tools/region_bake.py, a general bake (name, bbox, size) generalised from hawaii_bake.py: ETOPO 2022 15"/30", NOAA NCEI 1/3" and 3" coastal topo-bathy DEMs, Terrarium land detail, a MODIS composite plus HLS 30 m colour, AO, and sea-level facts measured on the grid. engine/www/ep/ep02/tools/regions_spec.json (bbox, size, sources, stack, verification camera, script segments, gaps), rebuild_regions.sh and make_index.py write engine/www/ep/ep02/data/<region>/ (git-ignored except meta.json) and regions.json. HawaiiStage.loadRegion loads nested stacks of up to 3 layers; lab_region.html renders any region. 21 regions: mauinui, oahu_nuuanu, pali, kauai, waimea, main_chain, kilauea_sf, halape, holei (added 2026-11-09 for s086-s088), maunakea, kamaehu, kohala, nwhi_chain, nihoa, lalo, gardner, nwhi_west, midway, kure, everest_wide, everest; the legacy bigisland and hawaii_skirt stay as they were (frame 1 must keep matching the thumbnail).
+
+Real results (measurements, nothing published):
+- Size and cost: 58 MB baked plus 23 MB legacy; 15-118 s per bake (network bound); one 1920x1080 still 9-35 s on local software WebGL.
+- Facts on the grids: Maui-Lana'i join at -59 m, Maui-Moloka'i at -79 to -80 m, Kaho'olawe at -159 m; at -122 m (-400 ft) one island of 5,696 km2 with Kaho'olawe separate. All main islands from Hawai'i to Ni'ihau on one ridge at -3,500 m (O'ahu-Kaua'i saddle -3,008 m); at -5,500 m the largest water left is 6,471 km2 north-east of the Big Island. Holei arch site -6 m with a 24 m cliff top within 300 m.
+
+What worked: one spec for every region; a still per region before any shot uses it; depth-bin maps of the grid next to the stills; NCEI 1/3" grids for every close main-island shot; HLS imagery as the judge of land in the NW Hawaiian Islands.
+
+What failed (all fixed): round 1 (2026-11-08) found ETOPO false islands (Gardner 859 m over 9 km2, a 57 km2 blob over French Frigate Shoals, a 10 km2 blob east of Nihoa), NCEI 6" gridding artefacts, magenta land from per-channel colour matching, a cloud filter that painted over Everest's snow and refills that pulled from the spikes themselves. Round 2 (2026-11-09) found '+'-shaped pits 10-20 m deep around every Lalo islet (cubic upsampling rings around ETOPO spikes; the refill now takes a two-source-pixel ring); about 20 false islets each on Lalo's SE rim and Kure's NW rim (surf passed the per-pixel land test; a per-islet vote and a Green Island keep box removed them, so Lalo has Tern and East Island and Kure only Green Island); Pali colour neon green (gain matched to cloudy MODIS, 1.34) and its NE-facing cliffs black (winter scenes); everest_wide had no verification camera, so its still crashed and it went unchecked.
+
+Open data gaps (in regions.json per region): La Perouse Pinnacle (about 37 m) and Gardner's two pinnacles are below every grid (model them at surveyed positions); the atoll lagoons and reef rings of Lalo and Kure are ETOPO-flat (sat.jpg carries the look; Midway alone has a surveyed 1/3" grid); Nihoa's cliffs are too gentle (179 m on the grid vs 273 m surveyed); the Holei arch, the Pali lookout and Halape's pre-1975 shore are not in any data; the Ko'olau summit keeps a few cloud specks; Everest colour carries baked north-face shadows (light it from the south); the 2018 East Island before and after needs dated Landsat or HLS scenes.
+
+Rules added: PLAYBOOK_production 15 (verify every region with its own camera; atoll ringing and per-islet land vote; HLS gain and season over cliffs), on top of the 2026-11-08 bake rules.
+
+---
+
 ## 2026-11-08: ep02 shot toolkit (foundation for the chapter builders)
 
 What was made (engine/www/ep/ep02/, API.md documents it with examples):

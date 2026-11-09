@@ -69,7 +69,10 @@
   ]
  },
  "purpose": "Context layer for the Everest summit gag.",
- "gaps": [],
+ "gaps": [
+  "Terrarium z11 (SRTM): context only.",
+  "HLS shadows are baked into the colour (Oct-Dec scenes, low sun): about 2-3.5 % of the colour pixels are near black on north faces, so light the stage from the south."
+ ],
  "bake_s": 25.6,
  "baked": "2026-11-08",
  "bytes": {

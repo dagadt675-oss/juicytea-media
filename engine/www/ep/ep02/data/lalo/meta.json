@@ -87,9 +87,9 @@
  "facts": {
   "peaks_m": {
    "la_perouse_pinnacle": {
-    "h": -11,
-    "lon": -166.2645,
-    "lat": 23.7745
+    "h": -21,
+    "lon": -166.2556,
+    "lat": 23.7741
    },
    "east_island": {
     "h": 4,
@@ -97,7 +97,7 @@
     "lat": 23.7876
    }
   },
-  "land_area_km2_at_0m": 0.4,
+  "land_area_km2_at_0m": 0.1,
   "h_range_m": [
    -3795,
    4
@@ -105,14 +105,14 @@
  },
  "purpose": "s100-s108 Lalo (French Frigate Shoals): the lagoon, La Perouse Pinnacle (last tooth), East Island before and after 2018.",
  "gaps": [
-  "Worst gap: ETOPO 2022 15\" has a 57 km2 false island over French Frigate Shoals and no reef or lagoon relief; after cleanup the atoll is a featureless shallow platform. La Pérouse Pinnacle (about 37 m) is below every grid (-11 m at its spot): model it at its surveyed position. East Island is a 6 m speck. Use sat.jpg (HLS 30 m, reef and lagoon visible) for the look; the July and October 2018 before and after must come from dated Landsat/HLS scenes, not baked here. A real fix is satellite-derived depth calibrated on the NCEI Midway survey."
+  "Worst gap: ETOPO 2022 15\" has a 57 km2 false island over French Frigate Shoals and no reef or lagoon relief; after cleanup the atoll is a featureless shallow platform. Only Tern Island and East Island are land on the grid (East Island a 4 m speck after the 4 m cap); the smaller sand islets are not resolved, and about 20 false islets on the SE rim (surf on the reef crest over ghost land-tile heights) were dropped by the islet vote. La Perouse Pinnacle (about 37 m) is below every grid (-21 m within 600 m of its spot): model it at its surveyed position. Use sat.jpg (HLS 30 m, reef and lagoon visible) for the look; the July and October 2018 before and after must come from dated Landsat/HLS scenes, not baked here. A real fix is satellite-derived depth calibrated on the NCEI Midway survey."
  ],
- "bake_s": 81.9,
- "baked": "2026-11-08",
+ "bake_s": 74.7,
+ "baked": "2026-11-09",
  "bytes": {
-  "h16": 1550692,
-  "ao": 172825,
-  "color": 108393,
+  "h16": 1540716,
+  "ao": 211638,
+  "color": 102553,
   "sat": 223104
  }
 }

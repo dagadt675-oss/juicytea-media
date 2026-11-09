@@ -240,8 +240,10 @@ def hls_composite(bb, cw, ch, dl, lvl, want=8, months=('2024-03-01', '2024-10-31
     span = 288 / 2 ** lvl; lon, lat = centre or ((bb[0] + bb[2]) / 2, (bb[1] + bb[3]) / 2)
     lon = lon + 360 if lon < -180 else lon
     c, r = int((lon + 180) // span), int((90 - lat) // span)
-    d0, d1 = date.fromisoformat(months[0]), date.fromisoformat(months[1])
-    cands = [(L, (d0 + timedelta(k)).isoformat()) for k in range((d1 - d0).days + 1) for L in ('HLS_S30_Nadir_BRDF_Adjusted_Reflectance', 'HLS_L30_Nadir_BRDF_Adjusted_Reflectance')]
+    cands = []  # months: one [first, last] day range, or a list of ranges (e.g. two summers: high sun lights the NE-facing cliffs)
+    for m0, m1 in ([months] if isinstance(months[0], str) else months):
+        d0, d1 = date.fromisoformat(m0), date.fromisoformat(m1)
+        cands += [(L, (d0 + timedelta(k)).isoformat()) for k in range((d1 - d0).days + 1) for L in ('HLS_S30_Nadir_BRDF_Adjusted_Reflectance', 'HLS_L30_Nadir_BRDF_Adjusted_Reflectance')]
     def probe(ld):
         L, dte = ld
         try: b = fetch(f'https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/{L}/default/{dte}/31.25m/{lvl}/{r}/{c}.png', tries=2, timeout=40)
@@ -349,10 +351,11 @@ def bake(R, OUT, DLROOT, keep=False):
     midlat = (bb[1] + bb[3]) / 2; px_m = ((bb[2] - bb[0]) / W * 111320 * math.cos(math.radians(midlat)) + (bb[3] - bb[1]) / H * 111320) / 2
     tdeg = min((bb[2] - bb[0]) / W, (bb[3] - bb[1]) / H)
     LOG(f'== {name} bbox {bb} {W}x{H} ~{px_m:.0f} m/px')
-    srcs = []; h = None; fine_topo = np.zeros((H, W), np.float32)
+    srcs = []; h = None; fine_topo = np.zeros((H, W), np.float32); cubic_src = 0.0
     for s in R.get('bathy', ['etopo15']):
         if s.startswith('etopo'):
             p = etopo(bb, s[5:] + 's', dl); a = sample(p, bb, W, H, order=3 if p['d'] > tdeg * 1.5 else 1)
+            if p['d'] > tdeg * 1.5: cubic_src = max(cubic_src, p['d'])
             srcs.append(dict(id=s, res_arcsec=round(p['d'] * 3600, 2)))
         else:
             ds = s.split(':', 1)[1]; p = ncei(ds, bb, dl, tdeg)
@@ -384,11 +387,22 @@ def bake(R, OUT, DLROOT, keep=False):
                 hl0 = R['colour']['hls']; sub, (r0, c0, r1, c1) = subwin(bb, W, H, hl0.get('bbox', bb))
                 hc = hls_composite(sub, c1 - c0 + 1, r1 - r0 + 1, dl, hl0.get('level', 11), hl0.get('n', 8), tuple(hl0.get('months', ('2024-03-01', '2024-10-31'))), hl0.get('centre'), hl0.get('pct', 0.3))
                 hls_early = hc
-                lw = np.zeros((H, W), bool)
+                lw = np.zeros((H, W), bool); lf = np.zeros((H, W), bool); hcol = np.zeros((H, W, 3), np.float32)
                 if hc[0] is not None:
                     hn = np.nan_to_num(hc[0]); landish = np.isfinite(hc[0]).all(-1) & (hn[..., 0] >= 0.95 * hn[..., 2]) & (lum(hn) > 0.05)
-                    lw[r0:r1 + 1, c0:c1 + 1] = ndimage.binary_dilation(landish, iterations=2)
+                    lw[r0:r1 + 1, c0:c1 + 1] = ndimage.binary_dilation(landish, iterations=2); lf[r0:r1 + 1, c0:c1 + 1] = landish
+                    hcol[r0:r1 + 1, c0:c1 + 1] = hn
                 ok &= lw
+                # vote per islet: surf on a reef crest passes the per-pixel test in specks, and the land tiles carry ghost heights
+                # there (about 20 false islets each on the SE rim of Lalo and the W rim of Kure), so an islet stays only if at least
+                # 'vote' (default 15 %) of its pixels look like land AND its mean HLS colour is not water-blue (red >= 0.85 blue;
+                # Gardner's grey basalt is 0.91, surf specks on dark water far lower)
+                lk, nk = ndimage.label(ok)
+                if nk:
+                    idx = range(1, nk + 1); fr = np.asarray(ndimage.mean(lf, lk, idx))
+                    mr, mb = (np.asarray(ndimage.mean(hcol[..., k], lk, idx)) for k in (0, 2))
+                    weak = 1 + np.where((fr < land_cfg.get('vote', 0.15)) | (mr < 0.85 * mb))[0]
+                    if len(weak): ok &= ~np.isin(lk, weak); LOG(f'  land vote: {len(weak)} of {nk} islets dropped (surf or ghost land)')
             if 'keep' in land_cfg:
                 kp = np.zeros((H, W), bool); lons, lats = grid_axes(bb, W, H)
                 for k0 in land_cfg['keep']: kp |= ((lats[:, None] > k0[1]) & (lats[:, None] < k0[3])) & ((lons[None] > k0[0]) & (lons[None] < k0[2]))
@@ -399,12 +413,22 @@ def bake(R, OUT, DLROOT, keep=False):
                 # the spike's shallow skirt goes too: everything above mask_floor (default -10 m) connected to a false island is refilled
                 floor = land_cfg.get('mask_floor', -10.0)
                 lab, _ = ndimage.label(h > floor); ids = np.unique(lab[bogus]); ids = ids[ids > 0]
-                grow = ndimage.binary_dilation(np.isin(lab, ids) | bogus, iterations=2) & ~ok
+                grow = ndimage.binary_dilation(np.isin(lab, ids) | bogus, iterations=2)
+                # a coarse grid upsampled with a cubic spline rings around each spike: '+'-shaped pits 10-20 m deep reach about two
+                # source pixels out (seen around every Lalo islet), so the zone also takes that ring around every ETOPO land pixel,
+                # false or real islet (only around the spikes: a ring around the whole shallow skirt would flatten real bank relief)
+                ring = int(math.ceil(2.0 * cubic_src / tdeg)) if cubic_src else 2
+                spike = h > 0
+                if ring > 2 and spike.any(): grow |= ndimage.distance_transform_edt(~spike) <= ring
+                grow &= ~ok
                 src = ~grow & ~ok & (h <= floor)  # refill only from real seafloor, never from the spike or the confirmed land
                 idx = ndimage.distance_transform_edt(~src, return_distances=False, return_indices=True)
-                fill = h[tuple(idx)]; fill = np.minimum(ndimage.gaussian_filter(fill, 2), -1.0)
+                fill = h[tuple(idx)]; fill = np.minimum(ndimage.gaussian_filter(fill, max(2.0, ring / 3.0)), -1.0)
+                if ring > 2 and ok.any():  # a shallow apron (reef flat, about -1.5 m) fading out over 120 m instead of a moat at the islet
+                    ap = np.clip(1.0 - ndimage.distance_transform_edt(~ok) * px_m / 120.0, 0, 1)
+                    fill = fill * (1 - ap) + np.maximum(fill, -1.5) * ap
                 h = np.where(grow, fill, h)
-                LOG(f'  land mask: {int(bogus.sum())} px of unconfirmed ETOPO land refilled from the seafloor')
+                LOG(f'  land mask: {int(bogus.sum())} px of unconfirmed ETOPO land refilled from the seafloor ({int(grow.sum())} px zone, ring {ring} px)')
         k = max(2.0, base_m / px_m)
         low = ndimage.uniform_filter(trf, size=int(round(k)) | 1)
         land = np.clip(h / 30.0, 0, 1) * (1 - fine_topo) * tv

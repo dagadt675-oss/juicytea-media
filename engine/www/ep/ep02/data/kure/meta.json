@@ -95,7 +95,7 @@
   "point_h_m": {
    "lagoon_centre": -11
   },
-  "land_area_km2_at_0m": 1.1,
+  "land_area_km2_at_0m": 0.8,
   "h_range_m": [
    -2342,
    6
@@ -103,14 +103,14 @@
  },
  "purpose": "s140-s143 Kure (Holaniku), the last atoll, its reef ring tinted blue, the cut-away where the reef barely keeps up.",
  "gaps": [
-  "ETOPO 2022 15\" only: the reef ring and lagoon are not resolved (lagoon -2 m on the grid), Green Island 11 m from Terrarium (real about 6 m). Use sat.jpg for the reef ring; the cut-away (s143) is schematic."
+  "ETOPO 2022 15\" only: the reef ring and lagoon are not resolved (lagoon -11 m on the grid), Green Island 6 m after the cap. Land is kept only in a box around Green Island: the bright reef flat and surf on the NW rim passed the colour test as 9 ha and 2.5 ha islets that do not exist; Sand Island (about an acre, comes and goes) is below the grid. Use sat.jpg for the reef ring; the cut-away (s143) is schematic."
  ],
- "bake_s": 33.6,
- "baked": "2026-11-08",
+ "bake_s": 35.8,
+ "baked": "2026-11-09",
  "bytes": {
-  "h16": 687922,
-  "ao": 246743,
-  "color": 63436,
+  "h16": 698345,
+  "ao": 236038,
+  "color": 49769,
   "sat": 154534
  }
 }

@@ -102,11 +102,11 @@
  "gaps": [
   "Land from Terrarium (SRTM): plan area right (0.6 km2, real 0.69) but the relief is smoothed: top 179 m vs 273 m surveyed, so the sea cliffs are too gentle. Terraces and house sites are not in the data. The bank is ETOPO 15\" (false land removed)."
  ],
- "bake_s": 44.0,
- "baked": "2026-11-08",
+ "bake_s": 49.1,
+ "baked": "2026-11-09",
  "bytes": {
-  "h16": 876609,
-  "ao": 278788,
+  "h16": 872086,
+  "ao": 283831,
   "color": 59936,
   "sat": 51581
  }

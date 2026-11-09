@@ -1,0 +1,113 @@
+{
+ "name": "holei",
+ "bbox": [
+  -155.135,
+  19.27,
+  -155.065,
+  19.315
+ ],
+ "wh": [
+  768,
+  512
+ ],
+ "px_m": 9.7,
+ "hmin": -8000.0,
+ "hrange": 17000.0,
+ "vex": 1.0,
+ "files": {
+  "h16": "h16.png",
+  "ao": "ao.png",
+  "color": "color.jpg"
+ },
+ "sources": [
+  {
+   "id": "etopo15",
+   "res_arcsec": 15.0
+  },
+  {
+   "id": "ncei:hilo_13_mhw_2011",
+   "res_arcsec": 0.33,
+   "cover": 1.0
+  }
+ ],
+ "colour": {
+  "modis": [
+   "Terra_2024-06-03",
+   "Aqua_2024-06-03",
+   "Terra_2024-06-19",
+   "Aqua_2024-06-19",
+   "Terra_2024-07-08",
+   "Aqua_2024-07-08",
+   "Terra_2024-07-21",
+   "Aqua_2024-07-21",
+   "Terra_2024-08-06",
+   "Aqua_2024-08-06",
+   "Terra_2024-08-25",
+   "Aqua_2024-08-25",
+   "Terra_2024-09-10",
+   "Aqua_2024-09-10",
+   "Terra_2024-09-22",
+   "Aqua_2024-09-22",
+   "Terra_2022-06-14",
+   "Aqua_2022-06-14",
+   "Terra_2022-07-17",
+   "Aqua_2022-07-17",
+   "Terra_2022-08-09",
+   "Aqua_2022-08-09",
+   "Terra_2022-09-05",
+   "Aqua_2022-09-05"
+  ],
+  "hls": {
+   "level": 11,
+   "dates": [
+    "S30_2024-10-03",
+    "S30_2024-07-05",
+    "S30_2024-10-13",
+    "S30_2024-08-29",
+    "S30_2024-09-23",
+    "S30_2024-03-02",
+    "S30_2024-04-06",
+    "S30_2024-08-14"
+   ],
+   "gain": [
+    0.694,
+    0.694,
+    0.694
+   ],
+   "bbox": [
+    -155.135,
+    19.27,
+    -155.065,
+    19.315
+   ]
+  }
+ },
+ "facts": {
+  "peaks_m": {
+   "cliff_top_near_arch": {
+    "h": 24,
+    "lon": -155.1006,
+    "lat": 19.2982
+   }
+  },
+  "point_h_m": {
+   "arch_site": -6
+  },
+  "land_area_km2_at_0m": 18.3,
+  "h_range_m": [
+   -1245,
+   444
+  ]
+ },
+ "purpose": "s086-s088 the sea cliffs at the end of Chain of Craters Road where the Holei Sea Arch stood (collapsed between 23 and 27 Sept 2026, NPS): waves washing through the gap, slow pull back up and away. Arch site 19.2945N 155.0979W (Wikipedia, matches aroundus; NPS gives no coordinate).",
+ "gaps": [
+  "NCEI 1/3\" (about 10 m, 2011) resolves the sea cliff (24 m on this grid within 300 m of the arch site, which itself reads -6 m) but not the arch, a few metres wide: the arch, its gap and the waves are not in the data and must be modelled in the shot, staged only at the arch site; colour is HLS 30 m (soft at a few hundred metres)."
+ ],
+ "bake_s": 29.7,
+ "baked": "2026-11-09",
+ "bytes": {
+  "h16": 134409,
+  "ao": 73354,
+  "color": 26964
+ }
+}

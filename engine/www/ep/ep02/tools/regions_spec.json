@@ -716,6 +716,73 @@
    ]
   },
   {
+   "name": "holei",
+   "bbox": [
+    -155.135,
+    19.27,
+    -155.065,
+    19.315
+   ],
+   "wh": [
+    768,
+    512
+   ],
+   "bathy": [
+    "etopo15",
+    "ncei:hilo_13_mhw_2011"
+   ],
+   "colour": {
+    "modis_n": 24,
+    "hls": {
+     "level": 11,
+     "n": 8
+    }
+   },
+   "stack": [
+    "holei",
+    "kilauea_sf",
+    "hawaii_skirt"
+   ],
+   "purpose": "s086-s088 the sea cliffs at the end of Chain of Craters Road where the Holei Sea Arch stood (collapsed between 23 and 27 Sept 2026, NPS): waves washing through the gap, slow pull back up and away. Arch site 19.2945N 155.0979W (Wikipedia, matches aroundus; NPS gives no coordinate).",
+   "facts": {
+    "depths": {
+     "arch_site": [
+      -155.0979,
+      19.2945
+     ]
+    },
+    "peaks": {
+     "cliff_top_near_arch": [
+      -155.0979,
+      19.2955,
+      0.3
+     ]
+    }
+   },
+   "view": {
+    "level": 0,
+    "look": "day",
+    "sun": [
+     120,
+     28
+    ],
+    "water": "turq",
+    "foam": 1,
+    "cam": {
+     "lon": -155.088,
+     "lat": 19.284,
+     "alt": 0.35,
+     "tLon": -155.0979,
+     "tLat": 19.2945,
+     "tH": 0,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "NCEI 1/3\" (about 10 m, 2011) resolves the sea cliff (24 m on this grid within 300 m of the arch site, which itself reads -6 m) but not the arch, a few metres wide: the arch, its gap and the waves are not in the data and must be modelled in the shot, staged only at the arch site; colour is HLS 30 m (soft at a few hundred metres)."
+   ]
+  },
+  {
    "name": "pali",
    "bbox": [
     -157.87,
@@ -735,7 +802,20 @@
     "modis_n": 24,
     "hls": {
      "level": 11,
-     "n": 8
+     "n": 16,
+     "months": [
+      [
+       "2023-05-01",
+       "2023-08-31"
+      ],
+      [
+       "2024-05-01",
+       "2024-08-31"
+      ]
+     ],
+     "pct": 0.3,
+     "gain": 0.758,
+     "match": false
     }
    },
    "stack": [
@@ -786,7 +866,8 @@
     }
    },
    "gaps": [
-    "NCEI 1/3\" (USGS 10 m land): the lookout (343 m on this grid), its wall, the road and trees are not in the data; HLS 30 m colour is soft at ground level (needs a close-up texture or paper props)."
+    "NCEI 1/3\" (USGS 10 m land): the lookout (343 m on this grid), its wall, the road and trees are not in the data; HLS 30 m colour is soft at ground level (needs a close-up texture or paper props).",
+    "The windward Ko'olau is under cloud on most HLS days and on the MODIS composite: the colour uses the 16 clearest HLS days of the 2023 and 2024 summers (high sun: winter scenes left the NE-facing pali in black topographic shadow) and a fixed gain (0.758, measured on O'ahu in oahu_nuuanu), because a gain matched to the cloudy MODIS reference came out 1.34 and turned the ridges neon green."
    ]
   },
   {
@@ -1300,7 +1381,7 @@
     }
    },
    "gaps": [
-    "Worst gap: ETOPO 2022 15\" has a 57 km2 false island over French Frigate Shoals and no reef or lagoon relief; after cleanup the atoll is a featureless shallow platform. La Pérouse Pinnacle (about 37 m) is below every grid (-11 m at its spot): model it at its surveyed position. East Island is a 6 m speck. Use sat.jpg (HLS 30 m, reef and lagoon visible) for the look; the July and October 2018 before and after must come from dated Landsat/HLS scenes, not baked here. A real fix is satellite-derived depth calibrated on the NCEI Midway survey."
+    "Worst gap: ETOPO 2022 15\" has a 57 km2 false island over French Frigate Shoals and no reef or lagoon relief; after cleanup the atoll is a featureless shallow platform. Only Tern Island and East Island are land on the grid (East Island a 4 m speck after the 4 m cap); the smaller sand islets are not resolved, and about 20 false islets on the SE rim (surf on the reef crest over ghost land-tile heights) were dropped by the islet vote. La Perouse Pinnacle (about 37 m) is below every grid (-21 m within 600 m of its spot): model it at its surveyed position. Use sat.jpg (HLS 30 m, reef and lagoon visible) for the look; the July and October 2018 before and after must come from dated Landsat/HLS scenes, not baked here. A real fix is satellite-derived depth calibrated on the NCEI Midway survey."
    ]
   },
   {
@@ -1560,7 +1641,15 @@
     "z": 14,
     "mask": "hls",
     "replace": true,
-    "cap": 6
+    "cap": 6,
+    "keep": [
+     [
+      -178.305,
+      28.384,
+      -178.282,
+      28.4025
+     ]
+    ]
    },
    "colour": {
     "sat": true,
@@ -1614,7 +1703,7 @@
     }
    },
    "gaps": [
-    "ETOPO 2022 15\" only: the reef ring and lagoon are not resolved (lagoon -2 m on the grid), Green Island 11 m from Terrarium (real about 6 m). Use sat.jpg for the reef ring; the cut-away (s143) is schematic."
+    "ETOPO 2022 15\" only: the reef ring and lagoon are not resolved (lagoon -11 m on the grid), Green Island 6 m after the cap. Land is kept only in a box around Green Island: the bright reef flat and surf on the NW rim passed the colour test as 9 ha and 2.5 ha islets that do not exist; Sand Island (about an acre, comes and goes) is below the grid. Use sat.jpg for the reef ring; the cut-away (s143) is schematic."
    ]
   },
   {
@@ -1664,8 +1753,26 @@
     }
    },
    "gaps": [
-    "Terrarium z11 (SRTM): context only."
-   ]
+    "Terrarium z11 (SRTM): context only.",
+    "HLS shadows are baked into the colour (Oct-Dec scenes, low sun): about 2-3.5 % of the colour pixels are near black on north faces, so light the stage from the south."
+   ],
+   "view": {
+    "level": -9000,
+    "look": "day",
+    "sun": [
+     200,
+     32
+    ],
+    "cam": {
+     "lon": 86.92,
+     "lat": 27.66,
+     "alt": 14,
+     "tLon": 86.925,
+     "tLat": 27.988,
+     "tH": 5500,
+     "fov": 40
+    }
+   }
   },
   {
    "name": "everest",
@@ -1731,7 +1838,8 @@
     }
    },
    "gaps": [
-    "Terrarium z14 (SRTM 30 m): summit 8,748 m on the grid vs 8,849 m surveyed (the same-scale comparisons stay on BlockStage, which scales to 8,849 m). HLS 30 m, November 2023 snow."
+    "Terrarium z14 (SRTM 30 m): summit 8,748 m on the grid vs 8,849 m surveyed (the same-scale comparisons stay on BlockStage, which scales to 8,849 m). HLS 30 m, November 2023 snow.",
+    "HLS shadows are baked into the colour (Oct-Dec scenes, low sun): about 2-3.5 % of the colour pixels are near black on north faces, so light the stage from the south."
    ]
   }
  ]

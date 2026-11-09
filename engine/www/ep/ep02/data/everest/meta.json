@@ -70,7 +70,10 @@
   ]
  },
  "purpose": "s064 the paper climber on Everest's summit (real snow); the same-scale comparisons stay on BlockStage (lab/hawaii/data/everest_h16.png).",
- "gaps": [],
+ "gaps": [
+  "Terrarium z14 (SRTM 30 m): summit 8,748 m on the grid vs 8,849 m surveyed (the same-scale comparisons stay on BlockStage, which scales to 8,849 m). HLS 30 m, November 2023 snow.",
+  "HLS shadows are baked into the colour (Oct-Dec scenes, low sun): about 2-3.5 % of the colour pixels are near black on north faces, so light the stage from the south."
+ ],
  "bake_s": 23.5,
  "baked": "2026-11-08",
  "bytes": {
