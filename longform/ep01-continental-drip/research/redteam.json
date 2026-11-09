@@ -1,0 +1,62 @@
+{
+ "problems": [
+  {
+   "segment_id": "s056",
+   "claim": "It took one stubborn man to say it out loud.",
+   "problem": "This tells viewers Wegener was the first to propose that the continents moved. He was not. Ortelius suggested in 1596 that the Americas were 'torn away from Europe and Africa' (ledger pattern-8). Snider-Pellegrini drew the Atlantic pulled apart in 1858 (future-visuals-30), and F. B. Taylor proposed drift in 1908\u20131910. Wegener's contribution was building the full scientific case. The same segment's visual is an Ortelius map, so commenters will catch it.",
+   "corrected_text": "The real suspect had been hiding in plain sight on every world {m:maps}map. A few people had guessed it before. It took one stubborn man to {m:say}make the case out loud. And his story ends on one of the {m:drips}drips.",
+   "evidence_url": "https://pubs.usgs.gov/gip/dynamic/historical.html"
+  },
+  {
+   "segment_id": "s079",
+   "claim": "Here's the best explanation geologists have. Put the pieces back together, and their pointy ends are the ones that sat right up against Antarctica.",
+   "problem": "The line claims more than the evidence supports, in two ways. (1) 'The best explanation geologists have' implies a consensus. The only support is one informal 'Ask a Geologist' answer by Ted Nield (ledger science-21, medium confidence), and the ledger itself says no peer-reviewed study explains the taper. (2) Nield says the fragments kept 'their general orientation', with the point 'directed to the South Pole'. He does not say the tips 'sat right up against Antarctica'. In Gondwana reconstructions, South America's tip does sit beside the Antarctic Peninsula. But Africa's southern tip faced the Falkland Plateau, with Antarctica against Africa's south-east flank, and India's tip sat near Sri Lanka and Madagascar. 'Close to Antarctica' is accurate; 'right up against' is not.",
+   "corrected_text": "Here's the {m:best}explanation a geologist will most likely give you. Put the pieces back {m:together}together, and their pointy ends all sat close to {m:ant2}Antarctica.",
+   "evidence_url": "https://geolsoc.org.uk/Education-and-Careers/Ask-a-Geologist/Continents-Supercontinents-and-the-Earths-Crust/Why-Do-Most-Peninsulas-Point-South"
+  },
+  {
+   "segment_id": "s068",
+   "claim": "[The proof] came out thirty-three years after he died.",
+   "problem": "Here 'it' means 'the proof' from s067. The 1963 Vine\u2013Matthews paper was a hypothesis: the Geological Society calls it 'the first scientific test of sea floor spreading'. It was disputed for several years. The data usually credited with settling the question is the Eltanin-19 profile (Pitman and Heirtzler, 1966). The 1930-to-1963 counter and the '33 YEARS TOO LATE' card can stay if the sentence names the paper rather than 'the proof'.",
+   "corrected_text": "The paper that decoded those stripes came out {m:y33}thirty-three years after he died.",
+   "evidence_url": "https://www.geolsoc.org.uk/Plate-Tectonics/Chap1-Pioneers-of-Plate-Tectonics/Vine-and-Matthews.html"
+  },
+  {
+   "segment_id": "s094",
+   "claim": "...the best-known story says the name means 'needles,' because sailors' compass needles there pointed true north. So Africa's southern tip is named after pointing north.",
+   "problem": "The hedge is dropped by the last sentence. The name certainly means 'needles'; the uncertain part is why. Britannica gives two explanations, listing first the jagged, needle-like rocks and reefs and second the zero compass declination (ledger future-visuals-22 is medium confidence and says to hedge). The closing 'So Africa's southern tip is named after pointing north' states the uncertain story as fact.",
+   "corrected_text": "And Africa's real southern tip isn't the Cape of Good {m:gh}Hope. It's Cape {m:agul}Agulhas. The name means {m:needles}'needles,' and the best-known story says that's because sailors' {m:compass}compass needles there pointed true north. So, if that story is right, Africa's southern tip is named after pointing {m:north2}north.",
+   "evidence_url": "https://www.britannica.com/place/Cape-Agulhas"
+  },
+  {
+   "segment_id": "s050",
+   "claim": "And it went mainstream.",
+   "problem": "'Mainstream' implies broad acceptance. The tetrahedral hypothesis had prominent supporters (Gregory 1899, Lapparent, Emerson 1900/1917), and Wikipedia says it was 'still popular in 1917'. It was never the accepted view of geology, though. 'Caught on' keeps the beat and matches the evidence.",
+   "corrected_text": "And it {m:main}caught on. By eighteen ninety-nine, a leading {m:geol}geologist was telling Britain's top geographers that a shrinking Earth had to {m:squeeze}squeeze toward a {m:geo}tetrahedron.",
+   "evidence_url": "https://en.wikipedia.org/wiki/Tetrahedral_hypothesis"
+  },
+  {
+   "segment_id": "s098",
+   "claim": "On-screen: '4 MODELS, 200-250 MILLION YEARS OUT'",
+   "problem": "The card applies the 200\u2013250 Myr figure to all four models, which overstates how far they agree. Amasia is 50\u2013200 Myr in Mitchell's Yale estimate (200\u2013300 Myr in the 2022 Curtin version), and Aurica is reported at 'within 200' to about 300 Myr. The ledger's own caveat (future-visuals-6) says the range depends on the model. The narration ('a couple hundred million years') is fine.",
+   "corrected_text": "On-screen: 4 MODELS, 50-300 MILLION YEARS OUT",
+   "evidence_url": "https://news.yale.edu/2012/02/08/next-supercontinent-forms-arctic-ocean-caribbean-will-vanish-first"
+  },
+  {
+   "segment_id": "s059",
+   "claim": "On-screen: '1912: \"THE CONTINENTS MOVE\"'",
+   "problem": "The quotation marks present a paraphrase as Wegener's words. There is no such quote. His 6 January 1912 Frankfurt talk was titled 'Die Herausbildung der Grossformen der Erdrinde (Kontinente und Ozeane), auf geophysikalischer Grundlage'. Every other on-screen string in quote marks in this script is a verified quotation, so this one should not use them.",
+   "corrected_text": "On-screen: 1912: THE CONTINENTS MOVE",
+   "evidence_url": "https://science.nasa.gov/earth/earth-observatory/alfred-wegener"
+  },
+  {
+   "segment_id": "s104",
+   "claim": "Only about one-tenth of the land would stay livable for mammals. (On-screen: LIVABLE FOR MAMMALS: ~1 IN 10)",
+   "problem": "Minor precision issue. The study's result is a range of 8\u201316%. 'About one-tenth' sits near the bottom of it: the midpoint is about one in eight and the top is about one in six. That makes the finding sound somewhat bleaker than the paper reports.",
+   "corrected_text": "One study ran the climate on one of these future supercontinents. Only a {m:tenth}tenth to a sixth of the land would stay livable for mammals. {m:mammal}Reminder: you're a mammal. (On-screen: LIVABLE FOR MAMMALS: UNDER 1 IN 6)",
+   "evidence_url": "https://bristol.ac.uk/news/2023/september/nature-geoscience-extreme-heat.html"
+  }
+ ],
+ "ok_count": 101,
+ "notes": "I checked all 109 segments. 101 had no real problems; the 8 with problems are listed above, most severe first (s056 and s079 matter most).\n\nClaims I confirmed independently:\n- **W. L. Green:** Hawaii's Minister of Foreign Affairs from 17 Feb 1874 to 5 Dec 1876, so the 1875 title page is correct. He was a merchant, not a professor.\n- **Holden's 1976 text:** I read the 1991 reprint (OCR of the ASBS PDF). These are verbatim: 'tear-drop shaped... pointed ends trending south indicating the directions from which they have come', 'drips should always flow down', 'Tuesday morning at 9:00 a.m. 1,786,379 A.D.', 'Pangooy' (excluding Antarctica), and the citation of Dietz and Holden (1970).\n- **'Geologist' for Holden:** GSA Today calls him 'a geologist and artist'. Wikipedia only says 'scientific illustrator', so the label is defensible but thin.\n- **'Continental drip':** I found no use of the phrase before de Kay's 1973 piece. Wikipedia credits him with the observation but never says he coined the term, so s022's 'got its name' rests on absence of evidence.\n- **Wegener's posts:** German Wikipedia says he was made au\u00dferordentlicher Professor at Hamburg in 1921 and later took the chair (Lehrstuhl) at Graz. That makes s060's 'never landed a full professorship' in Germany accurate.\n- **Wegener's last journey:** he left Eismitte on 1 Nov 1930 (from his obituary), and his 'sorgf\u00e4ltig angelegtes Grab' (carefully made grave) was found on 12 May 1931.\n- **'Utter, damned rot':** several sources attribute it to W. B. Scott, then president of the American Philosophical Society. s060's 'one society president' is fine.\n- **The 1918 magazine:** it is My Magazine, May 1918. It was Arthur Mee's children's monthly, renamed from The Children's Magazine in 1914. 'Men of science believe...' and 'a sort of pyramid' are verbatim.\n- **Kansas antipode:** 39\u00b050\u2032S 81\u00b025\u2032E. \u00cele Saint-Paul is 222 mi away and \u00cele Amsterdam 250 mi, so '200+ miles to the nearest land' holds. No US territory sits opposite China.\n- **Future models:**\n  - Novopangaea: Bangor confirms 'Americas would collide with the northward drifting Antarctica'.\n  - Pangaea Proxima: Wikipedia says 'North America will have collided with Africa' within 250 Myr.\n  - Aurica: the US West Coast meets Australia/Antarctica, but the East Coast also hits Iberia and Morocco. Calling Aurica the 'Australia' option in s103 is a simplification, though acceptable.\n- **Blue Marble:** the original frame has the South Pole at the top.\n- **Distances and conversions:** Agulhas to Good Hope is about 93 mi. North Pole seabed is 4,261 m = 2.65 mi. India's 18\u201320 cm/yr = 7\u20138 in/yr. The school-bus figure works out to 33\u201353 ft.\n- **Bacon:** the Devey wording in s012 and s013 matches the local Gutenberg text.\n\nBorderline items I chose not to flag:\n- s026 'almost two miles up': the real figure is 1.76 mi. Generous, but it is common usage.\n- s020 'the most famous scientist alive' for Humboldt: a standard characterization.\n- s070 'So Wegener was right': right that continents move, wrong about the mechanism and his speed estimates. Acceptable in context.\n- s051 credits Gregory with 'most of North America'. He actually wrote 'the whole', and 'most' is the true version.\n\nProduction note, not narration:\n- **Bacon page number conflict.**\n  - Ledger pattern-2 puts the passage on printed p.232 of the 1620 edition.\n  - The visual director found it on leaf n246, printed p.239.\n  - Whichever page the YouTube description cites must match the page actually shown.\n\nMy work folder is /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/script/factcheck-final-adversarial/. It holds asbs.txt and gsa.txt, my text extractions of the source PDFs."
+}

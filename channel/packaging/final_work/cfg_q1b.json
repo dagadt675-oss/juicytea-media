@@ -1,0 +1,149 @@
+{
+ "ours_q1_P1_b": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/final_work/plates/P1_b.jpg",
+  "wet": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P1_ridge_wet.jpg",
+  "crop": [
+   0.47,
+   0.52,
+   1.2
+  ],
+  "grade": {
+   "hero": {
+    "exposure": 1.14,
+    "sat": 1.05
+   },
+   "bg": {
+    "exposure": 1.03,
+    "warm": [
+     1.03,
+     1.0,
+     0.95
+    ]
+   },
+   "contrast": 1.05
+  },
+  "text": [
+   {
+    "s": "NO OCEAN",
+    "cap": 0.15,
+    "x": 0.955,
+    "y": 0.035,
+    "anchor": "r",
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     110
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ]
+ },
+ "ours_q1_P1_c": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/final_work/plates/P1_c.jpg",
+  "wet": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P1_ridge_wet.jpg",
+  "crop": [
+   0.47,
+   0.52,
+   1.2
+  ],
+  "grade": {
+   "hero": {
+    "exposure": 1.14,
+    "sat": 1.05
+   },
+   "bg": {
+    "exposure": 1.03,
+    "warm": [
+     1.03,
+     1.0,
+     0.95
+    ]
+   },
+   "contrast": 1.05
+  },
+  "text": [
+   {
+    "s": "NO OCEAN",
+    "cap": 0.15,
+    "x": 0.955,
+    "y": 0.035,
+    "anchor": "r",
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     110
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ]
+ },
+ "ours_q1_P1_d": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/final_work/plates/P1_d.jpg",
+  "wet": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P1_ridge_wet.jpg",
+  "crop": [
+   0.47,
+   0.52,
+   1.2
+  ],
+  "grade": {
+   "hero": {
+    "exposure": 1.14,
+    "sat": 1.05
+   },
+   "bg": {
+    "exposure": 1.03,
+    "warm": [
+     1.03,
+     1.0,
+     0.95
+    ]
+   },
+   "contrast": 1.05
+  },
+  "text": [
+   {
+    "s": "NO OCEAN",
+    "cap": 0.15,
+    "x": 0.955,
+    "y": 0.035,
+    "anchor": "r",
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     110
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ]
+ }
+}

@@ -1,0 +1,95 @@
+<!doctype html><html><head><meta charset="utf-8">
+<script type="importmap">{"imports":{"three":"/three.module.min.js"}}</script>
+<style>html,body{margin:0;background:#000;overflow:hidden}</style></head><body>
+<script type="module">
+// Lab: HAWAII hero stills for thumbnails (no text). Real ETOPO 2022 bathymetry + AWS Terrain Tiles land detail + NASA MODIS colour.
+// Render: node still.cjs --page lab_hawaii.html --q '{"shot":"half_low_se"}' --frames 0 --outdir <dir> [--w 1280 --h 720]
+// Q: {"shot": name, then any override: "cam":{...}, "level": m, "sun":[az,el], "look":"gold|day|warm", "water":"turq|lagoon|ocean", "vex": 1,
+//     "foam":0..1, "tub":0..1, "line":0..1, "exposure", "sat", "contrast", "lift", "vignette", "samples", "fog":[dens,bg], "draft":1}
+// Shot list, camera params and data notes: research/packaging/renders/index.md (scratchpad) and the SHOTS table below.
+import * as THREE from 'three';
+import { HawaiiStage } from './lab/hawaii/hterrain.js';
+import { BlockStage } from './lab/hawaii/blocks.js';
+const P = new URLSearchParams(location.search);
+const W = +P.get('w') || 1920, H = +P.get('h') || 1080;
+const Q = JSON.parse(P.get('q') || '{}');
+const log = (s) => fetch('/log', { method: 'POST', body: String(s) });
+const out = document.createElement('canvas'); out.width = W; out.height = H; document.body.appendChild(out); const ox = out.getContext('2d');
+// camera: lon/lat of the eye, agl = km above the ground or water below it (or alt = km above present sea level),
+// target tLon/tLat (+ tH metres, default = surface there), fov = vertical degrees, shiftY = vertical lens shift (frame units)
+const SHOTS = {
+  // (1) Big Island, water half drained to -2,400 m: old shoreline (cream line + pale crust band) and the enormous flank below
+  half_oblique_w:    { level: -2400, look: 'gold', sun: [200, 12], water: 'turq', foam: 1, tub: 1, line: 1, lineCol: 'cream',
+                       cam: { lon: -156.55, lat: 19.15, alt: 16, tLon: -155.75, tLat: 19.50, tH: 0, fov: 34 } },
+  half_east_puna:    { level: -2400, look: 'gold', sun: [200, 20], water: 'turq', foam: 1, tub: 1, line: 1, lineCol: 'cream',
+                       cam: { lon: -154.35, lat: 19.25, alt: 12, tLon: -155.10, tLat: 19.55, tH: 0, fov: 40 } },
+  half_contrast_ne:  { level: -2400, look: 'day', sun: [150, 35], water: 'turq', foam: 1, tub: 1, line: 1, lineCol: 'cream', contrast: 1.18, sat: 1.25,
+                       cam: { lon: -154.85, lat: 20.45, alt: 12, tLon: -155.40, tLat: 19.85, tH: 0, fov: 38 } },
+  half_low_se_x2:    { vex: 2, level: -2400, look: 'gold', sun: [235, 11], water: 'lagoon', foam: 1, tub: 1, line: 1, lineCol: 'cream',
+                       cam: { lon: -154.80, lat: 18.95, agl: 3, tLon: -155.55, tLat: 19.45, tH: 2000, fov: 30 } },
+  half_golden_kona_x2: { vex: 2, level: -2400, look: 'gold', sun: [268, 8], water: 'turq', foam: 1, tub: 1, line: 1, lineCol: 'cream',
+                       cam: { lon: -156.45, lat: 19.45, agl: 4, tLon: -155.75, tLat: 19.48, tH: 1500, fov: 30 } },
+  // (2) fully drained massif standing on the sea floor
+  drained_massif_e:  { level: -9000, look: 'day', sun: [175, 26], sed: [0.045, 0.045, 0.048], tub: 1, line: 1, lineCol: 'cream', exposure: 1.3,
+                       cam: { lon: -154.30, lat: 19.35, alt: 12, tLon: -155.25, tLat: 19.60, tH: -2500, fov: 40 } },
+  drained_massif_sw: { level: -9000, look: 'day', sun: [190, 24], sed: [0.045, 0.045, 0.048], tub: 1, line: 1, lineCol: 'cream', exposure: 1.3,
+                       cam: { lon: -156.45, lat: 18.95, alt: 12, tLon: -155.75, tLat: 19.45, tH: -2500, fov: 40 } },
+  drained_massif_ne_x2: { vex: 2, level: -9000, look: 'warm', sun: [300, 13], tub: 1, line: 1, lineCol: 'cream',
+                       cam: { lon: -154.80, lat: 20.55, alt: 10, tLon: -155.45, tLat: 19.75, tH: -2000, fov: 36 } },
+  // (3) Maui Nui at -400 ft (-122 m): Maui, Moloka'i, Lana'i joined (data saddles -59 / -79 m); Kaho'olawe separate (saddle -159 m)
+  mauinui_400ft_s:   { level: -122, look: 'day', sun: [120, 38], water: 'turq', foam: 1, tub: 0, line: 0, landSat: 0.95,
+                       cam: { lon: -156.55, lat: 20.15, alt: 30, tLon: -156.65, tLat: 20.90, tH: 0, fov: 34 } },
+  mauinui_400ft_sw:  { level: -122, look: 'day', sun: [120, 38], water: 'turq', foam: 1, tub: 0, line: 0, landSat: 0.95,
+                       cam: { lon: -157.35, lat: 20.35, alt: 25, tLon: -156.55, tLat: 20.85, tH: 0, fov: 36 } },
+  // (4) Mauna Loa vs Everest, same scale, base lines aligned (block mode; eye/target in km: x east, y up, z south; blocks 28 km wide at x = -19 and +19)
+  compare_everest:   { mode: 'blocks', look: 'day', sun: [228, 30], guides: 0, line: 1, cam: { eye: [0, 12, 230], target: [0, 7.6, 0], fov: 12 } },
+  compare_everest_guides: { mode: 'blocks', look: 'day', sun: [228, 30], guides: 1, line: 1, cam: { eye: [0, 12, 230], target: [0, 7.6, 0], fov: 12 } },
+  compare_everest_34: { mode: 'blocks', look: 'day', sun: [228, 30], guides: 0, line: 1, cam: { eye: [60, 30, 200], target: [0, 7, 0], fov: 14 } },
+  // (6) mid-drain (-2,000 m): turquoise water, foam rim halfway down the dark basalt flank
+  mid_drain_foam_se: { level: -2000, look: 'gold', sun: [235, 18], water: 'turq', foam: 1, foamPx: 5, tub: 1, line: 1, lineCol: 'cream',
+                       cam: { lon: -155.00, lat: 19.05, agl: 4, tLon: -155.10, tLat: 19.18, tH: -2000, fov: 45 } },
+  mid_drain_foam_kona: { level: -2000, look: 'gold', sun: [250, 16], water: 'turq', foam: 1, foamPx: 5, tub: 1, line: 1, lineCol: 'cream',
+                       cam: { lon: -156.15, lat: 19.35, agl: 4, tLon: -156.02, tLat: 19.50, tH: -2000, fov: 45 } },
+  mid_drain_puna:    { level: -2000, look: 'gold', sun: [220, 20], water: 'turq', foam: 1, foamPx: 5, tub: 1, line: 1, lineCol: 'cream',
+                       cam: { lon: -154.55, lat: 19.40, agl: 5, tLon: -154.72, tLat: 19.55, tH: -2000, fov: 45 } },
+  // (7) clean plate for the postcard signature: low north-east oblique, warm side light, dark basalt, minimal tan (keep the top third calm)
+  plate_ne:          { level: -9000, look: 'warm', sun: [300, 13], tub: 1, line: 0, exposure: 1.35,
+                       cam: { lon: -155.00, lat: 20.30, alt: 8, tLon: -155.45, tLat: 19.80, tH: -1000, fov: 38 } },
+  plate_ne_line:     { level: -9000, look: 'warm', sun: [300, 13], tub: 1, line: 1, lineCol: 'cyan', exposure: 1.35,
+                       cam: { lon: -155.00, lat: 20.30, alt: 8, tLon: -155.45, tLat: 19.80, tH: -1000, fov: 38 } },
+  plate_ne_wide:     { level: -9000, look: 'warm', sun: [315, 16], tub: 1, line: 0, exposure: 1.35,
+                       cam: { lon: -155.10, lat: 20.40, alt: 6, tLon: -155.47, tLat: 19.82, tH: 0, fov: 34 } },
+};
+const merge = (a, b) => { const o = Object.assign({}, a); for (const k in b) o[k] = (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k]) && a[k]) ? merge(a[k], b[k]) : b[k]; return o; };
+const S0 = SHOTS[Q.shot || 'half_oblique_w'] || {};
+const shot = merge(S0, Q); if (Q.cam) shot.cam = Q.cam;  // a camera override replaces the whole camera
+let S;
+window.ready = (async () => {
+  if (shot.mode === 'blocks') { S = new BlockStage(W, H, { samples: shot.samples ?? 4, vex: shot.vex ?? 1.0, half: shot.half, gap: shot.gap }); await S.load('lab/hawaii/data'); return; }
+  S = new HawaiiStage(W, H, { samples: shot.draft ? 0 : (shot.samples ?? 4), vex: shot.vex ?? 1.0, fogDens: shot.fog?.[0], fogBg: shot.fog?.[1],
+    heroGrid: shot.draft ? [700, 700] : undefined, skirtGrid: shot.draft ? [450, 340] : undefined });
+  await S.load('lab/hawaii/data');
+})();
+window.renderFrame = async (f) => {
+  const t0 = performance.now();
+  if (shot.mode === 'blocks') {
+    S.setLook(shot.look || 'day', ...(shot.sun || [228, 30])); S.U.seaLine.value = shot.line ?? 1; S.guides.visible = !!shot.guides;
+    for (const k of ['exposure', 'sat', 'contrast', 'lift', 'vignette', 'grain']) if (shot[k] != null) S.postMat.uniforms[k].value = shot[k];
+    S.setCamera(shot.cam); ox.drawImage(S.render(f), 0, 0);
+    log(`shot=${Q.shot} blocks: Mauna Loa DEM summit ${S.facts.mlDem.toFixed(0)} m, base ${S.mlBase.toFixed(0)} m; Everest DEM ${S.facts.evDem.toFixed(0)} m -> 8849; render ${(performance.now() - t0).toFixed(0)} ms`);
+    return;
+  }
+  S.setLook(shot.look || 'gold'); S.setSun(...(shot.sun || [230, 15])); S.setWater(shot.water || 'turq');
+  S.setLevel(shot.level ?? 0);
+  S.set('foamAmt', shot.foam ?? 0); S.set('tubAmt', shot.tub ?? 0); S.set('oldLine', shot.line ?? 0);
+  for (const k of ['ringH', 'tubM', 'lineW', 'landSat', 'landGain', 'reefAmt', 'detail', 'foamPx', 'foamM', 'edgeGlow', 'fresMax', 'seaRelief', 'shadows', 'dbg']) if (shot[k] != null) S.set(k, shot[k]);
+  if (shot.basalt) S.set('basaltCol', new THREE.Vector3(...shot.basalt));
+  if (shot.sed) S.set('sedCol', new THREE.Vector3(...shot.sed));
+  if (shot.lineCol) S.set('lineCol', new THREE.Vector3(...(shot.lineCol === 'cream' ? [1.15, 1.1, 1.0] : shot.lineCol === 'cyan' ? [0.55, 1.6, 1.9] : shot.lineCol)));
+  for (const k of ['exposure', 'sat', 'contrast', 'lift', 'vignette', 'grain']) if (shot[k] != null) S.post(k, shot[k]);
+  S.setCamera(shot.cam);
+  ox.drawImage(S.render(f / 30, f), 0, 0);
+  log(`shot=${Q.shot} level=${shot.level} render ${(performance.now() - t0).toFixed(0)} ms`);
+};
+window.grabBlob = () => new Promise(r => out.toBlob(r, 'image/jpeg', 0.94));
+</script></body></html>

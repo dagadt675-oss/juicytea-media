@@ -1,0 +1,22 @@
+<!doctype html><html><head><link rel="stylesheet" href="fonts/fonts.css"></head><body><script type="module">
+import { Globe } from './lib/globe.js';
+import * as F from './lib/fx.js';
+import { loadGeo, findFeature, strokeProjected, rings, gcLine, projectPath } from './lib/geo.js';
+const W=1920,H=1080; const comp=document.createElement('canvas'); comp.width=W; comp.height=H; document.body.appendChild(comp); const cx=comp.getContext('2d');
+const g=new Globe(W,H); let AUS;
+window.ready=(async()=>{ await document.fonts.load('400 100px "Bebas Neue"'); await document.fonts.load('700 40px "Barlow Condensed"'); await document.fonts.load('800 100px "Inter"'); await g.init(); AUS=findFeature(await loadGeo('ne_50m_admin_0_countries'),'Australia'); g.set({lat:-30,lon:134,alt:0.75,tilt:28}); })();
+window.bench=async()=>{
+  const out={}; const T=async(name,fn,n=5)=>{ cx.drawImage(g.render(),0,0); let t=performance.now(); for(let i=0;i<n;i++) await fn(i); await new Promise(r=>comp.toBlob(r,'image/jpeg',0.95)); out[name]=Math.round((performance.now()-t)/n); };
+  await T('blobOnly', async()=>{});
+  await T('starfield', async()=>g.starfield(cx));
+  await T('projectOnly', async()=>{ const R=rings(AUS); let n=0; for(const r of R) for(const [lo,la] of r){ g.project(la,lo); n++; } out.npts=n; });
+  await T('strokeNoGlow', async()=>strokeProjected(cx,g,rings(AUS),{glow:false}));
+  await T('strokeGlow', async()=>strokeProjected(cx,g,rings(AUS),{}));
+  await T('arc', async()=>F.glowPath(cx, projectPath(g,gcLine([-33.87,151.21],[-31.95,115.86],80,0.02)),{p:1}));
+  await T('pill', async()=>F.pill(cx,'ULURU',900,400,{anchor:'left',leader:[800,500],ring:0.3}));
+  await T('counter', async(i)=>F.counter(cx,0,2531,i/5,1500,220,{size:120,unit:'MI'}));
+  await T('headline', async(i)=>F.headline(cx,['NOBODY','LIVES','HERE'],960,880,1+i*0.1,{size:150}));
+  await T('vignette', async(i)=>F.post(cx,W,H,i));
+  return out;
+};
+</script></body></html>

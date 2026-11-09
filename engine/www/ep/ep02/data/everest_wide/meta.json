@@ -1,0 +1,86 @@
+{
+ "name": "everest_wide",
+ "bbox": [
+  86.5,
+  27.6,
+  87.4,
+  28.4
+ ],
+ "wh": [
+  1024,
+  910
+ ],
+ "px_m": 92.1,
+ "hmin": -8000.0,
+ "hrange": 17000.0,
+ "vex": 1.0,
+ "files": {
+  "h16": "h16.png",
+  "ao": "ao.png",
+  "color": "color.jpg"
+ },
+ "sources": [
+  {
+   "id": "etopo15",
+   "res_arcsec": 15.0
+  },
+  {
+   "id": "terrarium_z11",
+   "res_m": 67.5,
+   "land_only": true,
+   "cap_m": null
+  }
+ ],
+ "colour": {
+  "bmng": "BlueMarble_NextGeneration 2004-07",
+  "hls": {
+   "level": 10,
+   "dates": [
+    "L30_2024-06-10",
+    "S30_2024-06-10",
+    "S30_2024-04-26",
+    "S30_2022-04-12",
+    "L30_2024-04-23",
+    "S30_2024-06-05"
+   ],
+   "gain": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "bbox": [
+    86.5,
+    27.6,
+    87.4,
+    28.4
+   ]
+  }
+ },
+ "facts": {
+  "peaks_m": {
+   "everest": {
+    "h": 8731,
+    "lon": 86.925,
+    "lat": 27.9881
+   }
+  },
+  "land_area_km2_at_0m": 7908.6,
+  "h_range_m": [
+   879,
+   8731
+  ]
+ },
+ "purpose": "Context layer for the Everest summit gag.",
+ "gaps": [
+  "Terrarium z11 (SRTM): context only.",
+  "Colour (round 3, 2026-11-09): HLS 30 m from the pre-monsoon high-sun window (10 April-10 June 2022-2024, the 6 clearest days, median): near-black texels 6.3 % to 0.03 %, on north faces above 5,000 m 8.6 % to 0.07 % (was October-December, low sun). The monsoon months are cloud-covered and the HLS Fmask calls the high snowfields cloud (half the pixels above 6,500 m never clear), so they are not used. Light from the south still reads best (preset everest); AO tangent."
+ ],
+ "bake_s": 28.2,
+ "baked": "2026-11-09",
+ "ao": "tangent (horizon above the local slope)",
+ "bytes": {
+  "h16": 1402930,
+  "ao": 723515,
+  "color": 294857
+ }
+}

@@ -1,0 +1,376 @@
+{
+ "facts": [
+  {
+   "id": "C12-01",
+   "claim": "Most of this mountain is under the sea. The Hawaiʻi on every postcard is only the top.",
+   "status": "verified",
+   "sources": [
+    "https://www.usgs.gov/faqs/how-big-are-hawaiian-volcanoes"
+   ],
+   "notes": "USGS FAQ: Mauna Kea 'rises 13,796 feet (4,205 meters) above sea level' and 'extends about 19,700 feet (6,000 meters) below sea level to meet the deep ocean floor'. So about 59% of its height is underwater, before any crustal dent. Pays the title's 'Most of' (packaging promise map): say it means the MOUNTAIN, not land area. No numbers needed in the cold open. Never say Everest, 33,500 or 56,000 in the first 30 s (packaging rule). The USGS FAQ quotes Everest as 29,029 ft (old survey); Ch3 uses 29,032 ft, which is another checker's item."
+  },
+  {
+   "id": "C12-02",
+   "claim": "Every ridge down here is real. Ships mapped most of it with sonar.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.pacioos.hawaii.edu/metadata/hmrg_bathy_50m_mhi.html",
+    "https://www.gmrt.org/services/GridServer"
+   ],
+   "notes": "HMRG/PacIOOS metadata: 'A 50-m resolution gridded synthesis of all available bathymetry ... including ship-borne multibeam sonar surveys'. It does NOT claim full multibeam coverage, and the far field (ETOPO/GEBCO) is partly satellite-predicted, so 'ships mapped ALL of it' is not safe: keep 'most of it'. OWNER-RULE FLAG: the owner bans 'computed from data' style lines in narration. The sonar clause is a data-provenance line, so the script lead must decide. The safest option is 'Every ridge down here is real.' alone, or drop it. Never put it on screen."
+  },
+  {
+   "id": "C12-03",
+   "claim": "Drop the sea four hundred feet, and three islands become one.",
+   "status": "verified",
+   "sources": [
+    "https://www.gmrt.org/services/GridServer",
+    "https://files.hawaii.gov/dbedt/economic/databook/2024-individual/05/050424.pdf",
+    "https://www.usgs.gov/news/volcano-watch-once-big-island-maui-county-now-four-small-islands"
+   ],
+   "notes": "MEASURED (flood-fill on GMRT high-res, about 60 m cells, today's bathymetry). Saddles: Lānaʻi-West Maui about -50 m (-166 ft) near 20.885N 156.758W (ʻAuʻau Channel); Molokaʻi-Lānaʻi about -78 m (-257 ft) near 20.980N 156.950W (Kalohi side); Penguin Bank-West Molokaʻi about -60 m (-197 ft) near 21.105N 157.392W; DIRECT Molokaʻi-West Maui (Pailolo) about -238 m (-781 ft), so the Pailolo Channel STAYS WATER at -400 ft and Molokaʻi joins Maui only through Lānaʻi (matches USGS 2003: 'A permanent embayment separated East Molokaʻi from West Maui by about 700,000 years ago ... these two volcanoes remained connected via Lānaʻi'). Kahoʻolawe-Maui about -159 m (-523 ft) near 20.617N 156.512W, so Kahoʻolawe stays separate at -400 ft; do NOT drain past about -500 ft in this shot or it joins. The three islands actually fuse by about -260 ft, so '400 ft' is safe. State Data Book maximum depths along fixed lines (ʻAuʻau 77 m, Kalohi 165 m, Pailolo 258 m, ʻAlalākeiki 251 m) are consistent; they are maxima, not saddles. VISUAL: the fused island is a horseshoe around a Pailolo bay; Penguin Bank is a big lobe off West Molokaʻi; Oʻahu (Kaiwi saddle about -586 m) and the Big Island (ʻAlenuihāhā saddle about -1,920 m) stay separate. Put the 'No ferry needed' suitcase gag on the ʻAuʻau Channel floor (Lānaʻi-West Maui), never on Pailolo. The HMRG 50 m grid could not be fetched (the PacIOOS TLS chain ends at a root, emSign Root CA - G1, that none of our trust stores hold, and verification was not bypassed). The render team must re-run sill.py on the production grid; the margins (37 m or more) make a different answer unlikely. Map check: /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/factcheck1/mauinui_m122.png. Name Maui, Molokaʻi and Lānaʻi by 0:14 (packaging condition for arm B)."
+  },
+  {
+   "id": "C12-04",
+   "claim": "In the last Ice Age, the sea really was about four hundred feet lower.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://sealevel.nasa.gov/vesl/web/solid-earth/gia/",
+    "https://tos.org/oceanography/assets/docs/33-2_miller.pdf"
+   ],
+   "notes": "NASA: 20,000 years ago 'the average sea level was about 120 meters/400 feet lower than today'. Other estimates run 120-130 m (about 400-425 ft). Always say 'about'. Do not give an exact date; if one is needed, say 'about 20,000 years ago'. USGS 2003 used 'about 18,000 years ago' for the low stand; modern estimates of the Last Glacial Maximum span about 26,000-19,000 years."
+  },
+  {
+   "id": "C12-05",
+   "claim": "That's not a what-if. In the last Ice Age, Maui, Molokaʻi and Lānaʻi were one island.",
+   "status": "verified",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-once-big-island-maui-county-now-four-small-islands",
+    "https://scholarspace.manoa.hawaii.edu/items/7d718195-0533-4146-9e64-0f6d954dcddf"
+   ],
+   "notes": "USGS Volcano Watch (10 Apr 2003, based on Price & Elliott-Fisk 2004, Pacific Science 58:27-45): 'Maui, Lānaʻi, and Molokaʻi were connected intermittently thereafter, most recently about 18,000 years ago.' Do NOT include Kahoʻolawe. Do not say they were 'always' one island (the link was intermittent). Use the ʻokina and kahakō in every label (Molokaʻi, Lānaʻi)."
+  },
+  {
+   "id": "C12-06",
+   "claim": "Kahoʻolawe's land link to Maui broke for good long before that, probably 150,000 to 200,000 years ago.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-once-big-island-maui-county-now-four-small-islands"
+   ],
+   "notes": "USGS 2003: 'The connection between Kahoʻolawe and Maui disappeared permanently, probably between 200,000 and 150,000 years ago.' Keep 'probably'. Not needed in the narration. It justifies dimming Kahoʻolawe in the -400 ft shot (see C12-03 for the measured saddle)."
+  },
+  {
+   "id": "C12-07",
+   "claim": "That flat bank was dry land once. It's the top of a volcano that sank, and coral grew over it.",
+   "status": "verified",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-once-big-island-maui-county-now-four-small-islands",
+    "https://www.gmrt.org/services/GridServer"
+   ],
+   "notes": "USGS 2003: 'Penguin Bank originated as a volcano that completed its shield-building stage about 2.2 million years ago', 'Now bearing a thick coral cap and lying in water shallower than 200 m'. GMRT: the bank top sits mostly at about -30 to -60 m, so it was also dry land at the Ice Age low stand (C12-04). Do not say it sank in the last 20,000 years: it went under mainly because the sea rose after the Ice Age, on top of long-term subsidence. Packaging backup title 2 needs both causes named here; see C12-09b."
+  },
+  {
+   "id": "C12-08",
+   "claim": "At its biggest, this joined island was bigger than today's Big Island.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-once-big-island-maui-county-now-four-small-islands",
+    "https://en.wikipedia.org/wiki/Maui_Nui"
+   ],
+   "notes": "USGS 2003: Maui Nui about 1.2 million years ago 'encompassed about 14,600 square kilometers (5,640 sq mi)' and was 'larger by 50 percent than today's Big Island'. Inconsistency: Hawaiʻi Island is about 10,430 km² (4,028 sq mi), so 14,600 km² is about 40% larger, not 50%. Say 'bigger than today's Big Island'; never '50% bigger'. Not in the Ch1-2 outline; spine item 5 only."
+  },
+  {
+   "id": "C12-09a",
+   "claim": "BANNED WORDING: 'All of Hawaii is sinking.'",
+   "status": "false",
+   "sources": [
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC12280184/",
+    "https://www.usgs.gov/publications/coral-ages-and-island-subsidence-hilo-drill-hole"
+   ],
+   "notes": "The absolute 'all' is false in the present tense. Oʻahu 'is thought to be experiencing uplift on the flexural bulge generated by construction of the island of Hawaiʻi' (Toomey et al. 2025, Scientific Reports 15:26462), and emerged reef terraces on Oʻahu, Molokaʻi and Lānaʻi record uplift. The Big Island is the one measured to be sinking now. Use C12-09b."
+  },
+  {
+   "id": "C12-09b",
+   "claim": "Part of it drowned when the sea rose after the Ice Age. The rest is slower: these islands sink as they age, and the Big Island is sinking right now, a little every year.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/publications/coral-ages-and-island-subsidence-hilo-drill-hole",
+    "https://www.usgs.gov/news/volcano-watch-big-island-sinking-under-weight-volcano",
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-its-sinking-island-sinking"
+   ],
+   "notes": "Moore, Ingram, Ludwig & Clague 1996 (JGR, doi 10.1029/95JB03215): 'Island subsidence averages 2.2 mm/yr for the last 47 years' (Hilo tide gauge) and '2.5-2.6 mm/yr for the last 500,000 years' (drowned reefs off west Hawaiʻi). USGS 1992: Hilo sinks at 'nearly one tenth of an inch each year'. If a number is wanted, say 'about a tenth of an inch a year'. Do not say 'a foot a century': USGS 2010 says 'more than 30 cm (a foot) per century' but that includes local Puna fault subsidence, and it conflicts with the 1992 figure of about 10 inches. Spine item 4 ('about 2.5 mm a year') is fine as written. This line also meets the backup-title-2 condition (names both causes)."
+  },
+  {
+   "id": "C12-10",
+   "claim": "Those steps are old coral reefs. They grew at the shoreline, and the island sank out from under them.",
+   "status": "verified",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-big-island-sinking-under-weight-volcano",
+    "https://www.usgs.gov/publications/coral-ages-and-island-subsidence-hilo-drill-hole"
+   ],
+   "notes": "USGS Volcano Watch (24 Jan 1992): a drowned-reef series off Hawaiʻi, 'the deepest reef being the oldest (about 465,000 years old)' and 'now located 4,380 feet below sea level', the shallowest about 15,000 years old; off Haleakalā 'at depths as great as 6,900 feet'; 'The reefs drowned when the sea level rose as the island was sinking'. The documented series is off WEST (Kohala) Hawaiʻi. Packaging frame 1 looks north from south of the island (lon -155.32, lat 18.42), so draw or label 'drowned reef steps' only where the bathymetry really shows terraces. Below the shelf edge say 'the slope plunges', not 'cliffs' (true cliffs only at landslide headwalls)."
+  },
+  {
+   "id": "C12-11",
+   "claim": "Under Hilo, a drill found lava that cooled on dry land, now more than three thousand feet down.",
+   "status": "verified",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-scientific-drill-plumbs-isles-depths"
+   ],
+   "notes": "OPTIONAL Ch1 proof that 'it sank'. USGS Volcano Watch (2 Sep 1994): the Hilo hole 'was drilled to 3,464 feet below the surface'; 'All the flows erupted and were emplaced above sea level'; 'Hilo has subsided more than 3,348 feet since the oldest flows erupted'. Say 'more than three thousand feet'. It costs one spoken number, so it competes with the number budget (see C12-14)."
+  },
+  {
+   "id": "C12-12",
+   "claim": "Before dawn one morning in 1975, the Big Island's south coast lurched toward the sea.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://pubs.usgs.gov/circ/1976/0740/report.pdf",
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-remembering-destructive-kalapana-earthquake-50-years-ago",
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-legacy-1975-earthquake-50-years-study-kilaueas-south-flank"
+   ],
+   "notes": "USGS Circular 740 (Tilling et al. 1976) and Volcano Watch (Nov 2025): mainshock 29 Nov 1975 at 4:48 a.m. HST (the brief's 04:47 is wrong; use 4:48 if ever shown); foreshock M5.7 at 3:36 a.m.; current USGS magnitude 7.7 (originally reported as Richter 7.2; never mix the two); 'the largest Hawaii earthquake of the 20th and 21st centuries'. The south flank 'moved as much as 26 feet (8 m) horizontally'. Do NOT name the 'Hilina Slump' as the source: USGS 2025 puts the primary motion on the décollement fault beneath Kīlauea's south flank, with surface breaks along the Hilina fault system. Safe nouns: 'Kīlauea's south flank', 'the south coast'. No music sting."
+  },
+  {
+   "id": "C12-13",
+   "claim": "At Halapē, a beach campsite on that coast, campers were asleep.",
+   "status": "verified",
+   "sources": [
+    "https://pubs.usgs.gov/circ/1976/0740/report.pdf",
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-remembering-destructive-kalapana-earthquake-50-years-ago",
+    "https://www.usgs.gov/media/images/submerged-coconut-grove-halape-after-1975-quake-kilauea"
+   ],
+   "notes": "VERIFY ITEM CLOSED. Circular 740: the foreshock 'woke ... 32 people camped near the beach at Halape, a coconut palm grove on the southeastern coast'; 'The 32 campers at Halape ... were the first to experience the tsunami.' Volcano Watch 2025: 'Campers at Halapē, on the south coast in Hawaiʻi Volcanoes National Park'. 'Campers' and the place name are both safe. Spell it Halapē (kahakō). Do NOT say 'Boy Scouts' (only in a magazine first-person account, not USGS/NPS). Do not name the victims (people cap; sources differ). Pin Halapē from GNIS/NPS coordinates; about 25 km west of the epicenter (19°20.1'N, 155°01.4'W). [PD] option: USGS 'Submerged coconut grove at Halapē after 1975 quake', marked Public Domain, no photographer named."
+  },
+  {
+   "id": "C12-14",
+   "claim": "Two people died.",
+   "status": "verified",
+   "sources": [
+    "https://pubs.usgs.gov/circ/1976/0740/report.pdf",
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-remembering-destructive-kalapana-earthquake-50-years-ago"
+   ],
+   "notes": "Circular 740: 'the tsunami also caused two deaths'; 'One person was drowned or battered to death ...; another was swept out to sea and is presumed dead. Nineteen people were injured at Halape; seven required hospitalization. Four of ten horses were lost.' Waves 'reached Halape within 30 seconds after the strongest shaking had ended'; people were washed 'into a large, pre-existing crack in the ground, 5-7 m deep and 10 m or more wide'. Solemn, no gag, no sting. NUMBER-BUDGET FLAG: 'four hundred feet' (0:14), '1975' (0:47) and 'Two' (about 1:05) put 3 spoken numbers inside one 60-s window (PLAYBOOK section 4 caps it at 2). Fix by dropping the year ('Before dawn one morning, ...'), or by saying 'Not everyone made it out.' instead of 'Two people died.' (true and respectful), or by moving the beat after 1:14."
+  },
+  {
+   "id": "C12-15",
+   "claim": "Parts of the shore dropped farther than a basketball hoop is high.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://pubs.usgs.gov/circ/1976/0740/report.pdf",
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-remembering-destructive-kalapana-earthquake-50-years-ago",
+    "https://official.nba.com/rule-no-1-court-dimensions-equipment/"
+   ],
+   "notes": "Circular 740: 'The maximum measured subsidence, about 3.5 m, took place in the Halape-Keauhou Landing area'. Volcano Watch 2025: 'subsided by as much as 11.5 feet (3.5 m)'. NBA Rule 1: the ring's upper edge is 10 feet above the floor, so 11.5 ft > 10 ft holds. The brief's 'up to 12 ft (3.7 m)' (Wikipedia) is NOT the measured maximum; use 11.5 ft if a number is ever shown. Kalapana sank nearly 1 m; Punaluʻu rose about 0.1 m. This wording carries no spoken number (good for the budget). VISUAL TRUTH: the coconut palms stayed standing, left in water 'averaging 1.2 m deep and 100-150 m landward of the presubsidence shoreline'; the waves rarely felled the palms but uprooted keawe trees. Do not wash the palms away."
+  },
+  {
+   "id": "C12-16",
+   "claim": "Then the sea rushed in: a wave nearly fifty feet high, up the coast from the camp.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://pubs.usgs.gov/circ/1976/0740/report.pdf",
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-remembering-destructive-kalapana-earthquake-50-years-ago"
+   ],
+   "notes": "OPTIONAL. Circular 740: 'The tsunami reached its maximum height of 14.6 m above mean lower low water about 1.5 km east of Halape'; at Halapē it averaged about 9 m in the low ground. Volcano Watch 2025: 'The highest wave reached an estimated 48 feet (14.6 m) above the shoreline east of Halapē'. The brief's '47 ft (14 m)' is off; use 48 ft (14.6 m) or 'nearly fifty feet', and say it was east of the camp, not at it. This is a local tsunami, so do not hype it or link it to mega-tsunamis. It costs a spoken number (see C12-14)."
+  },
+  {
+   "id": "C12-17a",
+   "claim": "BANNED WORDING: 'That was a few miles of coast.'",
+   "status": "false",
+   "sources": [
+    "https://pubs.usgs.gov/circ/1976/0740/report.pdf"
+   ],
+   "notes": "Understates the event. Circular 740: faulting 'along a 25-km long zone' of the Hilina fault system, subsidence measured 'along the coastline from Honuapo to Kaimu', and 'the slumping of a large part of Kilauea's south flank'. That is tens of miles, not a few. Use C12-17b."
+  },
+  {
+   "id": "C12-17b",
+   "claim": "That was one side of one volcano sliding a few yards. Now picture a whole side of a volcano letting go.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://pubs.usgs.gov/circ/1976/0740/report.pdf",
+    "https://www.usgs.gov/news/volcano-watch-volcano-slides-are-often-cause-strong-earthquakes",
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-remembering-destructive-kalapana-earthquake-50-years-ago"
+   ],
+   "notes": "USGS Volcano Watch (5 Jun 1992): 'Moderate to large earthquakes located beneath the south flank of Kīlauea Volcano are commonly caused by seaward sliding'. Circular 740: 'slumping of a large part of Kilauea's south flank'. Horizontal motion up to 26 ft (8 m), which is roughly 8-9 yards, so 'a few yards' is a slight understatement; 'several yards' is also safe. 'A whole side' replaces 'half a volcano' (see C12-21)."
+  },
+  {
+   "id": "C12-18",
+   "claim": "At the Pali Lookout, the wind is usually so strong you can lean on it.",
+   "status": "verified",
+   "sources": [
+    "https://dlnr.hawaii.gov/dsp/parks/oahu/nuuanu-pali-state-wayside/",
+    "https://www.americasstateparks.org/state-park/nu%CA%BBuanu-pali-state-wayside/"
+   ],
+   "notes": "Hawaiʻi DLNR State Parks (Nuʻuanu Pali State Wayside): 'Winds are usually so strong that one can lean against the wall of wind'; the lookout is at 'the brink of pali (cliffs) at 1200 feet elevation in the Koʻolau Range'. Do not quote gust speeds (sources differ: 30-60 mph). GAG PHYSICS FIX: the trade winds blow FROM the northeast, up the windward cliff and into the visitor's face, so a hat blows off BACKWARD (inland, toward Honolulu), not over the edge. The brief's 'hat blows over the edge and down the cliffs' breaks PLAYBOOK_craft section 8 (animation physically true). Options: (a) the hat flies off backward, the man turns, and the camera dives over the edge alone; (b) he holds his hat out over the rail, lets go, and the updraft hands it straight back (single-source lore: coins tossed off the Pali blow back). TASTE: the Pali is where many warriors died in the 1795 Battle of Nuʻuanu. Never stage a figure or object 'falling off the Pali' as the joke, and keep the gag about the wind."
+  },
+  {
+   "id": "C12-19",
+   "claim": "If you've stood here, you may have stood at the edge of a giant break. Rain has worn it back, but these cliffs may trace where a volcano tore apart.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/center-news/volcano-watch-a-geologic-tour-hawaiian-islands-o-ahu"
+   ],
+   "notes": "USGS Volcano Watch (14 Jan 2016): 'NUUANU Pali may be the erosional trace of the scarp that marks one of the largest landslides in the world.' USGS hedges with 'may be', so keep a hedge ('may'). The brief's unhedged 'you've stood on the edge of a break' is too strong: the cliff has been eroded back from the original headwall, and some geologists attribute the windward pali mainly to erosion."
+  },
+  {
+   "id": "C12-20",
+   "claim": "Out here lies the debris of one of the largest landslides on Earth.",
+   "status": "verified",
+   "sources": [
+    "https://www.usgs.gov/publications/prodigious-submarine-landslides-hawaiian-ridge",
+    "https://www.usgs.gov/center-news/volcano-watch-a-geologic-tour-hawaiian-islands-o-ahu",
+    "https://pubs.usgs.gov/imap/2809/pdf/i2809.pdf"
+   ],
+   "notes": "Moore et al. 1989 (JGR 94(B12):17465, doi 10.1029/JB094iB12p17465): some Hawaiian debris avalanches 'exceed 200 km in length and rank among the largest on Earth'. USGS 2016: 'one of the largest landslides in the world'. Say 'one of the largest', never 'the largest'. The Nuʻuanu tsunami is modelled, not witnessed, so skip it (brief must-fix 3)."
+  },
+  {
+   "id": "C12-21a",
+   "claim": "DISPUTED WORDING: 'Half of the volcano that built eastern Oʻahu is lying out here.' / chapter card 'Half a Volcano Is Missing'.",
+   "status": "disputed",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Nu%CA%BBuanu_Slide",
+    "https://www.usgs.gov/news/volcano-watch-oahu-niihau-and-kauai"
+   ],
+   "notes": "'Half' rests only on secondary sources (Wikipedia: 'The eastern half of the mountain collapsed nearly in half at the caldera'; a 2002 Star-Bulletin piece says 'about 40 percent of the Windward side'). No primary USGS or peer-reviewed text found says 'half'. Primary support is the USGS 1995 line 'The caldera was bisected by the catastrophic collapse of the Nuʻuanu landslide'. A figure of speech on the chapter card is lower risk than a narrated statement. Prefer C12-21b in narration; for the card consider 'A Volcano Split in Two' or 'The Missing Side of Oʻahu'."
+  },
+  {
+   "id": "C12-21b",
+   "claim": "The volcano that built eastern Oʻahu split right through its summit. Its whole northeast side is lying out here.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-oahu-niihau-and-kauai",
+    "https://www.usgs.gov/center-news/volcano-watch-a-geologic-tour-hawaiian-islands-o-ahu",
+    "https://pubs.usgs.gov/imap/2809/pdf/i2809.pdf"
+   ],
+   "notes": "USGS 1995: 'The caldera was bisected by the catastrophic collapse of the Nuʻuanu landslide, which deposited numerous blocks on the sea floor as far as 100 miles northeast of the island.' USGS 2016: Koʻolau 'forms the east side of the island'. USGS I-2809: catastrophic landslides 'carried large parts of some volcanoes as much as 200 km across the sea floor'. Age, if spoken: 'more than a million years ago' (estimates conflict: 1-1.5 Ma on Wikipedia, 1.8-2.1 Ma per Herrero-Bervera et al. 2002 cited by ODP Leg 200, which gives 1.8-2.4 Ma). Never say 'two million years ago'."
+  },
+  {
+   "id": "C12-22",
+   "claim": "The debris runs for more than a hundred miles.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/center-news/volcano-watch-a-geologic-tour-hawaiian-islands-o-ahu",
+    "https://www-odp.tamu.edu/publications/200_IR/chap_01/c1_3.htm",
+    "https://www.usgs.gov/news/volcano-watch-oahu-niihau-and-kauai"
+   ],
+   "notes": "USGS 2016: 'The gigantic NUUANU slide extends across the ocean floor about 200 km (120 mi) northeast from Oʻahu'. ODP Leg 200 IR: 'extends more than 200 km from the island', covering about 23,000 km². USGS 1995: blocks 'as far as 100 miles northeast'. The brief's 'about 125 miles' is a rounded Wikipedia conversion (200 km = 124 mi); use 'more than a hundred miles' (supported by all three) or 'about 120 miles' (USGS 2016). The line on screen must be drawn along the mapped deposit (USGS I-2809), not a guessed path."
+  },
+  {
+   "id": "C12-23a",
+   "claim": "DISPUTED WORDING: 'One block is the size of Manhattan.'",
+   "status": "disputed",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-oahu-niihau-and-kauai",
+    "https://www.gmrt.org/services/GridServer"
+   ],
+   "notes": "USGS 1995 does say 'The largest of these blocks is about the same size as Manhattan Island', but the measurement and the peer-reviewed size both contradict it as an area comparison. MEASURED on GMRT high-res (about 60 m cells): Tuscaloosa Seamount summit -2,691 m at 22.0653N 157.0724W; surrounding floor median about -4,660 m (relief about 1.9-2.0 km); footprint at the -4,100 m contour about 27 x 18 km = about 380 km² (147 sq mi); at -3,600 m about 251 km². Moore et al. 1989: about 30 x 17 km. Manhattan: about 22.7 sq mi (59 km²), 13.4 mi (21.6 km) long, 2.3 mi (3.7 km) wide. So the block is about 4-6x Manhattan's area and longer than Manhattan. A true-size overlay would visibly contradict 'the size of Manhattan'. Use C12-23b."
+  },
+  {
+   "id": "C12-23b",
+   "claim": "One block is bigger than Manhattan. Manhattan would fit on it with room to spare.",
+   "status": "verified",
+   "sources": [
+    "https://www.gmrt.org/services/GridServer",
+    "https://www.usgs.gov/publications/prodigious-submarine-landslides-hawaiian-ridge",
+    "https://www.usgs.gov/center-news/volcano-watch-a-geologic-tour-hawaiian-islands-o-ahu",
+    "https://en.wikipedia.org/wiki/Manhattan"
+   ],
+   "notes": "Supported by the measurement in C12-23a and by USGS 2016 ('one of the blocks ... measures over 29 km (18 mi) long and 1.6 km (1 mi) thick'). OVERLAY: draw Manhattan at true scale from a real polygon (US Census TIGER New York County boundary, public domain), not a hand-drawn shape, laid on the block's summit area at VE 1.0. Optional add-on: 'And it's about a mile thick.' (USGS 2016: 1.6 km (1 mi) thick; GMRT relief about 1.9-2.0 km). That costs one spoken number. Do not say 'six times Manhattan' (the ratio depends on which contour is called the base). Do not name 'Tuscaloosa' (an extra proper noun)."
+  },
+  {
+   "id": "C12-24",
+   "claim": "It's one of dozens of giant slides around these islands.",
+   "status": "verified",
+   "sources": [
+    "https://www.usgs.gov/publications/giant-hawaiian-landslides",
+    "https://www.usgs.gov/news/volcano-watch-volcano-slides-are-often-cause-strong-earthquakes",
+    "https://pubs.usgs.gov/imap/2809/pdf/i2809.pdf"
+   ],
+   "notes": "Moore, Normark & Holcomb 1994 (Annual Review of Earth and Planetary Sciences, doi 10.1146/annurev.ea.22.050194.001003): 'Sixty-eight landslides more than 20 km long are present along a 2200 km segment of the Hawaiian Ridge'. USGS 1992: 'at least 17 major deposits extending away from the islands'. For the 'about 8-10 footprints light up' pullback, trace outlines only from USGS I-2809 'Hawaii's Volcanoes Revealed' (public domain) or Moore et al. 1989, never invented shapes (PLAYBOOK section 4). '68' is fine as a fact but costs a spoken number; 'dozens' carries none."
+  },
+  {
+   "id": "C12-25",
+   "claim": "They're rare, but they happen.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-volcano-slides-are-often-cause-strong-earthquakes",
+    "https://www.usgs.gov/news/volcano-watch-oahu-niihau-and-kauai"
+   ],
+   "notes": "USGS 1992: 'they occur very rarely, perhaps once every 150,000 years'. USGS 1995: 'only once every several hundred thousand years'. The two USGS frequency figures conflict, so speak NO interval number. No mega-tsunami framing, and no 'overdue' or 'could happen tomorrow' lines."
+  },
+  {
+   "id": "C12-26",
+   "claim": "And Kīlauea's south flank is still creeping toward the sea, a couple of inches a year.",
+   "status": "verified",
+   "sources": [
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-legacy-1975-earthquake-50-years-study-kilaueas-south-flank",
+    "https://www.usgs.gov/center-news/volcano-watch-k-lauea-s-south-flank-what-s-shaking",
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-missing-slow-slip-events-kilaueas-south-flank",
+    "https://pubs.usgs.gov/imap/2809/pdf/i2809.pdf"
+   ],
+   "notes": "VERIFY ITEM CLOSED, and a rate is now sourced. USGS Volcano Watch (28 Nov 2025): continuous GPS 'recorded the steady seaward motion of south flank at a rate of around 5 cm (2 inches) per year'. USGS 2021: average 'around 8 cm (3 inches) per year' during 1983-2018. The 2018 M6.9 moved it up to about 0.5 m (1.5 ft). USGS I-2809: 'Deformation and seismicity along Kilauea's south flank indicate that slumping is occurring there today.' 'A couple of inches a year' is safe; 'a few inches' is also OK. Drop the rate if the 60-s window already has 2 spoken numbers (Ch2 risk: 'more than a hundred miles' at 2:50, plus the optional 'a mile thick'). Never say it 'will collapse' or is 'overdue'."
+  }
+ ],
+ "meta": {
+  "checker": "fact-checker #1 (cold open, Ch1, Ch2)",
+  "date": "2026-11-08",
+  "verify_items_closed": {
+   "Halapē campers": "CLOSED: verified (C12-13, C12-14)",
+   "south-flank creep": "CLOSED: verified with a rate (C12-26)",
+   "Tuscaloosa/Nuʻuanu block vs Manhattan": "MEASURED: bigger than Manhattan, not 'the size of' (C12-23a/b)",
+   "Maui Nui saddle depths": "MEASURED on GMRT (HMRG fetch blocked by TLS): 3 islands join, Kahoʻolawe separate, Pailolo stays water (C12-03)"
+  },
+  "brief_corrections": [
+   "1975 mainshock 4:48 a.m. HST, not 04:47",
+   "Halapē subsidence max about 3.5 m (11.5 ft), not 12 ft (3.7 m)",
+   "Tsunami max 14.6 m (48 ft) about 1.5 km east of Halapē, not 47 ft (14 m)",
+   "1975 source is the décollement under Kīlauea's south flank, not 'the Hilina Slump'",
+   "'All of Hawaii is sinking' is false (Oʻahu is thought to be rising on the flexural bulge)",
+   "'A few miles of coast' understates (25 km of faulting; subsidence measured from Honuʻapo to Kaimū)",
+   "Manhattan block: measured about 4-6x Manhattan's area; say 'bigger than Manhattan'",
+   "'Half a volcano' is secondary-source only; 'split through its summit' is the primary wording",
+   "Pali hat gag: the wind blows inland, so the hat cannot sail over the edge",
+   "Maui Nui at -400 ft: Molokaʻi joins Maui only via Lānaʻi; the Pailolo Channel stays water; place the suitcase gag on the ʻAuʻau Channel",
+   "Maui Nui '50% larger than the Big Island' conflicts with its own area figure (about 40%)",
+   "Cold open plus Ch1: 400 ft + 1975 + 'two' = 3 spoken numbers in 60 s"
+  ],
+  "measurements": {
+   "dataset": "GMRT GridServer (gmrt.org), resolution=high, about 60 m cells, fetched 2026-11-08",
+   "maui_nui_saddles_m": {
+    "Lanai-WestMaui": -50,
+    "Molokai-Lanai": -78,
+    "PenguinBank-WestMolokai": -60,
+    "Molokai-WestMaui_direct_Pailolo": -238,
+    "Kahoolawe-Maui": -159,
+    "Molokai-Oahu": -586,
+    "Hawaii-Maui": -1918
+   },
+   "tuscaloosa": {
+    "summit_m": -2691,
+    "summit_lat": 22.0653,
+    "summit_lon": -157.0724,
+    "surrounding_floor_median_m": -4657,
+    "footprint_at_-4100m_km": [
+     27.2,
+     18.1
+    ],
+    "area_at_-4100m_km2": 381,
+    "area_at_-3600m_km2": 251
+   },
+   "manhattan": {
+    "area_sq_mi": 22.7,
+    "area_km2": 59,
+    "length_mi": 13.4,
+    "width_mi": 2.3
+   },
+   "files": {
+    "maui_nui_map_at_-122m": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/factcheck1/mauinui_m122.png",
+    "scripts": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/factcheck1/scripts/",
+    "usgs_circular_740_text": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/factcheck1/dl/circ740.txt"
+   }
+  },
+  "out_of_scope_noted": [
+   "Hōlei Sea Arch collapse (Ch6) not checked here",
+   "Hawaiian pronunciation lexicon not checked here"
+  ]
+ }
+}
