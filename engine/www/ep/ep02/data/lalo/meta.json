@@ -107,11 +107,11 @@
  "gaps": [
   "Worst gap: ETOPO 2022 15\" has a 57 km2 false island over French Frigate Shoals and no reef or lagoon relief; after cleanup the atoll is a featureless shallow platform. La Pérouse Pinnacle (about 37 m) is below every grid (-11 m at its spot): model it at its surveyed position. East Island is a 6 m speck. Use sat.jpg (HLS 30 m, reef and lagoon visible) for the look; the July and October 2018 before and after must come from dated Landsat/HLS scenes, not baked here. A real fix is satellite-derived depth calibrated on the NCEI Midway survey."
  ],
- "bake_s": 69.6,
+ "bake_s": 81.9,
  "baked": "2026-11-08",
  "bytes": {
-  "h16": 1553366,
-  "ao": 173759,
+  "h16": 1550692,
+  "ao": 172825,
   "color": 108393,
   "sat": 223104
  }

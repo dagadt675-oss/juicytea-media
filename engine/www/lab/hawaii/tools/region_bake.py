@@ -397,9 +397,11 @@ def bake(R, OUT, DLROOT, keep=False):
             trf = np.where(ok | (fine_topo >= 0.5), trf, np.minimum(trf, 0.0))  # the replace / raise steps below must not re-add it
             if bogus.any():
                 # the spike's shallow skirt goes too: everything above mask_floor (default -10 m) connected to a false island is refilled
-                lab, _ = ndimage.label(h > land_cfg.get('mask_floor', -10.0)); ids = np.unique(lab[bogus]); ids = ids[ids > 0]
-                grow = ndimage.binary_dilation(np.isin(lab, ids) & ~ok | bogus, iterations=2) & ~ndimage.binary_dilation(ok, iterations=3)
-                idx = ndimage.distance_transform_edt(grow, return_distances=False, return_indices=True)
+                floor = land_cfg.get('mask_floor', -10.0)
+                lab, _ = ndimage.label(h > floor); ids = np.unique(lab[bogus]); ids = ids[ids > 0]
+                grow = ndimage.binary_dilation(np.isin(lab, ids) | bogus, iterations=2) & ~ok
+                src = ~grow & ~ok & (h <= floor)  # refill only from real seafloor, never from the spike or the confirmed land
+                idx = ndimage.distance_transform_edt(~src, return_distances=False, return_indices=True)
                 fill = h[tuple(idx)]; fill = np.minimum(ndimage.gaussian_filter(fill, 2), -1.0)
                 h = np.where(grow, fill, h)
                 LOG(f'  land mask: {int(bogus.sum())} px of unconfirmed ETOPO land refilled from the seafloor')

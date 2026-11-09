@@ -1,6 +1,6 @@
 {
  "about": "ep02 terrain/seafloor regions for HawaiiStage.loadRegion(root, name) (engine/www/lab/hawaii/hterrain.js). Heights: RG 16-bit PNG, h = v / 65535 * hrange + hmin, row 0 = north. stack = layers finest first, each inside the next. Facts are measured on the baked grid (not survey values): use them to stage shots, check every narrated number against the fact ledger.",
- "generated": "2026-11-08 23:16",
+ "generated": "2026-11-08 23:21",
  "root": "ep/ep02/data",
  "rebuild": "bash engine/www/ep/ep02/tools/rebuild_regions.sh [DL_DIR] [name,name]",
  "regions": {
@@ -2061,12 +2061,12 @@
     ]
    },
    "bytes": {
-    "h16": 877656,
-    "ao": 279666,
+    "h16": 876609,
+    "ao": 278788,
     "color": 59936,
     "sat": 51581
    },
-   "bake_s": 43.9,
+   "bake_s": 44.0,
    "baked": "2026-11-08"
   },
   "lalo": {
@@ -2175,12 +2175,12 @@
     ]
    },
    "bytes": {
-    "h16": 1553366,
-    "ao": 173759,
+    "h16": 1550692,
+    "ao": 172825,
     "color": 108393,
     "sat": 223104
    },
-   "bake_s": 69.6,
+   "bake_s": 81.9,
    "baked": "2026-11-08"
   },
   "gardner": {
@@ -2282,12 +2282,12 @@
     ]
    },
    "bytes": {
-    "h16": 227227,
-    "ao": 54692,
+    "h16": 227165,
+    "ao": 52562,
     "color": 27444,
     "sat": 44328
    },
-   "bake_s": 35.4,
+   "bake_s": 34.9,
    "baked": "2026-11-08"
   },
   "nwhi_west": {
@@ -2626,12 +2626,12 @@
     ]
    },
    "bytes": {
-    "h16": 696894,
-    "ao": 249364,
+    "h16": 687922,
+    "ao": 246743,
     "color": 63436,
     "sat": 154534
    },
-   "bake_s": 35.2,
+   "bake_s": 33.6,
    "baked": "2026-11-08"
   },
   "everest_wide": {

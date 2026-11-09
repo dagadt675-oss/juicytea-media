@@ -100,11 +100,11 @@
  "gaps": [
   "The two pinnacles (52 m) are a 13 m Terrarium speck at the right place: model the rocks at their surveyed position; bank from ETOPO 15\" (false 859 m land removed)."
  ],
- "bake_s": 35.4,
+ "bake_s": 34.9,
  "baked": "2026-11-08",
  "bytes": {
-  "h16": 227227,
-  "ao": 54692,
+  "h16": 227165,
+  "ao": 52562,
   "color": 27444,
   "sat": 44328
  }

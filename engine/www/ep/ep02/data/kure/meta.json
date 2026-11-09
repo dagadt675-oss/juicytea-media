@@ -105,11 +105,11 @@
  "gaps": [
   "ETOPO 2022 15\" only: the reef ring and lagoon are not resolved (lagoon -2 m on the grid), Green Island 11 m from Terrarium (real about 6 m). Use sat.jpg for the reef ring; the cut-away (s143) is schematic."
  ],
- "bake_s": 35.2,
+ "bake_s": 33.6,
  "baked": "2026-11-08",
  "bytes": {
-  "h16": 696894,
-  "ao": 249364,
+  "h16": 687922,
+  "ao": 246743,
   "color": 63436,
   "sat": 154534
  }
