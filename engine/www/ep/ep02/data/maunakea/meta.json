@@ -7,17 +7,18 @@
   19.86
  ],
  "wh": [
-  1408,
-  1024
+  2730,
+  2000
  ],
- "px_m": 9.7,
- "hmin": -8000.0,
- "hrange": 17000.0,
+ "px_m": 5.0,
+ "hmin": 2240.0,
+ "hrange": 1980.0,
  "vex": 1.0,
  "files": {
   "h16": "h16.png",
   "ao": "ao.png",
-  "color": "color.jpg"
+  "color": "color.jpg",
+  "cres": "cres.png"
  },
  "sources": [
   {
@@ -33,6 +34,17 @@
    "id": "terrarium_z14",
    "res_m": 9.0,
    "land_only": true
+  },
+  {
+   "id": "3dep",
+   "res_m": 1.0,
+   "cover": 1.0,
+   "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
+   "guard": {
+    "dropped_pct": 0.0,
+    "pieces": 1,
+    "pieces_kept": 1
+   }
   }
  ],
  "colour": {
@@ -83,29 +95,128 @@
     -155.4,
     19.86
    ]
+  },
+  "ortho": {
+   "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+   "long": 4096,
+   "meas_px": 12345281,
+   "black_ref_pct": 0.0,
+   "imagery_pct": 99.8,
+   "filled_pct": 0.2,
+   "gain": 0.55,
+   "chroma": 1.2,
+   "dark_pct": 0.28,
+   "bright_pct": 0.2,
+   "covered_pct": 100.0,
+   "ref_scale_m": 30.0,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+   "smooth_pct": 83.4
   }
  },
  "facts": {
   "peaks_m": {
    "mauna_kea": {
-    "h": 4200,
-    "lon": -155.4693,
-    "lat": 19.8229
+    "h": 4207,
+    "lon": -155.4681,
+    "lat": 19.8207
    }
   },
   "land_area_km2_at_0m": 136.4,
   "h_range_m": [
    2260,
-   4200
+   4207
   ]
  },
  "purpose": "s065 the summit access road gag on Mauna Kea's upper slope (never on Pu'uwekiu), s061 the Mauna Kea label.",
  "gaps": [],
- "bake_s": 30.7,
- "baked": "2026-11-08",
+ "bake_s": 65.3,
+ "baked": "2026-11-15",
  "bytes": {
-  "h16": 786147,
-  "ao": 515876,
-  "color": 123955
+  "h16": 6113386,
+  "ao": 811475,
+  "color": 1882569,
+  "cres": 357629
+ },
+ "base": {
+  "wh": [
+   1408,
+   1024
+  ],
+  "px_m": 9.7,
+  "sources": [
+   {
+    "id": "etopo15",
+    "res_arcsec": 15.0
+   },
+   {
+    "id": "ncei:hilo_13_mhw_2011",
+    "res_arcsec": 0.33,
+    "cover": 0.539
+   },
+   {
+    "id": "terrarium_z14",
+    "res_m": 9.0,
+    "land_only": true
+   }
+  ],
+  "facts": {
+   "peaks_m": {
+    "mauna_kea": {
+     "h": 4200,
+     "lon": -155.4693,
+     "lat": 19.8229
+    }
+   },
+   "land_area_km2_at_0m": 136.4,
+   "h_range_m": [
+    2260,
+    4200
+   ]
+  }
+ },
+ "res": {
+  "height_m": 5.0,
+  "height_src_m": 1.0,
+  "colour_texel_m": 3.32,
+  "height_interp": [],
+  "colour_src_m": 0.6,
+  "colour_wh": [
+   4096,
+   3014
+  ]
+ },
+ "detail": {
+  "colour": {
+   "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+   "long": 4096,
+   "quads": [
+    "m_1915513_nw_05_060_20220428 (2022-04-28, 1.2 m read)",
+    "m_1915512_ne_05_060_20220328 (2022-03-28, 1.2 m read)",
+    "m_1915513_ne_05_060_20220328 (2022-03-28, 1.2 m read)",
+    "m_1915512_ne_05_060_20221110 (2022-11-10, 1.2 m read)",
+    "m_1915512_se_05_060_20220106 (2022-01-06, 1.2 m read)",
+    "m_1915513_se_05_060_20220106 (2022-01-06, 1.2 m read)",
+    "m_1915513_sw_05_060_20220106 (2022-01-06, 1.2 m read)"
+   ],
+   "meas_px": 12345281,
+   "black_ref_pct": 0.0,
+   "imagery_pct": 99.8,
+   "filled_pct": 0.2,
+   "gain": 0.55,
+   "chroma": 1.2,
+   "dark_pct": 0.28,
+   "bright_pct": 0.2,
+   "covered_pct": 100.0,
+   "ref_scale_m": 30.0,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+   "smooth_pct": 83.4
+  },
+  "height": {
+   "source": "3dep",
+   "wh": [
+    2730,
+    2000
+   ]
+  }
  }
 }

@@ -1,6 +1,6 @@
 {
  "about": "ep02 terrain/seafloor regions for HawaiiStage.loadRegion(root, name) (engine/www/lab/hawaii/hterrain.js). Heights: RG 16-bit PNG, h = v / 65535 * hrange + hmin, row 0 = north. stack = layers finest first, each inside the next. Facts are measured on the baked grid (not survey values): use them to stage shots, check every narrated number against the fact ledger.",
- "generated": "2026-11-09 09:32",
+ "generated": "2026-11-15 16:24",
  "root": "ep/ep02/data",
  "rebuild": "bash engine/www/ep/ep02/tools/rebuild_regions.sh [DL_DIR] [name,name]",
  "regions": {
@@ -1000,6 +1000,7 @@
     1920
    ],
    "stack": [
+    "kilauea_coast",
     "kilauea_sf",
     "bigisland",
     "hawaii_skirt"
@@ -1104,6 +1105,161 @@
    "bake_s": 85.7,
    "baked": "2026-11-08"
   },
+  "kilauea_coast": {
+   "bbox": [
+    -155.34,
+    19.235,
+    -155.05,
+    19.335
+   ],
+   "wh": [
+    4096,
+    1490
+   ],
+   "stack": [
+    "kilauea_coast",
+    "kilauea_sf",
+    "bigisland",
+    "hawaii_skirt"
+   ],
+   "purpose": "Detail patch for 'kilauea_sf' (s014-s024, s044-s046): Kilauea's south-flank coast from Halape to Holei and the fault scarps above it, 7.5 m heights (USGS 3DEP lidar, 2017) and 5 m colour (NAIP 2022). Loaded automatically as the finest layer of 'kilauea_sf'.",
+   "view": {
+    "level": 0,
+    "look": "gold",
+    "sun": [
+     250,
+     18
+    ],
+    "water": "ocean",
+    "foam": 1,
+    "cam": {
+     "lon": -155.23,
+     "lat": 19.21,
+     "alt": 1.5,
+     "tLon": -155.22,
+     "tLat": 19.29,
+     "tH": 0,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "Bare-earth heights; lava flows newer than the 2017 lidar and the 2022 photos (the 2018 lower Puna flows lie east of this patch) are not in it."
+   ],
+   "patch": {
+    "parent": "kilauea_sf",
+    "feather_m": 400
+   },
+   "dir": "/ep/ep02/data/kilauea_coast",
+   "files": {
+    "h16": "h16.png",
+    "ao": "ao.png",
+    "color": "color.jpg",
+    "cres": "cres.png"
+   },
+   "hmin": -2050.0,
+   "hrange": 3020.0,
+   "px_m": 7.46,
+   "sources": [
+    {
+     "id": "region:kilauea_sf",
+     "px_m": 31.3
+    },
+    {
+     "id": "3dep",
+     "res_m": 1.0,
+     "cover": 0.639,
+     "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
+     "guard": {
+      "dropped_pct": 12.858,
+      "pieces": 10,
+      "pieces_kept": 1
+     }
+    }
+   ],
+   "colour": {
+    "ortho": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 6144,
+     "meas_px": 8719141,
+     "black_ref_pct": 0.91,
+     "imagery_pct": 99.2,
+     "filled_pct": 0.8,
+     "gain": 0.508,
+     "chroma": 1.2,
+     "dark_pct": 0.03,
+     "bright_pct": 1.6,
+     "covered_pct": 96.8,
+     "ref_scale_m": 31.3,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 89.9
+    }
+   },
+   "facts": {
+    "land_area_km2_at_0m": 216.8,
+    "h_range_m": [
+     -2034,
+     952
+    ]
+   },
+   "bytes": {
+    "h16": 5425958,
+    "ao": 690516,
+    "color": 1519931,
+    "cres": 298465
+   },
+   "bake_s": 63.8,
+   "baked": "2026-11-15",
+   "res": {
+    "height_m": 7.46,
+    "height_src_m": 1.0,
+    "colour_texel_m": 4.96,
+    "height_interp": [],
+    "colour_src_m": 0.6,
+    "colour_wh": [
+     6144,
+     2245
+    ]
+   },
+   "detail": {
+    "colour": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 6144,
+     "quads": [
+      "m_1915546_ne_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915546_nw_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915546_se_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915546_sw_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915547_ne_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915547_nw_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915547_se_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915547_sw_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915548_ne_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915548_nw_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915548_se_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915548_sw_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915554_ne_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915554_nw_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915555_ne_05_060_20220419 (2022-04-19, 2.4 m read)",
+      "m_1915555_nw_05_060_20220419 (2022-04-19, 2.4 m read)"
+     ],
+     "meas_px": 8719141,
+     "black_ref_pct": 0.91,
+     "imagery_pct": 99.2,
+     "filled_pct": 0.8,
+     "gain": 0.508,
+     "chroma": 1.2,
+     "dark_pct": 0.03,
+     "bright_pct": 1.6,
+     "covered_pct": 96.8,
+     "ref_scale_m": 31.3,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 89.9
+    },
+    "height": {
+     "source": "3dep"
+    }
+   }
+  },
   "halape": {
    "bbox": [
     -155.32,
@@ -1112,10 +1268,11 @@
     19.31
    ],
    "wh": [
-    1536,
-    768
+    2940,
+    1560
    ],
    "stack": [
+    "halape_cove",
     "halape",
     "kilauea_sf",
     "hawaii_skirt"
@@ -1147,11 +1304,12 @@
    "files": {
     "h16": "h16.png",
     "ao": "ao.png",
-    "color": "color.jpg"
+    "color": "color.jpg",
+    "cres": "cres.png"
    },
-   "hmin": -8000.0,
-   "hrange": 17000.0,
-   "px_m": 9.9,
+   "hmin": -530.0,
+   "hrange": 1350.0,
+   "px_m": 5.0,
    "sources": [
     {
      "id": "etopo15",
@@ -1161,6 +1319,17 @@
      "id": "ncei:hilo_13_mhw_2011",
      "res_arcsec": 0.33,
      "cover": 1.0
+    },
+    {
+     "id": "3dep",
+     "res_m": 1.0,
+     "cover": 0.691,
+     "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
+     "guard": {
+      "dropped_pct": 6.144,
+      "pieces": 13,
+      "pieces_kept": 1
+     }
     }
    ],
    "colour": {
@@ -1188,14 +1357,30 @@
       -155.18,
       19.31
      ]
+    },
+    "ortho": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4096,
+     "meas_px": 5992014,
+     "black_ref_pct": 2.03,
+     "imagery_pct": 98.6,
+     "filled_pct": 1.4,
+     "gain": 0.582,
+     "chroma": 1.2,
+     "dark_pct": 0.0,
+     "bright_pct": 4.73,
+     "covered_pct": 100.0,
+     "ref_scale_m": 30.0,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 85.4
     }
    },
    "facts": {
     "peaks_m": {
      "pali_above_halape": {
       "h": 451,
-      "lon": -155.2553,
-      "lat": 19.296
+      "lon": -155.2547,
+      "lat": 19.2958
      }
     },
     "point_h_m": {
@@ -1208,12 +1393,206 @@
     ]
    },
    "bytes": {
-    "h16": 544501,
-    "ao": 308493,
-    "color": 79358
+    "h16": 4922644,
+    "ao": 606723,
+    "color": 1170013,
+    "cres": 263252
    },
-   "bake_s": 35.1,
-   "baked": "2026-11-08"
+   "bake_s": 47.4,
+   "baked": "2026-11-15",
+   "res": {
+    "height_m": 5.0,
+    "height_src_m": 1.0,
+    "colour_texel_m": 3.59,
+    "height_interp": [],
+    "colour_src_m": 0.6,
+    "colour_wh": [
+     4096,
+     2170
+    ]
+   },
+   "detail": {
+    "colour": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4096,
+     "quads": [
+      "m_1915546_ne_05_060_20220419 (2022-04-19, 1.2 m read)",
+      "m_1915546_se_05_060_20220419 (2022-04-19, 1.2 m read)",
+      "m_1915546_sw_05_060_20220419 (2022-04-19, 1.2 m read)",
+      "m_1915547_ne_05_060_20220419 (2022-04-19, 1.2 m read)",
+      "m_1915547_nw_05_060_20220419 (2022-04-19, 1.2 m read)",
+      "m_1915547_se_05_060_20220419 (2022-04-19, 1.2 m read)",
+      "m_1915547_sw_05_060_20220419 (2022-04-19, 1.2 m read)",
+      "m_1915554_ne_05_060_20220419 (2022-04-19, 1.2 m read)",
+      "m_1915554_nw_05_060_20220419 (2022-04-19, 1.2 m read)",
+      "m_1915555_ne_05_060_20220419 (2022-04-19, 1.2 m read)",
+      "m_1915555_nw_05_060_20220419 (2022-04-19, 1.2 m read)"
+     ],
+     "meas_px": 5992014,
+     "black_ref_pct": 2.03,
+     "imagery_pct": 98.6,
+     "filled_pct": 1.4,
+     "gain": 0.582,
+     "chroma": 1.2,
+     "dark_pct": 0.0,
+     "bright_pct": 4.73,
+     "covered_pct": 100.0,
+     "ref_scale_m": 30.0,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 85.4
+    },
+    "height": {
+     "source": "3dep",
+     "wh": [
+      2940,
+      1560
+     ]
+    }
+   }
+  },
+  "halape_cove": {
+   "bbox": [
+    -155.268,
+    19.262,
+    -155.24,
+    19.282
+   ],
+   "wh": [
+    2940,
+    2220
+   ],
+   "stack": [
+    "halape_cove",
+    "halape",
+    "kilauea_sf",
+    "hawaii_skirt"
+   ],
+   "purpose": "Close-up detail patch for 'halape' (s016-s023): the cove, the grove and the fault scarp above it, 1 m heights (USGS 3DEP lidar, 2017) and 0.7 m colour (NAIP 2022). Loaded automatically as the finest layer of 'halape'.",
+   "view": {
+    "level": 0,
+    "look": "gold",
+    "sun": [
+     95,
+     10
+    ],
+    "water": "turq",
+    "foam": 1,
+    "cam": {
+     "lon": -155.2525,
+     "lat": 19.2625,
+     "alt": 0.25,
+     "tLon": -155.2547,
+     "tLat": 19.2706,
+     "tH": 0,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "Today's (post-1975) ground, like 'halape': the 1975 drop is staged in the shot. Bare-earth heights: palms and tents are in the photo only."
+   ],
+   "patch": {
+    "parent": "halape",
+    "feather_m": 120
+   },
+   "dir": "/ep/ep02/data/halape_cove",
+   "files": {
+    "h16": "h16.png",
+    "ao": "ao.png",
+    "color": "color.jpg",
+    "cres": "cres.png"
+   },
+   "hmin": -290.0,
+   "hrange": 620.0,
+   "px_m": 1.0,
+   "sources": [
+    {
+     "id": "region:halape",
+     "px_m": 5.0
+    },
+    {
+     "id": "3dep",
+     "res_m": 1.0,
+     "cover": 0.642,
+     "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
+     "guard": {
+      "dropped_pct": 0.073,
+      "pieces": 9,
+      "pieces_kept": 4
+     }
+    }
+   ],
+   "colour": {
+    "ortho": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4096,
+     "meas_px": 7980765,
+     "black_ref_pct": 0.0,
+     "imagery_pct": 99.9,
+     "filled_pct": 0.0,
+     "gain": 0.581,
+     "chroma": 1.2,
+     "dark_pct": 0.0,
+     "bright_pct": 0.55,
+     "covered_pct": 100.0,
+     "ref_scale_m": 3.6,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 40.7
+    }
+   },
+   "facts": {
+    "point_h_m": {
+     "halape_beach": 2
+    },
+    "land_area_km2_at_0m": 4.2,
+    "h_range_m": [
+     -273,
+     319
+    ]
+   },
+   "bytes": {
+    "h16": 5274404,
+    "ao": 757662,
+    "color": 1448466,
+    "cres": 258704
+   },
+   "bake_s": 39.7,
+   "baked": "2026-11-15",
+   "res": {
+    "height_m": 1.0,
+    "height_src_m": 1.0,
+    "colour_texel_m": 0.72,
+    "height_interp": [],
+    "colour_src_m": 0.6,
+    "colour_wh": [
+     4096,
+     3099
+    ]
+   },
+   "detail": {
+    "colour": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4096,
+     "quads": [
+      "m_1915546_se_05_060_20220419 (2022-04-19, 0.6 m read)",
+      "m_1915547_sw_05_060_20220419 (2022-04-19, 0.6 m read)"
+     ],
+     "meas_px": 7980765,
+     "black_ref_pct": 0.0,
+     "imagery_pct": 99.9,
+     "filled_pct": 0.0,
+     "gain": 0.581,
+     "chroma": 1.2,
+     "dark_pct": 0.0,
+     "bright_pct": 0.55,
+     "covered_pct": 100.0,
+     "ref_scale_m": 3.6,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 40.7
+    },
+    "height": {
+     "source": "3dep"
+    }
+   }
   },
   "holei": {
    "bbox": [
@@ -1223,8 +1602,8 @@
     19.315
    ],
    "wh": [
-    768,
-    512
+    3680,
+    2500
    ],
    "stack": [
     "holei",
@@ -1258,11 +1637,12 @@
    "files": {
     "h16": "h16.png",
     "ao": "ao.png",
-    "color": "color.jpg"
+    "color": "color.jpg",
+    "cres": "cres.png"
    },
-   "hmin": -8000.0,
-   "hrange": 17000.0,
-   "px_m": 9.7,
+   "hmin": -1260.0,
+   "hrange": 1720.0,
+   "px_m": 2.0,
    "sources": [
     {
      "id": "etopo15",
@@ -1272,6 +1652,17 @@
      "id": "ncei:hilo_13_mhw_2011",
      "res_arcsec": 0.33,
      "cover": 1.0
+    },
+    {
+     "id": "3dep",
+     "res_m": 1.0,
+     "cover": 0.501,
+     "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
+     "guard": {
+      "dropped_pct": 0.382,
+      "pieces": 4,
+      "pieces_kept": 1
+     }
     }
    ],
    "colour": {
@@ -1299,32 +1690,92 @@
       -155.065,
       19.315
      ]
+    },
+    "ortho": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4096,
+     "meas_px": 5166946,
+     "black_ref_pct": 9.13,
+     "imagery_pct": 97.6,
+     "filled_pct": 2.4,
+     "gain": 0.494,
+     "chroma": 1.2,
+     "dark_pct": 0.04,
+     "bright_pct": 6.07,
+     "covered_pct": 100.0,
+     "ref_scale_m": 30.0,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 43.3
     }
    },
    "facts": {
     "peaks_m": {
      "cliff_top_near_arch": {
-      "h": 24,
+      "h": 30,
       "lon": -155.1006,
       "lat": 19.2982
      }
     },
     "point_h_m": {
-     "arch_site": -6
+     "arch_site": -4
     },
-    "land_area_km2_at_0m": 18.3,
+    "land_area_km2_at_0m": 18.4,
     "h_range_m": [
-     -1245,
+     -1246,
      444
     ]
    },
    "bytes": {
-    "h16": 134409,
-    "ao": 73354,
-    "color": 26964
+    "h16": 5971443,
+    "ao": 1111855,
+    "color": 1062556,
+    "cres": 220287
    },
-   "bake_s": 29.7,
-   "baked": "2026-11-09"
+   "bake_s": 60.1,
+   "baked": "2026-11-15",
+   "res": {
+    "height_m": 2.0,
+    "height_src_m": 1.0,
+    "colour_texel_m": 1.8,
+    "height_interp": [],
+    "colour_src_m": 0.6,
+    "colour_wh": [
+     4096,
+     2790
+    ]
+   },
+   "detail": {
+    "colour": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4096,
+     "quads": [
+      "m_1915547_ne_05_060_20220419 (2022-04-19, 0.6 m read)",
+      "m_1915547_se_05_060_20220419 (2022-04-19, 0.6 m read)",
+      "m_1915548_nw_05_060_20220419 (2022-04-19, 0.6 m read)",
+      "m_1915548_se_05_060_20220419 (2022-04-19, 0.6 m read)",
+      "m_1915548_sw_05_060_20220419 (2022-04-19, 0.6 m read)"
+     ],
+     "meas_px": 5166946,
+     "black_ref_pct": 9.13,
+     "imagery_pct": 97.6,
+     "filled_pct": 2.4,
+     "gain": 0.494,
+     "chroma": 1.2,
+     "dark_pct": 0.04,
+     "bright_pct": 6.07,
+     "covered_pct": 100.0,
+     "ref_scale_m": 30.0,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 43.3
+    },
+    "height": {
+     "source": "3dep",
+     "wh": [
+      3680,
+      2500
+     ]
+    }
+   }
   },
   "pali": {
    "bbox": [
@@ -1334,10 +1785,11 @@
     21.44
    ],
    "wh": [
-    1792,
-    1344
+    3520,
+    2660
    ],
    "stack": [
+    "pali_lookout",
     "pali",
     "oahu_nuuanu",
     "hawaii_skirt"
@@ -1378,17 +1830,19 @@
    "gaps": [
     "NCEI 1/3\" (USGS 10 m land): the lookout (343 m on this grid), its wall, the road and trees are not in the data; HLS 30 m colour is soft at ground level (needs a close-up texture or paper props).",
     "Colour (round 3, 2026-11-09): HLS v2 (Sentinel-2 + Landsat, 30 m) with its Fmask cloud mask from the Planetary Computer, 24 summer scenes of 2023 and 2024, the per-pixel median of cloud-free observations: the Ko'olau crest cloud blobs are gone (3 % of pixels never clear, filled from neighbours). One luminance gain 0.734 and one chroma factor 0.6, both measured on clear O'ahu land (median MODIS / HLS over 53,000 px in oahu_nuuanu): the HLS greens were 1.7x more saturated than the MODIS colours the stage grade was tuned on (land texture saturation median 0.54, now 0.35; Maui Nui 0.38; cloud-white texels 8.1 % to 2.0 %, the rest roofs and roads). Winter scenes left the NE-facing pali black and a gain matched to the cloudy MODIS reference (1.34) turned it neon: neither is used. AO counts the horizon above the local slope (tangent).",
-    "Ground view: the spur just east of the lookout faces west, so a morning sun leaves it in shade, and the stage's shade is near black (16.7 % near-black with sun [120, 30]); film.today uses sun [75, 55] (3.2 %, frame luma 149) or keep that spur out of frame. Kane'ohe Bay's reef flats are 0-2 m deep and its sea floor now shows the HLS picture: keep foamAmt at 0.25 or less there (the foam rim covers the whole flat)."
+    "Ground view: the spur just east of the lookout faces west, so a morning sun leaves it in shade, and the stage's shade is near black (16.7 % near-black with sun [120, 30]); film.today uses sun [75, 55] (3.2 %, frame luma 149) or keep that spur out of frame. Kane'ohe Bay's reef flats are 0-2 m deep and its sea floor now shows the HLS picture: keep foamAmt at 0.25 or less there (the foam rim covers the whole flat).",
+    "The 2020 lidar (HI_NOAAMauiOahu_2020_B20, the only 1 m source here) holds a NW-SE band across Nu'uanu, the lookout included, that is interpolated ground (terraced, about 10 m detail) with 3-9 m steps along its two straight edges: the steps are healed (detail.height.seams), the band stays soft; detail texturing carries the close shots there."
    ],
    "dir": "/ep/ep02/data/pali",
    "files": {
     "h16": "h16.png",
     "ao": "ao.png",
-    "color": "color.jpg"
+    "color": "color.jpg",
+    "cres": "cres.png"
    },
-   "hmin": -8000.0,
-   "hrange": 17000.0,
-   "px_m": 9.9,
+   "hmin": -330.0,
+   "hrange": 1300.0,
+   "px_m": 5.01,
    "sources": [
     {
      "id": "etopo15",
@@ -1398,6 +1852,89 @@
      "id": "ncei:oahu_13_mhw_2011",
      "res_arcsec": 0.33,
      "cover": 1.0
+    },
+    {
+     "id": "3dep",
+     "res_m": 1.0,
+     "cover": 0.837,
+     "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
+     "guard": {
+      "dropped_pct": 1.671,
+      "pieces": 7,
+      "pieces_kept": 5
+     },
+     "seams_healed": [
+      {
+       "line": [
+        [
+         -157.83028,
+         21.4397
+        ],
+        [
+         -157.73724,
+         21.3203
+        ]
+       ],
+       "len_m": 16422,
+       "tracked_pct": 69.4,
+       "offset_m": [
+        -72.6,
+        72.6
+       ],
+       "step_healed_pct": 58.5,
+       "step_m_median": 3.3,
+       "step_m_p95": 13.03,
+       "max_change_m": 9.45,
+       "p99_change_m": 4.51
+      },
+      {
+       "line": [
+        [
+         -157.86262,
+         21.4397
+        ],
+        [
+         -157.7629,
+         21.3203
+        ]
+       ],
+       "len_m": 16838,
+       "tracked_pct": 78.5,
+       "offset_m": [
+        -71.3,
+        72.6
+       ],
+       "step_healed_pct": 29.2,
+       "step_m_median": 5.75,
+       "step_m_p95": 40.46,
+       "max_change_m": 10.46,
+       "p99_change_m": 6.31
+      }
+     ],
+     "interp": [
+      {
+       "poly": [
+        [
+         -157.86287,
+         21.44
+        ],
+        [
+         -157.83051,
+         21.44
+        ],
+        [
+         -157.73701,
+         21.32
+        ],
+        [
+         -157.76265,
+         21.32
+        ]
+       ],
+       "src_m": 10,
+       "note": "interpolated band of HI_NOAAMauiOahu_2020_B20 (terraced, straight edges)"
+      }
+     ]
     }
    ],
    "colour": {
@@ -1448,33 +1985,479 @@
      "never_clear_pct": 3.05,
      "sat": 0.6
     },
-    "sea": "the HLS picture where HLS covers, else by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
+    "sea": "the HLS picture where HLS covers, else by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour",
+    "ortho": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4096,
+     "meas_px": 10560413,
+     "black_ref_pct": 0.0,
+     "imagery_pct": 94.4,
+     "filled_pct": 5.5,
+     "gain": 0.852,
+     "chroma": 1.2,
+     "dark_pct": 8.69,
+     "bright_pct": 0.31,
+     "covered_pct": 100.0,
+     "ref_scale_m": 30.0,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 39.7
+    }
    },
    "facts": {
     "peaks_m": {
      "konahuanui": {
-      "h": 957,
+      "h": 958,
       "lon": -157.7882,
       "lat": 21.3581
      }
     },
     "point_h_m": {
-     "lookout": 343
+     "lookout": 338
     },
-    "land_area_km2_at_0m": 194.6,
+    "land_area_km2_at_0m": 197.2,
     "h_range_m": [
      -316,
-     957
+     958
     ]
    },
    "bytes": {
-    "h16": 1602720,
-    "ao": 1299845,
-    "color": 353193
+    "h16": 10961315,
+    "ao": 1565032,
+    "color": 3384601,
+    "cres": 482406
    },
-   "bake_s": 43.2,
-   "baked": "2026-11-09",
-   "ao": "tangent (horizon above the local slope)"
+   "bake_s": 56.4,
+   "baked": "2026-11-15",
+   "ao": "tangent (horizon above the local slope)",
+   "res": {
+    "height_m": 5.01,
+    "height_src_m": 1.0,
+    "colour_texel_m": 4.3,
+    "height_interp": [
+     {
+      "poly": [
+       [
+        -157.86287,
+        21.44
+       ],
+       [
+        -157.83051,
+        21.44
+       ],
+       [
+        -157.73701,
+        21.32
+       ],
+       [
+        -157.76265,
+        21.32
+       ]
+      ],
+      "src_m": 10,
+      "note": "interpolated band of HI_NOAAMauiOahu_2020_B20 (terraced, straight edges)"
+     }
+    ],
+    "colour_src_m": 0.6,
+    "colour_wh": [
+     4096,
+     3105
+    ]
+   },
+   "detail": {
+    "colour": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4096,
+     "quads": [
+      "m_2115734_sw_04_060_20230118 (2023-01-18, 2.4 m read)",
+      "m_2115734_ne_04_060_20221215 (2022-12-15, 2.4 m read)",
+      "m_2115734_nw_04_060_20221215 (2022-12-15, 2.4 m read)",
+      "m_2115734_se_04_060_20221215 (2022-12-15, 2.4 m read)",
+      "m_2115735_nw_04_060_20221215 (2022-12-15, 2.4 m read)",
+      "m_2115735_sw_04_060_20221215 (2022-12-15, 2.4 m read)",
+      "m_2115742_ne_04_060_20221215 (2022-12-15, 2.4 m read)",
+      "m_2115742_nw_04_060_20221215 (2022-12-15, 2.4 m read)",
+      "m_2115743_nw_04_060_20221215 (2022-12-15, 2.4 m read)"
+     ],
+     "meas_px": 10560413,
+     "black_ref_pct": 0.0,
+     "imagery_pct": 94.4,
+     "filled_pct": 5.5,
+     "gain": 0.852,
+     "chroma": 1.2,
+     "dark_pct": 8.69,
+     "bright_pct": 0.31,
+     "covered_pct": 100.0,
+     "ref_scale_m": 30.0,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 39.7
+    },
+    "height": {
+     "source": "3dep",
+     "wh": [
+      3520,
+      2660
+     ],
+     "seams": [
+      [
+       [
+        -157.83028,
+        21.4397
+       ],
+       [
+        -157.73724,
+        21.3203
+       ]
+      ],
+      [
+       [
+        -157.86262,
+        21.4397
+       ],
+       [
+        -157.7629,
+        21.3203
+       ]
+      ]
+     ],
+     "interp": [
+      {
+       "poly": [
+        [
+         -157.86287,
+         21.44
+        ],
+        [
+         -157.83051,
+         21.44
+        ],
+        [
+         -157.73701,
+         21.32
+        ],
+        [
+         -157.76265,
+         21.32
+        ]
+       ],
+       "src_m": 10,
+       "note": "interpolated band of HI_NOAAMauiOahu_2020_B20 (terraced, straight edges)"
+      }
+     ]
+    }
+   }
+  },
+  "pali_lookout": {
+   "bbox": [
+    -157.818,
+    21.345,
+    -157.765,
+    21.398
+   ],
+   "wh": [
+    2750,
+    2950
+   ],
+   "stack": [
+    "pali_lookout",
+    "pali",
+    "oahu_nuuanu",
+    "hawaii_skirt"
+   ],
+   "purpose": "Close-up detail patch for 'pali' (s026-s031, s090): the lookout, the windward slopes and plain within about 3 km of the ground camera, 2 m heights (USGS 3DEP lidar, 2020) and 1.4 m colour (NAIP 2022). Loaded automatically as the finest layer of 'pali'.",
+   "view": {
+    "level": 0,
+    "look": "day",
+    "sun": [
+     75,
+     55
+    ],
+    "water": "turq",
+    "foam": 0.25,
+    "cam": {
+     "lon": -157.7936,
+     "lat": 21.3667,
+     "agl": 0.03,
+     "heading": 42,
+     "pitch": -8,
+     "fov": 62,
+     "near": 0.005,
+     "far": 400
+    }
+   },
+   "gaps": [
+    "NAIP of 15 Dec 2022 (winter sun): the NE-facing cliffs are in baked shadow in the photo; there the patch keeps the summer HLS tone of 'pali' at the 30 m scale with the photo's detail on top. Trees, the lookout wall and the road are in the photo only (bare-earth heights).",
+    "The 2020 lidar (HI_NOAAMauiOahu_2020_B20, the only 1 m source here) holds a NW-SE band across Nu'uanu, the lookout included, that is interpolated ground (terraced, about 10 m detail) with 3-9 m steps along its two straight edges: the steps are healed (detail.height.seams), the band stays soft; detail texturing carries the close shots there."
+   ],
+   "patch": {
+    "parent": "pali",
+    "feather_m": 150
+   },
+   "dir": "/ep/ep02/data/pali_lookout",
+   "files": {
+    "h16": "h16.png",
+    "ao": "ao.png",
+    "color": "color.jpg",
+    "cres": "cres.png"
+   },
+   "hmin": -10.0,
+   "hrange": 980.0,
+   "px_m": 2.0,
+   "sources": [
+    {
+     "id": "region:pali",
+     "px_m": 5.01
+    },
+    {
+     "id": "3dep",
+     "res_m": 1.0,
+     "cover": 1.0,
+     "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
+     "guard": {
+      "dropped_pct": 0.0,
+      "pieces": 1,
+      "pieces_kept": 1
+     },
+     "seams_healed": [
+      {
+       "line": [
+        [
+         -157.79755,
+         21.3977
+        ],
+        [
+         -157.7653,
+         21.3563
+        ]
+       ],
+       "len_m": 5694,
+       "tracked_pct": 86.0,
+       "offset_m": [
+        -16.0,
+        28.5
+       ],
+       "step_healed_pct": 74.9,
+       "step_m_median": 3.24,
+       "step_m_p95": 6.97,
+       "max_change_m": 7.6,
+       "p99_change_m": 3.85
+      },
+      {
+       "line": [
+        [
+         -157.8177,
+         21.38591
+        ],
+        [
+         -157.78378,
+         21.3453
+        ]
+       ],
+       "len_m": 5727,
+       "tracked_pct": 77.7,
+       "offset_m": [
+        -29.0,
+        29.0
+       ],
+       "step_healed_pct": 44.8,
+       "step_m_median": 4.4,
+       "step_m_p95": 27.86,
+       "max_change_m": 10.16,
+       "p99_change_m": 5.33
+      }
+     ],
+     "interp": [
+      {
+       "poly": [
+        [
+         -157.79755,
+         21.398
+        ],
+        [
+         -157.765,
+         21.3563
+        ],
+        [
+         -157.765,
+         21.345
+        ],
+        [
+         -157.7838,
+         21.345
+        ],
+        [
+         -157.818,
+         21.3863
+        ],
+        [
+         -157.818,
+         21.398
+        ]
+       ],
+       "src_m": 10,
+       "note": "interpolated band of HI_NOAAMauiOahu_2020_B20 (terraced, straight edges)"
+      }
+     ]
+    }
+   ],
+   "colour": {
+    "ortho": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4096,
+     "meas_px": 15621804,
+     "black_ref_pct": 0.0,
+     "imagery_pct": 96.1,
+     "filled_pct": 3.9,
+     "gain": 0.852,
+     "chroma": 1.137,
+     "dark_pct": 7.45,
+     "bright_pct": 0.88,
+     "covered_pct": 100.0,
+     "ref_scale_m": 4.3,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 15.7
+    }
+   },
+   "facts": {
+    "point_h_m": {
+     "lookout": 340
+    },
+    "land_area_km2_at_0m": 32.4,
+    "h_range_m": [
+     4,
+     958
+    ]
+   },
+   "bytes": {
+    "h16": 9089721,
+    "ao": 1251305,
+    "color": 4009891,
+    "cres": 205912
+   },
+   "bake_s": 55.2,
+   "baked": "2026-11-15",
+   "res": {
+    "height_m": 2.0,
+    "height_src_m": 1.0,
+    "colour_texel_m": 1.44,
+    "height_interp": [
+     {
+      "poly": [
+       [
+        -157.79755,
+        21.398
+       ],
+       [
+        -157.765,
+        21.3563
+       ],
+       [
+        -157.765,
+        21.345
+       ],
+       [
+        -157.7838,
+        21.345
+       ],
+       [
+        -157.818,
+        21.3863
+       ],
+       [
+        -157.818,
+        21.398
+       ]
+      ],
+      "src_m": 10,
+      "note": "interpolated band of HI_NOAAMauiOahu_2020_B20 (terraced, straight edges)"
+     }
+    ],
+    "colour_src_m": 0.6,
+    "colour_wh": [
+     3814,
+     4096
+    ]
+   },
+   "detail": {
+    "colour": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4096,
+     "quads": [
+      "m_2115734_sw_04_060_20230118 (2023-01-18, 0.6 m read)",
+      "m_2115734_se_04_060_20221215 (2022-12-15, 0.6 m read)",
+      "m_2115742_ne_04_060_20221215 (2022-12-15, 0.6 m read)",
+      "m_2115742_nw_04_060_20221215 (2022-12-15, 0.6 m read)"
+     ],
+     "meas_px": 15621804,
+     "black_ref_pct": 0.0,
+     "imagery_pct": 96.1,
+     "filled_pct": 3.9,
+     "gain": 0.852,
+     "chroma": 1.137,
+     "dark_pct": 7.45,
+     "bright_pct": 0.88,
+     "covered_pct": 100.0,
+     "ref_scale_m": 4.3,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 15.7
+    },
+    "height": {
+     "source": "3dep",
+     "seams": [
+      [
+       [
+        -157.79755,
+        21.3977
+       ],
+       [
+        -157.7653,
+        21.3563
+       ]
+      ],
+      [
+       [
+        -157.8177,
+        21.38591
+       ],
+       [
+        -157.78378,
+        21.3453
+       ]
+      ]
+     ],
+     "interp": [
+      {
+       "poly": [
+        [
+         -157.79755,
+         21.398
+        ],
+        [
+         -157.765,
+         21.3563
+        ],
+        [
+         -157.765,
+         21.345
+        ],
+        [
+         -157.7838,
+         21.345
+        ],
+        [
+         -157.818,
+         21.3863
+        ],
+        [
+         -157.818,
+         21.398
+        ]
+       ],
+       "src_m": 10,
+       "note": "interpolated band of HI_NOAAMauiOahu_2020_B20 (terraced, straight edges)"
+      }
+     ]
+    }
+   }
   },
   "waimea": {
    "bbox": [
@@ -1518,11 +2501,12 @@
    "files": {
     "h16": "h16.png",
     "ao": "ao.png",
-    "color": "color.jpg"
+    "color": "color.jpg",
+    "cres": "cres.png"
    },
    "hmin": -8000.0,
    "hrange": 17000.0,
-   "px_m": 12.1,
+   "px_m": 12.11,
    "sources": [
     {
      "id": "etopo15",
@@ -1559,18 +2543,34 @@
       -159.56,
       22.16
      ]
+    },
+    "ortho": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4096,
+     "meas_px": 11208505,
+     "black_ref_pct": 0.12,
+     "imagery_pct": 97.6,
+     "filled_pct": 2.4,
+     "gain": 0.595,
+     "chroma": 1.2,
+     "dark_pct": 3.65,
+     "bright_pct": 1.33,
+     "covered_pct": 99.3,
+     "ref_scale_m": 30.0,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 36.3
     }
    },
    "facts": {
     "peaks_m": {
      "canyon_rim_west": {
-      "h": 1124,
+      "h": 1123,
       "lon": -159.6667,
       "lat": 22.0804
      }
     },
     "point_h_m": {
-     "canyon_floor": 595
+     "canyon_floor": 594
     },
     "land_area_km2_at_0m": 439.0,
     "h_range_m": [
@@ -1581,10 +2581,62 @@
    "bytes": {
     "h16": 2869675,
     "ao": 516833,
-    "color": 488027
+    "color": 2846869,
+    "cres": 516255
    },
-   "bake_s": 44.0,
-   "baked": "2026-11-08"
+   "bake_s": 61.0,
+   "baked": "2026-11-15",
+   "res": {
+    "height_m": 12.11,
+    "height_src_m": 12.1,
+    "colour_texel_m": 6.25,
+    "height_interp": [],
+    "colour_src_m": 0.6,
+    "colour_wh": [
+     2971,
+     4096
+    ]
+   },
+   "detail": {
+    "colour": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4096,
+     "quads": [
+      "m_2115903_ne_04_060_20220321 (2022-03-21, 2.4 m read)",
+      "m_2115903_nw_04_060_20220321 (2022-03-21, 2.4 m read)",
+      "m_2115904_ne_04_060_20220321 (2022-03-21, 2.4 m read)",
+      "m_2115904_nw_04_060_20220321 (2022-03-21, 2.4 m read)",
+      "m_2215952_se_04_060_20220321 (2022-03-21, 2.4 m read)",
+      "m_2215959_ne_04_060_20220321 (2022-03-21, 2.4 m read)",
+      "m_2215959_nw_04_060_20220321 (2022-03-21, 2.4 m read)",
+      "m_2215959_se_04_060_20220321 (2022-03-21, 2.4 m read)",
+      "m_2215959_sw_04_060_20220321 (2022-03-21, 2.4 m read)",
+      "m_2215960_ne_04_060_20220321 (2022-03-21, 2.4 m read)",
+      "m_2215960_nw_04_060_20220321 (2022-03-21, 2.4 m read)",
+      "m_2215960_se_04_060_20220321 (2022-03-21, 2.4 m read)",
+      "m_2215960_sw_04_060_20220321 (2022-03-21, 2.4 m read)",
+      "m_2115903_se_04_060_20220212 (2022-02-12, 2.4 m read)",
+      "m_2115904_se_04_060_20220212 (2022-02-12, 2.4 m read)",
+      "m_2115904_sw_04_060_20220212 (2022-02-12, 2.4 m read)",
+      "m_2215951_se_04_060_20220128 (2022-01-28, 2.4 m read)",
+      "m_2215951_sw_04_060_20220128 (2022-01-28, 2.4 m read)",
+      "m_2215952_sw_04_060_20220128 (2022-01-28, 2.4 m read)"
+     ],
+     "meas_px": 11208505,
+     "black_ref_pct": 0.12,
+     "imagery_pct": 97.6,
+     "filled_pct": 2.4,
+     "gain": 0.595,
+     "chroma": 1.2,
+     "dark_pct": 3.65,
+     "bright_pct": 1.33,
+     "covered_pct": 99.3,
+     "ref_scale_m": 30.0,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 36.3
+    },
+    "height": {}
+   }
   },
   "maunakea": {
    "bbox": [
@@ -1594,8 +2646,8 @@
     19.86
    ],
    "wh": [
-    1408,
-    1024
+    2730,
+    2000
    ],
    "stack": [
     "maunakea",
@@ -1626,11 +2678,12 @@
    "files": {
     "h16": "h16.png",
     "ao": "ao.png",
-    "color": "color.jpg"
+    "color": "color.jpg",
+    "cres": "cres.png"
    },
-   "hmin": -8000.0,
-   "hrange": 17000.0,
-   "px_m": 9.7,
+   "hmin": 2240.0,
+   "hrange": 1980.0,
+   "px_m": 5.0,
    "sources": [
     {
      "id": "etopo15",
@@ -1645,6 +2698,17 @@
      "id": "terrarium_z14",
      "res_m": 9.0,
      "land_only": true
+    },
+    {
+     "id": "3dep",
+     "res_m": 1.0,
+     "cover": 1.0,
+     "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
+     "guard": {
+      "dropped_pct": 0.0,
+      "pieces": 1,
+      "pieces_kept": 1
+     }
     }
    ],
    "colour": {
@@ -1670,29 +2734,91 @@
       -155.4,
       19.86
      ]
+    },
+    "ortho": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4096,
+     "meas_px": 12345281,
+     "black_ref_pct": 0.0,
+     "imagery_pct": 99.8,
+     "filled_pct": 0.2,
+     "gain": 0.55,
+     "chroma": 1.2,
+     "dark_pct": 0.28,
+     "bright_pct": 0.2,
+     "covered_pct": 100.0,
+     "ref_scale_m": 30.0,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 83.4
     }
    },
    "facts": {
     "peaks_m": {
      "mauna_kea": {
-      "h": 4200,
-      "lon": -155.4693,
-      "lat": 19.8229
+      "h": 4207,
+      "lon": -155.4681,
+      "lat": 19.8207
      }
     },
     "land_area_km2_at_0m": 136.4,
     "h_range_m": [
      2260,
-     4200
+     4207
     ]
    },
    "bytes": {
-    "h16": 786147,
-    "ao": 515876,
-    "color": 123955
+    "h16": 6113386,
+    "ao": 811475,
+    "color": 1882569,
+    "cres": 357629
    },
-   "bake_s": 30.7,
-   "baked": "2026-11-08"
+   "bake_s": 65.3,
+   "baked": "2026-11-15",
+   "res": {
+    "height_m": 5.0,
+    "height_src_m": 1.0,
+    "colour_texel_m": 3.32,
+    "height_interp": [],
+    "colour_src_m": 0.6,
+    "colour_wh": [
+     4096,
+     3014
+    ]
+   },
+   "detail": {
+    "colour": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4096,
+     "quads": [
+      "m_1915513_nw_05_060_20220428 (2022-04-28, 1.2 m read)",
+      "m_1915512_ne_05_060_20220328 (2022-03-28, 1.2 m read)",
+      "m_1915513_ne_05_060_20220328 (2022-03-28, 1.2 m read)",
+      "m_1915512_ne_05_060_20221110 (2022-11-10, 1.2 m read)",
+      "m_1915512_se_05_060_20220106 (2022-01-06, 1.2 m read)",
+      "m_1915513_se_05_060_20220106 (2022-01-06, 1.2 m read)",
+      "m_1915513_sw_05_060_20220106 (2022-01-06, 1.2 m read)"
+     ],
+     "meas_px": 12345281,
+     "black_ref_pct": 0.0,
+     "imagery_pct": 99.8,
+     "filled_pct": 0.2,
+     "gain": 0.55,
+     "chroma": 1.2,
+     "dark_pct": 0.28,
+     "bright_pct": 0.2,
+     "covered_pct": 100.0,
+     "ref_scale_m": 30.0,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 83.4
+    },
+    "height": {
+     "source": "3dep",
+     "wh": [
+      2730,
+      2000
+     ]
+    }
+   }
   },
   "kamaehu": {
    "bbox": [
@@ -3009,12 +4135,11 @@
    "files": {
     "h16": "h16.png",
     "ao": "ao.png",
-    "color": "color.jpg",
-    "sat": "sat.jpg"
+    "color": "color.jpg"
    },
    "hmin": -8000.0,
    "hrange": 17000.0,
-   "px_m": 14.4,
+   "px_m": 14.38,
    "sources": [
     {
      "id": "etopo15",
@@ -3056,6 +4181,33 @@
       -177.22,
       28.33
      ]
+    },
+    "ortho": {
+     "source": "Copernicus Sentinel-2 L2A 10 m, median of SCL-clear observations (Planetary Computer)",
+     "long": 4096,
+     "bbox": [
+      -177.43006,
+      28.17995,
+      -177.28995,
+      28.29005
+     ],
+     "months": [
+      [
+       "2023-01-01",
+       "2025-10-31"
+      ]
+     ],
+     "n": 12,
+     "scenes": 12,
+     "never_clear_pct": 0.0,
+     "meas_px": 104302,
+     "gain": 0.546,
+     "chroma": 1.2,
+     "dark_pct": 0.04,
+     "bright_pct": 4.49,
+     "covered_pct": 24.5,
+     "ref_scale_m": 30.0,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer"
     }
    },
    "facts": {
@@ -3063,12 +4215,12 @@
      "sand_island": {
       "h": 10,
       "lon": -177.3821,
-      "lat": 28.2155
+      "lat": 28.2156
      },
      "eastern_island": {
-      "h": 5,
-      "lon": -177.3282,
-      "lat": 28.2108
+      "h": 4,
+      "lon": -177.3285,
+      "lat": 28.211
      }
     },
     "point_h_m": {
@@ -3083,11 +4235,64 @@
    "bytes": {
     "h16": 2190945,
     "ao": 315278,
-    "color": 101114,
-    "sat": 134062
+    "color": 464881
    },
-   "bake_s": 50.9,
-   "baked": "2026-11-08"
+   "bake_s": 40.1,
+   "baked": "2026-11-09",
+   "res": {
+    "height_m": 14.38,
+    "height_src_m": 14.4,
+    "colour_texel_m": 7.18,
+    "colour_src_m": 10.0,
+    "colour_wh": [
+     4096,
+     3254
+    ]
+   },
+   "detail": {
+    "colour": {
+     "source": "Copernicus Sentinel-2 L2A 10 m, median of SCL-clear observations (Planetary Computer)",
+     "long": 4096,
+     "bbox": [
+      -177.43006,
+      28.17995,
+      -177.28995,
+      28.29005
+     ],
+     "months": [
+      [
+       "2023-01-01",
+       "2025-10-31"
+      ]
+     ],
+     "n": 12,
+     "dates": [
+      "S2_2023-02-16",
+      "S2_2023-02-16",
+      "S2_2023-11-03",
+      "S2_2024-01-27",
+      "S2_2024-02-01",
+      "S2_2024-02-01",
+      "S2_2024-03-07",
+      "S2_2024-10-18",
+      "S2_2024-12-07",
+      "S2_2024-12-17",
+      "S2_2024-12-22",
+      "S2_2025-01-11"
+     ],
+     "scenes": 12,
+     "never_clear_pct": 0.0,
+     "meas_px": 104302,
+     "gain": 0.546,
+     "chroma": 1.2,
+     "dark_pct": 0.04,
+     "bright_pct": 4.49,
+     "covered_pct": 24.5,
+     "ref_scale_m": 30.0,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer"
+    },
+    "height": {}
+   }
   },
   "kure": {
    "bbox": [

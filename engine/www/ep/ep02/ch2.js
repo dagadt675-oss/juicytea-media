@@ -393,7 +393,7 @@ export async function build(api, kit, scenes) {
         const hatDraw = (v, alpha) => {
           const Q = hatAt(v, x0, y0), gr = Q.g, fz = fzOf(v), hw = 0.75 * Math.hypot(h0.w, h0.h) * gr;
           if (!(Q.x + hw > 0 && Q.y + hw > 0 && Q.x - hw < W && Q.y - hw < H)) return;
-          const cs = Math.cos(2 * Math.PI * 2.3 * Math.max(0, v - 0.3)), sy0 = F.lerp(1, cs, fz), sy = (sy0 < 0 ? -1 : 1) * Math.max(0.16, Math.abs(sy0));
+          const cs = Math.cos(2 * Math.PI * 2.3 * Math.max(0, v - 0.3)), sy0 = F.lerp(1, cs, fz), sy = (sy0 < 0 ? -1 : 1) * Math.max(0.22, Math.abs(sy0));
           const ang = rot0 + br0.rot - (v * 3.4 + 0.45 * Math.sin(v * 12) * fz);
           ctx.save(); ctx.globalAlpha = alpha; ctx.translate(Q.x, Q.y); ctx.rotate(ang); ctx.scale(1, sy);
           ctx.shadowColor = 'rgba(0,0,0,0.22)'; ctx.shadowBlur = 6 * gr; ctx.shadowOffsetX = 4 * gr; ctx.shadowOffsetY = 6 * gr;

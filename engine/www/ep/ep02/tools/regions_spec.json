@@ -1,5 +1,5 @@
 {
- "about": "ep02 terrain/seafloor regions for the HawaiiStage (engine/www/lab/hawaii/hterrain.js loadRegion). Baked by engine/www/lab/hawaii/tools/region_bake.py into engine/www/ep/ep02/data/<name>/ (git-ignored except meta.json); index regions.json written by make_index.py. 'stack' = layers finest first, each must contain the previous (max 3). 'view' = the verification camera (lab_region.html), also a starting point for the shot builders. Segments refer to research/ep02/script/script_locked.json.",
+ "about": "ep02 terrain/seafloor regions for the HawaiiStage (engine/www/lab/hawaii/hterrain.js loadRegion). Baked by engine/www/lab/hawaii/tools/region_bake.py into engine/www/ep/ep02/data/<name>/ (git-ignored except meta.json); index regions.json written by make_index.py. 'stack' = layers finest first, each must contain the previous (max 3, plus one nested detail patch first: an entry with 'patch', baked by lab/hawaii/tools/detail_bake.py). 'detail' = an in-place close-up re-bake after region_bake.py (detail_bake.py). 'view' = the verification camera (lab_region.html), also a starting point for the shot builders. Segments refer to research/ep02/script/script_locked.json.",
  "regions": [
   {
    "name": "bigisland",
@@ -608,6 +608,7 @@
     }
    },
    "stack": [
+    "kilauea_coast",
     "kilauea_sf",
     "bigisland",
     "hawaii_skirt"
@@ -663,6 +664,61 @@
    ]
   },
   {
+   "name": "kilauea_coast",
+   "bbox": [
+    -155.34,
+    19.235,
+    -155.05,
+    19.335
+   ],
+   "wh": [
+    4096,
+    1490
+   ],
+   "patch": {
+    "parent": "kilauea_sf",
+    "feather_m": 400
+   },
+   "detail": {
+    "colour": {
+     "source": "naip",
+     "long": 6144
+    },
+    "height": {
+     "source": "3dep"
+    }
+   },
+   "stack": [
+    "kilauea_coast",
+    "kilauea_sf",
+    "bigisland",
+    "hawaii_skirt"
+   ],
+   "purpose": "Detail patch for 'kilauea_sf' (s014-s024, s044-s046): Kilauea's south-flank coast from Halape to Holei and the fault scarps above it, 7.5 m heights (USGS 3DEP lidar, 2017) and 5 m colour (NAIP 2022). Loaded automatically as the finest layer of 'kilauea_sf'.",
+   "view": {
+    "level": 0,
+    "look": "gold",
+    "sun": [
+     250,
+     18
+    ],
+    "water": "ocean",
+    "foam": 1,
+    "cam": {
+     "lon": -155.23,
+     "lat": 19.21,
+     "alt": 1.5,
+     "tLon": -155.22,
+     "tLat": 19.29,
+     "tH": 0,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "Bare-earth heights; lava flows newer than the 2017 lidar and the 2022 photos (the 2018 lower Puna flows lie east of this patch) are not in it."
+   ]
+  },
+  {
    "name": "halape",
    "bbox": [
     -155.32,
@@ -686,6 +742,7 @@
     }
    },
    "stack": [
+    "halape_cove",
     "halape",
     "kilauea_sf",
     "hawaii_skirt"
@@ -727,6 +784,82 @@
    },
    "gaps": [
     "NCEI 1/3\" (2011) shows today's post-1975 shore: the pre-1975 ground for the 3.5 m drop must be rebuilt by raising the coastal block in the shot; palms, tents and the cove beach are not in the data; colour is HLS 30 m (soft at 1-3 km)."
+   ],
+   "detail": {
+    "colour": {
+     "source": "naip",
+     "long": 4096
+    },
+    "height": {
+     "source": "3dep",
+     "wh": [
+      2940,
+      1560
+     ]
+    }
+   }
+  },
+  {
+   "name": "halape_cove",
+   "bbox": [
+    -155.268,
+    19.262,
+    -155.24,
+    19.282
+   ],
+   "wh": [
+    2940,
+    2220
+   ],
+   "patch": {
+    "parent": "halape",
+    "feather_m": 120
+   },
+   "detail": {
+    "colour": {
+     "source": "naip",
+     "long": 4096
+    },
+    "height": {
+     "source": "3dep"
+    }
+   },
+   "stack": [
+    "halape_cove",
+    "halape",
+    "kilauea_sf",
+    "hawaii_skirt"
+   ],
+   "purpose": "Close-up detail patch for 'halape' (s016-s023): the cove, the grove and the fault scarp above it, 1 m heights (USGS 3DEP lidar, 2017) and 0.7 m colour (NAIP 2022). Loaded automatically as the finest layer of 'halape'.",
+   "facts": {
+    "depths": {
+     "halape_beach": [
+      -155.2547,
+      19.2706
+     ]
+    }
+   },
+   "view": {
+    "level": 0,
+    "look": "gold",
+    "sun": [
+     95,
+     10
+    ],
+    "water": "turq",
+    "foam": 1,
+    "cam": {
+     "lon": -155.2525,
+     "lat": 19.2625,
+     "alt": 0.25,
+     "tLon": -155.2547,
+     "tLat": 19.2706,
+     "tH": 0,
+     "fov": 40
+    }
+   },
+   "gaps": [
+    "Today's (post-1975) ground, like 'halape': the 1975 drop is staged in the shot. Bare-earth heights: palms and tents are in the photo only."
    ]
   },
   {
@@ -794,7 +927,20 @@
    },
    "gaps": [
     "NCEI 1/3\" (about 10 m, 2011) resolves the sea cliff (24 m on this grid within 300 m of the arch site, which itself reads -6 m) but not the arch, a few metres wide: the arch, its gap and the waves are not in the data and must be modelled in the shot, staged only at the arch site; colour is HLS 30 m (soft at a few hundred metres)."
-   ]
+   ],
+   "detail": {
+    "colour": {
+     "source": "naip",
+     "long": 4096
+    },
+    "height": {
+     "source": "3dep",
+     "wh": [
+      3680,
+      2500
+     ]
+    }
+   }
   },
   {
    "name": "pali",
@@ -834,6 +980,7 @@
     "sea": "sat"
    },
    "stack": [
+    "pali_lookout",
     "pali",
     "oahu_nuuanu",
     "hawaii_skirt"
@@ -883,7 +1030,8 @@
    "gaps": [
     "NCEI 1/3\" (USGS 10 m land): the lookout (343 m on this grid), its wall, the road and trees are not in the data; HLS 30 m colour is soft at ground level (needs a close-up texture or paper props).",
     "Colour (round 3, 2026-11-09): HLS v2 (Sentinel-2 + Landsat, 30 m) with its Fmask cloud mask from the Planetary Computer, 24 summer scenes of 2023 and 2024, the per-pixel median of cloud-free observations: the Ko'olau crest cloud blobs are gone (3 % of pixels never clear, filled from neighbours). One luminance gain 0.734 and one chroma factor 0.6, both measured on clear O'ahu land (median MODIS / HLS over 53,000 px in oahu_nuuanu): the HLS greens were 1.7x more saturated than the MODIS colours the stage grade was tuned on (land texture saturation median 0.54, now 0.35; Maui Nui 0.38; cloud-white texels 8.1 % to 2.0 %, the rest roofs and roads). Winter scenes left the NE-facing pali black and a gain matched to the cloudy MODIS reference (1.34) turned it neon: neither is used. AO counts the horizon above the local slope (tangent).",
-    "Ground view: the spur just east of the lookout faces west, so a morning sun leaves it in shade, and the stage's shade is near black (16.7 % near-black with sun [120, 30]); film.today uses sun [75, 55] (3.2 %, frame luma 149) or keep that spur out of frame. Kane'ohe Bay's reef flats are 0-2 m deep and its sea floor now shows the HLS picture: keep foamAmt at 0.25 or less there (the foam rim covers the whole flat)."
+    "Ground view: the spur just east of the lookout faces west, so a morning sun leaves it in shade, and the stage's shade is near black (16.7 % near-black with sun [120, 30]); film.today uses sun [75, 55] (3.2 %, frame luma 149) or keep that spur out of frame. Kane'ohe Bay's reef flats are 0-2 m deep and its sea floor now shows the HLS picture: keep foamAmt at 0.25 or less there (the foam rim covers the whole flat).",
+    "The 2020 lidar (HI_NOAAMauiOahu_2020_B20, the only 1 m source here) holds a NW-SE band across Nu'uanu, the lookout included, that is interpolated ground (terraced, about 10 m detail) with 3-9 m steps along its two straight edges: the steps are healed (detail.height.seams), the band stays soft; detail texturing carries the close shots there."
    ],
    "ao": "tangent",
    "film": {
@@ -897,7 +1045,191 @@
      },
      "why": "Lights the windward pali and the west-facing spur by the lookout (near-black 16.7 % to 3.2 % in the view camera); low foam over the shallow bay."
     }
+   },
+   "detail": {
+    "colour": {
+     "source": "naip",
+     "long": 4096
+    },
+    "height": {
+     "source": "3dep",
+     "wh": [
+      3520,
+      2660
+     ],
+     "seams": [
+      [
+       [
+        -157.83028,
+        21.4397
+       ],
+       [
+        -157.73724,
+        21.3203
+       ]
+      ],
+      [
+       [
+        -157.86262,
+        21.4397
+       ],
+       [
+        -157.7629,
+        21.3203
+       ]
+      ]
+     ],
+     "interp": [
+      {
+       "poly": [
+        [
+         -157.86287,
+         21.44
+        ],
+        [
+         -157.83051,
+         21.44
+        ],
+        [
+         -157.73701,
+         21.32
+        ],
+        [
+         -157.76265,
+         21.32
+        ]
+       ],
+       "src_m": 10,
+       "note": "interpolated band of HI_NOAAMauiOahu_2020_B20 (terraced, straight edges)"
+      }
+     ]
+    }
    }
+  },
+  {
+   "name": "pali_lookout",
+   "bbox": [
+    -157.818,
+    21.345,
+    -157.765,
+    21.398
+   ],
+   "wh": [
+    2750,
+    2950
+   ],
+   "patch": {
+    "parent": "pali",
+    "feather_m": 150
+   },
+   "detail": {
+    "colour": {
+     "source": "naip",
+     "long": 4096
+    },
+    "height": {
+     "source": "3dep",
+     "seams": [
+      [
+       [
+        -157.79755,
+        21.3977
+       ],
+       [
+        -157.7653,
+        21.3563
+       ]
+      ],
+      [
+       [
+        -157.8177,
+        21.38591
+       ],
+       [
+        -157.78378,
+        21.3453
+       ]
+      ]
+     ],
+     "interp": [
+      {
+       "poly": [
+        [
+         -157.79755,
+         21.398
+        ],
+        [
+         -157.765,
+         21.3563
+        ],
+        [
+         -157.765,
+         21.345
+        ],
+        [
+         -157.7838,
+         21.345
+        ],
+        [
+         -157.818,
+         21.3863
+        ],
+        [
+         -157.818,
+         21.398
+        ]
+       ],
+       "src_m": 10,
+       "note": "interpolated band of HI_NOAAMauiOahu_2020_B20 (terraced, straight edges)"
+      }
+     ]
+    }
+   },
+   "stack": [
+    "pali_lookout",
+    "pali",
+    "oahu_nuuanu",
+    "hawaii_skirt"
+   ],
+   "purpose": "Close-up detail patch for 'pali' (s026-s031, s090): the lookout, the windward slopes and plain within about 3 km of the ground camera, 2 m heights (USGS 3DEP lidar, 2020) and 1.4 m colour (NAIP 2022). Loaded automatically as the finest layer of 'pali'.",
+   "facts": {
+    "points": {
+     "lookout": [
+      -157.7932,
+      21.3672
+     ]
+    },
+    "depths": {
+     "lookout": [
+      -157.7932,
+      21.3672
+     ]
+    }
+   },
+   "view": {
+    "level": 0,
+    "look": "day",
+    "sun": [
+     75,
+     55
+    ],
+    "water": "turq",
+    "foam": 0.25,
+    "cam": {
+     "lon": -157.7936,
+     "lat": 21.3667,
+     "agl": 0.03,
+     "heading": 42,
+     "pitch": -8,
+     "fov": 62,
+     "near": 0.005,
+     "far": 400
+    }
+   },
+   "gaps": [
+    "NAIP of 15 Dec 2022 (winter sun): the NE-facing cliffs are in baked shadow in the photo; there the patch keeps the summer HLS tone of 'pali' at the 30 m scale with the photo's detail on top. Trees, the lookout wall and the road are in the photo only (bare-earth heights).",
+    "The 2020 lidar (HI_NOAAMauiOahu_2020_B20, the only 1 m source here) holds a NW-SE band across Nu'uanu, the lookout included, that is interpolated ground (terraced, about 10 m detail) with 3-9 m steps along its two straight edges: the steps are healed (detail.height.seams), the band stays soft; detail texturing carries the close shots there."
+   ]
   },
   {
    "name": "waimea",
@@ -963,7 +1295,13 @@
    },
    "gaps": [
     "NCEI 1/3\" land (USGS 10 m): canyon walls resolved; HLS 30 m colour; rain squall and waterfalls are effects."
-   ]
+   ],
+   "detail": {
+    "colour": {
+     "source": "naip",
+     "long": 4096
+    }
+   }
   },
   {
    "name": "maunakea",
@@ -1024,7 +1362,20 @@
    },
    "gaps": [
     "Terrarium z14 (USGS 3DEP 10 m) plus hilo_13 in the east: the summit road is only a 30 m colour streak, no road geometry; telescopes not modelled (and not wanted)."
-   ]
+   ],
+   "detail": {
+    "colour": {
+     "source": "naip",
+     "long": 4096
+    },
+    "height": {
+     "source": "3dep",
+     "wh": [
+      2730,
+      2000
+     ]
+    }
+   }
   },
   {
    "name": "kamaehu",
@@ -1864,7 +2215,26 @@
    },
    "gaps": [
     "Best data in the set: NCEI 1/3\" (2012) topo-bathy, referenced to mean high water, so the reef flat sits within about 1 m of level 0 and reads as foam: lower foam or level a little for clean water. HLS 30 m colour."
-   ]
+   ],
+   "detail": {
+    "colour": {
+     "source": "s2",
+     "long": 4096,
+     "bbox": [
+      -177.43,
+      28.18,
+      -177.29,
+      28.29
+     ],
+     "months": [
+      [
+       "2023-01-01",
+       "2025-10-31"
+      ]
+     ],
+     "n": 12
+    }
+   }
   },
   {
    "name": "kure",

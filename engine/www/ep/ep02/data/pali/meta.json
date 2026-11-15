@@ -7,17 +7,18 @@
   21.44
  ],
  "wh": [
-  1792,
-  1344
+  3520,
+  2660
  ],
- "px_m": 9.9,
- "hmin": -8000.0,
- "hrange": 17000.0,
+ "px_m": 5.01,
+ "hmin": -330.0,
+ "hrange": 1300.0,
  "vex": 1.0,
  "files": {
   "h16": "h16.png",
   "ao": "ao.png",
-  "color": "color.jpg"
+  "color": "color.jpg",
+  "cres": "cres.png"
  },
  "sources": [
   {
@@ -28,6 +29,89 @@
    "id": "ncei:oahu_13_mhw_2011",
    "res_arcsec": 0.33,
    "cover": 1.0
+  },
+  {
+   "id": "3dep",
+   "res_m": 1.0,
+   "cover": 0.837,
+   "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
+   "guard": {
+    "dropped_pct": 1.671,
+    "pieces": 7,
+    "pieces_kept": 5
+   },
+   "seams_healed": [
+    {
+     "line": [
+      [
+       -157.83028,
+       21.4397
+      ],
+      [
+       -157.73724,
+       21.3203
+      ]
+     ],
+     "len_m": 16422,
+     "tracked_pct": 69.4,
+     "offset_m": [
+      -72.6,
+      72.6
+     ],
+     "step_healed_pct": 58.5,
+     "step_m_median": 3.3,
+     "step_m_p95": 13.03,
+     "max_change_m": 9.45,
+     "p99_change_m": 4.51
+    },
+    {
+     "line": [
+      [
+       -157.86262,
+       21.4397
+      ],
+      [
+       -157.7629,
+       21.3203
+      ]
+     ],
+     "len_m": 16838,
+     "tracked_pct": 78.5,
+     "offset_m": [
+      -71.3,
+      72.6
+     ],
+     "step_healed_pct": 29.2,
+     "step_m_median": 5.75,
+     "step_m_p95": 40.46,
+     "max_change_m": 10.46,
+     "p99_change_m": 6.31
+    }
+   ],
+   "interp": [
+    {
+     "poly": [
+      [
+       -157.86287,
+       21.44
+      ],
+      [
+       -157.83051,
+       21.44
+      ],
+      [
+       -157.73701,
+       21.32
+      ],
+      [
+       -157.76265,
+       21.32
+      ]
+     ],
+     "src_m": 10,
+     "note": "interpolated band of HI_NOAAMauiOahu_2020_B20 (terraced, straight edges)"
+    }
+   ]
   }
  ],
  "colour": {
@@ -103,23 +187,39 @@
    "never_clear_pct": 3.05,
    "sat": 0.6
   },
-  "sea": "the HLS picture where HLS covers, else by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour"
+  "sea": "the HLS picture where HLS covers, else by depth (sand flat at 0 m to the film reef grey by -6 m), never the nearest land colour",
+  "ortho": {
+   "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+   "long": 4096,
+   "meas_px": 10560413,
+   "black_ref_pct": 0.0,
+   "imagery_pct": 94.4,
+   "filled_pct": 5.5,
+   "gain": 0.852,
+   "chroma": 1.2,
+   "dark_pct": 8.69,
+   "bright_pct": 0.31,
+   "covered_pct": 100.0,
+   "ref_scale_m": 30.0,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+   "smooth_pct": 39.7
+  }
  },
  "facts": {
   "peaks_m": {
    "konahuanui": {
-    "h": 957,
+    "h": 958,
     "lon": -157.7882,
     "lat": 21.3581
    }
   },
   "point_h_m": {
-   "lookout": 343
+   "lookout": 338
   },
-  "land_area_km2_at_0m": 194.6,
+  "land_area_km2_at_0m": 197.2,
   "h_range_m": [
    -316,
-   957
+   958
   ]
  },
  "purpose": "s026-s031 the Nu'uanu Pali Lookout ground shot (about 1,200 ft, looking NE over windward O'ahu), the tourist and hat gag, the dive down the cliff; s090 callback.",
@@ -128,12 +228,164 @@
   "Colour (round 3, 2026-11-09): HLS v2 (Sentinel-2 + Landsat, 30 m) with its Fmask cloud mask from the Planetary Computer, 24 summer scenes of 2023 and 2024, the per-pixel median of cloud-free observations: the Ko'olau crest cloud blobs are gone (3 % of pixels never clear, filled from neighbours). One luminance gain 0.734 and one chroma factor 0.6, both measured on clear O'ahu land (median MODIS / HLS over 53,000 px in oahu_nuuanu): the HLS greens were 1.7x more saturated than the MODIS colours the stage grade was tuned on (land texture saturation median 0.54, now 0.35; Maui Nui 0.38; cloud-white texels 8.1 % to 2.0 %, the rest roofs and roads). Winter scenes left the NE-facing pali black and a gain matched to the cloudy MODIS reference (1.34) turned it neon: neither is used. AO counts the horizon above the local slope (tangent).",
   "Ground view: the spur just east of the lookout faces west, so a morning sun leaves it in shade, and the stage's shade is near black (16.7 % near-black with sun [120, 30]); film.today uses sun [75, 55] (3.2 %, frame luma 149) or keep that spur out of frame. Kane'ohe Bay's reef flats are 0-2 m deep and its sea floor now shows the HLS picture: keep foamAmt at 0.25 or less there (the foam rim covers the whole flat)."
  ],
- "bake_s": 43.2,
- "baked": "2026-11-09",
+ "bake_s": 56.4,
+ "baked": "2026-11-15",
  "ao": "tangent (horizon above the local slope)",
  "bytes": {
-  "h16": 1602720,
-  "ao": 1299845,
-  "color": 353193
+  "h16": 10961315,
+  "ao": 1565032,
+  "color": 3384601,
+  "cres": 482406
+ },
+ "base": {
+  "wh": [
+   1792,
+   1344
+  ],
+  "px_m": 9.9,
+  "sources": [
+   {
+    "id": "etopo15",
+    "res_arcsec": 15.0
+   },
+   {
+    "id": "ncei:oahu_13_mhw_2011",
+    "res_arcsec": 0.33,
+    "cover": 1.0
+   }
+  ],
+  "facts": {
+   "peaks_m": {
+    "konahuanui": {
+     "h": 957,
+     "lon": -157.7882,
+     "lat": 21.3581
+    }
+   },
+   "point_h_m": {
+    "lookout": 343
+   },
+   "land_area_km2_at_0m": 194.6,
+   "h_range_m": [
+    -316,
+    957
+   ]
+  }
+ },
+ "res": {
+  "height_m": 5.01,
+  "height_src_m": 1.0,
+  "colour_texel_m": 4.3,
+  "height_interp": [
+   {
+    "poly": [
+     [
+      -157.86287,
+      21.44
+     ],
+     [
+      -157.83051,
+      21.44
+     ],
+     [
+      -157.73701,
+      21.32
+     ],
+     [
+      -157.76265,
+      21.32
+     ]
+    ],
+    "src_m": 10,
+    "note": "interpolated band of HI_NOAAMauiOahu_2020_B20 (terraced, straight edges)"
+   }
+  ],
+  "colour_src_m": 0.6,
+  "colour_wh": [
+   4096,
+   3105
+  ]
+ },
+ "detail": {
+  "colour": {
+   "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+   "long": 4096,
+   "quads": [
+    "m_2115734_sw_04_060_20230118 (2023-01-18, 2.4 m read)",
+    "m_2115734_ne_04_060_20221215 (2022-12-15, 2.4 m read)",
+    "m_2115734_nw_04_060_20221215 (2022-12-15, 2.4 m read)",
+    "m_2115734_se_04_060_20221215 (2022-12-15, 2.4 m read)",
+    "m_2115735_nw_04_060_20221215 (2022-12-15, 2.4 m read)",
+    "m_2115735_sw_04_060_20221215 (2022-12-15, 2.4 m read)",
+    "m_2115742_ne_04_060_20221215 (2022-12-15, 2.4 m read)",
+    "m_2115742_nw_04_060_20221215 (2022-12-15, 2.4 m read)",
+    "m_2115743_nw_04_060_20221215 (2022-12-15, 2.4 m read)"
+   ],
+   "meas_px": 10560413,
+   "black_ref_pct": 0.0,
+   "imagery_pct": 94.4,
+   "filled_pct": 5.5,
+   "gain": 0.852,
+   "chroma": 1.2,
+   "dark_pct": 8.69,
+   "bright_pct": 0.31,
+   "covered_pct": 100.0,
+   "ref_scale_m": 30.0,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+   "smooth_pct": 39.7
+  },
+  "height": {
+   "source": "3dep",
+   "wh": [
+    3520,
+    2660
+   ],
+   "seams": [
+    [
+     [
+      -157.83028,
+      21.4397
+     ],
+     [
+      -157.73724,
+      21.3203
+     ]
+    ],
+    [
+     [
+      -157.86262,
+      21.4397
+     ],
+     [
+      -157.7629,
+      21.3203
+     ]
+    ]
+   ],
+   "interp": [
+    {
+     "poly": [
+      [
+       -157.86287,
+       21.44
+      ],
+      [
+       -157.83051,
+       21.44
+      ],
+      [
+       -157.73701,
+       21.32
+      ],
+      [
+       -157.76265,
+       21.32
+      ]
+     ],
+     "src_m": 10,
+     "note": "interpolated band of HI_NOAAMauiOahu_2020_B20 (terraced, straight edges)"
+    }
+   ]
+  }
  }
 }

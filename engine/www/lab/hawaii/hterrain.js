@@ -24,8 +24,9 @@
 //    colSharp: texture-space unsharp mask of the colour at about 3 texels; detAmt: tiling procedural detail (detailTextures(): canopy,
 //    rock, soil; world metres from a 4 km camera anchor, mipmapped and anisotropic) chosen per pixel from the colour, slope and height,
 //    faded in where the colour map is magnified (cMag) within detFar km, each octave faded out once the imagery resolves its scale
-//    (colRes: the colour's source resolution, res.colour_src_m); detail normals lit by the stage sun and a little detail AO;
-//    hazeFar (U): extra aerial haze beyond the close-up zone.
+//    (colRes: the colour's source resolution, res.colour_src_m; per texel, where a region ships files.cres, the coarser of that and
+//    cres.png, detail_bake.py 2026-11-15: ground the photo left smooth, deep shadow or cloud filled from the reference, gets the
+//    octaves back); detail normals lit by the stage sun and a little detail AO; hazeFar (U): extra aerial haze beyond the close-up zone.
 // Any region: loadRegion(root, name) (or load() on a region folder) reads <root>/regions.json (lab/hawaii/tools/region_bake.py) and
 // stacks 1-3 nested layers, finest first; the legacy two-layer folder renders pixel-identically to before (lab/hawaii/README.md, Regions).
 import * as THREE from 'three';
@@ -70,8 +71,9 @@ float fbmL(vec2 ll, float f, float pf){ return mix(0.47, fbm(ll * f), 1.0 - smoo
 // height lookup across the nested grids (hero inside its bbox, then the optional mid layer, wide skirt elsewhere; with two layers
 // mid = skirt) + sun visibility by ray-marching toward the sun
 const HEIGHT = /* glsl */`
-uniform sampler2D hHero, hMid, hSkirt; uniform vec4 bbHero, bbMid, bbSkirt; uniform float vex, sunEl, penumbra;
+uniform sampler2D hHero, hMid, hSkirt, hDet; uniform vec4 bbHero, bbMid, bbSkirt, bbDet; uniform float vex, sunEl, penumbra, detOn;
 float hAt(vec2 ll){
+  if (detOn > 0.5) { vec2 ud = (ll - bbDet.xy) / (bbDet.zw - bbDet.xy); if (ud.x > 0.0 && ud.y > 0.0 && ud.x < 1.0 && ud.y < 1.0) return texture2D(hDet, ud).r; }
   vec2 uh = (ll - bbHero.xy) / (bbHero.zw - bbHero.xy);
   if (uh.x > 0.0 && uh.y > 0.0 && uh.x < 1.0 && uh.y < 1.0) return texture2D(hHero, uh).r;
   vec2 um = (ll - bbMid.xy) / (bbMid.zw - bbMid.xy);
@@ -114,7 +116,7 @@ uniform vec3 basaltCol, sedCol, reefCol, tubCol, lineCol;
 uniform float reefAmt, tubM, tubAmt, oldLine, lineW, detail;
 uniform sampler2D maskTex; uniform vec4 maskBB; uniform float maskOn, heroAmt, dimAmt; uniform vec3 heroCol;
 uniform vec4 clipN, capBB; uniform float heroPass, seaMat, nearAmt, landLift; uniform vec2 lineFar;
-uniform sampler2D hTexF, dVeg, dRock, dSoil; uniform float crisp, colBias, colSharp, detAmt, detRel, colRes; uniform vec2 detFar;
+uniform sampler2D hTexF, dVeg, dRock, dSoil, cresTex; uniform float crisp, colBias, colSharp, detAmt, detRel, colRes, cresOn; uniform vec2 detFar;
 varying vec2 vUv; varying vec3 vW; varying vec2 vD;
 float Hm(vec2 uv){ return texture2D(hTex, uv).r; }
 // ---- close-up quality (crisp, detAmt; all off by default, the ep02 toolkit turns them on) ----
@@ -267,6 +269,9 @@ void main(){
     float amp = kD * (1.0 - 0.75 * snow) * mix(0.5, 1.0, onL);
     // the colour map's real resolution (m): its texel, or the coarser source imagery baked into it (colRes: HLS 30 m, NAIP 0.6 m)
     float res = max(colRes, (bb.z - bb.x) * ${(KM_DEG * 1000).toFixed(1)} * cos(lat) / float(textureSize(colTex, 0).x));
+    // per texel (detail_bake.py cres.png, log2-coded): where the photo showed nothing finer (deep terrain shadow, cloud) the colour is
+    // the coarser reference, so the octaves come back there; it only ever makes res coarser
+    if (cresOn > 0.5) res = max(res, exp2(texture2D(cresTex, vUv).r * 10.2 - 2.0));
     vec3 mod3 = vec3(1.0); vec2 G = vec2(0.0); float Hd = 0.0;
     if (W.x > 0.01) {   // canopy: crowns about 6 m (62.5 m tile), clumps about 25 m, leaves and shrubs about 1.5 m
       vec4 a = dTap(dVeg, vD, 62.5, 0.0, vec2(0.0)), b = dTap(dVeg, vD, 250.0, 1.0, vec2(0.37, 0.71)), c = dTap(dVeg, vD, 15.625, 1.0, vec2(0.13, 0.52));
@@ -358,7 +363,10 @@ float hBlend(vec2 ll){
   vec2 uh = (ll - bbHero.xy) / (bbHero.zw - bbHero.xy);
   if (uh.x < 0.0 || uh.y < 0.0 || uh.x > 1.0 || uh.y > 1.0) return hs;
   vec2 e = min(uh, 1.0 - uh); float w = smoothstep(0.0, 0.025, min(e.x, e.y));
-  return mix(hs, texture2D(hHero, uh).r, w);
+  float hh = mix(hs, texture2D(hHero, uh).r, w);
+  if (detOn > 0.5) { vec2 ud = (ll - bbDet.xy) / (bbDet.zw - bbDet.xy);
+    if (ud.x > 0.0 && ud.y > 0.0 && ud.x < 1.0 && ud.y < 1.0) { vec2 ed = min(ud, 1.0 - ud); hh = mix(hh, texture2D(hDet, ud).r, smoothstep(0.0, 0.025, min(ed.x, ed.y))); } }
+  return hh;
 }
 void main(){
   if (clipN.w > 0.5 && dot(vW.xz, clipN.xy) + clipN.z > 0.0) discard;
@@ -576,33 +584,43 @@ export class HawaiiStage {
   }
   // any region of an episode's regions.json (e.g. root 'ep/ep02/data', name 'midway'): its 'stack' = 1-3 nested layers, finest first,
   // each inside the next (o.stack overrides it). meta.hero_bbox / hHero = the finest layer, meta.skirt_bbox / hSkirt = the outermost.
+  // Plus an optional nested detail patch (lab/hawaii/tools/detail_bake.py: a stack entry whose region has 'patch', listed first): a
+  // fourth, finest layer drawn inside its bbox (1-2 m lidar heights, sub-metre to metre aerial colour, faded into the region at its
+  // edge). The region's own layer stays the hero (hero_bbox, hHero, heroMat and the world origin c0 are unchanged; meta.detail_bbox is
+  // the patch), and heightAt reads the patch, so cameras with agl and labels sit on the surface that is drawn. o.noDetail skips it;
+  // o.detGrid sets its mesh (default at most 1280 vertices on the long side).
   async loadRegion(root, name) {
     const idx = await cached('regions:' + root, async () => (await fetch(root + '/regions.json')).json());
     const R = idx.regions[name]; if (!R) throw new Error('unknown region ' + name);
-    const stack = (this.o.stack || R.stack || [name]).slice(0, 3), big = [1500, 1000, 900];
-    const L = await Promise.all(stack.map(async (n, i) => {
+    let stack = (this.o.stack || R.stack || [name]).slice();
+    const detName = !this.o.noDetail && stack.length > 1 && idx.regions[stack[0]]?.patch ? stack.shift() : null;
+    stack = stack.slice(0, 3); const big = [1500, 1000, 900], all = detName ? [detName, ...stack] : stack;
+    const L = await Promise.all(all.map(async (n, j) => {
+      const i = detName ? j - 1 : j;   // index in the 1-3 layer stack; -1 = the detail patch
       const r = idx.regions[n]; if (!r) throw new Error('unknown region ' + n);
       const d = r.dir, hm = await loadH16(d + '/' + r.files.h16, { hmin: r.hmin ?? -8000, hrange: r.hrange ?? 17000 });
-      const [col, ao, hT] = await Promise.all([loadTex(d + '/' + r.files.color, true), loadTex(d + '/' + r.files.ao, false), cached('htex:' + d + '/' + r.files.h16, async () => heightTexture(hm))]);
-      const k = Math.min(1, big[i] / Math.max(...r.wh));  // mesh: at most 1500 / 1000 / 900 vertices on the long side, never more than the texels
-      const g = (i === 0 ? this.o.heroGrid : i === stack.length - 1 ? this.o.skirtGrid : this.o.midGrid) || [Math.max(2, Math.round(r.wh[0] * k)), Math.max(2, Math.round(r.wh[1] * k))];
+      const [col, ao, hT, cres] = await Promise.all([loadTex(d + '/' + r.files.color, true), loadTex(d + '/' + r.files.ao, false), cached('htex:' + d + '/' + r.files.h16, async () => heightTexture(hm)),
+        r.files.cres ? loadTex(d + '/' + r.files.cres, false) : null]);
+      const k = Math.min(1, (i < 0 ? 1280 : big[i]) / Math.max(...r.wh));  // mesh: at most 1500 / 1000 / 900 vertices on the long side (patch 1280), never more than the texels
+      const g = (i < 0 ? this.o.detGrid : i === 0 ? this.o.heroGrid : i === stack.length - 1 ? this.o.skirtGrid : this.o.midGrid) || [Math.max(2, Math.round(r.wh[0] * k)), Math.max(2, Math.round(r.wh[1] * k))];
       // colRes: the real resolution of the colour (m), as texel_audit.js reads it: res.colour_src_m (detail_bake.py), else HLS 30 m,
       // MODIS 250 m, Blue Marble 500 m (the legacy Big Island hero and skirt: MODIS 250 m, 1000 m)
       const c = r.colour || {}, colRes = r.res?.colour_src_m ?? (n === 'bigisland' ? 250 : n === 'hawaii_skirt' ? 1000 : c.hls ? 30 : c.modis ? 250 : 500);
-      return { name: n, bbox: r.bbox, hm, hT, col, ao, grid: g, colRes };
+      return { name: n, bbox: r.bbox, hm, hT, col, ao, grid: g, colRes, cres };
     }));
     for (let i = 1; i < L.length; i++) { const a = L[i - 1].bbox, b = L[i].bbox; if (a[0] < b[0] || a[1] < b[1] || a[2] > b[2] || a[3] > b[3]) console.error(`region stack: ${L[i - 1].name} is not inside ${L[i].name}`); }
-    const hb = L[0].bbox;
-    this.meta = { name, region: R, stack, layers: L.map(l => ({ name: l.name, bbox: l.bbox })), hero_bbox: hb, skirt_bbox: L[L.length - 1].bbox, hmin: -8000, hrange: 17000, vex: 1.0 };
-    this.hHero = L[0].hm; this.hSkirt = L[L.length - 1].hm;
+    const own = L[detName ? 1 : 0], hb = own.bbox;
+    this.meta = { name, region: R, stack: all, layers: L.map(l => ({ name: l.name, bbox: l.bbox })), hero_bbox: hb, detail_bbox: detName ? L[0].bbox : null, skirt_bbox: L[L.length - 1].bbox, hmin: -8000, hrange: 17000, vex: 1.0 };
+    this.hHero = own.hm; this.hSkirt = L[L.length - 1].hm;
     this.vex = this.o.vex ?? 1.0;
     this.c0 = this.o.origin ?? R.origin ?? { lon: (hb[0] + hb[2]) / 2, lat: (hb[1] + hb[3]) / 2 };
-    return this.build(L);
+    return this.build(L, !!detName);
   }
-  // layers finest first (1-3): { name, bbox, hm (decoded heights), hT (height texture), col, ao (textures), grid: [nx, ny] mesh vertices }
-  build(L) {
+  // layers finest first (1-3, plus a detail patch first when hasDet): { name, bbox, hm (decoded heights), hT (height texture), col, ao
+  // (textures), grid: [nx, ny] mesh vertices }
+  build(L, hasDet = false) {
     this.layers = L;
-    const hero = L[0], mid = L[Math.min(1, L.length - 1)], skirt = L[L.length - 1];
+    const o0 = hasDet ? 1 : 0, hero = L[o0], mid = L[Math.min(o0 + 1, L.length - 1)], skirt = L[L.length - 1];
     this.U = {
       camPos: { value: new THREE.Vector3() }, sunDir: { value: new THREE.Vector3(0, 1, 0) }, horizonDip: { value: 0 },
       zenithCol: { value: C('#2c64a8') }, horizonCol: { value: C('#a9c3dc') }, hazeCol: { value: C('#aec2d6', 0.8) },
@@ -617,7 +635,8 @@ export class HawaiiStage {
     if (crisp) { const mA = this.R.capabilities.getMaxAnisotropy(); for (const l of L) for (const t of [l.col, l.ao]) if (t && t.anisotropy !== mA) { t.anisotropy = mA; t.needsUpdate = true; } }
     const hb = hero.bbox, sb = skirt.bbox;
     const HU = { hHero: { value: hero.hT }, hMid: { value: mid.hT }, hSkirt: { value: skirt.hT },
-      bbHero: { value: new THREE.Vector4(...hb) }, bbMid: { value: new THREE.Vector4(...mid.bbox) }, bbSkirt: { value: new THREE.Vector4(...sb) } };
+      bbHero: { value: new THREE.Vector4(...hb) }, bbMid: { value: new THREE.Vector4(...mid.bbox) }, bbSkirt: { value: new THREE.Vector4(...sb) },
+      hDet: { value: hasDet ? L[0].hT : hero.hT }, bbDet: { value: new THREE.Vector4(...(hasDet ? L[0].bbox : [0, 0, 1, 1])) }, detOn: { value: hasDet ? 1 : 0 } };
     const blank = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1); blank.needsUpdate = true;
     this.clipU = { value: new THREE.Vector4(0, 0, 0, 0) };   // (nx, nz, d, on): discard where dot(xz, n) + d > 0 (shared by terrain and water)
     this.maskU = { tex: { value: blank }, bb: { value: new THREE.Vector4(0, 0, 1, 1) }, on: { value: 0 }, heroAmt: { value: 0 }, dimAmt: { value: 0 }, heroCol: { value: C('#FF5A36', 0.17) } };
@@ -633,13 +652,19 @@ export class HawaiiStage {
         maskTex: this.maskU.tex, maskBB: this.maskU.bb, maskOn: this.maskU.on, heroAmt: this.maskU.heroAmt, dimAmt: this.maskU.dimAmt, heroCol: this.maskU.heroCol,
         clipN: this.clipU, capBB: { value: new THREE.Vector4(-1e4, -1e4, 1e4, 1e4) }, heroPass: { value: 0 }, seaMat: { value: 0 }, nearAmt: { value: 0 }, landLift: { value: 0 }, lineFar: { value: new THREE.Vector2(1e5, 2e5) },
         hTexF: { value: crisp ? heightTexture32(hm) : hTex }, dVeg: { value: det ? det.veg : blank }, dRock: { value: det ? det.rock : blank }, dSoil: { value: det ? det.soil : blank },
-        crisp: { value: 0 }, colBias: { value: 0 }, colSharp: { value: 0 }, colRes: { value: 0 }, detAmt: { value: 0 }, detRel: { value: 1 }, detFar: { value: new THREE.Vector2(6, 16) },
+        crisp: { value: 0 }, colBias: { value: 0 }, colSharp: { value: 0 }, colRes: { value: 0 }, cresTex: { value: blank }, cresOn: { value: 0 }, detAmt: { value: 0 }, detRel: { value: 1 }, detFar: { value: new THREE.Vector2(6, 16) },
       }), vertexShader: TERRAIN_VS, fragmentShader: TERRAIN_FS,
     });
     // one mesh per layer; each coarser layer drops out of sight inside the next finer layer's bbox
-    this.mats = L.map((l, i) => terrMat(l.hT, l.ao, l.col, l.bbox, l.hm, i ? 4.0 + 6.0 * this.vex : 0, i ? L[i - 1].bbox : hb));
-    L.forEach((l, i) => { this.mats[i].uniforms.colRes.value = l.colRes || 0; });   // the source resolution of each layer's colour (m)
-    this.heroMat = this.mats[0]; this.skirtMat = this.mats[L.length - 1];
+    // the region's own layer keeps its triangles 1.5 mesh cells into a detail patch (the patch lies over them): a coarse triangle
+    // whose inner vertex drops would otherwise plunge in the last cell before the patch edge and show as a dark crack on steep ground
+    const holeOf = (i) => { if (!i) return hb; const b = L[i - 1].bbox; if (!(hasDet && i === 1)) return b;
+      const g = L[1].grid, dx = 1.5 * (L[1].bbox[2] - L[1].bbox[0]) / (g[0] - 1), dy = 1.5 * (L[1].bbox[3] - L[1].bbox[1]) / (g[1] - 1);
+      return [b[0] + dx, b[1] + dy, b[2] - dx, b[3] - dy]; };
+    this.mats = L.map((l, i) => terrMat(l.hT, l.ao, l.col, l.bbox, l.hm, i ? 4.0 + 6.0 * this.vex : 0, holeOf(i)));
+    L.forEach((l, i) => { this.mats[i].uniforms.colRes.value = l.colRes || 0;   // the source resolution of each layer's colour (m)
+      if (l.cres) { this.mats[i].uniforms.cresTex.value = l.cres; this.mats[i].uniforms.cresOn.value = 1; } });   // and per texel (cres.png)
+    this.heroMat = this.mats[o0]; this.skirtMat = this.mats[L.length - 1];
     L.forEach((l, i) => this.scene.add(new THREE.Mesh(this.grid(l.bbox, l.hm, l.grid), this.mats[i])));
     this.waterMat = new THREE.ShaderMaterial({
       uniforms: Object.assign({}, this.U, HU, {

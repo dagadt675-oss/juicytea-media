@@ -10,15 +10,14 @@
   2048,
   1624
  ],
- "px_m": 14.4,
+ "px_m": 14.38,
  "hmin": -8000.0,
  "hrange": 17000.0,
  "vex": 1.0,
  "files": {
   "h16": "h16.png",
   "ao": "ao.png",
-  "color": "color.jpg",
-  "sat": "sat.jpg"
+  "color": "color.jpg"
  },
  "sources": [
   {
@@ -86,6 +85,33 @@
     -177.22,
     28.33
    ]
+  },
+  "ortho": {
+   "source": "Copernicus Sentinel-2 L2A 10 m, median of SCL-clear observations (Planetary Computer)",
+   "long": 4096,
+   "bbox": [
+    -177.43006,
+    28.17995,
+    -177.28995,
+    28.29005
+   ],
+   "months": [
+    [
+     "2023-01-01",
+     "2025-10-31"
+    ]
+   ],
+   "n": 12,
+   "scenes": 12,
+   "never_clear_pct": 0.0,
+   "meas_px": 104302,
+   "gain": 0.546,
+   "chroma": 1.2,
+   "dark_pct": 0.04,
+   "bright_pct": 4.49,
+   "covered_pct": 24.5,
+   "ref_scale_m": 30.0,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer"
   }
  },
  "facts": {
@@ -93,12 +119,12 @@
    "sand_island": {
     "h": 10,
     "lon": -177.3821,
-    "lat": 28.2155
+    "lat": 28.2156
    },
    "eastern_island": {
-    "h": 5,
-    "lon": -177.3282,
-    "lat": 28.2108
+    "h": 4,
+    "lon": -177.3285,
+    "lat": 28.211
    }
   },
   "point_h_m": {
@@ -112,12 +138,110 @@
  },
  "purpose": "s112-s122 Midway Atoll (reef ring, Sand Island, the albatross ground shot, drain and cut-away), s123 June 1942 hero shot, s137 drain around the atoll.",
  "gaps": [],
- "bake_s": 50.9,
- "baked": "2026-11-08",
+ "bake_s": 40.1,
+ "baked": "2026-11-09",
  "bytes": {
   "h16": 2190945,
   "ao": 315278,
-  "color": 101114,
-  "sat": 134062
+  "color": 464881
+ },
+ "base": {
+  "wh": [
+   2048,
+   1624
+  ],
+  "px_m": 14.4,
+  "sources": [
+   {
+    "id": "etopo15",
+    "res_arcsec": 15.0
+   },
+   {
+    "id": "ncei:midway_island_3_mhw_2012",
+    "res_arcsec": 3.0,
+    "cover": 0.0
+   },
+   {
+    "id": "ncei:midway_island_13_mhw_2012",
+    "res_arcsec": 0.33,
+    "cover": 1.0
+   }
+  ],
+  "facts": {
+   "peaks_m": {
+    "sand_island": {
+     "h": 10,
+     "lon": -177.3821,
+     "lat": 28.2155
+    },
+    "eastern_island": {
+     "h": 5,
+     "lon": -177.3282,
+     "lat": 28.2108
+    }
+   },
+   "point_h_m": {
+    "lagoon_centre": -15
+   },
+   "land_area_km2_at_0m": 6.0,
+   "h_range_m": [
+    -2934,
+    11
+   ]
+  }
+ },
+ "res": {
+  "height_m": 14.38,
+  "height_src_m": 14.4,
+  "colour_texel_m": 7.18,
+  "colour_src_m": 10.0,
+  "colour_wh": [
+   4096,
+   3254
+  ]
+ },
+ "detail": {
+  "colour": {
+   "source": "Copernicus Sentinel-2 L2A 10 m, median of SCL-clear observations (Planetary Computer)",
+   "long": 4096,
+   "bbox": [
+    -177.43006,
+    28.17995,
+    -177.28995,
+    28.29005
+   ],
+   "months": [
+    [
+     "2023-01-01",
+     "2025-10-31"
+    ]
+   ],
+   "n": 12,
+   "dates": [
+    "S2_2023-02-16",
+    "S2_2023-02-16",
+    "S2_2023-11-03",
+    "S2_2024-01-27",
+    "S2_2024-02-01",
+    "S2_2024-02-01",
+    "S2_2024-03-07",
+    "S2_2024-10-18",
+    "S2_2024-12-07",
+    "S2_2024-12-17",
+    "S2_2024-12-22",
+    "S2_2025-01-11"
+   ],
+   "scenes": 12,
+   "never_clear_pct": 0.0,
+   "meas_px": 104302,
+   "gain": 0.546,
+   "chroma": 1.2,
+   "dark_pct": 0.04,
+   "bright_pct": 4.49,
+   "covered_pct": 24.5,
+   "ref_scale_m": 30.0,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer"
+  },
+  "height": {}
  }
 }
