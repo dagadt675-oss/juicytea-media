@@ -11,6 +11,9 @@
 # The detail bake guards against 3DEP garbage over the sea (stops if the land area or heights jump against the base), heals the lidar
 # seams the spec lists (detail.height.seams) and fades each in-place re-bake back to its base over 200 m at the grid edge (detail.edge_m).
 # Sources and licences: ../data/SOURCES.md. Network also to elevation.nationalmap.gov and coastalimagery.blob.core.windows.net.
+# Round 2 (2026-11-15): 8 detail regions and 3 nested patches (pali_lookout, halape_cove, kilauea_coast); each packs its heights in
+# its own range (meta hmin/hrange) and writes cres.png (the colour's real resolution per texel, read by hterrain.js). About 7 min
+# for the detail step and about 210 MB of 3DEP downloads in DL_DIR (deleted unless KEEP=1); the data folder is about 130 MB.
 # Verify one region: cd engine && node still.cjs --page lab_region.html --q '{"region":"midway"}' --frames 0 --outdir <dir>
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd); ROOT=$(cd "$HERE/../../../../.." && pwd)
