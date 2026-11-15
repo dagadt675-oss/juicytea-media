@@ -377,9 +377,10 @@ export async function build(api, kit, scenes) {
     ui(ctx, lt, t, view) {
       // s026 {pali}: PALI LOOKOUT, held 2 s and more (clear of the chapter card while it shows); round 7: the pin sits on the wall's cap
       // and the wall is an obstacle, so neither the plate nor the leader crosses the paper wall
-      const la = env(t, lead('pali') - 0.1, T('oahu') + 1.1, 0.3, 0.35);
+      // round 8: it lands as the chapter card has gone (the card is the frame's one text block; an avoid box for it made the card
+      // itself fail typeqc 'overlaps an obstacle')
+      const la = env(t, Math.max(lead('pali') - 0.1, ch.card + 1.62), T('oahu') + 1.1, 0.3, 0.35);
       if (la > 0) { const wall = wallAt(view, t), q = wall ? wall.cap : gp(view, ...LOOKOUT, 10);
-        if (t < ch.card + 1.65) ui.avoid({ x: W / 2 - px(560), y: px(280), w: px(1120), h: px(190) });
         if (wall) ui.avoid(ui.boxOf(wall.quad, px(30)));
         if (q) ui.label(ctx, 'PALI LOOKOUT', q[0], q[1], { t, p: la, order: ['above', 'above-right', 'above-left', 'right', 'left'] }); }
     } });

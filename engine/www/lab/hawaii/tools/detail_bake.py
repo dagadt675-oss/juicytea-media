@@ -427,11 +427,12 @@ def bake(R, OUT, DLROOT, keep=False, regs=None):
         res_map = res_ref * (1 - e) + res_map * e   # the same edge fade as the colour
         # and where the final colour is smooth at the scale of tree crowns and boulders (local contrast under about 3 % of the
         # luminance: shadow or cloud filled from a smooth reference, a photo with no texture there; the Pali cliffs, 2026-11-15, where
-        # textured canopy reads 0.10-0.15), at least 12 m, so the detail texturing fills it; never finer than before
+        # textured canopy reads 0.10-0.15), at least 7 m: the colour shows nothing of 8 m or less there, so the shader's octaves up to
+        # 8 m come on in full (octW: F / res under 1.2); never finer than before
         Lc = rb.lum(col); s1, s2 = max(0.7, 3.0 / cpx), max(1.5, 8.0 / cpx)
         hp = Lc - ndimage.gaussian_filter(Lc, s1); con = np.sqrt(ndimage.gaussian_filter(hp * hp, s2)) / np.maximum(ndimage.gaussian_filter(Lc, s2), 0.02)
         pres = sstep(0.025, 0.07, con); lr = np.log2(np.maximum(res_map, 0.25))
-        res_map = 2.0 ** (pres * lr + (1 - pres) * np.maximum(lr, np.log2(np.maximum(res_ref, 12.0))))
+        res_map = 2.0 ** (pres * lr + (1 - pres) * np.maximum(lr, np.log2(np.maximum(res_ref, 7.0))))
         cmeta['smooth_pct'] = round(float((pres < 0.5)[land].mean() * 100), 1) if land.any() else 0.0
         LOG(f'  cres: colour smooth at the 3-8 m scale on {cmeta["smooth_pct"]} % of land (detail texturing there)')
         cres_write(f'{od}/cres.png', res_map)
