@@ -108,6 +108,9 @@ function chainPath(keys) {
   const C = { lon: ch(k => k.lon), lat: ch(k => k.lat), ld: ch(k => Math.log(k.d)), tilt: ch(k => k.tilt), hd: ch((k, i) => hd[i]), fov: ch(k => k.fov), h: ch(k => k.h || 0) };
   return (t) => ({ lon: C.lon(t), lat: C.lat(t), d: Math.exp(C.ld(t)), tilt: C.tilt(t), heading: C.hd(t), fov: C.fov(t), h: C.h(t) });
 }
+// round 8: the new sea over a drained seabed (deep, greyer teal: no flat turquoise sheet), blended in by k
+const DRAIN_WATER = [[0.022, 0.15, 0.19], [0.014, 0.10, 0.14], [0.014, 0.072, 0.105]];
+const drainWater = (wc, k) => k > 0 ? wc.map((c, j) => c.map((v, q) => F.lerp(v, DRAIN_WATER[j][q], 0.85 * k))) : wc;
 // film water seen from far above blends toward the globe's navy (as scaleMove does), so far views never read saturated teal
 function farWater(d, kMin = 0) {
   const k = Math.max(kMin, E.inOut(F.clamp((Math.log(d) - Math.log(25)) / (Math.log(500) - Math.log(25)))));
@@ -437,7 +440,13 @@ export async function build(api, kit, scenes) {
       st.set.nearAmt = 0.6 * k;   // near-field basalt relief on the close drained seabed (s037-s040: the low flight and the block)
       st.post.exposure = F.lerp(F.lerp(1.2, DRY.exp, k), 1.3, sw); st.set.skyI = F.lerp(0.70, DRY.sky, k); st.sun[1] = F.lerp(30, DRY.el, k);
       const ha = slidesA(t); if (ha > 0) { st.mlook = SLIDE_LOOK; st.mlookAmt = ha; st.set.capBB = [0, 0, 0, 0]; }
-      const wc = farWater(path(t).d); if (wc) st.waterCols = wc; return st; },
+      // round 8: the new sea over the drained field read as one flat bright turquoise sheet (f3714 cyan 82 %, gate FAIL: the sky's
+      // reflection tinted by the shallow colour, lifted by the drained exposure, and luminous rims round every block): a deeper,
+      // greyer water, less sky reflection and softer rims while the level is down
+      const kw = F.clamp(-lv / 600) * (api.Q.ch2dw ?? 1);
+      st.waterCols = drainWater(farWater(path(t).d) || WATER_FILM, kw);
+      if (kw > 0) { st.set.fresMax = F.lerp(0.55, 0.32, kw); st.set.edgeGlow = F.lerp(0.6, 0.22, kw); }
+      return st; },
     // R: the debris fill on {slides}; G: the drained reef flats and bays dimmed to grey as soon as they are dry
     mask: (lt, S) => { const t = S2[0] + lt, a = slidesA(t), bay = F.clamp((-drain(t) - 1) / 10); if (a <= 0 && bay <= 0) return null;
       const m = nuuMask(S); if (a > 0) heroBright(S); return { tex: m.tex, bb: m.bb, hero: NUU_FILL * a, dim: bay, pass: 1 }; },

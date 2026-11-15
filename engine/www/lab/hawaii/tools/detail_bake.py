@@ -190,6 +190,19 @@ def nan_gauss(a, valid, s):
 
 def sstep(a, b, x): t = np.clip((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t)
 
+def nc_fill(val, w, ref, px_m, scales_m=(45.0, 135.0, 400.0)):
+    """the weighted mean of val (H, W, 3) with weights w (0..1) around every texel, at the smallest of scales_m (gaussian sigma, m)
+    with enough support (normalised convolution, on a grid of about 10 m); ref where none of them has any. For ground the imagery
+    cannot be used on (deep shadow, cloud): its kept neighbours' colour."""
+    H, W = w.shape; f = max(1, int(round(10.0 / px_m))); h2, w2 = max(2, H // f), max(2, W // f); pxs = px_m * W / w2
+    ws = resize1(w, w2, h2); vs = np.stack([resize1(val[..., c] * w, w2, h2) for c in range(3)], -1)
+    acc = np.zeros((h2, w2, 3), np.float32); got = np.zeros((h2, w2), np.float32)
+    for sm in scales_m:
+        sg = max(1.0, sm / pxs); den = ndimage.gaussian_filter(ws, sg); num = ndimage.gaussian_filter(vs, (sg, sg, 0))
+        a = (sstep(0.03, 0.2, den) * (1 - got)).astype(np.float32); acc += num / np.maximum(den, 1e-4)[..., None] * a[..., None]; got += a
+    up = np.stack([resize1(acc[..., c], W, H) for c in range(3)], -1); g = resize1(got, W, H)[..., None]
+    return np.clip(up + ref * (1 - g), 0, 1).astype(np.float32)
+
 def fuse(img, ref, land, px_m, ref_m, src_m):
     """img (imagery, NaN = none) and ref (the region's graded colour on the same grid), display values 0..1; land = h > 0.5 m.
     Detail transfer: the reference keeps the tone and colour at its own scale (ref_m, e.g. HLS 30 m), the imagery adds what is finer:
@@ -197,7 +210,8 @@ def fuse(img, ref, land, px_m, ref_m, src_m):
     n = the imagery times one luminance gain, beta = one chroma factor (median chroma of the reference over the imagery's, at the
     reference's scale, clear land only). So a winter photo's baked cliff shadow or a cloud bigger than the reference's texel takes the
     reference's (summer) tone, and the imagery's own hue never replaces the grade (NAIP lava reads blue-grey, the film's HLS brown).
-    Where the imagery is much darker or brighter than the reference at its scale (deep shadow, cloud) it fades out to the reference.
+    Where the imagery is much darker or brighter than the reference at its scale (deep shadow, cloud) it fades out to the colour of the
+    kept ground around it (nc_fill), not to the reference (whose cloud-fill patches show there).
     Returns (colour, stats, reference, imagery weight 0..1): the reference with its black (no data) land toned from the imagery, for
     the edge fade."""
     v = np.isfinite(img).all(-1); s = max(1.0, 0.5 * ref_m / px_m)
@@ -223,18 +237,23 @@ def fuse(img, ref, land, px_m, ref_m, src_m):
     out = rl * D[..., None] + beta * (n - nl * D[..., None])
     ratio = Lnl / np.maximum(Lr, 1e-3)   # where the imagery disagrees with the reference at its scale (baked shadow, cloud, change)
     keep = v & land
-    wk = np.clip(ndimage.gaussian_filter(keep.astype(np.float32), max(1.0, 3.0 / px_m)), 0, 1) * keep
+    wv = np.clip(ndimage.gaussian_filter(keep.astype(np.float32), max(1.0, 3.0 / px_m)), 0, 1) * keep
     # and only where the imagery agrees with the reference at its scale: a December NAIP's deep terrain shadow on the Ko'olau cliffs
     # (RGB about 21/43/53, flat: no crowns in it) or a cloud carries no detail, only a blue veil or a white blob (Pali, 2026-11-15)
     agree = np.clip(ndimage.gaussian_filter((sstep(0.42, 0.65, ratio) * (1 - sstep(1.7, 2.4, ratio))).astype(np.float32), max(1.0, 0.5 * s)), 0, 1)
-    wk = wk * agree
-    out = ref * (1 - wk[..., None]) + out * wk[..., None]
-    st.update(imagery_pct=round(float(wk[land].mean() * 100), 1) if land.any() else 0.0, gain=round(g, 3), chroma=round(beta, 3), dark_pct=round(float(((ratio < 0.6) & keep).sum() / max(keep.sum(), 1) * 100), 2),
+    wk = wv * agree; wf = wv * (1 - agree)
+    # the ground the imagery covers but is not used on takes its kept neighbours' colour (45-400 m around), not the reference's own:
+    # the HLS base has rounded, lighter cloud-fill patches with straight edges exactly there (a pastel veil on the Pali cliffs in ch2
+    # frame 2889, 2026-11-15); cres.png marks it coarse, so the detail texturing draws the crowns on it
+    fill = nc_fill(out, wk * land, ref, px_m) if (wf > 0.02).any() else ref
+    out = ref * (1 - wv[..., None]) + out * wk[..., None] + fill * wf[..., None]
+    st.update(imagery_pct=round(float(wk[land].mean() * 100), 1) if land.any() else 0.0, filled_pct=round(float(wf[land].mean() * 100), 1) if land.any() else 0.0,
+              gain=round(g, 3), chroma=round(beta, 3), dark_pct=round(float(((ratio < 0.6) & keep).sum() / max(keep.sum(), 1) * 100), 2),
               bright_pct=round(float(((ratio > 1.6) & keep).sum() / max(keep.sum(), 1) * 100), 2), covered_pct=round(float(v.mean() * 100), 1),
               ref_scale_m=round(ref_m, 1), method='detail transfer: reference tone and colour at its own scale, imagery detail finer')
     LOG(f'  fuse: gain {g:.3f}, chroma {beta:.3f}; imagery much darker than the reference (baked shadow) on {st["dark_pct"]} % of land, '
         f'much brighter (cloud, bare change) on {st["bright_pct"]} %, at the {ref_m:.0f} m scale; black reference toned from the imagery on '
-        f'{st["black_ref_pct"]} % of land; imagery kept on {st["imagery_pct"]} % of land')
+        f'{st["black_ref_pct"]} % of land; imagery kept on {st["imagery_pct"]} % of land, filled from its neighbours on {st["filled_pct"]} %')
     return np.clip(out, 0, 1).astype(np.float32), st, np.clip(ref, 0, 1).astype(np.float32), wk.astype(np.float32)
 
 def edge_ramp(H, W, n):  # 0 at the grid edge to 1 at n texels inside
