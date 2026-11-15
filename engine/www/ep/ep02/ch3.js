@@ -712,6 +712,11 @@ export async function build(api, kit, scenes) {
   const ISL = ['niihau', 'kauai', 'oahu', 'molokai', 'maui', 'hawaii'].map(n => { const r = GEO.COAST[n], c = centroid(r);
     const a = kmOf(HS, c) * Math.cos((brgOf(HS, c) - SLIDE) * D2R); return { n, r, c, a }; });
   const tArrOut = T('deepbelow') + 1.0;
+  // plate slide ease: 110 km eased in, ending at exactly the creep's speed (CREEP km to tE6), so there is no stop-start at tArrOut.
+  // CREEP 18: the SE edge (-760 + x) reaches Cape Kumukahi, the Big Island's most-SE point on the slide axis, at x = XS + 134.9,
+  // so XS + 128 at tE6 keeps it about 7 km SE of the island (30 km let Kumukahi poke out of the sheet from about f8578)
+  const CREEP = 18, tPl0 = lead('plate') - 0.05, wPl = F.clamp(2 * (CREEP / (tE6 - tArrOut)) * (tArrOut - tPl0) / (110 * Math.PI));
+  const plEase = (u) => (1 - wPl) * E.inOutSine(u) + wPl * (1 - Math.cos(u * Math.PI / 2));
   const A7 = [
     { t: tS0, lon: -156.75, lat: 20.55, h: 0, d: 760, tilt: 52, heading: 30, fov: 38 },
     { t: tSpots + 0.6, lon: -156.95, lat: 20.70, h: 0, d: 720, tilt: 51, heading: 31, fov: 38 },
@@ -752,7 +757,7 @@ export async function build(api, kit, scenes) {
       // {plate}: the same paper sheet comes back at 35 % over the sea (the islands cut out, untinted) and slides NW with the arrow
       // (110 km while the arrow shows: its SE edge visibly travels), then creeps on (its SE edge stays SE of the Big Island)
       const pa = env(t, lead('plate') - 0.05, tE6 + 1, 0.4, 0.3);
-      if (pa > 0) { const x = XS + 110 * pr(t, lead('plate') - 0.05, tArrOut, E.inOutSine) + 30 * pr(t, tArrOut, tE6, (v) => v), q = sheetCorners(x).map(c => view.project(c[0], c[1], 300));
+      if (pa > 0) { const x = XS + 110 * pr(t, tPl0, tArrOut, plEase) + CREEP * pr(t, tArrOut, tE6, (v) => v), q = sheetCorners(x).map(c => view.project(c[0], c[1], 300));
         if (q.every(Boolean)) { scr.setTransform(1, 0, 0, 1, 0, 0); scr.clearRect(0, 0, W, H); kit.drawQuad(scr, PAPER_C, q, 10);
           scr.save(); scr.globalCompositeOperation = 'destination-out'; scr.fillStyle = '#000'; scr.strokeStyle = '#000'; scr.lineWidth = px(8); scr.lineJoin = 'round';
           for (const ring of [...Object.values(GEO.COAST), ...SMALL.rings]) { const pp = proj(ring); if (!pp.every(Boolean)) continue; scr.beginPath(); pp.forEach(([X, Y], i) => i ? scr.lineTo(X, Y) : scr.moveTo(X, Y)); scr.closePath(); scr.fill(); scr.stroke(); }
