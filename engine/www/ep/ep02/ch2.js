@@ -83,12 +83,16 @@ function camOf(c) {
     near: F.clamp(c.d * 0.003, 0.004, 2), far: F.clamp(c.d * 300, 400, 9000) };
 }
 const chaikin = (pts, n = 2) => { let p = pts; for (let k = 0; k < n; k++) { const o = [p[0]]; for (let i = 0; i < p.length - 1; i++) { const a = p[i], b = p[i + 1]; o.push(a.map((v, j) => 0.75 * v + 0.25 * b[j]), a.map((v, j) => 0.25 * v + 0.75 * b[j])); } o.push(p[p.length - 1]); p = o; } return p; };
-// monotone cubic (Fritsch-Carlson) through [t, v] keys: a level that never overshoots or reverses
+// monotone cubic (Fritsch-Carlson, Brodlie's weighted harmonic slopes) through [t, v] keys: a level that never overshoots or reverses.
+// Round 8 fix: the second weight read (h_i - h_(i-1)) instead of (h_i + 2 h_(i-1)), so with uneven key spacing the inner slopes were
+// inflated and the curve overshot: the drain rose back about 70 m after {first} (24 frames of rising water) and camera chains reversed
+// for a few frames. {"ch2oldmono":1} restores the old weight for comparison.
+let MONO_OLD = false;
 function monotone(keys) {
   const n = keys.length, x = keys.map(k => k[0]), y = keys.map(k => k[1]), d = [], m = new Array(n);
   for (let i = 0; i < n - 1; i++) d.push((y[i + 1] - y[i]) / (x[i + 1] - x[i]));
   m[0] = 0; m[n - 1] = 0;
-  for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : 3 * (x[i + 1] - x[i - 1]) / ((2 * x[i + 1] - x[i] - x[i - 1]) / d[i - 1] + (x[i + 1] - 2 * x[i] + x[i - 1]) / d[i]);
+  for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : 3 * (x[i + 1] - x[i - 1]) / ((2 * x[i + 1] - x[i] - x[i - 1]) / d[i - 1] + (MONO_OLD ? x[i + 1] - 2 * x[i] + x[i - 1] : x[i + 1] + x[i] - 2 * x[i - 1]) / d[i]);
   return (t) => { if (t <= x[0]) return y[0]; if (t >= x[n - 1]) return y[n - 1];
     let i = 0; while (t > x[i + 1]) i++; const h = x[i + 1] - x[i], s = (t - x[i]) / h, s2 = s * s, s3 = s2 * s;
     return (2 * s3 - 3 * s2 + 1) * y[i] + (s3 - 2 * s2 + s) * h * m[i] + (-2 * s3 + 3 * s2) * y[i + 1] + (s3 - s2) * h * m[i + 1]; };
@@ -115,7 +119,7 @@ export async function build(api, kit, scenes) {
   const ch = K.chapter(2), T = (m) => K.T(m), lead = (m, f = 3) => K.lead(m, f);
   const pr = (t, a, b, e = E.inOut) => e(F.clamp((t - a) / Math.max(1e-6, b - a)));
   const env = (t, a, b, fi = 0.3, fo = 0.3) => F.clamp(Math.min((t - a) / fi, (b - t) / fo));
-  const dbg = !!api.Q.ch2dbg;
+  const dbg = !!api.Q.ch2dbg; MONO_OLD = !!api.Q.ch2oldmono;
 
   // ================================================================ the one camera path (film time)
   const eyeG = offLL(LOOKOUT, 0.9, 222);                                   // behind the lookout over the Nuʻuanu side, 450 m up
@@ -285,14 +289,26 @@ export async function build(api, kit, scenes) {
       ctx.fillStyle = 'rgba(6,9,15,0.6)'; ctx.beginPath(); ctx.arc(q[0], q[1], r + px(4), 0, 7); ctx.fill(); ctx.fillStyle = o.color || PAL.text; ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 7); ctx.fill(); ctx.restore(); } } };
 
   // ================================================================ S1 'pali': the lookout, the paper wall, the tourist, the dive
-  const tPop = tPop0, tLean = lead('lean'), tHat = lead('hat'), tTurn = tHat + 0.16, tRun = tHat + 0.42;
+  // round 8: the hat flies through the whole 0.7 s gap after 'hat' (the gust peaks at 105.69 s, the paper flutter sounds at 105.77 s;
+  // it was gone 0.13 s before the flutter and the frame stood empty for 0.4 s): it leaves his head on {hat}, rises, is biggest and
+  // flutters (paper flips) in the upper left on the flutter sound, and is whipped up over the camera 0.1 s before the dive; he
+  // watches it 0.26 s, then runs after it and leaves frame-left just after it, still before the camera moves
+  const tPop = tPop0, tLean = lead('lean'), tHat = lead('hat'), tTurn = tHat + 0.16, tRun = tHat + 0.62, RUN = 0.5;
+  const tFlut = K.s1('s029') + 0.14;                                       // the paper_flutter cue (mix x037, 105.77 s)
   // round 7: the wind starts on its word (wobble 0.018 -> 0.035, eased: a step in the amplitude would jump the angle), turns
-  // 0.2 s after the hat goes, runs 0.55 s (screen x only, at the lookout's height: off frame-left before the camera moves)
+  // 0.2 s after the hat goes, runs 0.5 s (screen x only, at the lookout's height: off frame-left before the camera moves)
   const tourPose = (t) => {
     const lean = t < tHat + 0.12 ? 0.06 + 0.41 * E.outBack(F.clamp((t - tLean) / 0.45)) : F.lerp(0.47, 0.03, pr(t, tHat + 0.12, tHat + 0.36));
     const wob = 0.018 + 0.017 * pr(t, tWind, tWind + 0.4) * (1 - pr(t, tHat + 0.2, tHat + 0.5));
     return { pop: F.clamp((t - tPop) / 0.5), lean, wobble: wob, turn: pr(t, tTurn, tTurn + 0.2), run: Math.max(0, t - tRun) };
   };
+  // the hat's flight in screen space: [u (s after tHat), dx (W), dy (H) from his head, size (1 = as on his head)], one monotone cubic per
+  // channel: off the head on {hat}, carried up and left by the gust, nearly hovering (14-16 px a frame) and fluttering in the upper
+  // left on the flutter sound (uF), then whipped up over the camera (out of frame at about uF + 0.16, before the dive)
+  const uF = tFlut - tHat;
+  const HATK = [[0, 0, 0, 1], [0.24, -0.01, -0.083, 1.3], [0.5, -0.081, -0.185, 2.0], [uF - 0.16, -0.208, -0.261, 3.0], [uF - 0.02, -0.245, -0.287, 3.35], [uF + 0.32, -0.487, -1.02, 4.6]];
+  const hatK = (j) => monotone(HATK.map(k => [k[0], k[j]])), hatDX = hatK(1), hatDY = hatK(2), hatG = hatK(3);
+  const hatAt = (u, x0, y0) => ({ x: x0 + hatDX(u) * W, y: y0 + hatDY(u) * H, g: hatG(u) });
   // the hat brim flutters on his head from the word 'wind', hardest in the gust before {hat} (rad / px at the card's scale)
   const brimAt = (t, s) => { const a = pr(t, tWind, tWind + 0.4) * (0.55 + 0.45 * pr(t, tHat - 0.35, tHat - 0.05));
     return { rot: a * (0.07 * Math.sin(t * 29) + 0.04 * Math.sin(t * 47 + 1.3)), off: [a * 1.5 * s * Math.sin(t * 37), -a * 4 * s * Math.abs(Math.sin(t * 23))] }; };
@@ -330,9 +346,10 @@ export async function build(api, kit, scenes) {
       const s = F.clamp(DREF / dist(LOOKOUT[0], LOOKOUT[1], hL), 0, 1.4), hPx = H * 0.36 * s;
       // paper wisps over the ridge (behind the wall and the tourist)
       const wa = pr(t, tWind, tWind + 0.5) * (1 - pr(t, tDive0, tDive0 + 0.35));
+      const gust = 420 * s * E.inOut(pr(t, T('hat') + 0.2, T('hat') + 1.05));   // round 8: the wisps race on the gust (mix peak 105.69 s)
       if (wa > 0 && card.wisp) for (const [ph, yf, sc, v] of WISPS) {
         const w = 560 * sc * s, h = w * card.wisp.h / card.wisp.w, span = W + w * 1.2;
-        const x = W + w * 0.6 - ((t - tWind) * v * s + ph * span) % span, y = H * yf + 0.045 * (W - x) + 10 * Math.sin(t * 3.1 + ph * 9);
+        const x = W + w * 0.6 - ((t - tWind) * v * s + gust + ph * span) % span, y = H * yf + 0.045 * (W - x) + 10 * Math.sin(t * 3.1 + ph * 9);
         if (x - w * 0.6 > W || x + w * 0.6 < 0) continue;                  // they cross the sky above the windward plain, edge to edge
         ctx.save(); ctx.translate(x, y); ctx.rotate(0.03 * Math.sin(t * 4.3 + ph * 7));
         ctx.globalAlpha = wa * 0.16; ctx.drawImage(card.wisp.sil, -w / 2 + 10 * s, -h / 2 + 18 * s, w, h);      // soft shadow on the haze
@@ -351,7 +368,7 @@ export async function build(api, kit, scenes) {
       // and runs after it out of frame-left at the lookout's own height (never re-grounded: nobody goes near the edge)
       const TOUR = card.tour; if (!TOUR || t < tPop) return;
       const P = tourPose(t), cw = hPx * TOUR.w / TOUR.h;
-      const runX = -(b[0] + 0.6 * cw + 40) * E.in(F.clamp(P.run / 0.55)), hop = P.run > 0 ? Math.abs(Math.sin(P.run * 15)) * 28 * s : 0;
+      const runX = -(b[0] + 0.6 * cw + 40) * E.in(F.clamp(P.run / RUN)), hop = P.run > 0 ? Math.abs(Math.sin(P.run * 15)) * 28 * s : 0;
       const base = { hPx, pop: P.pop, lean: P.lean, wobble: P.wobble, t, seed: 3, turn: P.turn, hop };
       if (b[0] + runX + 0.6 * cw > 0) {                                    // drawn until his card is fully off frame-left
         const o = runX === 0 ? Object.assign({ lon: LOOKOUT[0], lat: LOOKOUT[1] }, base)
@@ -360,18 +377,27 @@ export async function build(api, kit, scenes) {
         kit.drawCutout(ctx, view, TOUR, o);
       }
       if (t < tHat) return;
-      // the detached hat (round 7): it starts exactly where, as big as and at the angle it sat on his head at tHat, lifts, then flies
-      // BACKWARD toward the camera (1x to 4x in 0.6 s), below the horizon, and leaves past the top-left corner, as if over the camera
+      // the detached hat: it starts exactly where, as big as and at the angle it sat on his head at tHat (round 7), lifts, then flies
+      // BACKWARD toward the camera (1x to 4.2x), flutters in the upper left on the flutter sound and leaves past the top-left corner
       const P0 = tourPose(tHat), br0 = brimAt(tHat, s);
       const r0 = kit.drawCutout(dummy, view, TOUR, Object.assign({ lon: LOOKOUT[0], lat: LOOKOUT[1] }, base, { pop: P0.pop, lean: P0.lean, wobble: P0.wobble, t: tHat, turn: P0.turn, hop: 0, parts: { hat: br0 } }));
       const h0 = r0?.parts?.hat, hc = TOUR.parts?.hat;
       if (h0 && hc) {
         const rot0 = P0.lean + wobAt(P0, tHat, 3), x0 = h0.x + Math.cos(rot0) * br0.off[0] - Math.sin(rot0) * br0.off[1], y0 = h0.y + Math.sin(rot0) * br0.off[0] + Math.cos(rot0) * br0.off[1];
-        const u = t - tHat, p = F.clamp(u / 0.75), gr = 1 + 3 * E.inOut(F.clamp(u / 0.6));
-        const xe = -0.62 * h0.w * 4, ye = H * 0.36, cx1 = x0 - 140 * s, cy1 = y0 - 90 * s;               // quadratic path: up off the head, then out low (below the horizon)
-        const q = Math.pow(p, 1.35), x = (1 - q) * (1 - q) * x0 + 2 * q * (1 - q) * cx1 + q * q * xe, y = (1 - q) * (1 - q) * y0 + 2 * q * (1 - q) * cy1 + q * q * ye;
-        const ang = rot0 + br0.rot - (u * 6.5 + 0.3 * Math.sin(u * 11)), hw = 0.75 * Math.hypot(h0.w, h0.h) * gr;
-        if (x + hw > 0 && y + hw > 0 && x - hw < W) { ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.drawImage(hc.img, -h0.w * gr / 2, -h0.h * gr / 2, h0.w * gr, h0.h * gr); ctx.restore(); }
+        // round 8: keyed flight (hatAt), tumbling, and flipping like paper (it shows its darker back) in the gust and on the flutter
+        // sound; two faint trailing copies while it is whipped out (pure functions of u: no state between frames)
+        const u = t - tHat, fzOf = (v) => pr(v, 0.3, 0.6) * (1 - 0.6 * pr(v, uF + 0.05, uF + 0.2));
+        const hatDraw = (v, alpha) => {
+          const Q = hatAt(v, x0, y0), gr = Q.g, fz = fzOf(v), hw = 0.75 * Math.hypot(h0.w, h0.h) * gr;
+          if (!(Q.x + hw > 0 && Q.y + hw > 0 && Q.x - hw < W && Q.y - hw < H)) return;
+          const cs = Math.cos(2 * Math.PI * 2.3 * Math.max(0, v - 0.3)), sy0 = F.lerp(1, cs, fz), sy = (sy0 < 0 ? -1 : 1) * Math.max(0.16, Math.abs(sy0));
+          const ang = rot0 + br0.rot - (v * 3.4 + 0.45 * Math.sin(v * 12) * fz);
+          ctx.save(); ctx.globalAlpha = alpha; ctx.translate(Q.x, Q.y); ctx.rotate(ang); ctx.scale(1, sy);
+          ctx.shadowColor = 'rgba(0,0,0,0.22)'; ctx.shadowBlur = 6 * gr; ctx.shadowOffsetX = 4 * gr; ctx.shadowOffsetY = 6 * gr;
+          if (sy < 0) ctx.filter = 'brightness(0.78) saturate(0.7)';
+          ctx.drawImage(hc.img, -h0.w * gr / 2, -h0.h * gr / 2, h0.w * gr, h0.h * gr); ctx.restore(); };
+        if (u > uF + 0.02) { hatDraw(u - 0.024, 0.16); hatDraw(u - 0.012, 0.3); }
+        hatDraw(u, 1);
       }
     },
     ui(ctx, lt, t, view) {
