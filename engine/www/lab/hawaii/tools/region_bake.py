@@ -544,7 +544,7 @@ def bake(R, OUT, DLROOT, keep=False):
     for s in R.get('bathy', ['etopo15']):
         if s.startswith('region:'):  # a baked parent region (already cleaned of false land), e.g. a fine nest for one modelled rock
             pn = s.split(':', 1)[1]; pm = json.load(open(f'{OUT}/{pn}/meta.json')); pbb, (pw, phh) = pm['bbox'], pm['wh']
-            a16 = np.asarray(Image.open(f'{OUT}/{pn}/h16.png')).astype(np.float32); ph = (a16[..., 0] * 256 + a16[..., 1]) / 65535 * HRANGE + HMIN
+            a16 = np.asarray(Image.open(f'{OUT}/{pn}/h16.png')).astype(np.float32); ph = (a16[..., 0] * 256 + a16[..., 1]) / 65535 * pm.get('hrange', HRANGE) + pm.get('hmin', HMIN)  # detail_bake.py packs its own range
             lons, lats = grid_axes(bb, W, H); RY, CX = np.meshgrid((pbb[3] - lats) / (pbb[3] - pbb[1]) * phh - 0.5, (lons - pbb[0]) / (pbb[2] - pbb[0]) * pw - 0.5, indexing='ij')
             a = ndimage.map_coordinates(ph, [RY, CX], order=1, mode='nearest').astype(np.float32)
             srcs.append(dict(id=s, res_arcsec=round((pbb[2] - pbb[0]) / pw * 3600, 2), px_m=pm['px_m']))

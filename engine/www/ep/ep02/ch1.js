@@ -456,8 +456,10 @@ export async function build(api, kit, scenes) {
     // s016: the cove in pre-dawn light, a slow push (NOVEMBER 1975, HALAPĒ)
     { t: K.s1('s016') - 0.1, lat: HAL.lat - 0.0009, lon: HAL.lon + 0.0002, d: 1.02, tilt: 66, heading: 188, fov: 16, ease: E.inOutSine },
     // s017: closer on the camp (the tents lie between the camera and the grove; the lantern comes on in one tent on "woke them up")
-    { t: K.s0('s017') + 1.3, lat: HAL.lat - 0.0004, lon: HAL.lon + 0.0001, d: 0.84, tilt: 63, heading: 182, fov: 15, ease: E.inOut },
-    { t: K.s1('s017'), lat: HAL.lat - 0.0004, lon: HAL.lon + 0.0001, d: 0.80, tilt: 63, heading: 180, fov: 15, ease: E.inOutSine },
+    // round 10: tighter (d 0.62, fov 13, aimed at the grove itself): s016-s018 read as one 13 s composition at d 0.8-1.15, and the
+    // camp and the lantern were too small at phone size
+    { t: K.s0('s017') + 1.3, lat: HAL.lat - 0.0001, lon: HAL.lon + 0.0002, d: 0.62, tilt: 62, heading: 184, fov: 13, ease: E.inOut },
+    { t: K.s1('s017'), lat: HAL.lat - 0.0001, lon: HAL.lon + 0.0002, d: 0.58, tilt: 62, heading: 182, fov: 13, ease: E.inOutSine },
     // s018: "more than an hour later": the quiet cove from the north-east, a slow drift, then the jolt and dust off the scarp foot on {hit}
     { t: K.s0('s018') + 1.2, lat: HAL.lat - 0.0006, lon: HAL.lon + 0.0003, d: 1.0, tilt: 64, heading: 204, fov: 16, ease: E.inOut },
     { t: tLurch - 0.1, lat: HAL.lat - 0.0006, lon: HAL.lon + 0.0003, d: 0.97, tilt: 64, heading: 206, fov: 16, ease: E.inOutSine },
@@ -801,8 +803,8 @@ export async function build(api, kit, scenes) {
       const hp = F.clamp((T0 - (lead('hal') - 0.3)) / 0.3), hout = F.clamp((T0 - (tHal + 2.25)) / 0.27);
       // round 10: the pin sits on the beach at the grove (HAL). The old pin (the NPS shelter, 80 m inland) projected below the 670 px
       // text line in the round-9 seaward framing, so ui.label found no placement and the label was never drawn (typeqc labels=0).
-      // dist 150: the plate floats over the water above the beach line instead of over the palm tops.
-      if (hp > 0 && hout < 1) { const q = view.project(HAL.lon, HAL.lat, 2); if (q) { const b = ui.label(ctx, 'HALAPĒ', q[0], q[1], { t: tt, p: hp, alpha: 1 - hout, dist: 150, order: ['above', 'above-left', 'above-right', 'left', 'right'] }); if (!b && api.Q?.qc) api.log(`[ch1] WARNING HALAPĒ label not placed (pin ${q[0].toFixed(0)},${q[1].toFixed(0)})`); } }
+      // dist 200: the plate floats over the water above the palm tops (dist 150 still clipped the tallest crowns).
+      if (hp > 0 && hout < 1) { const q = view.project(HAL.lon, HAL.lat, 2); if (q) { const b = ui.label(ctx, 'HALAPĒ', q[0], q[1], { t: tt, p: hp, alpha: 1 - hout, dist: 200, order: ['above', 'above-left', 'above-right', 'left', 'right'] }); if (!b && api.Q?.qc) api.log(`[ch1] WARNING HALAPĒ label not placed (pin ${q[0].toFixed(0)},${q[1].toFixed(0)})`); } }
     } });
   scenes.push(halShot);
   // s023: the USGS public-domain photo of the drowned grove, full-bleed, Ken Burns 2 %, 3 s, in on {morning}

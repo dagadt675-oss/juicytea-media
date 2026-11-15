@@ -47,6 +47,25 @@ NAIP_STAC = 'https://coastalimagery.blob.core.windows.net/digitalcoast/HI_NAIP_2
 def read_h16(path, hmin=rb.HMIN, hrange=rb.HRANGE):
     a = np.asarray(Image.open(path)).astype(np.float32); return (a[..., 0] * 256 + a[..., 1]) / 65535 * hrange + hmin
 
+def pack16_tight(h):
+    """h16.png over this layer's own height range (meta hmin / hrange, which hterrain.js, ch3.js and make_index.py read): the fixed
+    -8000..9000 m range steps 0.26 m, which shows as contour terraces in the shading of a 1-2 m grid under a low sun (halape_cove near
+    the shore, 2026-11-15); a 600 m range steps 0.01 m. Returns (image, hmin, hrange)."""
+    lo = math.floor(float(h.min()) / 10) * 10 - 10.0; hrange = float(math.ceil(float(h.max()) / 10) * 10 + 10.0 - lo)
+    v = np.clip(np.round((h - lo) / hrange * 65535), 0, 65535).astype(np.uint32)
+    return Image.fromarray(np.stack([(v >> 8).astype(np.uint8), (v & 255).astype(np.uint8), np.zeros_like(v, np.uint8)], -1)), lo, hrange
+
+def cres_write(path, res):
+    """cres.png: the real resolution of the colour per texel (m), log-coded v = (log2(res) + 2) * 25 (0.25 m .. about 290 m), at a
+    quarter of the colour size. hterrain.js reads it to bring the detail texturing back where the photo shows nothing finer (deep
+    terrain shadow, cloud: filled from the coarser reference) instead of trusting the photo's resolution everywhere (Pali, 2026-11-15)."""
+    H, W = res.shape; f = 4
+    lr = np.log2(np.maximum(res, 0.25))[:H // f * f, :W // f * f].reshape(H // f, f, W // f, f).mean((1, 3))
+    Image.fromarray(np.clip(np.round((lr + 2) * 25), 0, 255).astype(np.uint8), 'L').save(path)
+
+def cres_read(path, shape):
+    a = np.asarray(Image.open(path)).astype(np.float32); return 2.0 ** (resize1(a, shape[1], shape[0]) / 25.0 - 2.0)
+
 def resize1(a, w, h, method=Image.BILINEAR):
     return np.asarray(Image.fromarray(np.ascontiguousarray(a, dtype=np.float32), 'F').resize((w, h), method))
 
@@ -178,7 +197,9 @@ def fuse(img, ref, land, px_m, ref_m, src_m):
     n = the imagery times one luminance gain, beta = one chroma factor (median chroma of the reference over the imagery's, at the
     reference's scale, clear land only). So a winter photo's baked cliff shadow or a cloud bigger than the reference's texel takes the
     reference's (summer) tone, and the imagery's own hue never replaces the grade (NAIP lava reads blue-grey, the film's HLS brown).
-    Returns (colour, stats, reference): the reference with its black (no data) land toned from the imagery, for the edge fade."""
+    Where the imagery is much darker or brighter than the reference at its scale (deep shadow, cloud) it fades out to the reference.
+    Returns (colour, stats, reference, imagery weight 0..1): the reference with its black (no data) land toned from the imagery, for
+    the edge fade."""
     v = np.isfinite(img).all(-1); s = max(1.0, 0.5 * ref_m / px_m)
     rl = ndimage.gaussian_filter(ref, (s, s, 0)); il = nan_gauss(img, v, s)
     Li, Lr = rb.lum(il), rb.lum(rl); st = {}
@@ -203,14 +224,18 @@ def fuse(img, ref, land, px_m, ref_m, src_m):
     ratio = Lnl / np.maximum(Lr, 1e-3)   # where the imagery disagrees with the reference at its scale (baked shadow, cloud, change)
     keep = v & land
     wk = np.clip(ndimage.gaussian_filter(keep.astype(np.float32), max(1.0, 3.0 / px_m)), 0, 1) * keep
+    # and only where the imagery agrees with the reference at its scale: a December NAIP's deep terrain shadow on the Ko'olau cliffs
+    # (RGB about 21/43/53, flat: no crowns in it) or a cloud carries no detail, only a blue veil or a white blob (Pali, 2026-11-15)
+    agree = np.clip(ndimage.gaussian_filter((sstep(0.42, 0.65, ratio) * (1 - sstep(1.7, 2.4, ratio))).astype(np.float32), max(1.0, 0.5 * s)), 0, 1)
+    wk = wk * agree
     out = ref * (1 - wk[..., None]) + out * wk[..., None]
-    st.update(gain=round(g, 3), chroma=round(beta, 3), dark_pct=round(float(((ratio < 0.6) & keep).sum() / max(keep.sum(), 1) * 100), 2),
+    st.update(imagery_pct=round(float(wk[land].mean() * 100), 1) if land.any() else 0.0, gain=round(g, 3), chroma=round(beta, 3), dark_pct=round(float(((ratio < 0.6) & keep).sum() / max(keep.sum(), 1) * 100), 2),
               bright_pct=round(float(((ratio > 1.6) & keep).sum() / max(keep.sum(), 1) * 100), 2), covered_pct=round(float(v.mean() * 100), 1),
               ref_scale_m=round(ref_m, 1), method='detail transfer: reference tone and colour at its own scale, imagery detail finer')
     LOG(f'  fuse: gain {g:.3f}, chroma {beta:.3f}; imagery much darker than the reference (baked shadow) on {st["dark_pct"]} % of land, '
         f'much brighter (cloud, bare change) on {st["bright_pct"]} %, at the {ref_m:.0f} m scale; black reference toned from the imagery on '
-        f'{st["black_ref_pct"]} % of land')
-    return np.clip(out, 0, 1).astype(np.float32), st, np.clip(ref, 0, 1).astype(np.float32)
+        f'{st["black_ref_pct"]} % of land; imagery kept on {st["imagery_pct"]} % of land')
+    return np.clip(out, 0, 1).astype(np.float32), st, np.clip(ref, 0, 1).astype(np.float32), wk.astype(np.float32)
 
 def edge_ramp(H, W, n):  # 0 at the grid edge to 1 at n texels inside
     if n <= 0: return np.ones((H, W), np.float32)
@@ -323,7 +348,7 @@ def bake(R, OUT, DLROOT, keep=False, regs=None):
     if patch:   # the reference: the parent's final heights and colour, resampled onto the patch grid
         pm = json.load(open(f'{OUT}/{patch["parent"]}/meta.json')); pbb = pm['bbox']
         if not (bb[0] >= pbb[0] and bb[1] >= pbb[1] and bb[2] <= pbb[2] and bb[3] <= pbb[3]): raise SystemExit(f'{name} is not inside {patch["parent"]}')
-        W, H = R['wh']; ph = read_h16(f'{OUT}/{patch["parent"]}/{pm["files"]["h16"]}')
+        W, H = R['wh']; ph = read_h16(f'{OUT}/{patch["parent"]}/{pm["files"]["h16"]}', pm.get('hmin', rb.HMIN), pm.get('hrange', rb.HRANGE))
         base_h = resample_bb(ph, pbb, bb, W, H); pcol = np.asarray(Image.open(f'{OUT}/{patch["parent"]}/{pm["files"]["color"]}').convert('RGB')).astype(np.float32) / 255
         ref_m = max(pm.get('res', {}).get('colour_src_m', 30.0), pm.get('res', {}).get('colour_texel_m', pm['px_m']))
         meta = dict(name=name, bbox=bb, hmin=rb.HMIN, hrange=rb.HRANGE, vex=1.0, sources=[dict(id=f'region:{patch["parent"]}', px_m=pm['px_m'])], colour={},
@@ -333,9 +358,9 @@ def bake(R, OUT, DLROOT, keep=False, regs=None):
         meta = json.load(open(f'{od}/meta.json')); W0, H0 = meta['wh']
         if 'detail' not in meta:   # fresh from region_bake: keep the base bake as the reference for this and every later re-run
             for f, b in (('h16', 'h16_base.png'), ('color', 'color_base.jpg'), ('ao', 'ao_base.png')): shutil.copyfile(f'{od}/{meta["files"][f]}', f'{od}/{b}')
-            meta['base'] = dict(wh=[W0, H0], px_m=meta['px_m'], sources=meta['sources'], facts=meta['facts'])
+            meta['base'] = dict(wh=[W0, H0], px_m=meta['px_m'], sources=meta['sources'], facts=meta['facts'], hmin=meta['hmin'], hrange=meta['hrange'])
         else: meta['sources'] = meta['base']['sources']
-        bh = read_h16(f'{od}/h16_base.png'); W0, H0 = bh.shape[1], bh.shape[0]
+        bh = read_h16(f'{od}/h16_base.png', meta['base'].get('hmin', rb.HMIN), meta['base'].get('hrange', rb.HRANGE)); W0, H0 = bh.shape[1], bh.shape[0]
         W, H = det.get('height', {}).get('wh', [W0, H0])
         base_h = bh if (W, H) == (W0, H0) else resample_bb(bh, bb, bb, W, H)
         pcol = np.asarray(Image.open(f'{od}/color_base.jpg').convert('RGB')).astype(np.float32) / 255; pbb = bb
@@ -367,7 +392,7 @@ def bake(R, OUT, DLROOT, keep=False, regs=None):
         e = edge_ramp(H, W, int(round(det.get('edge_m', 200) / px_m))); h = base_h * (1 - e) + h * e
     h = h.astype(np.float32); h[(h > 0) & (h < 1)] = 1.0
     if hcfg or patch:
-        rb.pack16(h).save(f'{od}/h16.png', compress_level=6)
+        im16, meta['hmin'], meta['hrange'] = pack16_tight(h); im16.save(f'{od}/h16.png', compress_level=6)
         f = 2 if W * H > 2.5e6 else 1
         h2 = np.asarray(Image.fromarray(h, 'F').resize((W // f, H // f), Image.BOX)) if f > 1 else h
         ao = rb.bake_ao(h2, bb, px_m * f, True)
@@ -376,7 +401,9 @@ def bake(R, OUT, DLROOT, keep=False, regs=None):
             pao = resample_bb(pa, pbb, bb, ao.shape[1], ao.shape[0]); ea = edge_ramp(ao.shape[0], ao.shape[1], max(4, int(round(400 / (px_m * f)))))
             ao = pao * (1 - ea) + ao * ea
         Image.fromarray((np.clip(ao, 0, 1) * 255).astype(np.uint8)).save(f'{od}/ao.png')
-    elif base_ao: shutil.copyfile(base_ao, f'{od}/ao.png'); shutil.copyfile(f'{od}/h16_base.png', f'{od}/h16.png')
+    elif base_ao:
+        shutil.copyfile(base_ao, f'{od}/ao.png'); shutil.copyfile(f'{od}/h16_base.png', f'{od}/h16.png')
+        meta['hmin'], meta['hrange'] = meta['base'].get('hmin', rb.HMIN), meta['base'].get('hrange', rb.HRANGE)
     LOG(f'  h {W}x{H} ({px_m:.2f} m) {h.min():.0f}..{h.max():.0f} ({time.time() - t0:.0f} s)')
     # ---- colour
     ccfg = det.get('colour'); CW, CH = size_of(ccfg, bb, W, H) if ccfg else (pcol.shape[1], pcol.shape[0])
@@ -384,15 +411,32 @@ def bake(R, OUT, DLROOT, keep=False, regs=None):
     cpx = sum(px_size(bb, CW, CH)) / 2
     land = resample_bb(h, bb, bb, CW, CH) > 0.5
     col = ref; cmeta = {}
+    # the reference's real resolution per texel: the parent's cres map (patch) or one figure (the parent's photo or the base's HLS)
+    pcres = f'{OUT}/{patch["parent"]}/cres.png' if patch else None
+    res_ref = cres_read(pcres, (CH, CW)) if pcres and os.path.exists(pcres) else np.full((CH, CW), ref_m, np.float32)
+    res_map = res_ref
     if ccfg:
         img, cmeta = get_colour(ccfg, bb, CW, CH, dl)
         if img is not None:
-            col, st, ref = fuse(img, ref, land, cpx, ref_m, colour_src(ccfg)); cmeta.update(st)
+            col, st, ref, wimg = fuse(img, ref, land, cpx, ref_m, colour_src(ccfg)); cmeta.update(st)
+            res_map = 2.0 ** (wimg * np.log2(colour_src(ccfg)) + (1 - wimg) * np.log2(np.maximum(res_ref, 0.25)))
     if patch or ccfg:   # fade to the reference at the edge: the parent's colour (patch) or the base bake's (in place), which the next layer meets
         e = edge_ramp(CH, CW, int(round((patch.get('feather_m', 120) if patch else det.get('edge_m', 200)) / cpx))); col = ref * (1 - e[..., None]) + col * e[..., None]
     Image.fromarray((np.clip(col, 0, 1) * 255).astype(np.uint8)).save(f'{od}/color.jpg', quality=90)
+    if patch or ccfg:
+        res_map = res_ref * (1 - e) + res_map * e   # the same edge fade as the colour
+        # and where the final colour is smooth at the scale of tree crowns and boulders (local contrast under about 3 % of the
+        # luminance: shadow or cloud filled from a smooth reference, a photo with no texture there; the Pali cliffs, 2026-11-15, where
+        # textured canopy reads 0.10-0.15), at least 12 m, so the detail texturing fills it; never finer than before
+        Lc = rb.lum(col); s1, s2 = max(0.7, 3.0 / cpx), max(1.5, 8.0 / cpx)
+        hp = Lc - ndimage.gaussian_filter(Lc, s1); con = np.sqrt(ndimage.gaussian_filter(hp * hp, s2)) / np.maximum(ndimage.gaussian_filter(Lc, s2), 0.02)
+        pres = sstep(0.025, 0.07, con); lr = np.log2(np.maximum(res_map, 0.25))
+        res_map = 2.0 ** (pres * lr + (1 - pres) * np.maximum(lr, np.log2(np.maximum(res_ref, 12.0))))
+        cmeta['smooth_pct'] = round(float((pres < 0.5)[land].mean() * 100), 1) if land.any() else 0.0
+        LOG(f'  cres: colour smooth at the 3-8 m scale on {cmeta["smooth_pct"]} % of land (detail texturing there)')
+        cres_write(f'{od}/cres.png', res_map)
     # ---- meta
-    meta.update(wh=[W, H], px_m=round(px_m, 2), files=dict(h16='h16.png', ao='ao.png', color='color.jpg'),
+    meta.update(wh=[W, H], px_m=round(px_m, 2), files=dict(h16='h16.png', ao='ao.png', color='color.jpg', **({'cres': 'cres.png'} if patch or ccfg else {})),
                 res=dict(height_m=round(px_m, 2), height_src_m=1.0 if hsrc else meta.get('base', {}).get('px_m', px_m), colour_texel_m=round(cpx, 2),
                          height_interp=(hcfg or {}).get('interp', []),
                          colour_src_m=colour_src(ccfg) if ccfg else ref_m, colour_wh=[CW, CH]),
