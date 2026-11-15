@@ -795,7 +795,9 @@ export async function build(api, kit, scenes) {
       const s16 = K.s0('s016'), np = F.clamp((T0 - (s16 - 0.15)) / 0.35), nout = F.clamp((T0 - (s16 + 1.95)) / 0.27);
       if (np > 0 && nout < 1) ui.block(ctx, [{ text: 'NOVEMBER 1975', role: 'label', cap: 66 }], px(96), px(96), { anchor: 'left', p: np, out: nout, bar: PAL.yellow });
       const hp = F.clamp((T0 - (lead('hal') - 0.05)) / 0.3), hout = F.clamp((T0 - (tHal + 2.25)) / 0.27);
-      if (hp > 0 && hout < 1) { const q = view.project(-155.2544, 19.2711, 3); if (q) ui.label(ctx, 'HALAPĒ', q[0], q[1], { t: tt, p: hp, alpha: 1 - hout, order: ['above', 'above-left', 'above-right'] }); }
+      // round 10: the pin sits on the beach at the grove (HAL). The old pin (the NPS shelter, 80 m inland) projected below the 670 px
+      // text line in the round-9 seaward framing, so ui.label found no placement and the label was never drawn (typeqc labels=0).
+      if (hp > 0 && hout < 1) { const q = view.project(HAL.lon, HAL.lat, 2); if (q) { const b = ui.label(ctx, 'HALAPĒ', q[0], q[1], { t: tt, p: hp, alpha: 1 - hout, order: ['above', 'above-left', 'above-right', 'left', 'right'] }); if (!b && api.Q?.qc) api.log(`[ch1] WARNING HALAPĒ label not placed (pin ${q[0].toFixed(0)},${q[1].toFixed(0)})`); } }
     } });
   scenes.push(halShot);
   // s023: the USGS public-domain photo of the drowned grove, full-bleed, Ken Burns 2 %, 3 s, in on {morning}
