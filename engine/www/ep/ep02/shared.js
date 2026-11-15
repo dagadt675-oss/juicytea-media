@@ -924,7 +924,7 @@ export function drawStandee(ctx, view, card, o) {
 export const PAPER = {
   tourist: { file: 'tourist', parts: ['hat'], note: 'FSA/OWI 1939 (LOC 2017740557), hand-tinted red aloha shirt; hat is a part' },
   suitcase: { file: 'suitcase', base: false, note: 'the same FSA photo: his Gladstone bag' },
-  climber: { file: 'climber', edge: '#EAF4FF', note: 'NPS Denali mountaineering volunteer (frosted paper edge)' },
+  climber: { file: 'climber', edge: '#EAF4FF', note: 'historical roped climber, back view, ice axe, crampons (LOC ppmsc 01639, 1900-1923; frosted paper edge)' },
   seal: { file: 'seal', base: false, sink: 0.12, tilt: -0.07, note: 'USFWS Hawaiian monk seal, side view' },
   seal_pup: { file: 'seal_pup', base: false, note: 'USFWS monk seal pup' },
   albatross: { file: 'albatross', note: 'USFWS Laysan albatross standing' },
