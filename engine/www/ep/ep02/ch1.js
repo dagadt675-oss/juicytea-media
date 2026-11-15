@@ -21,14 +21,17 @@
 //              goes under on {drowned}; foam only on the waterline.
 //   s014-s015  whip-pan (motion blur, 14 sub-frame samples on the fastest frames) to the Big Island's south coast in morning light,
 //              steel-blue water (sat 1.03); one yellow down-arrow pulses on {now}; an eased push toward Halapē while the light falls.
-//   s016-s023  1975, Halapē (solemn: no gags, no comic sound, no stings), seen from the sea side looking DOWN (pitch 36-46 degrees from
-//              0.6-1.25 km) so beach, grove and water fill the frame and the soft hillside stays out of it: s016 the cove (NOVEMBER 1975,
+//   s016-s023  1975, Halapē (solemn: no gags, no comic sound, no stings), seen from above the low bench behind the cove looking
+//              SEAWARD and down (tilt 63-68 degrees from 0.8-1.45 km, long lens: the grove a third of the width or more), so tents, grove, beach and water fill the frame and the pre-dawn
+//              sea is the background; the soft hillside stays behind the camera (s015 swings round the east side to get there): s016 the cove (NOVEMBER 1975,
 //              HALAPĒ on its pin at {hal}); s017 closer on the camp, the palms shiver with the foreshock (59.3 s), a lantern glows in
-//              one tent on {woke}; s018 the quiet cove from the SE, the jolt and a warm dust curtain off the low cliff behind the grove
-//              on {hit}; s019 pull-up on {lurch}: the coastal block outlined in white, one short yellow arrow seaward; s020 the block
+//              one tent on {woke}; s018 the quiet cove from the NE, the jolt and warm dust puffs off the scarp foot (bottom of the frame)
+//              on {hit}; s019 pull-up on {lurch} looking WSW along the coast: the coastal block outlined in white, one short yellow arrow
+//              seaward (frame left); s020 the block
 //              sinks 3.5 m on {drop} (sea level against today's post-1975 grid -3.5 m to 0) and floods among the palms, with a side-on
 //              inset in the scene's pre-dawn light (old ground line, a face-on basketball hoop at true scale, one yellow drop arrow, no
-//              numbers) that fades before the wave; s021 the surge runs in from the east (frame right) and peaks on "rushed"; first light
+//              numbers) that fades before the wave; s021 the surge runs in from the east (frame left in the seaward view; the script's
+//              'frame right' assumed a landward view) and peaks on "rushed"; first light
 //              creeps in over 7 s from the surge; s022 {two}: wide slow drift back, desaturated; s023 {morning}: the USGS photo for 3 s,
 //              then the flooded grove from the bench behind it, water behind and between the trunks.
 //              Palms are built in 3D at their true positions and projected (they foreshorten with the terrain), trunks mirrored in the
@@ -293,11 +296,13 @@ export async function build(api, kit, scenes) {
     { t: tNoB, lon: -156.925, lat: 21.135, alt: 2.9, tLon: -156.985, tLat: 21.285, tH: -700, fov: 46 },
     // s011 {ledge}: over the -400 ft shore (the cream line); {plunge}: tipped about 45 degrees down the slope, riding down it
     { t: tLedge, lon: -156.948, lat: 21.200, alt: 1.6, tLon: -156.966, tLat: 21.262, tH: -1000, fov: 48 },
-    { t: tPlunge - 0.07, lon: -156.952, lat: 21.236, alt: 1.3, tLon: -156.970, tLat: 21.272, tH: -2600, fov: 54 },     // pitch about 41 deg
-    { t: tPlunge + 0.5, lon: -156.956, lat: 21.246, alt: 1.05, tLon: -156.972, tLat: 21.280, tH: -2700, fov: 54 },     // about 42 deg
+    // {plunge}: tipped about 37 degrees down the slope and riding down it (the eye drops 1.6 -> 0.7 km over the real -500 to -900 m
+    // slope); the wide lens keeps a band of the deep navy water at the top of the frame, so the slope visibly falls into it
+    { t: tPlunge - 0.07, lon: -156.951, lat: 21.232, alt: 1.0, tLon: -156.967, tLat: 21.268, tH: -2300, fov: 58 },     // pitch about 37 deg
+    { t: tPlunge + 0.5, lon: -156.955, lat: 21.244, alt: 0.7, tLon: -156.971, tLat: 21.276, tH: -2300, fov: 58 },      // about 37 deg
     // s012: from {plunge} + 0.5 the camera pulls back and up while still looking steeply down (to {plunge} + 1.2), then swings west to
     // Penguin Bank, the flat table off West Molokaʻi, high and dry above the water: framed and filled on {bank}
-    { t: tPlunge + 1.2, lon: -157.00, lat: 21.250, alt: 3.0, tLon: -157.04, tLat: 21.262, tH: -2400, fov: 50 },        // about 51 deg
+    { t: tPlunge + 1.2, lon: -157.00, lat: 21.250, alt: 3.0, tLon: -157.06, tLat: 21.255, tH: -1000, fov: 50 },        // about 33 deg (far water in view)
     { t: tBk, stop: true, lon: -157.30, lat: 21.25, alt: 9.0, tLon: -157.60, tLat: 20.99, tH: -60, fov: 38 },
     // s013: while the sea rises and drowns the bank, pull back north-east so West Molokaʻi comes in lower left (the islands part again)
     { t: TW, lon: -157.16, lat: 21.30, alt: 10.5, tLon: -157.45, tLat: 21.03, tH: -60, fov: 42 },
@@ -317,8 +322,9 @@ export async function build(api, kit, scenes) {
   // and a blue haze sits on the new sea surface, so the slope falls into blue depth with no floor; the rise keeps the foam on the
   // waterline only (foamPx 0.3: the default rim reached 30-60 m deep on the bank's steep edge)
   // (the water darkens with depth away from the waterline, the haze lies on the new surface: 'deeper and deeper', not a lagoon)
-  const DEEPW = [[0.020, 0.078, 0.155], [0.016, 0.060, 0.135], [0.003, 0.013, 0.045]];
-  const RLOOK = (k) => ({ zenith: '#1553b5', horizon: mixh('#9fc4ee', '#86a6d0', k), haze: [mixh('#a5c0e0', '#4f7cb6', k), 0.74], sun: '#fff3e2', glow: ['#ffe6c8', 0.5], sunI: 3.5, skyI: 0.70 });
+  // round 9: darker navy, reached within about 3 km of the -1,000 m shore (the slope reads as falling into the dark), deeper haze
+  const DEEPW = [[0.012, 0.050, 0.115], [0.006, 0.026, 0.080], [0.002, 0.007, 0.030]];
+  const RLOOK = (k) => ({ zenith: '#1553b5', horizon: mixh('#9fc4ee', '#86a6d0', k), haze: [mixh('#a5c0e0', '#40699f', k), 0.74], sun: '#fff3e2', glow: ['#ffe6c8', 0.5], sunI: 3.5, skyI: 0.70 });
   const stateC = (T0) => {
     const s = blend(RIDE, RIDE, 0), k = E.inOut(F.clamp(drainP(T0) * 1.6)), lev = levelC(T0), rising = T0 > rise0;
     s.post.exposure = 1.12 + 0.06 * k; s.set.oldLine = 0; s.set.ringH = 30;
@@ -328,7 +334,14 @@ export async function build(api, kit, scenes) {
     s.look = RLOOK(k); s.fog = [fCol / fH, 0.00012 + 0.00028 * k, fH];
     s.waterCols = WATER_FILM.map((c, i) => c.map((v, j) => v + (DEEPW[i][j] - v) * k));
     s.set.foamAmt = rising ? 0.7 : 1 - k; s.set.foamPx = rising ? 0.3 : 2.5; s.set.edgeGlow = 0.6 * (1 - k); s.set.surfAmt = 0.6 * (1 - k);
-    s.set.wRamp = [2 + 3 * k, 12 + 28 * k, 25 + 35 * k, 160 + 540 * k];
+    s.set.wRamp = [2 + 1 * k, 12 + 8 * k, 25 + 45 * k, 160 + 240 * k];
+    // round 9: from {plunge} + 0.5 (the pull-back to Penguin Bank) the water and haze go greyer and the grade desaturates, so the drain
+    // frames pass the clone gate's blue share and the s013 rise never reads as pool turquoise (the hero fill is drawn after the grade)
+    const dz = E.inOut(F.clamp((T0 - (tPlunge + 0.5)) / 1.4));
+    if (dz > 0) {
+      s.waterCols = s.waterCols.map(c => { const l = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; return c.map(v => v + (l * 1.15 - v) * 0.5 * dz); });
+      s.look.haze = [mixh(s.look.haze[0], '#8492a6', 0.5 * dz), s.look.haze[1]]; s.post.sat = 0.95 - 0.17 * dz;
+    }
     return s;
   };
   // the paper tourist walks left to right (from Lānaʻi's side toward West Maui), one hop landing on the paper tap (spot 25.50 s),
@@ -430,28 +443,31 @@ export async function build(api, kit, scenes) {
     { t: G0, lat: 19.300, lon: -155.235, d: 34, tilt: 72, heading: 310, fov: 40 },
     { t: G0 + 0.55, lat: 19.300, lon: -155.235, d: 33, tilt: 72, heading: 350, fov: 40, ease: E.outExpoN },
     { t: K.s1('s014') + 0.2, lat: 19.296, lon: -155.238, d: 30, tilt: 72, heading: 352, fov: 40, ease: E.inOutSine },
-    // s015: the push keeps the coast and the cove centred as the light falls, tipping down toward the cove
-    { t: K.s0('s015') + 1.9, lat: HAL.lat + 0.0006, lon: HAL.lon + 0.0004, d: 3.2, tilt: 58, heading: 350, fov: 30, ease: E.inOut },
+    // round 9 (review: one look): s016-s023 look SEAWARD from above the low bench behind the cove (tilt 63-68 from 0.8-1.2 km), so
+    // beach, tents, grove and water fill the frame and the pre-dawn sea is the background; the soft 10 m / 30 m hillside and the scarp
+    // stay behind the camera (only the scarp foot shows, at the bottom of the frame, for the {hit} dust)
+    // s015: one eased swing and push while the light falls: around the east side of the cove (looking west along the coast mid-way)
+    // to the land side, ending high over the bench looking out to sea
+    { t: K.s0('s016') - 0.2, lat: HAL.lat - 0.0010, lon: HAL.lon + 0.0003, d: 1.15, tilt: 66, heading: 192, fov: 16, ease: E.inOut },
     // s016: the cove in pre-dawn light, a slow push (NOVEMBER 1975, HALAPĒ)
-    { t: K.s0('s016') - 0.2, lat: HAL.lat + 0.0004, lon: HAL.lon + 0.0002, d: 0.95, tilt: 44, heading: 345, fov: 24, ease: E.inOut },
-    { t: K.s1('s016') - 0.1, lat: HAL.lat + 0.0004, lon: HAL.lon + 0.0001, d: 0.82, tilt: 44, heading: 349, fov: 24, ease: E.inOutSine },
-    // s017: closer on the camp (the lantern comes on in one tent on "woke them up")
-    { t: K.s0('s017') + 1.3, lat: HAL.lat + 0.0006, lon: HAL.lon + 0.0001, d: 0.72, tilt: 46, heading: 2, fov: 24, ease: E.inOut },
-    { t: K.s1('s017'), lat: HAL.lat + 0.0006, lon: HAL.lon + 0.0001, d: 0.68, tilt: 46, heading: 5, fov: 24, ease: E.inOutSine },
-    // s018: "more than an hour later": the quiet cove from the south-east, a slow drift, then the jolt and dust off the scarp foot on {hit}
-    { t: K.s0('s018') + 1.2, lat: HAL.lat + 0.0007, lon: HAL.lon, d: 0.85, tilt: 47, heading: 330, fov: 26, ease: E.inOut },
-    { t: tLurch - 0.1, lat: HAL.lat + 0.0007, lon: HAL.lon, d: 0.82, tilt: 47, heading: 327, fov: 26, ease: E.inOutSine },
-    // s019 {lurch}: a quick pull-up over a long stretch of coast (the coastal block outlined, a short seaward arrow)
-    { t: tLurch + 1.3, lat: HAL.lat + 0.0012, lon: HAL.lon + 0.002, d: 4.0, tilt: 52, heading: 345, fov: 34, ease: E.inOut },
-    { t: K.s0('s020') + 0.2, lat: HAL.lat + 0.0012, lon: HAL.lon + 0.0021, d: 3.8, tilt: 52, heading: 344, fov: 34, ease: E.inOutSine },
-    // s020 {drop}: back down to the grove from the south-west (the inset sits top-left)
-    { t: tDrop - 0.25, lat: HAL.lat + 0.0003, lon: HAL.lon - 0.0002, d: 0.82, tilt: 46, heading: 15, fov: 24, ease: E.inOut },
-    { t: K.s1('s020'), lat: HAL.lat + 0.0003, lon: HAL.lon - 0.0002, d: 0.78, tilt: 46, heading: 19, fov: 24, ease: E.inOutSine },
-    // s021: low and close, looking north along the shore: the surge comes in from the east (frame right) on "rushed"
-    { t: tRush - 0.55, lat: HAL.lat + 0.0003, lon: HAL.lon, d: 0.62, tilt: 54, heading: 356, fov: 26, ease: E.inOut },
-    { t: tTwo, lat: HAL.lat + 0.0003, lon: HAL.lon, d: 0.6, tilt: 54, heading: 353, fov: 26, ease: E.inOutSine },
+    { t: K.s1('s016') - 0.1, lat: HAL.lat - 0.0009, lon: HAL.lon + 0.0002, d: 1.02, tilt: 66, heading: 188, fov: 16, ease: E.inOutSine },
+    // s017: closer on the camp (the tents lie between the camera and the grove; the lantern comes on in one tent on "woke them up")
+    { t: K.s0('s017') + 1.3, lat: HAL.lat - 0.0004, lon: HAL.lon + 0.0001, d: 0.84, tilt: 63, heading: 182, fov: 15, ease: E.inOut },
+    { t: K.s1('s017'), lat: HAL.lat - 0.0004, lon: HAL.lon + 0.0001, d: 0.80, tilt: 63, heading: 180, fov: 15, ease: E.inOutSine },
+    // s018: "more than an hour later": the quiet cove from the north-east, a slow drift, then the jolt and dust off the scarp foot on {hit}
+    { t: K.s0('s018') + 1.2, lat: HAL.lat - 0.0006, lon: HAL.lon + 0.0003, d: 1.0, tilt: 64, heading: 204, fov: 16, ease: E.inOut },
+    { t: tLurch - 0.1, lat: HAL.lat - 0.0006, lon: HAL.lon + 0.0003, d: 0.97, tilt: 64, heading: 206, fov: 16, ease: E.inOutSine },
+    // s019 {lurch}: a quick pull-up looking WSW along the coast (the sea on the left): the coastal block outlined, the arrow seaward
+    { t: tLurch + 1.3, lat: HAL.lat - 0.0008, lon: HAL.lon + 0.0020, d: 4.0, tilt: 58, heading: 248, fov: 34, ease: E.inOut },
+    { t: K.s0('s020') + 0.2, lat: HAL.lat - 0.0008, lon: HAL.lon + 0.0021, d: 3.8, tilt: 58, heading: 246, fov: 34, ease: E.inOutSine },
+    // s020 {drop}: back down to the grove looking SSE (the grove centre-right, the inset top-left over the sea)
+    { t: tDrop - 0.25, lat: HAL.lat - 0.0007, lon: HAL.lon + 0.0007, d: 0.95, tilt: 64, heading: 176, fov: 15, ease: E.inOut },
+    { t: K.s1('s020'), lat: HAL.lat - 0.0007, lon: HAL.lon + 0.0007, d: 0.90, tilt: 64, heading: 173, fov: 15, ease: E.inOutSine },
+    // s021: closer, looking south: the surge runs along the shore from the east (frame left in this seaward view) on "rushed"
+    { t: tRush - 0.55, lat: HAL.lat - 0.0006, lon: HAL.lon + 0.0004, d: 0.80, tilt: 65, heading: 186, fov: 15, ease: E.inOut },
+    { t: tTwo, lat: HAL.lat - 0.0006, lon: HAL.lon + 0.0004, d: 0.78, tilt: 65, heading: 184, fov: 15, ease: E.inOutSine },
     // s022 {two}: wide, slow drift back at first light (no text, no gag)
-    { t: K.s0('s023'), lat: HAL.lat + 0.0004, lon: HAL.lon, d: 1.25, tilt: 48, heading: 6, fov: 26, ease: E.inOut },
+    { t: K.s0('s023'), lat: HAL.lat - 0.0012, lon: HAL.lon + 0.0002, d: 1.45, tilt: 68, heading: 190, fov: 20, ease: E.inOut },
     // after the photo (the swing happens under it): from the bench behind the grove, looking out to sea over the flooded grove, so
     // water shows behind and between the trunks (the USGS photo's 'standing in the sea')
     { t: K.s0('s024') - 0.1, lat: HAL.lat - 0.0005, lon: HAL.lon, d: 0.40, tilt: 73, heading: 195, fov: 24, ease: E.inOutSine },
@@ -503,7 +519,7 @@ export async function build(api, kit, scenes) {
     const night = k <= 1 ? k : k < 2 ? 1 - 0.3 * (k - 1) : 0.7 * (3 - k), WN = [[0.012, 0.080, 0.115], [0.009, 0.048, 0.088], [0.007, 0.034, 0.070]];
     const WD = [[0.030, 0.26, 0.30], [0.024, 0.085, 0.150], [0.022, 0.060, 0.130]];   // by day: steel blue offshore (MOVE_WATER family), no pool teal
     return { look: lookAt(k), sun: [pick3(k, 100, 82, 84, 100), pick3(k, 24, 15, 14, 34)], waterCols: WD.map((c, i) => c.map((v, j) => v + (WN[i][j] - v) * night)), level: levelH(T0),
-      set: { foamAmt: 0.6 + 0.6 * F.clamp(1 - Math.abs(T0 - (tRush + 0.6)) / 1.0), waveAmt: 0.45 + 1.8 * F.clamp(1 - Math.abs(T0 - (tFore + 0.9)) / 1.2) + 2.5 * F.clamp(1 - Math.abs(T0 - (tHit + 0.3)) / 1.4),
+      set: { foamAmt: 0.6 + 0.6 * F.clamp(1 - Math.abs(T0 - (tRush + 0.6)) / 1.0), waveAmt: 0.45 + 0.9 * F.clamp(1 - Math.abs(T0 - (tFore + 0.9)) / 1.2) + 1.1 * F.clamp(1 - Math.abs(T0 - (tHit + 0.3)) / 1.4),
         glintAmt: 0.06, surfAmt: 0.7, landSat: pick3(k, 1.05, 0.8, 0.85, 1.05), landGain: pick3(k, 1.0, 1.45, 1.25, 1.0), nearAmt: 0.7, landLift: pick3(k, 0.03, 0.06, 0.045, 0.03), shadows: 1 },
       post: { exposure: pick3(k, 1.18, 1.6, 1.38, 1.15), sat: pick3(k, 1.03, 1.0, 1.0, 1.03), contrast: pick3(k, 1.08, 1.05, 1.05, 1.06) } };
   };
@@ -695,38 +711,57 @@ export async function build(api, kit, scenes) {
     ctx.restore();
     ui.avoid({ x: x0, y: y0, w: pw, h: ph });
   }
-  // s021: the local surge, whitewater running along the shoreline from the east to the west over the drowned beach among the palms:
-  // one band (a bright breaking edge and a turbulent body behind it) filled once as a polygon on a third-size canvas at full alpha
-  // (soft, noise-broken edges when it is scaled up), then laid over the scene with the band's alpha: no overlapping translucent cards
-  let SURGE_CV = null;
+  // s021: the local surge, whitewater running along the shore from the east (a front moving west) and up over the drowned beach among
+  // the palms. Round 9: the shoreline is found by bisection (the old 3.3 m scan steps drew a 17 px staircase at this lens); the body is
+  // one polygon (run-up edge inland -> turbulent water seaward) filled once on a 1/6-size canvas (a soft feathered edge when scaled up),
+  // and seeded foam blobs on a 1/2-size canvas, densest along the inland run-up edge; both are laid over the scene with the band alpha
+  let SURGE_B = null, SURGE_F = null;
   function drawSurge(ctx, view, T0) {
     const u = (T0 - (tRush - 0.8)) / 1.5; if (u < 0 || u > 1.3) return;
-    const a = F.clamp(u / 0.1) * (1 - F.clamp((u - 0.9) / 0.4)), lev = view.level;
-    const front = HAL.lon + 0.0042 - 0.0080 * F.clamp(u);
-    const shoreLat = (lon) => { for (let lat = HAL.lat - 0.0012; lat < HAL.lat + 0.0018; lat += 0.00003) if (view.S.heightAt(lon, lat) > lev + 0.2) return lat; return null; };
-    const R0 = [], R1 = [], R2 = [];
-    for (let k = 0; k <= 60; k++) { const lon = front + k * 0.00007, la = shoreLat(lon); if (la == null) continue; const f = k / 60;
-      const wv = 0.00004 * Math.sin(k * 0.9 + T0 * 3) + 0.00002 * Math.sin(k * 2.3 - T0 * 5);   // a gently wavy seaward edge (no teeth)
-      const q0 = view.project(lon, la + 0.00003 * (1 - f), lev + 0.6), q1 = view.project(lon, la - 0.00005 - 0.00002 * (1 - f), lev + 0.5), q2 = view.project(lon, la - 0.00015 - wv - 0.00006 * (1 - f), lev + 0.25);
-      if (q0 && q1 && q2) { R0.push([q0, f]); R1.push([q1, f]); R2.push([q2, f]); } }
-    if (R0.length < 3) return;
-    const S3 = 3, cw = Math.ceil(W / S3), chh = Math.ceil(H / S3);
-    if (!SURGE_CV) { SURGE_CV = document.createElement('canvas'); SURGE_CV.width = cw; SURGE_CV.height = chh; }
-    const c = SURGE_CV.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cw, chh); c.setTransform(1 / S3, 0, 0, 1 / S3, 0, 0);
-    // the turbulent body (q0 -> q2), fading behind the front: a horizontal gradient from the front (bright) to the tail
-    const fx0 = R0[0][0][0], fx1 = R0[R0.length - 1][0][0];
-    const gr = c.createLinearGradient(fx0, 0, fx1, 0); gr.addColorStop(0, 'rgba(236,243,250,0)'); gr.addColorStop(0.035, 'rgba(236,243,250,0.62)'); gr.addColorStop(0.14, 'rgba(226,236,246,0.5)'); gr.addColorStop(0.55, 'rgba(214,228,242,0.26)'); gr.addColorStop(1, 'rgba(214,228,242,0)');
-    c.fillStyle = gr; c.beginPath(); R0.forEach(([q], i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); for (let i = R2.length - 1; i >= 0; i--) c.lineTo(R2[i][0][0], R2[i][0][1]); c.closePath(); c.fill();
-    // the breaking edge on the shore (q0 -> q1), brighter, also as one polygon
-    const g2 = c.createLinearGradient(fx0, 0, fx1, 0); g2.addColorStop(0, 'rgba(246,250,253,0)'); g2.addColorStop(0.03, 'rgba(246,250,253,0.85)'); g2.addColorStop(0.3, 'rgba(242,247,252,0.55)'); g2.addColorStop(1, 'rgba(242,247,252,0)');
-    c.fillStyle = g2; c.beginPath(); R0.forEach(([q], i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); for (let i = R1.length - 1; i >= 0; i--) c.lineTo(R1[i][0][0], R1[i][0][1]); c.closePath(); c.fill();
-    // noise break-up: holes punched into the body along the band (seeded by the sample index, moving with the water)
-    c.globalCompositeOperation = 'destination-out';
-    for (let i = 1; i < R0.length - 1; i += 1) { const [q, f] = R1[i], [q2] = R2[i], h1 = hash(i, Math.floor(T0 * 8)); if (h1 < 0.35) continue;
-      const x = q[0] + (q2[0] - q[0]) * (0.3 + 0.5 * h1), y = q[1] + (q2[1] - q[1]) * (0.3 + 0.5 * h1), rr = Math.max(3, Math.hypot(q2[0] - q[0], q2[1] - q[1]) * (0.15 + 0.2 * hash(i, 5)));
-      c.fillStyle = `rgba(0,0,0,${0.35 + 0.4 * f})`; c.beginPath(); c.ellipse(x, y, rr * 1.6, rr * 0.7, 0, 0, 7); c.fill(); }
-    c.globalCompositeOperation = 'source-over';
-    ctx.save(); ctx.globalAlpha *= a; ctx.imageSmoothingEnabled = true; ctx.drawImage(SURGE_CV, 0, 0, cw, chh, 0, 0, cw * S3, chh * S3); ctx.restore();
+    const a = F.clamp(u / 0.1) * (1 - F.clamp((u - 0.9) / 0.4)), lev = view.level, LB = 0.0042;
+    const front = HAL.lon + 0.0042 - 0.0080 * F.clamp(u), dLat = 1 / (KM * 1000);
+    const above = (lon, lat) => view.S.heightAt(lon, lat) > lev + 0.2;
+    const shoreLat = (lon) => {
+      const st = 0.00003; let lat = HAL.lat - 0.0012; while (lat < HAL.lat + 0.0018 && !above(lon, lat)) lat += st;
+      if (lat >= HAL.lat + 0.0018) return null;
+      let lo = lat - st, hi = lat; for (let i = 0; i < 8; i++) { const m = (lo + hi) / 2; if (above(lon, m)) hi = m; else lo = m; } return (lo + hi) / 2;
+    };
+    const IN = [], OUT = [], N = 96;
+    for (let k = 0; k <= N; k++) {
+      const f = k / N, lon = front + f * LB, la = shoreLat(lon); if (la == null) continue;
+      // run-up inland (m): a tapered front, strongest just behind it, ebbing toward the tail; turbulent water seaward widens behind it
+      const run = (5 + 17 * Math.sin(Math.PI * Math.min(1, f * 2.2)) * (1 - 0.45 * f)) * (1 + 0.18 * Math.sin(k * 0.71 + T0 * 4.3) + 0.1 * Math.sin(k * 1.93 - T0 * 6.1));
+      const sea = 8 + 30 * Math.min(1, f * 3);
+      const li = la + run * dLat, hi = Math.max(lev + 0.4, view.S.heightAt(lon, li) + 0.15);
+      const qi = view.project(lon, li, hi), qo = view.project(lon, la - sea * dLat, lev + 0.2);
+      if (qi && qo) { IN.push([qi, f]); OUT.push([qo, f]); }
+    }
+    if (IN.length < 4) return;
+    const mk = (s) => { const c = document.createElement('canvas'); c.width = Math.ceil(W / s); c.height = Math.ceil(H / s); return c; };
+    if (!SURGE_B) { SURGE_B = mk(6); SURGE_F = mk(2); }
+    const fx0 = IN[0][0][0], fx1 = IN[IN.length - 1][0][0], gx = (c, stops) => { const g = c.createLinearGradient(fx0, 0, fx1, 0); stops.forEach(([o, col]) => g.addColorStop(o, col)); return g; };
+    // the body: one polygon at 1/6 size (soft edge), bright behind the front, fading toward the tail
+    let c = SURGE_B.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, SURGE_B.width, SURGE_B.height); c.setTransform(1 / 6, 0, 0, 1 / 6, 0, 0);
+    c.fillStyle = gx(c, [[0, 'rgba(214,226,240,0.25)'], [0.06, 'rgba(214,226,240,0.62)'], [0.3, 'rgba(206,220,236,0.5)'], [0.75, 'rgba(198,214,232,0.22)'], [1, 'rgba(198,214,232,0)']]);
+    c.beginPath(); IN.forEach(([q], i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); for (let i = OUT.length - 1; i >= 0; i--) c.lineTo(OUT[i][0][0], OUT[i][0][1]); c.closePath(); c.fill();
+    // foam: seeded blobs between the run-up edge and the seaward edge (most near the run-up edge), drifting with the water
+    c = SURGE_F.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, SURGE_F.width, SURGE_F.height); c.setTransform(0.5, 0, 0, 0.5, 0, 0);
+    for (let i = 0; i < IN.length - 1; i++) {
+      const [qi, f] = IN[i], [qo] = OUT[i], [qi2] = IN[i + 1], [qo2] = OUT[i + 1], fade = (1 - f) * F.clamp(f / 0.04 + 0.3);
+      if (fade <= 0.02) continue;
+      for (let b = 0; b < 7; b++) {
+        const s = hash(i, b + 3), r2 = hash(i, b + 11), along = (b + 0.5) / 7 + 0.08 * Math.sin(T0 * 3 + i + b);
+        const d = Math.pow(r2, 1.8) * (b < 5 ? 0.45 : 1);                              // 0 = run-up edge, 1 = seaward edge
+        const xi = qi[0] + (qi2[0] - qi[0]) * along, yi = qi[1] + (qi2[1] - qi[1]) * along, xo = qo[0] + (qo2[0] - qo[0]) * along, yo = qo[1] + (qo2[1] - qo[1]) * along;
+        const x = xi + (xo - xi) * d, y = yi + (yo - yi) * d, w = Math.hypot(xo - xi, yo - yi);
+        const rx = Math.max(3, w * (0.06 + 0.1 * s)), ry = rx * (0.35 + 0.25 * hash(b, i));
+        c.fillStyle = `rgba(234,241,248,${(0.35 + 0.5 * s) * fade * (1 - 0.5 * d)})`; c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, 7); c.fill();
+      }
+    }
+    ctx.save(); ctx.globalAlpha *= a; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(SURGE_B, 0, 0, SURGE_B.width, SURGE_B.height, 0, 0, SURGE_B.width * 6, SURGE_B.height * 6);
+    ctx.drawImage(SURGE_F, 0, 0, SURGE_F.width, SURGE_F.height, 0, 0, SURGE_F.width * 2, SURGE_F.height * 2);
+    ctx.restore();
   }
 
   // ---- s014-s015 kilauea_sf (regional), s015-s024 halape (10 m), s024-s025 kilauea_sf again

@@ -1,60 +1,43 @@
-// Chapter 3 "The Island Stands Up" (s049-s083), window K.chapter(3) (181.65-315.55 s, last shot to t1x). Built 2026-11-09.
-// Every beat is keyed to Rodney's markers (K.T / K.lead), never to seconds. Shots (base layer 0), one camera path per act:
-//   s049-s051  live drain on the Big Island: a low camera off the Hāmākua coast rides 1.2 km above the falling water, looking back at
-//              the NE flank as it rises out of the sea (SEA LEVEL gauge, marker only); {isl} quick pullback (bigisland -> main_chain
-//              hand-off on one camera) until every main island stands on one dry ridge (joined at -3,008 m on this grid); {range} a
-//              hero-orange line runs along the crest from Hawaiʻi to Niʻihau and fades; the dive back to the Big Island end lands on
-//              {up}: the drain stops at -3,500 m and the massif stands up over the frame (impact on the word, the 2.5 s pause held).
-//   s052-s058  {mtn} five white pins pulse on the summits (no names), then one hero-orange outline on the massif's waterline (open at
-//              the Alenuihāhā saddle, where the ridge runs on to Maui); {shape} lateral move along the east base, low raking sun;
-//              {slopes} the white 0 m line brightens in the upper third; {upthere} the cap above it takes a soft hero tint for 1 s;
-//              {going}/{going2} the camera tilts down the flank while the sea falls on to -5,500 m; {trench} the water left in the
-//              Hawaiian Deep (the bigisland grid's own -5,500 m pools, north of Maui to east of Hilo, no sculpted ring) glows cyan;
-//              {rem} push toward it, {clue} one pulse (the loop paid in ch6).
-//   s059-s063  Everest at the same scale: the drained north flank seen from 126 km north, eye fixed (pan and zoom only). Everest is
-//              its real terrain (region 'everest', SRTM 30 m + HLS colour, summit scaled to 8,849 m) on a plain round pedestal, a
-//              forced-perspective prop: built at 0.55 x scale 0.55 of the way to its virtual spot beside Mauna Kea, so on screen it is
-//              exactly as big as it would be at Mauna Kea's distance (true same-scale comparison, haze of that distance too).
-//              {ev} it rises out of the floor (rumble) until its sea-level datum stands on the white sea-level line; EVEREST label;
-//              {seafloor} it sinks 6,000 m onto the yellow base line at -6,000 m; the yellow bar climbs Mauna Kea from the same line
-//              while FROM THE SEA FLOOR / 33,000+ FT rolls and lands on {tall33} (6-frame punch at the hit_body time); MAUNA KEA
-//              label; {ev2} a white tick from Everest's summit to the bar; JUICE CHECK: TRUE lands at the end of "one." (stamp sync).
-//   s064-s065  GAG: Everest's summit (region everest): the paper climber (NPS, frosted edge) pops up, staggers in the wind and plants
-//              a plain orange paper flag on the paper tap ({this}); {road} whip-pan (sub-frame motion blur) to Mauna Kea's upper
-//              slope (region maunakea, well below Puʻuwēkiu): the paper jeep grinds up the access road with dust; whip back: the
-//              flag droops on its paper hinge in the gap (flag_droop sync).
-//   s066-s070  {giant} 2 s orbit from the NW to the SW of the drained massif, Mauna Kea dims; {loa} Mauna Loa's map area takes the
-//              hero fill, white outline, MAUNA LOA; {bigger} the fill swells across its drained flanks too; {active} LARGEST ACTIVE
-//              VOLCANO; s069 cut to today's island at sea level: Mauna Loa's map area (USGS geologic map) in hero orange, the other
-//              volcanoes dimmed, {half} outline pulse (49 % of the island on that map); s070 back to the drained massif, the camera
-//              lowers toward Mauna Loa's southern base into the shadow ({allofit}).
-//   s071-s073  TWIST: the only hot-spot cut-away: a section along the plate motion (az 306) through Kīlauea, the SSW half removed,
-//              100 km deep; {stay} a glow deep under the island; {moving} the glow slips ESE under the island (the plate slides NW);
-//              {candle} the crust band turns into a paper strip and the glow into a paper candle, same place; s073 hard cut to the
-//              chain at sea level under a paper sheet: the flame glows through it, the sheet slides NW and the flame scorches a line
-//              of spots; {spots} the sheet dissolves (0.5 s) and the spots are the real islands (marks placed so they land on them).
-//   s074-s075  {plate} the Pacific plate (everything below the horizon) takes a 35 % hero tint, a big yellow arrow runs NW along the
-//              chain; {deepbelow} a warm marker pulses at the hot spot under the Big Island; {built} the Big Island's coast outline
-//              edges NW off the marker while the camera pushes in.
-//   s076-s079  {sinks} hard cut to the drained Kohala flank in low raking light (region kohala, 25 m); {steps} the sun drops and the
-//              terrace edges catch it; {reefs} a cream line runs along each step (only where the grid shows a flat over a riser:
-//              -170, -460, -700, -960, -1,210 m); s078 the sea returns to the -460 m step, a reef line grows at the waterline, the
-//              sea rises to -190 m while the camera rises with it (the step rides down, the waterline stays) and {them} the next reef
-//              starts at the new shore; {deepreef} the camera tilts down the flank into the blue (no depth text).
-//   s080-s083  today's sea level on main_chain: {bornhere} pullback NW along the chain, Maui, Oʻahu, Kauaʻi take a hero rim in turn;
-//              {last} they fade youngest to oldest; {baby} push to the Big Island, hero rim; {bigbaby} 8-frame crash zoom OUT (motion
-//              blur) to a high view where the Big Island (hero fill) outweighs the other islands (outlined) put together (10,476 km2
-//              against 6,305 km2 on this grid); {become} settle back on the Big Island (ch4's card rides over it).
+// Chapter 3 "The Island Stands Up" (s049-s083), window K.chapter(3) (181.65-315.55 s, last shot to t1x). Built 2026-11-09, round 2 the same
+// day after the ch3 review. Every beat is keyed to Rodney's markers (K.T / K.lead / K.word), never to seconds. Base layer 0, in order:
+//   s049-s051  opens on ch2's last camera (CH3_IN) and descends in 1.6 s to a low camera off the Hāmākua coast riding the falling sea
+//              (SEA LEVEL gauge, marker only); {isl} pullback (bigisland -> main_chain on one camera) until every main island stands on
+//              one dry ridge (joined at -3,008 m on this grid); {range} a hero-orange crest line; the dive lands on {up}: a low long-lens
+//              camera 72 km NE of Mauna Kea, 0.65 km over the -3,500 m water: base to summits fill about 70 % of the frame, a 10 % push
+//              through the pause (impact on the word).
+//   s052-s058  the camera rises (pins on the visible summits); {mtn} hero-orange waterline outline (open at the Alenuihāhā saddle);
+//              {shape} lateral move along the NE flank in raking light from the east; {slopes} the 0 m line brightens in the upper
+//              third (a 6 deg look-down); {upthere} soft cap tint; {going}/{going2} tilt down while the sea falls to -5,470 m; s057 from
+//              ENE, 17 km up: the east flank, the water left in the Hawaiian Deep along its foot glows cyan ({trench}); {rem} push,
+//              {clue} pulse (the loop paid in ch6).
+//   s059-s063  Everest at the same scale (see ACT 2): eye 126 km NE of Mauna Kea, Everest a forced-perspective prop 25 km to its right;
+//              four moving framings; {seafloor} Everest sinks 6,000 m, the last water drains and the camera cranes down to the floor so
+//              both feet stand on the yellow -6,000 m line; bar + FROM THE SEA FLOOR / 33,000+ FT on {tall33} (punch on the hit_body);
+//              {ev2} tick; JUICE CHECK: TRUE at the end of "one.".
+//   s064-s065  GAG: Everest's summit from 10 km: the paper climber leans into the wind in paper spindrift, plants a pennant ({this});
+//              whip on "road" to Mauna Kea's upper slope from 5.4 km: the paper jeep on the real access road (USGS), the summit
+//              cones above; whip back: the pennant hangs limp from the upright pole (flag_droop).
+//   s066-s070  fully drained from here: {giant} orbit, Mauna Kea dims under a quick outline; {loa} Mauna Loa's map area takes the hero
+//              fill; {bigger} it swells over its drained flanks; {active} LARGEST ACTIVE VOLCANO; s069 today's island, Mauna Loa about
+//              half ({half} pulse); s070 lowering to Mauna Loa's southern base.
+//   s071-s075  TWIST: the only hot-spot cut-away (az 306 through Kīlauea, 42 km deep): a noise-shaped warm zone clipped to the face;
+//              {moving} the glow stays put on screen while the section and island slide NW past it; {candle} paper strip + candle;
+//              s073 the chain under an opaque paper sheet, the flame burns each island's own coastline into it; {spots} the sheet
+//              dissolves onto the real coasts; {plate} the sheet returns at 36 % over the sea (islands cut out) sliding NW, a yellow
+//              arrow along the chain; {deepbelow} marker; {built} the Big Island's outline edges NW.
+//   s076-s079  {sinks} the drained Kohala flank (the film's drained look); {reefs} cream lines on each terrace edge from {steps}+0.3 s,
+//              kept into s078 where they drown as the sea rises; s079 the sea drains again, the camera tilts down the staircase into
+//              the blue distance (the deep lines turn blue).
+//   s080-s083  today's sea level: {bornhere} pullback, rims in turn; {last} fade; {baby} rim; {bigbaby} crash zoom OUT (motion blur),
+//              a push, a 6-frame settle on the impact_short; {become} back on the Big Island (ch4's card).
 // Geometry (no invented shapes; img/ch3/ch3_geo.json, sources in img/ch3/LICENSE.md): volcano map areas USGS OF 2007-1089; Mauna Loa /
-// Mauna Kea below the old shore = nearest-volcano partition of the drained massif (APPROXIMATE, fill only, never labelled); waterline,
-// pools, coasts, crest and terrace edges from the region grids. Deviations: s059 Everest is a forced-perspective prop (see above), the
-// stand-up holds the sea at -3,500 m during s052-s055 (one waterline for the outline, the drain resumes on "keeps going"); s072 the
-// metaphor moves from the cut-away to the chain view at s073 (the sheet and the scorch marks need a top view); the jeep is the 1942
-// FSA photo (the only 4WD in the kit); the climber wears a jacket, not a down suit (NPS photo in the kit).
-// Local helpers only (no shared change): camOf/orbit/chainPath (multi-key flights without stops), blurred() sub-frame motion blur,
-// an Everest prop mesh registered in S._sections (so every other shot on the stage hides it), paper candle / sheet / scorch marks,
-// the JUICE CHECK stamp, mask rasters.
-import { PAL, E, F, THREE, MOVE_WATER, WATER_FILM, mixState, heightGrid } from './shared.js';
+// Mauna Kea below the old shore = nearest-volcano partition (APPROXIMATE, fill only, never labelled); the summit access road USGS
+// National Map (TIGER); waterlines, coasts, crest and terrace edges from the region grids. Deviations: the Everest prop and the stand-up
+// held at -3,500 m during s052-s055 (one waterline for the outline); s072's metaphor moves to the chain view at s073; the jeep is the
+// 1942 FSA photo (a civilian 4WD is requested); the climber wears a jacket (the kit's NPS photo).
+// Local helpers only (no shared change): camOf/orbit/chainPath (multi-key flights without stops), blurred() sub-frame motion blur, the
+// Everest prop (registered in S._sections so other shots on the stage hide it), paper candle / sheet / flag, the JUICE CHECK stamp.
+import { PAL, E, F, THREE, MOVE_WATER, WATER_FILM, mixState, heightGrid, terrainCamOf } from './shared.js';
 import { loadH16, loadTex, heightTexture, sampleH, KM_DEG } from '../../lab/hawaii/hterrain.js';
 
 const D2R = Math.PI / 180, KM = 111.32, FT = 3.28084;
@@ -115,24 +98,29 @@ const inPoly = (x, y, P) => { let c = false; for (let i = 0, j = P.length - 1; i
 const centroid = (r) => { let a = 0, x = 0, y = 0; for (let i = 0; i < r.length - 1; i++) { const [x0, y0] = r[i], [x1, y1] = r[i + 1], c = x0 * y1 - x1 * y0; a += c; x += (x0 + x1) * c; y += (y0 + y1) * c; } return [x / (3 * a), y / (3 * a)]; };
 
 // ---------------------------------------------------------------------------------------------------------------- Everest prop
-// Everest's real terrain (region 'everest': SRTM 30 m heights, HLS pre-monsoon colour, AO) as a round patch (radius 6.4 km about the
-// summit, heights scaled so the summit is 8,849 m) on a plain round pedestal reaching 22 km below its sea-level datum. Lit by the
-// stage's own sun and sky, hazed like the stage. Forced perspective (o.k): the group is placed k of the way from the eye to its virtual
-// spot and scaled by k, curvature and haze computed for the virtual distance, so on screen it is exactly the true-scale Everest there.
+// Everest's real terrain as a round patch (radius 10.5 km about the summit): region 'everest' (14 m heights, HLS colour) inside its
+// bbox, region 'everest_wide' (92 m) out to the rim, heights scaled so the summit is 8,849 m. From the patch rim a rock apron (talus with
+// strata bands, the rim's own colour at its top) flares out and down at about 33 deg to the sea-level datum (y 0): no vertical wall
+// stands above the datum. Below the datum a darker plain pedestal whose depth is set per frame (it reaches the virtual sea floor at
+// -6,000 m and shrinks to nothing as Everest sinks onto that floor). Lit by the stage's sun and sky, hazed like the stage. Forced
+// perspective (place): the group is put k of the way from the eye to its virtual spot and scaled by k, curvature and haze computed for
+// the virtual distance, so on screen it is exactly the true-scale Everest there, for the eye of that frame (place() runs every frame).
 const EV_VS = /* glsl */`
-uniform vec3 camPos; uniform float kS;
-varying vec2 vUv; varying vec3 vW; varying vec3 vN; varying float vLy;
+uniform vec3 camPos; uniform float kS, pedD;
+attribute vec2 uvW; attribute float wf, tw;
+varying vec2 vUv, vUvW; varying vec3 vW, vN; varying float vLy, vWf, vTw;
 void main(){
-  vUv = uv; vLy = position.y; vec4 w = modelMatrix * vec4(position, 1.0);
+  vUv = uv; vUvW = uvW; vWf = wf; vTw = tw; vec3 p = position; if (p.y < -1e-5) p.y *= pedD;
+  vLy = p.y; vec4 w = modelMatrix * vec4(p, 1.0);
   vec2 d = w.xz - camPos.xz; w.y -= dot(d, d) / (kS * 2.0 * 6371.0);
   vW = w.xyz; vN = normalize(mat3(modelMatrix) * normal);
   gl_Position = projectionMatrix * viewMatrix * w;
 }`;
 const EV_FS = /* glsl */`
 uniform vec3 camPos, sunDir, zenithCol, hazeCol, sunCol, glowCol; uniform float fogDens, fogH, fogBg, fogBase;
-uniform float sunI, skyI, kS, mode, gain, sat, lift, hScale; uniform vec2 texel, kmPx;
-uniform sampler2D colTex, aoTex, hTex;
-varying vec2 vUv; varying vec3 vW; varying vec3 vN; varying float vLy;
+uniform float sunI, skyI, kS, mode, gain, sat, lift, hScale; uniform vec2 texF, texW, kmF, kmW;
+uniform sampler2D colF, colW, aoF, aoW, hF, hW;
+varying vec2 vUv, vUvW; varying vec3 vW, vN; varying float vLy, vWf, vTw;
 vec3 inscatter(vec3 d){ float mu = max(dot(d, sunDir), 0.0); return hazeCol + glowCol * (pow(mu, 5.0) * 0.40); }
 vec3 aerial(vec3 col, vec3 wp, out float T){
   vec3 v = wp - camPos; float dist = length(v); vec3 d = v / max(dist, 1e-4);
@@ -141,22 +129,26 @@ vec3 aerial(vec3 col, vec3 wp, out float T){
   od += fogBg * dist; T = exp(-od);
   return col * T + inscatter(d) * (1.0 - T);
 }
+vec3 nrm(sampler2D h, vec2 uv, vec2 tx, vec2 km){
+  float hl = texture2D(h, uv - vec2(tx.x, 0.0)).r, hr = texture2D(h, uv + vec2(tx.x, 0.0)).r, hd = texture2D(h, uv - vec2(0.0, tx.y)).r, hu = texture2D(h, uv + vec2(0.0, tx.y)).r;
+  return normalize(vec3(-(hr - hl) * hScale * 0.001 / (2.0 * km.x), 1.0, (hu - hd) * hScale * 0.001 / (2.0 * km.y)));
+}
+vec3 grade(vec3 a){ float l0 = dot(a, vec3(0.2126, 0.7152, 0.0722)); a = max(mix(vec3(l0), a, sat), 0.0) * gain;
+  float ld = dot(a, vec3(0.2126, 0.7152, 0.0722)); return mix(a, max(a, vec3(lift) * vec3(1.0, 0.97, 0.92)), 1.0 - smoothstep(lift * 0.4, lift * 1.4, ld)); }
 void main(){
-  vec3 n, alb; float ao = 1.0;
+  vec3 n = normalize(vN), alb; float ao = 1.0;
   if (mode < 0.5) {
-    float hl = texture2D(hTex, vUv - vec2(texel.x, 0.0)).r, hr = texture2D(hTex, vUv + vec2(texel.x, 0.0)).r;
-    float hd = texture2D(hTex, vUv - vec2(0.0, texel.y)).r, hu = texture2D(hTex, vUv + vec2(0.0, texel.y)).r;
-    float gx = (hr - hl) * hScale * 0.001 / (2.0 * kmPx.x), gy = (hu - hd) * hScale * 0.001 / (2.0 * kmPx.y);
-    n = normalize(vec3(-gx, 1.0, gy));
-    alb = texture2D(colTex, vUv).rgb; float l0 = dot(alb, vec3(0.2126, 0.7152, 0.0722)); alb = max(mix(vec3(l0), alb, sat), 0.0) * gain;
-    float ld = dot(alb, vec3(0.2126, 0.7152, 0.0722)); alb = mix(alb, max(alb, vec3(lift) * vec3(1.0, 0.97, 0.92)), 1.0 - smoothstep(lift * 0.4, lift * 1.4, ld));
-    ao = texture2D(aoTex, vUv).r;
+    n = normalize(mix(nrm(hW, vUvW, texW, kmW), nrm(hF, vUv, texF, kmF), vWf));
+    alb = grade(mix(texture2D(colW, vUvW).rgb, texture2D(colF, vUv).rgb, vWf));
+    ao = mix(texture2D(aoW, vUvW).r, texture2D(aoF, vUv).r, vWf);
   } else {
-    // the plain pedestal (mode 1) and the column below the sea-level datum (mode 2): plain warm rock, the column darker
-    n = normalize(vN);
-    // rock strata (limestone and granite bands, like the payoff's Everest slab) so it reads as solid rock, not a block
-    float b = fract(vLy / 0.62 + 0.13 * sin(vLy * 3.1)), band = 0.88 + 0.16 * smoothstep(0.1, 0.3, b) * (1.0 - smoothstep(0.75, 0.95, b));
-    alb = vec3(0.105, 0.097, 0.086) * band * (mode < 1.5 ? 1.0 : 0.82);
+    // apron (mode 1): the real colour and relief of the ground at that map position (everest_wide, continued outward) over dark rock in
+    // faint strata bands; pedestal (mode 2): plain dark rock with the same bands
+    float b = fract(vLy / 0.55 + 0.11 * sin(vLy * 2.3)), band = 0.92 + 0.1 * smoothstep(0.1, 0.3, b) * (1.0 - smoothstep(0.72, 0.95, b));
+    vec3 rock = vec3(0.085, 0.079, 0.070) * band;
+    if (mode < 1.5) { vec3 nW = nrm(hW, vUvW, texW, kmW); n = normalize(n + (nW - vec3(0.0, 1.0, 0.0)) * 0.8);
+      alb = mix(rock, grade(texture2D(colW, vUvW).rgb) * 0.8, vTw); ao = texture2D(aoW, vUvW).r; }
+    else alb = rock * (0.55 + 0.12 * smoothstep(-6.0, 0.0, vLy));
   }
   float ndl = max(dot(n, sunDir), 0.0);
   vec3 sky = mix(hazeCol, zenithCol, 0.55);
@@ -167,53 +159,63 @@ void main(){
 }`;
 async function everestProp(S, kit) {
   if (S._ch3ev) return S._ch3ev;
-  const R = kit.hub.regionIndex?.everest; if (!R) throw new Error('region everest missing');
-  const meta = { hmin: R.hmin ?? -8000, hrange: R.hrange ?? 17000 }, eb = R.bbox;
-  const hm = await loadH16(R.dir + '/' + R.files.h16, meta);
-  const [col, ao] = await Promise.all([loadTex(R.dir + '/' + R.files.color, true), loadTex(R.dir + '/' + R.files.ao, false)]);
-  const uv = (lon, lat) => [(lon - eb[0]) / (eb[2] - eb[0]), (lat - eb[1]) / (eb[3] - eb[1])];
-  let best = -1e9; for (let j = -30; j <= 30; j++) for (let i = -30; i <= 30; i++) { const [u, v] = uv(EV_SUM[0] + i * 0.0003, EV_SUM[1] + j * 0.0003); best = Math.max(best, sampleH(hm, u, v)); }
-  const hS = 8849 / best, RAD = 6.4, NR = 150, NA = 360, kmLon = KM_DEG * Math.cos(EV_SUM[1] * D2R);
-  const P = [], UV = [], I = [];
-  P.push(0, sampleH(hm, ...uv(...EV_SUM)) * hS * 0.001, 0); UV.push(...uv(...EV_SUM));
-  for (let r = 1; r <= NR; r++) for (let a = 0; a < NA; a++) {
-    const rk = RAD * Math.pow(r / NR, 1.15), an = a / NA * 2 * Math.PI, e = rk * Math.sin(an), nn = rk * Math.cos(an);
-    const lon = EV_SUM[0] + e / kmLon, lat = EV_SUM[1] + nn / KM_DEG, [u, v] = uv(lon, lat);
-    P.push(e, sampleH(hm, u, v) * hS * 0.001, -nn); UV.push(u, v);
-  }
+  const RI = kit.hub.regionIndex || {}; if (!RI.everest || !RI.everest_wide) throw new Error('region everest / everest_wide missing');
+  const ld = async (R) => { const hm = await loadH16(R.dir + '/' + R.files.h16, { hmin: R.hmin ?? -8000, hrange: R.hrange ?? 17000 });
+    const [col, ao] = await Promise.all([loadTex(R.dir + '/' + R.files.color, true), loadTex(R.dir + '/' + R.files.ao, false)]); return { bb: R.bbox, hm, col, ao, ht: heightTexture(hm) }; };
+  const [LF, LW] = await Promise.all([ld(RI.everest), ld(RI.everest_wide)]);
+  const uvOf = (L, lon, lat) => [(lon - L.bb[0]) / (L.bb[2] - L.bb[0]), (lat - L.bb[1]) / (L.bb[3] - L.bb[1])];
+  let best = -1e9; for (let j = -30; j <= 30; j++) for (let i = -30; i <= 30; i++) best = Math.max(best, sampleH(LF.hm, ...uvOf(LF, EV_SUM[0] + i * 0.0003, EV_SUM[1] + j * 0.0003)));
+  const hS = 8849 / best, RAD = 10.5, NR = 190, NA = 400, NJ = 9, kmLon = KM_DEG * Math.cos(EV_SUM[1] * D2R), SLOPE = Math.tan(33 * D2R);
+  const fineW = (lon, lat) => { const b = LF.bb, dk = Math.min((lon - b[0]) * kmLon, (b[2] - lon) * kmLon, (lat - b[1]) * KM_DEG, (b[3] - lat) * KM_DEG), x = F.clamp((dk - 0.3) / 0.9); return x * x * (3 - 2 * x); };
+  const vert = (A, e, n) => { const lon = EV_SUM[0] + e / kmLon, lat = EV_SUM[1] + n / KM_DEG, w = fineW(lon, lat), uf = uvOf(LF, lon, lat), uw = uvOf(LW, lon, lat);
+    const h = (w > 0 ? w * sampleH(LF.hm, ...uf) : 0) + (1 - w) * sampleH(LW.hm, ...uw);
+    A.P.push(e, h * hS * 0.001, -n); A.UV.push(...uf); A.UW.push(...uw); A.WF.push(w); A.TW.push(0); };
+  const geo = (A, I, normals) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(A.P, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(A.UV, 2));
+    g.setAttribute('uvW', new THREE.Float32BufferAttribute(A.UW, 2)); g.setAttribute('wf', new THREE.Float32BufferAttribute(A.WF, 1)); g.setAttribute('tw', new THREE.Float32BufferAttribute(A.TW, 1)); g.setIndex(I);
+    if (normals) g.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3)); else g.computeVertexNormals(); g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e5); return g; };
+  const nA = () => ({ P: [], UV: [], UW: [], WF: [], TW: [] });
+  // the terrain patch (polar grid, denser toward the summit)
+  const A = nA(), I = []; vert(A, 0, 0);
+  for (let r = 1; r <= NR; r++) for (let a = 0; a < NA; a++) { const rk = RAD * Math.pow(r / NR, 1.25), an = a / NA * 2 * Math.PI; vert(A, rk * Math.sin(an), rk * Math.cos(an)); }
   const id = (r, a) => r === 0 ? 0 : 1 + (r - 1) * NA + ((a % NA) + NA) % NA;
   for (let a = 0; a < NA; a++) I.push(0, id(1, a + 1), id(1, a));
-  for (let r = 1; r < NR; r++) for (let a = 0; a < NA; a++) { const p = id(r, a), q = id(r, a + 1), s = id(r + 1, a), w = id(r + 1, a + 1); I.push(p, q, s, q, w, s); }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(UV, 2));
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(new Array(P.length).fill(0).map((v, i) => i % 3 === 1 ? 1 : 0), 3)); g.setIndex(I);
-  g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e5);
-  // the plain pedestal: from the patch rim it flares out at 30 deg down to the sea-level datum (y 0), then a straight, darker column
-  // runs on 22 km below the datum (into the floor); outward normals
-  const ring = (y0, r0f, y1, r1f, nUp) => { const WP = [], WN = [], WU = [], WI = [];
-    for (let a = 0; a <= NA; a++) { const k = id(NR, a % NA), an = a / NA * 2 * Math.PI, sx = Math.sin(an), sz = -Math.cos(an), rimY = P[k * 3 + 1], rimR = Math.hypot(P[k * 3], P[k * 3 + 2]);
-      const A0 = r0f(rimY, rimR), A1 = r1f(rimY, rimR), Y0 = y0(rimY), Y1 = y1(rimY);
-      WP.push(sx * A0, Y0, sz * A0, sx * A1, Y1, sz * A1); const nh = Math.sqrt(1 - nUp * nUp); WN.push(sx * nh, nUp, sz * nh, sx * nh, nUp, sz * nh); WU.push(0, 0, 0, 0);
-      if (a < NA) { const b = a * 2; WI.push(b, b + 1, b + 2, b + 2, b + 1, b + 3); } }
-    const gw = new THREE.BufferGeometry(); gw.setAttribute('position', new THREE.Float32BufferAttribute(WP, 3)); gw.setAttribute('normal', new THREE.Float32BufferAttribute(WN, 3));
-    gw.setAttribute('uv', new THREE.Float32BufferAttribute(WU, 2)); gw.setIndex(WI); gw.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e5); return gw; };
-  const T30 = Math.tan(30 * D2R);
-  const gw = ring((y) => y, (y, r) => r, () => 0, (y, r) => r, 0);
-  const gc = ring(() => 0, (y, r) => r, () => -22, (y, r) => r, 0);
+  for (let r = 1; r < NR; r++) for (let a = 0; a < NA; a++) { const p = id(r, a), q = id(r, a + 1), s2 = id(r + 1, a), w = id(r + 1, a + 1); I.push(p, q, s2, q, w, s2); }
+  const g = geo(A, I, A.P.map((v, i) => i % 3 === 1 ? 1 : 0));
+  // the apron: from each rim vertex out and down at ~33 deg to the datum, a little talus noise; the rim colour fades into the rock
+  const B = nA(), IB = [], base = [];
+  for (let a = 0; a <= NA; a++) { const k = id(NR, a % NA), x0 = A.P[k * 3], y0 = A.P[k * 3 + 1], z0 = A.P[k * 3 + 2], an = a / NA * 2 * Math.PI, sx = Math.sin(an), sz = -Math.cos(an);
+    const L = y0 / SLOPE * (1 + 0.10 * Math.sin(an * 7 + 1.3) + 0.06 * Math.sin(an * 17 + 0.4));
+    for (let j = 0; j <= NJ; j++) { const f = j / NJ, rr = RAD + L * f + 0.35 * Math.sin(an * 41 + j) * f * (1 - f) * 4, y = y0 * (1 - f);
+      const ex = j ? sx * rr : x0, ez = j ? sz * rr : z0, uw = uvOf(LW, EV_SUM[0] + ex / kmLon, EV_SUM[1] - ez / KM_DEG);
+      B.P.push(ex, y, ez); B.UV.push(A.UV[k * 2], A.UV[k * 2 + 1]); B.UW.push(...uw); B.WF.push(0); B.TW.push(0.85 - 0.4 * f); }
+    base.push([sx * (RAD + L), sz * (RAD + L), sx, sz]);
+    if (a < NA) for (let j = 0; j < NJ; j++) { const p = a * (NJ + 1) + j, q = p + NJ + 1; IB.push(p, q, p + 1, q, q + 1, p + 1); } }
+  const gw = geo(B, IB);
+  // the pedestal: straight down from the apron's foot, unit depth (scaled per frame by pedD)
+  const C = nA(), IC = [], CN = [];
+  base.forEach(([x, z, sx, sz], a) => { C.P.push(x, 0, z, x, -1, z); CN.push(sx, 0, sz, sx, 0, sz); C.UV.push(0, 0, 0, 0); C.UW.push(0, 0, 0, 0); C.WF.push(0, 0); C.TW.push(0, 0);
+    if (a < base.length - 1) { const b2 = a * 2; IC.push(b2, b2 + 1, b2 + 2, b2 + 2, b2 + 1, b2 + 3); } });
+  const gc = geo(C, IC, CN);
   const U = S.U, hu = S.heroMat.uniforms;
   const shared = { camPos: U.camPos, sunDir: U.sunDir, zenithCol: U.zenithCol, hazeCol: U.hazeCol, sunCol: U.sunCol, glowCol: U.glowCol, fogDens: U.fogDens, fogH: U.fogH, fogBg: U.fogBg, fogBase: U.fogBase,
     sunI: hu.sunI, skyI: hu.skyI };
-  const kS = { value: 1 }, mk = (mode) => new THREE.ShaderMaterial({ vertexShader: EV_VS, fragmentShader: EV_FS, side: mode ? THREE.DoubleSide : THREE.FrontSide,
-    uniforms: Object.assign({}, shared, { kS, mode: { value: mode }, gain: { value: 0.66 }, sat: { value: 1.0 }, lift: { value: 0.07 }, hScale: { value: hS },
-      texel: { value: new THREE.Vector2(1 / hm.W, 1 / hm.H) }, kmPx: { value: new THREE.Vector2((eb[2] - eb[0]) * kmLon / hm.W, (eb[3] - eb[1]) * KM_DEG / hm.H) },
-      colTex: { value: col }, aoTex: { value: ao }, hTex: { value: heightTexture(hm) } }) });
-  const patch = new THREE.Mesh(g, mk(0)), wall = new THREE.Mesh(gw, mk(1)), col2 = new THREE.Mesh(gc, mk(2));
-  patch.frustumCulled = wall.frustumCulled = col2.frustumCulled = false; patch.renderOrder = wall.renderOrder = col2.renderOrder = 1;
-  const group = new THREE.Group(); group.add(patch, wall, col2); group.visible = false; S.scene.add(group);
+  const kS = { value: 1 }, pedD = { value: 6 }, mk = (mode) => new THREE.ShaderMaterial({ vertexShader: EV_VS, fragmentShader: EV_FS, side: mode ? THREE.DoubleSide : THREE.FrontSide,
+    uniforms: Object.assign({}, shared, { kS, pedD, mode: { value: mode }, gain: { value: 0.66 }, sat: { value: 1.0 }, lift: { value: 0.07 }, hScale: { value: hS },
+      texF: { value: new THREE.Vector2(1 / LF.hm.W, 1 / LF.hm.H) }, texW: { value: new THREE.Vector2(1 / LW.hm.W, 1 / LW.hm.H) },
+      kmF: { value: new THREE.Vector2((LF.bb[2] - LF.bb[0]) * kmLon / LF.hm.W, (LF.bb[3] - LF.bb[1]) * KM_DEG / LF.hm.H) },
+      kmW: { value: new THREE.Vector2((LW.bb[2] - LW.bb[0]) * kmLon / LW.hm.W, (LW.bb[3] - LW.bb[1]) * KM_DEG / LW.hm.H) },
+      colF: { value: LF.col }, colW: { value: LW.col }, aoF: { value: LF.ao }, aoW: { value: LW.ao }, hF: { value: LF.ht }, hW: { value: LW.ht } }) });
+  const patch = new THREE.Mesh(g, mk(0)), apron = new THREE.Mesh(gw, mk(1)), ped = new THREE.Mesh(gc, mk(2));
+  for (const m of [patch, apron, ped]) { m.frustumCulled = false; m.renderOrder = 1; }
+  const group = new THREE.Group(); group.add(patch, apron, ped); group.visible = false; S.scene.add(group);
   (S._sections ||= new Map()).set('ch3-everest-prop', { group });        // every other terrainShot on this stage hides it each frame
-  S._ch3ev = { group, hS, summit: 8849, rimR: RAD,
-    // place: virtual datum spot (lon, lat) and datum height base (m, true scale), eye {lon, lat, alt km}, k (forced-perspective scale)
+  const footR = base.reduce((m, b) => Math.max(m, Math.hypot(b[0], b[1])), 0);
+  S._ch3ev = { group, hS, summit: 8849, footR,
+    // place: virtual datum spot (lon, lat), datum height base (m, true scale), eye {lon, lat, alt km}, k (forced-perspective scale),
+    // pedD: pedestal depth below the datum (virtual km)
     place(o) { const E0 = S.xyz(o.eye.lon, o.eye.lat, 0); E0.y = o.eye.alt; const V = S.xyz(o.lon, o.lat, o.base);
-      group.position.copy(E0.clone().add(V.sub(E0).multiplyScalar(o.k))); group.scale.setScalar(o.k); kS.value = o.k; group.visible = !!o.visible; group.updateMatrixWorld(true); } };
+      group.position.copy(E0.clone().add(V.sub(E0).multiplyScalar(o.k))); group.scale.setScalar(o.k); kS.value = o.k; pedD.value = Math.max(o.pedD ?? 0, 0.001);
+      ped.visible = (o.pedD ?? 0) > 0.002; group.visible = !!o.visible; group.updateMatrixWorld(true); } };
   return S._ch3ev;
 }
 
@@ -280,11 +282,12 @@ export async function build(api, kit, scenes) {
     for (let k = 0; k < m.length; k++) m[k] = d[k * 4] > 127 ? 1 : 0; return m; };
   const dataTex = (g) => { const d = new Uint8Array(g.nx * g.ny * 4), t = new THREE.DataTexture(d, g.nx, g.ny, THREE.RGBAFormat); t.magFilter = t.minFilter = THREE.LinearFilter; t.needsUpdate = true; t.data8 = d; return t; };
   const dummy = kit.P.cv(4, 4).getContext('2d');
+  const DEEPW = WATER_FILM.map((c, j) => c.map((v, q) => F.lerp(v, MOVE_WATER[j][q], 0.75)));
 
   // ================================================================ water level (film time)
   const tUp = T('up'), tG0 = lead('going') - 0.25;
   const dr1 = monotone([[ch.t0, -110], [ch.t0 + 0.9, -650], [T('isl'), -2650], [T('range'), -3320], [tUp - 0.05, -3500]]);
-  const dr2 = monotone([[tG0, -3500], [T('going2') + 0.4, -4550], [T('trench') - 0.5, -5500]]);
+  const dr2 = monotone([[tG0, -3500], [T('going2') + 0.4, -4550], [T('trench') - 0.5, -5470]]);   // -5,470: the pools' edges sit on sloping floor (no speckle)
   const lvl = (t) => t < tUp ? dr1(t) : t < tG0 ? -3500 : dr2(t);
   const LV_HOLD = -3500;
 
@@ -297,21 +300,24 @@ export async function build(api, kit, scenes) {
     return { eye, alt: L / 1000 + 2.6 + 0.1 * (t - ch.t0), tgt, h: L + 300 - 120 * (t - ch.t0) }; };
   const tP0 = T('isl') - 0.25;
   const lc = lowCam(tP0);
+  // {up}: a low long-lens camera 72 km NE of Mauna Kea, 0.65 km over the -3,500 m water, summits about 15 % from the top; it pushes in
+  // through the pause, then rises into the {mtn} outline view
+  const aimH = (alt, D, p) => (alt + D * Math.tan(p * D2R) + D * D / 12742) * 1000;
+  const UPK = [orbit(tUp, offLL(MK, 72, 42), -2.85, MK, aimH(-2.85, 72, 1.15), 11.4), orbit(s0('s052') + 0.1, offLL(MK, 70.5, 41.5), -2.7, MK, aimH(-2.7, 70.5, 1.3), 10.3)];
   const A1 = [
     orbit(tP0, lc.eye, lc.alt, lc.tgt, lc.h, 32),
     { t: T('range') - 0.15, lon: -157.62, lat: 20.78, h: -3300, d: 500, tilt: 55, heading: 213, fov: 38 },       // all one ridge
     { t: T('range') + 1.25, lon: -157.52, lat: 20.74, h: -3300, d: 480, tilt: 55, heading: 215, fov: 38 },
-    { t: tUp, lon: -155.45, lat: 19.65, h: -900, d: 120, tilt: 87.2, heading: 248, fov: 22 },                       // {up}: the massif stands
+    UPK[0],                                                                                                         // {up}: the massif stands
   ];
   const path1a = chainPath(A1);
-  const A2 = [   // {up} the massif stands; s052 the camera rises over it (pins on the summits), {mtn} the whole waterline outline
-    { t: tUp, lon: -155.45, lat: 19.65, h: -900, d: 120, tilt: 87.2, heading: 248, fov: 22 },
-    { t: s0('s052') + 0.15, lon: -155.45, lat: 19.65, h: -900, d: 116, tilt: 87.1, heading: 249, fov: 22.5 },
-    { t: lead('mtn') - 0.15, lon: -155.48, lat: 19.62, h: -1500, d: 330, tilt: 52, heading: 252, fov: 34 },
-    { t: T('shape') - 1.6, lon: -155.48, lat: 19.62, h: -1500, d: 318, tilt: 52.5, heading: 255, fov: 34 },
+  const A2 = [   // {up} the massif stands, push through the pause; s052 the camera rises over it (pins on the summits), {mtn} the outline
+    UPK[0], UPK[1],
+    { t: lead('mtn') - 0.15, lon: -155.48, lat: 19.60, h: -1500, d: 365, tilt: 52, heading: 252, fov: 34 },
+    { t: T('shape') - 1.6, lon: -155.48, lat: 19.60, h: -1500, d: 352, tilt: 52.5, heading: 255, fov: 34 },
   ];
   const A3 = [   // {shape}: down to a low track along the Hāmākua base, raking sun; {slopes} the 0 m line in the upper third
-    { t: T('shape') - 1.6, lon: -155.48, lat: 19.62, h: -1500, d: 318, tilt: 52.5, heading: 255, fov: 34 },
+    { t: T('shape') - 1.6, lon: -155.48, lat: 19.60, h: -1500, d: 352, tilt: 52.5, heading: 255, fov: 34 },
     { t: T('shape') + 0.25, lon: -155.24, lat: 19.87, h: -2600, d: 78, tilt: 68, heading: 222, fov: 36 },
     { t: T('upthere') + 1.3, lon: -155.06, lat: 19.65, h: -2600, d: 72, tilt: 68, heading: 248, fov: 36 },     // lateral, SE along the coast
   ];
@@ -321,10 +327,11 @@ export async function build(api, kit, scenes) {
     { t: T('going2') + 0.9, lon: -154.90, lat: 19.82, h: -4400, d: 52, tilt: 57, heading: 240, fov: 38 },
   ];
   const tCutTr = s0('s057') - 0.05;
-  const A4 = [   // s057 cut: from the SE along the east side to the water left in the Hawaiian Deep; {rem} push, {clue} pulse
-    orbit(tCutTr, [-154.86, 18.86], 4.2, [-154.48, 19.62], -5400, 40),
-    orbit(T('rem') - 0.1, [-154.84, 18.92], 4.0, [-154.46, 19.66], -5400, 40),
-    orbit(T('clue') + 0.9, [-154.76, 19.08], 3.4, [-154.44, 19.70], -5450, 40),
+  const A4 = [   // s057 cut: from ENE of the island, 17 km up, looking WSW: the east flank in the upper middle, the strip of water left in the
+                 // Hawaiian Deep curving along its foot in the lower third, horizon about 22 % from the top; {rem} push, {clue} pulse
+    orbit(tCutTr, [-153.98, 20.05], 17, [-154.66, 19.75], -5300, 40),
+    orbit(T('rem') - 0.1, [-154.03, 20.02], 16, [-154.66, 19.75], -5300, 40),
+    orbit(T('clue') + 0.9, [-154.12, 19.97], 13.8, [-154.64, 19.77], -5300, 38),
   ];
   const tA2 = T('shape') - 1.6, tA3 = T('upthere') + 1.3, tEndA = s0('s059') - 0.16;
   const path1 = route([tP0, T('up'), path1a], [tUp, tA2, chainPath(A2)], [tA2, tA3, chainPath(A3)], [tA3, tCutTr, chainPath(A3b)], [tCutTr, tEndA, chainPath(A4)]);
@@ -333,8 +340,15 @@ export async function build(api, kit, scenes) {
   const cross = (a, b, up) => { for (let k = 0; k < 40; k++) { const m = (a + b) / 2; if ((dAt(m) > 150) === up) b = m; else a = m; } return (a + b) / 2; };
   const tH1 = cross(tP0, T('range'), true), tH2 = cross(T('range') + 1.25, tUp, false), XF = 0.45;
   if (dbg) api.log(`[ch3] act1 hand-offs ${tH1.toFixed(2)} ${tH2.toFixed(2)}`);
-  const cam1 = (t) => { if (t < tP0) { const c = lowCam(t); return { lon: c.eye[0], lat: c.eye[1], alt: c.alt, tLon: c.tgt[0], tLat: c.tgt[1], tH: c.h, fov: 30, near: 0.01, far: 2000 }; } return camOf(path1(t)); };
-  const sunAct1 = (t) => { const k = pr(t, T('shape') - 1.0, T('shape') + 1.5); return [F.lerp(150, 140, k), F.lerp(26, 15, k)]; };
+  // ch3 opens on ch2's last camera (CH3_IN in ch2.js, eye about 24.6 km up) under the card and descends to the low camera in 1.6 s
+  const CH3_IN = terrainCamOf({ lon: -155.33, lat: 19.83, h: 0, d: 95, tilt: 75, heading: 210, fov: 40 }), tIn = ch.t0 + 1.6;
+  const dPA = (t) => -6 * pr(t, T('shape') - 0.6, T('shape') + 0.8) * (1 - pr(t, T('going') - 0.2, T('going2') + 0.9));   // {slopes}: the 0 m line into the upper third
+  const cam1 = (t) => { if (t < tP0) { const c = lowCam(t), L = { lon: c.eye[0], lat: c.eye[1], alt: c.alt, tLon: c.tgt[0], tLat: c.tgt[1], tH: c.h, fov: 30, near: 0.01, far: 2000 };
+      if (t >= tIn) return L; const k = E.inOutSine(F.clamp((t - ch.t0) / (tIn - ch.t0))), A0 = CH3_IN;
+      return { lon: F.lerp(A0.lon, L.lon, k), lat: F.lerp(A0.lat, L.lat, k), alt: Math.exp(F.lerp(Math.log(A0.alt), Math.log(L.alt), k)), tLon: F.lerp(A0.tLon, L.tLon, k), tLat: F.lerp(A0.tLat, L.tLat, k),
+        tH: F.lerp(A0.tH, L.tH, k), fov: F.lerp(A0.fov, L.fov, k), near: 0.01, far: 2000 }; }
+    const c = camOf(path1(t)), dp = dPA(t); if (dp) c.dPitch = dp; return c; };
+  const sunAct1 = (t) => { const k = pr(t, T('shape') - 1.0, T('shape') + 1.5); return [F.lerp(108, 122, k), F.lerp(26, 15, k)]; };   // from the E: the NE flank side-lit
   // masks: the cap above today's shore (s055) on the hero grid
   const M = {};
   const capMask = (S) => { if (!M.cap) { const g = heightGrid(S, [-156.2, 18.85, -154.75, 20.35], 2), m = raster(g, [GEO.COAST.hawaii]);
@@ -354,7 +368,7 @@ export async function build(api, kit, scenes) {
     cam: (lt) => cam1(ch.t0 + lt), level: (lt) => lvl(ch.t0 + lt), state: (lt) => act1State(ch.t0 + lt) }));
   // A1b: main_chain over the whole chain: all one ridge; {range} the crest line
   const sB = kit.terrainShot({ id: 'ch3-chain-ridge', t0: tH1, t1: tH2 + XF, fadeIn: XF, region: 'main_chain',
-    cam: (lt) => cam1(tH1 + lt), level: (lt) => lvl(tH1 + lt), state: (lt) => act1State(tH1 + lt),
+    cam: (lt) => cam1(tH1 + lt), level: (lt) => lvl(tH1 + lt), state: (lt) => { const st = act1State(tH1 + lt); st.set.tubAmt = 0.12; st.set.reefAmt = 0.12; return st; },
     ui(ctx, lt, t, view) {
       const a = env(t, lead('range') - 0.05, tH2 + 0.1, 0.2, 0.4); if (a <= 0) return;
       const runs = druns(view, GEO.CREST, 150, 3);
@@ -371,7 +385,7 @@ export async function build(api, kit, scenes) {
     world(ctx, lt, t, view) { heroReset(view.S); },
     ui(ctx, lt, t, view) {
       // {mtn}: five white pins pulse on the summits in turn (no names, no count), then the massif's waterline outline in hero orange
-      PINS.forEach((ll, i) => { const a0 = tLand0 + i * 0.32, a = env(t, a0, a0 + 1.0, 0.15, 0.35); if (a <= 0) return; const q = gp(view, ll, 60); if (q) bigPin(ctx, q[0], q[1], a, t - a0, PAL.text, 22); });
+      PINS.forEach((ll, i) => { const a0 = tLand0 + i * 0.32, a = env(t, a0, a0 + 1.0, 0.15, 0.35); if (a <= 0) return; const hm = gh(view, ll[0], ll[1]) + 60, q = view.project(ll[0], ll[1], hm); if (q && view.visible(ll[0], ll[1], hm)) bigPin(ctx, q[0], q[1], a, t - a0, PAL.text, 22); });
       const oa = env(t, lead('mtn') - 0.05, T('shape') - 1.0, 0.2, 0.5);
       if (oa > 0) { const runs = druns(view, GEO.MASSIF[0], 60, 2, LV_HOLD); ui.avoidRuns(runs, 6);
         ui.line(ctx, runs, { color: PAL.hero, width: 18, alpha: 0.3 * oa, p: pr(t, lead('mtn'), lead('mtn') + 0.9), under: 0 });
@@ -385,54 +399,68 @@ export async function build(api, kit, scenes) {
   } });
 
   // ================================================================ ACT 2: Everest at the same scale (bigisland + the prop)
-  // eye fixed 126 km north of Mauna Kea, 0.35 km up over the drained Hawaiian Deep: pan, tilt and zoom only (the forced perspective
-  // stays exact); the virtual Everest stands beside Mauna Kea at the same distance, 8.5 deg to the east (left)
-  const EYE2 = { lon: -155.47, lat: 20.95, alt: 0.35 };
-  const bMK = brgOf([EYE2.lon, EYE2.lat], MK), dMK = kmOf([EYE2.lon, EYE2.lat], MK), K_EV = 0.55;
-  const EVV = offLL([EYE2.lon, EYE2.lat], dMK, bMK - 8.5);
+  // The eye is 126 km NE of Mauna Kea over the Hawaiian Deep (floor about -5,550 m), looking SW. The virtual Everest stands at Mauna
+  // Kea's distance, 11.2 deg to the right (25 km aside, over the Waimea saddle), so both summits stand free. Four framings, each moving:
+  //   F1 {ev}: eye 0.35 km above sea level (the white sea-level line lies on Mauna Kea's real shoreline), Everest rises onto its
+  //      pedestal (the pedestal reaches the virtual sea floor), slow push;  F2 {easily}: push on both summits, a white tick runs from
+  //      Mauna Kea's summit across to Everest (its peak towers over it);  F3 {seafloor}: Everest sinks 6,000 m onto the floor, the last
+  //      water drains, and the camera cranes down to 4.3 km below sea level, the height at which the -6,000 m line at the summits'
+  //      distance lies on the visible floor at Mauna Kea's foot: both feet stand on the yellow base line, the bar climbs;
+  //   F4 {ev2}-{heard}: slow push on the tick and the bar. The prop is re-placed for every frame's eye, so the scale stays exact.
+  const MKD = 126, EYE2 = (() => { const e = offLL(MK, MKD, 48); return { lon: e[0], lat: e[1] }; })();
+  const bMK = brgOf([EYE2.lon, EYE2.lat], MK), EV_OFF = 11.2, K_EV = 0.18, EYE_LO = -4.3;
+  const EVV = offLL([EYE2.lon, EYE2.lat], MKD, bMK + EV_OFF);
   const tAct2 = tEndA, tAct2e = T('heard') + 0.64 + 1.25;                       // the stamp lands at the end of "one." and holds 1.2 s
   const tRise0 = lead('ev') - 0.1, tRise1 = tRise0 + 2.55, tSink0 = lead('seafloor') - 0.05, tSink1 = tSink0 + 1.2;
-  const tBar0 = tSink1 + 0.15, tBar1 = lead('tall33', 2), tEv2 = lead('ev2'), tStamp = K.Te('heard');
+  const tCr0 = tSink1 - 0.15, tCr1 = tCr0 + 2.0;                                // the crane down to the floor
+  const tBar0 = tCr1 - 0.55, tBar1 = lead('tall33', 2), tEv2 = lead('ev2'), tStamp = K.Te('heard'), tEasy = lead('easily');
+  const tPunch = T('tall33') + 0.34;                                            // the mix's hit_body (x074): the 6-frame lock-in punch
   const evBase = (t) => t < tSink0 ? F.lerp(-15000, 0, pr(t, tRise0, tRise1, E.outCubic || E.out)) : F.lerp(0, -6000, pr(t, tSink0, tSink1));
-  const look2 = monotone([[tAct2, 0], [lead('easily') - 0.2, 1], [tSink0 - 0.1, 1.15], [tSink0 + 1.4, 2], [tEv2 - 0.4, 2.1], [tAct2e, 3]]);
-  const cam2 = (t) => { const k = look2(t), seg = Math.min(2, Math.floor(k)), f = k - seg;
-    const KEYS = [{ b: bMK - 4.6, p: -0.3, fov: 11.6 }, { b: bMK - 4.9, p: -0.1, fov: 10.8 }, { b: bMK - 4.3, p: -0.65, fov: 13.4 }, { b: bMK - 4.5, p: -0.45, fov: 12.6 }];
-    const A = KEYS[seg], B = KEYS[seg + 1], q = E.inOut(f), b = F.lerp(A.b, B.b, q), p = F.lerp(A.p, B.p, q), fov = F.lerp(A.fov, B.fov, q);
-    const tg = offLL([EYE2.lon, EYE2.lat], 126, b), drop = 126 * 126 / (2 * 6371);
-    return { lon: EYE2.lon, lat: EYE2.lat, alt: EYE2.alt, tLon: tg[0], tLat: tg[1], tH: (EYE2.alt + 126 * Math.tan(p * D2R) + drop) * 1000, fov, near: 0.05, far: 2000 }; };
+  const evPed = (t) => Math.max(0, evBase(t) + 6000) / 1000;                    // pedestal down to the virtual sea floor (-6,000 m), km
+  const eyeAlt = (t) => F.lerp(0.35, EYE_LO, pr(t, tCr0, tCr1, E.inOutSine));
+  const lvl2 = (t) => F.lerp(-5470, -9000, pr(t, tCr0 - 0.3, tCr0 + 1.0, E.inSine));   // the last water drains as the camera goes down
+  // framing keys: b = bearing offset from Mauna Kea (deg, + right), p = pitch of the frame centre (deg), fov
+  const FR = [[tAct2, 5.4, 0.9, 14.6], [tEasy - 0.35, 5.5, 1.0, 13.0], [tSink0 - 0.05, 5.8, 1.45, 10.9], [tSink1 + 0.1, 5.6, -0.2, 11.6],
+    [tCr1, 5.5, 1.75, 12.4], [tEv2 - 0.3, 5.3, 1.7, 11.5], [tAct2e, 4.8, 1.75, 10.1]];
+  const fb = monotone(FR.map(k => [k[0], k[1]])), fp = monotone(FR.map(k => [k[0], k[2]])), ff = monotone(FR.map(k => [k[0], k[3]]));
+  const cam2 = (t) => { const alt = eyeAlt(t), tg = offLL([EYE2.lon, EYE2.lat], MKD, bMK + fb(t));
+    return { lon: EYE2.lon, lat: EYE2.lat, alt, tLon: tg[0], tLat: tg[1], tH: (alt + MKD * Math.tan(fp(t) * D2R) + MKD * MKD / 12742) * 1000, fov: ff(t), near: 0.05, far: 2000 }; };
   let S2 = null, EVP = null;
-  const shot2 = kit.terrainShot({ id: 'ch3-everest-cmp', t0: tAct2, t1: tAct2e, region: 'bigisland', level: -5500,
-    state: () => { const st = mixState('today', 'drained', 1); st.level = -5500; st.sun = [235, 24]; st.set.oldLine = 1; st.set.lineW = 2.2; st.set.lineCol = [1.5, 1.52, 1.52]; st.set.tubAmt = 0.5; return st; },
+  const shot2 = kit.terrainShot({ id: 'ch3-everest-cmp', t0: tAct2, t1: tAct2e, region: 'bigisland', level: (lt) => lvl2(tAct2 + lt),
+    state: (lt) => { const t = tAct2 + lt, st = mixState('today', 'drained', 1); st.level = lvl2(t); st.sun = [128, 27]; st.set.oldLine = 1; st.set.lineW = 2.0; st.set.lineCol = [1.4, 1.42, 1.42];
+      st.set.tubAmt = 0.4; st.waterCols = DEEPW; return st; },
     set: (lt, S) => { S2 = S; return {}; },
-    cam: (lt) => { const t = tAct2 + lt; if (EVP && S2) EVP.place({ eye: EYE2, lon: EVV[0], lat: EVV[1], base: evBase(t), k: K_EV, visible: t > tRise0 - 0.05 }); return cam2(t); },
+    cam: (lt) => { const t = tAct2 + lt, c = cam2(t); if (EVP) EVP.place({ eye: { lon: EYE2.lon, lat: EYE2.lat, alt: c.alt }, lon: EVV[0], lat: EVV[1], base: evBase(t), pedD: evPed(t), k: K_EV, visible: t > tRise0 - 0.05 }); return c; },
     ui(ctx, lt, t, view) {
       const P = (ll, hm) => view.project(ll[0], ll[1], hm);
       const evTop = (b) => P(EVV, b + 8849), mkTop = P(MK, 4207);
       // the white sea-level line across both (0 m at Mauna Kea and at Everest's virtual spot), out as Everest sinks
       const sl = env(t, tRise0 + 0.4, tSink0 + 0.5, 0.4, 0.4);
       const a0 = P(MK, 0), b0 = P(EVV, 0);
-      if (sl > 0 && a0 && b0) { const dx = a0[0] - b0[0], dy = a0[1] - b0[1]; ui.line(ctx, [[[b0[0] - dx * 0.35, b0[1] - dy * 0.35], [a0[0] + dx * 0.35, a0[1] + dy * 0.35]]], { color: '#FFFFFF', width: 6, alpha: sl, p: pr(t, tRise0 + 0.4, tRise0 + 1.2) }); }
-      // the yellow base line at -6,000 m under both (from {seafloor})
-      const bl = env(t, tSink0 + 0.25, tAct2e + 1, 0.3, 0.3), a6 = P(MK, -6000), b6 = P(EVV, -6000);
-      let barBox = null;
-      if (bl > 0 && a6 && b6) { const dx = a6[0] - b6[0], dy = a6[1] - b6[1]; ui.line(ctx, [[[b6[0] - dx * 0.35, b6[1] - dy * 0.35], [a6[0] + dx * 0.3, a6[1] + dy * 0.3]]], { color: PAL.yellow, width: 9, alpha: bl, p: pr(t, tSink0 + 0.25, tSink0 + 1.0) }); }
+      if (sl > 0 && a0 && b0) { const dx = b0[0] - a0[0], dy = b0[1] - a0[1]; ui.line(ctx, [[[a0[0] - dx * 0.6, a0[1] - dy * 0.6], [b0[0] + dx * 0.9, b0[1] + dy * 0.9]]], { color: '#FFFFFF', width: 6, alpha: sl, p: pr(t, tRise0 + 0.4, tRise0 + 1.2) }); }
+      // {easily}: a white tick at Mauna Kea's summit height runs across to Everest, whose peak stands far above it
+      const ea2 = env(t, tEasy - 0.1, tSink0 + 0.1, 0.25, 0.35);
+      if (ea2 > 0 && mkTop) { const eT0 = evTop(evBase(t)); if (eT0) ui.line(ctx, [[[mkTop[0] - px(36), mkTop[1]], [eT0[0] + px(60), mkTop[1]]]], { color: '#FFFFFF', width: 7, alpha: ea2, p: pr(t, tEasy - 0.1, tEasy + 0.4) }); }
+      // the yellow base line at -6,000 m under both, in as the camera reaches the floor (it lies on the floor at Mauna Kea's foot)
+      const bl = env(t, tCr0 + 1.1, tAct2e + 1, 0.5, 0.3), a6 = P(MK, -6000), b6 = P(EVV, -6000);
+      if (bl > 0 && a6 && b6) { const dx = b6[0] - a6[0], dy = b6[1] - a6[1]; ui.line(ctx, [[[a6[0] - dx * 0.7, a6[1] - dy * 0.7], [b6[0] + dx * 0.8, b6[1] + dy * 0.8]]], { color: PAL.yellow, width: 9, alpha: bl, p: pr(t, tCr0 + 1.1, tCr0 + 1.8) }); }
       // the yellow height bar beside Mauna Kea's summit column: from the base line up the mountain while the counter rolls
-      const bp = pr(t, tBar0, tBar1, E.inOutSine), off = px(70);
+      const bp = pr(t, tBar0, tBar1, E.inOutSine), off = px(80);
       if (bp > 0 && a6 && mkTop) { const top = [F.lerp(a6[0], mkTop[0], bp) + off, F.lerp(a6[1], mkTop[1], bp)], tk = px(30);
         ui.line(ctx, [[[a6[0] + off, a6[1]], top]], { color: PAL.yellow, width: 12 });
         ui.line(ctx, [[[top[0] - tk, top[1]], [top[0] + tk, top[1]]]], { color: PAL.yellow, width: 10 });
-        barBox = ui.avoid(ui.boxOf([[a6[0] + off, a6[1]], [mkTop[0] + off, mkTop[1]]], px(40))); }
+        ui.avoid(ui.boxOf([[a6[0] + off, a6[1]], [mkTop[0] + off, mkTop[1]]], px(40))); }
       // {ev2}: a white tick from Everest's summit (now 2,849 m above the base line) across to the bar
       const ta = env(t, tEv2 - 0.05, tAct2e + 1, 0.35, 0.3), eT = evTop(-6000);
       if (ta > 0 && eT && mkTop && a6) { const yB = F.lerp(a6[1], mkTop[1], 8849 / 10207); ui.line(ctx, [[[eT[0] - px(30), yB], [a6[0] + off + px(30), yB]]], { color: '#FFFFFF', width: 6, alpha: ta, p: pr(t, tEv2 - 0.05, tEv2 + 0.45) }); }
       // the number block: FROM THE SEA FLOOR (mandatory qualifier kicker, logged) + 33,000+ FT, rolling with the bar, 6-frame punch
       const kp = F.clamp((t - (tBar0 - 0.35)) / 0.4), kout = pr(t, tStamp - 0.75, tStamp - 0.4);
-      if (evTop(evBase(t))) ui.avoid(ui.boxOf([evTop(evBase(t)), P(EVV, Math.max(evBase(t), -800))], px(36)));
+      const eNow = evTop(evBase(t)); if (eNow) ui.avoid(ui.boxOf([eNow, P(EVV, Math.max(evBase(t), -800))], px(36)));
       if (mkTop) ui.avoid({ x: mkTop[0] - px(60), y: mkTop[1] - px(40), w: px(120), h: px(80) });
       if (kp > 0 && kout < 1) {
         const nOpt = { cap: 150, to: 33000, unit: '+ FT', unitCap: 96 };
         const m = ui.number(dummy, 0, 0, 0, Object.assign({ measure: true }, nOpt));
-        const punch = 1 + 0.07 * Math.sin(F.clamp((t - (K.Te('tall33') - 0.05)) / 0.2) * Math.PI);
+        const punch = 1 + 0.07 * Math.sin(F.clamp((t - tPunch) / 0.2) * Math.PI);
         ctx.save();
         const box = ui.block(ctx, [{ text: 'FROM THE SEA FLOOR', role: 'kicker', cap: 52, qualifier: true }], px(96), px(96),
           { anchor: 'left', p: kp, out: kout, extra: { w: m.w, h: m.h + px(10) }, bar: PAL.yellow, clear: 24,
@@ -442,10 +470,10 @@ export async function build(api, kit, scenes) {
         ctx.restore();
       }
       // labels: EVEREST on its summit while it stands on the sea-level line; MAUNA KEA on the summit from {seafloor}
-      const ea = env(t, tRise1 - 0.6, tSink0 + 0.25, 0.3, 0.3), eTop = evTop(evBase(t));
-      if (ea > 0 && eTop) ui.label(ctx, 'EVEREST', eTop[0], eTop[1], { t, p: ea, dist: 60, accent: PAL.cyan, order: ['left', 'above-left', 'right', 'above'] });
-      const ma = env(t, tSink0 + 0.5, tAct2e + 1, 0.3, 0.3);
-      if (ma > 0 && mkTop && ea <= 0) ui.label(ctx, 'MAUNA KEA', mkTop[0], mkTop[1], { t, p: ma, dist: 60, accent: PAL.hero, order: ['above', 'above-right', 'right', 'above-left'] });
+      const ea = env(t, tRise1 - 0.6, tSink0 + 0.25, 0.3, 0.3);
+      if (ea > 0 && eNow) ui.label(ctx, 'EVEREST', eNow[0], eNow[1], { t, p: ea, dist: 60, accent: PAL.cyan, order: ['right', 'above-right', 'above', 'left'] });
+      const ma = env(t, tSink0 + 0.5, tStamp - 0.15, 0.3, 0.3);
+      if (ma > 0 && mkTop && ea <= 0) ui.label(ctx, 'MAUNA KEA', mkTop[0], mkTop[1], { t, p: ma, dist: 60, accent: PAL.hero, order: ['above', 'above-left', 'left', 'above-right'] });
       // JUICE CHECK: TRUE, the stamp, at the end of "one." (the stamp sound), held 1.2 s over the still-moving shot
       stamp(ctx, t - tStamp);
     } });
@@ -470,44 +498,83 @@ export async function build(api, kit, scenes) {
   }
 
   // ================================================================ ACT 3: the summit gag (everest, maunakea, everest)
-  const tG1 = tAct2e, tWo0 = T('road') - 0.24, tWo1 = tWo0 + 0.14, tWb0 = K.Te('road') - 0.05, tWb1 = tWb0 + 0.14, tEndG = s0('s066') + 0.35;
+  // whip out on the word "road" (the road shot holds about 2.4 s), whip back on the end of "one", the flag droops in the gap
+  const wRoad = K.word('s065', 'road');
+  const tG1 = tAct2e, tWo0 = wRoad.start - 0.1, tWo1 = tWo0 + 0.24, tWb0 = K.Te('road') - 0.05, tWb1 = tWb0 + 0.24, tEndG = s0('s066') + 0.35;
   const CLIMB = await kit.paper('climber').catch(e => { api.log('[ch3] climber cut-out missing: ' + e.message); return null; });
   const JEEP = await kit.paper('jeep').catch(e => { api.log('[ch3] jeep cut-out missing: ' + e.message); return null; });
-  const FLAG = kit.paperProp('flag');
-  const tPop = s0('s064') + 0.5, tFlag = T('this') + 0.03, tDroop = tWb1 + 0.12;
-  const evCam = (t) => { const k = pr(t, tG1, tWo0 + 0.2, E.inOutSine), wh = (t < tWb0 ? 70 * E.in(F.clamp((t - tWo0) / (tWo1 - tWo0))) : 0) - (t > tWb1 ? 70 * (1 - E.out(F.clamp((t - tWb1) / 0.16))) : 0);
-    return camOf({ lon: EV_SUM[0], lat: EV_SUM[1], h: 8690 + 30 * k, d: F.lerp(1.75, 1.45, k), tilt: F.lerp(86.5, 87.5, k), heading: 24 + 6 * k + wh, fov: 38 }); };
+  const tPop = tG1 + 0.15, tFlag = T('this') + 0.03, tDroop = K.Te('road') + 0.21;
+  // the summit seen from 10 km WSW and above (nothing nearer than about 7 km in frame, so the 14 m terrain holds): the summit pyramid,
+  // the Lhotse-Nuptse wall behind it
+  const evCam = (t) => { const k = pr(t, tG1, tWo0 + 0.2, E.inOutSine), wh = (t < tWb0 ? 70 * E.in(F.clamp((t - tWo0) / (tWo1 - tWo0))) : 0) - (t > tWb1 ? 70 * (1 - E.out(F.clamp((t - tWb1) / 0.18))) : 0);
+    return camOf({ lon: EV_SUM[0], lat: EV_SUM[1], h: 9150 + 40 * k, d: F.lerp(10.6, 9.7, k), tilt: F.lerp(75.5, 76.5, k), heading: 64 + 5 * k + wh, fov: 30 }); };
+  // paper flag (local): an upright pole and a hero-orange pennant that flies downwind, then hangs limp from the pole top (no half-mast)
+  const flag = (ctx, x, y, hp, a, flyA, t) => { const top = y - hp, L = hp * 0.42, Hh = hp * 0.26;
+    ctx.save(); ctx.globalAlpha *= a; ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(20,18,16,0.35)'; ctx.lineWidth = px(13); ctx.beginPath(); ctx.moveTo(x + px(3), y); ctx.lineTo(x + px(3), top); ctx.stroke();
+    ctx.strokeStyle = '#F2ECDD'; ctx.lineWidth = px(11); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, top); ctx.stroke();
+    ctx.strokeStyle = '#6E6A64'; ctx.lineWidth = px(6); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, top); ctx.stroke();
+    ctx.translate(x, top + px(4)); ctx.rotate(flyA);
+    const wv = (u) => Math.sin(u * 5.5 - t * 14) * Hh * 0.10 * u * (1 - Math.abs(flyA) / 1.6);
+    ctx.beginPath(); ctx.moveTo(0, 0); for (let i = 1; i <= 12; i++) { const u = i / 12; ctx.lineTo(u * L, Hh * 0.5 * u + wv(u)); }
+    for (let i = 12; i >= 0; i--) { const u = i / 12; ctx.lineTo(u * L, Hh * (1 - 0.5 * u) + wv(u)); } ctx.closePath();
+    ctx.fillStyle = '#F2ECDD'; ctx.strokeStyle = '#F2ECDD'; ctx.lineWidth = px(7); ctx.lineJoin = 'round'; ctx.stroke(); ctx.fillStyle = PAL.hero; ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.13)'; ctx.fillRect(0, Hh * 0.55, L * 0.5, Hh * 0.2); ctx.restore(); };
   const evShot = (id, t0, t1, fadeIn) => kit.terrainShot({ id, t0, t1, fadeIn, region: 'everest', preset: 'everest',
     cam: (lt) => evCam(t0 + lt),
     world(ctx, lt, t, view) {
       if (!CLIMB) return;
-      const p = F.clamp((t - tPop) / 0.45), wind = 0.05 + 0.04 * Math.sin(t * 3.1);
-      const base = { lon: EV_SUM[0] - 0.00025, lat: EV_SUM[1] - 0.0002, hPx: H * 0.38, pop: p, lean: -0.1 + 0.06 * Math.sin(t * 2.2), wobble: wind, t, seed: 2, hop: 18 * Math.max(0, Math.sin(F.clamp((t - tPop - 0.6) / 1.3) * Math.PI * 3)) * (t < tFlag ? 1 : 0) };
+      const p = F.clamp((t - tPop) / 0.45), gust = Math.sin(t * 2.3) * 0.5 + Math.sin(t * 5.1) * 0.25;
+      const base = { lon: EV_SUM[0], lat: EV_SUM[1], hPx: H * 0.38, pop: p, lean: -0.3 - 0.05 * gust, wobble: 0.05 + 0.03 * Math.abs(gust), t, seed: 2,
+        hop: 14 * Math.max(0, Math.sin(F.clamp((t - tPop - 0.6) / 1.3) * Math.PI * 3)) * (t < tFlag ? 1 : 0) };
       const r = kit.drawCutout(ctx, view, CLIMB, base);
       if (!r) return;
-      // the flag: planted on the paper tap ({this}), flutters in the wind, droops on its hinge after the whip back
+      // frost on the card edge: a few white paper flecks hugging the figure's outline
+      ctx.save(); ctx.globalAlpha *= 0.75 * p; ctx.fillStyle = '#F7FAFC';
+      for (let i = 0; i < 26; i++) { const side = i % 2 ? 1 : -1, v = hash(i, 3), xx = r.x + side * r.w * (0.30 + 0.12 * hash(i, 5)) - r.h * 0.3 * (1 - v) * 0.3, yy = r.top + r.h * v;
+        ctx.beginPath(); ctx.ellipse(xx, yy, px(3 + 4 * hash(i, 7)), px(2 + 2 * hash(i, 9)), hash(i, 11) * 3, 0, 7); ctx.fill(); }
+      ctx.restore();
+      // the flag: planted on the paper tap ({this}), flies downwind, then hangs limp from the top of the upright pole
       const fp = F.clamp((t - (tFlag - 0.2)) / 0.2), droop = pr(t, tDroop, tDroop + 0.5, E.outBack);
       if (fp > 0) { const drop = (1 - E.in(fp)) * H * 0.35;
-        kit.drawCutout(ctx, view, FLAG, { x: r.x + r.w * 0.62, y: r.y - drop, hPx: H * 0.27, alpha: F.clamp(fp * 3), hinge: 0.62 * droop, lean: 0.05 * Math.sin(t * 9) * (1 - droop), wobble: 0.04 * (1 - droop), t, seed: 5, shadow: false }); }
+        flag(ctx, r.x + r.w * 0.58, r.y - drop, H * 0.25, F.clamp(fp * 3), F.lerp(-0.12 + 0.08 * Math.sin(t * 9), 1.42, droop), t); }
+      // spindrift: torn paper snow streaming past with the wind (seeded, a pure function of time)
+      ctx.save(); ctx.fillStyle = '#F4F7FA';
+      for (let i = 0; i < 46; i++) { const sp = 0.55 + 0.6 * hash(i, 1), u = ((t * sp + hash(i, 2)) % 1), xx = W * (1.08 - 1.16 * u), yy = r.top + r.h * (0.05 + 0.9 * hash(i, 4)) + Math.sin(t * 3 + i) * px(14) + u * px(60);
+        ctx.globalAlpha = 0.85 * Math.min(1, u * 6, (1 - u) * 6) * F.clamp((t - tG1) / 0.3); ctx.beginPath(); ctx.ellipse(xx, yy, px(5 + 9 * hash(i, 6)), px(2 + 2.5 * hash(i, 8)), -0.15, 0, 7); ctx.fill(); }
+      ctx.restore();
     } });
   const ev1 = evShot('ch3-gag-everest', tG1, tWo1, 0);
   scenes.push(blurred(ev1, tWo0, tWo1 + 0.04));
-  // Mauna Kea's upper slope (the summit access road area, about 3,700-3,800 m, well below Puʻuwēkiu): the paper jeep grinds uphill
-  const JEEP0 = [-155.4742, 19.7852], JEEP1 = [-155.4716, 19.7902];
-  const mkCam = (t) => { const wi = -70 * (1 - E.out(F.clamp((t - tWo1) / 0.16))), wo = 70 * E.in(F.clamp((t - tWb0) / (tWb1 - tWb0)));
-    return camOf({ lon: -155.4730, lat: 19.7872, h: 3700, d: 1.5, tilt: 76, heading: 196 - 4 * pr(t, tWo1, tWb0) + wi + wo, fov: 42 }); };
-  const mkShot = kit.terrainShot({ id: 'ch3-gag-road', t0: tWo1, t1: tWb1, region: 'maunakea', preset: 'today', sun: [235, 34],
+  // Mauna Kea's upper slope from 5.4 km SE (inside the 10 m maunakea region): the summit access road (USGS National Map / TIGER, img/ch3)
+  // leads from the paper jeep at about 3,650 m up to the summit cones at the upper right (the jeep stays well below Puʻuwēkiu)
+  const ROAD = GEO.ROAD, RL = [0]; for (let i = 1; i < ROAD.length; i++) RL.push(RL[i - 1] + kmOf(ROAD[i - 1], ROAD[i]));
+  const roadAt = (km) => { let i = 1; while (i < ROAD.length - 1 && RL[i] < km) i++; const f = F.clamp((km - RL[i - 1]) / Math.max(1e-6, RL[i] - RL[i - 1])); return [F.lerp(ROAD[i - 1][0], ROAD[i][0], f), F.lerp(ROAD[i - 1][1], ROAD[i][1], f)]; };
+  const J0 = RL[262], J1 = J0 + 0.4, MKE = [-155.412, 19.776], MKA = 4.25, MKO = orbit(0, MKE, MKA, offLL(MKE, 6.5, 301), (MKA + 6.5 * Math.tan(-3.8 * D2R)) * 1000, 20);
+  const mkCam = (t) => { const wi = -70 * (1 - E.out(F.clamp((t - tWo1) / 0.18))), wo = 70 * E.in(F.clamp((t - tWb0) / (tWb1 - tWb0))), k = pr(t, tWo1, tWb0, E.inOutSine);
+    return camOf(Object.assign({}, MKO, { d: MKO.d - 0.45 * k, heading: MKO.heading + 2 * k + wi + wo })); };
+  const mkShot = kit.terrainShot({ id: 'ch3-gag-road', t0: tWo1, t1: tWb1, region: 'maunakea', preset: 'today', sun: [205, 40], state: { post: { sat: 0.8 } },
     cam: (lt) => mkCam(tWo1 + lt),
     world(ctx, lt, t, view) {
+      // the road ribbon (traced from the USGS transportation layer), draped on the terrain
+      const runs = druns(view, ROAD, 2, 1);
+      ctx.save(); ctx.lineCap = ctx.lineJoin = 'round';
+      for (const [w, c] of [[px(9), 'rgba(40,34,30,0.55)'], [px(5), '#CDBFA6']]) { ctx.strokeStyle = c; ctx.lineWidth = w; for (const r of runs) { ctx.beginPath(); r.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); } }
+      ctx.restore();
       if (!JEEP) return;
-      const u = F.clamp((t - tWo1) / (tWb1 - tWo1)), ll = [F.lerp(JEEP0[0], JEEP1[0], u), F.lerp(JEEP0[1], JEEP1[1], u)], hm = view.S.heightAt(ll[0], ll[1]);
-      const r = kit.drawCutout(ctx, view, JEEP, { lon: ll[0], lat: ll[1], hm, wPx: W * (0.24 + 0.06 * u), lean: -0.06, hop: 6 * Math.abs(Math.sin(t * 13)), t, wobble: 0.012, flip: false });
-      if (r) for (let i = 0; i < 6; i++) { const k = (t * 2.2 + i / 6) % 1, x = r.x - r.w * (0.35 + 0.5 * k), y = r.y - r.h * 0.05 - k * r.h * 0.18, rr = r.w * (0.06 + 0.12 * k);
-        ctx.save(); ctx.globalAlpha = 0.32 * (1 - k); ctx.fillStyle = '#B9A88C'; ctx.beginPath(); ctx.arc(x, y, rr, 0, 7); ctx.fill(); ctx.restore(); }
+      const u = pr(t, tWo1 - 0.1, tWb1, (x) => x), ll = roadAt(F.lerp(J0, J1, u)), hm = view.S.heightAt(ll[0], ll[1]);
+      // soft dust behind the rear wheels (seeded noise puffs, source-over, no hard edges)
+      const q = view.project(ll[0], ll[1], hm); if (!q) return;
+      const wPx = W * 0.15;
+      ctx.save();
+      for (let i = 0; i < 14; i++) { const k = ((t * 1.8 + i / 14) % 1), x = q[0] - wPx * (0.32 + 0.55 * k) + px(18) * Math.sin(i * 2.7), y = q[1] - px(10) - k * px(55) + px(8) * Math.sin(i * 1.9 + t * 3), rr = px(26 + 70 * k) * (0.7 + 0.5 * hash(i, 3));
+        const g = ctx.createRadialGradient(x, y, 0, x, y, rr); g.addColorStop(0, `rgba(196,178,150,${0.30 * (1 - k)})`); g.addColorStop(1, 'rgba(196,178,150,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, rr, 0, 7); ctx.fill(); }
+      ctx.restore();
+      kit.drawCutout(ctx, view, JEEP, { lon: ll[0], lat: ll[1], hm, wPx, lean: 0.03, hop: 2 * Math.abs(Math.sin(t * 17)), t, wobble: 0.01, flip: false, shadowA: 0.35 });
     } });
   scenes.push(blurred(mkShot, tWo1, tWb1));
   const ev2 = evShot('ch3-gag-everest-b', tWb1, tEndG, 0);
-  scenes.push(blurred(ev2, tWb1, tWb1 + 0.18));
+  scenes.push(blurred(ev2, tWb1, tWb1 + 0.2));
   api.cue(tFlag, 'paper_tap', -20); api.cue(tWo0, 'whoosh_soft', -14); api.cue(tWb0, 'whoosh_soft', -20); api.cue(tDroop, 'flag_droop', -15);
 
   // ================================================================ ACT 4: Mauna Loa, the giant (bigisland, drained to -5,500 m)
@@ -521,7 +588,6 @@ export async function build(api, kit, scenes) {
     { t: tOrb1, lon: -155.66, lat: 19.40, h: -800, d: 158, tilt: 66, heading: 46, fov: 36 },
     { t: tToday, lon: -155.66, lat: 19.42, h: -800, d: 138, tilt: 65, heading: 42, fov: 36 },
   ];
-const DEEPW = WATER_FILM.map((c, j) => c.map((v, q) => F.lerp(v, MOVE_WATER[j][q], 0.75)));
   const path4 = route([tA4, tOrb0, chainPath(A5)], [tOrb0, tToday, chainPath(A6)]);
   // masks: Mauna Loa (r: its map area, then swelling over its drained flanks by distance from it), Mauna Kea dimmed (g)
   const mlMask = (S) => {
@@ -540,13 +606,16 @@ const DEEPW = WATER_FILM.map((c, j) => c.map((v, q) => F.lerp(v, MOVE_WATER[j][q
   const setML = (m, a) => { const R = a < 0 ? -1 : a * (m.dmax + 4); if (Math.abs(R - m.R) < 0.05) return; m.R = R; const d = m.tex.data8;
     for (let k = 0; k < m.D.length; k++) d[k * 4] = R < 0 ? 0 : m.sub[k] ? 255 : (m.full[k] && m.D[k] < 1e8 ? Math.round(255 * F.clamp((R - m.D[k]) / 3)) : 0);
     m.tex.needsUpdate = true; };
-  const shot4 = kit.terrainShot({ id: 'ch3-maunaloa', t0: tA4, t1: tToday + 0.02, region: 'bigisland', level: -5500,
-    cam: (lt) => camOf(path4(tA4 + lt)),
-    state: () => { const st = mixState('today', 'drained', 1); st.level = -5500; st.sun = [205, 24]; st.set.tubAmt = 0.5; st.set.oldLine = 1; st.set.lineCol = [1.15, 1.1, 1.0]; st.waterCols = DEEPW; return st; },
+  const shot4 = kit.terrainShot({ id: 'ch3-maunaloa', t0: tA4, t1: tToday + 0.02, region: 'bigisland', level: -9000,
+    cam: (lt) => { const t = tA4 + lt, c = camOf(path4(t)), up = 3 * pr(t, lead('active') - 0.8, lead('active') - 0.1); if (up) c.dPitch = up; return c; },
+    state: () => { const st = mixState('today', 'drained', 1); st.level = -9000; st.sun = [205, 24]; st.set.tubAmt = 0.5; st.set.oldLine = 1; st.set.lineCol = [1.15, 1.1, 1.0]; st.waterCols = DEEPW; return st; },
     mask: (lt, S) => { const t = tA4 + lt, m = mlMask(S), ga = pr(t, tOrb0, tOrb0 + 0.7), fa = F.clamp((t - (lead('loa') - 0.05)) / 0.3);
-      setML(m, mlGrow(t)); heroBright(S); return { tex: m.tex, bb: m.g.bb, hero: 0.58 * fa, dim: 0.7 * ga, pass: 0 }; },
+      setML(m, mlGrow(t)); heroBright(S); return { tex: m.tex, bb: m.g.bb, hero: 0.58 * fa, dim: 0.97 * ga, pass: 0 }; },
     world(ctx, lt, t, view) { heroReset(view.S); },
     ui(ctx, lt, t, view) {
+      // {giant}: a quick white outline on Mauna Kea's whole edifice as it dims (in 0.3 s, out over 0.8 s)
+      const ka = env(t, tOrb0 - 0.05, tOrb0 + 1.5, 0.3, 0.8);
+      if (ka > 0) ui.outline(ctx, druns(view, GEO.MKFULL[0], 80, 2, null), { width: 6, alpha: ka });
       const la = env(t, lead('loa') - 0.05, tToday + 1, 0.3, 0.3);
       if (la > 0) {
         const gw = mlGrow(t), sub = druns(view, ML_SUB, 80, 2), full = druns(view, GEO.MLFULL[0], 80, 2, null);
@@ -558,8 +627,8 @@ const DEEPW = WATER_FILM.map((c, j) => c.map((v, q) => F.lerp(v, MOVE_WATER[j][q
       const hp = F.clamp((t - (lead('active') - 0.1)) / 0.5);
       const ms = gp(view, ML, 60);
       if (ms) ui.avoid({ x: ms[0] - px(40), y: ms[1] - px(40), w: px(80), h: px(80) });
-      if (hp > 0) ui.block(ctx, [{ text: 'LARGEST ACTIVE VOLCANO', role: 'headline', cap: 100 }], W - px(96), px(110), { anchor: 'right', p: hp, bar: PAL.hero,
-        at: [{ x: W - px(96), y: px(110), anchor: 'right' }, { x: px(96), y: px(110), anchor: 'left' }, { x: W / 2, y: px(110), anchor: 'center' }] });
+      if (hp > 0) ui.block(ctx, [{ text: 'LARGEST ACTIVE VOLCANO', role: 'headline', cap: 100 }], px(96), px(96), { anchor: 'left', p: hp, bar: PAL.hero, clear: 20,
+        at: [{ x: px(96), y: px(96), anchor: 'left' }, { x: W - px(96), y: px(96), anchor: 'right' }, { x: W / 2, y: px(96), anchor: 'center' }] });
       const lla = la * (1 - pr(t, lead('active') - 0.45, lead('active') - 0.1)); if (lla > 0 && ms) ui.label(ctx, 'MAUNA LOA', ms[0], ms[1], { t, p: lla, dist: 60, accent: PAL.hero, order: ['above', 'above-left', 'above-right', 'left', 'right'] });
     } });
   scenes.push(shot4);
@@ -567,6 +636,7 @@ const DEEPW = WATER_FILM.map((c, j) => c.map((v, q) => F.lerp(v, MOVE_WATER[j][q
   // s069: today's island at sea level, Mauna Loa's map area (USGS geologic map) in hero orange, the other volcanoes dimmed
   const todayMask = (S) => { if (!M.today) { const g = heightGrid(S, [-156.15, 18.85, -154.75, 20.35], 2), r = raster(g, [ML_SUB]), o = raster(g, OTHERS_SUB); M.today = { tex: kit.maskTexture(g, { r, g: o }), bb: g.bb }; } return M.today; };
   const shot5 = kit.terrainShot({ id: 'ch3-today-half', t0: tToday, t1: tBack + 0.02, region: 'bigisland', preset: 'today', sun: [200, 36],
+    state: (lt) => ({ waterCols: farWater(F.lerp(205, 188, pr(lt, 0, tBack - tToday, E.inOutSine))), set: { foamAmt: 0.6, foamPx: 0, foamM: 2 } }),
     cam: (lt) => camOf({ lon: -155.52, lat: 19.60, h: 0, d: F.lerp(205, 188, pr(lt, 0, tBack - tToday, E.inOutSine)), tilt: 38, heading: 348 + 4 * pr(lt, 0, 3), fov: 36 }),
     mask: (lt, S) => { const m = todayMask(S); const a = pr(tToday + lt, tToday + 0.15, tToday + 0.6); heroBright(S); return { tex: m.tex, bb: m.bb, hero: 0.6 * a, dim: 0.55 * a }; },
     world(ctx, lt, t, view) { heroReset(view.S); },
@@ -574,45 +644,50 @@ const DEEPW = WATER_FILM.map((c, j) => c.map((v, q) => F.lerp(v, MOVE_WATER[j][q
       lineOn(ctx, runs, pr(t, tToday + 0.15, tToday + 0.9), { color: PAL.text, width: 6 + 4 * pu }); } });
   scenes.push(shot5);
   // s070: back to the drained massif, lowering toward Mauna Loa's southern base into the shadow
-  const shot6 = kit.terrainShot({ id: 'ch3-ml-base', t0: tBack, t1: tCut + 0.02, region: 'bigisland', level: -5500,
-    state: () => { const st = mixState('today', 'drained', 1); st.level = -5500; st.sun = [262, 18]; st.set.tubAmt = 0.4; st.set.oldLine = 1; st.set.lineCol = [1.15, 1.1, 1.0]; st.set.nearAmt = 0.6; st.waterCols = DEEPW; return st; },
+  const shot6 = kit.terrainShot({ id: 'ch3-ml-base', t0: tBack, t1: tCut + 0.02, region: 'bigisland', level: -9000,
+    state: () => { const st = mixState('today', 'drained', 1); st.level = -9000; st.sun = [262, 18]; st.set.tubAmt = 0.4; st.set.oldLine = 1; st.set.lineCol = [1.15, 1.1, 1.0]; st.set.nearAmt = 0.6; st.waterCols = DEEPW; return st; },
     cam: (lt) => { const t = tBack + lt, k = pr(t, tBack, lead('allofit') + 0.6, E.inOutSine);
       return camOf({ lon: F.lerp(-155.62, -155.70, k), lat: F.lerp(19.33, 19.02, k), h: F.lerp(0, -4000, k), d: F.lerp(72, 40, k), tilt: F.lerp(72, 70, k), heading: F.lerp(14, 20, k), fov: 40 }); } });
   scenes.push(shot6);
 
   // ================================================================ ACT 5: the hot spot, the candle, the sheet
-  // section along the plate motion (az 306) through Kīlauea, SSW half removed (side -1: camera on the left of 306), 100 km deep
+  // section along the plate motion (az 306) through Kīlauea, SSW half removed (side -1: camera on the left of 306), 42 km deep, framed to about 36 km
   const HS = [-155.25, 19.30];                                              // the hot spot's map marker spot (SE Big Island)
-  const PLANE = { lon: KIL[0], lat: KIL[1], az: 306, side: -1, u0: -260, u1: 300, du: 0.5, bottomKm: 100, loadU: 31, waterTopMax: 0 };
+  const PLANE = { lon: KIL[0], lat: KIL[1], az: 306, side: -1, u0: -260, u1: 300, du: 0.5, bottomKm: 42, loadU: 31, waterTopMax: 0 };
   const SEC = { sag: 1, sagM: 7966, alphaKm: 90, oldFloor: -5000, crustM: 6500, waterA: 0, floorLine: 0, trenchA: 0, edgeA: 1 };
-  const tC0 = tCut, tCand = lead('candle'), tC1 = s0('s073') - 0.02;
-  const glowU = (t) => -14 * pr(t, lead('moving'), tC1, E.inOutSine);      // u km of the glow under the plate (it slips ESE)
+  const tC0 = tCut, tCand = lead('candle'), tC1 = s0('s073') - 0.02, GLOW_E = -26000;
+  // {moving}: the glow stays put on screen (the camera rides with it) while the section and the island slide NW past it, most of the
+  // slide during the word (u km of the glow under the plate: it falls behind, ESE)
+  const glowU = (t) => -22 * pr(t, lead('moving') - 0.05, lead('moving') + 1.25, E.outCubic || E.out);
   const CANDLE = candleCard(kit);
-  const cutShot = kit.cutawayShot({ id: 'ch3-hotspot', t0: tC0, t1: tC1 + 0.02, region: 'bigisland', level: -5500, preset: 'drained',
-    state: () => { const st = mixState('today', 'drained', 1); st.level = -5500; st.sun = [215, 30]; st.set.oldLine = 0; st.set.tubAmt = 0.3; return st; },
+  const GL = kit.P.cv(W / 4 | 0, H / 4 | 0), gl = GL.getContext('2d');
+  const cutShot = kit.cutawayShot({ id: 'ch3-hotspot', t0: tC0, t1: tC1 + 0.02, region: 'bigisland', level: -9000, preset: 'drained',
+    state: () => { const st = mixState('today', 'drained', 1); st.level = -9000; st.sun = [215, 30]; st.set.oldLine = 0; st.set.tubAmt = 0.3; return st; },
     cut: { plane: PLANE, state: () => SEC,
-      cam: (lt) => { const t = tC0 + lt, k = pr(t, tC0, tC1, E.inOutSine); return { u: F.lerp(18, 8, k), d: F.lerp(96, 84, k), alt: F.lerp(31, 28, k), tu: F.lerp(14, 6, k), te: -23000, tf: 0, fov: 46 }; } },
+      cam: (lt) => { const t = tC0 + lt, k = pr(t, tC0, tC1, E.inOutSine), g = glowU(t); return { u: F.lerp(14, 6, k) + g, d: F.lerp(62, 56, k), alt: F.lerp(12, 10, k), tu: F.lerp(10, 4, k) + g, te: -12500, tf: 0, fov: 44 }; } },
     world(ctx, lt, t, view) {
       const sec = view.sec; if (!sec) return;
       const P = (u, e, f = 0.3) => sec.project(u, e, f);
-      // the hot spot: a glow deep in the mantle (picture only), in from {stay}; slips ESE from {moving}; becomes the candle at {candle}
-      const ga = F.clamp((t - (lead('stay') - 0.1)) / 0.6), toC = pr(t, tCand - 0.1, tCand + 0.45);
-      const u = glowU(t), c = P(u, -62000), r0 = P(u + 30, -62000);
-      if (ga > 0 && c && r0) { const R = Math.abs(r0[0] - c[0]) * (1 + 0.06 * Math.sin(t * 5.3)) * (1 - 0.55 * toC);
-        ctx.save(); ctx.globalCompositeOperation = 'lighter';
-        for (const [rr, al, col] of [[2.1, 0.22, '255,120,40'], [1.3, 0.38, '255,160,70'], [0.6, 0.55, '255,225,150']]) {
-          const g = ctx.createRadialGradient(c[0], c[1], 0, c[0], c[1], R * rr); g.addColorStop(0, `rgba(${col},${al * ga * (1 - 0.6 * toC)})`); g.addColorStop(1, `rgba(${col},0)`);
-          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c[0], c[1], R * rr, 0, 7); ctx.fill(); }
-        // a faint warm rise from the glow toward the plate (the melt's path), not a plume from the core
-        const top = P(u, -14000); if (top) { const lg = ctx.createLinearGradient(c[0], c[1], top[0], top[1]); lg.addColorStop(0, `rgba(255,150,60,${0.32 * ga * (1 - toC)})`); lg.addColorStop(1, 'rgba(255,150,60,0)');
-          ctx.strokeStyle = lg; ctx.lineWidth = R * 0.5; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(c[0], c[1]); ctx.lineTo(top[0], top[1]); ctx.stroke(); }
-        ctx.restore(); }
+      const ga = F.clamp((t - (lead('stay') - 0.1)) / 0.6), toC = pr(t, tCand - 0.1, tCand + 0.45), u = glowU(t);
+      // the hot spot: an irregular warm zone in the mantle (picture only), drawn soft on a quarter-size canvas and clipped to the face
+      const c = P(u, GLOW_E, 0), r0 = P(u + 8, GLOW_E, 0);
+      if (ga > 0 && c && r0) { const R = Math.abs(r0[0] - c[0]) / 4, cx = c[0] / 4, cy = c[1] / 4;
+        gl.setTransform(1, 0, 0, 1, 0, 0); gl.clearRect(0, 0, GL.width, GL.height);
+        for (const [sc, col, al] of [[1.6, '255,120,45', 0.3], [1.1, '255,150,60', 0.5], [0.65, '255,205,120', 0.72], [0.3, '255,240,190', 0.85]]) {
+          gl.beginPath(); for (let i = 0; i <= 48; i++) { const an = i / 48 * Math.PI * 2, n = 1 + 0.2 * Math.sin(3 * an + t * 0.8 + sc) + 0.12 * Math.sin(5 * an - t * 1.3) + 0.07 * Math.sin(9 * an + t * 2.1);
+            const x = cx + Math.cos(an) * R * sc * 1.55 * n, y = cy + Math.sin(an) * R * sc * 0.85 * n - (an > Math.PI ? 0 : 0); i ? gl.lineTo(x, y) : gl.moveTo(x, y); }
+          const g2 = gl.createRadialGradient(cx, cy, 0, cx, cy, R * sc * 1.55); g2.addColorStop(0, `rgba(${col},${al})`); g2.addColorStop(0.65, `rgba(${col},${al * 0.55})`); g2.addColorStop(1, `rgba(${col},0)`);
+          gl.fillStyle = g2; gl.fill(); }
+        const face = []; for (let uu = PLANE.u0; uu <= PLANE.u1; uu += 5) { const q = P(uu, sec.surf(uu), 0); if (q) face.push(q); }
+        for (let uu = PLANE.u1; uu >= PLANE.u0; uu -= 5) { const q = P(uu, -PLANE.bottomKm * 1000, 0); if (q) face.push(q); }
+        if (face.length > 4) { ctx.save(); ctx.beginPath(); face.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.clip();
+          ctx.globalAlpha *= ga * (1 - 0.85 * toC); ctx.imageSmoothingEnabled = true; ctx.drawImage(GL, 0, 0, W, H); ctx.restore(); } }
       // {candle}: the crust band turns into a paper strip, the glow into a paper candle standing in the same place
       if (toC > 0) {
         const strip = [], bot = []; for (let uu = -230; uu <= 280; uu += 5) { const a = P(uu, sec.crustTop(uu) + 400, 0.4), b = P(uu, sec.crustTop(uu) - SEC.crustM - 400, 0.4); if (a && b) { strip.push(a); bot.push(b); } }
         if (strip.length > 2) { ctx.save(); ctx.globalAlpha *= toC; ctx.beginPath(); strip.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); for (let i = bot.length - 1; i >= 0; i--) ctx.lineTo(bot[i][0], bot[i][1]); ctx.closePath();
           ctx.fillStyle = PAPER_PAT || '#F2ECDD'; ctx.fill(); ctx.strokeStyle = 'rgba(110,85,55,0.55)'; ctx.lineWidth = px(3); ctx.stroke(); ctx.restore(); }
-        const cb = P(u, -98000), ct = P(u, sec.crustTop(u) - SEC.crustM - 600);
+        const cb = P(u, -PLANE.bottomKm * 1000 + 1500), ct = P(u, sec.crustTop(u) - SEC.crustM - 600);
         if (cb && ct) kit.drawCutout(ctx, view, CANDLE, { x: cb[0], y: cb[1], hPx: Math.max(10, cb[1] - ct[1]) * E.outBack(toC), alpha: F.clamp(toC * 2), shadow: false, contact: false, base: false, wobble: 0.015, t, seed: 3 });
       }
     } });
@@ -625,50 +700,60 @@ const DEEPW = WATER_FILM.map((c, j) => c.map((v, q) => F.lerp(v, MOVE_WATER[j][q
   const tS0 = s0('s073') - 0.02, tSpots = lead('spots'), tSlide1 = tSpots - 0.25, tE6 = T('sinks') - 0.02;
   const SLIDE = 306, ACROSS = 36, XS = 600;                                 // slide bearing (plate motion), across, slide length km
   const slideX = (t) => XS * pr(t, tS0 + 0.15, tSlide1, E.inOutSine);
+  const TODAY_SET = { foamAmt: 0.6, foamPx: 0, foamM: 2 };                 // foam only on the real coast (2 m), not on submerged banks
   const ISL = ['niihau', 'kauai', 'oahu', 'molokai', 'maui', 'hawaii'].map(n => { const r = GEO.COAST[n], c = centroid(r);
-    const area = Math.abs(r.reduce((a, p, i) => i ? a + (r[i - 1][0] * p[1] - p[0] * r[i - 1][1]) : a, 0)) / 2 * KM * KM * Math.cos(21 * D2R);
-    const a = kmOf(HS, c) * Math.cos((brgOf(HS, c) - SLIDE) * D2R); return { n, c, rKm: Math.sqrt(area / Math.PI), a }; });
+    const a = kmOf(HS, c) * Math.cos((brgOf(HS, c) - SLIDE) * D2R); return { n, r, c, a }; });
+  const tArrOut = T('deepbelow') + 1.0;
   const A7 = [
     { t: tS0, lon: -156.75, lat: 20.55, h: 0, d: 760, tilt: 52, heading: 30, fov: 38 },
     { t: tSpots + 0.6, lon: -156.95, lat: 20.70, h: 0, d: 720, tilt: 51, heading: 31, fov: 38 },
     { t: lead('plate') + 0.2, lon: -157.00, lat: 20.72, h: 0, d: 705, tilt: 51, heading: 31, fov: 38 },
-    { t: lead('deepbelow') - 0.3, lon: -156.4, lat: 20.25, h: 0, d: 520, tilt: 50, heading: 30, fov: 38 },
+    { t: tArrOut + 0.4, lon: -156.85, lat: 20.62, h: 0, d: 660, tilt: 50.5, heading: 30.5, fov: 38 },        // wide until the arrow is gone
     { t: tE6, lon: -155.75, lat: 19.75, h: 0, d: 300, tilt: 48, heading: 28, fov: 38 },
   ];
   const path7 = chainPath(A7);
   const sheetCorners = (x) => { const c0 = offLL(HS, -760 + x, SLIDE), c1 = offLL(HS, 820 + x, SLIDE);
     return [offLL(c0, 260, ACROSS), offLL(c1, 260, ACROSS), offLL(c1, -70, ACROSS), offLL(c0, -70, ACROSS)]; };  // far-left, far-right, near-right, near-left
+  // the plate arrow: along the chain (Hawaiʻi -> Maui -> Molokaʻi -> Oʻahu), 45 km off its NE side so no island is covered
+  const SMALL = { rings: [] }, PL = { lanai: [-156.92, 20.83], kahoolawe: [-156.60, 20.55] };
+  const ARW = [[-155.20, 20.15], [-155.75, 20.62], [-156.40, 21.02], [-157.00, 21.38], [-157.62, 21.72]].map(p => offLL(p, 45, 36));
   const shot7 = kit.terrainShot({ id: 'ch3-chain-sheet', t0: tS0, t1: tE6 + 0.02, region: 'main_chain', preset: 'today', sun: [205, 40],
     cam: (lt) => camOf(path7(tS0 + lt)),
-    state: (lt) => { const t = tS0 + lt, st = { set: { foamAmt: 0.6 } }; const wc = farWater(path7(t).d) || WATER_FILM, k = env(t, lead('plate') - 0.05, tE6 + 1, 0.4, 0.3);
-      st.waterCols = wc.map((c, j) => c.map((v, q) => F.lerp(v, [[0.07, 0.085, 0.095], [0.06, 0.072, 0.082], [0.05, 0.062, 0.072]][j][q], k))); return st; },
+    state: (lt) => ({ set: Object.assign({}, TODAY_SET), waterCols: farWater(path7(tS0 + lt).d) || WATER_FILM }),
     world(ctx, lt, t, view) {
-      // the sheet (paper) lying on the sea over the chain, the flame glowing through it, scorch marks riding with it; out at {spots}
-      const so = pr(t, tSpots - 0.05, tSpots + 0.5); if (so >= 1) return;
-      const x = slideX(t), q = sheetCorners(x).map(c => view.project(c[0], c[1], 300));
-      ctx.save(); ctx.globalAlpha *= 1 - so;
-      if (q.every(Boolean)) { scr.setTransform(1, 0, 0, 1, 0, 0); scr.clearRect(0, 0, W, H); kit.drawQuad(scr, PAPER_C, q, 10); ctx.save(); ctx.globalAlpha *= 0.94; ctx.drawImage(SCR, 0, 0); ctx.restore(); }
-      const h = view.project(HS[0], HS[1], 300), hr = view.project(...offLL(HS, 60, 120), 300);
-      if (h && hr) { const R = Math.hypot(hr[0] - h[0], hr[1] - h[1]) * (1 + 0.05 * Math.sin(t * 6)); ctx.save(); ctx.globalCompositeOperation = 'source-over';
-        for (const [rr, al, col] of [[1.8, 0.25, '255,140,50'], [1.0, 0.4, '255,185,80'], [0.45, 0.55, '255,235,170']]) { const g = ctx.createRadialGradient(h[0], h[1], 0, h[0], h[1], R * rr);
-          g.addColorStop(0, `rgba(${col},${al})`); g.addColorStop(1, `rgba(${col},0)`); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(h[0], h[1], R * rr, 0, 7); ctx.fill(); } ctx.restore(); }
-      // scorch marks: island i's mark sits at sheet coordinate (its final spot - XS along the slide); it burns in as it passes the flame
-      for (const s of ISL) { const at = XS - s.a, k = F.clamp((x - at + 25) / 60); if (k <= 0) continue;
-        const pos = offLL(s.c, -(XS - x), SLIDE), ring = [];
-        for (let i = 0; i < 18; i++) { const p = offLL(pos, s.rKm * (1 + 0.12 * Math.sin(i * 2.1 + s.a)), i * 20); ring.push(view.project(p[0], p[1], 300)); }
-        if (!ring.every(Boolean)) continue;
-        const cx = ring.reduce((a, p) => a + p[0], 0) / 18, cy = ring.reduce((a, p) => a + p[1], 0) / 18;
-        ctx.save(); ctx.beginPath(); ring.forEach(([X, Y], i) => { const xx = cx + (X - cx) * (0.4 + 0.6 * E.out(k)), yy = cy + (Y - cy) * (0.4 + 0.6 * E.out(k)); i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }); ctx.closePath();
-        ctx.fillStyle = `rgba(70,38,18,${0.78 * k})`; ctx.fill(); ctx.strokeStyle = `rgba(150,90,40,${0.6 * k})`; ctx.lineWidth = px(5); ctx.stroke(); ctx.restore(); }
-      ctx.restore();
+      const proj = (ring, hm = 0) => ring.map(p => view.project(p[0], p[1], hm));
+      // the sheet (paper) lying on the sea over the chain, opaque until {spots}; the flame glows through it, scorch marks ride with it
+      const so = pr(t, tSpots - 0.05, tSpots + 0.5);
+      if (so < 1) {
+        const x = slideX(t), q = sheetCorners(x).map(c => view.project(c[0], c[1], 300));
+        ctx.save(); ctx.globalAlpha *= 1 - so;
+        if (q.every(Boolean)) { scr.setTransform(1, 0, 0, 1, 0, 0); scr.clearRect(0, 0, W, H); kit.drawQuad(scr, PAPER_C, q, 10); ctx.drawImage(SCR, 0, 0); }
+        const h = view.project(HS[0], HS[1], 300), hr = view.project(...offLL(HS, 60, 120), 300);
+        if (h && hr) { const R = Math.hypot(hr[0] - h[0], hr[1] - h[1]) * (1 + 0.05 * Math.sin(t * 6)); ctx.save();
+          for (const [rr, al, col] of [[1.8, 0.25, '255,140,50'], [1.0, 0.4, '255,185,80'], [0.45, 0.55, '255,235,170']]) { const g = ctx.createRadialGradient(h[0], h[1], 0, h[0], h[1], R * rr);
+            g.addColorStop(0, `rgba(${col},${al})`); g.addColorStop(1, `rgba(${col},0)`); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(h[0], h[1], R * rr, 0, 7); ctx.fill(); } ctx.restore(); }
+        // scorch marks: each island's own coastline, carried on the sheet (its final spot - XS along the slide); it burns in as it passes
+        // the flame, so on {spots} the marks are exactly the coasts underneath
+        for (const s2 of ISL) { const at = XS - s2.a, k = F.clamp((x - at + 25) / 60); if (k <= 0) continue;
+          const pr2 = proj(s2.r.map(p => offLL(p, -(XS - x), SLIDE))); if (!pr2.every(Boolean)) continue;
+          const cx = pr2.reduce((a2, p) => a2 + p[0], 0) / pr2.length, cy = pr2.reduce((a2, p) => a2 + p[1], 0) / pr2.length, sk = 0.35 + 0.65 * E.out(k);
+          ctx.save(); ctx.beginPath(); pr2.forEach(([X, Y], i) => { const xx = cx + (X - cx) * sk, yy = cy + (Y - cy) * sk; i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }); ctx.closePath();
+          ctx.fillStyle = `rgba(62,34,16,${0.85 * k})`; ctx.fill(); ctx.strokeStyle = `rgba(170,96,40,${0.7 * k})`; ctx.lineWidth = px(5); ctx.lineJoin = 'round'; ctx.stroke(); ctx.restore(); }
+        ctx.restore();
+      }
+      // {plate}: the same paper sheet comes back at 35 % over the sea (the islands cut out, untinted) and keeps sliding NW with the arrow
+      const pa = env(t, lead('plate') - 0.05, tE6 + 1, 0.4, 0.3);
+      if (pa > 0) { const x = XS + 140 * pr(t, lead('plate') - 0.05, tE6, (v) => v), q = sheetCorners(x).map(c => view.project(c[0], c[1], 300));
+        if (q.every(Boolean)) { scr.setTransform(1, 0, 0, 1, 0, 0); scr.clearRect(0, 0, W, H); kit.drawQuad(scr, PAPER_C, q, 10);
+          scr.save(); scr.globalCompositeOperation = 'destination-out'; scr.fillStyle = '#000'; scr.strokeStyle = '#000'; scr.lineWidth = px(8); scr.lineJoin = 'round';
+          for (const ring of [...Object.values(GEO.COAST), ...SMALL.rings]) { const pp = proj(ring); if (!pp.every(Boolean)) continue; scr.beginPath(); pp.forEach(([X, Y], i) => i ? scr.lineTo(X, Y) : scr.moveTo(X, Y)); scr.closePath(); scr.fill(); scr.stroke(); }
+          scr.restore(); ctx.save(); ctx.globalAlpha *= 0.36 * pa; ctx.drawImage(SCR, 0, 0); ctx.restore(); } }
     },
     ui(ctx, lt, t, view) {
-      // {plate}: the Pacific plate (all the ground below the horizon) in a 35 % hero tint, a big yellow arrow NW along the chain
-      const pa = env(t, lead('plate') - 0.05, tE6 + 1, 0.4, 0.3), arA = env(t, lead('plate') - 0.05, T('deepbelow') + 1.6, 0.3, 0.6);
-      if (pa > 0) { const hy = view.horizonY() * H; ctx.save(); ctx.globalAlpha *= 0.32 * pa;
-        const tg = ctx.createLinearGradient(0, hy, 0, hy + px(60)); tg.addColorStop(0, 'rgba(255,90,54,0)'); tg.addColorStop(1, PAL.hero); ctx.fillStyle = tg; ctx.fillRect(0, hy, W, H - hy); ctx.restore();
-        const pts = []; for (let k = 0; k <= 12; k++) { const p = offLL(offLL(HS, 40, ACROSS), 60 + k * 38, SLIDE - 1.5 * k); const q = view.project(p[0], p[1], 2000); if (q) pts.push(q); }
-        if (pts.length > 2 && arA > 0) ui.arrow(ctx, pts, { width: 15, p: pr(t, lead('plate'), lead('plate') + 0.9), t, color: PAL.yellow, alpha: arA }); }
+      // {plate}: a big yellow arrow NW along the chain (head kept in the safe area: the camera stays wide until it has faded)
+      const arA = env(t, lead('plate') - 0.05, tArrOut, 0.3, 0.5);
+      if (arA > 0) { const pts = ARW.map(p => view.project(p[0], p[1], 2000)).filter(Boolean);
+        if (pts.length > 2) ui.arrow(ctx, pts, { width: 15, p: pr(t, lead('plate'), lead('plate') + 0.9), t, color: PAL.yellow, alpha: arA }); }
       // {deepbelow}: a small warm marker pulses at the hot spot under the Big Island (map marker)
       const ma = env(t, lead('deepbelow') - 0.05, tE6 + 1, 0.3, 0.3), hq = view.project(HS[0], HS[1], 200);
       if (ma > 0 && hq) { const k = ((t - lead('deepbelow')) * 1.1) % 1; ctx.save(); ctx.globalAlpha *= ma;
@@ -679,45 +764,55 @@ const DEEPW = WATER_FILM.map((c, j) => c.map((v, q) => F.lerp(v, MOVE_WATER[j][q
       if (ba > 0) { const sh = 70 * pr(t, lead('built') - 0.1, lead('built') + 2.0, E.inOutSine), ring = GEO.COAST.hawaii.map(p => offLL(p, sh, SLIDE - 6));
         const runs = druns(view, ring, 60, 1, 0); ui.outline(ctx, runs, { width: 6, alpha: ba }); }
     } });
-  shot7.uiFrom = tS0; scenes.push(shot7);
+  shot7.uiFrom = tS0; scenes.push(ready(shot7, async () => { if (!SMALL.done) { SMALL.done = 1; for (const n of ['lanai', 'kahoolawe']) { const c = PL[n];
+    try { const r = await kit.island({ region: 'main_chain', bbox: [c[0] - 0.25, c[1] - 0.2, c[0] + 0.25, c[1] + 0.2], level: 0, seeds: [c], step: 1 }); SMALL.rings.push(...r.rings); } catch (e) { api.log('[ch3] ' + n + ' ring: ' + e.message); } } } }));
   // the islands appear under the marks: the sheet dissolves on {spots} while the chain underneath was there all along
   api.cue(tS0 + 0.2, 'paper_slide', -18); api.cue(lead('plate'), 'line_draw', -20);
 
   // ================================================================ ACT 7: the drowned reefs off Kohala (kohala)
-  const tK0 = T('sinks') - 0.02, tLoop0 = s0('s078') - 0.05, tRise = tLoop0 + 1.25, tRiseE = lead('them') - 0.05, tK1 = s0('s080') - 0.25;
-  const kLevel = (t) => t < tLoop0 ? -9000 : F.lerp(-480, -190, pr(t, tRise, tRiseE, E.inOutSine));
+  // the film's one drained look (preset 'drained': slate seabed, day light) raked from the SE so the risers fall into shadow; {reefs}
+  // cream lines (10 px, under-stroke) from {steps}+0.3 s on every terrace edge the grid shows, kept into s078 where they drown (blue)
+  // as the sea rises; s079 the sea drains away again and the camera, upslope, tilts down the staircase into the blue distance
+  const tK0 = T('sinks') - 0.02, tLoop0 = s0('s078') - 0.05, tRise = tLoop0 + 1.25, tRiseE = lead('them') - 0.05, tK1 = s0('s080') - 0.25, tD0 = s0('s079') - 0.03;
+  const kLevel = (t) => t < tLoop0 ? -9000 : t < tD0 ? F.lerp(-480, -190, pr(t, tRise, tRiseE, E.inOutSine)) : -9000;
   const A8 = [
     { t: tK0, lon: -156.05, lat: 20.0, h: -650, d: 14, tilt: 70, heading: 52, fov: 42 },
     { t: tLoop0 - 0.05, lon: -156.04, lat: 20.02, h: -560, d: 11, tilt: 71, heading: 56, fov: 42 },
   ];
-  const A9 = [   // the reef loop: close on the -460 m step, rising with the water (the waterline stays put in frame)
+  const A9 = [   // the reef loop: close on the -460 m step, rising with the water (the waterline stays put in frame), then a push
     { t: tLoop0, lon: -156.035, lat: 20.035, h: -470, d: 8.5, tilt: 73, heading: 58, fov: 42 },
     { t: tRise, lon: -156.035, lat: 20.035, h: -470, d: 8.4, tilt: 73, heading: 58.5, fov: 42 },
-    { t: tRiseE, lon: -156.035, lat: 20.035, h: -180, d: 8.4, tilt: 73, heading: 59, fov: 42 },
-    { t: lead('deepreef') - 0.4, lon: -156.03, lat: 20.035, h: -180, d: 8.6, tilt: 73, heading: 60, fov: 42 },
-    { t: tK1 + 0.3, lon: -156.10, lat: 19.99, h: -1250, d: 10.5, tilt: 58, heading: 66, fov: 44 },               // {deepreef}: down into the blue
+    { t: tRiseE, lon: -156.035, lat: 20.035, h: -180, d: 8.2, tilt: 73, heading: 59.5, fov: 42 },
+    { t: tD0 + 0.03, lon: -156.03, lat: 20.035, h: -180, d: 7.1, tilt: 73, heading: 63, fov: 42 },
   ];
-  const path8 = route([tK0, tLoop0, chainPath(A8)], [tLoop0, tK1 + 0.3, chainPath(A9)]);
+  // s079: 3 km over the -200 m shelf, looking W down the staircase (-460, -700, -960, -1,210 m steps, their lines kept and turning
+  // blue with depth), tilting down and pushing along it into the blue distance
+  const A10k = [orbit(tD0, [-155.955, 19.972], 3.1, [-156.10, 19.958], -2600, 44), orbit(tK1 + 0.3, [-155.985, 19.968], 2.5, [-156.09, 19.958], -4300, 44)];
+  const path8 = route([tK0, tLoop0, chainPath(A8)], [tLoop0, tD0, chainPath(A9)], [tD0, tK1 + 0.3, chainPath(A10k)]);
   const pLen = (pc) => pc.reduce((a, p, i) => i ? a + kmOf(pc[i - 1], p) : 0, 0);
   const TERR = Object.entries(GEO.TERR).map(([L, pcs]) => ({ L: +L, pcs: pcs.filter(pc => pLen(pc) > 1.8) })).sort((a, b) => b.L - a.L);   // -170 first; pieces over 1.8 km
   const SHORE = {};
   const shores = async () => { if (!SHORE.a) { for (const [k, lv] of [['a', -480], ['b', -190]]) { try { SHORE[k] = await kit.island({ region: 'kohala', bbox: [-156.19, 19.86, -155.81, 20.29], level: lv, seeds: [[-155.85, 20.1]], step: 2 }); } catch (e) { api.log('[ch3] kohala shore ' + lv + ': ' + e.message); SHORE[k] = { rings: [] }; } } } };
+  const tSt = lead('steps') + 0.3, KW = [[0.014, 0.19, 0.23], [0.012, 0.12, 0.16], [0.014, 0.075, 0.11]];   // the film's deep blue, no turquoise
   const kohalaShot = kit.terrainShot({ id: 'ch3-kohala', t0: tK0, t1: tK1 + 0.02, region: 'kohala', preset: 'drained',
     cam: (lt) => camOf(path8(tK0 + lt)), level: (lt) => kLevel(tK0 + lt),
-    state: (lt) => { const t = tK0 + lt, k = pr(t, lead('steps') - 0.4, lead('steps') + 0.8);
-      return { look: 'gold', sun: [F.lerp(140, 128, k), F.lerp(24, 12, k)], water: 'film', set: { tubAmt: 0, oldLine: 0, nearAmt: 0.7, foamAmt: t > tLoop0 ? 0.9 : 0, reefAmt: 0.6, skyI: 0.9 }, post: { exposure: F.lerp(1.9, 2.1, k) } }; },
+    state: (lt) => { const t = tK0 + lt, k = pr(t, lead('steps') - 0.4, lead('steps') + 0.8), fz = pr(t, tD0, lead('deepreef') + 0.2, E.inOutSine);
+      return { sun: t < tD0 ? [F.lerp(140, 128, k), F.lerp(24, 12, k)] : [150, 16], waterCols: KW, fog: [F.lerp(0.0028, 0.03, fz), F.lerp(0.00012, 0.006, fz), F.lerp(6, 1.6, fz)],
+        set: { tubAmt: 0, oldLine: 0, nearAmt: 0.7, foamAmt: t > tLoop0 && t < tD0 ? 0.9 : 0, reefAmt: 0.6, skyI: 1.0, waveAmt: 0.35, glintAmt: 0.03 }, post: { exposure: F.lerp(1.75, 1.9, k) } }; },
     ui(ctx, lt, t, view) {
-      const loop = t > tLoop0;
-      // {reefs}: a cream line along each terrace edge (only where the grid shows a flat over a riser), staggered from the top step
-      const ra = env(t, lead('reefs') - 0.05, tLoop0 + 0.2, 0.2, 0.3);
-      if (ra > 0) TERR.forEach((tr, i) => { const p = pr(t, lead('reefs') + i * 0.16, lead('reefs') + i * 0.16 + 0.8);
-        for (const pc of tr.pcs) ui.line(ctx, druns(view, pc, 25, 1), { color: '#FFE9C8', width: 7, alpha: ra, p }); });
+      const loop = t > tLoop0 && t < tD0, lv = view.level;
+      // {reefs}: a cream line along each terrace edge (only where the grid shows a flat over a riser), staggered from the top step;
+      // under water (s078) a line turns blue and dims: the reef drowned
+      const ra = env(t, tSt - 0.05, tK1 + 1, 0.2, 0.3), deep = t > tD0;
+      if (ra > 0) TERR.forEach((tr, i) => { if (loop && Math.abs(tr.L + 480) < 40) return; const p = pr(t, tSt + i * 0.16, tSt + i * 0.16 + 0.8), wet = loop ? F.clamp((lv - tr.L) / 60) : 0;
+        const dz = deep ? F.clamp((-tr.L - 300) / 900) : 0, col = wet > 0.5 ? '#9FD9E6' : dz > 0 ? `rgb(${F.lerp(255, 150, dz) | 0},${F.lerp(233, 214, dz) | 0},${F.lerp(200, 236, dz) | 0})` : '#FFE9C8';
+        for (const pc of tr.pcs) ui.line(ctx, druns(view, pc, 25, 1), { color: col, width: 10, alpha: ra * (1 - 0.55 * wet) * (1 - 0.35 * dz), p }); });
       if (!loop) return;
       // the reef loop: the reef line grows at the waterline on the -460 m step, drowns as the sea rises; {them} the next one
-      const lv = view.level, g1 = pr(t, tLoop0 + 0.3, tLoop0 + 1.1), drown = F.clamp((lv + 470) / 120);
-      if (SHORE.a) ui.line(ctx, SHORE.a.rings.flatMap(r => druns(view, r, 10, 3, -480)), { color: drown > 0.5 ? '#9FD9E6' : '#FFC7A8', width: 9, alpha: 1 - 0.55 * drown, p: g1 });
+      const g1 = pr(t, tLoop0 + 0.3, tLoop0 + 1.1), drown = F.clamp((lv + 470) / 120);
+      if (SHORE.a) ui.line(ctx, SHORE.a.rings.flatMap(r => druns(view, r, 10, 3, -480)), { color: drown > 0.5 ? '#9FD9E6' : '#FFC7A8', width: 10, alpha: 1 - 0.55 * drown, p: g1 });
       const g2 = pr(t, lead('them') - 0.1, lead('them') + 0.7);
-      if (SHORE.b && g2 > 0) ui.line(ctx, SHORE.b.rings.flatMap(r => druns(view, r, 10, 3, -190)), { color: '#FFC7A8', width: 9, p: g2 });
+      if (SHORE.b && g2 > 0) ui.line(ctx, SHORE.b.rings.flatMap(r => druns(view, r, 10, 3, -190)), { color: '#FFC7A8', width: 10, p: g2 });
     } });
   scenes.push(ready(kohalaShot, shores));
   api.cue(tK0, 'deep_sink', -16); api.cue(lead('reefs'), 'line_draw', -20);
@@ -737,10 +832,10 @@ const DEEPW = WATER_FILM.map((c, j) => c.map((v, q) => F.lerp(v, MOVE_WATER[j][q
   const A12 = [
     { t: tCZ0, lon: -155.55, lat: 19.62, h: 0, d: 250, tilt: 46, heading: 22, fov: 38 },
     { t: tCZ1, lon: -157.45, lat: 20.70, h: 0, d: 680, tilt: 24, heading: 28, fov: 38, ease: E.outExpo },      // crash zoom OUT
-    { t: lead('become') - 0.6, lon: -157.45, lat: 20.70, h: 0, d: 655, tilt: 24, heading: 29, fov: 38 },
+    { t: lead('become') - 0.6, lon: -157.30, lat: 20.62, h: 0, d: 585, tilt: 25, heading: 33, fov: 38 },          // slow push (about 4 %/s)
   ];
   const A13 = [
-    { t: lead('become') - 0.6, lon: -157.45, lat: 20.70, h: 0, d: 655, tilt: 24, heading: 29, fov: 38 },
+    { t: lead('become') - 0.6, lon: -157.30, lat: 20.62, h: 0, d: 585, tilt: 25, heading: 33, fov: 38 },
     { t: ch.t1x, lon: -155.55, lat: 19.62, h: 0, d: 240, tilt: 50, heading: 24, fov: 38 },                     // {become}: back on the Big Island
   ];
   const crash = (t) => { const p = F.clamp((t - tCZ0) / (tCZ1 - tCZ0)), q = 1 - Math.pow(1 - p, 3), a = A12[0], b = A12[1];
@@ -748,9 +843,11 @@ const DEEPW = WATER_FILM.map((c, j) => c.map((v, q) => F.lerp(v, MOVE_WATER[j][q
   const path10 = route([tC8, tBaby0, chainPath(A10)], [tBaby0, tCZ0, chainPath(A11)], [tCZ0, tCZ1, crash], [tCZ1, lead('become') - 0.6, chainPath(A12.slice(1))], [lead('become') - 0.6, ch.t1x, chainPath(A13)]);
   const RIMS = [['maui', lead('bornhere') + 0.5], ['oahu', lead('bornhere') + 1.25], ['kauai', lead('bornhere') + 2.0]];
   const biMask = (S) => { if (!M.bi) { const g = heightGrid(S, [-156.2, 18.8, -154.7, 20.4], 1), m = raster(g, [GEO.COAST.hawaii]); for (let k = 0; k < m.length; k++) if (g.h[k] <= 0) m[k] = 0; M.bi = { tex: kit.maskTexture(g, { r: m }), bb: g.bb }; } return M.bi; };
+  const tBump = K.Te('bigbaby') + 0.05;                                       // the mix's impact_short (x096): a 6-frame settle
+  const bump = (t) => { const u = F.clamp((t - tBump) / 0.2); return u > 0 && u < 1 ? 1 - 0.035 * Math.sin(Math.PI * u) * (1 - u) : 1; };
   const shot8 = kit.terrainShot({ id: 'ch3-born-here', t0: tC8, t1: ch.t1x, region: 'main_chain', preset: 'today', sun: [210, 38],
-    cam: (lt) => camOf(path10(tC8 + lt)),
-    state: (lt) => { const st = { set: { foamAmt: 0.6 } }; const wc = farWater(path10(tC8 + lt).d); if (wc) st.waterCols = wc; return st; },
+    cam: (lt) => { const c = path10(tC8 + lt); return camOf(Object.assign({}, c, { d: c.d * bump(tC8 + lt) })); },
+    state: (lt) => { const st = { set: Object.assign({}, TODAY_SET) }; const wc = farWater(path10(tC8 + lt).d); if (wc) st.waterCols = wc; return st; },
     mask: (lt, S) => { const t = tC8 + lt, a = env(t, tCZ1 - 0.05, lead('become') + 0.4, 0.2, 0.5); if (a <= 0) return null; const m = biMask(S); heroBright(S); return { tex: m.tex, bb: m.bb, hero: 0.58 * a }; },
     world(ctx, lt, t, view) { heroReset(view.S); },
     ui(ctx, lt, t, view) {

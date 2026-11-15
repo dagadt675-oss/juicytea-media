@@ -747,7 +747,7 @@ if __name__ == '__main__':
     if A.spec:
         S = json.load(open(A.spec)); only = set(A.only.split(',')) if A.only else None
         for R in S['regions']:
-            if R.get('legacy') or (only and R['name'] not in only): continue
+            if R.get('legacy') or R.get('patch') or (only and R['name'] not in only): continue   # patches: detail_bake.py
             bake(R, A.out, A.dl, A.keep)
     else:
         R = dict(name=A.name, bbox=[float(x) for x in A.bbox.split(',')], wh=[int(x) for x in A.wh.split(',')], bathy=A.bathy.split(','),

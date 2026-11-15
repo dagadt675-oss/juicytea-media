@@ -4,7 +4,8 @@ regions.json is what HawaiiStage.loadRegion('ep/ep02/data', name) and lab_region
 from the web root), files, bbox, size, pixel size, nesting stack, verification camera, purpose (script segments), sources, colour
 dates, sea-level facts measured on the baked grid, data gaps and sizes. Legacy regions (bigisland, hawaii_skirt) point at
 lab/hawaii/data and take their facts from its meta.json. A region baked with dated scenes ('dated' in the spec, meta 'variants') also
-gets one entry per date (e.g. lalo_2018_before), same grid and folder, its own heights and colour. Run after any bake
+gets one entry per date (e.g. lalo_2018_before), same grid and folder, its own heights and colour. Regions re-baked by
+lab/hawaii/tools/detail_bake.py carry 'res' (height and colour texel and source sizes, m) and 'detail'; a nested patch carries 'patch'. Run after any bake
 (rebuild_regions.sh does). Optional argument: another data folder (a test bake), whose regions.json is written there instead."""
 import json, os, sys, time
 HERE = os.path.dirname(os.path.abspath(__file__)); WWW = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
@@ -18,7 +19,7 @@ out = dict(about='ep02 terrain/seafloor regions for HawaiiStage.loadRegion(root,
 missing = []
 for R in spec['regions']:
     n = R['name']
-    e = {k: R[k] for k in ('bbox', 'wh', 'stack', 'purpose', 'view', 'film', 'gaps') if k in R}
+    e = {k: R[k] for k in ('bbox', 'wh', 'stack', 'purpose', 'view', 'film', 'gaps', 'patch') if k in R}
     if R.get('legacy'):
         e.update(dir='/' + R['dir'], files=R['files'], hmin=-8000.0, hrange=17000.0, rebuild=R.get('rebuild'))
         lm = os.path.join(WWW, R['dir'], 'meta.json')
@@ -42,7 +43,7 @@ for R in spec['regions']:
                  colour={k: (v if k != 'modis' else f'{len(v)} MODIS Terra/Aqua days') for k, v in m.get('colour', {}).items()},
                  facts=m['facts'], bytes=m['bytes'], bake_s=m.get('bake_s'), baked=m.get('baked'))
         e['bbox'], e['wh'] = m['bbox'], m['wh']
-        for k in ('ao',):
+        for k in ('ao', 'res', 'detail'):   # detail_bake.py: close-up re-bake or nested patch (resolutions, imagery, lidar)
             if k in m: e[k] = m[k]
     out['regions'][n] = e
     for vn, v in (m.get('variants', {}) if not R.get('legacy') else {}).items():  # dated scenes of this grid as regions of their own

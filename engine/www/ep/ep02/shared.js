@@ -91,7 +91,9 @@ export function valAt(v, lt, d = 0) {
 // ============================================================================================ the shared grade
 // ONE look for every stage (display space, after each stage's own tonemap): navy lift (never pure black), cool shadows,
 // slightly warm highlights, vignette, frame-seeded grain. Stage posts run with vignette 0 / grain 0 so nothing is applied twice.
-export const GRADE = { exposure: 1.0, contrast: 1.0, sat: 1.0, lift: [0.006, 0.010, 0.022], shadow: [0.97, 1.0, 1.04], high: [1.012, 1.0, 0.985], vignette: 0.2, grain: 0.012 };
+// sharp: contrast-adaptive sharpening of the world picture before the grade (0 off, 1 strongest), clamped to each pixel's 4-neighbour
+// min/max so it never overshoots an edge (no halos); the UI is drawn after the grade and never sharpened
+export const GRADE = { exposure: 1.0, contrast: 1.0, sat: 1.0, lift: [0.006, 0.010, 0.022], shadow: [0.97, 1.0, 1.04], high: [1.012, 1.0, 0.985], vignette: 0.2, grain: 0.012, sharp: 0.5 };
 // Masked terrain looks (need the stage's class mask: sky 0, water .25, drained seabed .5, today's land 1). 'noocean' is the
 // NO OCEAN thumbnail grade (packaging fix_noocean cand_2, build.py) ported to the shader: saturated rainforest green and rust on
 // the cap, darker cool slate flank, deeper blue sky top with a warm anti-solar belt. lc radius is in px at 1080p.
@@ -103,7 +105,7 @@ export const MLOOKS = {
 };
 const GRADE_FS = /* glsl */`
 uniform sampler2D src; uniform vec2 res; uniform float seed;
-uniform float gExp, gContrast, gSat, gVig, gGrain; uniform vec3 gLift, gShadow, gHigh;
+uniform float gExp, gContrast, gSat, gVig, gGrain, gSharp; uniform vec3 gLift, gShadow, gHigh;
 uniform float mAmt, hz; uniform vec4 cP1, cP2; uniform float cVib, cSmax, cExp; uniform vec3 cSh, cShT; uniform vec2 cLC;
 uniform float fExp, fSat; uniform vec3 fWarm, fBurn; uniform vec2 fFar; uniform float fhSat; uniform vec3 fhWarm;
 uniform float sExp; uniform vec3 sTop; uniform vec2 sGrad; uniform vec3 bCol; uniform vec4 bPar;
@@ -121,6 +123,16 @@ vec3 tone(vec3 a, float ex, vec3 warm, float sat){ a *= ex; a *= warm; float l =
 float h12(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 void main(){
   vec4 s0 = texture2D(src, vUv); vec3 a = s0.rgb, c = a;
+  if (gSharp > 0.001) {
+    // contrast-adaptive sharpening (after AMD CAS): weaker where the local range is already high or near clipping; the result is
+    // clamped to the 4-neighbour min/max, so an edge never gets a bright or dark rim (no halos)
+    vec2 px = 1.0 / res;
+    vec3 n1 = textureLod(src, vUv + vec2(0.0, px.y), 0.0).rgb, n2 = textureLod(src, vUv - vec2(0.0, px.y), 0.0).rgb;
+    vec3 n3 = textureLod(src, vUv + vec2(px.x, 0.0), 0.0).rgb, n4 = textureLod(src, vUv - vec2(px.x, 0.0), 0.0).rgb;
+    vec3 mn = min(a, min(min(n1, n2), min(n3, n4))), mx = max(a, max(max(n1, n2), max(n3, n4)));
+    vec3 w = -sqrt(clamp(min(mn, 1.0 - mx) / max(mx, vec3(1e-4)), 0.0, 1.0)) * 0.2 * gSharp;
+    a = clamp((a + (n1 + n2 + n3 + n4) * w) / (1.0 + 4.0 * w), mn, mx); c = a;
+  }
   float y = 1.0 - vUv.y, x = vUv.x;
   if (mAmt > 0.001) {
     float A = s0.a;
@@ -170,7 +182,7 @@ class GradePass {
     const v3 = (a) => new THREE.Vector3(...a), v4 = (a) => new THREE.Vector4(...a), v2 = (a) => new THREE.Vector2(...a);
     this.u = {
       src: { value: null }, res: { value: v2([W, H]) }, seed: { value: 0 },
-      gExp: { value: 1 }, gContrast: { value: 1 }, gSat: { value: 1 }, gVig: { value: 0.2 }, gGrain: { value: 0.012 }, gLift: { value: v3([0, 0, 0]) }, gShadow: { value: v3([1, 1, 1]) }, gHigh: { value: v3([1, 1, 1]) },
+      gExp: { value: 1 }, gContrast: { value: 1 }, gSat: { value: 1 }, gVig: { value: 0.2 }, gGrain: { value: 0.012 }, gSharp: { value: 0 }, gLift: { value: v3([0, 0, 0]) }, gShadow: { value: v3([1, 1, 1]) }, gHigh: { value: v3([1, 1, 1]) },
       mAmt: { value: 0 }, hz: { value: 0.28 }, cP1: { value: v4([0, 0, 0, 0]) }, cP2: { value: v4([0, 0, 0, 0]) }, cVib: { value: 0 }, cSmax: { value: 1 }, cExp: { value: 1 }, cSh: { value: v3([0, 0, 0]) }, cShT: { value: v3([1, 1, 1]) }, cLC: { value: v2([0, 0]) },
       fExp: { value: 1 }, fSat: { value: 1 }, fWarm: { value: v3([1, 1, 1]) }, fBurn: { value: v3([0, 1, 0]) }, fFar: { value: v2([0.15, 0]) }, fhSat: { value: 1 }, fhWarm: { value: v3([1, 1, 1]) },
       sExp: { value: 1 }, sTop: { value: v3([0, 0, 0]) }, sGrad: { value: v2([0, 1]) }, bCol: { value: v3([0, 0, 0]) }, bPar: { value: v4([0, 1, 0.2, 0]) },
@@ -182,7 +194,7 @@ class GradePass {
   // g: grade overrides (keys of GRADE); m: {look: 'noocean'|object, amt, hz}
   set(g = {}, m = {}, frame = 0) {
     const G = Object.assign({}, GRADE, g), u = this.u;
-    u.gExp.value = G.exposure; u.gContrast.value = G.contrast; u.gSat.value = G.sat; u.gVig.value = G.vignette; u.gGrain.value = G.grain;
+    u.gExp.value = G.exposure; u.gContrast.value = G.contrast; u.gSat.value = G.sat; u.gVig.value = G.vignette; u.gGrain.value = G.grain; u.gSharp.value = G.sharp ?? 0;
     u.gLift.value.set(...G.lift); u.gShadow.value.set(...G.shadow); u.gHigh.value.set(...G.high); u.seed.value = (frame * 0.6180339) % 1 * 100;
     const L = typeof m.look === 'string' ? MLOOKS[m.look] : m.look;
     u.mAmt.value = L ? clamp(m.amt ?? 1) : 0; u.hz.value = m.hz ?? 0.28;
@@ -219,6 +231,7 @@ export function gradeCanvas(cv, g = {}) {
 
 // ============================================================================================ the hub: one renderer, lazy stages
 export class Hub {
+  get crisp() { return this.crispAB ? this.nFrames % 2 === 1 : this._crisp; }
   constructor(api) {
     this.api = api; const W = this.W = api.W, H = this.H = api.H;
     this.R = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true, alpha: false });
@@ -226,6 +239,11 @@ export class Hub {
     this.rtOut = new THREE.WebGLRenderTarget(W, H, { type: THREE.UnsignedByteType, depthBuffer: false, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter, magFilter: THREE.LinearFilter, colorSpace: THREE.NoColorSpace });
     this.grade = new GradePass(W, H);
     this.cache = new Map(); this.perf = {}; this.frame = 0; this.draft = !!api.Q?.draft;
+    // close-up quality (bicubic normals and colour, detail texturing, anisotropic filtering, sharpening) is on in every shot;
+    // {"crisp":0} renders the film as before it (A/B stills, cost checks)
+    this._crisp = api.Q?.crisp !== 0;
+    // {"crispAB":1}: cost check only, alternate on/off frame by frame in one page (both halves see the same machine load)
+    this.crispAB = !!api.Q?.crispAB; this.nFrames = 0;
     // Q.perf: sync the GPU after each stage so per-stage times are real (costs a pipeline stall; measurement only)
     if (api.Q?.perf) { const gl = this.R.getContext(), px1 = new Uint8Array(4); this.sync = () => gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px1); }
   }
@@ -237,7 +255,7 @@ export class Hub {
     renderInto(this.rtOut);
     if (this.sync) this.sync();
     const t1 = performance.now();
-    this.grade.set(grade, mlook, this.frame);
+    this.grade.set(this.crisp ? grade : Object.assign({}, grade, { sharp: 0 }), mlook, this.frame);
     this.grade.run(this.R, this.rtOut);
     ctx.drawImage(this.R.domElement, 0, 0);
     if (this.sync) { this.sync(); this.perf['grade+copy'] = (this.perf['grade+copy'] || 0) + performance.now() - t1; }
@@ -252,7 +270,7 @@ export class Hub {
     if (!R && !stacked) { if (!this._warned?.[region]) { (this._warned ||= {})[region] = 1; this.api.log(`[hub] region '${region}' not loadable yet, using 'bigisland'`); } return this.terrain('bigisland', vex); }
     return this.stage('terrain:' + region + ':' + vex + ':' + JSON.stringify(o), async (renderer) => {
       const d = this.draft;
-      const S = new HawaiiStage(this.W, this.H, { renderer, samples: d ? 0 : 4, vex, origin: o.origin ?? R?.origin ?? idx?.origin, heroGrid: d ? [700, 700] : undefined, skirtGrid: d ? [450, 340] : undefined,
+      const S = new HawaiiStage(this.W, this.H, { renderer, samples: d ? 0 : 4, vex, crisp: this._crisp, origin: o.origin ?? R?.origin ?? idx?.origin, heroGrid: d ? [700, 700] : undefined, skirtGrid: d ? [450, 340] : undefined,
         midGrid: d ? undefined : o.midGrid });
       if (stacked) await S.loadRegion('/ep/ep02/data', region); else await S.load(R.dir);
       S.region = region; return S;
@@ -306,14 +324,20 @@ export const SEABED = { reef: [0.074, 0.066, 0.058] };
 // far water about RGB 97,153,181), never the saturated navy that reads as a 'blue' clone frame
 export const WATER_FILM = [[0.020, 0.40, 0.42], [0.012, 0.16, 0.20], [0.016, 0.092, 0.125]];
 export const TERRAIN_DEFAULTS = {
-  look: 'gold', sun: [230, 15], water: 'film', level: 0, fog: [0.0028, 0.00012, 6.0],
+  // haze: [from km, to km, amount] extra aerial haze beyond the close-up zone (off; e.g. [3, 12, 0.3] for a ground-level shot whose far
+  // plain is coarse satellite colour next to crisp near ground)
+  look: 'gold', sun: [230, 15], water: 'film', level: 0, fog: [0.0028, 0.00012, 6.0], haze: [0, 0, 0],
   set: { foamAmt: 0, tubAmt: 0, oldLine: 0, ringH: 40, tubM: 90, lineW: 2.2, landSat: 1.2, landGain: 1.15, reefAmt: 0.85, detail: 1.0, foamPx: 2.5, foamM: 2.0,
     edgeGlow: 0.6, fresMax: 0.55, seaRelief: 1.0, shadows: 1, dbg: 0, basaltCol: [0.030, 0.032, 0.038], sedCol: [0.046, 0.045, 0.044], reefCol: SEABED.reef,
     tubCol: [0.42, 0.42, 0.40], lineCol: [0.55, 1.6, 1.9], heroAmt: 0, dimAmt: 0,
     // 2026-11-09 review: one depth-coded seabed (reef flat 0 to -150 m, grey sediment, dark slate basalt), turquoise only in the first
     // ~10 m of water and deep blue by ~60 m, wave normals and a surf band; capBB/heroPass/lineFar off unless a shot sets them
     seaMat: 1, nearAmt: 0, landLift: 0, capBB: [-1e4, -1e4, 1e4, 1e4], heroPass: 0, lineFar: [1e5, 2e5],
-    wRamp: [2, 12, 25, 160], waveAmt: 1, glintAmt: 0.12, surfAmt: 0.6 },
+    wRamp: [2, 12, 25, 160], waveAmt: 1, glintAmt: 0.12, surfAmt: 0.6,
+    // close-up quality (2026-11-09, owner: close terrain looked blurry and pixelated): crisp = bicubic normals (float32 heights), AO
+    // and Catmull-Rom colour where texels are magnified; detAmt = detail texturing (canopy, rock, soil) faded in where the colour map
+    // is magnified and the camera is within detFar km; detRel = detail relief; colBias = colour mip bias (0: three's default)
+    crisp: 1, detAmt: 1, detRel: 1, detFar: [6, 16], colBias: 0, colSharp: 0.6 },
   post: { exposure: 1.2, sat: 1.2, contrast: 1.1, lift: 0 },
 };
 export const LINE = { cream: [1.15, 1.1, 1.0], cyan: [0.55, 1.6, 1.9], white: [1.3, 1.32, 1.32] };
@@ -500,6 +524,7 @@ function applyTerrain(S, st) {
   for (const [k, v] of Object.entries(st.post)) S.post(k, v);
   S.post('vignette', 0); S.post('grain', 0); S.post('keepA', 1);
   S.U.fogDens.value = st.fog[0]; S.U.fogBg.value = st.fog[1]; S.U.fogH.value = st.fog[2] ?? 6.0;
+  if (S.U.hazeFar) S.U.hazeFar.value.set(...(st.haze || [0, 0, 0]));
 }
 function mergeState(...parts) {
   const o = { set: {}, post: {} };
@@ -566,6 +591,9 @@ export function terrainShot(kit, spec) {
       if (spec.level != null) st.level = valAt(spec.level, lt);
       if (spec.sun) st.sun = typeof spec.sun === 'function' ? spec.sun(lt) : spec.sun;
       if (spec.exposure != null) st.post.exposure = valAt(spec.exposure, lt);
+      if (!kit.hub.crisp) Object.assign(st.set, { crisp: 0, detAmt: 0, colBias: 0, colSharp: 0 });
+      if (api.Q.haze) st.haze = api.Q.haze;                               // test flag: {"haze":[3,12,0.3]} on every terrain shot
+      if (api.Q.set) Object.assign(st.set, api.Q.set);                    // test flag: {"set":{"detAmt":0}} on every terrain shot
       applyTerrain(S, st);
       const mk = spec.mask ? spec.mask(lt, S) : null;
       if (mk) { S.setMask(mk.tex, mk.bb); S.set('heroAmt', mk.hero ?? 0); S.set('dimAmt', mk.dim ?? 0); S.set('heroPass', mk.pass ?? 0); } else S.setMask(null);
@@ -1297,7 +1325,7 @@ export async function setup(api) {
   return kit;
 }
 // frame hooks for edit.js: a layer -1000 scene resets per-frame QC; post() logs QC + per-stage timings
-export function frameStart(kit) { return { id: 'frame-start', t0: 0, t1: 1e9, layer: -1000, draw: (ctx, lt, t) => { kit.hub.frame = Math.round(t * kit.api.FPS); kit.hub.perf = {}; kit.ui.begin(); kit._t0 = performance.now(); } }; }
+export function frameStart(kit) { return { id: 'frame-start', t0: 0, t1: 1e9, layer: -1000, draw: (ctx, lt, t) => { kit.hub.frame = Math.round(t * kit.api.FPS); kit.hub.nFrames++; kit.hub.perf = {}; kit.ui.begin(); kit._t0 = performance.now(); } }; }
 export function frameEnd(kit, f) {
   const r = kit.ui.report(f), ms = performance.now() - (kit._t0 || performance.now());
   const perf = Object.entries(kit.hub.perf).map(([k, v]) => `${k}=${v.toFixed(0)}`).join(' ');

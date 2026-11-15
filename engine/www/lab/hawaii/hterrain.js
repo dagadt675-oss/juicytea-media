@@ -19,6 +19,13 @@
 //    lineFar: the old-coast line and bathtub ring fade out between these distances (km); seaMat 1: one depth-coded seabed
 //    (reef flat 0 to -150 m, grey sediment, dark slate basalt deep and on steep flanks); nearAmt: near-field seabed detail;
 //    water wRamp (shallow->mid->deep depths in m), waveAmt (wave normals), glintAmt, surfAmt (broken surf band offshore).
+//  - (2026-11-09, close-up quality; o.crisp loads what it needs, uniforms default off) crisp: bicubic B-spline normals from float32
+//    heights (texelFetch; no bilinear creases, no half-float terraces), B-spline AO and Catmull-Rom colour where texels are magnified;
+//    colSharp: texture-space unsharp mask of the colour at about 3 texels; detAmt: tiling procedural detail (detailTextures(): canopy,
+//    rock, soil; world metres from a 4 km camera anchor, mipmapped and anisotropic) chosen per pixel from the colour, slope and height,
+//    faded in where the colour map is magnified (cMag) within detFar km, each octave faded out once the imagery resolves its scale
+//    (colRes: the colour's source resolution, res.colour_src_m); detail normals lit by the stage sun and a little detail AO;
+//    hazeFar (U): extra aerial haze beyond the close-up zone.
 // Any region: loadRegion(root, name) (or load() on a region folder) reads <root>/regions.json (lab/hawaii/tools/region_bake.py) and
 // stacks 1-3 nested layers, finest first; the legacy two-layer folder renders pixel-identically to before (lab/hawaii/README.md, Regions).
 import * as THREE from 'three';
@@ -28,7 +35,7 @@ export const R_EARTH = 6371.0, KM_DEG = 111.32;
 const COMMON = /* glsl */`
 uniform vec3 camPos; uniform vec3 sunDir; uniform float horizonDip;
 uniform vec3 zenithCol, horizonCol, hazeCol, sunCol, glowCol;
-uniform float fogDens, fogH, fogBg, fogBase;
+uniform float fogDens, fogH, fogBg, fogBase; uniform vec3 hazeFar;
 vec3 skyColor(vec3 d){
   float y = clamp(d.y + horizonDip, 0.0, 1.0);
   vec3 c = mix(horizonCol, zenithCol, pow(y, 0.45));
@@ -47,6 +54,9 @@ vec3 aerial(vec3 col, vec3 wp, out float T){
   float od = abs(dy) < 1e-3 ? fogDens * exp(-y0 / fogH) * dist : fogDens * dist * fogH * (exp(-y0 / fogH) - exp(-y1 / fogH)) / dy;
   od += fogBg * dist;
   T = exp(-od);
+  // hazeFar (x, y km, z amount; default off): extra aerial haze that sets in beyond the close-up zone, so far ground whose colour
+  // map is coarser than the screen reads as distance, not as a soft texture, next to crisp near ground
+  if (hazeFar.z > 0.0) T *= 1.0 - hazeFar.z * smoothstep(hazeFar.x, hazeFar.y, dist);
   return col * T + inscatter(d) * (1.0 - T);
 }
 float hash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
@@ -81,10 +91,13 @@ float sunVis(vec2 ll, float h0){
 `;
 
 const TERRAIN_VS = /* glsl */`
-uniform vec3 camPos; uniform vec4 hole; uniform float holeDrop; uniform vec4 bb;
-varying vec2 vUv; varying vec3 vW;
+uniform vec3 camPos; uniform vec4 hole; uniform float holeDrop; uniform vec4 bb; uniform vec2 detAnchor;
+varying vec2 vUv; varying vec3 vW; varying vec2 vD;
 void main(){
   vUv = uv; vec3 p = position;
+  // detail-texture coordinates: metres from an anchor snapped to 4 km near the camera (exact in float32, a whole number of tiles of
+  // every detail octave, so the pattern never moves when the anchor steps), kept small for float precision anywhere on a stage
+  vD = (position.xz - detAnchor) * 1000.0;
   vec2 ll = bb.xy + uv * (bb.zw - bb.xy);
   if (holeDrop > 0.0 && ll.x > hole.x && ll.x < hole.z && ll.y > hole.y && ll.y < hole.w) p.y -= holeDrop;
   vec2 d = p.xz - camPos.xz; p.y -= dot(d, d) / (2.0 * ${R_EARTH.toFixed(1)});
@@ -101,8 +114,52 @@ uniform vec3 basaltCol, sedCol, reefCol, tubCol, lineCol;
 uniform float reefAmt, tubM, tubAmt, oldLine, lineW, detail;
 uniform sampler2D maskTex; uniform vec4 maskBB; uniform float maskOn, heroAmt, dimAmt; uniform vec3 heroCol;
 uniform vec4 clipN, capBB; uniform float heroPass, seaMat, nearAmt, landLift; uniform vec2 lineFar;
-varying vec2 vUv; varying vec3 vW;
+uniform sampler2D hTexF, dVeg, dRock, dSoil; uniform float crisp, colBias, colSharp, detAmt, detRel, colRes; uniform vec2 detFar;
+varying vec2 vUv; varying vec3 vW; varying vec2 vD;
 float Hm(vec2 uv){ return texture2D(hTex, uv).r; }
+// ---- close-up quality (crisp, detAmt; all off by default, the ep02 toolkit turns them on) ----
+// B-spline bicubic height with its analytic gradient from a 4x4 texelFetch of the float32 heights: (h, dh/di, dh/dj) in metres per
+// texel. C2 heights, C1 normals: no bilinear grid creases or half-float terraces in the shading of a magnified DEM.
+vec3 hGradB(vec2 uv){
+  ivec2 sz = textureSize(hTexF, 0); vec2 st = uv * vec2(sz) - 0.5, i = floor(st), f = st - i, f2 = f * f, f3 = f2 * f, g = 1.0 - f;
+  vec4 wx = vec4(g.x * g.x * g.x, 3.0 * f3.x - 6.0 * f2.x + 4.0, -3.0 * f3.x + 3.0 * f2.x + 3.0 * f.x + 1.0, f3.x) / 6.0;
+  vec4 wy = vec4(g.y * g.y * g.y, 3.0 * f3.y - 6.0 * f2.y + 4.0, -3.0 * f3.y + 3.0 * f2.y + 3.0 * f.y + 1.0, f3.y) / 6.0;
+  vec4 dx = vec4(-0.5 * g.x * g.x, 1.5 * f2.x - 2.0 * f.x, -1.5 * f2.x + f.x + 0.5, 0.5 * f2.x);
+  vec4 dy = vec4(-0.5 * g.y * g.y, 1.5 * f2.y - 2.0 * f.y, -1.5 * f2.y + f.y + 0.5, 0.5 * f2.y);
+  vec3 r = vec3(0.0); ivec2 b = ivec2(i) - 1, mx = sz - 1;
+  for (int y = 0; y < 4; y++) for (int x = 0; x < 4; x++) {
+    float v = texelFetch(hTexF, clamp(b + ivec2(x, y), ivec2(0), mx), 0).r;
+    r += v * vec3(wx[x] * wy[y], dx[x] * wy[y], wx[x] * dy[y]);
+  }
+  return r;
+}
+// Catmull-Rom bicubic colour in 9 bilinear taps (sharper than bilinear, no texel grid); for magnified colour texels only
+vec3 texCR(sampler2D t, vec2 uv){
+  vec2 sz = vec2(textureSize(t, 0)), sp = uv * sz, t1 = floor(sp - 0.5) + 0.5, f = sp - t1;
+  vec2 w0 = f * (-0.5 + f * (1.0 - 0.5 * f)), w1 = 1.0 + f * f * (-2.5 + 1.5 * f), w2 = f * (0.5 + f * (2.0 - 1.5 * f)), w3 = f * f * (-0.5 + 0.5 * f);
+  vec2 w12 = w1 + w2, a = (t1 - 1.0) / sz, c = (t1 + 2.0) / sz, m = (t1 + w2 / w12) / sz;
+  vec3 r = (textureLod(t, vec2(a.x, a.y), 0.0).rgb * w0.x + textureLod(t, vec2(m.x, a.y), 0.0).rgb * w12.x + textureLod(t, vec2(c.x, a.y), 0.0).rgb * w3.x) * w0.y
+         + (textureLod(t, vec2(a.x, m.y), 0.0).rgb * w0.x + textureLod(t, vec2(m.x, m.y), 0.0).rgb * w12.x + textureLod(t, vec2(c.x, m.y), 0.0).rgb * w3.x) * w12.y
+         + (textureLod(t, vec2(a.x, c.y), 0.0).rgb * w0.x + textureLod(t, vec2(m.x, c.y), 0.0).rgb * w12.x + textureLod(t, vec2(c.x, c.y), 0.0).rgb * w3.x) * w3.y;
+  return max(r, 0.0);
+}
+// B-spline bicubic of one channel in 4 bilinear taps (smooth, for the AO of a magnified DEM)
+float texBS(sampler2D t, vec2 uv){
+  vec2 sz = vec2(textureSize(t, 0)), st = uv * sz - 0.5, i = floor(st), f = st - i, g = 1.0 - f;
+  vec2 w0 = g * g * g / 6.0, w1 = (3.0 * f * f * f - 6.0 * f * f + 4.0) / 6.0, w2 = (-3.0 * f * f * f + 3.0 * f * f + 3.0 * f + 1.0) / 6.0, w3 = f * f * f / 6.0;
+  vec2 g0 = w0 + w1, g1 = w2 + w3, h0 = (i - 0.5 + w1 / g0) / sz, h1 = (i + 1.5 + w3 / g1) / sz;
+  return g0.y * (g0.x * textureLod(t, h0, 0.0).r + g1.x * textureLod(t, vec2(h1.x, h0.y), 0.0).r)
+       + g1.y * (g0.x * textureLod(t, vec2(h0.x, h1.y), 0.0).r + g1.x * textureLod(t, h1, 0.0).r);
+}
+// one octave of a tiling detail texture (detailTextures(): R height, GB slope, A tint/crack) at p metres, tile T m, turned 90 degrees
+// (r) and offset (o) to break up the octaves: (h - 0.5, dh/dx, dh/dz per metre, a - 0.5). Mipmapped and anisotropic: no shimmer.
+// weight of a detail octave whose features are F metres where the colour map resolves res metres: none once the imagery shows them
+float octW(float F, float res){ return 1.0 - smoothstep(1.2, 3.0, F / res); }
+vec4 dTap(sampler2D t, vec2 p, float T, float r, vec2 o){
+  vec4 s = texture2D(t, (r > 0.5 ? vec2(p.y, -p.x) : p) / T + o);
+  vec2 g = (s.gb - 0.5) * 128.0 / T;
+  return vec4(s.r - 0.5, r > 0.5 ? vec2(-g.y, g.x) : g, s.a - 0.5);
+}
 vec3 seabed(float h, float slope, float cav, vec2 ll, float pf){
   float dep = -h;
   float n = fbm(ll * 6.0), n2 = fbmL(ll + 3.0, 33.0, pf), n3 = fbmL(ll + n * 0.02, 170.0, pf);
@@ -137,6 +194,13 @@ void main(){
   float hl = Hm(vUv - vec2(fp.x, 0.0)), hr = Hm(vUv + vec2(fp.x, 0.0)), hd = Hm(vUv - vec2(0.0, fp.y)), hu = Hm(vUv + vec2(0.0, fp.y));
   float dxk = (bb.z - bb.x) * fp.x * ${KM_DEG} * cos(lat), dyk = (bb.w - bb.y) * fp.y * ${KM_DEG};
   float gx = (hr - hl) * vex * 0.001 / (2.0 * dxk), gy = (hu - hd) * vex * 0.001 / (2.0 * dyk);
+  // crisp: where a height texel spans more than about a pixel, the gradient of the bicubic surface (smooth normals, no texel grid)
+  vec2 tpx = texel / max(fwidth(vUv), vec2(1e-9));
+  float kB = crisp * smoothstep(0.75, 1.5, min(tpx.x, tpx.y));
+  if (kB > 0.0) {
+    vec3 hg = hGradB(vUv); float ex = (bb.z - bb.x) * texel.x * ${KM_DEG} * cos(lat), ey = (bb.w - bb.y) * texel.y * ${KM_DEG};
+    gx = mix(gx, hg.y * vex * 0.001 / ex, kB); gy = mix(gy, hg.z * vex * 0.001 / ey, kB);
+  }
   float rk = mix(seaRelief, 1.0, smoothstep(-40.0, 0.0, h));
   // procedural micro-relief on the seabed (sonar grids are 100-450 m; this keeps close flanks from looking like plastic)
   float sub = 1.0 - smoothstep(-30.0, 10.0, h);
@@ -164,11 +228,73 @@ void main(){
   vec3 n = normalize(vec3(-gx * rk + dn.x + dn2.x - pg.x, 1.0, gy * rk - dn.y - dn2.y + pg.y));
   float cav = clamp((hl + hr + hd + hu - 4.0 * h) / max(fp.x * 4096.0, 1.0) / 90.0, -0.25, 0.25);
   float ao = texture2D(aoTex, vUv).r;
+  if (kB > 0.0) ao = mix(ao, texBS(aoTex, vUv), kB);
   float shadow = shadows > 0.5 ? sunVis(ll, h) : 1.0;
-  vec3 land = texture2D(colTex, vUv).rgb; float l0 = dot(land, vec3(0.2126, 0.7152, 0.0722)); land = max(mix(vec3(l0), land, landSat), 0.0) * landGain * (0.86 + 0.20 * fbmL(ll, 520.0, pf) + 0.10 * (fbmL(ll, 2100.0, pf) - 0.5));
+  vec3 land = colBias != 0.0 ? texture2D(colTex, vUv, colBias).rgb : texture2D(colTex, vUv).rgb;
+  // colour texels per screen pixel (cMag > 1: the colour map is magnified and soft); crisp: Catmull-Rom instead of bilinear there
+  vec2 cpx = 1.0 / (vec2(textureSize(colTex, 0)) * max(fwidth(vUv), vec2(1e-9)));
+  // cMag uses the more magnified axis: at grazing angles the map is minified along the view but still soft across it
+  float cMag = max(cpx.x, cpx.y), kC = crisp * smoothstep(1.0, 2.0, min(cpx.x, cpx.y));
+  float fadeD = 1.0 - smoothstep(detFar.x, detFar.y, length(vW - camPos));
+  if (kC > 0.0) {
+    land = mix(land, texCR(colTex, vUv), kC);
+    // colSharp: unsharp mask in texture space at about 3 texels (the 30 m satellite pixels baked into a 10 m grid), limited to
+    // +-30 % of the colour so a bright patch never gets a dark rim; stable in motion (it moves with the ground, not the screen)
+    float kS = colSharp * kC * fadeD;
+    if (kS > 0.0) { vec3 bl = textureLod(colTex, vUv, 1.6).rgb; land = max(land + clamp((land - bl) * kS, -0.3 * land, 0.3 * land), 0.0); }
+  }
+  float l0 = dot(land, vec3(0.2126, 0.7152, 0.0722)); land = max(mix(vec3(l0), land, landSat), 0.0) * landGain * (0.86 + 0.20 * fbmL(ll, 520.0, pf) + 0.10 * (fbmL(ll, 2100.0, pf) - 0.5));
   // landLift: baked-in topographic shadow (black texels in a satellite composite) lifted to a rock grey; real shade comes from the sun
   if (landLift > 0.0) { float ld = dot(land, vec3(0.2126, 0.7152, 0.0722)); land = mix(land, max(land, vec3(landLift) * vec3(1.0, 0.97, 0.92)), 1.0 - smoothstep(landLift * 0.4, landLift * 1.4, ld)); }
   vec3 alb = mix(seabed(h, slope, cav, ll, pf) * mix(1.0, 0.70 + 0.55 * rid, steep) * (0.82 + 0.36 * nearV), land, smoothstep(-6.0, 4.0, h));
+  // detail texturing (detAmt): where the colour map is magnified (cMag > 1) and the camera is close (detFar, km), tiling high-frequency
+  // detail in world metres: forest canopy, rock / lava, fine soil and sand, chosen per pixel from the colour (excess green, brightness),
+  // the slope and the height; albedo modulated about 1 (the colour map's mean is kept, so far views do not change) and detail normals
+  // lit by the stage sun, with a little detail AO
+  float kD = detAmt * smoothstep(1.0, 3.0, cMag) * fadeD;
+  if (kD > 0.002) {
+    float onL = smoothstep(-6.0, 4.0, h), s3 = land.r + land.g + land.b + 1e-4, lL = dot(land, vec3(0.2126, 0.7152, 0.0722));
+    float exg = (2.0 * land.g - land.r - land.b) / s3, chr = (max(land.r, max(land.g, land.b)) - min(land.r, min(land.g, land.b))) / (max(land.r, max(land.g, land.b)) + 1e-4);
+    // vegetation = green dominant (not just excess green, which also takes yellow-ochre cinder and dry grass)
+    float gdm = (land.g - max(land.r, land.b)) / s3;
+    float wV = smoothstep(0.02, 0.10, gdm) * smoothstep(0.02, 0.10, exg) * (1.0 - smoothstep(1.4, 2.2, slope));
+    float wS = (1.0 - wV) * smoothstep(0.09, 0.2, lL) * (1.0 - smoothstep(6.0, 20.0, h)) * (1.0 - smoothstep(0.08, 0.25, slope));
+    float rkL = max(smoothstep(0.3, 0.75, slope), 1.0 - smoothstep(0.025, 0.07, lL));
+    float snow = smoothstep(0.28, 0.5, lL) * (1.0 - smoothstep(0.08, 0.2, chr));
+    vec3 W = vec3(wV, (1.0 - wV - wS) * rkL, (1.0 - wV - wS) * (1.0 - rkL) + wS);
+    float rkS = 0.5 * smoothstep(0.035, 0.11, slope);
+    W = mix(vec3(0.0, rkS, 1.0 - rkS), W, onL);
+    float amp = kD * (1.0 - 0.75 * snow) * mix(0.5, 1.0, onL);
+    // the colour map's real resolution (m): its texel, or the coarser source imagery baked into it (colRes: HLS 30 m, NAIP 0.6 m)
+    float res = max(colRes, (bb.z - bb.x) * ${(KM_DEG * 1000).toFixed(1)} * cos(lat) / float(textureSize(colTex, 0).x));
+    vec3 mod3 = vec3(1.0); vec2 G = vec2(0.0); float Hd = 0.0;
+    if (W.x > 0.01) {   // canopy: crowns about 6 m (62.5 m tile), clumps about 25 m, leaves and shrubs about 1.5 m
+      vec4 a = dTap(dVeg, vD, 62.5, 0.0, vec2(0.0)), b = dTap(dVeg, vD, 250.0, 1.0, vec2(0.37, 0.71)), c = dTap(dVeg, vD, 15.625, 1.0, vec2(0.13, 0.52));
+      a *= octW(6.0, res); b *= octW(25.0, res); c *= octW(1.5, res);
+      a *= 0.45 + 1.1 * clamp(b.x + 0.5, 0.0, 1.0);   // rougher canopy in the clumps, smoother between them (no even 'moss')
+      float hv = a.x + 0.8 * b.x + 0.25 * c.x;
+      vec3 m = vec3(clamp(1.0 + 1.0 * hv, 0.3, 1.45)) * (1.0 + a.w * vec3(0.26, 0.14, -0.34) + b.w * vec3(0.18, 0.10, -0.16));
+      mod3 += W.x * (m - 1.0); G += W.x * (2.8 * a.yz + 7.0 * b.yz + 0.35 * c.yz); Hd += W.x * hv;
+    }
+    if (W.y > 0.01) {   // rock and lava: ridged blocks about 3 m (31.25 m tile), outcrops about 12 m, cracks and grit
+      vec4 a = dTap(dRock, vD, 31.25, 0.0, vec2(0.0)), b = dTap(dRock, vD, 125.0, 1.0, vec2(0.61, 0.23)), c = dTap(dRock, vD, 7.8125, 1.0, vec2(0.29, 0.83));
+      a *= octW(5.0, res); b *= octW(20.0, res); c *= octW(1.2, res);
+      float hr2 = a.x + 0.6 * b.x + 0.4 * c.x;
+      vec3 m = vec3(clamp(1.0 + 0.8 * hr2 + 0.35 * a.w, 0.4, 1.5));
+      mod3 += W.y * (m - 1.0); G += W.y * (1.6 * a.yz + 4.5 * b.yz + 0.3 * c.yz); Hd += W.y * hr2;
+    }
+    if (W.z > 0.01) {   // soil, grass, sand: fine relief about 1 m (10 m tile), 4 m swells, pebbles and grit
+      vec4 a = dTap(dSoil, vD, 10.0, 0.0, vec2(0.0)), b = dTap(dSoil, vD, 40.0, 1.0, vec2(0.47, 0.19)), c = dTap(dSoil, vD, 2.5, 1.0, vec2(0.71, 0.37));
+      vec4 e = dTap(dSoil, vD, 160.0, 1.0, vec2(0.83, 0.61));   // patches about 30-80 m: fields, scrub, yards (mid distance)
+      a *= octW(2.0, res); b *= octW(8.0, res); c *= octW(0.5, res); e *= octW(32.0, res);
+      float hs = a.x + 0.7 * b.x + 0.4 * c.x;
+      vec3 m = vec3(clamp(1.0 + 0.5 * hs + 0.3 * a.w + 0.55 * e.w + 0.3 * e.x, 0.55, 1.45)) * (1.0 + e.x * vec3(-0.10, 0.06, -0.05));
+      mod3 += W.z * (m - 1.0); G += W.z * (0.35 * a.yz + 0.9 * b.yz + 0.08 * c.yz + 1.2 * e.yz); Hd += W.z * hs * 0.5;
+    }
+    alb *= mix(vec3(1.0), mod3, amp);
+    n = normalize(n / max(n.y, 0.08) - vec3(G.x, 0.0, G.y) * vex * detRel * amp);
+    ao *= clamp(1.0 + 0.8 * Hd * amp, 0.55, 1.15);
+  }
   float exposed = step(h, -1.0) * step(level, h);
   float above = h - level;
   // bathtub ring: pale mineral crust in a band just below the former sea level, broken up by noise
@@ -335,6 +461,74 @@ export function heightTexture(hm) {
   const t = new THREE.DataTexture(half, hm.W, hm.H, THREE.RedFormat, THREE.HalfFloatType);
   t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true; return t;
 }
+// float32 heights for the crisp path's texelFetch (no filtering needed): half floats step 0.25-4 m at 256-8,000 m, which shows as
+// terraces in the shading of a magnified 10 m DEM. One per decoded grid (WeakMap on the cached grid object).
+const HF32 = new WeakMap();
+export function heightTexture32(hm) {
+  if (!HF32.has(hm)) {
+    const t = new THREE.DataTexture(hm.data, hm.W, hm.H, THREE.RedFormat, THREE.FloatType);
+    t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.generateMipmaps = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true;
+    HF32.set(hm, t);
+  }
+  return HF32.get(hm);
+}
+// Tiling detail textures for close-up terrain (procedural, generated here: no image files, no licences). Each N x N RGBA8, periodic,
+// mipmapped, anisotropic: R = height (mean 0.5), G/B = slope dh/du, dh/dv in tile units (0.5 + s / 128), A = a tint or crack channel
+// (mean 0.5). veg: tropical canopy (two sizes of crowns as domes with gaps, leaf noise; A = per-crown tint); rock: ridged blocks,
+// cracks along cell edges, grit (A = crack); soil: fbm swells, pebbles (A = colour noise). Deterministic (fixed seeds).
+let DETAIL = null;
+export function detailTextures(R, N = 512) {
+  if (DETAIL) return DETAIL;
+  const H = (x, y, s) => { let h = Math.imul(x, 0x27d4eb2d) ^ Math.imul(y + 0x9e37, 0x165667b1) ^ Math.imul(s + 0x51ed, 0x5bd1e995);
+    h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d); h = Math.imul(h ^ (h >>> 12), 0x297a2d39); h ^= h >>> 15; return (h >>> 0) / 4294967296; };
+  const wrap = (i, P) => ((i % P) + P) % P;
+  // periodic gradient noise (period P cells), about 0..1
+  const gn = (x, y, P, s) => { const xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi;
+    const g = (i, j, dx, dy) => { const a = H(wrap(i, P), wrap(j, P), s) * 6.2831853; return Math.cos(a) * dx + Math.sin(a) * dy; };
+    const u = fx * fx * fx * (fx * (fx * 6 - 15) + 10), v = fy * fy * fy * (fy * (fy * 6 - 15) + 10);
+    const a = g(xi, yi, fx, fy), b = g(xi + 1, yi, fx - 1, fy), c = g(xi, yi + 1, fx, fy - 1), d = g(xi + 1, yi + 1, fx - 1, fy - 1);
+    return 0.5 + 0.7 * (a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v); };
+  const fbm = (x, y, P, oct, s, ridge = false) => { let a = 1, t = 0, n = 0, f = 1;
+    for (let k = 0; k < oct; k++) { let v = gn(x * f, y * f, P * f, s + k * 101); if (ridge) { v = 1 - Math.abs(2 * v - 1); v *= v; } t += a * v; n += a; f *= 2; a *= 0.5; } return t / n; };
+  // periodic Worley over G cells, one jittered point per cell: calls fn(dist in cells, cell hash seed) for the 3x3 neighbours
+  const cells = (x, y, G, s, fn) => { const cx = Math.floor(x), cy = Math.floor(y);
+    for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) { const ii = wrap(cx + i, G), jj = wrap(cy + j, G);
+      const px = cx + i + 0.15 + 0.7 * H(ii, jj, s), py = cy + j + 0.15 + 0.7 * H(ii, jj, s + 7); fn(Math.hypot(x - px, y - py), ii * 977 + jj * 131 + s); } };
+  const make = (fill) => {
+    const h = new Float32Array(N * N), a = new Float32Array(N * N);
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const r = fill((i + 0.5) / N, (j + 0.5) / N); h[j * N + i] = r[0]; a[j * N + i] = r[1]; }
+    const mean = (v) => v.reduce((s, x) => s + x, 0) / v.length, mh = mean(h), ma = mean(a);
+    const d = new Uint8Array(N * N * 4), at = (x, y) => h[wrap(y, N) * N + wrap(x, N)];
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const k = j * N + i, sx = (at(i + 1, j) - at(i - 1, j)) * N / 2, sy = (at(i, j + 1) - at(i, j - 1)) * N / 2;
+      const q = (v) => Math.max(0, Math.min(255, Math.round(v * 255)));
+      d[k * 4] = q(h[k] - mh + 0.5); d[k * 4 + 1] = q(0.5 + sx / 128); d[k * 4 + 2] = q(0.5 + sy / 128); d[k * 4 + 3] = q(a[k] - ma + 0.5); }
+    const t = new THREE.DataTexture(d, N, N, THREE.RGBAFormat, THREE.UnsignedByteType);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true;
+    t.anisotropy = R ? R.capabilities.getMaxAnisotropy() : 8; t.colorSpace = THREE.NoColorSpace; t.needsUpdate = true; return t;
+  };
+  const veg = make((u, v) => {   // emergent crowns (5 per tile, 45 % present), 9 main and 18 small crowns per tile, as domes of varied
+    let best = 0, id = 0.5;       // size and height; gaps fall to a low, noisy understory
+    const crown = (G, s, hk, p = 1) => cells(u * G, v * G, G, s, (d, c) => { if (H(c, 13, s) > p) return;
+      const r = 0.36 + 0.42 * H(c, 3, s), hf = hk * (0.6 + 0.4 * H(c, 5, s)), x = d / r;
+      if (x < 1) { const dome = hf * Math.pow(1 - x * x, 0.55); if (dome > best) { best = dome; id = H(c, 9, s); } } });
+    crown(5, 7, 1.15, 0.45); crown(9, 11, 1.0); crown(18, 23, 0.74);
+    const leaf = fbm(u * 24, v * 24, 24, 3, 41), under = 0.06 + 0.12 * fbm(u * 6, v * 6, 6, 3, 43);
+    return [Math.max(best, under) + 0.12 * (leaf - 0.5) * (best > under ? 1 : 0.5), id];
+  });
+  const rock = make((u, v) => {   // ridged blocks + grit; thin cracks on domain-warped Worley edges (curved, broken), mostly in A
+    const wu = u + 0.035 * (fbm(u * 4, v * 4, 4, 3, 51) - 0.5), wv = v + 0.035 * (fbm(u * 4 + 7.3, v * 4, 4, 3, 53) - 0.5);
+    let f1 = 9, f2 = 9; cells(wu * 7, wv * 7, 7, 61, (d) => { if (d < f1) { f2 = f1; f1 = d; } else if (d < f2) f2 = d; });
+    const crack = (1 - Math.min(1, Math.max(0, (f2 - f1 - 0.015) / 0.05))) * Math.min(1, Math.max(0, (fbm(u * 8, v * 8, 8, 3, 57) - 0.38) * 4));
+    const rid = fbm(u * 4, v * 4, 4, 5, 63, true), base = fbm(u * 3, v * 3, 3, 5, 67), grit = fbm(u * 64, v * 64, 64, 2, 71);
+    return [0.5 * rid + 0.4 * base + 0.1 * grit - 0.06 * crack, 1 - crack];
+  });
+  const soil = make((u, v) => {   // fbm swells + sparse pebbles
+    let peb = 0; cells(u * 22, v * 22, 22, 83, (d, c) => { if (H(c, 1, 83) < 0.35) { const x = d / 0.28; if (x < 1) peb = Math.max(peb, Math.sqrt(1 - x * x)); } });
+    return [0.75 * fbm(u * 5, v * 5, 5, 6, 89) + 0.25 * peb, fbm(u * 3, v * 3, 3, 4, 97)];
+  });
+  DETAIL = { veg, rock, soil };
+  return DETAIL;
+}
 export function sampleH(hm, u, v) {  // bilinear, u,v in 0..1 (v from south)
   const x = Math.min(Math.max(u * (hm.W - 1), 0), hm.W - 1.001), y = Math.min(Math.max(v * (hm.H - 1), 0), hm.H - 1.001);
   const i = x | 0, j = y | 0, fx = x - i, fy = y - j, d = hm.data, W = hm.W;
@@ -377,8 +571,8 @@ export class HawaiiStage {
     const tex = (u, srgb) => loadTex(dir + '/' + u, srgb);
     const [heroCol, heroAO, skCol, skAO] = await Promise.all([tex('hero_color.jpg', true), tex('hero_ao.png', false), tex('skirt_color.jpg', true), tex('skirt_ao.png', false)]);
     const hT = await cached('htex:' + dir + '/hero', async () => heightTexture(this.hHero)), sT = await cached('htex:' + dir + '/skirt', async () => heightTexture(this.hSkirt));
-    return this.build([{ name: 'hero', bbox: meta.hero_bbox, hm: this.hHero, hT, col: heroCol, ao: heroAO, grid: this.o.heroGrid || [1500, 1500] },
-      { name: 'skirt', bbox: meta.skirt_bbox, hm: this.hSkirt, hT: sT, col: skCol, ao: skAO, grid: this.o.skirtGrid || [900, 680] }]);
+    return this.build([{ name: 'hero', bbox: meta.hero_bbox, hm: this.hHero, hT, col: heroCol, ao: heroAO, grid: this.o.heroGrid || [1500, 1500], colRes: 250 },
+      { name: 'skirt', bbox: meta.skirt_bbox, hm: this.hSkirt, hT: sT, col: skCol, ao: skAO, grid: this.o.skirtGrid || [900, 680], colRes: 1000 }]);
   }
   // any region of an episode's regions.json (e.g. root 'ep/ep02/data', name 'midway'): its 'stack' = 1-3 nested layers, finest first,
   // each inside the next (o.stack overrides it). meta.hero_bbox / hHero = the finest layer, meta.skirt_bbox / hSkirt = the outermost.
@@ -392,7 +586,10 @@ export class HawaiiStage {
       const [col, ao, hT] = await Promise.all([loadTex(d + '/' + r.files.color, true), loadTex(d + '/' + r.files.ao, false), cached('htex:' + d + '/' + r.files.h16, async () => heightTexture(hm))]);
       const k = Math.min(1, big[i] / Math.max(...r.wh));  // mesh: at most 1500 / 1000 / 900 vertices on the long side, never more than the texels
       const g = (i === 0 ? this.o.heroGrid : i === stack.length - 1 ? this.o.skirtGrid : this.o.midGrid) || [Math.max(2, Math.round(r.wh[0] * k)), Math.max(2, Math.round(r.wh[1] * k))];
-      return { name: n, bbox: r.bbox, hm, hT, col, ao, grid: g };
+      // colRes: the real resolution of the colour (m), as texel_audit.js reads it: res.colour_src_m (detail_bake.py), else HLS 30 m,
+      // MODIS 250 m, Blue Marble 500 m (the legacy Big Island hero and skirt: MODIS 250 m, 1000 m)
+      const c = r.colour || {}, colRes = r.res?.colour_src_m ?? (n === 'bigisland' ? 250 : n === 'hawaii_skirt' ? 1000 : c.hls ? 30 : c.modis ? 250 : 500);
+      return { name: n, bbox: r.bbox, hm, hT, col, ao, grid: g, colRes };
     }));
     for (let i = 1; i < L.length; i++) { const a = L[i - 1].bbox, b = L[i].bbox; if (a[0] < b[0] || a[1] < b[1] || a[2] > b[2] || a[3] > b[3]) console.error(`region stack: ${L[i - 1].name} is not inside ${L[i].name}`); }
     const hb = L[0].bbox;
@@ -412,7 +609,12 @@ export class HawaiiStage {
       sunCol: { value: C('#fff1de') }, glowCol: { value: C('#ffe2b8', 0.9) },
       fogDens: { value: this.o.fogDens ?? 0.0028 }, fogH: { value: this.o.fogH ?? 6.0 }, fogBg: { value: this.o.fogBg ?? 0.00012 }, fogBase: { value: 0 },
       sunEl: { value: 0.4 }, penumbra: { value: THREE.MathUtils.degToRad(1.4) }, vex: { value: this.vex },
+      detAnchor: { value: new THREE.Vector2() }, hazeFar: { value: new THREE.Vector3(0, 0, 0) },
     };
+    // o.crisp (the ep02 toolkit sets it): float32 heights for the bicubic normals, the detail textures, anisotropic filtering at the
+    // GPU's maximum on the colour and AO maps. The look itself is switched by the uniforms crisp / detAmt / colBias (default 0).
+    const crisp = !!this.o.crisp, det = crisp ? detailTextures(this.R) : null;
+    if (crisp) { const mA = this.R.capabilities.getMaxAnisotropy(); for (const l of L) for (const t of [l.col, l.ao]) if (t && t.anisotropy !== mA) { t.anisotropy = mA; t.needsUpdate = true; } }
     const hb = hero.bbox, sb = skirt.bbox;
     const HU = { hHero: { value: hero.hT }, hMid: { value: mid.hT }, hSkirt: { value: skirt.hT },
       bbHero: { value: new THREE.Vector4(...hb) }, bbMid: { value: new THREE.Vector4(...mid.bbox) }, bbSkirt: { value: new THREE.Vector4(...sb) } };
@@ -430,10 +632,13 @@ export class HawaiiStage {
         reefAmt: { value: 0.45 }, tubM: { value: 90 }, tubAmt: { value: 0 }, oldLine: { value: 0 }, lineW: { value: 2.2 }, detail: { value: 1.0 },
         maskTex: this.maskU.tex, maskBB: this.maskU.bb, maskOn: this.maskU.on, heroAmt: this.maskU.heroAmt, dimAmt: this.maskU.dimAmt, heroCol: this.maskU.heroCol,
         clipN: this.clipU, capBB: { value: new THREE.Vector4(-1e4, -1e4, 1e4, 1e4) }, heroPass: { value: 0 }, seaMat: { value: 0 }, nearAmt: { value: 0 }, landLift: { value: 0 }, lineFar: { value: new THREE.Vector2(1e5, 2e5) },
+        hTexF: { value: crisp ? heightTexture32(hm) : hTex }, dVeg: { value: det ? det.veg : blank }, dRock: { value: det ? det.rock : blank }, dSoil: { value: det ? det.soil : blank },
+        crisp: { value: 0 }, colBias: { value: 0 }, colSharp: { value: 0 }, colRes: { value: 0 }, detAmt: { value: 0 }, detRel: { value: 1 }, detFar: { value: new THREE.Vector2(6, 16) },
       }), vertexShader: TERRAIN_VS, fragmentShader: TERRAIN_FS,
     });
     // one mesh per layer; each coarser layer drops out of sight inside the next finer layer's bbox
     this.mats = L.map((l, i) => terrMat(l.hT, l.ao, l.col, l.bbox, l.hm, i ? 4.0 + 6.0 * this.vex : 0, i ? L[i - 1].bbox : hb));
+    L.forEach((l, i) => { this.mats[i].uniforms.colRes.value = l.colRes || 0; });   // the source resolution of each layer's colour (m)
     this.heroMat = this.mats[0]; this.skirtMat = this.mats[L.length - 1];
     L.forEach((l, i) => this.scene.add(new THREE.Mesh(this.grid(l.bbox, l.hm, l.grid), this.mats[i])));
     this.waterMat = new THREE.ShaderMaterial({
@@ -494,6 +699,7 @@ export class HawaiiStage {
     this.cam.updateProjectionMatrix();
     if (c.shiftY || c.shiftX) { this.cam.projectionMatrix.elements[9] += c.shiftY || 0; this.cam.projectionMatrix.elements[8] += c.shiftX || 0; this.cam.projectionMatrixInverse.copy(this.cam.projectionMatrix).invert(); }  // lens shift (keeps verticals straight)
     this.cam.updateMatrixWorld();
+    this.U.detAnchor.value.set(Math.round(p.x / 4) * 4, Math.round(p.z / 4) * 4);   // km, a multiple of 4 (see TERRAIN_VS)
     this.U.camPos.value.copy(p); this.U.horizonDip.value = Math.sqrt(2 * Math.max(p.y - gnd, 0.01) / R_EARTH);
     this.camGround = gnd;
   }
