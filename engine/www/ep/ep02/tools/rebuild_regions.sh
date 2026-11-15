@@ -8,6 +8,8 @@
 # Close-up detail (2026-11-09): regions with 'detail' are re-baked in place and entries with 'patch' baked as nested detail patches by
 # lab/hawaii/tools/detail_bake.py (USGS 3DEP 1 m lidar DEMs, USDA NAIP 0.6 m, Sentinel-2 10 m; about 10 min, about 40 MB more). It needs
 # rasterio: RIO_PY=/path/to/python-with-rasterio (pip install rasterio==1.4.3); without it the step is skipped and the base bakes stay.
+# The detail bake guards against 3DEP garbage over the sea (stops if the land area or heights jump against the base), heals the lidar
+# seams the spec lists (detail.height.seams) and fades each in-place re-bake back to its base over 200 m at the grid edge (detail.edge_m).
 # Sources and licences: ../data/SOURCES.md. Network also to elevation.nationalmap.gov and coastalimagery.blob.core.windows.net.
 # Verify one region: cd engine && node still.cjs --page lab_region.html --q '{"region":"midway"}' --frames 0 --outdir <dir>
 set -euo pipefail

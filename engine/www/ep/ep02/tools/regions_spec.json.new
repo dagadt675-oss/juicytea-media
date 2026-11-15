@@ -1030,7 +1030,8 @@
    "gaps": [
     "NCEI 1/3\" (USGS 10 m land): the lookout (343 m on this grid), its wall, the road and trees are not in the data; HLS 30 m colour is soft at ground level (needs a close-up texture or paper props).",
     "Colour (round 3, 2026-11-09): HLS v2 (Sentinel-2 + Landsat, 30 m) with its Fmask cloud mask from the Planetary Computer, 24 summer scenes of 2023 and 2024, the per-pixel median of cloud-free observations: the Ko'olau crest cloud blobs are gone (3 % of pixels never clear, filled from neighbours). One luminance gain 0.734 and one chroma factor 0.6, both measured on clear O'ahu land (median MODIS / HLS over 53,000 px in oahu_nuuanu): the HLS greens were 1.7x more saturated than the MODIS colours the stage grade was tuned on (land texture saturation median 0.54, now 0.35; Maui Nui 0.38; cloud-white texels 8.1 % to 2.0 %, the rest roofs and roads). Winter scenes left the NE-facing pali black and a gain matched to the cloudy MODIS reference (1.34) turned it neon: neither is used. AO counts the horizon above the local slope (tangent).",
-    "Ground view: the spur just east of the lookout faces west, so a morning sun leaves it in shade, and the stage's shade is near black (16.7 % near-black with sun [120, 30]); film.today uses sun [75, 55] (3.2 %, frame luma 149) or keep that spur out of frame. Kane'ohe Bay's reef flats are 0-2 m deep and its sea floor now shows the HLS picture: keep foamAmt at 0.25 or less there (the foam rim covers the whole flat)."
+    "Ground view: the spur just east of the lookout faces west, so a morning sun leaves it in shade, and the stage's shade is near black (16.7 % near-black with sun [120, 30]); film.today uses sun [75, 55] (3.2 %, frame luma 149) or keep that spur out of frame. Kane'ohe Bay's reef flats are 0-2 m deep and its sea floor now shows the HLS picture: keep foamAmt at 0.25 or less there (the foam rim covers the whole flat).",
+    "The 2020 lidar (HI_NOAAMauiOahu_2020_B20, the only 1 m source here) holds a NW-SE band across Nu'uanu, the lookout included, that is interpolated ground (terraced, about 10 m detail) with 3-9 m steps along its two straight edges: the steps are healed (detail.height.seams), the band stays soft; detail texturing carries the close shots there."
    ],
    "ao": "tangent",
    "film": {
@@ -1055,6 +1056,52 @@
      "wh": [
       3520,
       2660
+     ],
+     "seams": [
+      [
+       [
+        -157.83028,
+        21.4397
+       ],
+       [
+        -157.73724,
+        21.3203
+       ]
+      ],
+      [
+       [
+        -157.86262,
+        21.4397
+       ],
+       [
+        -157.7629,
+        21.3203
+       ]
+      ]
+     ],
+     "interp": [
+      {
+       "poly": [
+        [
+         -157.86287,
+         21.44
+        ],
+        [
+         -157.83051,
+         21.44
+        ],
+        [
+         -157.73701,
+         21.32
+        ],
+        [
+         -157.76265,
+         21.32
+        ]
+       ],
+       "src_m": 10,
+       "note": "interpolated band of HI_NOAAMauiOahu_2020_B20 (terraced, straight edges)"
+      }
      ]
     }
    }
@@ -1081,7 +1128,61 @@
      "long": 4096
     },
     "height": {
-     "source": "3dep"
+     "source": "3dep",
+     "seams": [
+      [
+       [
+        -157.79755,
+        21.3977
+       ],
+       [
+        -157.7653,
+        21.3563
+       ]
+      ],
+      [
+       [
+        -157.8177,
+        21.38591
+       ],
+       [
+        -157.78378,
+        21.3453
+       ]
+      ]
+     ],
+     "interp": [
+      {
+       "poly": [
+        [
+         -157.79755,
+         21.398
+        ],
+        [
+         -157.765,
+         21.3563
+        ],
+        [
+         -157.765,
+         21.345
+        ],
+        [
+         -157.7838,
+         21.345
+        ],
+        [
+         -157.818,
+         21.3863
+        ],
+        [
+         -157.818,
+         21.398
+        ]
+       ],
+       "src_m": 10,
+       "note": "interpolated band of HI_NOAAMauiOahu_2020_B20 (terraced, straight edges)"
+      }
+     ]
     }
    },
    "stack": [
@@ -1126,7 +1227,8 @@
     }
    },
    "gaps": [
-    "NAIP of 15 Dec 2022 (winter sun): the NE-facing cliffs are in baked shadow in the photo; there the patch keeps the summer HLS tone of 'pali' at the 30 m scale with the photo's detail on top. Trees, the lookout wall and the road are in the photo only (bare-earth heights)."
+    "NAIP of 15 Dec 2022 (winter sun): the NE-facing cliffs are in baked shadow in the photo; there the patch keeps the summer HLS tone of 'pali' at the 30 m scale with the photo's detail on top. Trees, the lookout wall and the road are in the photo only (bare-earth heights).",
+    "The 2020 lidar (HI_NOAAMauiOahu_2020_B20, the only 1 m source here) holds a NW-SE band across Nu'uanu, the lookout included, that is interpolated ground (terraced, about 10 m detail) with 3-9 m steps along its two straight edges: the steps are healed (detail.height.seams), the band stays soft; detail texturing carries the close shots there."
    ]
   },
   {

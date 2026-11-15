@@ -15,6 +15,11 @@ Credits belong in the video description only (owner rule: no sources on screen).
 
 Vertical datums: 3DEP in Hawai'i is local mean sea level, the NCEI coastal grids mean high water (about 0.3 m higher); detail_bake.py takes the lidar on land only (above 0.5 m) and feathers it into the NCEI grid at the coast, so the sea floor keeps the NCEI bathymetry.
 
+Known faults in the 3DEP data and what the bake does about them (2026-11-15):
+- Over parts of the open sea the ImageServer returns repeated copies of a land tile (fake cliffs tens to hundreds of metres high: a 5 km strip off Halape). detail_bake.py keeps 3DEP land only as pieces that touch the base bake's land and lie within 60 m of it, and stops with an error if the land area moves by over 3 % or the heights by over 150 m (p99.9) against the base.
+- HI_NOAAMauiOahu_2020_B20, the only 1 m source over Nu'uanu, holds a NW-SE band of interpolated, terraced ground (about 10 m detail) across the valley, the Pali Lookout included, with 3-9 m steps along its two straight edges (a dark line in the Pali ground shot). Those two lines are written in the spec (pali and pali_lookout `detail.height.seams`); the bake tracks the step along them and heals it (each side's trend carried to the seam, half the step ramped out over 60 m on each side, the groove bridged), leaving cliffs over 12 m and rough ground alone. The band is marked in each region's `res.height_interp`, so the texel audit counts its height source as about 10 m there. No finer public height data covers it (the 3DEP catalogue lists only this 1 m project and the 10 m and 30 m seamless DEMs there, checked 2026-11-09).
+- Where a region's base colour has no data on land (HLS never clear there, filled black: holei's east cliffs, parts of the Halape shore), the bake takes the tone from the aerial photo instead, in the grade's median hue.
+
 ## Colour
 
 | Source | Resolution | Used in | Licence / credit | Access |

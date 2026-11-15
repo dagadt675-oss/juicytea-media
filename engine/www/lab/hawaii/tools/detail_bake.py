@@ -178,17 +178,26 @@ def fuse(img, ref, land, px_m, ref_m, src_m):
     n = the imagery times one luminance gain, beta = one chroma factor (median chroma of the reference over the imagery's, at the
     reference's scale, clear land only). So a winter photo's baked cliff shadow or a cloud bigger than the reference's texel takes the
     reference's (summer) tone, and the imagery's own hue never replaces the grade (NAIP lava reads blue-grey, the film's HLS brown).
-    Returns (colour, stats)."""
+    Returns (colour, stats, reference): the reference with its black (no data) land toned from the imagery, for the edge fade."""
     v = np.isfinite(img).all(-1); s = max(1.0, 0.5 * ref_m / px_m)
-    meas = v & land & (ndimage.distance_transform_edt(land) > max(1.0, 30 / px_m))
     rl = ndimage.gaussian_filter(ref, (s, s, 0)); il = nan_gauss(img, v, s)
     Li, Lr = rb.lum(il), rb.lum(rl); st = {}
+    meas = v & land & (ndimage.distance_transform_edt(land) > max(1.0, 30 / px_m)) & (Lr > 0.03)
     if meas.sum() < 500: g, beta = 1.0, 0.8
     else:
         g = float(np.median(Lr[meas]) / max(float(np.median(Li[meas])), 1e-3))
         ci = np.linalg.norm(il - Li[..., None], axis=-1) * g; cr = np.linalg.norm(rl - Lr[..., None], axis=-1)
         beta = float(np.clip(np.median(cr[meas]) / max(float(np.median(ci[meas])), 1e-4), 0.4, 1.2)); st.update(meas_px=int(meas.sum()))
     n = np.nan_to_num(img) * g; nl = il * g; Ln = rb.lum(n); Lnl = rb.lum(nl)
+    # a reference with no colour on land (its HLS never clear there and filled black: holei's east cliffs and halape's shore, 2026-11-09,
+    # where NAIP shows grey lava): the imagery's own tone at the reference's scale (times the gain), in the reference's median hue on
+    # clear land, so the land is not left black and the grade's hue still holds
+    b = sstep(0.06, 0.02, Lr) * (v & land) * (Lnl > Lr + 0.02)
+    if b.any() and meas.sum() >= 500:
+        tint = np.median(rl[meas] / np.maximum(Lr[meas], 1e-3)[:, None], 0).astype(np.float32)
+        alt = np.clip(Lnl[..., None] * tint[None, None, :], 0, 1); bb3 = b[..., None]
+        rl = rl * (1 - bb3) + alt * bb3; ref = ref * (1 - bb3) + alt * bb3; Lr = rb.lum(rl)
+    st.update(black_ref_pct=round(float((b > 0.5).sum() / max(land.sum(), 1) * 100), 2))
     D = np.clip(Ln / np.maximum(Lnl, 1e-3), 0.35, 2.5)
     out = rl * D[..., None] + beta * (n - nl * D[..., None])
     ratio = Lnl / np.maximum(Lr, 1e-3)   # where the imagery disagrees with the reference at its scale (baked shadow, cloud, change)
@@ -199,13 +208,92 @@ def fuse(img, ref, land, px_m, ref_m, src_m):
               bright_pct=round(float(((ratio > 1.6) & keep).sum() / max(keep.sum(), 1) * 100), 2), covered_pct=round(float(v.mean() * 100), 1),
               ref_scale_m=round(ref_m, 1), method='detail transfer: reference tone and colour at its own scale, imagery detail finer')
     LOG(f'  fuse: gain {g:.3f}, chroma {beta:.3f}; imagery much darker than the reference (baked shadow) on {st["dark_pct"]} % of land, '
-        f'much brighter (cloud, bare change) on {st["bright_pct"]} %, at the {ref_m:.0f} m scale')
-    return np.clip(out, 0, 1).astype(np.float32), st
+        f'much brighter (cloud, bare change) on {st["bright_pct"]} %, at the {ref_m:.0f} m scale; black reference toned from the imagery on '
+        f'{st["black_ref_pct"]} % of land')
+    return np.clip(out, 0, 1).astype(np.float32), st, np.clip(ref, 0, 1).astype(np.float32)
 
 def edge_ramp(H, W, n):  # 0 at the grid edge to 1 at n texels inside
     if n <= 0: return np.ones((H, W), np.float32)
     y = np.minimum(np.arange(H), np.arange(H)[::-1])[:, None]; x = np.minimum(np.arange(W), np.arange(W)[::-1])[None, :]
     return sstep(0, n, np.minimum(y, x).astype(np.float32)).astype(np.float32)
+
+def land_guard(d, base_h, px_m, near_m=60.0):
+    """3DEP land (h > 0.5 m) kept only as connected pieces that touch the base bake's land and lie within near_m of it. The ImageServer
+    returns repeated copies of a land tile (tens to hundreds of metres high) over parts of the open sea: halape and kilauea_coast,
+    2026-11-09 (a 5 km strip of fake cliffs off Halape). Returns (mask, stats)."""
+    v = np.isfinite(d) & (d > 0.5); bl = base_h > 0.5
+    if not v.any(): return v, dict(dropped_pct=0.0)
+    lab, n = ndimage.label(v, np.ones((3, 3), bool))
+    hit = np.r_[False, ndimage.maximum(bl.astype(np.uint8), lab, np.arange(1, n + 1)).astype(bool)] if n else np.zeros(1, bool)
+    keep = hit[lab] & (ndimage.distance_transform_edt(~bl) * px_m <= near_m)
+    st = dict(dropped_pct=round(float((v & ~keep).sum() / max(v.sum(), 1) * 100), 3), pieces=int(n), pieces_kept=int(hit.sum()))
+    LOG(f'  3dep land guard: {st["pieces_kept"]} of {n} land pieces touch the base land; {st["dropped_pct"]} % of the 3DEP land texels dropped')
+    return keep, st
+
+def heal_seams(h, bb, lines, half_m=60.0, fit=(3, 10), sig_m=40.0):
+    """straight-ish seams inside a lidar DEM (the HI_NOAAMauiOahu_2020 mosaic has a NW-SE band of interpolated, terraced ground across
+    Nu'uanu with 3-9 m steps along its two edges, which jog by up to 25 m along tile edges, 2026-11-09). Only the lines the spec names
+    (detail.height.seams: [[lon, lat], [lon, lat]] each, read off a hillshade) are touched. The seam is tracked within 14 texels of each
+    line (the first difference across it against its neighbours peaks at the step: per 100 m chunk, then per texel within 3 texels of
+    that), then at every texel along it each side's linear trend 3-10 texels away is carried to the seam; the gap between the two
+    (smoothed over sig_m along it) is split in half and ramped out over half_m on both sides, so ridges and gullies that cross keep
+    their shape; last the 6 texels astride the seam are bridged by a straight profile between their outer neighbours (the groove or lip
+    a resampled step leaves), only where that changes a texel by under 2-6 m (less on rough ground). Steps under 0.3 m or over about 12 m (a real cliff
+    crossing), and stretches where either side is rough (off a plane by over 1-3 m rms: a ridge along the line) get no step fix.
+    Returns (h, stats per line)."""
+    H, W = h.shape; pxw, pxh = px_size(bb, W, H); stp = min(pxw, pxh); out = h.astype(np.float32).copy(); stats = []
+    def pm(lon, lat): return np.array([((lon - bb[0]) / (bb[2] - bb[0]) * W - 0.5) * pxw, ((bb[3] - lat) / (bb[3] - bb[1]) * H - 0.5) * pxh])
+    def samp(a, P): return ndimage.map_coordinates(a, [P[..., 1] / pxh, P[..., 0] / pxw], order=1, mode='nearest')
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32); xx *= pxw; yy *= pxh
+    for (lo0, la0), (lo1, la1) in lines:
+        A, B = pm(lo0, la0), pm(lo1, la1); ln = float(np.hypot(*(B - A))); u = (B - A) / ln; nv = np.array([-u[1], u[0]])
+        ts = np.arange(0, ln, stp); P0 = A[None] + ts[:, None] * u[None]; K = len(ts)
+        # ---- track the seam: e(t, o) = |first difference across - mean of those 2 texels either side|
+        offs = np.arange(-17, 17.01, 0.25) * stp; S = samp(out, P0[:, None, :] + offs[None, :, None] * nv[None, None, :])
+        d1 = S[:, 4:] - S[:, :-4]; e = np.abs(d1[:, 8:-8] - 0.5 * (d1[:, :-16] + d1[:, 16:])); oc = offs[2:-2][8:-8]   # oc: -14..14 texels
+        ch = max(1, int(round(100 / stp))); ct, co, cr = [], [], []
+        for k in range(0, K, ch):
+            mm = np.median(e[k:k + ch], 0); j = int(np.argmax(mm)); ct.append(ts[min(K - 1, k + ch // 2)]); co.append(oc[j]); cr.append(mm[j] / max(float(np.median(mm)), 1e-3))
+        ct, co, cr = np.array(ct), np.array(co), np.array(cr); ok = cr > 3
+        if ok.sum() >= 2:
+            trk = np.interp(ts, ct[ok], co[ok]); es = ndimage.uniform_filter1d(e, max(3, int(round(30 / stp))), axis=0)
+            es[np.abs(oc[None, :] - trk[:, None]) > 3 * stp] = -1; o_t = ndimage.median_filter(oc[np.argmax(es, 1)], max(3, int(round(18 / stp)) | 1))
+            rel = np.interp(ts, ct, ok.astype(np.float32)); rel = ndimage.gaussian_filter1d(rel, max(1.0, 50 / stp)) > 0.5
+        else: o_t = np.zeros(K); rel = np.zeros(K, bool)
+        Pt = P0 + o_t[:, None] * nv[None]
+        # ---- the step: each side's straight trend fit[0]..fit[1] texels out, carried to the seam (fixed least-squares weights)
+        o = np.arange(fit[0], fit[1] + 1) * stp; X = np.stack([np.ones_like(o), o], 1); pin = np.linalg.pinv(X); wls = pin[0]
+        SB = samp(out, Pt[:, None, :] + o[None, :, None] * nv[None, None, :]); SA = samp(out, Pt[:, None, :] - o[None, :, None] * nv[None, None, :])
+        hB, hA = SB @ wls, SA @ wls
+        rms = np.sqrt(0.5 * (((SB - (SB @ pin.T) @ X.T) ** 2).mean(1) + ((SA - (SA @ pin.T) @ X.T) ** 2).mean(1)))   # how far each side is from a plane
+        rms = ndimage.gaussian_filter1d(rms, max(1.0, sig_m / stp), mode='nearest')
+        ds = ndimage.gaussian_filter1d(hB - hA, max(1.0, sig_m / stp), mode='nearest')
+        tap = sstep(0, 100, ts) * sstep(0, 100, ln - ts) * rel
+        # no step fix where either side is rough ground (a ridge or gully along the line: the trend is not a plane there)
+        g = sstep(0.3, 0.8, np.abs(ds)) * (1 - sstep(10, 15, np.abs(ds))) * (1 - sstep(1.0, 3.0, rms)) * tap; dg = ds * g
+        # ---- the correction field around the tracked seam
+        rx, ry = xx - A[0], yy - A[1]; t = rx * u[0] + ry * u[1]; sd = rx * nv[0] + ry * nv[1]
+        near = (np.abs(sd) < half_m + 15 * stp) & (t > 0) & (t < ln); tn = t[near]; sn = sd[near] - np.interp(tn, ts, o_t)
+        inn = np.abs(sn) < half_m; before = out[near].copy(); vals = before.copy()
+        vals[inn] += -np.sign(sn[inn]) * np.interp(tn[inn], ts, dg) / 2 * (1 - sstep(0, half_m, np.abs(sn[inn])))
+        out[near] = vals
+        # ---- bridge the 6 texels astride the seam with a straight profile between their outer neighbours
+        w1 = 3.0 * stp; core = np.abs(sn) < w1
+        if core.any():
+            tc = tn[core]; oc_ = np.interp(tc, ts, o_t); Pc = A[None] + tc[:, None] * u[None] + oc_[:, None] * nv[None]
+            ha = samp(out, Pc - w1 * nv[None]); hb = samp(out, Pc + w1 * nv[None]); lin = ha + (hb - ha) * (sn[core] + w1) / (2 * w1)
+            lim = np.interp(np.interp(tc, ts, rms), [1.0, 3.0], [6.0, 2.0])   # a groove or lip is a few metres (to 6 on smooth ground); more is real ground
+            vals = out[near]; wc = np.interp(tc, ts, tap) * (1 - np.clip((np.abs(lin - vals[core]) - lim) / 3.0, 0, 1))
+            vals[core] = vals[core] * (1 - wc) + lin * wc; out[near] = vals
+        chg = np.abs(out[near] - before)
+        st = dict(line=[[round(lo0, 5), round(la0, 5)], [round(lo1, 5), round(la1, 5)]], len_m=round(ln), tracked_pct=round(float(rel.mean() * 100), 1),
+                  offset_m=[round(float(o_t.min()), 1), round(float(o_t.max()), 1)], step_healed_pct=round(float((g > 0.5).mean() * 100), 1),
+                  step_m_median=round(float(np.median(np.abs(ds[g > 0.5]))), 2) if (g > 0.5).any() else 0.0, step_m_p95=round(float(np.percentile(np.abs(ds[rel]), 95)), 2) if rel.any() else 0.0,
+                  max_change_m=round(float(chg.max()), 2) if chg.size else 0.0, p99_change_m=round(float(np.percentile(chg[chg > 0.01], 99)), 2) if (chg > 0.01).any() else 0.0)
+        stats.append(st)
+        LOG(f'  seam {st["line"]}: {st["len_m"]} m, tracked on {st["tracked_pct"]} % (offset {st["offset_m"]} m), step healed on {st["step_healed_pct"]} % '
+            f'(median {st["step_m_median"]} m, p95 {st["step_m_p95"]} m), height change max {st["max_change_m"]} m, p99 {st["p99_change_m"]} m')
+    return out, stats
 
 def colour_src(cfg):
     return {'naip': 0.6, 's2': 10.0}.get(cfg.get('source'), 30.0)
@@ -257,13 +345,26 @@ def bake(R, OUT, DLROOT, keep=False, regs=None):
     # ---- heights
     h = base_h.copy(); hcfg = det.get('height'); hsrc = {}
     if hcfg and hcfg.get('source') == '3dep':
-        d = dem_3dep(bb, W, H, dl); v = np.isfinite(d) & (d > 0.5)   # land only: the service returns about 0 m over the sea (no bathymetry)
+        d = dem_3dep(bb, W, H, dl)   # land only: the service returns about 0 m over the sea (no bathymetry), and sometimes garbage
+        v, gst = land_guard(d, base_h, px_m)
         w = rb.feather(v, max(2, int(round(6 / px_m)))) if v.any() else np.zeros((H, W), np.float32)   # into the base at the lidar's own edge (coast)
         h = base_h * (1 - w) + np.nan_to_num(d) * w
-        hsrc = dict(id='3dep', res_m=1.0, cover=round(float(v.mean()), 3), note='USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer')
+        hsrc = dict(id='3dep', res_m=1.0, cover=round(float(v.mean()), 3), note='USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer', guard=gst)
+        if hcfg.get('seams'):
+            h, sst = heal_seams(h, bb, hcfg['seams']); hsrc['seams_healed'] = sst
+        if hcfg.get('interp'): hsrc['interp'] = hcfg['interp']
         meta['sources'] = list(meta['sources']) + [hsrc]
+        # fail loudly on garbage that got through: land area and gross height change against the base
+        la0, la1 = float((base_h > 0.5).mean()), float((h > 0.5).mean()); bl = base_h > 0.5
+        dh999 = float(np.percentile(np.abs(h - base_h)[bl], 99.9)) if bl.any() else 0.0
+        LOG(f'  check: land {la0 * 100:.2f} % of the grid in the base, {la1 * 100:.2f} % now; |h - base| p99.9 on base land {dh999:.1f} m')
+        if la0 > 0.01 and abs(la1 / la0 - 1) > hcfg.get('land_tol', 0.03): raise SystemExit(f'{name}: land area {la0:.4f} -> {la1:.4f} of the grid (3DEP garbage?)')
+        if dh999 > hcfg.get('dh_tol_m', 150): raise SystemExit(f'{name}: |h - base| p99.9 {dh999:.0f} m on base land (3DEP garbage?)')
     if patch:   # fade to the parent at the edge
         e = edge_ramp(H, W, int(round(patch.get('feather_m', 120) / px_m))); h = base_h * (1 - e) + h * e
+    elif hcfg:   # in place: back to the base heights at the grid edge, which the next layer out was built to meet (a 57-65 m wall at the
+        # pali, maunakea and holei edges without it, 2026-11-09)
+        e = edge_ramp(H, W, int(round(det.get('edge_m', 200) / px_m))); h = base_h * (1 - e) + h * e
     h = h.astype(np.float32); h[(h > 0) & (h < 1)] = 1.0
     if hcfg or patch:
         rb.pack16(h).save(f'{od}/h16.png', compress_level=6)
@@ -286,13 +387,14 @@ def bake(R, OUT, DLROOT, keep=False, regs=None):
     if ccfg:
         img, cmeta = get_colour(ccfg, bb, CW, CH, dl)
         if img is not None:
-            col, st = fuse(img, ref, land, cpx, ref_m, colour_src(ccfg)); cmeta.update(st)
-    if patch:
-        e = edge_ramp(CH, CW, int(round(patch.get('feather_m', 120) / cpx))); col = ref * (1 - e[..., None]) + col * e[..., None]
+            col, st, ref = fuse(img, ref, land, cpx, ref_m, colour_src(ccfg)); cmeta.update(st)
+    if patch or ccfg:   # fade to the reference at the edge: the parent's colour (patch) or the base bake's (in place), which the next layer meets
+        e = edge_ramp(CH, CW, int(round((patch.get('feather_m', 120) if patch else det.get('edge_m', 200)) / cpx))); col = ref * (1 - e[..., None]) + col * e[..., None]
     Image.fromarray((np.clip(col, 0, 1) * 255).astype(np.uint8)).save(f'{od}/color.jpg', quality=90)
     # ---- meta
     meta.update(wh=[W, H], px_m=round(px_m, 2), files=dict(h16='h16.png', ao='ao.png', color='color.jpg'),
                 res=dict(height_m=round(px_m, 2), height_src_m=1.0 if hsrc else meta.get('base', {}).get('px_m', px_m), colour_texel_m=round(cpx, 2),
+                         height_interp=(hcfg or {}).get('interp', []),
                          colour_src_m=colour_src(ccfg) if ccfg else ref_m, colour_wh=[CW, CH]),
                 detail=dict(colour=dict(ccfg or {}, **cmeta), height=hcfg or {}), bake_s=round(time.time() - t0, 1), baked=time.strftime('%Y-%m-%d'))
     meta['colour'] = dict(meta.get('colour', {}), ortho=dict(ccfg or {}, **{k: v for k, v in cmeta.items() if k not in ('quads', 'dates')}))

@@ -3,15 +3,20 @@
 // view, how many screen pixels one colour texel and one height texel of the visible layer cover (the largest singular value of the
 // ground-to-screen Jacobian, so slope and foreshortening count: a texel on a cliff face seen front-on is as big as it looks).
 //   cd engine && node www/ep/ep02/tools/texel_audit.js [--chapters 1,2,3] [--segs s026,s027|all] [--views all|pali,halape|none]
-//      [--www DIR] [--w 1920 --h 1080] [--out audit.json] [--md audit.md] [--tag before]
+//      [--www DIR] [--w 1920 --h 1080] [--out audit.json] [--md audit.md] [--tag before] [--closest 0|1] [--step 15]
 // Frames: one per narration segment (its middle), each chapter page loaded alone (film.html {"ep":"ep02","only":"chN"}), so a chapter
 // another builder is editing cannot break the others. The stage render is skipped (HawaiiStage.render and CineGlobe.render are
 // replaced in the page by the measurement), so a frame costs well under a second: cameras, levels and regions are the film's own.
+// Closest frames (--closest 1, the default with --segs all): every base shot of the chapter is also scanned every --step frames (and
+// its last frame) at the centre and lower-third points only, and its worst frame (largest colour px / 2 or height px / 4) is measured
+// in full as an extra row (seg id with ^): the closest point of each camera move, which a segment middle can miss.
 // Views: each region's verification camera from data/regions.json (the planned shots of chapters not built yet).
 // Points: centre (W/2, H/2), lower third (W/2, 2H/3), and the worst of a 5 x 3 grid over the lower band (y 70-90 %). Sky and water
 // points are skipped (water hides the colour texture), and below -6 m only the height counts (the stage draws its seabed there). Colour is judged at its effective resolution: the texel, or the source when
 // the texture is finer than its imagery (HLS 30 m, MODIS 250 m; regions.json 'res.colour_src_m' when present).
-// Flags: colour > 2 px or height > 4 px at the centre or the lower third.
+// Flags: colour > 2 px or height > 4 px at the centre or the lower third. Height is judged on the texel; where the region's meta marks
+// ground its source only interpolated (res.height_interp polygons: the Nu'uanu band of the 2020 lidar), the cell also shows the
+// source-limited px ('src').
 const http = require('http'), fs = require('fs'), path = require('path');
 const { chromium } = require(require.resolve('playwright', { paths: [process.cwd(), path.join(__dirname, '../../../..'), '/opt/node-tools/node_modules'] }));
 const argv = process.argv.slice(2), opt = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i + 1] : d; };
@@ -19,7 +24,7 @@ const ENGINE = path.resolve(__dirname, '../../../..'), WWW = path.resolve(opt('w
 const W = +opt('w', 1920), H = +opt('h', 1080), FPS = 30, TAG = opt('tag', '');
 const CHAPTERS = opt('chapters', '1,2,3,4,5,6').split(',').filter(Boolean).map(Number);
 const SEGS = opt('segs', 'all'), VIEWS = opt('views', 'all');
-const OUT = opt('out', null), MD = opt('md', null);
+const OUT = opt('out', null), MD = opt('md', null), CLOSEST = +opt('closest', SEGS === 'all' ? 1 : 0), STEP = +opt('step', 15);
 const LIM = { col: 2, h: 4 };
 const timing = JSON.parse(fs.readFileSync(path.join(WWW, 'ep/ep02/timing.json')));
 const IDX = JSON.parse(fs.readFileSync(path.join(WWW, 'ep/ep02/data/regions.json'))).regions;
@@ -37,8 +42,11 @@ function colSrcM(name, lon, lat) {
   if (c.modis) return 250;
   return 500;                                                     // Blue Marble NG
 }
-function hSrcM(name) {
+function inPoly(lon, lat, P) { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j];
+  if ((yi > lat) !== (yj > lat) && lon < (xj - xi) * (lat - yi) / (yj - yi) + xi) c = !c; } return c; }
+function hSrcM(name, lon, lat) {
   const r = IDX[LEGACY[name] || name] || {};
+  for (const g of r.res?.height_interp || []) if (g.poly && inPoly(lon, lat, g.poly)) return g.src_m;
   if (r.res?.height_src_m) return r.res.height_src_m;
   if ((LEGACY[name] || name) === 'bigisland') return 70;
   if ((LEGACY[name] || name) === 'hawaii_skirt') return 900;
@@ -76,7 +84,7 @@ window.__texMeasure = function (S, label) {
     return { x, y, lon: +lon.toFixed(5), lat: +lat.toFixed(5), h: Math.round(th), water: S.level > th + 0.5 ? 1 : 0, layer: l.name, dist: +dist.toFixed(3), ppm, colM, hM };
   };
   const pts = { centre: one(W / 2, H / 2), lower: one(W / 2, H * 2 / 3), band: [] };
-  for (const fy of [0.70, 0.80, 0.90]) for (const fx of [0.1, 0.3, 0.5, 0.7, 0.9]) pts.band.push(one(W * fx, H * fy));
+  if (!window.__texLight) for (const fy of [0.70, 0.80, 0.90]) for (const fx of [0.1, 0.3, 0.5, 0.7, 0.9]) pts.band.push(one(W * fx, H * fy));
   const camH = S.heightAt(S.cam.position.x / (KM * Math.cos(S.c0.lat * D2R)) + S.c0.lon, S.c0.lat - S.cam.position.z / KM);
   return { label, region: S.region || (S.meta && S.meta.name) || '?', stack: (S.meta && (S.meta.stack || ['bigisland', 'hawaii_skirt'])), level: S.level, fov: cam.fov,
     camAlt: +(eye.y / Math.max(S.vex, 1e-6)).toFixed(4), camAgl: +(eye.y / Math.max(S.vex, 1e-6) - Math.max(camH, S.level) * 0.001).toFixed(4), pts };
@@ -153,6 +161,21 @@ async function runPage(browser, port, q, fn) {
           const act = scenes.filter(x => t >= x.t0 && t < x.t1 && x.id !== 'placeholder' && !x.id.startsWith('frame')).map(x => x.id);
           rows.push({ chapter: n, seg: s.id, frame: f, t: +t.toFixed(2), scenes: act, renders: dedupe(r) });
         }
+        if (CLOSEST) {   // the worst (closest) frame of every base shot
+          const grab = (f) => p.evaluate(async (f) => { window.__AUD = []; await window.renderFrame(f); return window.__AUD; }, f);
+          for (const sh of own) {
+            const f0 = Math.ceil(sh.t0 * FPS) + 1, f1 = Math.floor(sh.t1 * FPS) - 1; if (f1 < f0) continue;
+            const fr = []; for (let f = f0; f <= f1; f += STEP) fr.push(f); if (fr[fr.length - 1] !== f1) fr.push(f1);
+            let best = null; await p.evaluate(() => { window.__texLight = 1; });
+            for (const f of fr) for (const x of await grab(f)) { enrich(x); const sc = score(x); if (sc > 0 && (!best || sc > best.sc)) best = { f, sc }; }
+            await p.evaluate(() => { window.__texLight = 0; });
+            if (!best) continue;
+            const t = best.f / FPS, sg = timing.segments.find(s => t >= s.start && t < s.end) || timing.segments.filter(s => s.start <= t).pop();
+            const act = scenes.filter(x => t >= x.t0 && t < x.t1 && x.id !== 'placeholder' && !x.id.startsWith('frame')).map(x => x.id);
+            rows.push({ chapter: n, seg: (sg ? sg.id : '') + '^', closestOf: sh.id, frame: best.f, t: +t.toFixed(2), scenes: act, renders: dedupe(await grab(best.f)) });
+          }
+          rows.sort((x, y) => x.chapter - y.chapter || x.frame - y.frame);
+        }
         const se = logs.filter(l => l.startsWith('SCENE-ERROR')); if (se.length) notes.push(`ch${n}: ${se.length} scene errors (first: ${se[0].slice(0, 160)})`);
         if (errs.length) notes.push(`ch${n}: ${errs.length} page errors (first: ${errs[0].slice(0, 160)})`);
       });
@@ -179,7 +202,8 @@ async function runPage(browser, port, q, fn) {
 function dedupe(r) { const seen = new Set(), out = []; for (const x of r) { const k = JSON.stringify([x.region, x.pts && x.pts.centre]); if (!seen.has(k)) { seen.add(k); out.push(x); } } return out; }
 function enrich(x) {
   if (!x.pts) return;
-  const m = (p) => { if (!p || p.sky || p.err) return p; p.colSrcM = colSrcM(p.layer, p.lon, p.lat); p.colEffM = Math.max(p.colM, p.colSrcM); p.hSrcM = hSrcM(p.layer);
+  if (x.enriched) return; x.enriched = 1;
+  const m = (p) => { if (!p || p.sky || p.err) return p; p.colSrcM = colSrcM(p.layer, p.lon, p.lat); p.colEffM = Math.max(p.colM, p.colSrcM); p.hSrcM = hSrcM(p.layer, p.lon, p.lat);
     p.colPx = +(p.ppm * p.colEffM).toFixed(2); p.colTexPx = +(p.ppm * p.colM).toFixed(2); p.hPx = +(p.ppm * p.hM).toFixed(2); p.hEffPx = +(p.ppm * Math.max(p.hM, p.hSrcM)).toFixed(2);
     p.ppm = +p.ppm.toFixed(4); p.colM = +p.colM.toFixed(2); p.hM = +p.hM.toFixed(2); return p; };
   m(x.pts.centre); m(x.pts.lower); x.pts.band.forEach(m);
@@ -191,14 +215,21 @@ function enrich(x) {
     if (tex(p) && p.colPx > LIM.col) why.push(`${k} colour ${p.colPx} px`); if (p.hPx > LIM.h) why.push(`${k} height ${p.hPx} px`); }
   x.flag = why.length ? why.join(', ') : '';
 }
+function score(x) {   // how far over the limits the centre or lower third is (0 = no land there)
+  if (!x.pts) return 0; let s = 0;
+  for (const k of ['centre', 'lower']) { const p = x.pts[k]; if (!p || p.sky || p.err || p.water) continue;
+    s = Math.max(s, p.hPx / LIM.h, p.h > -6 ? p.colPx / LIM.col : 0); }
+  return s;
+}
 function cell(p) { if (!p) return '-'; if (p.sky) return 'sky'; if (p.err) return 'err'; if (p.water) return `water (${p.layer})`;
-  return `${p.layer} ${p.dist < 1 ? Math.round(p.dist * 1000) + ' m' : p.dist.toFixed(1) + ' km'}: ${p.h > -6 ? '**' + p.colPx + '**' : 'seabed'} / ${p.hPx}`; }
+  return `${p.layer} ${p.dist < 1 ? Math.round(p.dist * 1000) + ' m' : p.dist.toFixed(1) + ' km'}: ${p.h > -6 ? '**' + p.colPx + '**' : 'seabed'} / ${p.hPx}` +
+    (p.hEffPx > p.hPx * 1.2 ? ` (src ${p.hEffPx})` : ''); }
 function markdown(res) {
   const L = [`# ep02 texel audit${res.tag ? ' (' + res.tag + ')' : ''}`, '',
-    `${res.date}, ${res.size.join('x')}. Each cell: visible layer, distance from the camera, then **colour px** / height px = screen pixels covered by one colour texel (at its effective resolution: the texel or the imagery, whichever is coarser) and by one height texel, along the least foreshortened direction. Flag: colour > ${res.limits.col} px or height > ${res.limits.h} px at the centre or the lower third (y = 2/3); 'seabed' = ground below -6 m, where the stage draws its own seabed material instead of the colour map (only the height counts). A seg id with * = a shot no segment middle falls in, sampled at its own middle. Band max = worst of 15 points over y 70-90 %. Tool: engine/www/ep/ep02/tools/texel_audit.js.`, ''];
+    `${res.date}, ${res.size.join('x')}. Each cell: visible layer, distance from the camera, then **colour px** / height px = screen pixels covered by one colour texel (at its effective resolution: the texel or the imagery, whichever is coarser) and by one height texel, along the least foreshortened direction. Flag: colour > ${res.limits.col} px or height > ${res.limits.h} px at the centre or the lower third (y = 2/3); 'seabed' = ground below -6 m, where the stage draws its own seabed material instead of the colour map (only the height counts). A seg id with * = a shot no segment middle falls in, sampled at its own middle; with ^ = the closest (worst) frame of the shot named, scanned every few frames. 'src' = height px at the source's own resolution where the source is only interpolated. Band max = worst of 15 points over y 70-90 %. Tool: engine/www/ep/ep02/tools/texel_audit.js.`, ''];
   if (res.notes.length) L.push('Notes: ' + res.notes.join('; '), '');
   const ter = res.rows.filter(r => r.renders.length);
-  L.push(`## Film frames (one per segment): ${res.rows.length} sampled, ${ter.length} on terrain, ${ter.filter(r => r.renders.some(x => x.flag)).length} flagged`, '',
+  L.push(`## Film frames (one per segment, plus the closest frame of each shot): ${res.rows.length} sampled, ${ter.length} on terrain, ${ter.filter(r => r.renders.some(x => x.flag)).length} flagged`, '',
     '| seg | frame | time | shot | region | centre | lower third | band max col / h | flag |', '|---|---|---|---|---|---|---|---|---|');
   for (const r of ter) for (const x of r.renders) {
     if (!x.pts) { L.push(`| ${r.seg} | ${r.frame} | ${fmtT(r.t)} | ${r.scenes.join(', ')} | err | ${x.err || ''} | | | |`); continue; }
