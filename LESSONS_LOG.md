@@ -274,3 +274,8 @@ Rules added: facts (status keys, primary over listicles, verbatim quotes with el
 ## 2026-11-08 Ep02 script and narration
 - Script locked: 92 sourced facts, 47-word Hawaiian pronunciation lexicon, 1,584 words, 178 segments; four review lenses cut about 330 words of filler (the Pali setup before 2:11, the repeated hot-spot explanation, the pre-payoff recap).
 - Rodney narration: 12:15, 212 markers. ASR check passed except the acronym AF ('ay-eff' heard as 'IF'); fixed as 'A.F.' and re-synthesised only those segments (tts.py caches by content hash).
+
+## 2026-11-15 Resume after the weekly limit
+- The weekly usage limit cut both ep02 runs on 2026-11-09 (chapters: 9 of 21 agents done; close-up upgrade: none finished) until 2026-11-13. Nothing was lost: the interrupted agents had left their work on disk (half-applied fixes in ch1.js and ch3.js, high-res bakes and the detail-patch shader in a staging copy at scratchpad/closeup/www), and the autosave committed it.
+- Resumed as one run (same run id): cached agents returned instantly because their prompts stayed byte-identical; the close-up upgrade and the paper climber swap were folded in as new branches with explicit "continue from" notes listing the files and known defects (a wall at the pali_lookout patch edge, tiling canopy detail, a double declaration in the before/after script).
+- The workflow runtime ran 2 agents at a time in this container (seen in the 2026-11-09 start times), so a run of N agents takes about N/2 agent-lengths. Rule added to PLAYBOOK_production.md section 15.
