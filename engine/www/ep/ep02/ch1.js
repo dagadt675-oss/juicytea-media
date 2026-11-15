@@ -327,7 +327,9 @@ export async function build(api, kit, scenes) {
   const RLOOK = (k) => ({ zenith: '#1553b5', horizon: mixh('#9fc4ee', '#86a6d0', k), haze: [mixh('#a5c0e0', '#40699f', k), 0.74], sun: '#fff3e2', glow: ['#ffe6c8', 0.5], sunI: 3.5, skyI: 0.70 });
   const stateC = (T0) => {
     const s = blend(RIDE, RIDE, 0), k = E.inOut(F.clamp(drainP(T0) * 1.6)), lev = levelC(T0), rising = T0 > rise0;
-    s.post.exposure = 1.12 + 0.06 * k; s.set.oldLine = 0; s.set.ringH = 30;
+    // round 10: +0.14 exposure over the plunge (the navy slope frames read 66-67 mean luma, under the 70 floor for story shots)
+    const pk = E.inOut(F.clamp((T0 - (tLedge + 0.4)) / 0.7)) * (1 - E.inOut(F.clamp((T0 - (tPlunge + 1.0)) / 0.8)));
+    s.post.exposure = 1.12 + 0.06 * k + 0.14 * pk; s.set.oldLine = 0; s.set.ringH = 30;
     // haze: the scale height shrinks from 6 km to 0.45 km while the column grows from 0.017 to 0.135 (a linear blend of both made a
     // tall, dense whiteout mid-drain)
     const fH = 6.0 * Math.pow(0.075, k), fCol = 0.0168 + 0.118 * k;
@@ -415,12 +417,14 @@ export async function build(api, kit, scenes) {
       // gate's red share under 3 %; at 66 % it read 6 % red) (drawn after the grade, so the low sun cannot turn it maroon), the white
       // outline of its flat top (ground above -60 m), both fading as the rising sea reaches the top; then the label
       // the fill stays until the water reaches the bank's highest cells (about -40 m), so the hero shape goes under on {drowned}
-      const pa = F.clamp((T0 - (lead('bank') - 0.1)) / 0.3) * (1 - F.clamp((levelC(T0) + 42) / 14));
+      // round 10: fill, outline and label are full 3 frames before {bank} (they used to land 0.1-0.2 s after it; the label's plate was
+      // still empty on the word, f1179)
+      const pa = F.clamp((T0 - (lead('bank') - 0.3)) / 0.3) * (1 - F.clamp((levelC(T0) + 42) / 14));
       if (pa > 0 && isl.pb) {
         ui.fill(ctx, projRings(view, isl.pb.rings, () => PB_LEVEL), { alpha: pa, fill: 0.42 });
-        ui.outline(ctx, view.runs(isl.pb.rings, PB_LEVEL, { every: 2 }), { alpha: pa, width: 6, p: F.clamp((T0 - (lead('bank') - 0.1)) / 0.5) });
+        ui.outline(ctx, view.runs(isl.pb.rings, PB_LEVEL, { every: 2 }), { alpha: pa, width: 6, p: F.clamp((T0 - (lead('bank') - 0.4)) / 0.5) });
       }
-      const la = F.clamp((T0 - lead('bank')) / 0.3) * (1 - F.clamp((T0 - (rise0 + 0.3)) / 0.3));
+      const la = F.clamp((T0 - (lead('bank') - 0.3)) / 0.3) * (1 - F.clamp((T0 - (rise0 + 0.3)) / 0.3));
       if (la > 0) { const q = view.project(-157.55, 20.99, -60); if (q) ui.label(ctx, 'PENGUIN BANK', q[0], q[1], { t: tt, p: la, order: ['above', 'above-right', 'above-left'] }); }
       // SEA LEVEL gauge (marker only, no digits; range 1,000 m): in while the sea falls, out while it holds, in again while it rises
       const gin = F.clamp((T0 - (K.s0('s009') - 0.1)) / 0.5) * (1 - F.clamp((T0 - (DR1 + 0.3)) / 0.4)) + F.clamp((T0 - (rise0 - 0.3)) / 0.4) * (1 - F.clamp((T0 - (W0 - 0.35)) / 0.3));
@@ -794,10 +798,11 @@ export async function build(api, kit, scenes) {
       // NOVEMBER 1975 at the start of s016 (2.1 s), then HALAPĒ on its pin at {hal} (2.2 s)
       const s16 = K.s0('s016'), np = F.clamp((T0 - (s16 - 0.15)) / 0.35), nout = F.clamp((T0 - (s16 + 1.95)) / 0.27);
       if (np > 0 && nout < 1) ui.block(ctx, [{ text: 'NOVEMBER 1975', role: 'label', cap: 66 }], px(96), px(96), { anchor: 'left', p: np, out: nout, bar: PAL.yellow });
-      const hp = F.clamp((T0 - (lead('hal') - 0.05)) / 0.3), hout = F.clamp((T0 - (tHal + 2.25)) / 0.27);
+      const hp = F.clamp((T0 - (lead('hal') - 0.3)) / 0.3), hout = F.clamp((T0 - (tHal + 2.25)) / 0.27);
       // round 10: the pin sits on the beach at the grove (HAL). The old pin (the NPS shelter, 80 m inland) projected below the 670 px
       // text line in the round-9 seaward framing, so ui.label found no placement and the label was never drawn (typeqc labels=0).
-      if (hp > 0 && hout < 1) { const q = view.project(HAL.lon, HAL.lat, 2); if (q) { const b = ui.label(ctx, 'HALAPĒ', q[0], q[1], { t: tt, p: hp, alpha: 1 - hout, order: ['above', 'above-left', 'above-right', 'left', 'right'] }); if (!b && api.Q?.qc) api.log(`[ch1] WARNING HALAPĒ label not placed (pin ${q[0].toFixed(0)},${q[1].toFixed(0)})`); } }
+      // dist 150: the plate floats over the water above the beach line instead of over the palm tops.
+      if (hp > 0 && hout < 1) { const q = view.project(HAL.lon, HAL.lat, 2); if (q) { const b = ui.label(ctx, 'HALAPĒ', q[0], q[1], { t: tt, p: hp, alpha: 1 - hout, dist: 150, order: ['above', 'above-left', 'above-right', 'left', 'right'] }); if (!b && api.Q?.qc) api.log(`[ch1] WARNING HALAPĒ label not placed (pin ${q[0].toFixed(0)},${q[1].toFixed(0)})`); } }
     } });
   scenes.push(halShot);
   // s023: the USGS public-domain photo of the drowned grove, full-bleed, Ken Burns 2 %, 3 s, in on {morning}
@@ -822,7 +827,9 @@ export async function build(api, kit, scenes) {
     api.log(`[ch1] south flank fill: ${n} cells, ${flank.rings.length} rings (boundary approximate: Koaʻe fault zone and East Rift Zone)`);
     return flank;
   };
-  const flankA = (T0) => F.clamp((T0 - (K.s0('s024') + 0.9)) / 0.6) * (1 - F.clamp((T0 - (tGo - 0.45)) / 0.3));
+  // round 10: in from s024 + 1.2 s (not + 0.9): earlier, the fill covered the whole frame for half a second while the camera still
+  // looked almost straight down mid-rise (f2600); now it fades in as the flank becomes a band in the oblique, full 0.2 s before {yards}
+  const flankA = (T0) => F.clamp((T0 - (K.s0('s024') + 1.2)) / 0.45) * (1 - F.clamp((T0 - (tGo - 0.45)) / 0.3));
   const TGO = tGo - 0.06;                                                      // the whip-out cut (whoosh 91.64 starts it)
   const GW0 = TGO - 5 / 30;
   const whipOutL = (T0) => 50 * Math.pow(F.clamp((T0 - GW0) / (TGO - GW0)), 2.2);
@@ -834,7 +841,7 @@ export async function build(api, kit, scenes) {
       // the hero fill in the exact #FF5A36 at 55 % after the grade (a stage fill under this low sun read brick red), then the outline
       ui.fill(ctx, projRings(view, flank.rings, (lon, lat) => Math.max(0, view.S.heightAt(lon, lat))), { alpha: a, fill: 0.55 });
       ui.outline(ctx, view.runs(flank.rings, 0, { every: 3 }), { alpha: a, width: 6 });
-      const p = F.clamp((T0 - (lead('yards') - 0.1)) / 0.35);
+      const p = F.clamp((T0 - (lead('yards') - 0.3)) / 0.35);                 // round 10: the head lands 2 frames before {yards}
       if (p > 0) { const q0 = view.project(-155.19, 19.345, 300), q1 = view.project(-155.19, 19.235, 0); if (q0 && q1) ui.arrow(ctx, [q0, q1], { p, t: T0, width: 15, alpha: a }); }
     } });
   scenes.push(blurred(ready(shotK2, getFlank), GW0, TGO, (tt) => tt > TGO - 3.5 / 30 ? 14 : 6));
