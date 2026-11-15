@@ -12,7 +12,7 @@
 //   S2 'oahu_nuuanu' s030-s041  pulls back to windward Oʻahu from the NE; {huge} a white line traces the Koʻolau crest (our DEM),
 //                               {tore} a hero-orange glow runs along it (the scar; the narration keeps 'may'); {ne} eased move out to sea (NE, looking SW back at Oʻahu, sun from the ENE), the live drain 0 to
 //                               -5,000 m on a monotone curve keyed to {shelf}, {slope}, {first} (the largest block's top, -2,712 m on this
-//                               grid, breaks the surface on the word), {more}, {field}, as the camera backs out over the field; SEA LEVEL
+//                               grid, breaks the surface on the word: the key is -2,790 m, as it first reads above the water at film size), {more}, {field}, as the camera backs out over the field; SEA LEVEL
 //                               gauge while the level moves; the held breath: the camera rises until the whole field is in frame;
 //                               {slides} the debris field takes the hero fill and white outline; swing back to
 //                               the cliffs, {summit} a white line on the crest where the caldera was cut; {outhere} fast flight back out
@@ -87,12 +87,20 @@ const chaikin = (pts, n = 2) => { let p = pts; for (let k = 0; k < n; k++) { con
 // Round 8 fix: the second weight read (h_i - h_(i-1)) instead of (h_i + 2 h_(i-1)), so with uneven key spacing the inner slopes were
 // inflated and the curve overshot: the drain rose back about 70 m after {first} (24 frames of rising water) and camera chains reversed
 // for a few frames. {"ch2oldmono":1} restores the old weight for comparison.
-let MONO_OLD = false;
-function monotone(keys) {
+// 'peak' inner keys (the 3-key lifted-middle flights): the correct weighted harmonic slope sits between the two secants, so the camera
+// slowed into the middle key and surged again after it (relative-speed dips of 14-26 % in the swing back, {outhere}, the {spare} rise
+// and the flight SE; the old weight hid this by inflating the slope). A peak key takes at least 1.5x the smaller secant (the least slope
+// that keeps one side's speed rising all the way to the key) and 1.25x the larger one (so the move still carries speed through the
+// key where other channels turn there), capped at 3x the smaller secant (Fritsch-Carlson's box): still monotone, no overshoot, no
+// reversal; 0 where the channel turns. Measured: one speed hump in all four, peaks below the old ones. {"ch2nopeak":1} turns it off.
+let MONO_OLD = false, MONO_PEAK = true;
+function monotone(keys, peak = null) {
   const n = keys.length, x = keys.map(k => k[0]), y = keys.map(k => k[1]), d = [], m = new Array(n);
   for (let i = 0; i < n - 1; i++) d.push((y[i + 1] - y[i]) / (x[i + 1] - x[i]));
   m[0] = 0; m[n - 1] = 0;
   for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : 3 * (x[i + 1] - x[i - 1]) / ((2 * x[i + 1] - x[i] - x[i - 1]) / d[i - 1] + (MONO_OLD ? x[i + 1] - 2 * x[i] + x[i - 1] : x[i + 1] + x[i] - 2 * x[i - 1]) / d[i]);
+  if (peak && MONO_PEAK && !MONO_OLD) for (const i of peak) if (i > 0 && i < n - 1 && d[i - 1] * d[i] > 0) { const lo = Math.min(Math.abs(d[i - 1]), Math.abs(d[i])), hi = Math.max(Math.abs(d[i - 1]), Math.abs(d[i]));
+    m[i] = Math.sign(d[i]) * Math.max(Math.abs(m[i]), Math.min(Math.max(1.5 * lo, 1.25 * hi), 3 * lo)); }
   return (t) => { if (t <= x[0]) return y[0]; if (t >= x[n - 1]) return y[n - 1];
     let i = 0; while (t > x[i + 1]) i++; const h = x[i + 1] - x[i], s = (t - x[i]) / h, s2 = s * s, s3 = s2 * s;
     return (2 * s3 - 3 * s2 + 1) * y[i] + (s3 - 2 * s2 + s) * h * m[i] + (-2 * s3 + 3 * s2) * y[i + 1] + (s3 - s2) * h * m[i + 1]; };
@@ -101,16 +109,13 @@ const llOf = (ll) => ({ lon: ll[0], lat: ll[1] });
 // one continuous flight through several orbit keys: a monotone cubic per channel (lon, lat, log d, tilt, unwrapped heading, fov, h),
 // so the camera eases in at the first key, eases out at the last and never stops at an inner key (orbitPath eases every segment to
 // rest). Used for the dive (s029-s030) and the drain flight (s032-s034). Local helper: shared.js has no multi-key spline.
-function chainPath(keys) {
+function chainPath(keys, peak = null) {
   const hd = [keys[0].heading];
   for (let i = 1; i < keys.length; i++) hd.push(hd[i - 1] + ((((keys[i].heading - keys[i - 1].heading) % 360) + 540) % 360 - 180));
-  const ch = (f) => monotone(keys.map((k, i) => [k.t, f(k, i)]));
+  const ch = (f) => monotone(keys.map((k, i) => [k.t, f(k, i)]), peak);
   const C = { lon: ch(k => k.lon), lat: ch(k => k.lat), ld: ch(k => Math.log(k.d)), tilt: ch(k => k.tilt), hd: ch((k, i) => hd[i]), fov: ch(k => k.fov), h: ch(k => k.h || 0) };
   return (t) => ({ lon: C.lon(t), lat: C.lat(t), d: Math.exp(C.ld(t)), tilt: C.tilt(t), heading: C.hd(t), fov: C.fov(t), h: C.h(t) });
 }
-// round 8: the new sea over a drained seabed (deep, greyer teal: no flat turquoise sheet), blended in by k
-const DRAIN_WATER = [[0.022, 0.15, 0.19], [0.014, 0.10, 0.14], [0.014, 0.072, 0.105]];
-const drainWater = (wc, k) => k > 0 ? wc.map((c, j) => c.map((v, q) => F.lerp(v, DRAIN_WATER[j][q], 0.85 * k))) : wc;
 // film water seen from far above blends toward the globe's navy (as scaleMove does), so far views never read saturated teal
 function farWater(d, kMin = 0) {
   const k = Math.max(kMin, E.inOut(F.clamp((Math.log(d) - Math.log(25)) / (Math.log(500) - Math.log(25)))));
@@ -122,7 +127,7 @@ export async function build(api, kit, scenes) {
   const ch = K.chapter(2), T = (m) => K.T(m), lead = (m, f = 3) => K.lead(m, f);
   const pr = (t, a, b, e = E.inOut) => e(F.clamp((t - a) / Math.max(1e-6, b - a)));
   const env = (t, a, b, fi = 0.3, fo = 0.3) => F.clamp(Math.min((t - a) / fi, (b - t) / fo));
-  const dbg = !!api.Q.ch2dbg; MONO_OLD = !!api.Q.ch2oldmono;
+  const dbg = !!api.Q.ch2dbg; MONO_OLD = !!api.Q.ch2oldmono; MONO_PEAK = !api.Q.ch2nopeak;
 
   // ================================================================ the one camera path (film time)
   const eyeG = offLL(LOOKOUT, 0.9, 222);                                   // behind the lookout over the Nuʻuanu side, 450 m up
@@ -192,9 +197,10 @@ export async function build(api, kit, scenes) {
   ];
   const path0 = orbitPath(KEYS);
   // continuous multi-key flights (chainPath): the dive (5 keys from tDive0), the drain flight ({ne} to {field}, 7 keys), the swing back,
-  // the {outhere} flight, the {spare} rise into the 100 MILES pull-back, the flight SE and the rise into the last move
-  const chainOf = (t0, n) => { const i0 = KEYS.findIndex(k => k.t === t0); return { a: KEYS[i0].t, b: KEYS[i0 + n - 1].t, f: chainPath(KEYS.slice(i0, i0 + n)) }; };
-  const CHAINS = [chainOf(tDive0, 5), chainOf(tNe0, 7), chainOf(tSw0, 3), chainOf(tFl0, 3), chainOf(tRise0, 3), chainOf(tBi0, 3), chainOf(tUp0, 3)];
+  // the {outhere} flight, the {spare} rise into the 100 MILES pull-back, the flight SE and the rise into the last move; peak: the middle key
+  // of the four lifted-middle flights is a speed peak (see monotone), not a dip
+  const chainOf = (t0, n, peak = false) => { const i0 = KEYS.findIndex(k => k.t === t0); return { a: KEYS[i0].t, b: KEYS[i0 + n - 1].t, f: chainPath(KEYS.slice(i0, i0 + n), peak ? [1] : null) }; };
+  const CHAINS = [chainOf(tDive0, 5), chainOf(tNe0, 7), chainOf(tSw0, 3, true), chainOf(tFl0, 3, true), chainOf(tRise0, 3, true), chainOf(tBi0, 3, true), chainOf(tUp0, 3)];
   const path = (t) => { for (const c of CHAINS) if (t > c.a && t < c.b) return c.f(t); return path0(t); };
   const camAt = (t) => camOf(path(t));
   // {"ch2path":1}: log the camera's relative speed per frame (eye travel / target distance + view-direction turn, per frame) to find
@@ -220,12 +226,19 @@ export async function build(api, kit, scenes) {
   const S1 = [ch.t0, tHand + XF], S2 = [tHand, tCh0 + 0.45 + XF], S3 = [tCh0 + 0.45, tS4 + XF], S4 = [tS4, ch.t1x];
 
   // ================================================================ water level
-  const drain = monotone([[lead('ne'), 0], [lead('shelf') + 0.05, -150], [lead('slope') + 0.2, -900], [lead('first') - 0.03, -2712], [T('first') + 1.9, -3100],
+  const drain = monotone([[lead('ne'), 0], [lead('shelf') + 0.05, -150], [lead('slope') + 0.2, -900], [lead('first') - 0.03, -2790], [T('first') + 1.9, -3100],
     [lead('more') + 0.05, -3500], [lead('field') + 0.05, -4150], [K.s1('s034') + 0.12, LEVEL_END]]);
   const tRf0 = tCh0 + 0.45 + 0.5, tRf1 = tRf0 + 1.7;                       // the refill starts as the main_chain stage's dissolve ends
   const refill = (t) => LEVEL_END * Math.pow(1 - F.clamp((t - tRf0) / (tRf1 - tRf0)), 5);
   const tDr0 = T('alldown') - 0.05;
   const bigDrain = (t) => -2600 * E.in(F.clamp((t - tDr0) / 2.6));
+  // {"ch2chan":1}: per frame, every camera channel and the three water levels (to count reversals and overshoot without rendering)
+  if (api.Q.ch2chan) {
+    const rows = [];
+    for (let f = Math.ceil(ch.t0 * 30); f <= ch.t1x * 30; f++) { const t = f / 30, p = path(t);
+      rows.push([t.toFixed(3), p.lon.toFixed(6), p.lat.toFixed(6), p.d.toFixed(4), p.tilt.toFixed(4), p.heading.toFixed(4), p.fov.toFixed(4), (p.h || 0).toFixed(2), drain(t).toFixed(2), refill(t).toFixed(2), bigDrain(t).toFixed(2)].join(' ')); }
+    api.log('[ch2chan] keys ' + KEYS.map(k => k.t.toFixed(3)).join(' ') + '\n' + rows.join('\n'));
+  }
 
   // ================================================================ data, made once
   const card = { tour: await kit.paper('tourist').catch(e => { api.log('[ch2] tourist cut-out missing: ' + e.message); return null; }), wall: wallCard(kit), wisp: wispCard(kit) };
@@ -349,10 +362,11 @@ export async function build(api, kit, scenes) {
       const s = F.clamp(DREF / dist(LOOKOUT[0], LOOKOUT[1], hL), 0, 1.4), hPx = H * 0.36 * s;
       // paper wisps over the ridge (behind the wall and the tourist)
       const wa = pr(t, tWind, tWind + 0.5) * (1 - pr(t, tDive0, tDive0 + 0.35));
-      const gust = 420 * s * E.inOut(pr(t, T('hat') + 0.2, T('hat') + 1.05));   // round 8: the wisps race on the gust (mix peak 105.69 s)
+      // (round 8 tried a gust: 420 px on a doubly eased ramp drove the wisps at up to 140 px a frame, 105.4-105.8 s: a strobe. Reverted:
+      // they keep their 22-24 px a frame; the hat carries the gust)
       if (wa > 0 && card.wisp) for (const [ph, yf, sc, v] of WISPS) {
         const w = 560 * sc * s, h = w * card.wisp.h / card.wisp.w, span = W + w * 1.2;
-        const x = W + w * 0.6 - ((t - tWind) * v * s + gust + ph * span) % span, y = H * yf + 0.045 * (W - x) + 10 * Math.sin(t * 3.1 + ph * 9);
+        const x = W + w * 0.6 - ((t - tWind) * v * s + ph * span) % span, y = H * yf + 0.045 * (W - x) + 10 * Math.sin(t * 3.1 + ph * 9);
         if (x - w * 0.6 > W || x + w * 0.6 < 0) continue;                  // they cross the sky above the windward plain, edge to edge
         ctx.save(); ctx.translate(x, y); ctx.rotate(0.03 * Math.sin(t * 4.3 + ph * 7));
         ctx.globalAlpha = wa * 0.16; ctx.drawImage(card.wisp.sil, -w / 2 + 10 * s, -h / 2 + 18 * s, w, h);      // soft shadow on the haze
@@ -396,7 +410,7 @@ export async function build(api, kit, scenes) {
           const cs = Math.cos(2 * Math.PI * 2.3 * Math.max(0, v - 0.3)), sy0 = F.lerp(1, cs, fz), sy = (sy0 < 0 ? -1 : 1) * Math.max(0.22, Math.abs(sy0));
           const ang = rot0 + br0.rot - (v * 3.4 + 0.45 * Math.sin(v * 12) * fz);
           ctx.save(); ctx.globalAlpha = alpha; ctx.translate(Q.x, Q.y); ctx.rotate(ang); ctx.scale(1, sy);
-          ctx.shadowColor = 'rgba(0,0,0,0.22)'; ctx.shadowBlur = 6 * gr; ctx.shadowOffsetX = 4 * gr; ctx.shadowOffsetY = 6 * gr;
+          ctx.shadowColor = `rgba(0,0,0,${(0.22 * pr(v, 0, 0.2)).toFixed(3)})`; ctx.shadowBlur = 6 * gr; ctx.shadowOffsetX = 4 * gr; ctx.shadowOffsetY = 6 * gr;   // the shadow grows in as it lifts off (none on his head)
           if (sy < 0) ctx.filter = 'brightness(0.78) saturate(0.7)';
           ctx.drawImage(hc.img, -h0.w * gr / 2, -h0.h * gr / 2, h0.w * gr, h0.h * gr); ctx.restore(); };
         if (u > uF + 0.02) { hatDraw(u - 0.024, 0.16); hatDraw(u - 0.012, 0.3); }
@@ -440,13 +454,9 @@ export async function build(api, kit, scenes) {
       st.set.nearAmt = 0.6 * k;   // near-field basalt relief on the close drained seabed (s037-s040: the low flight and the block)
       st.post.exposure = F.lerp(F.lerp(1.2, DRY.exp, k), 1.3, sw); st.set.skyI = F.lerp(0.70, DRY.sky, k); st.sun[1] = F.lerp(30, DRY.el, k);
       const ha = slidesA(t); if (ha > 0) { st.mlook = SLIDE_LOOK; st.mlookAmt = ha; st.set.capBB = [0, 0, 0, 0]; }
-      // round 8: the new sea over the drained field read as one flat bright turquoise sheet (f3714 cyan 82 %, gate FAIL: the sky's
-      // reflection tinted by the shallow colour, lifted by the drained exposure, and luminous rims round every block): a deeper,
-      // greyer water, less sky reflection and softer rims while the level is down
-      const kw = F.clamp(-lv / 600) * (api.Q.ch2dw ?? 1);
-      st.waterCols = drainWater(farWater(path(t).d) || WATER_FILM, kw);
-      if (kw > 0) { st.set.fresMax = F.lerp(0.55, 0.32, kw); st.set.edgeGlow = F.lerp(0.6, 0.22, kw); }
-      return st; },
+      // (round 8 tried a deeper, greyer drained-sea colour with less sky reflection and softer rims: measured no better, f3714/f3738/
+      // f3762 cyan 83/83/75 % either way and the template distance 10.91-10.95 against 10.94-10.97 without it, 10 luma darker: reverted)
+      const wc = farWater(path(t).d); if (wc) st.waterCols = wc; return st; },
     // R: the debris fill on {slides}; G: the drained reef flats and bays dimmed to grey as soon as they are dry
     mask: (lt, S) => { const t = S2[0] + lt, a = slidesA(t), bay = F.clamp((-drain(t) - 1) / 10); if (a <= 0 && bay <= 0) return null;
       const m = nuuMask(S); if (a > 0) heroBright(S); return { tex: m.tex, bb: m.bb, hero: NUU_FILL * a, dim: bay, pass: 1 }; },

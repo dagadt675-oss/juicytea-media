@@ -14,7 +14,8 @@
 //              four moving framings; {seafloor} Everest sinks 6,000 m, the last water drains and the camera cranes down to the floor so
 //              both feet stand on the yellow -6,000 m line; bar + FROM THE SEA FLOOR / 33,000+ FT on {tall33} (punch on the hit_body);
 //              {ev2} tick; JUICE CHECK: TRUE at the end of "one.".
-//   s064-s065  GAG: Everest's summit from 10 km: the paper climber leans into the wind in paper spindrift, plants a pennant ({this});
+//   s064-s065  GAG: Everest's summit from 10 km: the paper climber (a historical roped mountaineer seen from behind, ice axe and
+//              crampons, hand-tinted) leans into the wind in paper spindrift, plants a pennant ({this});
 //              whip on "road" to Mauna Kea's upper slope from 5.4 km: the paper jeep on the real access road (USGS), the summit
 //              cones above; whip back: the pennant hangs limp from the upright pole (flag_droop).
 //   s066-s070  fully drained from here: {giant} orbit, Mauna Kea dims under a quick outline; {loa} Mauna Loa's map area takes the hero
@@ -34,7 +35,8 @@
 // Mauna Kea below the old shore = nearest-volcano partition (APPROXIMATE, fill only, never labelled); the summit access road USGS
 // National Map (TIGER); waterlines, coasts, crest and terrace edges from the region grids. Deviations: the Everest prop and the stand-up
 // held at -3,500 m during s052-s055 (one waterline for the outline); s072's metaphor moves to the chain view at s073; the jeep is the
-// 1942 FSA photo (a civilian 4WD is requested); the climber wears a jacket (the kit's NPS photo).
+// 1942 FSA photo (a civilian 4WD is requested); the climber is the kit's LOC photo of an unnamed early-1900s mountaineer
+// (never named; credit in the description only), not a summit-day Everest outfit.
 // Local helpers only (no shared change): camOf/orbit/chainPath (multi-key flights without stops), blurred() sub-frame motion blur, the
 // Everest prop (registered in S._sections so other shots on the stage hide it), paper candle / sheet / flag, the JUICE CHECK stamp.
 import { PAL, E, F, THREE, MOVE_WATER, WATER_FILM, mixState, heightGrid, terrainCamOf } from './shared.js';
@@ -101,8 +103,8 @@ const centroid = (r) => { let a = 0, x = 0, y = 0; for (let i = 0; i < r.length 
 // Everest's real terrain as a round patch (radius 10.5 km about the summit): region 'everest' (14 m heights, HLS colour) inside its
 // bbox, region 'everest_wide' (92 m) out to the rim, heights scaled so the summit is 8,849 m. From the patch rim a rock apron (talus with
 // strata bands, the rim's own colour at its top) flares out and down at about 33 deg to the sea-level datum (y 0): no vertical wall
-// stands above the datum. Below the datum a darker plain pedestal whose depth is set per frame (it reaches the virtual sea floor at
-// -6,000 m and shrinks to nothing as Everest sinks onto that floor). Lit by the stage's sun and sky, hazed like the stage. Forced
+// stands above the datum. Below the datum an optional darker plain pedestal (depth per frame; ch3 keeps it off: its straight wall read
+// as a silo). Lit by the stage's sun and sky, hazed like the stage. Forced
 // perspective (place): the group is put k of the way from the eye to its virtual spot and scaled by k, curvature and haze computed for
 // the virtual distance, so on screen it is exactly the true-scale Everest there, for the eye of that frame (place() runs every frame).
 const EV_VS = /* glsl */`
@@ -342,13 +344,15 @@ export async function build(api, kit, scenes) {
   if (dbg) api.log(`[ch3] act1 hand-offs ${tH1.toFixed(2)} ${tH2.toFixed(2)}`);
   // ch3 opens on ch2's last camera (CH3_IN in ch2.js, eye about 24.6 km up) under the card and descends to the low camera in 1.6 s
   const CH3_IN = terrainCamOf({ lon: -155.33, lat: 19.83, h: 0, d: 95, tilt: 75, heading: 210, fov: 40 }), tIn = ch.t0 + 1.6;
-  const dPA = (t) => -6 * pr(t, T('shape') - 0.6, T('shape') + 0.8) * (1 - pr(t, T('going') - 0.2, T('going2') + 0.9));   // {slopes}: the 0 m line into the upper third
+  const dPA = (t) => -7 * pr(t, T('shape') - 0.6, T('shape') + 0.8) * (1 - pr(t, T('going') - 0.2, T('going2') + 0.9));   // {slopes}: the 0 m line into the upper third
   const cam1 = (t) => { if (t < tP0) { const c = lowCam(t), L = { lon: c.eye[0], lat: c.eye[1], alt: c.alt, tLon: c.tgt[0], tLat: c.tgt[1], tH: c.h, fov: 30, near: 0.01, far: 2000 };
       if (t >= tIn) return L; const k = E.inOutSine(F.clamp((t - ch.t0) / (tIn - ch.t0))), A0 = CH3_IN;
       return { lon: F.lerp(A0.lon, L.lon, k), lat: F.lerp(A0.lat, L.lat, k), alt: Math.exp(F.lerp(Math.log(A0.alt), Math.log(L.alt), k)), tLon: F.lerp(A0.tLon, L.tLon, k), tLat: F.lerp(A0.tLat, L.tLat, k),
         tH: F.lerp(A0.tH, L.tH, k), fov: F.lerp(A0.fov, L.fov, k), near: 0.01, far: 2000 }; }
     const c = camOf(path1(t)), dp = dPA(t); if (dp) c.dPitch = dp; return c; };
-  const sunAct1 = (t) => { const k = pr(t, T('shape') - 1.0, T('shape') + 1.5); return [F.lerp(108, 122, k), F.lerp(26, 15, k)]; };   // from the E: the NE flank side-lit
+  // from the E: the NE flank side-lit; around {up} a low SE sun rakes across the NE flank, so its gullies read (not a flat grey wall)
+  const sunAct1 = (t) => { const k = pr(t, T('shape') - 1.0, T('shape') + 1.5), u = env(t, tH2 - 0.1, T('shape') - 1.0, 0.4, 1.2);
+    return [F.lerp(F.lerp(108, 122, k), 136, u), F.lerp(F.lerp(26, 15, k), 13, u)]; };
   // masks: the cap above today's shore (s055) on the hero grid
   const M = {};
   const capMask = (S) => { if (!M.cap) { const g = heightGrid(S, [-156.2, 18.85, -154.75, 20.35], 2), m = raster(g, [GEO.COAST.hawaii]);
@@ -401,8 +405,8 @@ export async function build(api, kit, scenes) {
   // ================================================================ ACT 2: Everest at the same scale (bigisland + the prop)
   // The eye is 126 km NE of Mauna Kea over the Hawaiian Deep (floor about -5,550 m), looking SW. The virtual Everest stands at Mauna
   // Kea's distance, 11.2 deg to the right (25 km aside, over the Waimea saddle), so both summits stand free. Four framings, each moving:
-  //   F1 {ev}: eye 0.35 km above sea level (the white sea-level line lies on Mauna Kea's real shoreline), Everest rises onto its
-  //      pedestal (the pedestal reaches the virtual sea floor), slow push;  F2 {easily}: push on both summits, a white tick runs from
+  //   F1 {ev}: eye 0.35 km above sea level (the white sea-level line lies on Mauna Kea's real shoreline), Everest rises until its
+  //      apron's foot stands on that line (no pedestal under it: a straight-walled plinth read as a silo), slow push;  F2 {easily}: push on both summits, a white tick runs from
   //      Mauna Kea's summit across to Everest (its peak towers over it);  F3 {seafloor}: Everest sinks 6,000 m onto the floor, the last
   //      water drains, and the camera cranes down to 4.3 km below sea level, the height at which the -6,000 m line at the summits'
   //      distance lies on the visible floor at Mauna Kea's foot: both feet stand on the yellow base line, the bar climbs;
@@ -416,7 +420,6 @@ export async function build(api, kit, scenes) {
   const tBar0 = tCr1 - 0.55, tBar1 = lead('tall33', 2), tEv2 = lead('ev2'), tStamp = K.Te('heard'), tEasy = lead('easily');
   const tPunch = T('tall33') + 0.34;                                            // the mix's hit_body (x074): the 6-frame lock-in punch
   const evBase = (t) => t < tSink0 ? F.lerp(-15000, 0, pr(t, tRise0, tRise1, E.outCubic || E.out)) : F.lerp(0, -6000, pr(t, tSink0, tSink1));
-  const evPed = (t) => Math.max(0, evBase(t) + 6000) / 1000;                    // pedestal down to the virtual sea floor (-6,000 m), km
   const eyeAlt = (t) => F.lerp(0.35, EYE_LO, pr(t, tCr0, tCr1, E.inOutSine));
   const lvl2 = (t) => F.lerp(-5470, -9000, pr(t, tCr0 - 0.3, tCr0 + 1.0, E.inSine));   // the last water drains as the camera goes down
   // framing keys: b = bearing offset from Mauna Kea (deg, + right), p = pitch of the frame centre (deg), fov
@@ -430,7 +433,7 @@ export async function build(api, kit, scenes) {
     state: (lt) => { const t = tAct2 + lt, st = mixState('today', 'drained', 1); st.level = lvl2(t); st.sun = [128, 27]; st.set.oldLine = 1; st.set.lineW = 2.0; st.set.lineCol = [1.4, 1.42, 1.42];
       st.set.tubAmt = 0.4; st.waterCols = DEEPW; return st; },
     set: (lt, S) => { S2 = S; return {}; },
-    cam: (lt) => { const t = tAct2 + lt, c = cam2(t); if (EVP) EVP.place({ eye: { lon: EYE2.lon, lat: EYE2.lat, alt: c.alt }, lon: EVV[0], lat: EVV[1], base: evBase(t), pedD: evPed(t), k: K_EV, visible: t > tRise0 - 0.05 }); return c; },
+    cam: (lt) => { const t = tAct2 + lt, c = cam2(t); if (EVP) EVP.place({ eye: { lon: EYE2.lon, lat: EYE2.lat, alt: c.alt }, lon: EVV[0], lat: EVV[1], base: evBase(t), pedD: 0, k: K_EV, visible: t > tRise0 - 0.05 }); return c; },
     ui(ctx, lt, t, view) {
       const P = (ll, hm) => view.project(ll[0], ll[1], hm);
       const evTop = (b) => P(EVV, b + 8849), mkTop = P(MK, 4207);
@@ -458,13 +461,13 @@ export async function build(api, kit, scenes) {
       const eNow = evTop(evBase(t)); if (eNow) ui.avoid(ui.boxOf([eNow, P(EVV, Math.max(evBase(t), -800))], px(36)));
       if (mkTop) ui.avoid({ x: mkTop[0] - px(60), y: mkTop[1] - px(40), w: px(120), h: px(80) });
       if (kp > 0 && kout < 1) {
-        const nOpt = { cap: 150, to: 33000, unit: '+ FT', unitCap: 96 };
+        const nOpt = { cap: 150, to: 33000, unit: '+ FT', unitCap: 96, lead0: false };   // no '03,841' mid-roll: the leading digit fades in
         const m = ui.number(dummy, 0, 0, 0, Object.assign({ measure: true }, nOpt));
         const punch = 1 + 0.07 * Math.sin(F.clamp((t - tPunch) / 0.2) * Math.PI);
         ctx.save();
         const box = ui.block(ctx, [{ text: 'FROM THE SEA FLOOR', role: 'kicker', cap: 52, qualifier: true }], px(96), px(96),
           { anchor: 'left', p: kp, out: kout, extra: { w: m.w, h: m.h + px(10) }, bar: PAL.yellow, clear: 24,
-            at: [{ x: px(96), y: px(96), anchor: 'left' }, { x: W / 2, y: px(96), anchor: 'center' }, { x: W - px(96), y: px(96), anchor: 'right' }] });
+            at: [{ x: W - px(96), y: px(96), anchor: 'right' }, { x: W / 2, y: px(96), anchor: 'center' }, { x: px(96), y: px(96), anchor: 'left' }] });   // right first: it never jumps
         if (box) { ctx.translate(box.x + box.w / 2, box.y + box.h / 2); ctx.scale(punch, punch); ctx.translate(-(box.x + box.w / 2), -(box.y + box.h / 2));
           ui.number(ctx, 33000 * bp, box.inner.x, box.inner.y + m.h, Object.assign({ alpha: F.clamp(kp * 2) * (1 - E.in(kout)) }, nOpt)); }
         ctx.restore();
@@ -486,7 +489,7 @@ export async function build(api, kit, scenes) {
     const rot = -7 * D2R, col = PAL.cyan;
     const k1 = 'JUICE CHECK', k2 = 'TRUE', c1 = 56, c2 = 150;
     const w1 = kit.T.width(ctx, k1, { cap: c1 }), w2 = kit.T.width(ctx, k2, { fam: kit.T.FAM.head, cap: c2 }), bw = Math.max(w1, w2) + px(90), bh = px(c1 + c2) + px(110);
-    const cx = px(150) + bw / 2, cy = px(130) + bh / 2;
+    const cx = W / 2, cy = px(70) + bh / 2;   // top centre, in the sky between the summits: top left it covered Mauna Kea's summit and the bar's top
     ctx.save(); ctx.globalAlpha *= a; ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(s, s);
     ctx.fillStyle = 'rgba(6,9,15,0.80)'; F.round(ctx, -bw / 2, -bh / 2, bw, bh, px(14)); ctx.fill();
     ctx.strokeStyle = col; ctx.lineWidth = px(10); F.round(ctx, -bw / 2 + px(10), -bh / 2 + px(10), bw - px(20), bh - px(20), px(10)); ctx.stroke();
@@ -546,14 +549,16 @@ export async function build(api, kit, scenes) {
     } });
   const ev1 = evShot('ch3-gag-everest', tG1, tWo1, 0);
   scenes.push(blurred(ev1, tWo0, tWo1 + 0.04));
-  // Mauna Kea's upper slope from 5.4 km SE (inside the 10 m maunakea region): the summit access road (USGS National Map / TIGER, img/ch3)
-  // leads from the paper jeep at about 3,650 m up to the summit cones at the upper right (the jeep stays well below Puʻuwēkiu)
+  // Mauna Kea's upper slope on a long lens from 6 km SE of the jeep, 300 m above it (clear line of sight on the 10 m maunakea heights;
+  // the frame's lowest ground is 4 km out, inside the region): the summit access road (USGS National Map / TIGER, img/ch3) climbs from
+  // the paper jeep at about 3,640 m (lower left) to the summit cones above and right of it (the jeep stays well below Puʻuwēkiu)
   const ROAD = GEO.ROAD, RL = [0]; for (let i = 1; i < ROAD.length; i++) RL.push(RL[i - 1] + kmOf(ROAD[i - 1], ROAD[i]));
   const roadAt = (km) => { let i = 1; while (i < ROAD.length - 1 && RL[i] < km) i++; const f = F.clamp((km - RL[i - 1]) / Math.max(1e-6, RL[i] - RL[i - 1])); return [F.lerp(ROAD[i - 1][0], ROAD[i][0], f), F.lerp(ROAD[i - 1][1], ROAD[i][1], f)]; };
-  const J0 = RL[262], J1 = J0 + 0.4, MKE = [-155.412, 19.776], MKA = 4.25, MKO = orbit(0, MKE, MKA, offLL(MKE, 6.5, 301), (MKA + 6.5 * Math.tan(-3.8 * D2R)) * 1000, 20);
+  const J0 = RL[262], J1 = J0 + 0.4, JLL = roadAt(J0), MKE = offLL(JLL, 6.0, 140), MKA = 3.95, bJ = brgOf(MKE, JLL), dJ = kmOf(MKE, JLL);
+  const MKO = orbit(0, MKE, MKA, offLL(MKE, dJ, bJ + 4.3), (MKA + dJ * Math.tan(-0.8 * D2R)) * 1000, 12);   // jeep at x 0.3, y 0.68
   const mkCam = (t) => { const wi = -70 * (1 - E.out(F.clamp((t - tWo1) / 0.18))), wo = 70 * E.in(F.clamp((t - tWb0) / (tWb1 - tWb0))), k = pr(t, tWo1, tWb0, E.inOutSine);
-    return camOf(Object.assign({}, MKO, { d: MKO.d - 0.45 * k, heading: MKO.heading + 2 * k + wi + wo })); };
-  const mkShot = kit.terrainShot({ id: 'ch3-gag-road', t0: tWo1, t1: tWb1, region: 'maunakea', preset: 'today', sun: [205, 40], state: { post: { sat: 0.8 } },
+    return camOf(Object.assign({}, MKO, { d: MKO.d - 0.45 * k, heading: MKO.heading + 1 * k + wi + wo })); };   // 7 % push, a 1 deg follow
+  const mkShot = kit.terrainShot({ id: 'ch3-gag-road', t0: tWo1, t1: tWb1, region: 'maunakea', preset: 'today', sun: [210, 34], state: { post: { sat: 0.8 } },
     cam: (lt) => mkCam(tWo1 + lt),
     world(ctx, lt, t, view) {
       // the road ribbon (traced from the USGS transportation layer), draped on the terrain
@@ -570,7 +575,10 @@ export async function build(api, kit, scenes) {
       for (let i = 0; i < 14; i++) { const k = ((t * 1.8 + i / 14) % 1), x = q[0] - wPx * (0.32 + 0.55 * k) + px(18) * Math.sin(i * 2.7), y = q[1] - px(10) - k * px(55) + px(8) * Math.sin(i * 1.9 + t * 3), rr = px(26 + 70 * k) * (0.7 + 0.5 * hash(i, 3));
         const g = ctx.createRadialGradient(x, y, 0, x, y, rr); g.addColorStop(0, `rgba(196,178,150,${0.30 * (1 - k)})`); g.addColorStop(1, 'rgba(196,178,150,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, rr, 0, 7); ctx.fill(); }
       ctx.restore();
-      kit.drawCutout(ctx, view, JEEP, { lon: ll[0], lat: ll[1], hm, wPx, lean: 0.03, hop: 2 * Math.abs(Math.sin(t * 17)), t, wobble: 0.01, flip: false, shadowA: 0.35 });
+      // the photo faces right (nose down a bank): unflipped and tipped back hard (lean -0.5: the crew leans back, the bonnet points up the
+      // road toward the summit, a wheelie up the hill); -0.22 still read as rolling down at the camera. Contact shadow only (the sun's
+      // cast shadow lay edge-on as a dark shard)
+      kit.drawCutout(ctx, view, JEEP, { lon: ll[0], lat: ll[1], hm, wPx, lean: -0.5, hop: 2 * Math.abs(Math.sin(t * 17)), t, wobble: 0.01, shadow: false });
     } });
   scenes.push(blurred(mkShot, tWo1, tWb1));
   const ev2 = evShot('ch3-gag-everest-b', tWb1, tEndG, 0);
@@ -741,9 +749,10 @@ export async function build(api, kit, scenes) {
           ctx.fillStyle = `rgba(62,34,16,${0.85 * k})`; ctx.fill(); ctx.strokeStyle = `rgba(170,96,40,${0.7 * k})`; ctx.lineWidth = px(5); ctx.lineJoin = 'round'; ctx.stroke(); ctx.restore(); }
         ctx.restore();
       }
-      // {plate}: the same paper sheet comes back at 35 % over the sea (the islands cut out, untinted) and keeps sliding NW with the arrow
+      // {plate}: the same paper sheet comes back at 35 % over the sea (the islands cut out, untinted) and slides NW with the arrow
+      // (110 km while the arrow shows: its SE edge visibly travels), then creeps on (its SE edge stays SE of the Big Island)
       const pa = env(t, lead('plate') - 0.05, tE6 + 1, 0.4, 0.3);
-      if (pa > 0) { const x = XS + 140 * pr(t, lead('plate') - 0.05, tE6, (v) => v), q = sheetCorners(x).map(c => view.project(c[0], c[1], 300));
+      if (pa > 0) { const x = XS + 110 * pr(t, lead('plate') - 0.05, tArrOut, E.inOutSine) + 30 * pr(t, tArrOut, tE6, (v) => v), q = sheetCorners(x).map(c => view.project(c[0], c[1], 300));
         if (q.every(Boolean)) { scr.setTransform(1, 0, 0, 1, 0, 0); scr.clearRect(0, 0, W, H); kit.drawQuad(scr, PAPER_C, q, 10);
           scr.save(); scr.globalCompositeOperation = 'destination-out'; scr.fillStyle = '#000'; scr.strokeStyle = '#000'; scr.lineWidth = px(8); scr.lineJoin = 'round';
           for (const ring of [...Object.values(GEO.COAST), ...SMALL.rings]) { const pp = proj(ring); if (!pp.every(Boolean)) continue; scr.beginPath(); pp.forEach(([X, Y], i) => i ? scr.lineTo(X, Y) : scr.moveTo(X, Y)); scr.closePath(); scr.fill(); scr.stroke(); }

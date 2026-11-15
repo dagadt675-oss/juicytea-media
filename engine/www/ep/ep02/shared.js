@@ -271,7 +271,8 @@ export class Hub {
     return this.stage('terrain:' + region + ':' + vex + ':' + JSON.stringify(o), async (renderer) => {
       const d = this.draft;
       const S = new HawaiiStage(this.W, this.H, { renderer, samples: d ? 0 : 4, vex, crisp: this._crisp, origin: o.origin ?? R?.origin ?? idx?.origin, heroGrid: d ? [700, 700] : undefined, skirtGrid: d ? [450, 340] : undefined,
-        midGrid: d ? undefined : o.midGrid });
+        midGrid: d ? undefined : o.midGrid, anchorShift: this.api.Q?.anchorShift,   // anchorShift: test flag (picture must not change)
+        noDetail: !!this.api.Q?.noPatch });   // {"noPatch":1}: test flag, the close-up detail patches left out (before/after stills)
       if (stacked) await S.loadRegion('/ep/ep02/data', region); else await S.load(R.dir);
       S.region = region; return S;
     });

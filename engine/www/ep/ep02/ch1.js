@@ -14,7 +14,7 @@
 //   s009-s011  {look}: the camera cranes up to 5 km and turns north over Maui Nui while the sea falls from -400 ft toward -1,000 m
 //              (gauge marker only; the -400 ft shore as a cream line); the water turns navy as it falls (no lagoon, no foam rim) with a
 //              blue haze on the new surface; over Molokaʻi's north cliffs the slope falls into blue depth on {nobottom}; over the ledge
-//              on {ledge}; on {plunge} the camera is tipped about 41-51 degrees down the slope, riding down it.
+//              on {ledge}; on {plunge} the camera is tipped about 44 degrees down the slope, riding down it.
 //   s012-s013  from {plunge} + 0.5 s it pulls back and up, still looking down, then swings west: Penguin Bank (hero fill in exact
 //              #FF5A36 at 42 % after the grade, white outline of its top above -60 m, label PENGUIN BANK) framed on {bank} (the camera
 //              stops there); the sea rises from "rose"; the fill stays until the water reaches the bank's top (-40 m), so the hero shape
@@ -23,9 +23,10 @@
 //              steel-blue water (sat 1.03); one yellow down-arrow pulses on {now}; an eased push toward Halapē while the light falls.
 //   s016-s023  1975, Halapē (solemn: no gags, no comic sound, no stings), seen from above the low bench behind the cove looking
 //              SEAWARD and down (tilt 63-68 degrees from 0.8-1.45 km, long lens: the grove a third of the width or more), so tents, grove, beach and water fill the frame and the pre-dawn
-//              sea is the background; the soft hillside stays behind the camera (s015 swings round the east side to get there): s016 the cove (NOVEMBER 1975,
+//              sea is the background; the hillside stays behind the camera (s015 swings round the east side to get there), except in
+//              s018 (round 11), which looks along the coast with the slope on the right (needs the 2026-11-15 halape bake: 5 m grid, 1 m lidar over 69 % of it): s016 the cove (NOVEMBER 1975,
 //              HALAPĒ on its pin at {hal}); s017 closer on the camp, the palms shiver with the foreshock (59.3 s), a lantern glows in
-//              one tent on {woke}; s018 the quiet cove from the NE, the jolt and warm dust puffs off the scarp foot (bottom of the frame)
+//              one tent on {woke}; s018 looks WSW along the coast (sea upper left, the slope behind the cove on the right), the jolt and warm dust off the scarp foot (right half)
 //              on {hit}; s019 pull-up on {lurch} looking WSW along the coast: the coastal block outlined in white, one short yellow arrow
 //              seaward (frame left); s020 the block
 //              sinks 3.5 m on {drop} (sea level against today's post-1975 grid -3.5 m to 0) and floods among the palms, with a side-on
@@ -294,12 +295,13 @@ export async function build(api, kit, scenes) {
     { t: tLook + 1.9, lon: -156.800, lat: 20.905, alt: 5.2, tLon: -156.845, tLat: 21.03, tH: -300, fov: 44 },
     // s010: over Molokaʻi's north cliffs toward Maui Nui's new north shore; on {nobottom} the slope falls away into navy water, no floor
     { t: tNoB, lon: -156.925, lat: 21.135, alt: 2.9, tLon: -156.985, tLat: 21.285, tH: -700, fov: 46 },
-    // s011 {ledge}: over the -400 ft shore (the cream line); {plunge}: tipped about 45 degrees down the slope, riding down it
+    // s011 {ledge}: over the -400 ft shore (the cream line), pitch about 20 deg; {plunge}: tipped about 44 degrees down the slope
     { t: tLedge, lon: -156.948, lat: 21.200, alt: 1.6, tLon: -156.966, tLat: 21.262, tH: -1000, fov: 48 },
-    // {plunge}: tipped about 37 degrees down the slope and riding down it (the eye drops 1.6 -> 0.7 km over the real -500 to -900 m
+    // {plunge}: tipped about 44 degrees down the slope and riding down it (the eye drops 1.6 -> 0.7 km over the real -500 to -900 m
     // slope); the wide lens keeps a band of the deep navy water at the top of the frame, so the slope visibly falls into it
-    { t: tPlunge - 0.07, lon: -156.951, lat: 21.232, alt: 1.0, tLon: -156.967, tLat: 21.268, tH: -2300, fov: 58 },     // pitch about 37 deg
-    { t: tPlunge + 0.5, lon: -156.955, lat: 21.244, alt: 0.7, tLon: -156.971, tLat: 21.276, tH: -2300, fov: 58 },      // about 37 deg
+    // round 11: aim points pulled in (pitch 37 -> 44 deg, review: 40-55); the ledge key is about 20 deg, so the tip is about 24 deg
+    { t: tPlunge - 0.07, lon: -156.951, lat: 21.232, alt: 1.0, tLon: -156.9637, tLat: 21.2605, tH: -2300, fov: 58 },   // pitch about 44 deg
+    { t: tPlunge + 0.5, lon: -156.955, lat: 21.244, alt: 0.7, tLon: -156.9677, tLat: 21.2694, tH: -2300, fov: 58 },    // about 44 deg
     // s012: from {plunge} + 0.5 the camera pulls back and up while still looking steeply down (to {plunge} + 1.2), then swings west to
     // Penguin Bank, the flat table off West Molokaʻi, high and dry above the water: framed and filled on {bank}
     { t: tPlunge + 1.2, lon: -157.00, lat: 21.250, alt: 3.0, tLon: -157.06, tLat: 21.255, tH: -1000, fov: 50 },        // about 33 deg (far water in view)
@@ -327,9 +329,10 @@ export async function build(api, kit, scenes) {
   const RLOOK = (k) => ({ zenith: '#1553b5', horizon: mixh('#9fc4ee', '#86a6d0', k), haze: [mixh('#a5c0e0', '#40699f', k), 0.74], sun: '#fff3e2', glow: ['#ffe6c8', 0.5], sunI: 3.5, skyI: 0.70 });
   const stateC = (T0) => {
     const s = blend(RIDE, RIDE, 0), k = E.inOut(F.clamp(drainP(T0) * 1.6)), lev = levelC(T0), rising = T0 > rise0;
-    // round 10: +0.14 exposure over the plunge (the navy slope frames read 66-67 mean luma, under the 70 floor for story shots)
+    // round 10: +0.14 exposure over the plunge (the navy slope frames read 66-67 mean luma, under the 70 floor for story shots);
+    // round 11: +0.19 (the steeper 44 deg plunge shows less of the brighter water band: 70.3 at f1113 with +0.14)
     const pk = E.inOut(F.clamp((T0 - (tLedge + 0.4)) / 0.7)) * (1 - E.inOut(F.clamp((T0 - (tPlunge + 1.0)) / 0.8)));
-    s.post.exposure = 1.12 + 0.06 * k + 0.14 * pk; s.set.oldLine = 0; s.set.ringH = 30;
+    s.post.exposure = 1.12 + 0.06 * k + 0.19 * pk; s.set.oldLine = 0; s.set.ringH = 30;
     // haze: the scale height shrinks from 6 km to 0.45 km while the column grows from 0.017 to 0.135 (a linear blend of both made a
     // tall, dense whiteout mid-drain)
     const fH = 6.0 * Math.pow(0.075, k), fCol = 0.0168 + 0.118 * k;
@@ -449,7 +452,7 @@ export async function build(api, kit, scenes) {
     { t: K.s1('s014') + 0.2, lat: 19.296, lon: -155.238, d: 30, tilt: 72, heading: 352, fov: 40, ease: E.inOutSine },
     // round 9 (review: one look): s016-s023 look SEAWARD from above the low bench behind the cove (tilt 63-68 from 0.8-1.2 km), so
     // beach, tents, grove and water fill the frame and the pre-dawn sea is the background; the soft 10 m / 30 m hillside and the scarp
-    // stay behind the camera (only the scarp foot shows, at the bottom of the frame, for the {hit} dust)
+    // stay behind the camera. Round 11: s018 is the exception (along the coast, the slope on the right: see its keys)
     // s015: one eased swing and push while the light falls: around the east side of the cove (looking west along the coast mid-way)
     // to the land side, ending high over the bench looking out to sea
     { t: K.s0('s016') - 0.2, lat: HAL.lat - 0.0010, lon: HAL.lon + 0.0003, d: 1.15, tilt: 66, heading: 192, fov: 16, ease: E.inOut },
@@ -461,8 +464,12 @@ export async function build(api, kit, scenes) {
     { t: K.s0('s017') + 1.3, lat: HAL.lat - 0.0001, lon: HAL.lon + 0.0002, d: 0.62, tilt: 62, heading: 184, fov: 13, ease: E.inOut },
     { t: K.s1('s017'), lat: HAL.lat - 0.0001, lon: HAL.lon + 0.0002, d: 0.58, tilt: 62, heading: 182, fov: 13, ease: E.inOutSine },
     // s018: "more than an hour later": the quiet cove from the north-east, a slow drift, then the jolt and dust off the scarp foot on {hit}
-    { t: K.s0('s018') + 1.2, lat: HAL.lat - 0.0006, lon: HAL.lon + 0.0003, d: 1.0, tilt: 64, heading: 204, fov: 16, ease: E.inOut },
-    { t: tLurch - 0.1, lat: HAL.lat - 0.0006, lon: HAL.lon + 0.0003, d: 0.97, tilt: 64, heading: 206, fov: 16, ease: E.inOutSine },
+    // round 11 (review: s016 and s018 looked alike): s018 looks WSW ALONG the coast instead of out to sea: the sea upper left, the
+    // shoreline running away to the top of the frame, the grove left of centre on it, and the rising slope behind the cove on the
+    // right, so the {hit} dust comes off a scarp foot that is in the picture (a band across the right half), not off a corner;
+    // s019 then pulls up on almost the same heading (248). Key times unchanged.
+    { t: K.s0('s018') + 1.2, lat: HAL.lat + 0.0010, lon: HAL.lon - 0.0010, d: 1.0, tilt: 68, heading: 245, fov: 22, ease: E.inOut },
+    { t: tLurch - 0.1, lat: HAL.lat + 0.0010, lon: HAL.lon - 0.0010, d: 0.96, tilt: 68, heading: 247, fov: 22, ease: E.inOutSine },
     // s019 {lurch}: a quick pull-up looking WSW along the coast (the sea on the left): the coastal block outlined, the arrow seaward
     { t: tLurch + 1.3, lat: HAL.lat - 0.0008, lon: HAL.lon + 0.0020, d: 4.0, tilt: 58, heading: 248, fov: 34, ease: E.inOut },
     { t: K.s0('s020') + 0.2, lat: HAL.lat - 0.0008, lon: HAL.lon + 0.0021, d: 3.8, tilt: 58, heading: 246, fov: 34, ease: E.inOutSine },
@@ -519,14 +526,19 @@ export async function build(api, kit, scenes) {
     const su = T0 - (tRush - 0.68), surge = su < 0 ? 0 : su < 0.6 ? E.out(su / 0.6) : su < 2.2 ? 1 - E.inOut((su - 0.6) / 1.6) : 0;
     return pre * (1 - drop) + 3.0 * surge;
   };
+  // round 11: the s024 pull-back over the south flank read as a bare brown drain-clone frame (gate f2580-f2600: tan 14-41 %, drain
+  // distance 9.3-9.7); from s024 + 0.1 s the land is graded toward the grey-brown of the real lava flank (land-only saturation and
+  // gain on both stages; the water and the hero fill are untouched); once the fill is up it eases back to 30 % (s024 + 1.75 to + 2.65),
+  // so the regional view matches s014's colours
+  const lavaH = (T0) => E.inOut(F.clamp((T0 - (K.s0('s024') + 0.1)) / 0.6)) * (1 - 0.7 * E.inOut(F.clamp((T0 - (K.s0('s024') + 1.75)) / 0.9)));
   const stateH = (T0) => {
-    const k = lightK(T0);
+    const k = lightK(T0), lv = lavaH(T0);
     // night: first light keeps the water a muted deep teal (no pool turquoise)
     const night = k <= 1 ? k : k < 2 ? 1 - 0.3 * (k - 1) : 0.7 * (3 - k), WN = [[0.012, 0.080, 0.115], [0.009, 0.048, 0.088], [0.007, 0.034, 0.070]];
     const WD = [[0.030, 0.26, 0.30], [0.024, 0.085, 0.150], [0.022, 0.060, 0.130]];   // by day: steel blue offshore (MOVE_WATER family), no pool teal
     return { look: lookAt(k), sun: [pick3(k, 100, 82, 84, 100), pick3(k, 24, 15, 14, 34)], waterCols: WD.map((c, i) => c.map((v, j) => v + (WN[i][j] - v) * night)), level: levelH(T0),
       set: { foamAmt: 0.6 + 0.6 * F.clamp(1 - Math.abs(T0 - (tRush + 0.6)) / 1.0), waveAmt: 0.45 + 0.9 * F.clamp(1 - Math.abs(T0 - (tFore + 0.9)) / 1.2) + 1.1 * F.clamp(1 - Math.abs(T0 - (tHit + 0.3)) / 1.4),
-        glintAmt: 0.06, surfAmt: 0.7, landSat: pick3(k, 1.05, 0.8, 0.85, 1.05), landGain: pick3(k, 1.0, 1.45, 1.25, 1.0), nearAmt: 0.7, landLift: pick3(k, 0.03, 0.06, 0.045, 0.03), shadows: 1 },
+        glintAmt: 0.06, surfAmt: 0.7, landSat: pick3(k, 1.05, 0.8, 0.85, 1.05) * (1 - 0.62 * lv), landGain: pick3(k, 1.0, 1.45, 1.25, 1.0) * (1 - 0.12 * lv), nearAmt: 0.7, landLift: pick3(k, 0.03, 0.06, 0.045, 0.03), shadows: 1 },
       post: { exposure: pick3(k, 1.18, 1.6, 1.38, 1.15), sat: pick3(k, 1.03, 1.0, 1.0, 1.03), contrast: pick3(k, 1.08, 1.05, 1.05, 1.06) } };
   };
   // the strip between today's shore and the pre-1975 waterline (3.5 m lower) was the beach the grove stood on: sand, not dark seabed
@@ -669,7 +681,10 @@ export async function build(api, kit, scenes) {
     const a = blockA(T0); if (a <= 0) return; const B = getBlock(view.S); if (!B.rings.length) return;
     const pr = projRings(view, B.rings, (lon, lat) => Math.max(0, view.S.heightAt(lon, lat)) + 1).map(r => r.concat([r[0]]));   // closed rings
     ui.outline(ctx, pr, { alpha: a, width: 6, p: F.clamp((T0 - (lead('lurch') - 0.1)) / 0.5) });
-    const p = F.clamp((T0 - lead('lurch')) / 0.3), q0 = view.project(HAL.lon + 0.004, 19.2716, 15), qs = view.project(HAL.lon + 0.004, 19.2696, 0);
+    // round 11: the arrow foot moved from 420 m to 160 m east of the grove (19.2724 N, ground 18 m): with the old foot the arrow was
+    // drawn below the frame at the end of s018 and slid in from the bottom edge 0.3 s after {lurch} (motion check f1984-1993);
+    // now it draws in frame (bottom centre) on the word and rides up with the pull-up, ending just under the camp, pointing to sea
+    const p = F.clamp((T0 - lead('lurch')) / 0.3), q0 = view.project(HAL.lon + 0.0015, 19.2724, 20), qs = view.project(HAL.lon + 0.0015, 19.2704, 0);
     if (p > 0 && q0 && qs) { const dx = qs[0] - q0[0], dy = qs[1] - q0[1], dl = Math.hypot(dx, dy) || 1, Lp = px(230);   // seaward, 230 px
       ui.arrow(ctx, [q0, [q0[0] + dx / dl * Lp, q0[1] + dy / dl * Lp]], { p, t: T0, width: 15, alpha: a }); }
   }
@@ -835,7 +850,10 @@ export async function build(api, kit, scenes) {
   const TGO = tGo - 0.06;                                                      // the whip-out cut (whoosh 91.64 starts it)
   const GW0 = TGO - 5 / 30;
   const whipOutL = (T0) => 50 * Math.pow(F.clamp((T0 - GW0) / (TGO - GW0)), 2.2);
-  const shotK2 = kit.terrainShot({ id: 'ch1-flank', t0: TQ, t1: TGO, fadeIn: 0.5, region: 'kilauea_sf', state: (lt) => stateH(lt + TQ), grade: (lt) => gradeH(lt + TQ),
+  // the kilauea_sf colour is lighter than the halape bake's (pale pahoehoe patches): a little more of the lava grade on this leg
+  // (tan 17 % at f2600 with the shared values, where the fill's first frames tint the land orange-brown)
+  const stateK2 = (T0) => { const st = stateH(T0), lv = lavaH(T0); st.set.landGain *= 1 - 0.12 * lv; st.set.landSat *= 1 - 0.2 * lv; return st; };
+  const shotK2 = kit.terrainShot({ id: 'ch1-flank', t0: TQ, t1: TGO, fadeIn: 0.5, region: 'kilauea_sf', state: (lt) => stateK2(lt + TQ), grade: (lt) => gradeH(lt + TQ),
     cam: (lt) => { const c = camH(lt + TQ); c.dYaw += whipOutL(lt + TQ); return c; },
     async world() { await getFlank(); },
     ui(ctx, lt, tt, view) {

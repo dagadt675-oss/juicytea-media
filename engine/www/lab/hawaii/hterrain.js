@@ -23,10 +23,14 @@
 //    heights (texelFetch; no bilinear creases, no half-float terraces), B-spline AO and Catmull-Rom colour where texels are magnified;
 //    colSharp: texture-space unsharp mask of the colour at about 3 texels; detAmt: tiling procedural detail (detailTextures(): canopy,
 //    rock, soil; world metres from a 4 km camera anchor, mipmapped and anisotropic) chosen per pixel from the colour, slope and height,
-//    faded in where the colour map is magnified (cMag) within detFar km, each octave faded out once the imagery resolves its scale
-//    (colRes: the colour's source resolution, res.colour_src_m; per texel, where a region ships files.cres, the coarser of that and
-//    cres.png, detail_bake.py 2026-11-15: ground the photo left smooth, deep shadow or cloud filled from the reference, gets the
-//    octaves back); detail normals lit by the stage sun and a little detail AO; hazeFar (U): extra aerial haze beyond the close-up zone.
+//    faded in where the real resolution of the colour (res: the texel, colRes = res.colour_src_m, and per texel cres.png where a region
+//    ships files.cres, detail_bake.py 2026-11-15: ground the photo left smooth, deep shadow or cloud filled from the reference) spans
+//    more than about 1.5 screen pixels (res / pixel footprint, both in world metres: no swimming) and out where a pixel covers over
+//    16-28 m, within detFar km and above 6-20 m under today's water; each octave faded out once the imagery resolves its scale (octW)
+//    and once it falls under about 2 px (octF), and skipped under 3 % of its strength. (2026-11-15) stochastic tiling: the main
+//    octaves read 2 of 8 variants (turned, mirrored, offset) picked by world-locked value noise, blended by height; forest and grass
+//    split by the low-passed colour (dark canopy keeps crowns, pale grass gets soil grain); dbg 6 (gate) and dbg 7 (classes) views.
+//    Detail normals lit by the stage sun and a little detail AO; hazeFar (U): extra aerial haze beyond the close-up zone.
 // Any region: loadRegion(root, name) (or load() on a region folder) reads <root>/regions.json (lab/hawaii/tools/region_bake.py) and
 // stacks 1-3 nested layers, finest first; the legacy two-layer folder renders pixel-identically to before (lab/hawaii/README.md, Regions).
 import * as THREE from 'three';
@@ -118,7 +122,16 @@ uniform sampler2D maskTex; uniform vec4 maskBB; uniform float maskOn, heroAmt, d
 uniform vec4 clipN, capBB; uniform float heroPass, seaMat, nearAmt, landLift; uniform vec2 lineFar;
 uniform sampler2D hTexF, dVeg, dRock, dSoil, cresTex; uniform float crisp, colBias, colSharp, detAmt, detRel, colRes, cresOn; uniform vec2 detFar;
 varying vec2 vUv; varying vec3 vW; varying vec2 vD;
-float Hm(vec2 uv){ return texture2D(hTex, uv).r; }
+// heights for the shading's central differences and cavity: with crisp on, a bilinear of the float32 grid (4 texelFetch), so ground
+// that the bicubic path leaves out (kB = 0: a height texel under about a pixel along the foreshortened axis) is not shaded from half
+// floats, whose 0.5-4 m steps above 1,000 m drew contour stripes on Mauna Kea's summit cones (verifier 2026-11-15, f7349)
+float Hm(vec2 uv){
+  if (crisp <= 0.0) return texture2D(hTex, uv).r;
+  ivec2 sz = textureSize(hTexF, 0), mx = sz - 1; vec2 st = uv * vec2(sz) - 0.5, i = floor(st), f = st - i; ivec2 b = ivec2(i);
+  float a = texelFetch(hTexF, clamp(b, ivec2(0), mx), 0).r, c = texelFetch(hTexF, clamp(b + ivec2(1, 0), ivec2(0), mx), 0).r;
+  float d = texelFetch(hTexF, clamp(b + ivec2(0, 1), ivec2(0), mx), 0).r, e = texelFetch(hTexF, clamp(b + ivec2(1, 1), ivec2(0), mx), 0).r;
+  return mix(mix(a, c, f.x), mix(d, e, f.x), f.y);
+}
 // ---- close-up quality (crisp, detAmt; all off by default, the ep02 toolkit turns them on) ----
 // B-spline bicubic height with its analytic gradient from a 4x4 texelFetch of the float32 heights: (h, dh/di, dh/dj) in metres per
 // texel. C2 heights, C1 normals: no bilinear grid creases or half-float terraces in the shading of a magnified DEM.
@@ -155,12 +168,42 @@ float texBS(sampler2D t, vec2 uv){
 }
 // one octave of a tiling detail texture (detailTextures(): R height, GB slope, A tint/crack) at p metres, tile T m, turned 90 degrees
 // (r) and offset (o) to break up the octaves: (h - 0.5, dh/dx, dh/dz per metre, a - 0.5). Mipmapped and anisotropic: no shimmer.
+// px, py: dFdx / dFdy of p (textureGrad: the same mip in or out of a branch).
 // weight of a detail octave whose features are F metres where the colour map resolves res metres: none once the imagery shows them
 float octW(float F, float res){ return 1.0 - smoothstep(1.2, 3.0, F / res); }
-vec4 dTap(sampler2D t, vec2 p, float T, float r, vec2 o){
-  vec4 s = texture2D(t, (r > 0.5 ? vec2(p.y, -p.x) : p) / T + o);
+// and where one feature spans under about 2 pixels (pf = pixel footprint, m): the mip would leave only a faint residue of the tile
+float octF(float F, float pf){ return 1.0 - smoothstep(0.4, 0.9, pf / F); }
+vec4 dTap(sampler2D t, vec2 p, vec2 px, vec2 py, float T, float r, vec2 o){
+  vec2 q = r > 0.5 ? vec2(p.y, -p.x) : p, qx = r > 0.5 ? vec2(px.y, -px.x) : px, qy = r > 0.5 ? vec2(py.y, -py.x) : py;
+  vec4 s = textureGrad(t, q / T + o, qx / T, qy / T);
   vec2 g = (s.gb - 0.5) * 128.0 / T;
   return vec4(s.r - 0.5, r > 0.5 ? vec2(-g.y, g.x) : g, s.a - 0.5);
+}
+// stochastic tiling (2026-11-15; no visible repeats). Every tile is 4 km / n (a whole number per anchor step, so nothing moves when
+// the anchor steps) with n chosen so that no two octaves share a period under 4 km. The main octaves are read in two of 8 variants
+// (turned by 90 degrees, mirrored, offset), picked by a smooth world-locked value noise over cells of C m (C divides 4 km; the hash
+// takes the anchor in whole cells) and blended by height (the taller crown or block wins, so the blend keeps the contrast)
+uniform vec2 detAnchor;
+float hI(vec2 c){ uvec2 q = uvec2(ivec2(c) + ivec2(1048576)); uint h = (q.x * 0x8da6b343u) ^ (q.y * 0xd8163841u);
+  h ^= h >> 15; h *= 0x2c1b3c6du; h ^= h >> 12; h *= 0x297a2d39u; h ^= h >> 15; return float(h) * (1.0 / 4294967296.0); }
+float vField(vec2 p, float C){ vec2 q = p / C, i = floor(q), f = q - i; f = f * f * (3.0 - 2.0 * f);
+  vec2 a = i + floor(detAnchor * (1000.0 / C) + 0.5);
+  return mix(mix(hI(a), hI(a + vec2(1.0, 0.0)), f.x), mix(hI(a + vec2(0.0, 1.0)), hI(a + vec2(1.0, 1.0)), f.x), f.y); }
+vec4 dVar(sampler2D t, vec2 p, vec2 px, vec2 py, float T, float k){
+  float r = mod(k, 4.0), sg = mod(k, 8.0) < 3.5 ? 1.0 : -1.0;
+  vec2 cs = r < 0.5 ? vec2(1.0, 0.0) : r < 1.5 ? vec2(0.0, 1.0) : r < 2.5 ? vec2(-1.0, 0.0) : vec2(0.0, -1.0);
+  mat2 M = mat2(sg * cs.x, sg * cs.y, -cs.y, cs.x);
+  vec4 s = textureGrad(t, M * p / T + fract(vec2(0.7548777, 0.5698403) * (k + 1.0)), M * px / T, M * py / T);
+  return vec4(s.r - 0.5, transpose(M) * ((s.gb - 0.5) * 128.0 / T), s.a - 0.5);
+}
+// one variant where the field is settled (g 0 or 1: about half the ground), two only in the blend zone; the height term is under
+// the ramp's reach (0.6 < 0.75), so the blend is exactly 0 or 1 at the zone's ends and the single-tap branches join seamlessly
+vec4 dTapS(sampler2D t, vec2 p, vec2 px, vec2 py, float T, float v){
+  float i = floor(v), g = smoothstep(0.3, 0.7, v - i);
+  if (g <= 0.0) return dVar(t, p, px, py, T, i);
+  if (g >= 1.0) return dVar(t, p, px, py, T, i + 1.0);
+  vec4 A = dVar(t, p, px, py, T, i), B = dVar(t, p, px, py, T, i + 1.0);
+  return mix(A, B, smoothstep(0.0, 1.0, clamp((g - 0.5) * 2.5 + 0.5 + 0.6 * (B.x - A.x), 0.0, 1.0)));
 }
 vec3 seabed(float h, float slope, float cav, vec2 ll, float pf){
   float dep = -h;
@@ -249,49 +292,79 @@ void main(){
   // landLift: baked-in topographic shadow (black texels in a satellite composite) lifted to a rock grey; real shade comes from the sun
   if (landLift > 0.0) { float ld = dot(land, vec3(0.2126, 0.7152, 0.0722)); land = mix(land, max(land, vec3(landLift) * vec3(1.0, 0.97, 0.92)), 1.0 - smoothstep(landLift * 0.4, landLift * 1.4, ld)); }
   vec3 alb = mix(seabed(h, slope, cav, ll, pf) * mix(1.0, 0.70 + 0.55 * rid, steep) * (0.82 + 0.36 * nearV), land, smoothstep(-6.0, 4.0, h));
-  // detail texturing (detAmt): where the colour map is magnified (cMag > 1) and the camera is close (detFar, km), tiling high-frequency
-  // detail in world metres: forest canopy, rock / lava, fine soil and sand, chosen per pixel from the colour (excess green, brightness),
-  // the slope and the height; albedo modulated about 1 (the colour map's mean is kept, so far views do not change) and detail normals
-  // lit by the stage sun, with a little detail AO
-  float kD = detAmt * smoothstep(1.0, 3.0, cMag) * fadeD;
+  // detail texturing (detAmt): tiling high-frequency detail in world metres where the data is coarser than the screen: forest
+  // canopy, rock / lava, fine soil, grass and sand, chosen per pixel from the colour (green dominance, brightness, its ~40 m mean),
+  // the slope and the height; albedo modulated about 1 (the colour map's mean is kept, so far views do not change), detail normals
+  // lit by the stage sun and a little detail AO. Gate, in world space: res = the data's real resolution here (m: the colour texel,
+  // its source imagery, cres.png per texel) over the pixel footprint (m): none where a data texel spans under about a pixel (detail
+  // patches, re-bakes), full from about 2 px; each octave also fades out once the imagery resolves its scale (octW) and where it is
+  // finer than the pixel (octF). The pattern belongs to the ground, so neither it nor its fade swims when the camera moves.
+  vec2 dpx = dFdx(vD), dpy = dFdy(vD);
+  float pfm = max(min(length(dpx), length(dpy)), 1e-4);
+  float texM = (bb.z - bb.x) * ${(KM_DEG * 1000).toFixed(1)} * cos(lat) / float(textureSize(colTex, 0).x);
+  // the colour map's real resolution (m): its texel, or the coarser source imagery baked into it (colRes: HLS 30 m, NAIP 0.6 m);
+  // per texel (detail_bake.py cres.png, log2-coded): where the photo showed nothing finer (deep terrain shadow, cloud) the colour is
+  // the coarser reference, so the octaves come back there; it only ever makes res coarser
+  float res = max(colRes, texM);
+  // read at least 2^3 cres texels wide (about 45 m in the 2 m patches; a lower mip where the screen asks for it): the photo / reference
+  // boundary is a ramp in res, so the octaves fade in over tens of metres instead of a hard edge between photo and procedural ground,
+  // and shadow pockets smaller than that do not become islands of crowns in the photo (verifier 2026-11-15, dbg 6 at Pali f3067)
+  if (cresOn > 0.5) { vec2 cq = vec2(textureSize(cresTex, 0)) * fwidth(vUv);
+    res = max(res, exp2(textureLod(cresTex, vUv, max(3.0, log2(max(max(cq.x, cq.y), 1e-6)))).r * 10.2 - 2.0)); }
+  // (and none deeper than 6-20 m under today's water: the water hides it there, and it is a third of a coastal frame's cost)
+  float kD = detAmt * fadeD * smoothstep(0.8, 2.0, res / pfm) * (1.0 - smoothstep(16.0, 28.0, pfm)) * (1.0 - smoothstep(6.0, 20.0, level - h));
+  // dbg 6: R = log2(res) / 5 (1 m black, 32 m full), G = log2(res / pixel footprint) / 4 (1 px black, 16 px full), B = kD
+  if (dbg > 5.5 && dbg < 6.5) { gl_FragColor = vec4(clamp(log2(res) / 5.0, 0.0, 1.0), clamp(log2(res / pfm) / 4.0, 0.0, 1.0), kD, 1.0); return; }
   if (kD > 0.002) {
     float onL = smoothstep(-6.0, 4.0, h), s3 = land.r + land.g + land.b + 1e-4, lL = dot(land, vec3(0.2126, 0.7152, 0.0722));
     float exg = (2.0 * land.g - land.r - land.b) / s3, chr = (max(land.r, max(land.g, land.b)) - min(land.r, min(land.g, land.b))) / (max(land.r, max(land.g, land.b)) + 1e-4);
     // vegetation = green dominant (not just excess green, which also takes yellow-ochre cinder and dry grass)
     float gdm = (land.g - max(land.r, land.b)) / s3;
     float wV = smoothstep(0.02, 0.10, gdm) * smoothstep(0.02, 0.10, exg) * (1.0 - smoothstep(1.4, 2.2, slope));
+    // forest or grass, from the colour's ~40 m mean (macro variation from the map itself): dark green = closed canopy (crowns),
+    // light green = pasture, fern or grass (fine relief and swells, no crowns)
+    float lLow = dot(textureLod(colTex, vUv, max(log2(40.0 / texM), 0.0)).rgb, vec3(0.2126, 0.7152, 0.0722)) * landGain;
+    float fo = 1.0 - smoothstep(0.08, 0.16, lLow);
     float wS = (1.0 - wV) * smoothstep(0.09, 0.2, lL) * (1.0 - smoothstep(6.0, 20.0, h)) * (1.0 - smoothstep(0.08, 0.25, slope));
     float rkL = max(smoothstep(0.3, 0.75, slope), 1.0 - smoothstep(0.025, 0.07, lL));
     float snow = smoothstep(0.28, 0.5, lL) * (1.0 - smoothstep(0.08, 0.2, chr));
-    vec3 W = vec3(wV, (1.0 - wV - wS) * rkL, (1.0 - wV - wS) * (1.0 - rkL) + wS);
+    vec3 W = vec3(wV * fo, (1.0 - wV - wS) * rkL, (1.0 - wV - wS) * (1.0 - rkL) + wS + wV * (1.0 - fo));
     float rkS = 0.5 * smoothstep(0.035, 0.11, slope);
     W = mix(vec3(0.0, rkS, 1.0 - rkS), W, onL);
     float amp = kD * (1.0 - 0.75 * snow) * mix(0.5, 1.0, onL);
-    // the colour map's real resolution (m): its texel, or the coarser source imagery baked into it (colRes: HLS 30 m, NAIP 0.6 m)
-    float res = max(colRes, (bb.z - bb.x) * ${(KM_DEG * 1000).toFixed(1)} * cos(lat) / float(textureSize(colTex, 0).x));
-    // per texel (detail_bake.py cres.png, log2-coded): where the photo showed nothing finer (deep terrain shadow, cloud) the colour is
-    // the coarser reference, so the octaves come back there; it only ever makes res coarser
-    if (cresOn > 0.5) res = max(res, exp2(texture2D(cresTex, vUv).r * 10.2 - 2.0));
+    // dbg 7: the detail classes (R canopy, G rock and lava, B soil, grass and sand) times the strength
+    if (dbg > 6.5 && dbg < 7.5) { gl_FragColor = vec4(W * amp, 1.0); return; }
+    // variant fields (stochastic tiling): cells of 125 m and 500 m (and 25 m for the soil's finest), whole fractions of 4 km;
+    // an octave under 3 % of its strength is skipped (invisible, and each costs one or two anisotropic taps)
     vec3 mod3 = vec3(1.0); vec2 G = vec2(0.0); float Hd = 0.0;
-    if (W.x > 0.01) {   // canopy: crowns about 6 m (62.5 m tile), clumps about 25 m, leaves and shrubs about 1.5 m
-      vec4 a = dTap(dVeg, vD, 62.5, 0.0, vec2(0.0)), b = dTap(dVeg, vD, 250.0, 1.0, vec2(0.37, 0.71)), c = dTap(dVeg, vD, 15.625, 1.0, vec2(0.13, 0.52));
-      a *= octW(6.0, res); b *= octW(25.0, res); c *= octW(1.5, res);
+    if (W.x > 0.01) {   // canopy: crowns about 6 m (65.6 m tile), clumps about 25 m (235 m), leaves and shrubs about 1.5 m (15.2 m)
+      float wa = octW(6.0, res) * octF(6.0, pfm), wb = octW(25.0, res) * octF(25.0, pfm), wc = octW(1.5, res) * octF(1.5, pfm);
+      vec4 a = wa > 0.03 ? wa * dTapS(dVeg, vD, dpx, dpy, 4000.0 / 61.0, vField(vD, 125.0) * 4.0) : vec4(0.0);
+      vec4 b = wb > 0.03 ? wb * dTapS(dVeg, vD, dpx, dpy, 4000.0 / 17.0, vField(vD, 500.0) * 4.0 + 2.5) : vec4(0.0);
+      vec4 c = wc > 0.03 ? wc * dTap(dVeg, vD, dpx, dpy, 4000.0 / 263.0, 1.0, vec2(0.13, 0.52)) : vec4(0.0);
       a *= 0.45 + 1.1 * clamp(b.x + 0.5, 0.0, 1.0);   // rougher canopy in the clumps, smoother between them (no even 'moss')
-      float hv = a.x + 0.8 * b.x + 0.25 * c.x;
-      vec3 m = vec3(clamp(1.0 + 1.0 * hv, 0.3, 1.45)) * (1.0 + a.w * vec3(0.26, 0.14, -0.34) + b.w * vec3(0.18, 0.10, -0.16));
-      mod3 += W.x * (m - 1.0); G += W.x * (2.8 * a.yz + 7.0 * b.yz + 0.35 * c.yz); Hd += W.x * hv;
+      // deeper canopy where the forest is darker in the map (macro variation), gentler where it is lighter
+      float kv = mix(1.1, 0.75, smoothstep(0.03, 0.08, lLow));
+      float hv = (a.x + 0.8 * b.x + 0.25 * c.x) * kv;
+      vec3 m = vec3(clamp(1.0 + 0.8 * hv, 0.45, 1.35)) * (1.0 + a.w * vec3(0.20, 0.11, -0.26) + b.w * vec3(0.16, 0.09, -0.14));
+      mod3 += W.x * (m - 1.0); G += W.x * kv * (2.0 * a.yz + 5.5 * b.yz + 0.35 * c.yz); Hd += W.x * hv;
     }
-    if (W.y > 0.01) {   // rock and lava: ridged blocks about 3 m (31.25 m tile), outcrops about 12 m, cracks and grit
-      vec4 a = dTap(dRock, vD, 31.25, 0.0, vec2(0.0)), b = dTap(dRock, vD, 125.0, 1.0, vec2(0.61, 0.23)), c = dTap(dRock, vD, 7.8125, 1.0, vec2(0.29, 0.83));
-      a *= octW(5.0, res); b *= octW(20.0, res); c *= octW(1.2, res);
+    if (W.y > 0.01) {   // rock and lava: ridged blocks about 3 m (31.5 m tile), outcrops about 12 m (121 m), cracks and grit (7.9 m)
+      float wa = octW(5.0, res) * octF(5.0, pfm), wb = octW(20.0, res) * octF(20.0, pfm), wc = octW(1.2, res) * octF(1.2, pfm);
+      vec4 a = wa > 0.03 ? wa * dTapS(dRock, vD, dpx, dpy, 4000.0 / 127.0, vField(vD, 125.0) * 5.0 + 1.3) : vec4(0.0);
+      vec4 b = wb > 0.03 ? wb * dTapS(dRock, vD, dpx, dpy, 4000.0 / 33.0, vField(vD, 500.0) * 4.0 + 0.7) : vec4(0.0);
+      vec4 c = wc > 0.03 ? wc * dTap(dRock, vD, dpx, dpy, 4000.0 / 509.0, 1.0, vec2(0.29, 0.83)) : vec4(0.0);
       float hr2 = a.x + 0.6 * b.x + 0.4 * c.x;
       vec3 m = vec3(clamp(1.0 + 0.8 * hr2 + 0.35 * a.w, 0.4, 1.5));
       mod3 += W.y * (m - 1.0); G += W.y * (1.6 * a.yz + 4.5 * b.yz + 0.3 * c.yz); Hd += W.y * hr2;
     }
-    if (W.z > 0.01) {   // soil, grass, sand: fine relief about 1 m (10 m tile), 4 m swells, pebbles and grit
-      vec4 a = dTap(dSoil, vD, 10.0, 0.0, vec2(0.0)), b = dTap(dSoil, vD, 40.0, 1.0, vec2(0.47, 0.19)), c = dTap(dSoil, vD, 2.5, 1.0, vec2(0.71, 0.37));
-      vec4 e = dTap(dSoil, vD, 160.0, 1.0, vec2(0.83, 0.61));   // patches about 30-80 m: fields, scrub, yards (mid distance)
-      a *= octW(2.0, res); b *= octW(8.0, res); c *= octW(0.5, res); e *= octW(32.0, res);
+    if (W.z > 0.01) {   // soil, grass, sand: fine relief about 1 m (10.1 m tile), 4 m swells (41 m), pebbles and grit (2.5 m)
+      float wa = octW(2.0, res) * octF(2.0, pfm), wb = octW(8.0, res) * octF(8.0, pfm), wc = octW(0.5, res) * octF(0.5, pfm), we = octW(32.0, res) * octF(32.0, pfm);
+      vec4 a = wa > 0.03 ? wa * dTapS(dSoil, vD, dpx, dpy, 4000.0 / 397.0, vField(vD, 25.0) * 3.0) : vec4(0.0);
+      vec4 b = wb > 0.03 ? wb * dTapS(dSoil, vD, dpx, dpy, 4000.0 / 97.0, vField(vD, 125.0) * 5.0 + 3.3) : vec4(0.0);
+      vec4 c = wc > 0.03 ? wc * dTap(dSoil, vD, dpx, dpy, 4000.0 / 1601.0, 1.0, vec2(0.71, 0.37)) : vec4(0.0);
+      // patches about 30-80 m (174 m tile): fields, scrub, yards
+      vec4 e = we > 0.03 ? we * dTapS(dSoil, vD, dpx, dpy, 4000.0 / 23.0, vField(vD, 500.0) * 4.0 + 1.7) : vec4(0.0);
       float hs = a.x + 0.7 * b.x + 0.4 * c.x;
       vec3 m = vec3(clamp(1.0 + 0.5 * hs + 0.3 * a.w + 0.55 * e.w + 0.3 * e.x, 0.55, 1.45)) * (1.0 + e.x * vec3(-0.10, 0.06, -0.05));
       mod3 += W.z * (m - 1.0); G += W.z * (0.35 * a.yz + 0.9 * b.yz + 0.08 * c.yz + 1.2 * e.yz); Hd += W.z * hs * 0.5;
@@ -724,7 +797,8 @@ export class HawaiiStage {
     this.cam.updateProjectionMatrix();
     if (c.shiftY || c.shiftX) { this.cam.projectionMatrix.elements[9] += c.shiftY || 0; this.cam.projectionMatrix.elements[8] += c.shiftX || 0; this.cam.projectionMatrixInverse.copy(this.cam.projectionMatrix).invert(); }  // lens shift (keeps verticals straight)
     this.cam.updateMatrixWorld();
-    this.U.detAnchor.value.set(Math.round(p.x / 4) * 4, Math.round(p.z / 4) * 4);   // km, a multiple of 4 (see TERRAIN_VS)
+    const sh = (this.o.anchorShift || 0) * 4;   // test only: the picture must not change (stochastic tiling is anchored in whole cells)
+    this.U.detAnchor.value.set(Math.round(p.x / 4) * 4 + sh, Math.round(p.z / 4) * 4 - sh);   // km, a multiple of 4 (see TERRAIN_VS)
     this.U.camPos.value.copy(p); this.U.horizonDip.value = Math.sqrt(2 * Math.max(p.y - gnd, 0.01) / R_EARTH);
     this.camGround = gnd;
   }

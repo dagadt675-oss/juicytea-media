@@ -205,15 +205,21 @@ function enrich(x) {
   if (x.enriched) return; x.enriched = 1;
   const m = (p) => { if (!p || p.sky || p.err) return p; p.colSrcM = colSrcM(p.layer, p.lon, p.lat); p.colEffM = Math.max(p.colM, p.colSrcM); p.hSrcM = hSrcM(p.layer, p.lon, p.lat);
     p.colPx = +(p.ppm * p.colEffM).toFixed(2); p.colTexPx = +(p.ppm * p.colM).toFixed(2); p.hPx = +(p.ppm * p.hM).toFixed(2); p.hEffPx = +(p.ppm * Math.max(p.hM, p.hSrcM)).toFixed(2);
+    // det: the detail texturing's strength there (hterrain.js kD: colour px 0.8-2, default detFar 6-16 km, pixel footprint under 16-28 m,
+    // not 6-20 m under the water level); cres.png is not read, so where a patch photo was filled from its reference it is higher still
+    const ss = (a, b, v) => { const t = Math.min(Math.max((v - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); };
+    p.det = +(ss(0.8, 2, p.colPx) * (1 - ss(6, 16, p.dist)) * (1 - ss(16, 28, 1 / p.ppm)) * (1 - ss(6, 20, (x.level ?? 0) - p.h))).toFixed(2);
     p.ppm = +p.ppm.toFixed(4); p.colM = +p.colM.toFixed(2); p.hM = +p.hM.toFixed(2); return p; };
   m(x.pts.centre); m(x.pts.lower); x.pts.band.forEach(m);
   const land = (p) => p && !p.sky && !p.err && !p.water, tex = (p) => land(p) && p.h > -6;   // below -6 m the stage draws its seabed, not the colour map
   const band = x.pts.band.filter(land);
   x.bandMax = band.length ? { colPx: Math.max(0, ...band.filter(tex).map(p => p.colPx)), hPx: Math.max(...band.map(p => p.hPx)) } : null;
-  const why = [];
+  const why = []; let cov = 1;
   for (const k of ['centre', 'lower']) { const p = x.pts[k]; if (!land(p)) continue;
+    const over = (tex(p) && p.colPx > LIM.col) || p.hPx > LIM.h; if (over) { p.over = 1; if (!(p.det >= 0.5)) cov = 0; }
     if (tex(p) && p.colPx > LIM.col) why.push(`${k} colour ${p.colPx} px`); if (p.hPx > LIM.h) why.push(`${k} height ${p.hPx} px`); }
   x.flag = why.length ? why.join(', ') : '';
+  x.covered = !!(why.length && cov);   // every point over a limit has the detail texturing at half strength or more
 }
 function score(x) {   // how far over the limits the centre or lower third is (0 = no land there)
   if (!x.pts) return 0; let s = 0;
@@ -223,22 +229,22 @@ function score(x) {   // how far over the limits the centre or lower third is (0
 }
 function cell(p) { if (!p) return '-'; if (p.sky) return 'sky'; if (p.err) return 'err'; if (p.water) return `water (${p.layer})`;
   return `${p.layer} ${p.dist < 1 ? Math.round(p.dist * 1000) + ' m' : p.dist.toFixed(1) + ' km'}: ${p.h > -6 ? '**' + p.colPx + '**' : 'seabed'} / ${p.hPx}` +
-    (p.hEffPx > p.hPx * 1.2 ? ` (src ${p.hEffPx})` : ''); }
+    (p.hEffPx > p.hPx * 1.2 ? ` (src ${p.hEffPx})` : '') + (p.over ? `, det ${p.det}` : ''); }
 function markdown(res) {
   const L = [`# ep02 texel audit${res.tag ? ' (' + res.tag + ')' : ''}`, '',
-    `${res.date}, ${res.size.join('x')}. Each cell: visible layer, distance from the camera, then **colour px** / height px = screen pixels covered by one colour texel (at its effective resolution: the texel or the imagery, whichever is coarser) and by one height texel, along the least foreshortened direction. Flag: colour > ${res.limits.col} px or height > ${res.limits.h} px at the centre or the lower third (y = 2/3); 'seabed' = ground below -6 m, where the stage draws its own seabed material instead of the colour map (only the height counts). A seg id with * = a shot no segment middle falls in, sampled at its own middle; with ^ = the closest (worst) frame of the shot named, scanned every few frames. 'src' = height px at the source's own resolution where the source is only interpolated. Band max = worst of 15 points over y 70-90 %. Tool: engine/www/ep/ep02/tools/texel_audit.js.`, ''];
+    `${res.date}, ${res.size.join('x')}. Each cell: visible layer, distance from the camera, then **colour px** / height px = screen pixels covered by one colour texel (at its effective resolution: the texel or the imagery, whichever is coarser) and by one height texel, along the least foreshortened direction. Flag: colour > ${res.limits.col} px or height > ${res.limits.h} px at the centre or the lower third (y = 2/3); 'seabed' = ground below -6 m, where the stage draws its own seabed material instead of the colour map (only the height counts). A seg id with * = a shot no segment middle falls in, sampled at its own middle; with ^ = the closest (worst) frame of the shot named, scanned every few frames. 'src' = height px at the source's own resolution where the source is only interpolated. Band max = worst of 15 points over y 70-90 %. 'det' (points over a limit) = estimated strength of the detail texturing there, 0-1 (hterrain.js gate: colour px, the default detFar 6-16 km, footprint, depth under the water level; cres.png not read); flag 'FLAG det' = every point over a limit has det 0.5 or more, so the detail texturing carries it (the texel itself is still that big). Tool: engine/www/ep/ep02/tools/texel_audit.js.`, ''];
   if (res.notes.length) L.push('Notes: ' + res.notes.join('; '), '');
   const ter = res.rows.filter(r => r.renders.length);
-  L.push(`## Film frames (one per segment, plus the closest frame of each shot): ${res.rows.length} sampled, ${ter.length} on terrain, ${ter.filter(r => r.renders.some(x => x.flag)).length} flagged`, '',
+  L.push(`## Film frames (one per segment, plus the closest frame of each shot): ${res.rows.length} sampled, ${ter.length} on terrain, ${ter.filter(r => r.renders.some(x => x.flag)).length} flagged, ${ter.filter(r => r.renders.some(x => x.flag) && r.renders.every(x => !x.flag || x.covered)).length} of them carried by the detail texturing`, '',
     '| seg | frame | time | shot | region | centre | lower third | band max col / h | flag |', '|---|---|---|---|---|---|---|---|---|');
   for (const r of ter) for (const x of r.renders) {
     if (!x.pts) { L.push(`| ${r.seg} | ${r.frame} | ${fmtT(r.t)} | ${r.scenes.join(', ')} | err | ${x.err || ''} | | | |`); continue; }
-    L.push(`| ${r.seg} | ${r.frame} | ${fmtT(r.t)} | ${r.scenes.join(', ')} | ${x.region} | ${cell(x.pts.centre)} | ${cell(x.pts.lower)} | ${x.bandMax ? x.bandMax.colPx + ' / ' + x.bandMax.hPx : '-'} | ${x.flag ? 'FLAG' : ''} |`);
+    L.push(`| ${r.seg} | ${r.frame} | ${fmtT(r.t)} | ${r.scenes.join(', ')} | ${x.region} | ${cell(x.pts.centre)} | ${cell(x.pts.lower)} | ${x.bandMax ? x.bandMax.colPx + ' / ' + x.bandMax.hPx : '-'} | ${x.flag ? (x.covered ? 'FLAG det' : 'FLAG') : ''} |`);
   }
   if (res.views.length) {
     L.push('', `## Region verification cameras (regions.json 'view'): ${res.views.length}, ${res.views.filter(v => v.flag).length} flagged`, '',
       '| region | cam agl km | centre | lower third | band max col / h | flag |', '|---|---|---|---|---|---|');
-    for (const x of res.views) L.push(x.pts ? `| ${x.region} | ${x.camAgl} | ${cell(x.pts.centre)} | ${cell(x.pts.lower)} | ${x.bandMax ? x.bandMax.colPx + ' / ' + x.bandMax.hPx : '-'} | ${x.flag ? 'FLAG' : ''} |` : `| ${x.region} | err ${x.err} | | | | |`);
+    for (const x of res.views) L.push(x.pts ? `| ${x.region} | ${x.camAgl} | ${cell(x.pts.centre)} | ${cell(x.pts.lower)} | ${x.bandMax ? x.bandMax.colPx + ' / ' + x.bandMax.hPx : '-'} | ${x.flag ? (x.covered ? 'FLAG det' : 'FLAG') : ''} |` : `| ${x.region} | err ${x.err} | | | | |`);
   }
   return L.join('\n') + '\n';
 }
