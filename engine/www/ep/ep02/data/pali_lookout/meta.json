@@ -147,7 +147,7 @@
  "res": {
   "height_m": 2.0,
   "height_src_m": 1.0,
-  "colour_texel_m": 1.44,
+  "colour_texel_m": 0.72,
   "height_interp": [
    {
     "poly": [
@@ -182,8 +182,8 @@
   ],
   "colour_src_m": 0.6,
   "colour_wh": [
-   3814,
-   4096
+   7628,
+   8192
   ]
  },
  "detail": {
@@ -207,7 +207,18 @@
    "covered_pct": 100.0,
    "ref_scale_m": 4.3,
    "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
-   "smooth_pct": 15.7
+   "smooth_pct": 15.7,
+   "refine": {
+    "tool": "lab/hawaii/tools/colour_refine.py",
+    "long": 8192,
+    "base_long": 4096,
+    "sigma_m": 3.0,
+    "gain": 0.83,
+    "chroma": 1.191,
+    "refined_pct": 74.6,
+    "when": "2026-11-15",
+    "method": "detail transfer one scale finer: the bake keeps tone and colour at 3 m and above, the same NAIP quads at 0.6 m give the finer detail"
+   }
   },
   "height": {
    "source": "3dep",
@@ -282,7 +293,7 @@
  "bytes": {
   "h16": 9089721,
   "ao": 1251305,
-  "color": 4009891,
+  "color": 14501836,
   "cres": 205912
  }
 }

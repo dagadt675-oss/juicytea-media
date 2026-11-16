@@ -14,6 +14,8 @@
 # Round 2 (2026-11-15): 8 detail regions and 3 nested patches (pali_lookout, halape_cove, kilauea_coast); each packs its heights in
 # its own range (meta hmin/hrange) and writes cres.png (the colour's real resolution per texel, read by hterrain.js). About 7 min
 # for the detail step and about 210 MB of 3DEP downloads in DL_DIR (deleted unless KEEP=1); the data folder is about 130 MB.
+# Round 3 (2026-11-15): nested patch molokai_east (east Molokaʻi in mauinui, 10 m 3DEP, 8.65 m NAIP; parent base as a B-spline,
+# spec patch.base_interp); about 100 s and 56 MB of 3DEP downloads.
 # Verify one region: cd engine && node still.cjs --page lab_region.html --q '{"region":"midway"}' --frames 0 --outdir <dir>
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd); ROOT=$(cd "$HERE/../../../../.." && pwd)
@@ -28,5 +30,9 @@ RIO_PY=${RIO_PY:-python3}
 if "$RIO_PY" -I -c 'import rasterio' 2>/dev/null; then
   "$RIO_PY" -I -u "$ROOT/engine/www/lab/hawaii/tools/detail_bake.py" --spec "$HERE/regions_spec.json" ${ONLY:+--only "$ONLY"} \
     --out "$ROOT/engine/www/ep/ep02/data" --dl "$DL" ${KEEP:+--keep}
+  # round 3 (2026-11-15): pali_lookout's NAIP colour at 0.7 m (twice detail_bake.py's texels; a no-op when already refined)
+  if [ -z "$ONLY" ] || [[ ",$ONLY," == *",pali_lookout,"* ]]; then
+    "$RIO_PY" -I -u "$ROOT/engine/www/lab/hawaii/tools/colour_refine.py" --data "$ROOT/engine/www/ep/ep02/data" --region pali_lookout --dl "$DL"
+  fi
 else echo "detail_bake.py skipped: no rasterio in $RIO_PY (set RIO_PY); the close-up detail regions keep their base bake"; fi
 python3 -I "$HERE/make_index.py"

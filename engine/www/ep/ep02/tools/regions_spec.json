@@ -158,6 +158,7 @@
     }
    },
    "stack": [
+    "molokai_east",
     "mauinui",
     "bigisland",
     "hawaii_skirt"
@@ -264,6 +265,64 @@
    "gaps": [
     "Seafloor ETOPO 2022 15\" (about 460 m): the dry Auʻau Channel floor for the 1.5 km pass and the 40 m ground camera (s007-s008) is smooth; only procedural micro-relief adds texture there.",
     "Saddles on this grid: Maui-Lānaʻi -59 m, Maui-Molokaʻi -80 m, Kahoʻolawe -159 m; at -122 m Maui, Molokaʻi and Lānaʻi are one island and Kahoʻolawe is separate (matches the script)."
+   ]
+  },
+  {
+   "name": "molokai_east",
+   "bbox": [
+    -157.1,
+    20.99,
+    -156.7,
+    21.31
+   ],
+   "wh": [
+    4152,
+    3562
+   ],
+   "patch": {
+    "parent": "mauinui",
+    "feather_m": 2000,
+    "base_interp": "bspline"
+   },
+   "detail": {
+    "colour": {
+     "source": "naip",
+     "long": 4800
+    },
+    "height": {
+     "source": "3dep"
+    }
+   },
+   "stack": [
+    "molokai_east",
+    "mauinui",
+    "bigisland",
+    "hawaii_skirt"
+   ],
+   "purpose": "Detail patch for 'mauinui' (the s007-s013 ride, above all s010 over central and east Molokaʻi and s011 down its north slope): 10 m heights (USGS 3DEP) and about 9 m colour (NAIP 2022 by detail transfer onto the mauinui grade); the drained seabed keeps the parent's ETOPO heights (as the stage shades them, cubic B-spline). Its 1280-vertex mesh (about 32 m) replaces the 128 m hero mesh there. Loaded automatically as the finest layer of 'mauinui'.",
+   "view": {
+    "level": -122,
+    "look": "day",
+    "sun": [
+     128,
+     30
+    ],
+    "water": "film",
+    "foam": 1,
+    "landSat": 0.95,
+    "cam": {
+     "lon": -156.87,
+     "lat": 21.02,
+     "alt": 4.5,
+     "tLon": -156.93,
+     "tLat": 21.16,
+     "tH": 300,
+     "fov": 46
+    }
+   },
+   "gaps": [
+    "Seafloor as in 'mauinui' (ETOPO 2022 15\", about 460 m, smooth): only the land is finer.",
+    "Mesh at most 1280 vertices on the long side (about 32 m): ridge outlines still step at that scale; the coast is the union of the 3DEP land and the parent's 78 m land (strips of the parent's land up to about 50 m wide where its coast bulges out)."
    ]
   },
   {
@@ -1125,7 +1184,12 @@
    "detail": {
     "colour": {
      "source": "naip",
-     "long": 4096
+     "long": 4096,
+     "refine": {
+      "long": 8192,
+      "sigma_m": 3.0,
+      "tool": "lab/hawaii/tools/colour_refine.py"
+     }
     },
     "height": {
      "source": "3dep",
@@ -1191,7 +1255,7 @@
     "oahu_nuuanu",
     "hawaii_skirt"
    ],
-   "purpose": "Close-up detail patch for 'pali' (s026-s031, s090): the lookout, the windward slopes and plain within about 3 km of the ground camera, 2 m heights (USGS 3DEP lidar, 2020) and 1.4 m colour (NAIP 2022). Loaded automatically as the finest layer of 'pali'.",
+   "purpose": "Close-up detail patch for 'pali' (s026-s031, s090): the lookout, the windward slopes and plain within about 3 km of the ground camera, 2 m heights (USGS 3DEP lidar, 2020) and 0.7 m colour (NAIP 2022). Loaded automatically as the finest layer of 'pali'.",
    "facts": {
     "points": {
      "lookout": [
@@ -1228,7 +1292,8 @@
    },
    "gaps": [
     "NAIP of 15 Dec 2022 (winter sun): the NE-facing cliffs are in baked shadow in the photo; there the patch keeps the summer HLS tone of 'pali' at the 30 m scale with the photo's detail on top. Trees, the lookout wall and the road are in the photo only (bare-earth heights).",
-    "The 2020 lidar (HI_NOAAMauiOahu_2020_B20, the only 1 m source here) holds a NW-SE band across Nu'uanu, the lookout included, that is interpolated ground (terraced, about 10 m detail) with 3-9 m steps along its two straight edges: the steps are healed (detail.height.seams), the band stays soft; detail texturing carries the close shots there."
+    "The 2020 lidar (HI_NOAAMauiOahu_2020_B20, the only 1 m source here) holds a NW-SE band across Nu'uanu, the lookout included, that is interpolated ground (terraced, about 10 m detail) with 3-9 m steps along its two straight edges: the steps are healed (detail.height.seams), the band stays soft; detail texturing carries the close shots there.",
+    "Colour (2026-11-15): detail_bake.py holds the colour at long 4096 (1.44 m texels: streaky, soft trees under the lookout wall in s026-s029); colour_refine.py (rebuild_regions.sh, after the detail bake) re-reads the same NAIP quads at 0.6 m and doubles it to 7628x8192 (0.72 m), keeping the bake's tone and colour at 3 m and above."
    ]
   },
   {

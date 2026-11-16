@@ -69,12 +69,13 @@ def cres_read(path, shape):
 def resize1(a, w, h, method=Image.BILINEAR):
     return np.asarray(Image.fromarray(np.ascontiguousarray(a, dtype=np.float32), 'F').resize((w, h), method))
 
-def resample_bb(a, src_bb, bb, w, h, order=1):
-    """a (row 0 north) over src_bb sampled at the pixel centres of the w x h grid over bb (inside src_bb)."""
+def resample_bb(a, src_bb, bb, w, h, order=1, prefilter=True):
+    """a (row 0 north) over src_bb sampled at the pixel centres of the w x h grid over bb (inside src_bb). order=3 with prefilter=False:
+    the cubic B-spline approximation of the texels, the surface hterrain.js shades a layer with (its bicubic B-spline normals)."""
     H, W = a.shape[:2]; lons, lats = rb.grid_axes(bb, w, h)
     RY, CX = np.meshgrid((src_bb[3] - lats) / (src_bb[3] - src_bb[1]) * H - 0.5, (lons - src_bb[0]) / (src_bb[2] - src_bb[0]) * W - 0.5, indexing='ij')
-    if a.ndim == 2: return ndimage.map_coordinates(a, [RY, CX], order=order, mode='nearest').astype(np.float32)
-    return np.stack([ndimage.map_coordinates(a[..., k], [RY, CX], order=order, mode='nearest') for k in range(a.shape[2])], -1).astype(np.float32)
+    if a.ndim == 2: return ndimage.map_coordinates(a, [RY, CX], order=order, mode='nearest', prefilter=prefilter).astype(np.float32)
+    return np.stack([ndimage.map_coordinates(a[..., k], [RY, CX], order=order, mode='nearest', prefilter=prefilter) for k in range(a.shape[2])], -1).astype(np.float32)
 
 def px_size(bb, W, H):
     lat = (bb[1] + bb[3]) / 2; return (bb[2] - bb[0]) / W * 111320 * math.cos(math.radians(lat)), (bb[3] - bb[1]) / H * 111320
@@ -368,10 +369,13 @@ def bake(R, OUT, DLROOT, keep=False, regs=None):
         pm = json.load(open(f'{OUT}/{patch["parent"]}/meta.json')); pbb = pm['bbox']
         if not (bb[0] >= pbb[0] and bb[1] >= pbb[1] and bb[2] <= pbb[2] and bb[3] <= pbb[3]): raise SystemExit(f'{name} is not inside {patch["parent"]}')
         W, H = R['wh']; ph = read_h16(f'{OUT}/{patch["parent"]}/{pm["files"]["h16"]}', pm.get('hmin', rb.HMIN), pm.get('hrange', rb.HRANGE))
-        base_h = resample_bb(ph, pbb, bb, W, H); pcol = np.asarray(Image.open(f'{OUT}/{patch["parent"]}/{pm["files"]["color"]}').convert('RGB')).astype(np.float32) / 255
+        # patch.base_interp 'bspline' (opt-in; a patch much finer than a coarse parent, e.g. 10 m in 78 m): the parent's heights as the
+        # stage shades them (cubic B-spline approximation), not bilinear: a bilinear upsample keeps the parent's texel lines as creases that
+        # the patch's own bicubic normals light up (drained seabed in molokai_east, 2026-11-15)
+        base_h = resample_bb(ph, pbb, bb, W, H, *((3, False) if patch.get('base_interp') == 'bspline' else ())); pcol = np.asarray(Image.open(f'{OUT}/{patch["parent"]}/{pm["files"]["color"]}').convert('RGB')).astype(np.float32) / 255
         ref_m = max(pm.get('res', {}).get('colour_src_m', 30.0), pm.get('res', {}).get('colour_texel_m', pm['px_m']))
         meta = dict(name=name, bbox=bb, hmin=rb.HMIN, hrange=rb.HRANGE, vex=1.0, sources=[dict(id=f'region:{patch["parent"]}', px_m=pm['px_m'])], colour={},
-                    purpose=R.get('purpose', ''), gaps=R.get('gaps', []), patch=dict(parent=patch['parent'], feather_m=patch.get('feather_m', 120)))
+                    purpose=R.get('purpose', ''), gaps=R.get('gaps', []), patch=dict(parent=patch['parent'], feather_m=patch.get('feather_m', 120), **({'base_interp': patch['base_interp']} if patch.get('base_interp') else {})))
         base_ao = None
     else:
         meta = json.load(open(f'{od}/meta.json')); W0, H0 = meta['wh']
