@@ -1,0 +1,937 @@
+{
+ "voice": "eY2VJs4Gi8QKG2RV01sS",
+ "model": "eleven_v4",
+ "settings": {},
+ "lead_in": 0.35,
+ "segments": [
+  {
+   "id": "s001",
+   "text": "Hawaii's Big Island, with the ocean {m:drained}drained.",
+   "pause": 0.3
+  },
+  {
+   "id": "s002",
+   "text": "{m:most}Most of this mountain is normally {m:under}underwater.",
+   "pause": 0.3
+  },
+  {
+   "id": "s003",
+   "text": "The Hawaii you see on {m:card}postcards? Only the {m:top}top.",
+   "pause": 0.4
+  },
+  {
+   "id": "s004",
+   "text": "Start with {m:maui}Maui, {m:molo}moh-loh-KAH-ee and {m:lanai}lah-NAH-ee.",
+   "pause": 0.5
+  },
+  {
+   "id": "s005",
+   "text": "Drop the sea {m:fourhundred}four hundred {m:ft400}feet.",
+   "pause": 0.3
+  },
+  {
+   "id": "s006",
+   "text": "They become one {m:one}island.",
+   "pause": 0.4
+  },
+  {
+   "id": "s007",
+   "text": "That's not a what-if. In the last {m:ice}Ice Age, it really happened.",
+   "pause": 0.3
+  },
+  {
+   "id": "s008",
+   "text": "No ferry {m:ferry}needed.",
+   "pause": 0.7
+  },
+  {
+   "id": "s009",
+   "text": "Keep draining. And {m:look}look down.",
+   "pause": 0.3
+  },
+  {
+   "id": "s010",
+   "text": "Even with every drop gone, we won't hit {m:nobottom}bottom.",
+   "pause": 0.3
+  },
+  {
+   "id": "s011",
+   "text": "The shore becomes a {m:ledge}ledge. Then the slope {m:plunge}plunges.",
+   "pause": 0.2
+  },
+  {
+   "id": "s012",
+   "text": "See that flat {m:bank}bank? It was dry land once.",
+   "pause": 0.2
+  },
+  {
+   "id": "s013",
+   "text": "The sea rose after the Ice Age and {m:drowned}drowned it.",
+   "pause": 0.3
+  },
+  {
+   "id": "s014",
+   "text": "And the Big Island is sinking right {m:now}now.",
+   "pause": 0.3
+  },
+  {
+   "id": "s015",
+   "text": "Usually, that's slow. {m:notalways}Not always.",
+   "pause": 0.6
+  },
+  {
+   "id": "s016",
+   "text": "One night, campers were asleep at {m:hal}hah-lah-PAY, a beach on this coast.",
+   "pause": 0.3
+  },
+  {
+   "id": "s017",
+   "text": "Before dawn, a smaller earthquake woke them {m:woke}up.",
+   "pause": 0.3
+  },
+  {
+   "id": "s018",
+   "text": "More than an hour later, the big one {m:hit}hit.",
+   "pause": 0.2
+  },
+  {
+   "id": "s019",
+   "text": "The south coast {m:lurch}lurched toward the sea.",
+   "pause": 0.2
+  },
+  {
+   "id": "s020",
+   "text": "The ground gave way. Parts of the shore {m:drop}dropped farther than a basketball hoop is high.",
+   "pause": 0.3,
+   "speed": 0.95
+  },
+  {
+   "id": "s021",
+   "text": "Within seconds, the sea rushed {m:rush}in.",
+   "pause": 0.4,
+   "speed": 0.95
+  },
+  {
+   "id": "s022",
+   "text": "{m:two}Two people died.",
+   "pause": 2.0,
+   "speed": 0.9
+  },
+  {
+   "id": "s023",
+   "text": "By {m:morning}morning, the palm grove was standing in the sea.",
+   "pause": 1.0,
+   "speed": 0.95
+  },
+  {
+   "id": "s024",
+   "text": "All that, from several {m:yards}yards of sliding.",
+   "pause": 0.3
+  },
+  {
+   "id": "s025",
+   "text": "Now picture a whole side of a volcano letting {m:go}go. One {m:did}did.",
+   "pause": 1.0
+  },
+  {
+   "id": "s026",
+   "text": "This is the {m:pali}PAH-lee Lookout, on {m:oahu}oh-AH-hoo.",
+   "pause": 0.2
+  },
+  {
+   "id": "s027",
+   "text": "PAH-lee means {m:cliff}cliff.",
+   "pause": 0.2
+  },
+  {
+   "id": "s028",
+   "text": "The wind here is usually so strong, you can {m:lean}lean on it.",
+   "pause": 0.2
+  },
+  {
+   "id": "s029",
+   "text": "Hold on to your {m:hat}hat.",
+   "pause": 0.7
+  },
+  {
+   "id": "s030",
+   "text": "If you've stood here, you've stood at the edge of something {m:huge}huge.",
+   "pause": 0.2
+  },
+  {
+   "id": "s031",
+   "text": "These cliffs may trace where a volcano tore {m:tore}apart.",
+   "pause": 0.4
+  },
+  {
+   "id": "s032",
+   "text": "To find the rest of that volcano, drain the sea {m:ne}northeast of oh-AH-hoo.",
+   "pause": 0.9
+  },
+  {
+   "id": "s033",
+   "text": "Past the {m:shelf}shelf. Down the {m:slope}slope.",
+   "pause": 0.7
+  },
+  {
+   "id": "s034",
+   "text": "{m:first}First, the tops of giant blocks. Then {m:more}more blocks. Then a whole {m:field}field of rubble.",
+   "pause": 2.0
+  },
+  {
+   "id": "s035",
+   "text": "This is the debris of one of the largest {m:slides}landslides on Earth.",
+   "pause": 0.2
+  },
+  {
+   "id": "s036",
+   "text": "The volcano that built eastern oh-AH-hoo split right through its {m:summit}summit.",
+   "pause": 0.2
+  },
+  {
+   "id": "s037",
+   "text": "Its whole northeast side is lying out {m:outhere}here.",
+   "pause": 0.3
+  },
+  {
+   "id": "s038",
+   "text": "Look at this one {m:block}block.",
+   "pause": 0.2
+  },
+  {
+   "id": "s039",
+   "text": "It's bigger than {m:manh}Manhattan.",
+   "pause": 0.2
+  },
+  {
+   "id": "s040",
+   "text": "With room to {m:spare}spare.",
+   "pause": 0.6
+  },
+  {
+   "id": "s041",
+   "text": "The debris runs for more than a hundred {m:miles}miles.",
+   "pause": 0.8
+  },
+  {
+   "id": "s042",
+   "text": "And it's one of dozens of giant slides along this island {m:chain}chain.",
+   "pause": 0.3
+  },
+  {
+   "id": "s043",
+   "text": "They're rare. But they {m:happen}happen.",
+   "pause": 0.4
+  },
+  {
+   "id": "s044",
+   "text": "The coast that dropped in the dark? It's part of kee-lao-WAY-ah's south {m:flank}flank.",
+   "pause": 0.2
+  },
+  {
+   "id": "s045",
+   "text": "And it's still {m:creep}creeping toward the sea, a couple of inches a year.",
+   "pause": 0.2
+  },
+  {
+   "id": "s046",
+   "text": "Not falling. {m:creeping}Creeping.",
+   "pause": 0.5
+  },
+  {
+   "id": "s047",
+   "text": "So how big is the mountain under the Big Island, {m:really}really?",
+   "pause": 0.2
+  },
+  {
+   "id": "s048",
+   "text": "Let's drain all the way {m:alldown}down.",
+   "pause": 1.0
+  },
+  {
+   "id": "s049",
+   "text": "Drain this far, and the islands stop being {m:isl}islands.",
+   "pause": 0.4
+  },
+  {
+   "id": "s050",
+   "text": "It's one long mountain {m:range}range.",
+   "pause": 0.2
+  },
+  {
+   "id": "s051",
+   "text": "And at this end, the Big Island stands {m:up}up.",
+   "pause": 2.5
+  },
+  {
+   "id": "s052",
+   "text": "Several volcanoes grew together into this one {m:mtn}mountain.",
+   "pause": 0.2
+  },
+  {
+   "id": "s053",
+   "text": "Without the ocean, you can finally see its {m:shape}shape.",
+   "pause": 0.3
+  },
+  {
+   "id": "s054",
+   "text": "Today's shoreline is a thin white line, high up its {m:slopes}slopes.",
+   "pause": 0.2
+  },
+  {
+   "id": "s055",
+   "text": "Every beach on this island is up {m:upthere}there.",
+   "pause": 0.3
+  },
+  {
+   "id": "s056",
+   "text": "Below it, the mountain keeps {m:going}going. And {m:going2}going.",
+   "pause": 0.3
+  },
+  {
+   "id": "s057",
+   "text": "Along its east side, the sea floor dips into a deep {m:trench}trench.",
+   "pause": 0.3
+  },
+  {
+   "id": "s058",
+   "text": "Remember that {m:rem}trench. It's a {m:clue}clue.",
+   "pause": 0.8
+  },
+  {
+   "id": "s059",
+   "text": "Now bring in {m:ev}Everest, at the same scale.",
+   "pause": 0.2
+  },
+  {
+   "id": "s060",
+   "text": "Above sea level, Everest wins {m:easily}easily.",
+   "pause": 0.6
+  },
+  {
+   "id": "s061",
+   "text": "But measured from the sea {m:seafloor}floor, MAO-nah KAY-ah is more than thirty-three thousand feet {m:tall33}tall.",
+   "pause": 0.3
+  },
+  {
+   "id": "s062",
+   "text": "That's taller than {m:ev2}Everest.",
+   "pause": 0.5
+  },
+  {
+   "id": "s063",
+   "text": "You may have heard that {m:heard}one.",
+   "pause": 0.6
+  },
+  {
+   "id": "s064",
+   "text": "On Everest, getting to the top looks like {m:this}this.",
+   "pause": 0.2
+  },
+  {
+   "id": "s065",
+   "text": "There's a road almost to the top of this {m:road}one.",
+   "pause": 0.8
+  },
+  {
+   "id": "s066",
+   "text": "But MAO-nah KAY-ah isn't the giant {m:giant}here.",
+   "pause": 0.2
+  },
+  {
+   "id": "s067",
+   "text": "Its neighbor, {m:loa}MAO-nah LOH-ah, is a little lower, and far {m:bigger}bigger.",
+   "pause": 0.2
+  },
+  {
+   "id": "s068",
+   "text": "It's the largest {m:active}active volcano on Earth.",
+   "pause": 0.4
+  },
+  {
+   "id": "s069",
+   "text": "It covers about half of this {m:half}island.",
+   "pause": 0.3
+  },
+  {
+   "id": "s070",
+   "text": "And even now, we haven't seen all of {m:allofit}it.",
+   "pause": 0.6
+  },
+  {
+   "id": "s071",
+   "text": "But this giant can't {m:stay}stay. It's already {m:moving}moving.",
+   "pause": 0.3
+  },
+  {
+   "id": "s072",
+   "text": "Picture a {m:candle}candle under a sheet of paper.",
+   "pause": 0.2
+  },
+  {
+   "id": "s073",
+   "text": "Slide the paper, and the flame scorches a line of {m:spots}spots.",
+   "pause": 0.2
+  },
+  {
+   "id": "s074",
+   "text": "The paper is the Pacific {m:plate}plate. The flame is a hot spot, deep {m:deepbelow}below.",
+   "pause": 0.2
+  },
+  {
+   "id": "s075",
+   "text": "So the island rides away from the heat that {m:built}built it.",
+   "pause": 0.2
+  },
+  {
+   "id": "s076",
+   "text": "And as it goes, it {m:sinks}sinks.",
+   "pause": 0.2
+  },
+  {
+   "id": "s077",
+   "text": "See those {m:steps}steps on the island's side? They're old coral {m:reefs}reefs.",
+   "pause": 0.2
+  },
+  {
+   "id": "s078",
+   "text": "They grew at the shoreline, and the island sank out from under {m:them}them.",
+   "pause": 0.2
+  },
+  {
+   "id": "s079",
+   "text": "The deepest ones are now thousands of feet {m:deepreef}down.",
+   "pause": 0.6
+  },
+  {
+   "id": "s080",
+   "text": "Every island to the northwest was born right {m:bornhere}here.",
+   "pause": 0.2
+  },
+  {
+   "id": "s081",
+   "text": "Each one is older than the {m:last}last.",
+   "pause": 0.3
+  },
+  {
+   "id": "s082",
+   "text": "That makes the Big Island the baby of the {m:baby}islands. A very big {m:bigbaby}baby.",
+   "pause": 0.5
+  },
+  {
+   "id": "s083",
+   "text": "And each one shows what this island will {m:become}become.",
+   "pause": 1.0
+  },
+  {
+   "id": "s084",
+   "text": "So let's ride the plate, and watch the Big Island grow {m:old}old.",
+   "pause": 0.2
+  },
+  {
+   "id": "s085",
+   "text": "Then we'll come back for the part we haven't {m:notseen}seen.",
+   "pause": 0.3
+  },
+  {
+   "id": "s086",
+   "text": "First stop: Its own {m:coast}coast. The sea is already wearing it down.",
+   "pause": 0.2
+  },
+  {
+   "id": "s087",
+   "text": "This September, a sea arch on this coast {m:arch}collapsed into the ocean.",
+   "pause": 0.2
+  },
+  {
+   "id": "s088",
+   "text": "Waves had carved it out of lava over {m:cent}centuries.",
+   "pause": 0.4
+  },
+  {
+   "id": "s089",
+   "text": "Give the Big Island time, and it looks like {m:maui2}Maui.",
+   "pause": 0.2
+  },
+  {
+   "id": "s090",
+   "text": "Older still: {m:oahu2}Oh-AH-hoo, home of {m:hnl}Honolulu. Here, a whole side of a volcano slid into the sea.",
+   "pause": 0.2
+  },
+  {
+   "id": "s091",
+   "text": "Older still: {m:kauai}Kah-WAH-ee. Its big eruptions ended long ago, and rain has carved it into {m:canyons}canyons.",
+   "pause": 0.3
+  },
+  {
+   "id": "s092",
+   "text": "After that, the islands get smaller and {m:lower}lower.",
+   "pause": 0.2
+  },
+  {
+   "id": "s093",
+   "text": "This is {m:nihoa}nee-HOH-ah.",
+   "pause": 0.6
+  },
+  {
+   "id": "s094",
+   "text": "{m:seven}Seven million years in, it's a sliver of {m:rock}rock.",
+   "pause": 0.8
+  },
+  {
+   "id": "s095",
+   "text": "Even so, it's the biggest volcanic island left out {m:outhere2}here.",
+   "pause": 0.4
+  },
+  {
+   "id": "s096",
+   "text": "And people {m:lived}lived here.",
+   "pause": 0.6
+  },
+  {
+   "id": "s097",
+   "text": "Centuries ago, they built homes, farm terraces and shrines on this {m:shrine}rock.",
+   "pause": 0.3
+  },
+  {
+   "id": "s098",
+   "text": "And they buried their dead {m:dead}here.",
+   "pause": 1.0
+  },
+  {
+   "id": "s099",
+   "text": "Today, nobody lives {m:nobody}here.",
+   "pause": 0.8
+  },
+  {
+   "id": "s100",
+   "text": "Farther on: French Frigate {m:ffs}Shoals. In Hawaiian, {m:lalo}LAH-loh.",
+   "pause": 0.3
+  },
+  {
+   "id": "s101",
+   "text": "Only one rock of its volcano still stands above the sea. Its last {m:tooth}tooth.",
+   "pause": 0.4
+  },
+  {
+   "id": "s102",
+   "text": "This strip of sand was East {m:east}Island.",
+   "pause": 0.2
+  },
+  {
+   "id": "s103",
+   "text": "Endangered Hawaiian monk seals came here to rest and raise {m:pups}pups.",
+   "pause": 0.3
+  },
+  {
+   "id": "s104",
+   "text": "Only about sixteen hundred are {m:left}left.",
+   "pause": 0.4
+  },
+  {
+   "id": "s105",
+   "text": "Then, not long ago, a hurricane passed right over these {m:shoals}shoals.",
+   "pause": 0.2
+  },
+  {
+   "id": "s106",
+   "text": "It washed almost all of East Island {m:away}away.",
+   "pause": 2.4
+  },
+  {
+   "id": "s107",
+   "text": "Since then, the sand has been coming {m:sandback}back.",
+   "pause": 0.2
+  },
+  {
+   "id": "s108",
+   "text": "And so have the {m:seals}seals.",
+   "pause": 0.8
+  },
+  {
+   "id": "s109",
+   "text": "Farther on, one last pair of rocks pokes {m:pokes}out.",
+   "pause": 0.2
+  },
+  {
+   "id": "s110",
+   "text": "After that, no volcanic rock reaches the surface at {m:atall}all.",
+   "pause": 0.2
+  },
+  {
+   "id": "s111",
+   "text": "Only {m:onlyreef}reef.",
+   "pause": 1.0
+  },
+  {
+   "id": "s112",
+   "text": "This ring of reef is {m:midway}Midway.",
+   "pause": 0.2
+  },
+  {
+   "id": "s113",
+   "text": "It's farther from Honolulu than {m:ny}New York is from {m:miami}Miami.",
+   "pause": 0.3
+  },
+  {
+   "id": "s114",
+   "text": "It has the biggest albatross colony on {m:earth}Earth.",
+   "pause": 0.2
+  },
+  {
+   "id": "s115",
+   "text": "In the air, they're {m:grace}graceful.",
+   "pause": 0.2
+  },
+  {
+   "id": "s116",
+   "text": "Landing is another {m:story}story.",
+   "pause": 0.8
+  },
+  {
+   "id": "s117",
+   "text": "Here, they're known as gooney {m:gooney}birds.",
+   "pause": 2.0
+  },
+  {
+   "id": "s118",
+   "text": "Under this reef lies a volcano about twenty-eight million years {m:old28}old.",
+   "pause": 1.0
+  },
+  {
+   "id": "s119",
+   "text": "As it sank, the reef on top kept growing {m:upward}upward.",
+   "pause": 0.3
+  },
+  {
+   "id": "s120",
+   "text": "Charles {m:darwin}Darwin came up with this idea: Reefs like this sit on sinking islands.",
+   "pause": 0.3
+  },
+  {
+   "id": "s121",
+   "text": "Long after he died, drills here went down through hundreds of feet of reef {m:reefrock}rock.",
+   "pause": 0.2
+  },
+  {
+   "id": "s122",
+   "text": "And hit the {m:hitvolc}volcano.",
+   "pause": 0.8
+  },
+  {
+   "id": "s123",
+   "text": "In June {m:y1942}nineteen forty-two, a battle was fought over this sunken {m:volc42}volcano.",
+   "pause": 0.2
+  },
+  {
+   "id": "s124",
+   "text": "It turned the war in the {m:pac}Pacific.",
+   "pause": 0.2
+  },
+  {
+   "id": "s125",
+   "text": "And part of the story is a fake complaint about {m:water0}water.",
+   "pause": 0.4
+  },
+  {
+   "id": "s126",
+   "text": "Weeks before, American codebreakers kept seeing one target in intercepted {m:msgs}messages: {m:af}A.F..",
+   "pause": 0.3
+  },
+  {
+   "id": "s127",
+   "text": "They were fairly sure A.F. was Midway. Washington {m:wasnt}wasn't.",
+   "pause": 0.3
+  },
+  {
+   "id": "s128",
+   "text": "So they had Midway radio a message in plain {m:plain}language.",
+   "pause": 0.2
+  },
+  {
+   "id": "s129",
+   "text": "The {m:bait}bait: Its fresh-water plant had broken {m:broke}down.",
+   "pause": 0.4
+  },
+  {
+   "id": "s130",
+   "text": "Japan {m:bit}bit. A coded Japanese report passed it {m:along}along.",
+   "pause": 0.3
+  },
+  {
+   "id": "s131",
+   "text": "A.F. is short of {m:shortwater}water.",
+   "pause": 0.6
+  },
+  {
+   "id": "s132",
+   "text": "That {m:conf}confirmed it. A.F. was {m:mid2}Midway.",
+   "pause": 1.2
+  },
+  {
+   "id": "s133",
+   "text": "Japan lost every carrier in its strike {m:force}force.",
+   "pause": 0.2
+  },
+  {
+   "id": "s134",
+   "text": "America lost the carrier {m:york}Yorktown.",
+   "pause": 0.2
+  },
+  {
+   "id": "s135",
+   "text": "Already crippled, it was sunk by a Japanese {m:sub}submarine.",
+   "pause": 0.6
+  },
+  {
+   "id": "s136",
+   "text": "{m:york2}Yorktown, {m:kaga}KAH-gah and {m:akagi}ah-KAH-ghee have since been found.",
+   "pause": 0.3
+  },
+  {
+   "id": "s137",
+   "text": "Drain the sea, and you'd find them nowhere near the {m:atoll}atoll.",
+   "pause": 0.5
+  },
+  {
+   "id": "s138",
+   "text": "They lie far out, more than three miles {m:threemi}down, on the deep ocean floor.",
+   "pause": 0.4
+  },
+  {
+   "id": "s139",
+   "text": "These are war graves, for American and Japanese sailors {m:alike}alike.",
+   "pause": 2.2,
+   "speed": 0.9
+  },
+  {
+   "id": "s140",
+   "text": "Past Midway lies {m:kure}KOO-ree, the last atoll in the chain.",
+   "pause": 0.2
+  },
+  {
+   "id": "s141",
+   "text": "Darwin never saw it. But on his reef map, he colored it {m:blue}blue.",
+   "pause": 0.2
+  },
+  {
+   "id": "s142",
+   "text": "Blue meant a reef on sinking {m:sinkground}ground.",
+   "pause": 0.3
+  },
+  {
+   "id": "s143",
+   "text": "Here the water is so cool, the reef can barely keep up with the {m:sinking}sinking.",
+   "pause": 0.2
+  },
+  {
+   "id": "s144",
+   "text": "Scientists call this line the Darwin {m:point}Point.",
+   "pause": 0.2
+  },
+  {
+   "id": "s145",
+   "text": "Past it, every island has {m:drowned2}drowned.",
+   "pause": 0.2
+  },
+  {
+   "id": "s146",
+   "text": "That's the road the Big Island is {m:roadon}on.",
+   "pause": 0.3
+  },
+  {
+   "id": "s147",
+   "text": "The drowned volcanoes {m:bend}bend north and march on, all the way to {m:kam}Kamchatka.",
+   "pause": 0.2
+  },
+  {
+   "id": "s148",
+   "text": "There, the sea floor dives back into the Earth, and takes them with {m:takes}it.",
+   "pause": 0.3
+  },
+  {
+   "id": "s149",
+   "text": "But every volcano in this chain had to start {m:somewhere}somewhere.",
+   "pause": 1.0
+  },
+  {
+   "id": "s150",
+   "text": "Back to the start of the line: The Big Island's south {m:coast6}coast.",
+   "pause": 0.4
+  },
+  {
+   "id": "s151",
+   "text": "Off this coast, under the sea, a young volcano is {m:growing}growing.",
+   "pause": 0.5
+  },
+  {
+   "id": "s152",
+   "text": "Its name is {m:kama}kah-mah-EH-hoo-ah-kah-nah-LOH-ah.",
+   "pause": 0.7,
+   "speed": 0.9
+  },
+  {
+   "id": "s153",
+   "text": "It means reddish child of {m:kanaloa}kah-nah-LOH-ah.",
+   "pause": 0.6
+  },
+  {
+   "id": "s154",
+   "text": "This summer, it set off an earthquake people felt across the island's {m:south}south.",
+   "pause": 0.6
+  },
+  {
+   "id": "s155",
+   "text": "You may know it by its old name, {m:loihi}loh-EE-hee.",
+   "pause": 0.3
+  },
+  {
+   "id": "s156",
+   "text": "It could become the next Hawaiian {m:next}island.",
+   "pause": 0.4
+  },
+  {
+   "id": "s157",
+   "text": "Opening date: Thousands of years from {m:fromnow}now.",
+   "pause": 0.3
+  },
+  {
+   "id": "s158",
+   "text": "At {m:least}least.",
+   "pause": 0.8
+  },
+  {
+   "id": "s159",
+   "text": "We've drained the whole {m:whole}ocean.",
+   "pause": 0.2
+  },
+  {
+   "id": "s160",
+   "text": "But we still haven't reached the bottom of this {m:bottom}mountain.",
+   "pause": 0.3
+  },
+  {
+   "id": "s161",
+   "text": "Remember that deep trench at its {m:feet}feet?",
+   "pause": 0.4
+  },
+  {
+   "id": "s162",
+   "text": "Slice through the {m:slice}rock, and you'll see why it's there.",
+   "pause": 0.2
+  },
+  {
+   "id": "s163",
+   "text": "This island is so heavy, it has bent the sea floor {m:bent}down.",
+   "pause": 0.2
+  },
+  {
+   "id": "s164",
+   "text": "Like a bowling ball on a {m:matt}mattress.",
+   "pause": 0.2
+  },
+  {
+   "id": "s165",
+   "text": "Under {m:loa2}MAO-nah LOH-ah, the real giant, it's pushed down by {m:miles2}miles.",
+   "pause": 0.3
+  },
+  {
+   "id": "s166",
+   "text": "So this mountain doesn't sit on the sea floor. It sits in a {m:dent}dent.",
+   "pause": 0.3
+  },
+  {
+   "id": "s167",
+   "text": "That trench at its feet is the edge of that {m:edge}dent.",
+   "pause": 0.4
+  },
+  {
+   "id": "s168",
+   "text": "Look {m:look2}down. Past the old sea floor. All the way to the bottom of the {m:basedent}dent.",
+   "pause": 0.9
+  },
+  {
+   "id": "s169",
+   "text": "Measured from its true base, MAO-nah LOH-ah is about fifty-six thousand feet {m:tall56}tall.",
+   "pause": 1.8,
+   "speed": 0.9
+  },
+  {
+   "id": "s170",
+   "text": "Almost twice as tall as {m:ev3}Everest.",
+   "pause": 0.5
+  },
+  {
+   "id": "s171",
+   "text": "Stand Everest on that same base, and its peak would still be deep {m:underwater}underwater.",
+   "pause": 2.0
+  },
+  {
+   "id": "s172",
+   "text": "That's how much of this mountain you never get to {m:see}see.",
+   "pause": 2.3
+  },
+  {
+   "id": "s173",
+   "text": "Now put the ocean {m:back}back.",
+   "pause": 15.0
+  },
+  {
+   "id": "s174",
+   "text": "Every postcard of the Big Island shows only the top of a {m:giant2}giant.",
+   "pause": 0.4
+  },
+  {
+   "id": "s175",
+   "text": "One that's slowly sinking into its own dent in the {m:planet}planet.",
+   "pause": 0.6
+  },
+  {
+   "id": "s176",
+   "text": "So next time you see one, look {m:lookdown3}down.",
+   "pause": 0.5
+  },
+  {
+   "id": "s177",
+   "text": "And what happens when a real lake drains, straight down a {m:hole}hole?",
+   "pause": 0.3
+  },
+  {
+   "id": "s178",
+   "text": "Louisiana found {m:la}out.",
+   "pause": 1.0
+  }
+ ],
+ "_meta": {
+  "voice_name": "Rodney - Clear Educator",
+  "respellings_used": {
+   "Hawaiʻi": "Hawaii",
+   "Molokaʻi": "moh-loh-KAH-ee",
+   "Lānaʻi": "lah-NAH-ee",
+   "Halapē": "hah-lah-PAY",
+   "Oʻahu": "oh-AH-hoo",
+   "Pali": "PAH-lee",
+   "Kīlauea": "kee-lao-WAY-ah",
+   "Mauna Kea": "MAO-nah KAY-ah",
+   "Mauna Loa": "MAO-nah LOH-ah",
+   "Kauaʻi": "kah-WAH-ee",
+   "Nihoa": "nee-HOH-ah",
+   "Lalo": "LAH-loh",
+   "AF": "A.F. (ASR-tested 2026-11-08: \"ay-eff\" was heard as \"IF\")",
+   "Akagi": "ah-KAH-ghee",
+   "Kaga": "KAH-gah",
+   "Kure": "KOO-ree",
+   "Kamaʻehuakanaloa": "kah-mah-EH-hoo-ah-kah-nah-LOH-ah",
+   "Kanaloa": "kah-nah-LOH-ah",
+   "Lōʻihi": "loh-EE-hee"
+  },
+  "notes": [
+   "Pass this file to engine/tools/tts.py; it carries the Rodney voice id explicitly (tts.py still defaults to Brian).",
+   "Generate only after the owner OKs the script text and after the lexicon gate: lexicon.json is DRAFT (not test-rendered, not checked on wehewehe.org, not heard by a Hawaiian speaker).",
+   "Rule-derived pronunciations that are narrated here and must be test-rendered first: Halapē (hah-lah-PAY), Kamaʻehuakanaloa, Lōʻihi. 'AF' (ay-eff) is an editor addition: add it to lexicon.json and to the ASR check.",
+   "settings is empty on purpose: test stability about 0.35 and style about 0.4 on Rodney before the full run (PLAYBOOK_craft 11, hypothesis).",
+   "Every {m:name} marker is unique in the film; tts.py writes markers[name] to timing.json.",
+   "Per-take speed: 0.9 on 'Two people died', the war-graves line, the long name and the 56,000 ft line; 0.95 on the 1975 story."
+  ]
+ }
+}

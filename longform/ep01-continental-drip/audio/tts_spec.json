@@ -1,0 +1,553 @@
+{
+ "voice": "nPczCjzI2devNBz1zQrb",
+ "model": "eleven_v4",
+ "settings": {},
+ "lead_in": 0.35,
+ "segments": [
+  {
+   "id": "s001",
+   "text": "Spin a globe, and Earth looks like it's {m:melt}melting.",
+   "pause": 0.3
+  },
+  {
+   "id": "s002",
+   "text": "{m:sam}South America. {m:afr}Africa. {m:ind}India.",
+   "pause": 0.25
+  },
+  {
+   "id": "s003",
+   "text": "{m:grl}Greenland. {m:fla}Florida. {m:baja}Baja. {m:kam}Kamchatka.",
+   "pause": 0.3
+  },
+  {
+   "id": "s004",
+   "text": "Every point aims {m:south}south. Like somebody left the planet on the dashboard in {m:july}July.",
+   "pause": 0.8
+  },
+  {
+   "id": "s005",
+   "text": "{m:twothirds}Two-thirds of all land is north of the {m:eq}equator. So are nearly {m:nine}nine in ten of us.",
+   "pause": 0.4
+  },
+  {
+   "id": "s006",
+   "text": "You've probably heard those southern points are just a {m:coin}coincidence.",
+   "pause": 0.3
+  },
+  {
+   "id": "s007",
+   "text": "They're {m:not}not. Not {m:entirely}entirely.",
+   "pause": 0.5
+  },
+  {
+   "id": "s008",
+   "text": "So {m:why}why do the continents point south? By the end, you'll know what they're really {m:pointing}pointing at.",
+   "pause": 0.5
+  },
+  {
+   "id": "s009",
+   "text": "Along the way: why you can't dig to China from {m:usa}anywhere in America.",
+   "pause": 0.3
+  },
+  {
+   "id": "s010",
+   "text": "A theory from {m:t1875}eighteen seventy-five that explained all of it, and was {m:wrong}dead wrong. And {m:last}the last one: the four continents your country might {m:crash}crash into. Eventually.",
+   "pause": 0.8
+  },
+  {
+   "id": "s011",
+   "text": "Bad news: you're not the first to notice. {m:bacon}Not even close.",
+   "pause": 0.3
+  },
+  {
+   "id": "s012",
+   "text": "In sixteen twenty, Francis {m:fb}Bacon wrote that the Old World and the New are both {m:narrow}'narrow and pointed toward the south.'",
+   "pause": 0.4
+  },
+  {
+   "id": "s013",
+   "text": "And in the same {m:breath}breath, he said Africa and South America's matching capes were {m:accident}'not to be attributed to mere accident.'",
+   "pause": 0.4
+  },
+  {
+   "id": "s014",
+   "text": "Then he wrote down an open question: is there even a {m:southcont}southern continent down there? Nobody would lay eyes on {m:antar}Antarctica for two more {m:cent}centuries. Remember {m:rem}that.",
+   "pause": 0.6
+  },
+  {
+   "id": "s015",
+   "text": "Now, you may have heard that Bacon predicted continental drift. {m:scratch}He didn't.",
+   "pause": 0.4
+  },
+  {
+   "id": "s016",
+   "text": "He wasn't {m:snap}snapping Africa and South America together like puzzle pieces. He was saying they're shaped {m:same}alike, side by side.",
+   "pause": 0.3
+  },
+  {
+   "id": "s017",
+   "text": "So Bacon saw the drip, but never tried to {m:explain}explain it. For centuries, nobody else {m:anyone}could. That did not stop them from {m:try}trying.",
+   "pause": 0.3
+  },
+  {
+   "id": "s018",
+   "text": "Captain {m:cook}Cook's naturalist, Johann Reinhold Forster, claimed that every great southern tip looks {m:alike}alike: high, rocky, the end of a {m:mtn}mountain chain.",
+   "pause": 0.3
+  },
+  {
+   "id": "s019",
+   "text": "His {m:expl}explanation? A giant flood came {m:wave}roaring in from the south-west and {m:carved}carved every one of them. Some of the top scientists of the day {m:bought}bought it. Geology later asked for a {m:refund}refund.",
+   "pause": 0.4
+  },
+  {
+   "id": "s020",
+   "text": "By the eighteen-forties, the most famous scientist alive was calling the tips {m:pyr}'pyramidal.' And someone had written down almost the exact {m:list}list you saw at the start.",
+   "pause": 0.3
+  },
+  {
+   "id": "s021",
+   "text": "{m:l1}Greenland, {m:l2}Baja, {m:l3}Florida, {m:l4}India, {m:l5}Kamchatka. 'All their points turned towards the south.'",
+   "pause": 0.7
+  },
+  {
+   "id": "s022",
+   "text": "Then, in the {m:seventies}nineteen-seventies, the pattern got its name, as a {m:joke}joke. A magazine writer called it {m:drip}'continental drip': a fake theory you could prove just by {m:staring}staring at a map.",
+   "pause": 0.3
+  },
+  {
+   "id": "s023",
+   "text": "Three years later, a geologist published his own {m:version}version of the joke. Hold on to {m:hold}him. He matters more than you'd {m:think}think.",
+   "pause": 0.4
+  },
+  {
+   "id": "s024",
+   "text": "But the shapes are just the {m:first}first clue. The next one is on the {m:far}far side of the planet.",
+   "pause": 1.0
+  },
+  {
+   "id": "s025",
+   "text": "Start at the top of the world. The {m:np}North Pole isn't land, it's ocean. Which makes Santa's workshop, technically, a {m:boat}houseboat. Stand on the ice there, and the sea floor is about {m:depth}two and a half miles beneath your boots.",
+   "pause": 0.4
+  },
+  {
+   "id": "s026",
+   "text": "Now go to the {m:bottom}bottom. At the {m:sp}South Pole, you're standing almost {m:up}two miles up, on a {m:sheet}sheet of ice more than a mile and a half {m:thick}thick.",
+   "pause": 0.4
+  },
+  {
+   "id": "s027",
+   "text": "The two ends of the planet are {m:neg}photographic negatives. Ocean on top. A continent at the bottom.",
+   "pause": 0.4
+  },
+  {
+   "id": "s028",
+   "text": "And they're almost the same size. {m:drag}Drag the Arctic Ocean down onto Antarctica, and the sizes nearly {m:match}match.",
+   "pause": 0.5
+  },
+  {
+   "id": "s029",
+   "text": "But here's the part that doesn't make sense. They don't just match. They {m:line}line up. Most of {m:ant}Antarctica sits directly opposite the Arctic Ocean, on the exact {m:other}other side of the Earth.",
+   "pause": 0.9
+  },
+  {
+   "id": "s030",
+   "text": "And it's not just the {m:poles}poles. Almost everywhere you look, land has {m:avoid}ocean on its far side, not more land. Which {m:brings}brings us to a classic American playground {m:myth}myth.",
+   "pause": 0.3
+  },
+  {
+   "id": "s031",
+   "text": "If you dig straight down, you'll reach {m:china}China. Let's {m:test}test it. Start in {m:kansas}Kansas, right at the center of the lower forty-eight, and {m:dig}dig. Ignore everything on the way down that would kill you, and keep {m:going}going.",
+   "pause": 0.3
+  },
+  {
+   "id": "s032",
+   "text": "You come out in the {m:indian}southern Indian Ocean. The {m:nearest}nearest land is a tiny French {m:island}island, more than two hundred miles {m:away}away.",
+   "pause": 0.4
+  },
+  {
+   "id": "s033",
+   "text": "Not {m:notchina}China. Not even the right {m:hemi}hemisphere. In fact, there isn't a single spot in the {m:us}United States that sits opposite {m:china2}China.",
+   "pause": 0.4
+  },
+  {
+   "id": "s034",
+   "text": "Even if you {m:start}started in China, three times out of {m:four}four you'd surface in the ocean. The people who can actually {m:dig2}dig to China? {m:arg}Argentinians.",
+   "pause": 0.5
+  },
+  {
+   "id": "s035",
+   "text": "Now flip {m:flipall}every continent to the far side of the planet and {m:lay}lay it over the {m:orig}original. Only about {m:eighth}one-eighth of the land has land on the other side.",
+   "pause": 0.4
+  },
+  {
+   "id": "s036",
+   "text": "That's less than half of what you'd expect if the continents had been {m:random}sprinkled at random.",
+   "pause": 0.4
+  },
+  {
+   "id": "s037",
+   "text": "So try a {m:puzzle}puzzle. Slice the Earth into {m:half}two halves, any way you like, and {m:cram}cram as much land as you can into one of them.",
+   "pause": 0.3
+  },
+  {
+   "id": "s038",
+   "text": "The winner is centered on {m:europe}western Europe. It scoops up most of the world's land. And it's still {m:still}more than half water.",
+   "pause": 0.6
+  },
+  {
+   "id": "s039",
+   "text": "There is no way to {m:cut}cut this planet in half and get a half that's {m:mostly}mostly land.",
+   "pause": 0.5
+  },
+  {
+   "id": "s040",
+   "text": "Now flip the globe {m:flip}over. The other half is {m:p89}eighty-nine percent water, centered in the empty Pacific near New Zealand.",
+   "pause": 0.7
+  },
+  {
+   "id": "s041",
+   "text": "The Pacific {m:alone}alone could swallow {m:drop}every continent on Earth, with room to spare. Yes, even {m:asia}Asia.",
+   "pause": 0.9
+  },
+  {
+   "id": "s042",
+   "text": "{m:ocean}Ocean on top, {m:landb}land at the bottom, {m:avoidl}land avoiding land. This planet is strangely {m:lop}lopsided. And the drip might be just the part you can {m:see}see.",
+   "pause": 0.4
+  },
+  {
+   "id": "s043",
+   "text": "And back in {m:g1875}eighteen seventy-five, one man thought he'd found a single {m:shape}shape that explained all of it. And it wasn't a {m:ball}ball.",
+   "pause": 0.4
+  },
+  {
+   "id": "s044",
+   "text": "Before we meet him: every Myth Juice video takes {m:taught}one thing you were taught about the world and {m:checks}checks it against the real planet. Want the next one? {m:sub}Subscribe.",
+   "pause": 1.0
+  },
+  {
+   "id": "s045",
+   "text": "His name was William Lowthian Green. He wasn't a professor. He was the {m:hawaii}foreign minister of the Kingdom of Hawaii.",
+   "pause": 0.4
+  },
+  {
+   "id": "s046",
+   "text": "And he'd been {m:obsessed}obsessed with those pointy southern tips for years. He even demonstrated them with a {m:card}bent card dipped in {m:water}water.",
+   "pause": 0.3
+  },
+  {
+   "id": "s047",
+   "text": "Remember those {m:pyr2}'pyramidal' tips? Green thought the whole planet was heading that way: {m:cool}cooling, shrinking, and slowly collapsing toward a {m:tet}tetrahedron. A four-cornered {m:pyr4}pyramid.",
+   "pause": 0.3
+  },
+  {
+   "id": "s048",
+   "text": "It sounds ridiculous. But watch what it {m:pred}explained. Most land in the north: {m:c1}check. Three continents ending in points aimed south: {m:c2}check.",
+   "pause": 0.25
+  },
+  {
+   "id": "s049",
+   "text": "An ocean on top of the world: {m:c3}check. A continent at the bottom: {m:c4}check. Land sitting opposite water: {m:c5}check. One shape, every clue.",
+   "pause": 0.5
+  },
+  {
+   "id": "s050",
+   "text": "And it {m:main}caught on. By eighteen ninety-nine, a leading {m:geol}geologist was telling Britain's top geographers that a shrinking Earth had to {m:squeeze}squeeze toward a {m:geo}tetrahedron.",
+   "pause": 0.3
+  },
+  {
+   "id": "s051",
+   "text": "He even pointed out that most of North America sits opposite the {m:io}Indian Ocean. The same ocean you just dug into.",
+   "pause": 0.3
+  },
+  {
+   "id": "s052",
+   "text": "By nineteen eighteen, a children's {m:mag}magazine was telling kids that one day, the Earth would turn into a {m:pyramid}pyramid. Sleep {m:tight}tight, kids.",
+   "pause": 0.4
+  },
+  {
+   "id": "s053",
+   "text": "So, hang on. If it explained all that, {m:how}how do we know it's wrong?",
+   "pause": 0.9
+  },
+  {
+   "id": "s054",
+   "text": "Because the whole idea needed a cooling, shrinking Earth. And critics could {m:measure}measure the planet: a ball, slightly squashed at the poles. Not a {m:notp}pyramid. And by then, scientists had discovered {m:rad}radioactivity, quietly heating Earth from the inside.",
+   "pause": 0.3
+  },
+  {
+   "id": "s055",
+   "text": "Over the next few decades, the shrinking engine {m:stall}stalled. The pyramid vanished from geology. Green's checklist was {m:real}real. He'd just pinned the clues on the wrong {m:suspect}suspect.",
+   "pause": 0.4
+  },
+  {
+   "id": "s056",
+   "text": "The real suspect had been hiding in plain sight on every world {m:maps}map. A few people had guessed it before. It took one stubborn man to {m:say}make the case out loud. And his story ends on one of the {m:drips}drips.",
+   "pause": 1.0
+  },
+  {
+   "id": "s057",
+   "text": "Around nineteen ten, a young German weather scientist named Alfred Wegener {m:wrote}wrote to his future wife. Doesn't South America {m:fit}fit against Africa, he asked, as if they had once been {m:joined}joined?",
+   "pause": 0.3
+  },
+  {
+   "id": "s058",
+   "text": "'This is an idea I'll have to {m:pursue}pursue.'",
+   "pause": 0.4
+  },
+  {
+   "id": "s059",
+   "text": "In nineteen twelve, he stood up before a {m:meeting}meeting of geologists and told them the {m:move}continents move. Then a world {m:war}war buried his {m:book}book.",
+   "pause": 0.4
+  },
+  {
+   "id": "s060",
+   "text": "Once the world read it, the reaction was {m:brutal}brutal. One society president called it {m:rot}'utter, damned rot.' In Germany, he never landed a full {m:prof}professorship. It took a university in {m:austria}Austria to give him one.",
+   "pause": 0.4
+  },
+  {
+   "id": "s061",
+   "text": "And critics had one killer question: what could possibly {m:push}push a continent? Wegener guessed Earth's {m:spin}spin, and tides. Both were far too {m:weak}weak.",
+   "pause": 0.3
+  },
+  {
+   "id": "s062",
+   "text": "He admitted it himself. 'The Newton of drift theory has not yet {m:appeared}appeared.'",
+   "pause": 0.5
+  },
+  {
+   "id": "s063",
+   "text": "In nineteen thirty, Wegener was deep on the ice of {m:grl}Greenland. One of the drip's own tips.",
+   "pause": 0.4
+  },
+  {
+   "id": "s064",
+   "text": "On his {m:fifty}fiftieth birthday, he left a {m:camp}camp in the middle of the ice sheet with a Greenlander named Rasmus {m:villumsen}Villumsen.",
+   "pause": 0.6
+  },
+  {
+   "id": "s065",
+   "text": "Neither of them made it {m:back}back.",
+   "pause": 1.2
+  },
+  {
+   "id": "s066",
+   "text": "They found Wegener's body the next {m:may}May, carefully buried in the snow. Villumsen was never {m:found}found.",
+   "pause": 0.6
+  },
+  {
+   "id": "s067",
+   "text": "Wegener never saw his idea proven. The proof was hiding on the {m:floor}ocean floor: stripes of magnetized rock, {m:mirror}mirrored on both sides of the mid-ocean ridges, like a {m:tape}tape recording of new seafloor being made.",
+   "pause": 0.3
+  },
+  {
+   "id": "s068",
+   "text": "The paper that decoded those stripes came out {m:y33}thirty-three years after he died.",
+   "pause": 1.2
+  },
+  {
+   "id": "s069",
+   "text": "Today, satellites clock the continents moving at about the speed your {m:nail}fingernails grow. Or your {m:toe}toenails, depending on which government agency you ask.",
+   "pause": 0.4
+  },
+  {
+   "id": "s070",
+   "text": "So Wegener was {m:right}right. But that still doesn't explain the {m:drip}drip. Why would so many of them end up {m:point}pointing the same way?",
+   "pause": 0.4
+  },
+  {
+   "id": "s071",
+   "text": "Run the clock {m:rewind}backwards, and the big drips all start pointing at the same {m:place}place.",
+   "pause": 1.0
+  },
+  {
+   "id": "s072",
+   "text": "Back into the age of dinosaurs. Watch the southern continents slide home: {m:r_sam}South America, {m:r_afr}Africa, {m:r_ind}India, {m:r_aus}Australia.",
+   "pause": 0.3
+  },
+  {
+   "id": "s073",
+   "text": "They lock together into one supercontinent: {m:gond}Gondwana. And at its heart sits {m:ant}Antarctica. Geologists call it the keypiece.",
+   "pause": 0.5
+  },
+  {
+   "id": "s074",
+   "text": "{m:remember}Remember Bacon's open question? Is there even a southern continent? The drips were {m:point}pointing at it {m:whole}the whole time.",
+   "pause": 1.0
+  },
+  {
+   "id": "s075",
+   "text": "Now let the clock run {m:fwd}forward. Cracks open, and new ocean starts seeping in between {m:afant}Africa and Antarctica.",
+   "pause": 0.3
+  },
+  {
+   "id": "s076",
+   "text": "Then the {m:zip}South Atlantic unzips from the bottom up, {m:split}splitting Africa from South America. The south tears open {m:firstt}first. The last {m:seam}seam, near the equator, hangs on for millions of years {m:snap2}more.",
+   "pause": 0.3
+  },
+  {
+   "id": "s077",
+   "text": "And then everyone moves {m:leave}out. Except {m:stay}Antarctica. It barely budges. It keeps the {m:house}house.",
+   "pause": 0.4
+  },
+  {
+   "id": "s078",
+   "text": "India {m:sprint}sprints: up to about eight inches a year, several times faster than {m:afaus}Africa or Australia. For a continent, that's reckless {m:driving}driving. Then it {m:slam}slams into Asia.",
+   "pause": 0.4
+  },
+  {
+   "id": "s079",
+   "text": "Here's the {m:best}explanation a geologist will most likely give you. Put the pieces back {m:together}together, and their pointy ends all sat close to {m:ant2}Antarctica.",
+   "pause": 0.4
+  },
+  {
+   "id": "s080",
+   "text": "As they drifted {m:apart}apart, they roughly kept their orientation. So those points still {m:aim}aim back to where they tore away.",
+   "pause": 0.6
+  },
+  {
+   "id": "s081",
+   "text": "The big drips aren't drips at all. They're {m:scar}scars.",
+   "pause": 1.0
+  },
+  {
+   "id": "s082",
+   "text": "Back to that second drip joke. The geologist who wrote it was John {m:holden}Holden.",
+   "pause": 0.3
+  },
+  {
+   "id": "s083",
+   "text": "Writing for a science humor journal, he declared that every continent is a {m:tear}teardrop, with the pointed end showing the direction it came from.",
+   "pause": 0.3
+  },
+  {
+   "id": "s084",
+   "text": "Drips always flow {m:down}down, he reasoned, so our maps must be {m:upside}upside down. He was {m:joking}joking. But one of the most famous {m:photo}photos of Earth ever taken really was shot with {m:bm}Antarctica on top. It was published {m:flip}flipped.",
+   "pause": 0.3
+  },
+  {
+   "id": "s085",
+   "text": "So by Holden's logic, it was right the first {m:first}time.",
+   "pause": 0.4
+  },
+  {
+   "id": "s086",
+   "text": "And one day, he wrote, the continents would {m:splash}splash back together into a supercontinent called {m:pangooy}'Pangooy.' On a {m:tue}Tuesday, at nine in the morning. He did not say which {m:tz}time zone.",
+   "pause": 0.9
+  },
+  {
+   "id": "s087",
+   "text": "{m:twist}Here's the twist. Six years {m:earlier}earlier, the very same John Holden had helped map, for {m:real}real, how Pangaea broke {m:apart2}apart.",
+   "pause": 0.5
+  },
+  {
+   "id": "s088",
+   "text": "His joke even {m:cited}cited his own real work. That line about the {m:pointline}point showing where it came from? Not just a {m:punch}punchline. It was basically the {m:answer}answer.",
+   "pause": 1.0
+  },
+  {
+   "id": "s089",
+   "text": "And the joke wasn't {m:notdone}done. Geologists have since found {m:realdrip}real drips. Under {m:nev}Nevada, a cold blob of rock appears to be sinking into the Earth, like {m:honey}honey off a spoon. One of the scientists who found it admitted he'd been {m:anti}'anti-drip' since his early days.",
+   "pause": 0.6
+  },
+  {
+   "id": "s090",
+   "text": "Now, the honest {m:honest}part, because we're not going to fake you a tidy answer. Not everything {m:drips}drips.",
+   "pause": 0.3
+  },
+  {
+   "id": "s091",
+   "text": "Australia's {m:york}Cape York points north. So do Mexico's {m:yuc}Yucat\u00e1n, Denmark's {m:jut}Jutland and Siberia's {m:tay}Taymyr. And the Antarctic {m:antpen}Peninsula has no choice. From the South Pole, every direction is {m:north}north.",
+   "pause": 0.4
+  },
+  {
+   "id": "s092",
+   "text": "Smaller drips have their own {m:stories}stories. Several million years ago, the Pacific Plate grabbed {m:baja}Baja and started dragging it away from mainland {m:mex}Mexico. It's still {m:going}going.",
+   "pause": 0.3
+  },
+  {
+   "id": "s093",
+   "text": "{m:fla}Florida isn't a drip at all. It's the top of a gigantic {m:lime}limestone platform, miles thick, built up by {m:sealife}sea life in warm, shallow water. And {m:under}under all that limestone sits bedrock that started out next to {m:wafr}West Africa. Like a lot of people in Florida, it's originally from somewhere {m:else}else.",
+   "pause": 0.4
+  },
+  {
+   "id": "s094",
+   "text": "And Africa's real southern tip isn't the Cape of Good {m:gh}Hope. It's Cape {m:agul}Agulhas. The name means {m:needles}'needles,' and the best-known story says that's because sailors' {m:compass}compass needles there pointed true north. So, if that story is right, Africa's southern tip is named after pointing {m:north2}north.",
+   "pause": 0.4
+  },
+  {
+   "id": "s095",
+   "text": "So is the drip just a {m:coin2}coincidence? The big ones are most {m:likely}likely not: they're scars from a supercontinent that tore apart around {m:v_ant}Antarctica. The small ones have no single {m:single}answer, and some of it may just be us, connecting {m:dots}dots.",
+   "pause": 0.4
+  },
+  {
+   "id": "s096",
+   "text": "And the rest of the {m:lopside}lopsided planet? The land piled up in the {m:northl}north, the land that avoids {m:avoid2}land? There's no clear sign of a deep {m:force}force arranging it. The likeliest answer: it's a {m:snap}snapshot of where the drifting pieces happen to be right now.",
+   "pause": 1.0
+  },
+  {
+   "id": "s097",
+   "text": "So where is the drip {m:going}going? Since Bacon wrote his {m:line}line, the Atlantic has grown about a {m:bus}school bus wider.",
+   "pause": 0.3
+  },
+  {
+   "id": "s098",
+   "text": "Give it a couple hundred million {m:years}years, and geologists think a new supercontinent will {m:form}form. They just can't {m:agree}agree on what it looks like. Here are the four main {m:models}models.",
+   "pause": 0.3
+  },
+  {
+   "id": "s099",
+   "text": "One: the Atlantic {m:prox}slams shut, and America {m:crash2}crashes back into Africa in about two hundred fifty million years. Pangaea {m:proxname}Proxima.",
+   "pause": 0.3
+  },
+  {
+   "id": "s100",
+   "text": "Two: the Pacific closes instead, and the Americas hit {m:novo}Antarctica first. Novopangaea. One team's favorite bet.",
+   "pause": 0.3
+  },
+  {
+   "id": "s101",
+   "text": "Three: the Arctic Ocean vanishes, and America meets {m:asia}Asia practically at the North Pole. Amasia.",
+   "pause": 0.3
+  },
+  {
+   "id": "s102",
+   "text": "Four: both oceans close at once, and Australia ends up in the {m:middle}middle of everything. Australia plus America: {m:aurica}Aurica.",
+   "pause": 0.3
+  },
+  {
+   "id": "s103",
+   "text": "{m:a1}Africa, {m:a2}Antarctica, {m:a3}Asia or {m:a4}Australia: which {m:neighbor}neighbor are you betting on? One word, in the {m:comments}comments. In a way, Holden's continental splash really is coming. Just not on a {m:tuesday}Tuesday.",
+   "pause": 0.4
+  },
+  {
+   "id": "s104",
+   "text": "One study ran the climate on one of these future supercontinents. Only a {m:tenth}tenth to a sixth of the land would stay livable for mammals. {m:mammal}Reminder: you're a mammal.",
+   "pause": 0.6
+  },
+  {
+   "id": "s105",
+   "text": "Whichever future {m:wins}wins, the map we know gets {m:torn}torn up. The drip is just a fingerprint of where the pieces have {m:been}been.",
+   "pause": 0.4
+  },
+  {
+   "id": "s106",
+   "text": "Four hundred years {m:ago}ago, Bacon said the matching capes of Africa and South America were no {m:acc2}accident. Looks like he was {m:right2}right. It wasn't an accident. It was a {m:breakup}breakup.",
+   "pause": 0.5
+  },
+  {
+   "id": "s107",
+   "text": "Every map you've ever seen is one {m:frame}frame of a very slow movie.",
+   "pause": 0.5
+  },
+  {
+   "id": "s108",
+   "text": "And the next frame is already being {m:shot}shot. Right now in {m:afar}Ethiopia, three {m:cracks}cracks meet in a giant Y, and one of them is slowly unzipping {m:eafr}East Africa.",
+   "pause": 0.4
+  },
+  {
+   "id": "s109",
+   "text": "What happens if Africa splits in two? That's our {m:here}next story. And if you want to watch the map keep changing, {m:sub2}subscribe.",
+   "pause": 0.5
+  }
+ ]
+}

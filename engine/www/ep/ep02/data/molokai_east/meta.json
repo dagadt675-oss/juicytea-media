@@ -1,0 +1,140 @@
+{
+ "name": "molokai_east",
+ "bbox": [
+  -157.1,
+  20.99,
+  -156.7,
+  21.31
+ ],
+ "hmin": -2020.0,
+ "hrange": 3550.0,
+ "vex": 1.0,
+ "sources": [
+  {
+   "id": "region:mauinui",
+   "px_m": 77.9
+  },
+  {
+   "id": "3dep",
+   "res_m": 1.0,
+   "cover": 0.3,
+   "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
+   "guard": {
+    "dropped_pct": 4.476,
+    "pieces": 489,
+    "pieces_kept": 6
+   }
+  }
+ ],
+ "colour": {
+  "ortho": {
+   "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+   "long": 4800,
+   "meas_px": 6388409,
+   "black_ref_pct": 0.15,
+   "imagery_pct": 95.5,
+   "filled_pct": 4.5,
+   "gain": 0.641,
+   "chroma": 1.2,
+   "dark_pct": 5.75,
+   "bright_pct": 2.49,
+   "covered_pct": 64.5,
+   "ref_scale_m": 77.9,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+   "smooth_pct": 64.9
+  }
+ },
+ "purpose": "Detail patch for 'mauinui' (the s007-s013 ride, above all s010 over central and east Molokaʻi and s011 down its north slope): 10 m heights (USGS 3DEP) and about 9 m colour (NAIP 2022 by detail transfer onto the mauinui grade); the drained seabed keeps the parent's ETOPO heights (as the stage shades them, cubic B-spline). Its 1280-vertex mesh (about 32 m) replaces the 128 m hero mesh there. Loaded automatically as the finest layer of 'mauinui'.",
+ "gaps": [
+  "Seafloor as in 'mauinui' (ETOPO 2022 15\", about 460 m, smooth): only the land is finer.",
+  "Mesh at most 1280 vertices on the long side (about 32 m): ridge outlines still step at that scale; the coast is the union of the 3DEP land and the parent's 78 m land (strips of the parent's land up to about 50 m wide where its coast bulges out)."
+ ],
+ "patch": {
+  "parent": "mauinui",
+  "feather_m": 2000,
+  "base_interp": "bspline"
+ },
+ "wh": [
+  4152,
+  3562
+ ],
+ "px_m": 10.0,
+ "files": {
+  "h16": "h16.png",
+  "ao": "ao.png",
+  "color": "color.jpg",
+  "cres": "cres.png"
+ },
+ "res": {
+  "height_m": 10.0,
+  "height_src_m": 1.0,
+  "colour_texel_m": 8.65,
+  "height_interp": [],
+  "colour_src_m": 0.6,
+  "colour_wh": [
+   4800,
+   4117
+  ]
+ },
+ "detail": {
+  "colour": {
+   "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+   "long": 4800,
+   "quads": [
+    "m_2115649_ne_04_060_20220204 (2022-02-04, 4.8 m read)",
+    "m_2115649_nw_04_060_20220204 (2022-02-04, 4.8 m read)",
+    "m_2115649_se_04_060_20220204 (2022-02-04, 4.8 m read)",
+    "m_2115649_sw_04_060_20220204 (2022-02-04, 4.8 m read)",
+    "m_2115650_se_04_060_20220204 (2022-02-04, 4.8 m read)",
+    "m_2115650_sw_04_060_20220204 (2022-02-04, 4.8 m read)",
+    "m_2115651_sw_04_060_20220204 (2022-02-04, 4.8 m read)",
+    "m_2115756_ne_04_060_20220204 (2022-02-04, 4.8 m read)",
+    "m_2115756_nw_04_060_20220204 (2022-02-04, 4.8 m read)",
+    "m_2115756_se_04_060_20220204 (2022-02-04, 4.8 m read)",
+    "m_2115756_sw_04_060_20220204 (2022-02-04, 4.8 m read)",
+    "m_2115657_ne_04_060_20220109 (2022-01-09, 4.8 m read)",
+    "m_2115657_nw_04_060_20220109 (2022-01-09, 4.8 m read)",
+    "m_2115657_se_04_060_20220109 (2022-01-09, 4.8 m read)",
+    "m_2115657_sw_04_060_20220109 (2022-01-09, 4.8 m read)",
+    "m_2115658_ne_04_060_20220109 (2022-01-09, 4.8 m read)",
+    "m_2115658_nw_04_060_20220109 (2022-01-09, 4.8 m read)",
+    "m_2115658_se_04_060_20220109 (2022-01-09, 4.8 m read)",
+    "m_2115658_sw_04_060_20220109 (2022-01-09, 4.8 m read)",
+    "m_2115659_nw_04_060_20220109 (2022-01-09, 4.8 m read)",
+    "m_2115764_ne_04_060_20220109 (2022-01-09, 4.8 m read)",
+    "m_2115764_nw_04_060_20220109 (2022-01-09, 4.8 m read)",
+    "m_2015603_nw_04_060_20220108 (2022-01-08, 4.8 m read)"
+   ],
+   "meas_px": 6388409,
+   "black_ref_pct": 0.15,
+   "imagery_pct": 95.5,
+   "filled_pct": 4.5,
+   "gain": 0.641,
+   "chroma": 1.2,
+   "dark_pct": 5.75,
+   "bright_pct": 2.49,
+   "covered_pct": 64.5,
+   "ref_scale_m": 77.9,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+   "smooth_pct": 64.9
+  },
+  "height": {
+   "source": "3dep"
+  }
+ },
+ "bake_s": 99.4,
+ "baked": "2026-11-15",
+ "facts": {
+  "land_area_km2_at_0m": 481.8,
+  "h_range_m": [
+   -2003,
+   1520
+  ]
+ },
+ "bytes": {
+  "h16": 11242259,
+  "ao": 1241390,
+  "color": 1908189,
+  "cres": 309931
+ }
+}

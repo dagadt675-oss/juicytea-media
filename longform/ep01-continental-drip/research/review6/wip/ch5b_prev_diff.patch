@@ -1,0 +1,290 @@
+--- /home/user/juicytea-media/longform/ep01-continental-drip/engine/www/ep/ep01/ch5b.js	2026-11-05 12:39:19.661024772 +0000
++++ /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/engine/www/ep/ep01/ch5b.js	2026-11-06 09:47:39.093154591 +0000
+@@ -131,6 +131,12 @@
+   const bajaR0 = allRings(bajaFeat);
+   const BAJA_P = [26.5, -112.5], BAJA_Q = U.dest(26.5, -112.5, 274, 125);
+   const bajaStart = moveRings(bajaR0, BAJA_P, BAJA_Q, 1);
++  // outer outline of the peninsula: drop the edges shared by the two admin polygons (their border at 28N), so no line crosses it
++  const bajaOutline = (() => { const key = p => p[0].toFixed(5) + ',' + p[1].toFixed(5), ek = (a, b) => [key(a), key(b)].sort().join('|'), cnt = new Map();
++    for (const r of bajaR0) for (let i = 1; i < r.length; i++) { const e = ek(r[i - 1], r[i]); cnt.set(e, (cnt.get(e) || 0) + 1); }
++    const out = []; for (const r of bajaR0) { let cur = [r[0]]; for (let i = 1; i < r.length; i++) { if (cnt.get(ek(r[i - 1], r[i])) > 1) { if (cur.length > 1) out.push(cur); cur = [r[i]]; } else cur.push(r[i]); } if (cur.length > 1) out.push(cur); }
++    return out; })();
++  const bajaOutStart = moveRings(bajaOutline, BAJA_P, BAJA_Q, 1);
+ 
+   // ---------- antipode map in Equal Earth (forward splat of the equirect data overlay) ----------
+   const antiEE = U.cv(1800, 880);
+@@ -197,7 +203,7 @@
+     // "the pointed end showing the direction it came from": arrows out of each tip
+     const td = C.words('s083').find(w => /direction/.test(w.w)).start - 0.1;
+     shapes.forEach((s, i) => { const p = prog(t, td + i * 0.05, td + i * 0.05 + 0.45, E.outBack); if (p <= 0) return; const tip = s[U.DROP.tipIdx]; const L = 24 + 46 * p + 6 * Math.sin(t * 6 + i);
+-      U.arrow(ctx, tip[0], tip[1] + 8, tip[0], tip[1] + 8 + L, { color: PAL.yellow, width: 5, head: 12, alpha: clamp(p) }); });
++      U.arrow(ctx, tip[0], tip[1] + 8, tip[0], tip[1] + 8 + L, { color: PAL.yellow, width: 5, head: 12, alpha: clamp(p) * (1 - prog(t, B1b - 0.35, B1b)) }); }); // fade out before B2
+     pillAt(ctx, '"TEAR-DROP SHAPED"', 110, 100, t, M.tear - 0.1, B1b);
+   }, { fadeIn: 0.4 }));
+   cue(M.tear - 0.05, 'shimmer', -18);
+@@ -209,11 +215,14 @@
+   const tagC = U.cv(300, 150); { const g = tagC.getContext('2d'); g.fillStyle = PAL.yellow; g.beginPath(); g.moveTo(40, 15); g.lineTo(285, 15); g.lineTo(285, 135); g.lineTo(40, 135); g.lineTo(8, 75); g.closePath(); g.fill();
+     g.fillStyle = '#0b0f16'; g.beginPath(); g.arc(42, 75, 10, 0, 7); g.fill(); g.font = '400 96px "Bebas Neue"'; g.textAlign = 'center'; g.fillText('JOKE', 172, 112); }
+   scenes.push(scene(B2a, B2b, (ctx, t) => {
+-    U.spaceBg(ctx, t, { starAlpha: 0.7 });
++    // starts on B1's end framing (cx 1840, cy 840, zoom 1.1, dim 0.5, faint coast) and eases into its own over 0.9 s: no jump at the cut
++    const kIn = prog(t, B2a, B2a + 0.9, E.inOut);
++    U.spaceBg(ctx, t, { starAlpha: lerp(0.5, 0.7, kIn) });
+     const flipP = prog(t, M.upside - 0.12, M.upside + 0.62, E.inOut), rot = Math.PI * flipP + 0.006 * Math.max(0, t - M.upside - 0.6);
+-    const zoom = lerp(0.9, 0.97, prog(t, B2a, B2b)) * (1 - 0.06 * Math.sin(Math.PI * flipP));
++    const zoom = lerp(1.1, lerp(0.9, 0.97, prog(t, B2a, B2b)), kIn) * (1 - 0.06 * Math.sin(Math.PI * flipP));
+     ctx.save(); ctx.translate(W / 2, H / 2); ctx.rotate(rot); ctx.translate(-W / 2, -H / 2);
+-    const T = drawEE(ctx, { cx: 1800, cy: 880, zoom }, 0.48);
++    const T = drawEE(ctx, { cx: lerp(1840, 1800, kIn), cy: lerp(840, 880, kIn), zoom }, lerp(0.5, 0.48, kIn));
++    strokeCoast(ctx, T, 0.165 * (1 - kIn));
+     drawDrops(ctx, T, t, { wob: 0.012 });
+     ctx.restore();
+     // a single drop falls down the frame on "down"
+@@ -274,7 +283,9 @@
+   const Q0 = (() => { const f = llDir(-14, 22).normalize(); const n = new THREE.Vector3(0, 1, 0).sub(f.clone().multiplyScalar(f.y)).normalize(); const e = new THREE.Vector3().crossVectors(n, f).normalize();
+     const m = new THREE.Matrix4().makeBasis(e, n, f).transpose(); return new THREE.Quaternion().setFromRotationMatrix(m); })();
+   const ZAX = new THREE.Vector3(0, 0, 1), Qr = new THREE.Quaternion();
+-  const r1a = Da + 0.25, r1b = r1a + 1.45, r2a = M.first - 0.02, r2b = r2a + 1.25;
++  // run 2 is keyed to the word "first" (M.first sits on "time."), so the planet is back south-up and the tick lands right after "time."
++  const wFirst = C.words('s085').find(w => /^first/i.test(w.w)).start;
++  const r1a = Da + 0.25, r1b = r1a + 1.45, r2a = wFirst - 0.3, r2b = r2a + 1.0;
+   hero.play(Da - 2, 'Idle_Neutral').play(r1a - 0.05, 'Run', { fade: 0.15, speed: 1.35 }).play(r1b + 0.1, 'Idle_Neutral', { fade: 0.25 })
+     .play(r2a - 0.12, 'Run', { fade: 0.15, speed: 1.35 }).play(r2b + 0.05, 'Idle_Neutral', { fade: 0.3 });
+   hero.moveAlong([{ t: Da - 1, x: 0, y: 0, z: 0, ry: 20 }, { t: r1a - 0.2, x: 0, y: 0, z: 0, ry: 20 }, { t: r1a + 0.05, x: 0, y: 0, z: 0, ry: 90 }, { t: r2a - 0.25, x: 0, y: 0, z: 0, ry: 90 },
+@@ -300,13 +311,17 @@
+     // tick when he stops upright on the south-up planet
+     const ck = prog(t, r2b + 0.05, r2b + 0.35, E.outBack); if (ck > 0) { ctx.save(); ctx.translate(tP.x + 210, tP.y - 330); ctx.scale(ck, ck); ctx.strokeStyle = PAL.yellow; ctx.lineWidth = 16; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath(); ctx.moveTo(-40, 0); ctx.lineTo(-10, 32); ctx.lineTo(48, -40); ctx.stroke(); ctx.restore(); }
+   }));
+-  cue(r1a - 0.05, 'whoosh_soft', -16); cue(r2a - 0.05, 'whoosh_soft', -16);
++  cue(r1a - 0.05, 'whoosh_soft', -16); cue(r2a + 0.51, 'whoosh_soft', -16); // run-2 whoosh kept at its mixed time (726.54): it peaks on the fast middle of the flip
+ 
+   // ===================================================================================================
+   // E  s086  the drops slosh together into "Pangooy" + Tuesday 9 a.m. card
+   // ===================================================================================================
+   const Ea = Db, Eb = M.twist - 0.06;
+   const [tgx, tgy] = U.ee(-6, 14);
++  // gag-card text sizes fitted to the 650-px card (text starts at x 230, keeps a 34-px right margin); widths measured like F.text does
++  const cardFit = (() => { const m = U.cv(8, 8).getContext('2d'), avail = 650 - 230 - 34;
++    const mw = (s, size, fam, trk) => { m.font = `800 ${size}px "${fam}"`; if (!trk) return m.measureText(s).width; let w = 0; for (const ch of s) w += m.measureText(ch).width; return w + trk * size * (s.length - 1); };
++    return [Math.min(54, 54 * avail / mw('TUESDAY, 9:00 A.M.,', 54, F.FAM.label, 0.03)), Math.min(62, 62 * avail / mw('1,786,379 A.D.', 62, F.FAM.body, 0))]; })();
+   scenes.push(scene(Ea, Eb, (ctx, t) => {
+     U.spaceBg(ctx, t, { starAlpha: 0.6 });
+     const k = prog(t, Ea, Eb, E.inOut);
+@@ -316,7 +331,7 @@
+     const pos = (c, i) => { const tx = tgx + (c.x - meanX) * 0.2, ty = tgy + (c.y - meanY) * 0.2; const px = -(ty - c.y), py = tx - c.x, pl = Math.hypot(px, py) || 1; const sl = Math.sin(Math.PI * p) * 70 * (i % 2 ? 1 : -1);
+       return [lerp(c.x, tx, p) + px / pl * sl + settle * (i % 2 ? 1 : -1), lerp(c.y, ty, p) + py / pl * sl + settle * 0.5]; };
+     const u = prog(p, 0.55, 0.95);
+-    const wob = 0.012 + 0.07 * Math.sin(Math.PI * p) + (lt > 0 ? 0.03 + 0.03 * Math.exp(-2 * lt) : 0);
++    const wob = 0.012 + 0.07 * Math.sin(Math.PI * p) + (lt > 0 ? (0.03 + 0.03 * Math.exp(-2 * lt)) * prog(lt, 0, 0.3, E.inOut) : 0); // settle jiggle ramps in (no 1-frame outline jump)
+     const shapes = drawDrops(ctx, T, t, { pos, wob, union: u, indiv: 1 - u });
+     // googly eyes on the blob
+     const ep = E.outBack(prog(t, M.pangooy - 0.12, M.pangooy + 0.2));
+@@ -333,8 +348,8 @@
+       const ring = M.tue + 0.55, sh = t > ring && t < ring + 0.7 ? Math.sin((t - ring) * 70) * 0.16 * (1 - (t - ring) / 0.7) : 0;
+       const sp = prog(t, M.tz - 0.05, M.tz + 1.15, E.inOut);
+       ctx.save(); ctx.translate(120, 175); ctx.rotate(sh); U.clockIcon(ctx, 0, 0, 78, Math.PI * 1.5 + sp * Math.PI * 2, sp * Math.PI * 2 * 3); ctx.restore();
+-      F.text(ctx, 'TUESDAY, 9:00 A.M.,', 230, 160, { size: 54, fam: F.FAM.label, weight: 800, color: '#141922', tracking: 0.03, shadow: false });
+-      F.text(ctx, '1,786,379 A.D.', 230, 236, { size: 62, fam: F.FAM.body, weight: 800, color: PAL.hero, shadow: false });
++      F.text(ctx, 'TUESDAY, 9:00 A.M.,', 230, 160, { size: cardFit[0], fam: F.FAM.label, weight: 800, color: '#141922', tracking: 0.03, shadow: false });
++      F.text(ctx, '1,786,379 A.D.', 230, 236, { size: cardFit[1], fam: F.FAM.body, weight: 800, color: PAL.hero, shadow: false });
+       ctx.restore();
+     }
+   }));
+@@ -372,7 +387,9 @@
+     ctx.save(); ctx.translate(sx, sy); const z = lerp(1, 1.03, prog(t, Fa, Fb)); ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
+     const Lx = 100, Rx = 1000, Py = 285;
+     // divider
+-    const dv = prog(t, M.twist - 0.04, M.twist + 0.4, E.outExpo); ctx.fillStyle = PAL.yellow; ctx.fillRect(958, 120, 4, 800 * dv);
++    // (retracts to the panels' bottom edge while the bracket draws, so it never crosses the bracket or the name pill)
++    const dv = prog(t, M.twist - 0.04, M.twist + 0.4, E.outExpo), dvH = lerp(800, Py + PH + 10 - 120, prog(t, M.apart2 - 0.1, M.apart2 + 0.35, E.inOut));
++    ctx.fillStyle = PAL.yellow; ctx.fillRect(958, 120, 4, dvH * dv);
+     const lp = prog(t, M.twist + 0.08, M.twist + 0.6, E.outExpo), rp = prog(t, M.twist + 0.3, M.twist + 0.85, E.outExpo);
+     const frame = (img, x, y) => { ctx.fillStyle = 'rgba(0,0,0,0.4)'; F.round(ctx, x - 10, y - 10 + 8, PW + 20, PH + 20, 16); ctx.fill(); ctx.fillStyle = '#081426'; F.round(ctx, x - 10, y - 10, PW + 20, PH + 20, 16); ctx.fill(); ctx.drawImage(img, x, y); };
+     if (lp > 0) { const x = lerp(-PW - 40, Lx, lp); frame(realPanel, x, Py);
+@@ -411,7 +428,7 @@
+   scenes.push(scene(G1a, G1b, (ctx, t) => {
+     U.deskBg(ctx, t);
+     const ip = prog(t, G1a, G1a + 0.55, E.outExpo), push = prog(t, G1a, G1b, E.inOut);
+-    const sc = lerp(0.95, 1.12, push), x = 960 + lerp(0, 120, push), y = lerp(-500, 560, ip) + lerp(0, 40, push);
++    const sc = lerp(0.95, 1.12, push), x = 960 + lerp(0, 120, push), y = lerp(-220, 560, ip) + lerp(0, 40, push); // already entering on the cut frame
+     U.drawPaper(ctx, PREF, x, y, lerp(-0.12, -0.025, ip), sc, 1, (g) => {
+       const hp = prog(t, M.cited - 0.12, M.cited + 0.4, E.out);
+       if (hp > 0) { g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = 'rgba(255,210,63,0.85)'; g.beginPath(); g.moveTo(78, 252); g.lineTo(78 + (refW + 26) * hp, 248); g.lineTo(78 + (refW + 26) * hp, 318); g.lineTo(78, 316); g.closePath(); g.fill(); g.restore(); }
+@@ -501,7 +518,9 @@
+     const halo = ctx.createRadialGradient(BX, CRUST + L - 60, 10, BX, CRUST + L - 60, 230); halo.addColorStop(0, 'rgba(120,220,255,0.32)'); halo.addColorStop(1, 'rgba(120,220,255,0)'); ctx.fillStyle = halo; ctx.fillRect(BX - 260, CRUST + L - 300, 520, 520);
+     const bg = ctx.createLinearGradient(0, CRUST, 0, CRUST + L); bg.addColorStop(0, '#d2f6ff'); bg.addColorStop(0.5, '#6cc4f2'); bg.addColorStop(1, '#2a76d2');
+     ctx.fillStyle = bg; ctx.beginPath(); U.polyPath(ctx, poly); ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.stroke();
+-    ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.beginPath(); ctx.ellipse(BX - 20, CRUST + L - 80, 12, 22, 0.3, 0, 7); ctx.fill();
++    // highlight stays inside the (still small) bulb and fades in as it grows; unchanged once L >= 168
++    const hlA = clamp((L - 80) / 60);
++    if (hlA > 0) { ctx.fillStyle = `rgba(255,255,255,${0.35 * hlA})`; ctx.beginPath(); ctx.ellipse(BX - 20, CRUST + 4 + Math.max(L - 84, L * 0.5), 12, 22, 0.3, 0, 7); ctx.fill(); }
+     for (let i = 0; i < 3; i++) { const f = ((t * 0.7 + i / 3) % 1), yy = CRUST + 60 + f * Math.max(10, L - 160); if (yy > CRUST + L - 90) continue; ctx.strokeStyle = `rgba(20,60,120,${0.6 * Math.sin(Math.PI * f)})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(BX - 9, yy - 6); ctx.lineTo(BX, yy + 4); ctx.lineTo(BX + 9, yy - 6); ctx.stroke(); }
+     // surface pin above the drip
+     const py = SURF - topo(BX); F.dot(ctx, BX, py - 4, { r: 9, color: PAL.cyan, ring: ((t - H3a) * 0.8) % 1 });
+@@ -522,7 +541,8 @@
+       const hp = prog(t, M.honey - 0.1, detach, E.inOut), Lh = t < detach ? lerp(8, 230, hp) : lerp(230, 120, prog(t, detach, detach + 0.6, E.out));
+       const hpoly = U.dripPoly(Lh, { top: 30, neck: 7, bulb: 22, wob: 3, t }).map(([x, y]) => [sx - 12 + x, sy + 18 + y]);
+       ctx.fillStyle = hg; ctx.beginPath(); U.polyPath(ctx, hpoly); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.ellipse(sx - 18, sy + 18 + Lh - 30, 5, 10, 0.3, 0, 7); ctx.fill();
+-      if (t > detach) { const fy = sy + 18 + 230 - 22 + 260 * Math.pow(clamp((t - detach) / 0.42), 2); if (t < detach + 0.42) { ctx.fillStyle = '#f0a020'; ctx.beginPath(); U.polyPath(ctx, U.dropPts(sx - 12, fy, 26, Math.PI)); ctx.fill(); } }
++      // the drop falls onto the puddle and sinks into it as the puddle swells (detach + 0.42 = the pop_ui cue)
++      if (t > detach && t < detach + 0.42) { const land = (y0 + h - 24) - (sy + 226), fp = clamp((t - detach) / 0.42), fy = sy + 226 + land * fp * fp; ctx.fillStyle = '#f0a020'; ctx.beginPath(); U.polyPath(ctx, U.dropPts(sx - 12, fy, 26, Math.PI)); ctx.fill(); }
+       const pud = prog(t, detach + 0.4, detach + 0.7, E.outBack); ctx.fillStyle = '#d98a10'; ctx.beginPath(); ctx.ellipse(sx - 12, y0 + h - 24, 30 + 40 * pud, 8 + 6 * pud, 0, 0, 7); ctx.fill();
+       ctx.restore(); ctx.restore();
+     }
+@@ -577,11 +597,16 @@
+     U.dataBg(ctx, t);
+     const lB = prog(t, M.york - 0.4, M.york + 0.25, E.inOut), z = 1 + 0.025 * prog(t, Ia, Ib);
+     ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
+-    // scan sweep before the snap
+-    if (t < M.honest) { const y = lerp(0, H, prog(t, Ia, M.honest - 0.1, E.inOut)); ctx.fillStyle = 'rgba(61,227,255,0.5)'; ctx.fillRect(0, y, W, 3); const sg = ctx.createLinearGradient(0, y - 120, 0, y); sg.addColorStop(0, 'rgba(61,227,255,0)'); sg.addColorStop(1, 'rgba(61,227,255,0.12)'); ctx.fillStyle = sg; ctx.fillRect(0, y - 120, W, 120); }
++    // scan sweep before the snap: it reveals faint ghosts of the tiles as it passes (drawn on top of them, below)
++    const scanY = lerp(0, H, prog(t, Ia, M.honest - 0.1, E.lin));
+     TILES.forEach((s, i) => {
+-      const ta = M.honest - 0.12 + i * 0.035, ap = prog(t, ta, ta + 0.25, E.outBack); if (ap <= 0) return;
++      const ta = M.honest - 0.12 + i * 0.035, ap = prog(t, ta, ta + 0.25, E.outBack);
+       const A = layA(i), B = layB(i), [x, y, w, h] = A.map((v, j) => lerp(v, B[j], lB));
++      const gA = 0.3 * (1 - clamp(ap));
++      if (gA > 0 && scanY > y) { ctx.save(); ctx.beginPath(); ctx.rect(x - 4, y - 4, w + 8, Math.min(h, scanY - y) + 4); ctx.clip();
++        ctx.save(); F.round(ctx, x, y, w, h, 12); ctx.clip(); ctx.globalAlpha = gA; ctx.drawImage(s.c, x, y, w, h); ctx.restore();
++        ctx.strokeStyle = `rgba(61,227,255,${Math.min(1, gA * 1.8)})`; ctx.lineWidth = 1.5; F.round(ctx, x, y, w, h, 12); ctx.stroke(); ctx.restore(); }
++      if (ap <= 0) return;
+       const sw = s.north ? swingT[s.k] - 0.06 : null, hl = sw ? env(t, sw - 0.05, sw + 1.3, 0.15, 0.4) : 0;
+       const dimS = !s.north ? 1 - 0.45 * lB : 1;
+       const sc = lerp(0.8, 1, ap) * (1 + 0.05 * hl);
+@@ -592,13 +617,16 @@
+       // needle: base -> tip; all start pointing south; north tiles swing on their word
+       const np = prog(t, M.drips - 0.12 + i * 0.03, M.drips + 0.25 + i * 0.03, E.outBack);
+       if (np > 0) { const kx = w / TW, bx = -w / 2 + s.b[0] * kx, by = -h / 2 + s.b[1] * kx;
+-        let ang = s.ang, col = PAL.yellow;
+-        if (s.north) { const q = prog(t, sw, sw + 0.55, E.outBack); ang = lerp(Math.PI / 2, s.ang < -Math.PI / 2 ? s.ang + 2 * Math.PI : s.ang, q); if (q > 0.5) col = '#dfe6ef'; }
++        let ang = s.ang, col = PAL.yellow, q = 0;
++        if (s.north) { q = prog(t, sw, sw + 0.55, E.outBack); ang = lerp(Math.PI / 2, s.ang < -Math.PI / 2 ? s.ang + 2 * Math.PI : s.ang, q); if (q > 0.5) col = '#dfe6ef'; }
+         const L = Math.max(s.len * kx, 60 * kx * 1.67) * clamp(np);
+-        U.arrow(ctx, bx, by, bx + Math.cos(ang) * L, by + Math.sin(ang) * L, { color: col, width: Math.max(3, 8 * kx * 1.67), head: Math.max(9, 20 * kx * 1.67) });
++        // north tiles: the base sits near the tile's bottom edge, so the south-pointing needle is kept inside the tile; it grows to full length as it swings north
++        const Ld = s.north ? lerp(Math.min(L, Math.max(24, h / 2 - 16 - by)), L, clamp(q)) : L;
++        U.arrow(ctx, bx, by, bx + Math.cos(ang) * Ld, by + Math.sin(ang) * Ld, { color: col, width: Math.max(3, 8 * kx * 1.67), head: Math.max(9, 20 * kx * 1.67) });
+         F.dot(ctx, bx, by, { r: Math.max(3, 6 * kx * 1.67), color: col }); }
+       ctx.restore();
+     });
++    if (t < M.honest) { const y = scanY; ctx.fillStyle = 'rgba(61,227,255,0.7)'; ctx.fillRect(0, y, W, 3); const sg = ctx.createLinearGradient(0, y - 120, 0, y); sg.addColorStop(0, 'rgba(61,227,255,0)'); sg.addColorStop(1, 'rgba(61,227,255,0.14)'); ctx.fillStyle = sg; ctx.fillRect(0, y - 120, W, 120); }
+     ctx.restore();
+     pillAt(ctx, 'THE HONEST PART', 960 - 170, 92, t, M.honest - 0.1, M.york - 0.45, { size: 42 });
+     pillAt(ctx, 'THESE POINT NORTH', 960 - 185, 92, t, M.york - 0.25, Ib + 0.2, { size: 42 });
+@@ -627,15 +655,18 @@
+   // K  s092  Baja: torn from mainland Mexico (slides NW, Gulf of California opens)
+   // ===================================================================================================
+   const Ka = Jb, Kb = SEG('s093').start - 0.1;
+-  const slideA = M.baja + 0.5, slideB = slideA + 2.5;
++  const slideA = M.baja + 0.5, slideB = slideA + 2.5, BAJA_SEA = '#03132f'; // deep-water colour of this dimmed shot
+   scenes.push(gshot({ t0: Ka, t1: Kb, overlay: { canvas: gulfOv, bounds: GULF_B }, patch: { url: 'tex/patch/baja.jpg', bounds: [-118, 21, -108, 33] }, drift: 0.25,
+-    keys: [{ t: Ka, lat: 23, lon: -121, alt: 2.1 }, { t: M.stories - 0.2, lat: 23.6, lon: -119, alt: 1.8 }, { t: M.stories + 3.0, lat: 25.6, lon: -111.6, alt: 0.40, tilt: 42, heading: -16 }],
++    keys: [{ t: Ka, lat: 23, lon: -121, alt: 2.1 }, { t: M.stories + 3.0, lat: 25.6, lon: -111.6, alt: 0.40, tilt: 42, heading: -16 }], // one move: no stop mid-way
+     look: (t) => ({ dim: 0.3 * prog(t, M.baja - 0.4, M.baja + 0.1), desat: 0.2, ovAlpha: prog(t, slideA + 0.4, slideB) * (0.75 + 0.25 * Math.sin(t * 5)), relief: 0.9 }),
+     extra: (ctx, t, api) => {
+       const g = api.g; if (t < M.baja - 0.12) return;
+       const ap = prog(t, M.baja - 0.12, M.baja + 0.2), p = prog(t, slideA, slideB, E.inOut);
+-      const R = moveRings(bajaStart, BAJA_Q, BAJA_P, p);
+-      fillProjected(ctx, g, R, { color: PAL.hero, alpha: 0.8 * ap }); ctx.save(); ctx.globalAlpha = ap; strokeProjected(ctx, g, R, { color: '#ffffff', width: 2.4 }); ctx.restore();
++      const R = moveRings(bajaStart, BAJA_Q, BAJA_P, p), RO = moveRings(bajaOutStart, BAJA_Q, BAJA_P, p);
++      // the real peninsula is not there yet: sea covers it while the red copy is away, fading as the copy slides home (no double Baja)
++      const hide = ap * (1 - prog(p, 0.75, 1));
++      if (hide > 0) { ctx.save(); ctx.shadowColor = BAJA_SEA; ctx.shadowBlur = 14; fillProjected(ctx, g, bajaR0, { color: BAJA_SEA, alpha: 0.95 * hide }); ctx.restore(); }
++      fillProjected(ctx, g, R, { color: PAL.hero, alpha: 0.8 * ap }); ctx.save(); ctx.globalAlpha = ap; strokeProjected(ctx, g, RO, { color: '#ffffff', width: 2.4 }); ctx.restore();
+       // Pacific Plate arrow (NW), pulsing; bigger pulse on "going"
+       const aa = prog(t, M.baja + 0.35, M.baja + 0.7); if (aa > 0) { const a = g.project(23.6, -113.6), b = g.project(26.9, -118.4); if (a.visible && b.visible) { const pu = 1 + 0.1 * Math.sin(t * 6) + 0.25 * env(t, M.going - 0.1, M.going + 0.9, 0.15, 0.5);
+         const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2; U.arrow(ctx, mx + (a.x - mx) * pu, my + (a.y - my) * pu, mx + (b.x - mx) * pu, my + (b.y - my) * pu, { color: '#ffffff', width: 12, head: 30, alpha: aa }); } }
+@@ -658,6 +689,9 @@
+   // ===================================================================================================
+   const L2a = L1b, L2b = M.wafr - 0.1;
+   const SEA = 360, PT = 372, PB = 690, FLOOR = 780;
++  const drawBase = (g) => { const bg = g.createLinearGradient(0, PB, 0, H); bg.addColorStop(0, '#6a3530'); bg.addColorStop(1, '#2a1416'); g.fillStyle = bg; g.fillRect(0, PB + 10, W, H - PB);
++    const r = F.rng(9); g.fillStyle = 'rgba(255,200,180,0.18)'; for (let i = 0; i < 260; i++) { g.fillRect(r() * W, PB + 20 + r() * (H - PB - 20), 3 + r() * 5, 2 + r() * 3); } };
++  const baseTmp = U.cv(W, H);
+   const platPoly = [[300, PT], [1590, PT], [1660, FLOOR], [1600, PB + 20], [380, PB + 20], [200, FLOOR]];
+   const locator = U.cv(300, 210);
+   { const g = locator.getContext('2d'); const s = { lat: 27.3, lon: -82.5, span: 10 }, k = 210 / s.span, cl = Math.cos(s.lat * D2R), dLat = 105 / k, dLon = 150 / (k * cl);
+@@ -670,14 +704,20 @@
+     const sky = ctx.createLinearGradient(0, 0, 0, SEA); sky.addColorStop(0, '#07101f'); sky.addColorStop(1, '#16324f'); ctx.fillStyle = sky; ctx.fillRect(0, 0, W, SEA);
+     const wat = ctx.createLinearGradient(0, SEA, 0, FLOOR); wat.addColorStop(0, '#1d6f9c'); wat.addColorStop(1, '#0a2440'); ctx.fillStyle = wat; ctx.fillRect(0, SEA, W, FLOOR - SEA + 4);
+     ctx.fillStyle = '#0b0d14'; ctx.fillRect(0, FLOOR, W, H - FLOOR); ctx.fillRect(380, PB, 1220, FLOOR - PB);
+-    // basement (revealed on "under"), glows near "West Africa"
++    // basement (revealed on "under" by a soft-edged sweep down from the platform base), glows near "West Africa"
+     const bp = prog(t, M.under - 0.12, M.under + 0.9, E.inOut);
+-    if (bp > 0) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W * bp, H); ctx.clip(); const bg = ctx.createLinearGradient(0, PB, 0, H); bg.addColorStop(0, '#6a3530'); bg.addColorStop(1, '#2a1416'); ctx.fillStyle = bg; ctx.fillRect(0, PB + 10, W, H - PB);
+-      const r = F.rng(9); ctx.fillStyle = 'rgba(255,200,180,0.18)'; for (let i = 0; i < 260; i++) { ctx.fillRect(r() * W, PB + 20 + r() * (H - PB - 20), 3 + r() * 5, 2 + r() * 3); }
+-      const gl = prog(t, M.wafr - 1.1, M.wafr - 0.3) * (0.7 + 0.3 * Math.sin(t * 6)); if (gl > 0) { const gg = ctx.createLinearGradient(0, PB, 0, PB + 140); gg.addColorStop(0, `rgba(255,140,60,${0.55 * gl})`); gg.addColorStop(1, 'rgba(255,140,60,0)'); ctx.fillStyle = gg; ctx.fillRect(0, PB + 10, W, 140); ctx.strokeStyle = `rgba(255,190,120,${gl})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, PB + 12); ctx.lineTo(W, PB + 12); ctx.stroke(); }
++    if (bp > 0) {
++      if (bp >= 1) drawBase(ctx);
++      else { const tg = baseTmp.getContext('2d'), FE = 150, ey = lerp(PB + 10 - FE, H + 10, bp);
++        tg.setTransform(1, 0, 0, 1, 0, 0); tg.globalCompositeOperation = 'source-over'; tg.clearRect(0, 0, W, H);
++        tg.setTransform(ctx.getTransform()); drawBase(tg);
++        tg.globalCompositeOperation = 'destination-in'; const mg = tg.createLinearGradient(0, ey, 0, ey + FE); mg.addColorStop(0, 'rgba(0,0,0,1)'); mg.addColorStop(1, 'rgba(0,0,0,0)'); tg.fillStyle = mg; tg.fillRect(-W, -H, 3 * W, 3 * H);
++        tg.globalCompositeOperation = 'source-over'; tg.setTransform(1, 0, 0, 1, 0, 0);
++        ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(baseTmp, 0, 0); ctx.restore(); }
++      ctx.save(); const gl = prog(t, M.wafr - 1.1, M.wafr - 0.3) * (0.7 + 0.3 * Math.sin(t * 6)); if (gl > 0) { const gg = ctx.createLinearGradient(0, PB, 0, PB + 140); gg.addColorStop(0, `rgba(255,140,60,${0.55 * gl})`); gg.addColorStop(1, 'rgba(255,140,60,0)'); ctx.fillStyle = gg; ctx.fillRect(0, PB + 10, W, 140); ctx.strokeStyle = `rgba(255,190,120,${gl})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, PB + 12); ctx.lineTo(W, PB + 12); ctx.stroke(); }
+       ctx.restore(); }
+-    // limestone platform rises (strata stack up from the bottom)
+-    const rp = prog(t, M.lime - 0.12, M.lime + 2.2, E.outExpo), top = lerp(PB + 20, PT, rp);
++    // limestone platform rises (strata stack up from the bottom; cubic ease keeps them stacking through "platform, miles thick")
++    const rp = prog(t, M.lime - 0.12, M.lime + 2.2, E.out), top = lerp(PB + 20, PT, rp);
+     if (rp > 0) { ctx.save(); ctx.beginPath(); ctx.rect(0, top, W, H); ctx.clip(); const lg = ctx.createLinearGradient(0, PT, 0, PB); lg.addColorStop(0, '#f1e6c4'); lg.addColorStop(1, '#c9b386'); ctx.fillStyle = lg; ctx.beginPath(); U.polyPath(ctx, platPoly); ctx.fill();
+       ctx.save(); ctx.beginPath(); U.polyPath(ctx, platPoly); ctx.clip(); ctx.strokeStyle = 'rgba(120,95,55,0.35)'; ctx.lineWidth = 2; for (let y = PT + 24; y < PB + 20; y += 26) { ctx.beginPath(); for (let x = 150; x <= 1700; x += 30) { const yy = y + 3 * Math.sin(x / 90 + y); x === 150 ? ctx.moveTo(x, yy) : ctx.lineTo(x, yy); } ctx.stroke(); } ctx.restore();
+       ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.beginPath(); U.polyPath(ctx, platPoly); ctx.stroke(); ctx.restore(); }
+@@ -697,7 +737,8 @@
+   // ===================================================================================================
+   // LM s093-s094  arc Florida -> West Africa (+ moving truck), then fly to the Cape; Good Hope vs Agulhas
+   // ===================================================================================================
+-  const LMa = L2b, LMb = M.agul - 0.07;
++  // LM keeps drawing under M2's 0.12-s fade-in (a real crossfade, not a dip from black)
++  const LMa = L2b, LMb = M.agul - 0.07 + 0.12;
+   const FLA = [26.0, -81.2], WAF = [12.6, -16.4], GH = [-34.36, 18.48], AG = [-34.83, 20.0];
+   const flyA = SEG('s094').start - 0.3;
+   scenes.push(gshot({ t0: LMa, t1: LMb, overlay: { canvas: flOv, bounds: FL_B }, patch: { url: 'tex/patch/s_africa.jpg', bounds: [10, -37, 36, -20] }, drift: 0.3,
+@@ -731,7 +772,7 @@
+   // ===================================================================================================
+   // M2 s094  ASTER view of Cape Agulhas
+   // ===================================================================================================
+-  const M2a = LMb, M2b = M.compass - 0.12;
++  const M2a = M.agul - 0.07, M2b = M.compass - 0.12;
+   const aster = api.img(IMG('cape_agulhas_aster.jpg'));
+   const KBf = [0.5, 0.55, 1.04], KBt = [0.47, 0.72, 1.3];
+   scenes.push(scene(M2a, M2b, (ctx, t) => {
+@@ -792,8 +833,9 @@
+     extra: (ctx, t, api) => {
+       const [sx, sy] = U.shake(t, M.likely - 0.03, 10);
+       ctx.save(); ctx.translate(sx, sy);
+-      const ca = E.outBack(prog(t, coinT0, coinT0 + 0.35)); if (ca > 0) { const lean = t > M.likely ? 0.16 * Math.exp(-1.5 * (t - M.likely)) * Math.sin((t - M.likely) * 6) : 0; if (t > M.likely - 0.2) { ctx.save(); ctx.globalAlpha = 0.45 * prog(t, M.likely - 0.2, M.likely + 0.1); ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(960, 806, 100, 12, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } ctx.save(); ctx.translate(960, 640); ctx.rotate(lean); U.coin(ctx, 0, 0, 160 * ca, coinPhase(t)); ctx.restore(); }
+-      U.drawStamp(ctx, stampC, 1230, 290, t, M.likely - 0.08, { scale: 0.66, rot: -0.07 });
++      const out = 1 - prog(t, N1b - 0.25, N1b); // coin and stamp fade before N2 tilts away
++      const ca = E.outBack(prog(t, coinT0, coinT0 + 0.35)); if (ca > 0) { const lean = t > M.likely ? 0.16 * Math.exp(-1.5 * (t - M.likely)) * Math.sin((t - M.likely) * 6) : 0; if (t > M.likely - 0.2) { ctx.save(); ctx.globalAlpha = 0.45 * prog(t, M.likely - 0.2, M.likely + 0.1) * out; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(960, 806, 100, 12, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } ctx.save(); ctx.translate(960, 640); ctx.rotate(lean); U.coin(ctx, 0, 0, 160 * ca, coinPhase(t), out); ctx.restore(); }
++      U.drawStamp(ctx, stampC, 1230, 290, t, M.likely - 0.08, { scale: 0.66, rot: -0.07, alpha: out });
+       ctx.restore();
+     } }));
+   cue(M.coin2 - 0.12, 'bell_small', -16); cue(M.likely - 0.06, 'stamp', -10);
+@@ -801,15 +843,19 @@
+   // ===================================================================================================
+   // N2 s095  scars glow: seam lines from the three big drips to Antarctica
+   // ===================================================================================================
+-  const N2a = N1b, N2b = SEG('s095').start + 9.95;
++  // N2 opens on N1's last framing (heading 1.2 deg/s x 5.97 s, alt breathing included) and tilts south in 0.8 s: no jump cut.
++  // Its cut to N3 is keyed to "The small ones"; the scars draw across "tore apart around Antarctica".
++  const wSmall = C.words('s095').find(w => /^small/i.test(w.w)).start, wTore = C.words('s095').find(w => /^tore/i.test(w.w)).start;
++  const N2a = N1b, N2b = wSmall - 0.12, tilt2 = (t) => prog(t, N2a, N2a + 0.8, E.inOut);
++  const n1End = { lat: -30, lon: 16, alt: 2.9 * (1 + 0.006 * Math.sin((N1b - N1a) * 0.7)), heading: 1.2 * (N1b - N1a) };
+   scenes.push(gshot({ t0: N2a, t1: N2b, overlay: { canvas: dripOv, bounds: WORLD }, patch: null, drift: 0.6,
+-    keys: [{ t: N2a, lat: -55, lon: 15, alt: 3.2, heading: 8 }, { t: N2b, lat: -58, lon: 12, alt: 3.1, heading: 8 }],
+-    look: { desat: 0.3, dim: 0.35, ovAlpha: 0.85, relief: 0.7 },
++    keys: [Object.assign({ t: N2a }, n1End), { t: N2a + 0.8, lat: -55, lon: 15, alt: 3.2, heading: 8 }, { t: N2b, lat: -58, lon: 12, alt: 3.1, heading: 8 }],
++    look: (t) => ({ desat: 0.3, dim: lerp(0.55, 0.35, tilt2(t)), ovAlpha: lerp(1, 0.85, tilt2(t)), relief: 0.7 }),
+     extra: (ctx, t, api) => {
+-      const g = api.g; drawRing(ctx, g, t, null);
++      const g = api.g, fin = prog(t, N2a + 0.1, N2a + 0.6); ctx.save(); ctx.globalAlpha *= fin; drawRing(ctx, g, t, null); ctx.restore();
+       TR3.forEach(([n, tip], i) => { const pts = [{ lat: tip[0], lon: tip[1] }, ...U.trackPts(tracks, n, 0, 180)];
+-        const st = M.v_ant - 0.12 + i * 0.12, p = prog(t, st, st + 0.9, E.inOut);
+-        for (const run of U.projRuns(g, pts)) { ctx.save(); ctx.globalAlpha = 0.55 * (1 - p); F.glowPath(ctx, run, { p: 1, color: PAL.yellow, width: 4, dash: [2, 13] }); ctx.restore(); if (p > 0) U.scarLine(ctx, run, p, { width: 4.5 }); } });
++        const st = wTore - 0.35 + i * 0.2, p = prog(t, st, st + 0.9, E.inOut);
++        for (const run of U.projRuns(g, pts)) { ctx.save(); ctx.globalAlpha = 0.55 * (1 - p) * fin; F.glowPath(ctx, run, { p: 1, color: PAL.yellow, width: 4, dash: [2, 13] }); ctx.restore(); if (p > 0) U.scarLine(ctx, run, p, { width: 4.5 }); } });
+     } }));
+   cue(N2a, 'whoosh_soft', -18);
+ 

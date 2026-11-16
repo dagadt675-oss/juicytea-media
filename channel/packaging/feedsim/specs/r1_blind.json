@@ -1,0 +1,48 @@
+{
+ "comment": "Blind round r1: the three ep01 repack pairs, each placed in a mobile Suggested (Up next) list with 7 ep01 hosts and in a mobile Home feed with 3 hosts. Same host SET per surface for every candidate (like-for-like); host order and our slot are shuffled per feed (distinct slots across candidates on a surface). File numbers are shuffled too, so neither the name nor the order reveals the candidate or its slot.",
+ "round": "r1",
+ "seed": 101,
+ "scale": 1,
+ "out_dir": "../../feeds/ep01_r1",
+ "hosts": "../../refs/hosts/hosts.json#ep01",
+ "now_playing": "VKq0pr4rbRs",
+ "ours": {
+  "channel": "Myth Juice",
+  "views": "1.2K views",
+  "age": "2d ago",
+  "duration": "15:34",
+  "avatar": "../ours_avatar.jpg"
+ },
+ "surfaces": [
+  {
+   "name": "mobile_suggested",
+   "layout": "upnext",
+   "hosts": 7,
+   "desc": "Mobile watch page, full scroll: pinned player (now playing), video info, then the Up next compact list (168x94 thumbs, title up to 3 lines) with 7 hosts + ours."
+  },
+  {
+   "name": "mobile_home",
+   "layout": "home",
+   "hosts": 3,
+   "desc": "Mobile Home feed, full scroll: header + chips, then full-width 390x219 cards (title up to 2 lines, one meta line) with 3 hosts + ours, bottom nav."
+  }
+ ],
+ "candidates": [
+  {
+   "id": "cand_3",
+   "title": "Why the Continents Point South (It's a Breakup)",
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_ep01/cand_3.jpg"
+  },
+  {
+   "id": "cand_1",
+   "title": "South America Points at Antarctica. So Does Africa",
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_ep01/cand_1.jpg"
+  },
+  {
+   "id": "cand_2",
+   "title": "The Continents Look Like They're Dripping South",
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_ep01/cand_2.jpg"
+  }
+ ],
+ "note": "Written to feeds/ep01_r1/ instead of feeds/ because a concurrent ep02 blind round (feedsim/blind/blind_r1.py, 12 Hawaii pairs) writes and deletes feeds/r1_*.png and feeds/r1_key.json at the same time; the subfolder keeps both rounds intact."
+}

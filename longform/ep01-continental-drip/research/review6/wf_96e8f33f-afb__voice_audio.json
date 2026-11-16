@@ -1,0 +1,111 @@
+{
+ "run": "wf_96e8f33f-afb",
+ "agent": "a3cc01fed89859588",
+ "label": "voice + audio",
+ "result": {
+  "issues": [
+   {
+    "t0": 549.63,
+    "t1": 550.85,
+    "kind": "dropped_or_extra_word",
+    "severity": "major",
+    "evidence": "'...a Greenlander named Rasmus Villumsen.' ends at 549.63 s. Take s064 then holds about 0.5 s of near-silence followed by a false start of the next take's first word: a voiced burst at 550.16-550.27 s, cut dead at the take end (550.25 s, the vo_cuts 'offset' -16.5 -> -62.9 dB). Its spectrum matches the onset of 'Neither' at 550.85 s (similarity 0.96, against 0.70 for other take onsets). Its peak is -11.9 dBFS, louder than normal speech (-16.5 dB), and in mix_v2.wav it stands 17.9 dB above the quiet ice/wind bed. The listener hears '...Villumsen. [Nei-] ... Neither of them made it back.' on the film's most solemn beat. The audio check calls this a 'chopped word tail', but the name itself is intact: what is chopped is the stray fragment. Cause: the raw ElevenLabs take itself contains the fragment (tts.py sends next_text), and the aligner stretched the final character over it ('Villumsen.' is aligned to 1.2 s). Spectrograms: /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/grab_audio/seam550_vo.png and /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/grab_audio/seam550_mix.png",
+    "fix": "In audio/vo/vo_proc.wav, fade out over 30 ms at 549.85 s and write silence through 550.30 s. Nothing moves in time. Then re-run mix.py on mix_v2.json and assemble.sh. To stop this recurring, have tts.py end each take at the last voiced run that precedes a gap of 300 ms or more when a burst shorter than 250 ms follows, or stop sending next_text for sentence-final takes."
+   },
+   {
+    "t0": 256.77,
+    "t1": 257.8,
+    "kind": "dropped_or_extra_word",
+    "severity": "major",
+    "evidence": "'...more than two hundred miles away.' ends at 256.77 s. Take s032 then carries a voiced 'n-' false start of 'Not' at 257.15-257.39 s (main burst 257.29-257.39 s, peak -12.4 dBFS; spectral match to the 'Not' onset 0.85 against 0.66). It is cut dead at 257.38 s (vo_cuts offset -15.6 -> -63.7 dB). In the mix it stands 17.8 dB above the bed, so the punchline plays '...miles away. [n-] ... Not China.' Spectrogram: /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/grab_audio/seam257_mix.png",
+    "fix": "Silence 256.95-257.42 s in vo_proc.wav (30 ms fade-out at 256.95 s) and remix. Timing is unchanged. The tts.py root-cause fix is the same as for 549.6 s."
+   },
+   {
+    "t0": 590.44,
+    "t1": 591.11,
+    "kind": "mispronunciation",
+    "severity": "major",
+    "evidence": "In 'So Wegener was right.', the payoff line of the Wegener chapter (take s070), the name loses its middle syllable. The spectrogram shows one long gliding vowel and a single consonant gap ('WAY-ner'), where the takes at 538.17 s and 561.45 s show three syllables with two gaps: /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/grab_audio/weg_compare.png. All 6 ASR passes (small and medium, stem and mix) write 'Wedner' or 'Weidner' here (0.45-0.63). Every other 'Wegener' (485.9, 538.2, 554.6, 561.5 s) reads correctly at 0.85-0.97. The retention playbook lists mispronounced names as a click-away cause.",
+    "fix": "Regenerate s070 (tts.py --force s070 with a new take number) and keep only a take where ASR returns 'Wegener'. Keep 'So Wegener was right.' within \u00b10.15 s of its current timing so the TRUE stamp (stamp.wav at 591.25 s) and the riser (592.88 s) still land. Absorb any length change in the 0.4 s pause before s071 (598.23-598.63 s). Fallback with no re-sync: paste the 0.40 s 'Wegener' from 538.17-538.57 s (also followed by 'was') over 590.71-591.11 s with 10 ms crossfades."
+   },
+   {
+    "t0": 28.09,
+    "t1": 28.88,
+    "kind": "click_or_artifact",
+    "severity": "minor",
+    "evidence": "In the hook, after '...those southern points are just a coincidence.' (ends 28.09 s), take s006 ends with a 20 ms burst at 28.52-28.57 s. It is the onset of 'They're' (spectral match 0.76 against 0.59), cut at 28.56 s (vo_cuts offset -16.3 -> -64.8 dB). It stands 11.9 dB above the bed, so a tick sounds just before the myth-break line 'They're not.' at 28.88 s, inside the first 30 s.",
+    "fix": "Silence 28.30-28.60 s in vo_proc.wav and remix. In the same pass, also silence the two buried fragments of the same kind, 639.15-639.65 s (s075, 'Th-') and 919.40-919.97 s (s101, 'F-'), so they cannot surface if the beds change."
+   },
+   {
+    "t0": 843.83,
+    "t1": 844.77,
+    "kind": "click_or_artifact",
+    "severity": "minor",
+    "evidence": "Just before the film's central question 'So is the drip just a coincidence?' (844.77 s), take s094 ends with an 's-' false start of 'So' at 844.25-844.38 s (-16.1 dBFS, spectral match 0.95 against 0.75), cut at 844.37 s (vo_cuts offset -13.9 -> -71.6 dB). In the mix it stands 8.6 dB above the bed: a hiss inside the ~1 s hold that should frame the question.",
+    "fix": "Silence 844.00-844.42 s in vo_proc.wav and remix. Timing is unchanged."
+   },
+   {
+    "t0": 723.04,
+    "t1": 723.83,
+    "kind": "click_or_artifact",
+    "severity": "minor",
+    "evidence": "After 'It was published flipped.' (ends 723.04 s), take s084 ends with an 's-' false start of 'So by Holden's logic' at 723.40-723.52 s (-16.4 dBFS, spectral match 0.82 against 0.74), cut at 723.51 s (vo_cuts offset -14.8 -> -75.1 dB). It stands 9.7 dB above the bed.",
+    "fix": "Silence 723.20-723.56 s in vo_proc.wav and remix."
+   },
+   {
+    "t0": 371.34,
+    "t1": 372.2,
+    "kind": "mispronunciation",
+    "severity": "minor",
+    "evidence": "In 'He even demonstrated them with a bent card dipped in water.', the /d/ of 'card' is swallowed into 'dipped'. There is only one ~30 ms closure between the 'car-' vowel (371.72-372.03 s) and 'dipped': /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/grab_audio/card371.png. All 4 ASR passes write 'a bent car dipped in water' (0.74-0.99). The folded-card picture at 6:12 helps, but 'bent car' is what the ear gets.",
+    "fix": "Regenerate s046 with 'a bent card, dipped in water' (the comma forces the /d/ release) and keep only a take where ASR returns 'card'. Keep the length within \u00b10.2 s: s046 ends at 373.24 s and the next take starts at 373.54 s."
+   },
+   {
+    "t0": 588.5,
+    "t1": 589.5,
+    "kind": "masked_by_sfx_or_music",
+    "severity": "minor",
+    "evidence": "record_scratch.wav (1.0 s at -14 dB) starts at 588.50 s, on top of the punchline's last words '...which government agency you ask.' (588.55-589.50 s). In the 1-4 kHz band it rises 5.8 dB above the voice on 'agency'. The words survive (ASR 0.96-1.00), but the scratch steps on the clause instead of buttoning the joke. The picture holds still on FINGERNAILS VS TOENAILS from 588.0 to 590.4 s (frames: /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/grab_ret/vf/tile_17640_12x8.jpg), so no picture event needs this timing.",
+    "fix": "In mix_v2.json, move the scratch into the 0.94 s gap after 'ask.': t = 589.55 s, trimmed or faded to at most 0.8 s so it ends before 'So' at 590.44 s, at -16 dB. Then remix."
+   },
+   {
+    "t0": 275.8,
+    "t1": 289.9,
+    "kind": "other",
+    "severity": "minor",
+    "evidence": "Rushed delivery of the chapter's key statistic. Takes s035 and s036 ('...Only about one-eighth of the land has land on the other side. That's less than half of what you'd expect if the continents had been sprinkled at random.') are the fastest in the film. s035 runs at 4.82 syllables/s including pauses (film median 3.80, +27%) and 5.53 per voiced second (median 4.77). 240-300 s is the fastest minute of narration (4.16 syll/s), the 4:00-5:00 windows run 172-178 wpm in pacing.md, and no pause in 240-300 s is longer than 0.97 s.",
+    "fix": "Regenerate s035 split before 'Only about one-eighth', with a 0.5 s pause and speed 0.92 (the 'speed' field in spec.json); do the same for s036. The 4:36-4:52 graphics ('1 IN 8' and the random-vs-real grid) key off word times, so only do this if those chunks are being re-rendered anyway."
+   },
+   {
+    "t0": 782.5,
+    "t1": 874.7,
+    "kind": "monotony",
+    "severity": "minor",
+    "evidence": "The 'honest part' is the most uniform stretch of narration. It runs as six long takes in a row (s091-s096: 13.6, 10.6, 18.9, 17.6, 14.6 and 15.0 s) joined by 0.3-0.4 s pauses. Take-to-take rate spread (sd 0.36) is the lowest of any chapter (others 0.52-0.95). 780-840 s has the least total pause of any full minute (11.1 s) and no hold longer than 1.00 s. Pacing.md shows near-still pictures underneath (still_s 9, 9 and 8 in 12:30-14:30). This is exactly where the title question gets answered (844-875 s), and where one long read is most likely to blur.",
+    "fix": "Split s093, s094 and s095 at sentence ends and re-voice them with 0.7-1.0 s holds before 'And Africa's real southern tip' (~826.8 s) and before 'So is the drip just a coincidence?' (~844.8 s). Render that question as its own take at speed 0.9 and keep the ~1.1 s hold after it. This needs re-timing of the 13:27-14:35 visuals."
+   }
+  ],
+  "cleared": [
+   "Masking flags at 53.10-53.75 ('Eventually.'), 217.65-218.00 ('line up'), 629.50-629.85 ('the whole'), 670.20-671.25 ('slams into Asia'), 692.20-692.80 ('scars') and 739.30-740.35 ('Here's the twist'): impact_deep at -6 to -10 dB sits almost entirely below 300 Hz. In the 1-4 kHz band the voice stays 15-40 dB clear on every word, and both models read the words at 0.93-1.00 on mix_v2.wav. These are deliberate reveal stings, not masking.",
+   "Masking flag 314.85-315.80 ('eighty-nine percent water'): impact_deep -8 dB plus tick_counter -16 dB. The voice stays 8-20 dB clear at 1-4 kHz, and ASR reads '89 % water' at 0.87-0.99 on the mix.",
+   "Masking flag 476.65-477.65 ('make the case out loud'): rumble_quake -12 dB plus riser -16 dB. Margin at 1-4 kHz is 12-37 dB; ASR 0.96-0.99.",
+   "vo_cuts offset at 185.50 (inside s025, after 'there,'): the voice is already at -32 dB, so the drop is inaudible. Offsets at 639.59 (s075 'Th-') and 919.92 (s101 'F-' after 'Amasia'): same false-start artefact as the reported issues, but buried 2.1 and 3.3 dB above the m07/m10 beds. Mute them in the same pass anyway.",
+   "vo_cuts onsets (87): 24 are take starts and 63 are word starts after the model's own near-silent pauses. The head scan found no clipped first phoneme on any of the 109 takes. s012 'In' (59.90) and s108 'And' (979.73) start hard on a vowel inside the raw ElevenLabs file, but both read cleanly.",
+   "About 40 ASR diffs are spelling only: numerals (1875, 1620, 1840s, 48, 200, 89, 33, 50th, 8, 9, 250, 400), hyphens (Two-thirds, one-eighth, mid-ocean, anti-drip, best-known, four-cornered, key piece, super continent) and quote marks.",
+   "Quoted words score low but are transcribed correctly in every run: 'continental drip' at 155.8 (0.20-0.35), 'utter, damned rot' at 511.8 (0.19-0.47), 'needles' at 832.9 (0.16-0.25), 'pyramidal' and 'south.' The pattern matches Whisper splitting probability over the quote token, not unclear speech.",
+   "Diffs that a second window or medium.en reads correctly, or that sound identical: 162.8 'geologist' (0.99, not 'The biologist'), 241.4 'Start in Kansas' (0.94-0.96), 502.0 'them' (0.87-0.97), 614.2 'lock'/'locked', 635.9 'ocean starts'/'oceans start', 705.9 'end', 849.6 'they're'/'There are', 858.3 'connecting dots' (1.00), 878.5 'wrote his' (0.91-0.96), 186.7 'two and a half miles' ('half miles' 0.99-1.00).",
+   "Inserted words are hallucinations: 747.2 'part.' (p=0.005); 942.8 'day.' (after 'Tuesday' the envelope decays to -58 dB breath with no second syllable); 995.5 'And' (every window run hears a single 'and').",
+   "'lopsided planet?' at 860.5 reads at 0.98/1.00 in both models (the known false alarm).",
+   "'Bad news' at 55.0: 'bad' scores 0.13-0.19 in every run but is always transcribed as 'bad'. The time_rewind hit at 55.09 leaves 10-28 dB of speech-band margin.",
+   "Names that pass: Lowthian 359.2 is heard as 'Lothian' (0.95-0.98), which fits the usual LOH-thee-an; Johann Reinhold Forster 110.0; Kamchatka 11.0/145.1 (0.99); Gondwana 617.0 (0.98-0.99); Taymyr 789.2 (medium 'Taymyr' 0.78); Yucat\u00e1n and Jutland; Agulhas 831.1 heard as 'Agulias' (a Portuguese-style a-GOO-lyas, acceptable); Pangooy 732.7 heard as 'Pangui' (matches the joke spelling); Pangaea Proxima 900.4 (0.78-0.98); Novopangaea 908.3 (0.88-0.90); Aurica 928.4 heard as 'Orica' (the right sound); Wegener correct at 485.9, 526.0, 538.2, 554.6 and 561.5.",
+   "Villumsen at 549.1 and 558.8 is heard as 'Wilhelmsen' in every run. That is a V/W rendering of a name the audience cannot check, and it is not shown on screen, so it is not a listener issue. The real problem at 550 is the false start reported above.",
+   "Amasia at 918.49-919.15: ASR scores are weak (0.53-0.65, missed in 2 of 5 runs) because it is a coined word. It gets the same 0.5 s set-up as the other three model names and sits 15-30 dB above the bed at 1-4 kHz. The pop at 918.58 touches only its first 50 ms, and the 'MODEL: AMASIA' label appears at 918.8.",
+   "SFX over speech, checked on the final mix: risers at 171.3, 342.6, 592.9, 888.1 and 985.7; sonar pings at 186.8 ('two and a half miles') and 421.6 ('Indian Ocean'); ice_wind 541-560; typewriter 155.8; paper rustles 105-108; stamps on the 'check' list (385-405). Every covered word reads at 0.93-1.00 (small.en and medium.en).",
+   "Music: all 10 beds sit 14-19 dB under speech, with a 20-32 dB median margin at 1-4 kHz. Crossfades run 2.2-3 s with fades on both sides. The m02 file ends 0.76 s early, but its fade-out moves with it, so there is no hole at 173.8-176.8. The ducker lifts the bed about 6 dB in gaps (90th percentile 8.9 dB), still 8.5-13.7 dB under the voice: normal fill, not pumping. m07 Gondwana (-20.8 dB unducked) and m05 Wegener (-21.9 dB) are the hottest beds; trimming them by 2 dB would be optional polish.",
+   "Levels: take-to-take voice level sd is 0.25 dB (range -16.3 to -15.0). The brightness outliers follow the delivery (the quoted line at 494.3, the somber lines at 550.9-560.9). No sfx_loud, no clicks, no dead air. The final mix is -14.0 LUFS with at most 2.1 dB of limiting.",
+   "Hook list at 3.9-12.2 and s085 at 723.8: the low-pitch readings were pYIN tracking errors, not vocal fry. Narrowband harmonics show normal rise-fall contours: /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/grab_audio/f0_check.png",
+   "Both subscribe asks (355.8 and 997.5) read at 0.91-0.99 and are clear of SFX."
+  ],
+  "voice_fatigue": "Mostly fine. The cadence varies well sentence to sentence, but the overall tempo hardly changes over 17 minutes.\n\nWhat works:\n- Sentence shapes vary: 271 sentences, median 8 words, 22% fragments of 4 words or fewer, 13% of 16 words or more, 7% questions.\n- Pauses breathe: 407 pauses of 150 ms or more (median 0.48 s). The big beats get 1.5-1.8 s holds: 552.3 'Neither of them made it back', 579.3 'after he died', 692.8 'They're scars', 630.5, 757.0, and the chapter cards at 174, 356, 480, 603 and 874.\n- Pitch is expressive, not a stamped TTS cadence: the median spread within a take is 12 semitones. Sentence endings are 76% falling, 18% level and 6% rising; yes/no questions rise and wh-questions fall.\n- Take loudness is steady (sd 0.25 dB), and 10 music beds change underneath.\n\nWhat is flat:\n- All 109 takes use the default speed (spec.json sets no 'speed'). Speaking rate stays at 3.6-4.2 syllables/s in every minute from 1 to 16, and pacing.md shows 122-178 wpm per 30 s window (106 and 62 only in the model list and the outro).\n- The somber death passage starts at the same clip as the jokes: s064 is one of the fastest takes.\n- 'And' opens 25 sentences and 'So' 12. A picky ear will notice, but it isn't tiring.\n\nTwo stretches carry the real fatigue risk. Both are reported as minor issues:\n- 4:00-5:15 is the fastest minute, and s035 runs 27% over the median while delivering the 1-in-8 statistic.\n- 12:55-14:35 is six long, uniform takes over near-still pictures, right where the answer lands.\n\nVerdict: no fatigue problem in the first 4 minutes or in chapters 3 to 5a. Deliberate tempo changes would stop the full 17 minutes feeling like one long read: speed 0.9 on the death beat and on 'So is the drip just a coincidence?', and about 1.05 on the future-models montage."
+ }
+}

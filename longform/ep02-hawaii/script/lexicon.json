@@ -1,0 +1,1712 @@
+{
+ "meta": {
+  "title": "Myth Juice ep02 pronunciation lexicon (Rodney, ElevenLabs eleven_v4, English)",
+  "episode": "ep02 Hawaiʻi drained (launch title \"Why Can't You See Most of Hawaii? (Look Down)\")",
+  "date": "2026-11-08",
+  "voice": {
+   "name": "Rodney - Clear Educator",
+   "voice_id": "eY2VJs4Gi8QKG2RV01sS",
+   "model": "eleven_v4"
+  },
+  "status": "DRAFT: not yet test-rendered, not yet checked on wehewehe.org, not yet heard by a Hawaiian speaker. Do not render the full narration until open_items 1-3 are closed.",
+  "how_to_use": [
+   "Script text (captions, SRT, labels, description) always uses \"spelling\": ʻokina = U+02BB (never an apostrophe or U+2018), kahakō = precomposed NFC vowels (Ā ā Ē ē Ī ī Ō ō Ū ū).",
+   "The TTS text (segments.json for engine/tools/tts.py) uses \"tts\" in place of the spelling, and only there (PLAYBOOK_craft section 11: respell only in the VO text, never on screen). Never put U+02BB or kahakō vowels in TTS text unless the test render shows the voice handles them.",
+   "Every \"tts\" value has the same number of space-separated tokens as \"spelling\", so word timings line up one to one. tts.py builds timing.json words from the TTS text, and make_srt.py and asr_check.py read those words, so map each timing word through caption_map before make_srt.py and before asr_check.py (a small mapping step; it does not exist yet, see open_items).",
+   "Possessives keep the respelling and add 's (\"kee-lao-WAY-ah's\" maps to \"Kīlauea's\"; caption_map already holds the 's forms).",
+   "No break, bracket or phoneme tags in TTS text (PLAYBOOK_craft section 11). The IPA fields are the reference for the listener and the QC pass, not input to the voice.",
+   "ALL-CAPS labels keep both marks: MOLOKAʻI, LĀNAʻI, KĪLAUEA, KAMAʻEHUAKANALOA. Anton and Barlow Condensed 800 in engine/www/fonts contain U+02BB and all kahakō capitals and lower-case vowels (checked with fontTools on 2026-11-08), but only if the page loads both the latin and the latin-ext woff2 subsets.",
+   "Give the long names (Kamaʻehuakanaloa, Papahānaumokuākea, Mokumanamana) their own take at speed about 0.9, with a pause of about 0.4 s before them and no other new proper noun within 10 s (PLAYBOOK section 5: at most 3 new proper nouns in any 10 s)."
+  ],
+  "respelling_key": {
+   "ah": "/ɑː/ as in father",
+   "ay": "/eɪ/ as in day",
+   "ee": "/iː/ as in see",
+   "eh": "/ɛ/ as in bed",
+   "oh": "/oʊ/ as in go",
+   "oo": "/uː/ as in food",
+   "ao": "/aʊ/ as in Mao or cow (used instead of \"ow\", which a voice can read as mow /moʊ/)",
+   "how / now": "/haʊ/, /naʊ/",
+   "eye / lye": "/aɪ/",
+   "CAPS": "the stressed syllable (two CAPS syllables = two stresses)",
+   "hyphen": "syllable break; a hyphen between two vowels where the spelling has an ʻokina stands for the glottal catch"
+  },
+  "test_protocol": [
+   "1. Render every narration-use entry in a neutral carrier sentence from the script, three variants each: plain ASCII spelling, tts, first tts_alt; Rodney, eleven_v4, the planned stability/style; same speed as its script take.",
+   "2. Run asr_check.py (small.en and medium.en) on each test clip; a variant passes when the heard word is in asr_accept or is the closest English approximation. ASR cannot judge Hawaiian vowels or glottal stops, so it only catches gross errors.",
+   "3. A person listens (the owner, ideally with a Hawaiian speaker); agents never claim an ear verdict (PLAYBOOK_production section 16). Write the chosen variant into a new \"locked_tts\" field per entry.",
+   "4. Only then generate the narration. After TTS, map timing.json words through caption_map, then run make_srt.py and asr_check.py; finish with the full phone-speaker listen before upload (niche report 4.5)."
+  ],
+  "method_and_sources": [
+   "Spellings: as the agencies write them (USGS/HVO, NPS, USFWS, NOAA, UH, Papahānaumokuākea; ledger C4-14 and the other ledger entries cited per name).",
+   "Native IPA: Wikipedia article IPA (which cites or follows Pukui & Elbert) and Wiktionary haw-IPA (stress units such as Molo+kaʻi, kahoʻo+lawe, Kana+loa); Papahānaumokuākea's own respelling for that name.",
+   "Rule-derived entries (status \"rule-derived\"): stress from Hawaiian stress units (stress on the second-to-last mora of each unit; long vowels and diphthongs count as two moras), per Wikipedia Hawaiian phonology (Pukui & Elbert 1986, Elbert & Pukui 1979). That article warns that stress in words longer than three moras is not fully predictable, so every rule-derived entry needs the dictionary check.",
+   "wehewehe.org, ulukau.org, puke.ulukau.org and trussel2.com (the Pukui-Elbert and Place Names of Hawaiʻi texts) returned HTTP 403 browser challenges to scripted requests on 2026-11-08, and the archive.org copy of Place Names of Hawaii (1974) is access-restricted. They were not bypassed. No entry is verified on wehewehe yet."
+  ],
+  "decisions_for_script_lock": [
+   "Mauna Kea (USGS, matches Mauna Loa and the tags; recommended) or Maunakea (UH / Center for Maunakea Stewardship): one form everywhere.",
+   "Nihoa (USFWS, Papahānaumokuākea, ledger; recommended) or Nīhoa (Wikipedia, after Pukui-Elbert nīhoa).",
+   "La Pérouse (ledger) or La Perouse (USFWS, Wikipedia) on the label."
+  ],
+  "open_items": [
+   "1. A person opens wehewehe.org in a normal browser, looks up each entry in Place Names of Hawaiʻi and Pukui-Elbert, and records agreement or the correction (first the critical and high entries, then every rule-derived one).",
+   "2. Test-render per test_protocol (needs the ElevenLabs key and the owner's OK to spend credits) and lock the variants.",
+   "3. Hawaiian-speaker or owner listen on the locked variants (niche report 5.2.4: the single biggest trust risk for this film).",
+   "4. Add a caption_map step (timing.json words to captions) in front of make_srt.py and asr_check.py."
+  ],
+  "no_entry_needed_english": [
+   "Hawaiian (English adjective, no ʻokina: \"Hawaiian monk seal\", \"Hawaiian Deep\")",
+   "Big Island",
+   "Midway",
+   "Penguin Bank",
+   "French Frigate Shoals",
+   "East Island",
+   "Darwin / Darwin Point",
+   "Yorktown",
+   "Nautilus",
+   "Everest",
+   "Manhattan",
+   "Louisiana",
+   "Emperor Seamounts"
+  ],
+  "excluded": {
+   "Laupāhoehoe": "cut from the film (brief section 4, must-fix 5)",
+   "Pailolo, Kalohi, ʻAlenuihāhā, ʻAlalākeiki, Kaiwi (channels)": "saddle measurements only (ledger C12-03); add an entry if any is labelled or narrated",
+   "Pihemanu, Mokupāpapa, Kauō": "alternative Hawaiian names of Midway, Kure and Laysan; not planned",
+   "Pele / Pelehonuamea, Wākea": "only in source quotes about the names; not in the script",
+   "Moho": "geology jargon; the brief keeps it off screen and out of narration",
+   "aloha (shirt)": "visual only; an English voice says \"aloha\" correctly"
+  },
+  "counts": {
+   "entries": 47,
+   "by_status": {
+    "sourced-ipa": 27,
+    "rule-derived": 15,
+    "official-respelling": 1,
+    "sourced": 4
+   },
+   "by_use": {
+    "narration": 19,
+    "label": 11,
+    "narration-optional": 7,
+    "reserve": 10
+   },
+   "by_priority": {
+    "critical": 9,
+    "normal": 14,
+    "high": 9,
+    "low": 15
+   }
+  }
+ },
+ "entries": [
+  {
+   "id": "hawaii",
+   "spelling": "Hawaiʻi",
+   "label_caps": "HAWAIʻI",
+   "ascii": "Hawaii",
+   "language": "haw",
+   "use": "narration",
+   "priority": "critical",
+   "where_in_film": "First spoken word (0:00) and throughout; labels, captions, description",
+   "ipa_native": "haw [həˈwɐiʔi] ~ [həˈvɐiʔi]",
+   "ipa_target": "/həˈwaɪ.ʔi/ (three syllables, light glottal catch before the last \"ee\")",
+   "tts": "Hawaii",
+   "tts_alt": [
+    "hah-WHY-ee",
+    "hah-VAI-ee"
+   ],
+   "caption_tokens": {
+    "Hawaii": "Hawaiʻi",
+    "hah-WHY-ee": "Hawaiʻi",
+    "hah-VAI-ee": "Hawaiʻi"
+   },
+   "asr_accept": [
+    "hawaii",
+    "hawai'i"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Hawai%CA%BBi_(island)",
+    "https://en.wiktionary.org/wiki/Hawai%CA%BBi",
+    "https://en.wikipedia.org/wiki/Hawaiian_phonology"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Plain ASCII \"Hawaii\" is usually spoken correctly by English voices; use \"hah-WHY-ee\" only if the test render gives two syllables (\"huh-WHY\"). Possessive: \"Hawaii's\" / \"hah-WHY-ee's\" maps to \"Hawaiʻi's\". w and v are both correct after a (free variation); keep w for this film. Captions and labels always \"Hawaiʻi\" with U+02BB. The English adjective \"Hawaiian\" has no ʻokina and needs no respelling. Launch title stays as approved (packaging section 9)."
+  },
+  {
+   "id": "maui",
+   "spelling": "Maui",
+   "label_caps": "MAUI",
+   "ascii": "Maui",
+   "language": "haw",
+   "use": "narration",
+   "priority": "critical",
+   "where_in_film": "0:14-0:20 Maui Nui hero line (packaging promise: name Maui, Molokaʻi, Lānaʻi by 0:14); Ch4 time machine",
+   "ipa_native": "haw [ˈmɐwi] (fast speech [ˈmʌu.i])",
+   "ipa_target": "/ˈmaʊ.i/",
+   "tts": "Maui",
+   "tts_alt": [
+    "MAO-ee"
+   ],
+   "caption_tokens": {
+    "Maui": "Maui",
+    "MAO-ee": "Maui"
+   },
+   "asr_accept": [
+    "maui"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Maui",
+    "https://en.wikipedia.org/wiki/Hawaiian_phonology"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "English voices normally say it right; fall back to \"MAO-ee\" (\"ao\" as in Mao/cow). Never \"MOW\" (could be read as mow-the-lawn)."
+  },
+  {
+   "id": "maui_nui",
+   "spelling": "Maui Nui",
+   "label_caps": "MAUI NUI",
+   "ascii": "Maui Nui",
+   "language": "haw",
+   "use": "label (narration optional)",
+   "priority": "normal",
+   "where_in_film": "0:14 hero shot label if a name is shown for the joined island; the narration says \"three islands become one\"",
+   "ipa_native": "haw [ˈmɐwi ˈnui]",
+   "ipa_target": "/ˈmaʊ.i ˈnuː.i/",
+   "tts": "MAO-ee NOO-ee",
+   "tts_alt": [
+    "Maui NOO-ee"
+   ],
+   "caption_tokens": {
+    "MAO-ee": "Maui",
+    "NOO-ee": "Nui",
+    "Maui": "Maui"
+   },
+   "asr_accept": [
+    "maui nui"
+   ],
+   "meaning": "\"big Maui\"",
+   "status": "sourced-ipa (rule-checked)",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Maui_Nui",
+    "https://en.wiktionary.org/wiki/nui"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Name given by geologists (Wikipedia); nui = big. Two TTS tokens map to two caption words."
+  },
+  {
+   "id": "molokai",
+   "spelling": "Molokaʻi",
+   "label_caps": "MOLOKAʻI",
+   "ascii": "Molokai",
+   "language": "haw",
+   "use": "narration",
+   "priority": "critical",
+   "where_in_film": "0:20 \"Maui, Molokaʻi and Lānaʻi were one island\" (packaging condition by 0:14-0:20)",
+   "ipa_native": "haw [ˌmoloˈkɐʔi]",
+   "ipa_target": "/ˌmoʊ.loʊˈkɑː.ʔi/",
+   "tts": "moh-loh-KAH-ee",
+   "tts_alt": [
+    "Moh-loh-kah-ee",
+    "mo-lo-KAH-ee"
+   ],
+   "caption_tokens": {
+    "moh-loh-KAH-ee": "Molokaʻi",
+    "Moh-loh-kah-ee": "Molokaʻi",
+    "mo-lo-KAH-ee": "Molokaʻi"
+   },
+   "asr_accept": [
+    "molokai",
+    "moloka'i"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Moloka%CA%BBi",
+    "https://en.wiktionary.org/wiki/Moloka%CA%BBi",
+    "https://www.usgs.gov/news/volcano-watch-once-big-island-maui-county-now-four-small-islands"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "The ʻokina splits \"ka\" and \"i\": four syllables, never \"MOLLY-kai\" or \"Molo-KAI\" with an \"eye\" diphthong (the most common error). Wiktionary stress units Molo+kaʻi."
+  },
+  {
+   "id": "lanai",
+   "spelling": "Lānaʻi",
+   "label_caps": "LĀNAʻI",
+   "ascii": "Lanai",
+   "language": "haw",
+   "use": "narration",
+   "priority": "critical",
+   "where_in_film": "0:20 Maui Nui line; label in the -400 ft shot",
+   "ipa_native": "haw [laːˈnɐʔi]",
+   "ipa_target": "/lɑːˈnɑː.ʔi/",
+   "tts": "lah-NAH-ee",
+   "tts_alt": [
+    "laah-NAH-ee"
+   ],
+   "caption_tokens": {
+    "lah-NAH-ee": "Lānaʻi",
+    "laah-NAH-ee": "Lānaʻi"
+   },
+   "asr_accept": [
+    "lanai",
+    "lana'i"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/L%C4%81na%CA%BBi",
+    "https://en.wiktionary.org/wiki/L%C4%81na%CA%BBi"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Long first ā, then \"NAH-ee\" with a glottal break. Never \"luh-NYE\" (the anglicised form Wikipedia also lists)."
+  },
+  {
+   "id": "kahoolawe",
+   "spelling": "Kahoʻolawe",
+   "label_caps": "KAHOʻOLAWE",
+   "ascii": "Kahoolawe",
+   "language": "haw",
+   "use": "label (narration optional)",
+   "priority": "high",
+   "where_in_film": "-400 ft shot: the separate, dimmed island; ledger C12-06 says not needed in narration",
+   "ipa_native": "haw [kəˌhoʔoˈlɐve] ~ [kəˌhoʔoˈlɐwe]",
+   "ipa_target": "/kɑːˌhoʊ.ʔoʊˈlɑː.vɛ/",
+   "tts": "kah-hoh-oh-LAH-veh",
+   "tts_alt": [
+    "kah-hoh-oh-LAH-weh"
+   ],
+   "caption_tokens": {
+    "kah-hoh-oh-LAH-veh": "Kahoʻolawe",
+    "kah-hoh-oh-LAH-weh": "Kahoʻolawe"
+   },
+   "asr_accept": [
+    "kahoolawe",
+    "kaho'olawe"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Kaho%CA%BBolawe",
+    "https://en.wiktionary.org/wiki/Kaho%CA%BBolawe"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Stress units kahoʻo+lawe (Wiktionary). \"lawe\" ends in a pure e, not \"way\". v and w both correct after a. If narrated, say it in its own short sentence (4 names in 10 s would break the proper-noun cap)."
+  },
+  {
+   "id": "kilauea",
+   "spelling": "Kīlauea",
+   "label_caps": "KĪLAUEA",
+   "ascii": "Kilauea",
+   "language": "haw",
+   "use": "narration",
+   "priority": "critical",
+   "where_in_film": "0:47 1975 beat (\"below Kīlauea\", optional), 3:10 \"Kīlauea's south flank\", Ch6 Kamaʻehuakanaloa placement",
+   "ipa_native": "haw [ˌkiːlɐwˈwɛjə]",
+   "ipa_target": "/ˌkiː.laʊˈweɪ.ə/",
+   "tts": "kee-lao-WAY-ah",
+   "tts_alt": [
+    "kee-lah-oo-AY-ah",
+    "Kilauea"
+   ],
+   "caption_tokens": {
+    "kee-lao-WAY-ah": "Kīlauea",
+    "kee-lah-oo-AY-ah": "Kīlauea",
+    "Kilauea": "Kīlauea"
+   },
+   "asr_accept": [
+    "kilauea"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/K%C4%ABlauea",
+    "https://en.wikipedia.org/wiki/Hawaiian_phonology"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "\"lao\" = \"lau\" as in cow. Avoid the anglicised \"KILL-uh-WAY-uh\". Possessive: \"kee-lao-WAY-ah's\" maps to \"Kīlauea's\"."
+  },
+  {
+   "id": "mauna_kea",
+   "spelling": "Mauna Kea",
+   "label_caps": "MAUNA KEA",
+   "ascii": "Mauna Kea",
+   "language": "haw",
+   "use": "narration",
+   "priority": "critical",
+   "where_in_film": "Ch3 3:55 \"33,500 FT\" beat, 4:30 summit-road gag (never a punchline at the summit), 4:40 \"Mauna Kea isn't the giant\"",
+   "ipa_native": "haw [ˈmɐwnə ˈkɛjə]",
+   "ipa_target": "/ˈmaʊ.nə ˈkeɪ.ə/",
+   "tts": "MAO-nah KAY-ah",
+   "tts_alt": [
+    "Mauna KAY-ah",
+    "MOUN-ah KAY-ah"
+   ],
+   "caption_tokens": {
+    "MAO-nah": "Mauna",
+    "KAY-ah": "Kea",
+    "Mauna": "Mauna",
+    "MOUN-ah": "Mauna"
+   },
+   "asr_accept": [
+    "mauna kea"
+   ],
+   "meaning": "\"white mountain\"",
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mauna_Kea",
+    "https://en.wiktionary.org/wiki/mauna",
+    "https://en.wiktionary.org/wiki/kea",
+    "https://hilo.hawaii.edu/maunakea/visitor-information/permits"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "\"Mauna\" rhymes with \"how-nah\", not \"MAW-nuh\" (anglicised form). Spelling decision open: USGS \"Mauna Kea\" vs UH/Center for Maunakea Stewardship \"Maunakea\" (same sound); pick one for every label, caption and the description at script lock. Recommendation: \"Mauna Kea\" to match \"Mauna Loa\" and the search tags. If \"Maunakea\" is chosen, the TTS stays two tokens and caption_tokens must map both to one word (merge in make_srt)."
+  },
+  {
+   "id": "mauna_loa",
+   "spelling": "Mauna Loa",
+   "label_caps": "MAUNA LOA",
+   "ascii": "Mauna Loa",
+   "language": "haw",
+   "use": "narration",
+   "priority": "critical",
+   "where_in_film": "Ch3 4:40 \"Mauna Loa, the largest active volcano\"; PAYOFF 11:10-11:45 \"Measured from its true base, Mauna Loa is about fifty-six thousand feet tall\"",
+   "ipa_native": "haw [ˈmɐwnə ˈlowə]",
+   "ipa_target": "/ˈmaʊ.nə ˈloʊ.ə/",
+   "tts": "MAO-nah LOH-ah",
+   "tts_alt": [
+    "Mauna LOH-ah",
+    "MOUN-ah LOH-ah"
+   ],
+   "caption_tokens": {
+    "MAO-nah": "Mauna",
+    "LOH-ah": "Loa",
+    "Mauna": "Mauna",
+    "MOUN-ah": "Mauna"
+   },
+   "asr_accept": [
+    "mauna loa"
+   ],
+   "meaning": "\"long mountain\"",
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mauna_Loa",
+    "https://en.wiktionary.org/wiki/mauna",
+    "https://en.wiktionary.org/wiki/loa"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "The payoff name: lock the variant on a separate test render before any narration run, and give the payoff take its own ASR check. \"Loa\" is two syllables (LOH-ah), never one."
+  },
+  {
+   "id": "hualalai",
+   "spelling": "Hualālai",
+   "label_caps": "HUALĀLAI",
+   "ascii": "Hualalai",
+   "language": "haw",
+   "use": "label (narration optional)",
+   "priority": "normal",
+   "where_in_film": "Ch3 3:30 \"five volcanoes merge\" labels",
+   "ipa_native": "haw [huwəˈlaːlɐi]",
+   "ipa_target": "/ˌhuː.əˈlɑː.laɪ/",
+   "tts": "hoo-ah-LAH-lye",
+   "tts_alt": [
+    "hoo-wah-LAH-lye"
+   ],
+   "caption_tokens": {
+    "hoo-ah-LAH-lye": "Hualālai",
+    "hoo-wah-LAH-lye": "Hualālai"
+   },
+   "asr_accept": [
+    "hualalai"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Hual%C4%81lai"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Long ā carries the stress. Words over three moras have unpredictable stress, so confirm on wehewehe (Place Names of Hawaiʻi)."
+  },
+  {
+   "id": "kohala",
+   "spelling": "Kohala",
+   "label_caps": "KOHALA",
+   "ascii": "Kohala",
+   "language": "haw",
+   "use": "narration-optional + label",
+   "priority": "normal",
+   "where_in_film": "Ch3/Ch4 age line (\"its oldest volcano above water, Kohala\", ledger C4-02)",
+   "ipa_native": "haw [koˈhɐlə]",
+   "ipa_target": "/koʊˈhɑː.lə/",
+   "tts": "koh-HAH-lah",
+   "tts_alt": [
+    "Kohala"
+   ],
+   "caption_tokens": {
+    "koh-HAH-lah": "Kohala",
+    "Kohala": "Kohala"
+   },
+   "asr_accept": [
+    "kohala"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Kohala_(mountain)"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Three moras, stress on \"ha\" by rule. Plain spelling may work; test."
+  },
+  {
+   "id": "mahukona",
+   "spelling": "Māhukona",
+   "label_caps": "MĀHUKONA",
+   "ascii": "Mahukona",
+   "language": "haw",
+   "use": "label (reserve)",
+   "priority": "low",
+   "where_in_film": "Ch4 age caveat (submarine volcano older than Kohala); label only if shown",
+   "ipa_native": "haw [ˌmaːhuˈkonə] (rule-derived)",
+   "ipa_target": "/ˌmɑː.huːˈkoʊ.nə/",
+   "tts": "mah-hoo-KOH-nah",
+   "tts_alt": [],
+   "caption_tokens": {
+    "mah-hoo-KOH-nah": "Māhukona"
+   },
+   "asr_accept": [
+    "mahukona"
+   ],
+   "meaning": null,
+   "status": "rule-derived",
+   "sources": [
+    "https://en.wikipedia.org/wiki/M%C4%81hukona",
+    "https://www.usgs.gov/news/volcano-watch-a-geological-tour-hawaiian-islands-hawaii"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "No published IPA found; stress from stress units mā + hukona. Check on wehewehe before use."
+  },
+  {
+   "id": "hilo",
+   "spelling": "Hilo",
+   "label_caps": "HILO",
+   "ascii": "Hilo",
+   "language": "haw",
+   "use": "narration-optional",
+   "priority": "normal",
+   "where_in_film": "Ch1 optional drill line (\"Under Hilo, a drill found...\", ledger C12-11); thumbnail camera reference",
+   "ipa_native": "haw [ˈhilo]",
+   "ipa_target": "/ˈhiː.loʊ/",
+   "tts": "HEE-loh",
+   "tts_alt": [
+    "Hilo"
+   ],
+   "caption_tokens": {
+    "HEE-loh": "Hilo",
+    "Hilo": "Hilo"
+   },
+   "asr_accept": [
+    "hilo"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Hilo,_Hawaii",
+    "https://en.wiktionary.org/wiki/Hilo"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Always respell: English voices often say \"HY-loh\"."
+  },
+  {
+   "id": "halape",
+   "spelling": "Halapē",
+   "label_caps": "HALAPĒ",
+   "ascii": "Halape",
+   "language": "haw",
+   "use": "narration",
+   "priority": "high",
+   "where_in_film": "0:47-1:10 1975 story beat (\"At Halapē, a beach campsite on that coast, campers were asleep\", ledger C12-13)",
+   "ipa_native": "haw [ˌhɐləˈpeː] (rule-derived)",
+   "ipa_target": "/ˌhɑː.ləˈpeɪ/",
+   "tts": "hah-lah-PAY",
+   "tts_alt": [
+    "hah-lah-PEH"
+   ],
+   "caption_tokens": {
+    "hah-lah-PAY": "Halapē",
+    "hah-lah-PEH": "Halapē"
+   },
+   "asr_accept": [
+    "halape"
+   ],
+   "meaning": null,
+   "status": "rule-derived",
+   "sources": [
+    "https://pubs.usgs.gov/circ/1976/0740/report.pdf",
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-remembering-destructive-kalapana-earthquake-50-years-ago"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Spelling with kahakō per USGS Volcano Watch 2025. The final long ē is stressed (stress units hala + pē). Solemn beat: speed about 0.9."
+  },
+  {
+   "id": "hilina",
+   "spelling": "Hilina",
+   "label_caps": "HILINA",
+   "ascii": "Hilina",
+   "language": "haw",
+   "use": "label (narration optional)",
+   "priority": "low",
+   "where_in_film": "Ch1/Ch2 \"Hilina Slump\" label on Kīlauea's south flank, if shown (the brief keeps the term off narration)",
+   "ipa_native": "haw [hiˈlinə] (rule-derived)",
+   "ipa_target": "/hiːˈliː.nə/",
+   "tts": "hee-LEE-nah",
+   "tts_alt": [],
+   "caption_tokens": {
+    "hee-LEE-nah": "Hilina"
+   },
+   "asr_accept": [
+    "hilina"
+   ],
+   "meaning": null,
+   "status": "rule-derived",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Hilina_Slump"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Three moras, stress on \"li\" by rule. \"Slump\" is jargon; prefer \"south flank\" on screen."
+  },
+  {
+   "id": "pali",
+   "spelling": "Pali",
+   "label_caps": "PALI",
+   "ascii": "Pali",
+   "language": "haw",
+   "use": "narration",
+   "priority": "high",
+   "where_in_film": "1:20 gag and T9 hook: \"the Pali Lookout\"; pinned comment",
+   "ipa_native": "haw [ˈpɐli]",
+   "ipa_target": "/ˈpɑː.li/",
+   "tts": "PAH-lee",
+   "tts_alt": [
+    "Pali"
+   ],
+   "caption_tokens": {
+    "PAH-lee": "Pali",
+    "Pali": "Pali"
+   },
+   "asr_accept": [
+    "pali"
+   ],
+   "meaning": "\"cliff\"",
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Pali",
+    "https://en.wiktionary.org/wiki/pali",
+    "https://dlnr.hawaii.gov/dsp/parks/oahu/nuuanu-pali-state-wayside/"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "pali = cliff. Never \"PAL-ee\" or \"PAY-lee\". Official site name: Nuʻuanu Pali State Wayside."
+  },
+  {
+   "id": "nuuanu",
+   "spelling": "Nuʻuanu",
+   "label_caps": "NUʻUANU",
+   "ascii": "Nuuanu",
+   "language": "haw",
+   "use": "narration-optional + label",
+   "priority": "high",
+   "where_in_film": "Ch2 Pali Lookout label (\"Nuʻuanu Pali\"), Nuʻuanu slide debris field; Ch4 Oʻahu callback",
+   "ipa_native": "haw [ˌnuʔuˈwɐnu]",
+   "ipa_target": "/ˌnuː.ʔuːˈɑː.nuː/",
+   "tts": "noo-oo-AH-noo",
+   "tts_alt": [
+    "noo-oo-WAH-noo"
+   ],
+   "caption_tokens": {
+    "noo-oo-AH-noo": "Nuʻuanu",
+    "noo-oo-WAH-noo": "Nuʻuanu"
+   },
+   "asr_accept": [
+    "nuuanu",
+    "nu'uanu"
+   ],
+   "meaning": null,
+   "status": "rule-derived (Wiktionary entry, no published IPA)",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Nu%CA%BBuanu_Pali",
+    "https://en.wiktionary.org/wiki/Nu%CA%BBuanu",
+    "https://en.wikipedia.org/wiki/Nu%CA%BBuanu_Slide"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Four syllables with a glottal break between \"noo\" and \"oo\". The film never needs the word \"slide\" with the name: the ledger narrates \"the volcano that built eastern Oʻahu\"."
+  },
+  {
+   "id": "koolau",
+   "spelling": "Koʻolau",
+   "label_caps": "KOʻOLAU",
+   "ascii": "Koolau",
+   "language": "haw",
+   "use": "narration-optional + label",
+   "priority": "normal",
+   "where_in_film": "Ch2 \"the Koʻolau cliffs\" / the volcano that built eastern Oʻahu",
+   "ipa_native": "haw [ˌkoʔoˈlɐu]",
+   "ipa_target": "/ˌkoʊ.ʔoʊˈlaʊ/",
+   "tts": "koh-oh-LAO",
+   "tts_alt": [
+    "koh-oh-LAH-oo"
+   ],
+   "caption_tokens": {
+    "koh-oh-LAO": "Koʻolau",
+    "koh-oh-LAH-oo": "Koʻolau"
+   },
+   "asr_accept": [
+    "koolau",
+    "ko'olau"
+   ],
+   "meaning": "\"windward\"",
+   "status": "rule-derived",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ko%CA%BBolau_Range",
+    "https://dlnr.hawaii.gov/dsp/parks/oahu/nuuanu-pali-state-wayside/"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "koʻolau = windward. Glottal break between \"koh\" and \"oh\"; \"lau\" as in cow."
+  },
+  {
+   "id": "oahu",
+   "spelling": "Oʻahu",
+   "label_caps": "OʻAHU",
+   "ascii": "Oahu",
+   "language": "haw",
+   "use": "narration",
+   "priority": "critical",
+   "where_in_film": "Ch2 (eastern Oʻahu, the debris field), Ch4 time machine",
+   "ipa_native": "haw [oˈʔɐhu]",
+   "ipa_target": "/oʊˈʔɑː.huː/",
+   "tts": "oh-AH-hoo",
+   "tts_alt": [
+    "Oahu"
+   ],
+   "caption_tokens": {
+    "oh-AH-hoo": "Oʻahu",
+    "Oahu": "Oʻahu"
+   },
+   "asr_accept": [
+    "oahu",
+    "o'ahu"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/O%CA%BBahu",
+    "https://en.wikipedia.org/wiki/Hawaiian_phonology"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Three moras, stress on \"ʻa\" by rule; glottal catch before AH. Plain \"Oahu\" is usually fine; respelling guarantees the break."
+  },
+  {
+   "id": "honolulu",
+   "spelling": "Honolulu",
+   "label_caps": "HONOLULU",
+   "ascii": "Honolulu",
+   "language": "haw",
+   "use": "narration-optional",
+   "priority": "low",
+   "where_in_film": "Ch5 \"Midway lies about thirteen hundred miles northwest of Honolulu\" (ledger C5-20, optional)",
+   "ipa_native": "haw [ˌhonoˈlulu]",
+   "ipa_target": "/ˌhoʊ.noʊˈluː.luː/ (standard English /ˌhɒn.əˈluː.luː/ is acceptable)",
+   "tts": "Honolulu",
+   "tts_alt": [
+    "hoh-noh-LOO-loo"
+   ],
+   "caption_tokens": {
+    "Honolulu": "Honolulu",
+    "hoh-noh-LOO-loo": "Honolulu"
+   },
+   "asr_accept": [
+    "honolulu"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Honolulu",
+    "https://en.wiktionary.org/wiki/Honolulu"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Plain spelling is fine; the respelling gives the purer local \"o\" vowels."
+  },
+  {
+   "id": "kauai",
+   "spelling": "Kauaʻi",
+   "label_caps": "KAUAʻI",
+   "ascii": "Kauai",
+   "language": "haw",
+   "use": "narration",
+   "priority": "high",
+   "where_in_film": "Ch4 time machine: \"Older still: Kauaʻi, carved into canyons\"",
+   "ipa_native": "haw [kɐwˈwɐʔi]",
+   "ipa_target": "/kɑːˈwɑː.ʔi/",
+   "tts": "kah-WAH-ee",
+   "tts_alt": [
+    "kow-WAH-ee"
+   ],
+   "caption_tokens": {
+    "kah-WAH-ee": "Kauaʻi",
+    "kow-WAH-ee": "Kauaʻi"
+   },
+   "asr_accept": [
+    "kauai",
+    "kaua'i"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Kaua%CA%BBi"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Wikipedia respelling \"kah-WAH-ee\". Never \"KOW-eye\" (the anglicised form)."
+  },
+  {
+   "id": "niihau",
+   "spelling": "Niʻihau",
+   "label_caps": "NIʻIHAU",
+   "ascii": "Niihau",
+   "language": "haw",
+   "use": "label",
+   "priority": "normal",
+   "where_in_film": "Ch4 time-machine flight past Kauaʻi (label only; not in the ledger narration)",
+   "ipa_native": "haw [ˌniʔiˈhɐu]",
+   "ipa_target": "/ˌniː.ʔiːˈhaʊ/",
+   "tts": "nee-ee-HOW",
+   "tts_alt": [
+    "NEE-ee-how"
+   ],
+   "caption_tokens": {
+    "nee-ee-HOW": "Niʻihau",
+    "NEE-ee-how": "Niʻihau"
+   },
+   "asr_accept": [
+    "niihau",
+    "ni'ihau"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ni%CA%BBihau"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Two separate \"ee\" sounds with a glottal break, then \"how\"."
+  },
+  {
+   "id": "nihoa",
+   "spelling": "Nihoa",
+   "label_caps": "NIHOA",
+   "ascii": "Nihoa",
+   "language": "haw",
+   "use": "narration",
+   "priority": "high",
+   "where_in_film": "Ch4 7:00 human beat: \"Seven million years in, it's a sliver of rock. And people lived here.\"",
+   "ipa_native": "haw [niˈhowə] (Pukui-Elbert headword nīhoa: [niːˈhowə])",
+   "ipa_target": "/niːˈhoʊ.ə/",
+   "tts": "nee-HOH-ah",
+   "tts_alt": [
+    "Nihoa"
+   ],
+   "caption_tokens": {
+    "nee-HOH-ah": "Nihoa",
+    "Nihoa": "Nihoa"
+   },
+   "asr_accept": [
+    "nihoa"
+   ],
+   "meaning": "\"toothed, jagged\" (Pukui-Elbert, cited by Wikipedia)",
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/N%C4%ABhoa",
+    "https://en.wiktionary.org/wiki/Nihoa",
+    "https://www.fws.gov/refuge/hawaiian-islands/about-us"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Spelling decision: USFWS, Papahānaumokuākea and the ledger write \"Nihoa\"; Wikipedia moved to \"Nīhoa\" after Pukui-Elbert \"nīhoa\" (toothed, jagged). Recommendation: label \"NIHOA\" as the agencies do; the sound is the same either way (stress on HOH)."
+  },
+  {
+   "id": "mokumanamana",
+   "spelling": "Mokumanamana",
+   "label_caps": "MOKUMANAMANA",
+   "ascii": "Mokumanamana",
+   "language": "haw",
+   "use": "label",
+   "priority": "normal",
+   "where_in_film": "Ch4 flight between Nihoa and Lalo (Necker Island); label only",
+   "ipa_native": "haw [ˌmokuˌmɐnəˈmɐnə] (rule-derived)",
+   "ipa_target": "/ˌmoʊ.kuːˌmɑː.nəˈmɑː.nə/",
+   "tts": "moh-koo-mah-nah-MAH-nah",
+   "tts_alt": [],
+   "caption_tokens": {
+    "moh-koo-mah-nah-MAH-nah": "Mokumanamana"
+   },
+   "asr_accept": [
+    "mokumanamana"
+   ],
+   "meaning": "\"branched island\" (Wikipedia)",
+   "status": "rule-derived",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Necker_Island_(Hawaii)",
+    "https://en.wiktionary.org/wiki/manamana"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Stress units moku + mana + mana. If narrated, one take on its own at speed about 0.95."
+  },
+  {
+   "id": "lalo",
+   "spelling": "Lalo",
+   "label_caps": "LALO",
+   "ascii": "Lalo",
+   "language": "haw",
+   "use": "label",
+   "priority": "normal",
+   "where_in_film": "Ch4 7:30 label \"LALO (FRENCH FRIGATE SHOALS)\" (ledger C4-08); narration says \"French Frigate Shoals\"",
+   "ipa_native": "haw [ˈlɐlo]",
+   "ipa_target": "/ˈlɑː.loʊ/",
+   "tts": "LAH-loh",
+   "tts_alt": [],
+   "caption_tokens": {
+    "LAH-loh": "Lalo"
+   },
+   "asr_accept": [
+    "lalo"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa (Wiktionary lalo; rule)",
+   "sources": [
+    "https://en.wiktionary.org/wiki/lalo",
+    "https://www.fisheries.noaa.gov/species/hawaiian-monk-seal"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Hawaiian name of French Frigate Shoals (NOAA Fisheries). Two moras, stress on the first."
+  },
+  {
+   "id": "la_perouse",
+   "spelling": "La Pérouse",
+   "label_caps": "LA PÉROUSE",
+   "ascii": "La Perouse",
+   "language": "fr",
+   "use": "narration",
+   "priority": "high",
+   "where_in_film": "Ch4 7:30 \"La Pérouse Pinnacle, its last tooth\" (ledger C4-08)",
+   "ipa_native": "fr [la peʁuz]",
+   "ipa_target": "/ˌlɑː pəˈruːz/",
+   "tts": "lah peh-ROOZ",
+   "tts_alt": [
+    "La peh-ROOZ",
+    "la Perouse"
+   ],
+   "caption_tokens": {
+    "lah": "La",
+    "peh-ROOZ": "Pérouse",
+    "La": "La",
+    "la": "La",
+    "Perouse": "Pérouse"
+   },
+   "asr_accept": [
+    "la perouse",
+    "laperouse"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Jean-Fran%C3%A7ois_de_Galaup,_comte_de_Lap%C3%A9rouse",
+    "https://en.wikipedia.org/wiki/La_Perouse_Pinnacle",
+    "https://www.papahanaumokuakea.gov/education/historic_la_perouse.html"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Named after the French navigator (1786 near-wreck). Label \"LA PÉROUSE PINNACLE\" (ledger); USFWS and Wikipedia also write \"La Perouse\" without the accent. Two TTS tokens map to \"La\" and \"Pérouse\"."
+  },
+  {
+   "id": "puhahonu",
+   "spelling": "Pūhāhonu",
+   "label_caps": "PŪHĀHONU",
+   "ascii": "Puhahonu",
+   "language": "haw",
+   "use": "reserve",
+   "priority": "low",
+   "where_in_film": "Reserve line only (ledger C4-15, Gardner Pinnacles)",
+   "ipa_native": "haw [ˌpuːˌhaːˈhonu] (rule-derived)",
+   "ipa_target": "/ˌpuː.hɑːˈhoʊ.nuː/",
+   "tts": "poo-hah-HOH-noo",
+   "tts_alt": [],
+   "caption_tokens": {
+    "poo-hah-HOH-noo": "Pūhāhonu"
+   },
+   "asr_accept": [
+    "puhahonu"
+   ],
+   "meaning": "\"turtle rising for breath\" (ledger C4-15)",
+   "status": "rule-derived",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Gardner_Pinnacles",
+    "https://www.soest.hawaii.edu/soestwp/announce/news/uh-researchers-reveal-largest-and-hottest-shield-volcano-on-earth/"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Stress units pū + hā + honu. Not in the planned narration."
+  },
+  {
+   "id": "laysan",
+   "spelling": "Laysan",
+   "label_caps": "LAYSAN",
+   "ascii": "Laysan",
+   "language": "en (Hawaiian name Kauō)",
+   "use": "narration",
+   "priority": "normal",
+   "where_in_film": "Ch5 8:00 \"Most of the world's Laysan albatrosses nest here\" (ledger C5-08)",
+   "ipa_native": "en /ˈlaɪ.sɑːn/ (Merriam-Webster via Wikipedia); Hawaiian name Kauō [kɐwˈoː]",
+   "ipa_target": "/ˈlaɪ.sɑːn/",
+   "tts": "LYE-sahn",
+   "tts_alt": [
+    "Laysan"
+   ],
+   "caption_tokens": {
+    "LYE-sahn": "Laysan",
+    "Laysan": "Laysan"
+   },
+   "asr_accept": [
+    "laysan"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Laysan"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "An English bird and island name, not Hawaiian; no diacritics. Check the plain spelling first."
+  },
+  {
+   "id": "kure",
+   "spelling": "Kure",
+   "label_caps": "KURE",
+   "ascii": "Kure",
+   "language": "en (Hawaiian name Hōlanikū)",
+   "use": "narration",
+   "priority": "high",
+   "where_in_film": "Ch5 9:55 \"This is Kure, the last atoll in the chain\" (ledger C5-17b)",
+   "ipa_native": "en /ˈkʊə.ri/",
+   "ipa_target": "/ˈkʊ.ri/",
+   "tts": "KOO-ree",
+   "tts_alt": [
+    "KOOR-ee"
+   ],
+   "caption_tokens": {
+    "KOO-ree": "Kure",
+    "KOOR-ee": "Kure"
+   },
+   "asr_accept": [
+    "kure",
+    "curie",
+    "kuri"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Kure_Atoll"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Not \"cure\" and not \"kyoor\". No diacritics (Western name)."
+  },
+  {
+   "id": "holaniku",
+   "spelling": "Hōlanikū",
+   "label_caps": "HŌLANIKŪ",
+   "ascii": "Holaniku",
+   "language": "haw",
+   "use": "reserve (label)",
+   "priority": "low",
+   "where_in_film": "Optional Hawaiian label beside KURE",
+   "ipa_native": "haw [ˌhoːlɐniˈkuː] (rule-derived)",
+   "ipa_target": "/ˌhoʊ.lɑː.niːˈkuː/",
+   "tts": "hoh-lah-nee-KOO",
+   "tts_alt": [],
+   "caption_tokens": {
+    "hoh-lah-nee-KOO": "Hōlanikū"
+   },
+   "asr_accept": [
+    "holaniku"
+   ],
+   "meaning": "\"bringing forth heaven\" (Wikipedia)",
+   "status": "rule-derived",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Kure_Atoll"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Stress units hō + lani + kū; main stress unconfirmed."
+  },
+  {
+   "id": "kuaihelani",
+   "spelling": "Kuaihelani",
+   "label_caps": "KUAIHELANI",
+   "ascii": "Kuaihelani",
+   "language": "haw",
+   "use": "reserve (label)",
+   "priority": "low",
+   "where_in_film": "Optional Hawaiian label beside MIDWAY",
+   "ipa_native": "haw [ˌkuwɐiheˈlɐni] (rule-derived)",
+   "ipa_target": "/ˌkuː.aɪ.hɛˈlɑː.ni/",
+   "tts": "koo-eye-heh-LAH-nee",
+   "tts_alt": [],
+   "caption_tokens": {
+    "koo-eye-heh-LAH-nee": "Kuaihelani"
+   },
+   "asr_accept": [
+    "kuaihelani"
+   ],
+   "meaning": "\"the backbone of heaven\" (Wikipedia)",
+   "status": "rule-derived",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Midway_Atoll"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Morpheme split not confirmed; check wehewehe before any use."
+  },
+  {
+   "id": "papahanaumokuakea",
+   "spelling": "Papahānaumokuākea",
+   "label_caps": "PAPAHĀNAUMOKUĀKEA",
+   "ascii": "Papahanaumokuakea",
+   "language": "haw",
+   "use": "label + description (narration optional)",
+   "priority": "high",
+   "where_in_film": "Ch5 9:30 wreck geography (the wrecks lie inside the monument); description and credits",
+   "ipa_native": "haw [ˌpɐpəˌhaːnɐuˌmokuˌwaːˈkɛjə] (Wikipedia [ˈpɐpəˈhaːnɐwˈmokuwaːˈkɛjə])",
+   "ipa_target": "/ˌpɑː.pɑːˌhɑː.naʊˌmoʊ.kuː.ɑːˈkɛ.ə/",
+   "tts": "pah-pah-HAH-now-moh-koo-ah-KEH-ah",
+   "tts_alt": [
+    "pah-pah-hah-now-moh-koo-ah-keh-ah"
+   ],
+   "caption_tokens": {
+    "pah-pah-HAH-now-moh-koo-ah-KEH-ah": "Papahānaumokuākea",
+    "pah-pah-hah-now-moh-koo-ah-keh-ah": "Papahānaumokuākea"
+   },
+   "asr_accept": [
+    "papahanaumokuakea"
+   ],
+   "meaning": "Papahānaumoku and Wākea, the earth mother and sky father (official site)",
+   "status": "official-respelling",
+   "sources": [
+    "https://papahanaumokuakea.gov/new-about/name",
+    "https://en.wikipedia.org/wiki/Papah%C4%81naumoku%C4%81kea_Marine_National_Monument"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "The monument's own guide: \"Pa-pa-hah-now-mo-koo-ah-keh-ah\". Parts: Papa (earth mother), hānau (birth), moku (island), ākea (wide). If narrated, give it its own take at speed about 0.9 and no other proper noun within 10 s."
+  },
+  {
+   "id": "kamaehuakanaloa",
+   "spelling": "Kamaʻehuakanaloa",
+   "label_caps": "KAMAʻEHUAKANALOA",
+   "ascii": "Kamaehuakanaloa",
+   "language": "haw",
+   "use": "narration",
+   "priority": "critical",
+   "where_in_film": "Ch6 10:15 \"a young volcano is growing. Its name is Kamaʻehuakanaloa.\" (ledger C6-01); label",
+   "ipa_native": "haw [ˌkɐməˌʔehuwəˌkɐnəˈlowə] (rule-derived from Kama + ʻehu + a + Kanaloa)",
+   "ipa_target": "/ˌkɑː.məˌʔɛ.huː.əˌkɑː.nəˈloʊ.ə/",
+   "tts": "kah-mah-EH-hoo-ah-kah-nah-LOH-ah",
+   "tts_alt": [
+    "kama-EH-hoo-ah-kana-LOH-ah",
+    "kah-mah-EH-hoo-ah kah-nah-LOH-ah"
+   ],
+   "caption_tokens": {
+    "kah-mah-EH-hoo-ah-kah-nah-LOH-ah": "Kamaʻehuakanaloa",
+    "kama-EH-hoo-ah-kana-LOH-ah": "Kamaʻehuakanaloa"
+   },
+   "asr_accept": [
+    "kamaehuakanaloa"
+   ],
+   "meaning": "\"the reddish child of Kanaloa\" (USGS HVO)",
+   "status": "rule-derived",
+   "sources": [
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-kamaehuakanaloa-volcano-formerly-known-loihi-seamount",
+    "https://en.wiktionary.org/wiki/Kanaloa",
+    "https://en.wiktionary.org/wiki/kama",
+    "https://en.wiktionary.org/wiki/%CA%BBehu"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "HVO: \"reddish child of Kanaloa\", renamed from Lōʻihi in July 2021 by the Hawaiʻi Board on Geographic Names. Glottal break before EH. The longest name in the film: put it at the end of its sentence, in its own take at speed about 0.9, with a 0.4 s pause before it; hold the label on screen for the whole word. The third alt is two tokens: if used, map both tokens to the one caption word in make_srt."
+  },
+  {
+   "id": "loihi",
+   "spelling": "Lōʻihi",
+   "label_caps": "LŌʻIHI",
+   "ascii": "Loihi",
+   "language": "haw",
+   "use": "narration-optional",
+   "priority": "normal",
+   "where_in_film": "Ch6 optional \"once called Lōʻihi\" (the name viewers may know; Galilei commenters asked for \"Lōʻihi\")",
+   "ipa_native": "haw [ˌloːˈʔihi]",
+   "ipa_target": "/loʊˈʔiː.hi/",
+   "tts": "loh-EE-hee",
+   "tts_alt": [],
+   "caption_tokens": {
+    "loh-EE-hee": "Lōʻihi"
+   },
+   "asr_accept": [
+    "loihi",
+    "lo'ihi"
+   ],
+   "meaning": "\"long\"",
+   "status": "rule-derived (Wiktionary lōʻihi)",
+   "sources": [
+    "https://en.wiktionary.org/wiki/l%C5%8D%CA%BBihi",
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-kamaehuakanaloa-volcano-formerly-known-loihi-seamount"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Former name (means \"long\"). If used, say \"once called Lōʻihi\" after the new name, never instead of it."
+  },
+  {
+   "id": "kanaloa",
+   "spelling": "Kanaloa",
+   "label_caps": "KANALOA",
+   "ascii": "Kanaloa",
+   "language": "haw",
+   "use": "reserve",
+   "priority": "low",
+   "where_in_film": "Only if the narration explains the new name",
+   "ipa_native": "haw [ˌkɐnəˈlowə]",
+   "ipa_target": "/ˌkɑː.nəˈloʊ.ə/",
+   "tts": "kah-nah-LOH-ah",
+   "tts_alt": [],
+   "caption_tokens": {
+    "kah-nah-LOH-ah": "Kanaloa"
+   },
+   "asr_accept": [
+    "kanaloa"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa (Wiktionary)",
+   "sources": [
+    "https://en.wiktionary.org/wiki/Kanaloa"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "A major Hawaiian god; respectful, no jokes on this word."
+  },
+  {
+   "id": "haleakala",
+   "spelling": "Haleakalā",
+   "label_caps": "HALEAKALĀ",
+   "ascii": "Haleakala",
+   "language": "haw",
+   "use": "label",
+   "priority": "low",
+   "where_in_film": "Ch4 time machine, Maui label (East Maui volcano) if shown",
+   "ipa_native": "haw [ˌhɐleˌjɐkəˈlaː] (Wikipedia [ˈhɐlɛˈjɐkəˈlaː])",
+   "ipa_target": "/ˌhɑː.lɛ.ɑː.kɑːˈlɑː/",
+   "tts": "hah-leh-ah-kah-LAH",
+   "tts_alt": [
+    "HAH-lee-AH-kah-LAH"
+   ],
+   "caption_tokens": {
+    "hah-leh-ah-kah-LAH": "Haleakalā",
+    "HAH-lee-AH-kah-LAH": "Haleakalā"
+   },
+   "asr_accept": [
+    "haleakala"
+   ],
+   "meaning": "\"house of the sun\"",
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Haleakal%C4%81"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Final long ā stressed."
+  },
+  {
+   "id": "puuwekiu",
+   "spelling": "Puʻuwēkiu",
+   "label_caps": "PUʻUWĒKIU",
+   "ascii": "Puuwekiu",
+   "language": "haw",
+   "use": "label (reserve)",
+   "priority": "low",
+   "where_in_film": "Mauna Kea summit cone; only if a label is needed. Never a punchline, no figure or car on it (ledger C3-09)",
+   "ipa_native": "haw [ˌpuʔuˈweːkiu] (rule-derived)",
+   "ipa_target": "/ˌpuː.ʔuːˈweɪ.kiː.uː/",
+   "tts": "poo-oo-WAY-kee-oo",
+   "tts_alt": [],
+   "caption_tokens": {
+    "poo-oo-WAY-kee-oo": "Puʻuwēkiu"
+   },
+   "asr_accept": [
+    "puuwekiu",
+    "pu'uwekiu"
+   ],
+   "meaning": null,
+   "status": "rule-derived",
+   "sources": [
+    "https://hilo.hawaii.edu/maunakea/visitor-information/permits"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Stress units puʻu + wē + kiu; check before use."
+  },
+  {
+   "id": "holei",
+   "spelling": "Hōlei",
+   "label_caps": "HŌLEI",
+   "ascii": "Holei",
+   "language": "haw",
+   "use": "narration-optional",
+   "priority": "normal",
+   "where_in_film": "Ch6 optional before the payoff: \"the sea arch at Hōlei ... collapsed into the ocean\" (ledger C6-10)",
+   "ipa_native": "haw [ˈhoːˈlei] (rule-derived: two heavy syllables, both stressed)",
+   "ipa_target": "/ˈhoʊˈleɪ/",
+   "tts": "hoh-lay",
+   "tts_alt": [
+    "HOH-lay"
+   ],
+   "caption_tokens": {
+    "hoh-lay": "Hōlei",
+    "HOH-lay": "Hōlei"
+   },
+   "asr_accept": [
+    "holei"
+   ],
+   "meaning": null,
+   "status": "rule-derived",
+   "sources": [
+    "https://www.nps.gov/places/holei-sea-arch.htm",
+    "https://en.wikipedia.org/wiki/H%C5%8Dlei_Sea_Arch"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Even stress on both syllables (long ō, then the \"ei\" diphthong). Spelling with kahakō per NPS."
+  },
+  {
+   "id": "kalapana",
+   "spelling": "Kalapana",
+   "label_caps": "KALAPANA",
+   "ascii": "Kalapana",
+   "language": "haw",
+   "use": "reserve",
+   "priority": "low",
+   "where_in_film": "Only if the 1975 quake is named (\"the Kalapana earthquake\"); the planned line does not name it",
+   "ipa_native": "haw [ˌkɐləˈpɐnə] (rule-derived)",
+   "ipa_target": "/ˌkɑː.ləˈpɑː.nə/",
+   "tts": "kah-lah-PAH-nah",
+   "tts_alt": [],
+   "caption_tokens": {
+    "kah-lah-PAH-nah": "Kalapana"
+   },
+   "asr_accept": [
+    "kalapana"
+   ],
+   "meaning": null,
+   "status": "rule-derived",
+   "sources": [
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-remembering-destructive-kalapana-earthquake-50-years-ago"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Stress units kala + pana."
+  },
+  {
+   "id": "auau",
+   "spelling": "ʻAuʻau",
+   "label_caps": "ʻAUʻAU",
+   "ascii": "Auau",
+   "language": "haw",
+   "use": "reserve (label)",
+   "priority": "low",
+   "where_in_film": "0:25 suitcase gag sits on the ʻAuʻau Channel floor (ledger C12-03); label only if the channel is named",
+   "ipa_native": "haw [ʔɐuˈʔɐu] (rule-derived)",
+   "ipa_target": "/ʔaʊˈʔaʊ/",
+   "tts": "ao-AO",
+   "tts_alt": [],
+   "caption_tokens": {
+    "ao-AO": "ʻAuʻau"
+   },
+   "asr_accept": [
+    "auau",
+    "'au'au"
+   ],
+   "meaning": null,
+   "status": "rule-derived",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Channels_of_the_Hawaiian_Islands",
+    "research/ep02/script/ledger_part1.json C12-03"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Two \"ow\" (cow) syllables with glottal stops; a label is safer than narrating it."
+  },
+  {
+   "id": "kaga",
+   "spelling": "Kaga",
+   "label_caps": "KAGA",
+   "ascii": "Kaga",
+   "language": "ja",
+   "use": "narration",
+   "priority": "normal",
+   "where_in_film": "Ch5 9:30 \"Three of those wrecks have been found: Yorktown, Kaga and Akagi\" (ledger C5-13)",
+   "ipa_native": "ja [kaɡa]",
+   "ipa_target": "/ˈkɑː.ɡə/",
+   "tts": "KAH-gah",
+   "tts_alt": [
+    "Kaga"
+   ],
+   "caption_tokens": {
+    "KAH-gah": "Kaga",
+    "Kaga": "Kaga"
+   },
+   "asr_accept": [
+    "kaga"
+   ],
+   "meaning": null,
+   "status": "sourced (Japanese romanisation)",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Japanese_aircraft_carrier_Kaga"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Hard g. War-grave beat: neutral tone, music down, no gags."
+  },
+  {
+   "id": "akagi",
+   "spelling": "Akagi",
+   "label_caps": "AKAGI",
+   "ascii": "Akagi",
+   "language": "ja",
+   "use": "narration",
+   "priority": "normal",
+   "where_in_film": "Ch5 9:30 wreck list (ledger C5-13)",
+   "ipa_native": "ja [akaɡi]",
+   "ipa_target": "/əˈkɑː.ɡi/",
+   "tts": "ah-KAH-ghee",
+   "tts_alt": [
+    "Akagi"
+   ],
+   "caption_tokens": {
+    "ah-KAH-ghee": "Akagi",
+    "Akagi": "Akagi"
+   },
+   "asr_accept": [
+    "akagi"
+   ],
+   "meaning": null,
+   "status": "sourced (Japanese romanisation)",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Japanese_aircraft_carrier_Akagi"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Hard g (\"ghee\"), never \"ah-KAH-jee\". Same tone rule as Kaga."
+  },
+  {
+   "id": "soryu",
+   "spelling": "Sōryū",
+   "label_caps": "SŌRYŪ",
+   "ascii": "Soryu",
+   "language": "ja",
+   "use": "reserve",
+   "priority": "low",
+   "where_in_film": "Not narrated: the plan shows only the three found wrecks (ledger C5-13)",
+   "ipa_native": "ja [soːɾʲɯː]",
+   "ipa_target": "/ˈsoʊ.rjuː/",
+   "tts": "SOH-ryoo",
+   "tts_alt": [],
+   "caption_tokens": {
+    "SOH-ryoo": "Sōryū"
+   },
+   "asr_accept": [
+    "soryu"
+   ],
+   "meaning": null,
+   "status": "sourced (Japanese romanisation)",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Japanese_aircraft_carrier_S%C5%8Dry%C5%AB"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Do not say \"still lost\" or \"never found\" (ledger C5-13)."
+  },
+  {
+   "id": "hiryu",
+   "spelling": "Hiryū",
+   "label_caps": "HIRYŪ",
+   "ascii": "Hiryu",
+   "language": "ja",
+   "use": "reserve",
+   "priority": "low",
+   "where_in_film": "Not narrated (ledger C5-13)",
+   "ipa_native": "ja [çiɾʲɯː]",
+   "ipa_target": "/ˈhiː.rjuː/",
+   "tts": "HEE-ryoo",
+   "tts_alt": [],
+   "caption_tokens": {
+    "HEE-ryoo": "Hiryū"
+   },
+   "asr_accept": [
+    "hiryu"
+   ],
+   "meaning": null,
+   "status": "sourced (Japanese romanisation)",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Japanese_aircraft_carrier_Hiry%C5%AB"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Same rule as Sōryū."
+  },
+  {
+   "id": "kamchatka",
+   "spelling": "Kamchatka",
+   "label_caps": "KAMCHATKA",
+   "ascii": "Kamchatka",
+   "language": "ru",
+   "use": "narration",
+   "priority": "normal",
+   "where_in_film": "Ch5 10:05 \"all the way to Kamchatka, where a deep-sea trench is swallowing them\" (ledger C5-18)",
+   "ipa_native": "ru [kɐmˈt͡ɕatkə]",
+   "ipa_target": "/kæmˈtʃæt.kə/",
+   "tts": "Kamchatka",
+   "tts_alt": [
+    "kam-CHAT-kah"
+   ],
+   "caption_tokens": {
+    "Kamchatka": "Kamchatka",
+    "kam-CHAT-kah": "Kamchatka"
+   },
+   "asr_accept": [
+    "kamchatka"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Kamchatka_Peninsula"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "The usual English form is correct here; the respelling is only a fallback."
+  },
+  {
+   "id": "kuril",
+   "spelling": "Kuril",
+   "label_caps": "KURIL",
+   "ascii": "Kuril",
+   "language": "ru",
+   "use": "reserve",
+   "priority": "low",
+   "where_in_film": "Not narrated: the ledger shows only \"TRENCH\" on screen (C5-18)",
+   "ipa_native": "en /ˈkʊə.rɪl/ ~ /kjʊˈriːl/; ru [kʊˈrʲilʲ]",
+   "ipa_target": "/ˈkʊə.rɪl/",
+   "tts": "KOOR-il",
+   "tts_alt": [],
+   "caption_tokens": {
+    "KOOR-il": "Kuril"
+   },
+   "asr_accept": [
+    "kuril"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Kuril_Islands"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Reserve only."
+  },
+  {
+   "id": "peigneur",
+   "spelling": "Peigneur",
+   "label_caps": "PEIGNEUR",
+   "ascii": "Peigneur",
+   "language": "fr (Louisiana)",
+   "use": "reserve",
+   "priority": "low",
+   "where_in_film": "Hand-off line names only \"Louisiana\"; end-screen element shows the video's own title",
+   "ipa_native": "en /ˈpeɪn.jər/ ~ /peɪnˈjɔːr/; fr [pɛɲœʁ]",
+   "ipa_target": "/ˈpeɪn.jər/",
+   "tts": "PAYN-yer",
+   "tts_alt": [
+    "payn-YOR"
+   ],
+   "caption_tokens": {
+    "PAYN-yer": "Peigneur",
+    "payn-YOR": "Peigneur"
+   },
+   "asr_accept": [
+    "peigneur"
+   ],
+   "meaning": null,
+   "status": "sourced-ipa",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Lake_Peigneur"
+   ],
+   "respelling_in_tts_only": true,
+   "note": "Only if the hand-off is rewritten to name the lake; match the pronunciation used in the channel's own Lake Peigneur video."
+  }
+ ],
+ "caption_map": {
+  "Hawaii": "Hawaiʻi",
+  "Hawaii's": "Hawaiʻi's",
+  "hah-WHY-ee": "Hawaiʻi",
+  "hah-WHY-ee's": "Hawaiʻi's",
+  "hah-VAI-ee": "Hawaiʻi",
+  "hah-VAI-ee's": "Hawaiʻi's",
+  "Maui": "Maui",
+  "Maui's": "Maui's",
+  "MAO-ee": "Maui",
+  "MAO-ee's": "Maui's",
+  "NOO-ee": "Nui",
+  "NOO-ee's": "Nui's",
+  "moh-loh-KAH-ee": "Molokaʻi",
+  "moh-loh-KAH-ee's": "Molokaʻi's",
+  "Moh-loh-kah-ee": "Molokaʻi",
+  "Moh-loh-kah-ee's": "Molokaʻi's",
+  "mo-lo-KAH-ee": "Molokaʻi",
+  "mo-lo-KAH-ee's": "Molokaʻi's",
+  "lah-NAH-ee": "Lānaʻi",
+  "lah-NAH-ee's": "Lānaʻi's",
+  "laah-NAH-ee": "Lānaʻi",
+  "laah-NAH-ee's": "Lānaʻi's",
+  "kah-hoh-oh-LAH-veh": "Kahoʻolawe",
+  "kah-hoh-oh-LAH-veh's": "Kahoʻolawe's",
+  "kah-hoh-oh-LAH-weh": "Kahoʻolawe",
+  "kah-hoh-oh-LAH-weh's": "Kahoʻolawe's",
+  "kee-lao-WAY-ah": "Kīlauea",
+  "kee-lao-WAY-ah's": "Kīlauea's",
+  "kee-lah-oo-AY-ah": "Kīlauea",
+  "kee-lah-oo-AY-ah's": "Kīlauea's",
+  "Kilauea": "Kīlauea",
+  "Kilauea's": "Kīlauea's",
+  "MAO-nah": "Mauna",
+  "MAO-nah's": "Mauna's",
+  "KAY-ah": "Kea",
+  "KAY-ah's": "Kea's",
+  "Mauna": "Mauna",
+  "Mauna's": "Mauna's",
+  "MOUN-ah": "Mauna",
+  "MOUN-ah's": "Mauna's",
+  "LOH-ah": "Loa",
+  "LOH-ah's": "Loa's",
+  "hoo-ah-LAH-lye": "Hualālai",
+  "hoo-ah-LAH-lye's": "Hualālai's",
+  "hoo-wah-LAH-lye": "Hualālai",
+  "hoo-wah-LAH-lye's": "Hualālai's",
+  "koh-HAH-lah": "Kohala",
+  "koh-HAH-lah's": "Kohala's",
+  "Kohala": "Kohala",
+  "Kohala's": "Kohala's",
+  "mah-hoo-KOH-nah": "Māhukona",
+  "mah-hoo-KOH-nah's": "Māhukona's",
+  "HEE-loh": "Hilo",
+  "HEE-loh's": "Hilo's",
+  "Hilo": "Hilo",
+  "Hilo's": "Hilo's",
+  "hah-lah-PAY": "Halapē",
+  "hah-lah-PAY's": "Halapē's",
+  "hah-lah-PEH": "Halapē",
+  "hah-lah-PEH's": "Halapē's",
+  "hee-LEE-nah": "Hilina",
+  "hee-LEE-nah's": "Hilina's",
+  "PAH-lee": "Pali",
+  "PAH-lee's": "Pali's",
+  "Pali": "Pali",
+  "Pali's": "Pali's",
+  "noo-oo-AH-noo": "Nuʻuanu",
+  "noo-oo-AH-noo's": "Nuʻuanu's",
+  "noo-oo-WAH-noo": "Nuʻuanu",
+  "noo-oo-WAH-noo's": "Nuʻuanu's",
+  "koh-oh-LAO": "Koʻolau",
+  "koh-oh-LAO's": "Koʻolau's",
+  "koh-oh-LAH-oo": "Koʻolau",
+  "koh-oh-LAH-oo's": "Koʻolau's",
+  "oh-AH-hoo": "Oʻahu",
+  "oh-AH-hoo's": "Oʻahu's",
+  "Oahu": "Oʻahu",
+  "Oahu's": "Oʻahu's",
+  "Honolulu": "Honolulu",
+  "Honolulu's": "Honolulu's",
+  "hoh-noh-LOO-loo": "Honolulu",
+  "hoh-noh-LOO-loo's": "Honolulu's",
+  "kah-WAH-ee": "Kauaʻi",
+  "kah-WAH-ee's": "Kauaʻi's",
+  "kow-WAH-ee": "Kauaʻi",
+  "kow-WAH-ee's": "Kauaʻi's",
+  "nee-ee-HOW": "Niʻihau",
+  "nee-ee-HOW's": "Niʻihau's",
+  "NEE-ee-how": "Niʻihau",
+  "NEE-ee-how's": "Niʻihau's",
+  "nee-HOH-ah": "Nihoa",
+  "nee-HOH-ah's": "Nihoa's",
+  "Nihoa": "Nihoa",
+  "Nihoa's": "Nihoa's",
+  "moh-koo-mah-nah-MAH-nah": "Mokumanamana",
+  "moh-koo-mah-nah-MAH-nah's": "Mokumanamana's",
+  "LAH-loh": "Lalo",
+  "LAH-loh's": "Lalo's",
+  "lah": "La",
+  "lah's": "La's",
+  "peh-ROOZ": "Pérouse",
+  "peh-ROOZ's": "Pérouse's",
+  "La": "La",
+  "La's": "La's",
+  "la": "La",
+  "la's": "La's",
+  "Perouse": "Pérouse",
+  "Perouse's": "Pérouse's",
+  "poo-hah-HOH-noo": "Pūhāhonu",
+  "poo-hah-HOH-noo's": "Pūhāhonu's",
+  "LYE-sahn": "Laysan",
+  "LYE-sahn's": "Laysan's",
+  "Laysan": "Laysan",
+  "Laysan's": "Laysan's",
+  "KOO-ree": "Kure",
+  "KOO-ree's": "Kure's",
+  "KOOR-ee": "Kure",
+  "KOOR-ee's": "Kure's",
+  "hoh-lah-nee-KOO": "Hōlanikū",
+  "hoh-lah-nee-KOO's": "Hōlanikū's",
+  "koo-eye-heh-LAH-nee": "Kuaihelani",
+  "koo-eye-heh-LAH-nee's": "Kuaihelani's",
+  "pah-pah-HAH-now-moh-koo-ah-KEH-ah": "Papahānaumokuākea",
+  "pah-pah-HAH-now-moh-koo-ah-KEH-ah's": "Papahānaumokuākea's",
+  "pah-pah-hah-now-moh-koo-ah-keh-ah": "Papahānaumokuākea",
+  "pah-pah-hah-now-moh-koo-ah-keh-ah's": "Papahānaumokuākea's",
+  "kah-mah-EH-hoo-ah-kah-nah-LOH-ah": "Kamaʻehuakanaloa",
+  "kah-mah-EH-hoo-ah-kah-nah-LOH-ah's": "Kamaʻehuakanaloa's",
+  "kama-EH-hoo-ah-kana-LOH-ah": "Kamaʻehuakanaloa",
+  "kama-EH-hoo-ah-kana-LOH-ah's": "Kamaʻehuakanaloa's",
+  "loh-EE-hee": "Lōʻihi",
+  "loh-EE-hee's": "Lōʻihi's",
+  "kah-nah-LOH-ah": "Kanaloa",
+  "kah-nah-LOH-ah's": "Kanaloa's",
+  "hah-leh-ah-kah-LAH": "Haleakalā",
+  "hah-leh-ah-kah-LAH's": "Haleakalā's",
+  "HAH-lee-AH-kah-LAH": "Haleakalā",
+  "HAH-lee-AH-kah-LAH's": "Haleakalā's",
+  "poo-oo-WAY-kee-oo": "Puʻuwēkiu",
+  "poo-oo-WAY-kee-oo's": "Puʻuwēkiu's",
+  "hoh-lay": "Hōlei",
+  "hoh-lay's": "Hōlei's",
+  "HOH-lay": "Hōlei",
+  "HOH-lay's": "Hōlei's",
+  "kah-lah-PAH-nah": "Kalapana",
+  "kah-lah-PAH-nah's": "Kalapana's",
+  "ao-AO": "ʻAuʻau",
+  "ao-AO's": "ʻAuʻau's",
+  "KAH-gah": "Kaga",
+  "KAH-gah's": "Kaga's",
+  "Kaga": "Kaga",
+  "Kaga's": "Kaga's",
+  "ah-KAH-ghee": "Akagi",
+  "ah-KAH-ghee's": "Akagi's",
+  "Akagi": "Akagi",
+  "Akagi's": "Akagi's",
+  "SOH-ryoo": "Sōryū",
+  "SOH-ryoo's": "Sōryū's",
+  "HEE-ryoo": "Hiryū",
+  "HEE-ryoo's": "Hiryū's",
+  "Kamchatka": "Kamchatka",
+  "Kamchatka's": "Kamchatka's",
+  "kam-CHAT-kah": "Kamchatka",
+  "kam-CHAT-kah's": "Kamchatka's",
+  "KOOR-il": "Kuril",
+  "KOOR-il's": "Kuril's",
+  "PAYN-yer": "Peigneur",
+  "PAYN-yer's": "Peigneur's",
+  "payn-YOR": "Peigneur",
+  "payn-YOR's": "Peigneur's"
+ }
+}

@@ -1,0 +1,254 @@
+{
+ "run": "wf_8dc2a0ee-8a4",
+ "agent": "a6574ab11716cdd59",
+ "label": "finish ch6",
+ "result": {
+  "module": "ch6",
+  "results": [
+   {
+    "id": "S10-1",
+    "status": "fixed",
+    "change": "Previous agent's edit, checked complete: strafe clips swapped (the screen-left run plays Run_Right, the screen-right run plays Run_Left, because he faces the camera). Clip speeds are matched to the root speed (0.75 and 1.22 \u00d7 1.64 u/s). The root moves on a trapezoid speed profile whose ramps coincide with the clip cross-fades, so the planted foot stays put. No further change needed.",
+    "files_lines": "engine/www/ep/ep01/ch6.js:450-477 (hero.play timeline 456-458, trap 465-472, heroX 473-477)",
+    "scene_ranges": [
+     [
+      933.75,
+      938.19
+     ]
+    ],
+    "evidence": "Previous agent's render review6/fix_ch6/t_28005.mp4 (frame 0 = 28005), reviewed by me (grab2/old28005_28014_32x3.jpg): he runs screen-left from 933.94 to 934.79, then screen-right from 935.09 to 936.09, legs striding in the direction of travel. Foot crops grab/feetL_00026_12x1.jpg and grab/feetR_00056_16x1.jpg: the grounded boot holds its place on the ground for 4-6 frames per step. No moonwalk, no skating."
+   },
+   {
+    "id": "S10-2",
+    "status": "fixed",
+    "change": "Previous agent's edit, checked complete: the Idle glide (x 1.0\u21920.35 with still feet) is replaced by a short foot-planted sidestep back toward centre (Run_Right at speed 0.85 from runR1+0.2 for 0.44 s, root on the same trapezoid profile), then Idle.",
+    "files_lines": "engine/www/ep/ep01/ch6.js:453, 458, 476",
+    "scene_ranges": [
+     [
+      933.75,
+      938.19
+     ]
+    ],
+    "evidence": "t_28005.mp4 frames 28089-28101 (grab/side_00078_24x1.jpg, grab2/overlap_28077_8x4.jpg): after the right run he takes one stepping strafe back to the left and settles in Idle before the comment bubble opens. Feet step instead of gliding, and the Aurica panel is only overlapped for about 936.0-936.45 (was about 2.4 s)."
+   },
+   {
+    "id": "S10-3",
+    "status": "fixed",
+    "change": "(1) Gag 10a runs 0.3 s under the splash map's fade-in, and (2) the splash map runs 0.3 s under the heat globe's fade-in (previous agent, kept). (3) The previous agent's drip-globe run-on is replaced, because of the post cut 954.97-963.03. Its first kept frame, 28891 (963.033), would have been 87% drip globe from the removed range, dissolving out right after the moved polaroid. Now the drip globe ends at D1 as originally, and the Bacon desk scene starts at BC0-0.25 with its 0.25 s fadeIn, dissolving in over the globe. It is fully opaque from 963.01. All its content stays timed on absolute t from BC0, so nothing inside moves.",
+    "files_lines": "engine/www/ep/ep01/ch6.js:506 (gag 10a to GA1+0.3), 557 (splash to SP1+0.3), 702 (drip globe back to base(D0, D1)), 735-738 (Bacon desk base(BC0 - 0.25, BC1) keeping fadeIn 0.25)",
+    "scene_ranges": [
+     [
+      933.75,
+      938.19
+     ],
+     [
+      937.89,
+      944.2
+     ],
+     [
+      943.9,
+      950.95
+     ],
+     [
+      958.07,
+      963.01
+     ],
+     [
+      962.76,
+      965.53
+     ]
+    ],
+    "evidence": "(1) t_28005.mp4: mean luma 27.5/27.4 at 28136-28137, then a smooth fall to 21.1 at 28146 as the gag dissolves into the map, no black frame (original 25.1\u21922.1 at 28137). (2) review6/fix_ch6/t2_28252.mp4: luma 27.3 at 28317, then 26.9, 26.5, 25.8, 25.2, 24.2, 23.9 as the map dissolves into the heat globe, no black frame (original 23.5\u21921.8). (3) review6/fix_ch6/t2_28878.mp4 (grab2/bacon_28878_24x1.jpg): the desk dissolves over the drip globe from 28883 to 28890 (luma 19.8\u219228.7). Frame 28891 is the clean desk (29.0; original 1.3, black), so the post join polaroid(26261)\u219228891 is a clean cut."
+   },
+   {
+    "id": "S10-4",
+    "status": "fixed",
+    "change": "Previous agent's filmstrip rewrite, verified. One continuous push-in: zoom eases to 1.06 by TF and carries that speed into the live inExpo push, with no restart from 1.0. The scroll keeps V2, then eases out over 0.6 s so the blank frame comes to rest exactly centred at M.shot+0.3 (same total distance). There is no tt freeze any more.",
+    "files_lines": "engine/www/ep/ep01/ch6.js:847-860 (scrollAt/scrollV/fX, TF/zoomAt), 874-879 (live, tt = t, shared transform)",
+    "scene_ranges": [
+     [
+      975.34,
+      982.92
+     ]
+    ],
+    "evidence": "review6/fix_ch6/t2_29380.mp4 (frame 0 = 29380), measured with phase correlation and sprocket-row spacing. The strip moves at -23/-24 px/frame, then decelerates -24,-23,-22,-21,-20,-19,-18 over 29456-29463. The sprocket-row gap grows smoothly 412\u2192435 px (no 6% snap). At the live frame 29463\u219229464 the rows keep their size and the frame edge keeps decelerating (118\u2192100\u219288\u219278 px, grab2/live_29462_5x1.jpg). The push-in into the centred hole is continuous to the cut (grab2/fs_29456_32x1.jpg, grab2/fsz_29480_4x2.jpg)."
+   },
+   {
+    "id": "S10-5",
+    "status": "fixed",
+    "change": "Previous agent carried s097's camera (KB0 = camA(t)), ridge alpha (0.6), cold tint (ovAlpha 0.12) and drip arcs (0.18) into s098, fading them with fa. Its own render was never reviewed, and it still showed a hop on the switch frame. inOutExpo is 2^-11 (not 0) just after 0, which moved the pull-back camera 0.03\u00b0 (about 1 px) on the first s098 frame. I added an offset-free ease, expo0(x) = inOutExpo(x) + 2^-11\u00b7(2x\u22121), for the pull-back.",
+    "files_lines": "engine/www/ep/ep01/ch6.js:314-319 (KB0, expo0, camB), 329-332 (s098 globe look/overlays from s097's end values)",
+    "scene_ranges": [
+     [
+      882.56,
+      891.82
+     ]
+    ],
+    "evidence": "review6/fix_ch6/t2_26470.mp4 (frame 0 = 26470), per-region frame diff at the switch 26476\u219226477. Gap/bus region 0.91 against 1.3-1.8 around it (original 4.19; previous agent's t_26468 5.93). Ridge below the gap 0.80 (was 2.93). Globe regions smooth. Numerically, camB at 26477 continues camA's trend (lat -17.7784, alt 0.91132, tilt 21.728). Visually (grab2/swN_26475_4x1.jpg) the ridge brightness, gap, bus and tint carry across."
+   },
+   {
+    "id": "S10-6",
+    "status": "fixed",
+    "change": "Previous agent's edit, verified. The spin is one turn + 30\u00b0 (390\u00b0 instead of 750\u00b0, same end face) with an in-out-quad ease, so the peak is about 13.7\u00b0/frame instead of 38\u00b0.",
+    "files_lines": "engine/www/ep/ep01/ch6.js:315, 323",
+    "scene_ranges": [
+     [
+      882.56,
+      891.82
+     ]
+    ],
+    "evidence": "review6/fix_ch6/t2_26612.mp4 (frame 0 = 26612). Peak frames 26638-26649 (grab2/spinN_26638_12x1.jpg against original grab2/spinO_26638_12x1.jpg): neighbouring frames share features (Japan/Korea sweep steadily across the disc) instead of jumping Asia\u2192N. America in 9 frames. The spin ends on the same North-America face in the fog (grab2/spinAll_26616_32x2.jpg)."
+   },
+   {
+    "id": "S10-7",
+    "status": "needs_shared_change",
+    "change": "No picture change. The chopped breath after 'Amasia.' (919.86-919.94) is in the narration stem audio/vo_proc.wav (TTS tail trim in tools/tts.py), outside ch6*.js. The synthesis audio repair covers it (rank 7: silence 919.40-919.97 with 30 ms fades).",
+    "files_lines": "(none in ch6*.js) audio/vo_proc.wav at 919.86-919.94; tools/tts.py:99-102",
+    "scene_ranges": [],
+    "evidence": "Audio-only per the finding (a 70 ms burst to -27 dB cut to -88 dB). Nothing in the ch6 scene code produces or affects it."
+   },
+   {
+    "id": "S10-8",
+    "status": "fixed",
+    "change": "Previous agent's edit, verified. Aurica's gold glow uses the time-based alpha for the tile still too (0 at tLive), so the expanding card matches the first live frame. The Aurica tile in the grid therefore no longer carries the glow; the glow appears live on 'middle' as before.",
+    "files_lines": "engine/www/ep/ep01/ch6.js:189",
+    "scene_ranges": [
+     [
+      891.82,
+      893.05
+     ],
+     [
+      893.05,
+      902.51
+     ],
+     [
+      902.51,
+      912.09
+     ],
+     [
+      912.09,
+      920.23
+     ],
+     [
+      920.23,
+      929.64
+     ]
+    ],
+    "evidence": "review6/fix_ch6/t2_27588.mp4. Australia region across the handover 27627\u219227628: 36.1/39.5/51.5 \u2192 36.4/39.6/51.7, yellow share 0.006 \u2192 0.006, frame diff 0.60 then 0.09. Original: 41.9/44.3/53.0 (yellow 0.028) \u2192 36.2/39.5/51.5 (0.006), a pop."
+   },
+   {
+    "id": "S10-9",
+    "status": "fixed",
+    "change": "Previous agent's edit, verified. 'UNDER 1 IN n' is drawn left-aligned from a fixed anchor: the left edge of the final 'UNDER 1 IN 6' when centred, measured with the same text sprite. The words stay put while the number counts down, and the final line is still centred over the underline.",
+    "files_lines": "engine/www/ep/ep01/ch6.js:633-638",
+    "scene_ranges": [
+     [
+      944.3,
+      950.9
+     ]
+    ],
+    "evidence": "review6/fix_ch6/t2_28452.mp4: the text's left edge is at x=1238 in every frame from 28459 to 28483 while n goes 10\u21929\u21928\u21927\u21926 (grab2/cnt_28460_18x1.jpg). There is no sideways jump at 28465\u219228466."
+   },
+   {
+    "id": "S10-10",
+    "status": "skipped_cut",
+    "change": "Lies entirely inside the removed range 954.97-963.03 (the hitch is at 956.36-956.76). I reverted the previous agent's strip-ramp edit, so the strip code is identical to the original and no removed frames change.",
+    "files_lines": "engine/www/ep/ep01/ch6.js:680, 686 (restored to the original Math.max(0, t - (M.wins + 0.55)))",
+    "scene_ranges": [],
+    "evidence": "Checked that the stripX/scroll lines are byte-identical to the pre-fix original. The tear scene's strip copy (drawStripComp at D0..D0+0.3) was unaffected either way."
+   },
+   {
+    "id": "S10-11",
+    "status": "fixed",
+    "change": "Previous agent's edit, verified. The strip (band + frames) is drawn into an offscreen layer and composited as 4 horizontally shifted copies: a half-frame shutter, about 11 px of blur at 22 px/frame, scaled with the scroll speed. So the pan smears instead of strobing. The pan speed is kept, because TODAY must sit on 'frame' and the blank frame on 'shot'.",
+    "files_lines": "engine/www/ep/ep01/ch6.js:861, 885-921 (offscreen STRIPCV layer, hole cut, 4-copy blur composite)",
+    "scene_ranges": [
+     [
+      975.34,
+      982.92
+     ]
+    ],
+    "evidence": "review6/fix_ch6/t2_29380.mp4 and t2_29258.mp4. In band crops at 29402-29404 (grab2/scrN_29402_3x1.jpg against original grab2/scrO_29402_3x1.jpg), the sprocket holes and frames are motion-smeared instead of hard-edged steps. The start of the scene (Gondwana shrink, half-size strip, TODAY highlight) is intact (grab2/fsStart_29258_36x2.jpg; new-vs-original 0.3-1.6 mean diff, only in the band)."
+   },
+   {
+    "id": "S10-12",
+    "status": "fixed",
+    "change": "Previous agent's edit, verified. The blank frame now comes to rest centred (S10-4 scroll), and the end zoom is W/FW\u00b71.1, so the hole border leaves the frame before the cut to the Afar scene.",
+    "files_lines": "engine/www/ep/ep01/ch6.js:849-859",
+    "scene_ranges": [
+     [
+      975.34,
+      982.92
+     ]
+    ],
+    "evidence": "review6/fix_ch6/t2_29380.mp4: the brightest column in the left 80 px is 3.6 at 29486 and 3.5 at 29487, against a median of 3.1 (original 88 at x=33). Frame 29486 shows only the live globe (grab2/fsz_29480_4x2.jpg), and the cut to Afar at 29488 is seamless (luma 28.6\u219229.5)."
+   },
+   {
+    "id": "S10-13",
+    "status": "fixed",
+    "change": "Previous agent's edit, verified. Sparks are interpolated between the arm's points (no index stepping), fade in over M.cracks+0.9..+1.3 after the draw-on, and fade at both ends of each arm so the wrap from tip to junction is never seen.",
+    "files_lines": "engine/www/ep/ep01/ch6.js:959-976",
+    "scene_ranges": [
+     [
+      982.92,
+      1010.95
+     ]
+    ],
+    "evidence": "review6/fix_ch6/t2_29560.mp4. Tracked spark peaks on the Gulf of Aden arm move 2-5 px every frame (1154,1156,1158,1161,1163,1165,1169,1172,1175,1179,1182,1187,1189,1192 over 29640-29653). The original held for 6 frames and then hopped (1150\u21921165\u21921189). The fade-in runs over 29568-29579 with no pop (grab2/spIn_29564_16x1.jpg)."
+   },
+   {
+    "id": "SYN-17",
+    "status": "fixed",
+    "change": "Partly done: the contained parts of this optional effort-M item. (a) Model cards grow and shrink with a cubic in-out ease instead of inOutExpo, so they travel across the whole 0.5-0.55 s window instead of snapping in 3 frames and stopping dead. The previous agent's full-frame-still threshold (k>0.9995) lets the card border slide off/on at the screen edge. (b) The MODEL labels fade out linearly over 9 frames instead of dropping off in about 2: a new optional pillT outEase, used only by the MODEL pills, so other pills are unchanged. (c) The 'TUESDAY' calendar now comes in on 'Just' (941.85) instead of on 'Tuesday', holds through the word (out by 943.68, before the heat globe), and 'TUESDAY' is struck through as the word is said (942.49-942.73), under the existing bell cue. (d) The hero's overlap of the Aurica panel is reduced to about 0.45 s by the S10-2 sidestep; no further change. Not done: replacing the grid round trips with globe-to-globe dissolves, and keeping the hold globes rotating.",
+    "files_lines": "engine/www/ep/ep01/ch6.js:386-387 (card ease), 400-402 and 425 (MODEL label linear fade), 582-598 (Tuesday card + strike); engine/www/ep/ep01/ch6_lib.js:83 (pillT outEase option, default unchanged)",
+    "scene_ranges": [
+     [
+      891.82,
+      893.05
+     ],
+     [
+      893.05,
+      902.51
+     ],
+     [
+      902.51,
+      912.09
+     ],
+     [
+      912.09,
+      920.23
+     ],
+     [
+      920.23,
+      929.64
+     ],
+     [
+      941.85,
+      943.68
+     ]
+    ],
+    "evidence": "review6/fix_ch6/t2_27588.mp4 (grab2/cards_27588_48x1.jpg): the Amasia card shrinks over about 12 frames (27593-27607; original about 3 frames, grab2/shrink0_27058_18x1.jpg), and the Aurica card grows over about 13 frames (27616-27628), its border inset going 52\u219221\u21926\u21920.7 px before the live frame. The MODEL label fades smoothly. review6/fix_ch6/t2_28252.mp4 (grab2/tuesN_28252_60x2.jpg, grab2/strike_28275_6x2.jpg): the card is up from 941.87 to about 943.6, and the strike line draws across 'TUESDAY' on the word, following the card's tilt."
+   }
+  ],
+  "changed_ranges": [
+   [
+    882.56,
+    929.64
+   ],
+   [
+    933.75,
+    950.95
+   ],
+   [
+    958.07,
+    965.53
+   ],
+   [
+    975.34,
+    1010.95
+   ]
+  ],
+  "shared_changes_needed": "S10-7 only (audio, not picture). The breath fragment after 'Amasia.' (919.86-919.94) lives in audio/vo_proc.wav (tools/tts.py tail trim). It needs the post narration repair (synthesis rank 7: silence 919.40-919.97 with 30 ms fades) or a tail fade in tts.py. No change to film.html or lib/*.js is needed for any ch6 picture fix.",
+  "notes": "Edited only engine/www/ep/ep01/ch6.js and ch6_lib.js (pillT gets an optional outEase; its default behaviour is unchanged, and only ch6.js/ch6_gond.js import ch6_lib). Final diff against the pre-fix originals: review6/fix_ch6/w2/final_diff.patch. Backup of the previous agent's state: review6/fix_ch6/w2/ch6_prevagent.js.\n\nWhat I changed on top of the previous agent:\n- S10-5 residual: offset-free pull-back ease.\n- S10-3 third transition: reworked for the post cut, so the Bacon desk is fully up at 963.01 and the first kept frame after the cut (28891) is clean.\n- S10-10: reverted, since it is inside the removed range.\n- SYN-17 subset: card ease, MODEL label fade, Tuesday card timing and strike-through.\nEverything else from the previous agent was complete and correct. I verified it on test renders, including its never-reviewed switch render and the filmstrip, sparks, spin, Aurica and countdown edits that had no render.\n\nCut/move joins in this module: 28648 (last kept frame before the cut, gag 10b) is clean and unchanged; 28891 (first kept frame after it, which follows the moved polaroid frame 26261) is now the clean Bacon desk; 26262 (ch6's first frame, which follows 25784 after the move) is unchanged.\n\nTest renders, all 1920x1080, every one exit 0, no SCENE-ERROR; the last one, t2_29258, also exited 0. All are in review6/fix_ch6/:\n- t2_29380.mp4 (120 frames)\n- t2_29560.mp4 (100)\n- t2_26612.mp4 (68)\n- t2_26470.mp4 (20)\n- t2_27588.mp4 (48)\n- t2_28252.mp4 (78)\n- t2_28452.mp4 (32)\n- t2_28878.mp4 (24)\n- t2_29258.mp4 (72)\nGrabs are in review6/fix_ch6/grab2/. No render of mine is left running.\n\nRe-render: the changed ranges span chunks 58-67, i.e. all of ch6. The drip-globe scene (958.07-963.01) is listed because its last 0.25 s is now composited under the desk dissolve.\n\nTool caveat: tools/grab.py can duplicate the first decoded frame, so its label N can show frame N-1 (seen at 26262). For exact frames I used passthrough decoding (review6/fix_ch6/tools/xf.py and w2/xg.py)."
+ }
+}

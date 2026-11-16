@@ -1,0 +1,716 @@
+[
+ {
+  "summary": {
+   "query": "hawaii geology",
+   "n_results": 57,
+   "longform_matching": 16,
+   "longform_matching_100k": 3,
+   "max_longform_matching_views": 1458587,
+   "best_short_views": 118000,
+   "top_any_views": 7068456
+  },
+  "top": [
+   {
+    "type": "video",
+    "id": "34Ojnyi9xLw",
+    "title": "Why You Can't Travel Between Hawaii's Islands by Boat",
+    "channel": "RealLifeLore",
+    "views": 7068456,
+    "len_s": 1484,
+    "age": "1y ago"
+   },
+   {
+    "type": "video",
+    "id": "k0tnqPmwWvk",
+    "title": "Why Hawaii's volcano is so UNUSUAL",
+    "channel": "Physics Girl",
+    "views": 7021293,
+    "len_s": 513,
+    "age": "9y ago"
+   },
+   {
+    "type": "video",
+    "id": "Pfyx5bEZK80",
+    "title": "Witness the Volcanoes of Hawai'i (Full Episode) | America's National Parks",
+    "channel": "National Geographic",
+    "views": 1868144,
+    "len_s": 2665,
+    "age": "3y ago"
+   },
+   {
+    "type": "video",
+    "id": "N7asoI4KWmE",
+    "title": "The Amazing BIOGEOGRAPHY of Hawaii",
+    "channel": "Atlas Pro",
+    "views": 1458587,
+    "len_s": 2949,
+    "age": "4y ago"
+   },
+   {
+    "type": "video",
+    "id": "LdlEufZop-Y",
+    "title": "How Did Hawaii Form?",
+    "channel": "Scientific American",
+    "views": 645713,
+    "len_s": 144,
+    "age": "8y ago"
+   },
+   {
+    "type": "video",
+    "id": "66UdZWZgfWY",
+    "title": "How the Earth Was Made: Hawaii | History",
+    "channel": "HISTORY",
+    "views": 361734,
+    "len_s": 191,
+    "age": "16y ago"
+   },
+   {
+    "type": "video",
+    "id": "bpKKgXhnZBA",
+    "title": "The Geologic Oddity in Hawaii; The Great Crack",
+    "channel": "GeologyHub",
+    "views": 257113,
+    "len_s": 261,
+    "age": "3y ago"
+   },
+   {
+    "type": "video",
+    "id": "lm_k_dUsBXM",
+    "title": "The Geologic Oddity in Hawaii; What Caused the Hawaiian Hotspot Chain to Bend?",
+    "channel": "GeologyHub",
+    "views": 216004,
+    "len_s": 206,
+    "age": "3y ago"
+   },
+   {
+    "type": "video",
+    "id": "krirTmRYbd8",
+    "title": "The Cataclysm Which Split Oahu in Half; The Nu'uanu Slide",
+    "channel": "GeologyHub",
+    "views": 194056,
+    "len_s": 251,
+    "age": "3y ago"
+   },
+   {
+    "type": "video",
+    "id": "4D3ce6rJpgA",
+    "title": "50 Hawaii Geography Facts You Won\u2019t Believe Are True",
+    "channel": "Across The Globe",
+    "views": 172805,
+    "len_s": 2605,
+    "age": "1y ago"
+   },
+   {
+    "type": "short",
+    "id": "843jarnrvX8",
+    "title": "Northwestern Hawaiian Islands #geography #geology #hawaii #stem",
+    "channel": "",
+    "views": 118000,
+    "len_s": 0,
+    "age": ""
+   },
+   {
+    "type": "video",
+    "id": "GwcohDyohOs",
+    "title": "Geology of Hawaii and Plate Tectonics",
+    "channel": "Myron Cook Geology",
+    "views": 100566,
+    "len_s": 727,
+    "age": "3y ago"
+   },
+   {
+    "type": "video",
+    "id": "Awve2w9DXgc",
+    "title": "Hawaii Is Hiding Something Nobody Talks About",
+    "channel": "Geo Metrics",
+    "views": 77940,
+    "len_s": 2679,
+    "age": "2mo ago"
+   },
+   {
+    "type": "video",
+    "id": "cT0qKZPBubc",
+    "title": "Kilauea Volcano Update; 650 Ft Lava Fountains, Blue Lava May Have Erupted",
+    "channel": "GeologyHub",
+    "views": 73433,
+    "len_s": 300,
+    "age": "1d ago"
+   },
+   {
+    "type": "video",
+    "id": "3S7ISOcBfQw",
+    "title": "K\u012blauea Is Changing: Are We Entering a New Phase?",
+    "channel": "Shawn Willsey: Geology Explained",
+    "views": 72295,
+    "len_s": 1451,
+    "age": "3w ago"
+   },
+   {
+    "type": "video",
+    "id": "1-0LPDmf_tk",
+    "title": "The Volcano in Oahu; The Honolulu Volcanics",
+    "channel": "GeologyHub",
+    "views": 64337,
+    "len_s": 326,
+    "age": "11mo ago"
+   },
+   {
+    "type": "video",
+    "id": "Zq7Y-94QUIQ",
+    "title": "Hawaii Geologic Tour",
+    "channel": "Earth Images Foundation",
+    "views": 55098,
+    "len_s": 890,
+    "age": "13y ago"
+   },
+   {
+    "type": "short",
+    "id": "a-LxdHsUauM",
+    "title": "49th Lava Eruption at K\u012blauea Caught From Space \ud83c\udf0b",
+    "channel": "",
+    "views": 43000,
+    "len_s": 0,
+    "age": ""
+   },
+   {
+    "type": "video",
+    "id": "9OWwF1RVToQ",
+    "title": "Can an island really weigh too much, and what happens if it does? | Hawai\u2019i earthquake",
+    "channel": "TheGeoModels",
+    "views": 38775,
+    "len_s": 1403,
+    "age": "5mo ago"
+   },
+   {
+    "type": "short",
+    "id": "G36LqBZMOm0",
+    "title": "Why Hawaii\u2019s Mountain Is Taller Than Everest",
+    "channel": "",
+    "views": 36000,
+    "len_s": 0,
+    "age": ""
+   },
+   {
+    "type": "video",
+    "id": "O-mr2ELdqXM",
+    "title": "Geology 101 with Willsey, Episode #6: Hot Spots",
+    "channel": "Shawn Willsey: Geology Explained",
+    "views": 34579,
+    "len_s": 1354,
+    "age": "2y ago"
+   },
+   {
+    "type": "short",
+    "id": "yDiaGYFylvk",
+    "title": "Diamond Head \u2013 Hawaii\u2019s Iconic Volcanic Crater! \ud83c\udfdd\ufe0f",
+    "channel": "",
+    "views": 27000,
+    "len_s": 0,
+    "age": ""
+   },
+   {
+    "type": "video",
+    "id": "oRKEvB00cYI",
+    "title": "How Old are the Hawaiian Islands?",
+    "channel": "BioLogos",
+    "views": 26547,
+    "len_s": 335,
+    "age": "8y ago"
+   },
+   {
+    "type": "video",
+    "id": "aIdkK2I_Q0Y",
+    "title": "Geology and Oceanography of Kauai",
+    "channel": "Jana Rothenberg Blay",
+    "views": 26534,
+    "len_s": 2651,
+    "age": "13y ago"
+   },
+   {
+    "type": "short",
+    "id": "FAnF_MPuFIg",
+    "title": "Hawaii\u2019s Secret: What Is a Hotspot Volcano?",
+    "channel": "",
+    "views": 14000,
+    "len_s": 0,
+    "age": ""
+   }
+  ]
+ },
+ {
+  "summary": {
+   "query": "pacific ocean drained",
+   "n_results": 50,
+   "longform_matching": 5,
+   "longform_matching_100k": 3,
+   "max_longform_matching_views": 3972795,
+   "best_short_views": 31000000,
+   "top_any_views": 32398690
+  },
+  "top": [
+   {
+    "type": "video",
+    "id": "ErPsyBUCijM",
+    "title": "Legend of Atlantis (Full Episode) | Drain the Oceans",
+    "channel": "National Geographic",
+    "views": 32398690,
+    "len_s": 2842,
+    "age": "5y ago"
+   },
+   {
+    "type": "short",
+    "id": "yvDoOI_bpyc",
+    "title": "How to drain the ocean? \ud83c\udf0a\ud83d\udc33",
+    "channel": "",
+    "views": 31000000,
+    "len_s": 0,
+    "age": ""
+   },
+   {
+    "type": "video",
+    "id": "4-qO0d6r1f0",
+    "title": "Deadly Pacific (Full Episode) | Drain the Oceans",
+    "channel": "National Geographic",
+    "views": 10782425,
+    "len_s": 2840,
+    "age": "3y ago"
+   },
+   {
+    "type": "video",
+    "id": "XqyC5QrvrIw",
+    "title": "Nazi Secrets (Full Episode) | Drain the Oceans",
+    "channel": "National Geographic",
+    "views": 8289879,
+    "len_s": 2814,
+    "age": "3y ago"
+   },
+   {
+    "type": "video",
+    "id": "oJirVH6uybg",
+    "title": "Gulf of Mexico (Full Episode) | Drain the Oceans",
+    "channel": "National Geographic",
+    "views": 8137268,
+    "len_s": 2825,
+    "age": "3y ago"
+   },
+   {
+    "type": "short",
+    "id": "BavzftFld6U",
+    "title": "Pacific Ocean Is Disappearing \ud83d\ude31 A New Supercontinent Is Coming \ud83d\udd25",
+    "channel": "",
+    "views": 6900000,
+    "len_s": 0,
+    "age": ""
+   },
+   {
+    "type": "video",
+    "id": "rmGNS_T7Gk0",
+    "title": "What if Earth\u2019s oceans vanished\u2026 revealing a hidden world beneath?",
+    "channel": "HereWeLearn",
+    "views": 6542012,
+    "len_s": 1034,
+    "age": "1y ago"
+   },
+   {
+    "type": "video",
+    "id": "Dpu3XoY3wQw",
+    "title": "Ancient Civilizations of the World: Drain the Oceans | MEGA EPISODE | National Geographic",
+    "channel": "National Geographic",
+    "views": 5396805,
+    "len_s": 16575,
+    "age": "1y ago"
+   },
+   {
+    "type": "video",
+    "id": "qR_EchGlBeE",
+    "title": "Mystery of the China Seas (Full Episode) | Drain the Oceans",
+    "channel": "National Geographic",
+    "views": 5091821,
+    "len_s": 2843,
+    "age": "3y ago"
+   },
+   {
+    "type": "video",
+    "id": "fAlwxqiG1Ys",
+    "title": "Drain the Oceans: Submerged Secrets of America | MEGA EPISODE | National Geographic",
+    "channel": "National Geographic",
+    "views": 4522196,
+    "len_s": 10933,
+    "age": "2y ago"
+   },
+   {
+    "type": "video",
+    "id": "bxIV_itPWkU",
+    "title": "The Greatest Mysteries of the Pacific Ocean | Drain the Oceans | MEGA EPISODE | Nat Geo",
+    "channel": "National Geographic",
+    "views": 3972795,
+    "len_s": 13929,
+    "age": "1y ago"
+   },
+   {
+    "type": "video",
+    "id": "Jpy55EgMQgY",
+    "title": "What if you drained the oceans?",
+    "channel": "xkcd's What If?",
+    "views": 3238299,
+    "len_s": 210,
+    "age": "2y ago"
+   },
+   {
+    "type": "video",
+    "id": "fJ2ZKVAs8Oc",
+    "title": "Pacific War Wrecks (Full Episode) | Drain the Oceans | National Geographic",
+    "channel": "National Geographic",
+    "views": 2467497,
+    "len_s": 2843,
+    "age": "1y ago"
+   },
+   {
+    "type": "video",
+    "id": "mPWMu_l32lU",
+    "title": "Ultimate Battleships (Full Episode) | Drain the Oceans",
+    "channel": "National Geographic",
+    "views": 2148297,
+    "len_s": 2843,
+    "age": "3y ago"
+   },
+   {
+    "type": "video",
+    "id": "cCnmKkCLDRM",
+    "title": "Underwater Myths & Legends Uncovered: Drain the Oceans | MEGA EPISODE | National Geographic",
+    "channel": "National Geographic",
+    "views": 2138349,
+    "len_s": 10932,
+    "age": "1y ago"
+   },
+   {
+    "type": "video",
+    "id": "1GwOx7HhZgY",
+    "title": "Largest Thermonuclear Bomb (Full Episode) | Drain the Oceans | National Geographic",
+    "channel": "National Geographic",
+    "views": 1010080,
+    "len_s": 2830,
+    "age": "1y ago"
+   },
+   {
+    "type": "video",
+    "id": "wn3IDjSmZio",
+    "title": "World War II: Attack on Pearl Harbor (Full Episode) | Drain the Oceans | Nat Geo",
+    "channel": "National Geographic",
+    "views": 798336,
+    "len_s": 2657,
+    "age": "1y ago"
+   },
+   {
+    "type": "video",
+    "id": "ohgAAU4Ki04",
+    "title": "Drain the Oceans: Secrets of American History | MEGA EPISODE | National Geographic",
+    "channel": "National Geographic",
+    "views": 765523,
+    "len_s": 15875,
+    "age": "1y ago"
+   },
+   {
+    "type": "video",
+    "id": "dqoqnJPGxA0",
+    "title": "Lost Nukes of the Cold War (Full Episode) | Drain the Oceans",
+    "channel": "National Geographic",
+    "views": 711985,
+    "len_s": 2843,
+    "age": "2y ago"
+   },
+   {
+    "type": "video",
+    "id": "HvOf2ntOr3U",
+    "title": "Villains of the Underworld: Secrets of the Ocean Floor (Full Episode) | Drain the Oceans",
+    "channel": "National Geographic",
+    "views": 535124,
+    "len_s": 2665,
+    "age": "3y ago"
+   },
+   {
+    "type": "video",
+    "id": "3mHiPV8A2NA",
+    "title": "Unearthing Secrets of the Past (Full Episode) | Drain the Oceans | National Geographic",
+    "channel": "National Geographic",
+    "views": 306067,
+    "len_s": 2658,
+    "age": "3mo ago"
+   },
+   {
+    "type": "video",
+    "id": "ypSbAOKsjnk",
+    "title": "What Would the Pacific Ocean Look Like Without Water?",
+    "channel": "Origins of Everyday Things",
+    "views": 171463,
+    "len_s": 476,
+    "age": "7mo ago"
+   },
+   {
+    "type": "video",
+    "id": "YIXnHpSRGP4",
+    "title": "What the Pacific Ocean Looks Like Drained?",
+    "channel": "Unseen Works",
+    "views": 120512,
+    "len_s": 979,
+    "age": "4d ago"
+   },
+   {
+    "type": "video",
+    "id": "ExXDVpDpgLk",
+    "title": "If We Drained the Pacific Ocean\u2014The Hidden Graveyard Beneath",
+    "channel": "Bright Side Dark Secrets",
+    "views": 95188,
+    "len_s": 4138,
+    "age": "1y ago"
+   },
+   {
+    "type": "video",
+    "id": "viOn4IV5_A8",
+    "title": "What Lies Beneath the Pacific? (Drain The Oceans)",
+    "channel": "Bright Side Dark Secrets",
+    "views": 55825,
+    "len_s": 5782,
+    "age": "1y ago"
+   }
+  ]
+ },
+ {
+  "summary": {
+   "query": "why you can't travel between hawaii islands",
+   "n_results": 53,
+   "longform_matching": 12,
+   "longform_matching_100k": 2,
+   "max_longform_matching_views": 7068456,
+   "best_short_views": 10000000,
+   "top_any_views": 10584952
+  },
+  "top": [
+   {
+    "type": "video",
+    "id": "hCkndaJW8cg",
+    "title": "Hawaii: Paradise Turned to Hell",
+    "channel": "Tyler Oliveira",
+    "views": 10584952,
+    "len_s": 1972,
+    "age": "2y ago"
+   },
+   {
+    "type": "short",
+    "id": "1cfGaiMXIA4",
+    "title": "7 rules for haoles (foreigners) in Hawaii",
+    "channel": "",
+    "views": 10000000,
+    "len_s": 0,
+    "age": ""
+   },
+   {
+    "type": "video",
+    "id": "34Ojnyi9xLw",
+    "title": "Why You Can't Travel Between Hawaii's Islands by Boat",
+    "channel": "RealLifeLore",
+    "views": 7068456,
+    "len_s": 1484,
+    "age": "1y ago"
+   },
+   {
+    "type": "short",
+    "id": "V53VpHqJyv4",
+    "title": "Why Hawaii\u2019s Islands Aren\u2019t Connected by Boats \ud83d\udea2 Ocean Mystery \ud83c\udf0a",
+    "channel": "",
+    "views": 5400000,
+    "len_s": 0,
+    "age": ""
+   },
+   {
+    "type": "short",
+    "id": "_imcSxSec8Y",
+    "title": "What they DON'T tell you about flying to HAWAII \ud83c\udf3a\ud83d\ude33",
+    "channel": "",
+    "views": 3800000,
+    "len_s": 0,
+    "age": ""
+   },
+   {
+    "type": "video",
+    "id": "pAFdLaW02jw",
+    "title": "The Fight To Take Back Hawaii | Foreign Correspondent",
+    "channel": "ABC News In-depth",
+    "views": 2252610,
+    "len_s": 1790,
+    "age": "4y ago"
+   },
+   {
+    "type": "video",
+    "id": "ai93r8jWNs8",
+    "title": "Why Nobody Uses Boats Between the Hawaiian Islands",
+    "channel": "BRIGHT SIDE",
+    "views": 1288967,
+    "len_s": 543,
+    "age": "1y ago"
+   },
+   {
+    "type": "video",
+    "id": "7pN6mV2nGMA",
+    "title": "Harsh Reality of Living in Hawaii No One Tells You",
+    "channel": "Map Pack",
+    "views": 949166,
+    "len_s": 1691,
+    "age": "1y ago"
+   },
+   {
+    "type": "short",
+    "id": "-xj52a1eXUI",
+    "title": "Why You Can't Visit This Hawaiian Island \ud83e\udd2f",
+    "channel": "",
+    "views": 589000,
+    "len_s": 0,
+    "age": ""
+   },
+   {
+    "type": "short",
+    "id": "ucJcvkTPRvk",
+    "title": "\u274c DON'T GO TO HAWAII UNTIL YOU WATCH THIS... (which island is right for you?!)",
+    "channel": "",
+    "views": 576000,
+    "len_s": 0,
+    "age": ""
+   },
+   {
+    "type": "video",
+    "id": "SJ_YUqkvdeM",
+    "title": "Beyond the Beaches: The Real Hawaii You've Never Seen | 4K Documentary",
+    "channel": "Trace The Globe",
+    "views": 393061,
+    "len_s": 1807,
+    "age": "3mo ago"
+   },
+   {
+    "type": "video",
+    "id": "1HdCTXrLiNI",
+    "title": "Top 10 Things You Should NOT Do in Hawaii - Travel Tips & How To Get Along With The Locals!",
+    "channel": "HawaiianTraveler | Sean Kaleponi ",
+    "views": 382868,
+    "len_s": 1400,
+    "age": "1y ago"
+   },
+   {
+    "type": "video",
+    "id": "z8zLtAJH-Yw",
+    "title": "MAUI Hawaii Travel Guide 2025 | More tips than that other video for THE BEST Maui Vacation",
+    "channel": "The Hawaii Vacation Guide",
+    "views": 325409,
+    "len_s": 1299,
+    "age": "1y ago"
+   },
+   {
+    "type": "video",
+    "id": "ecZ6MRhqKxQ",
+    "title": "Why You\u2019re Really Banned From 90% of Hawaii",
+    "channel": "Map Pack",
+    "views": 255781,
+    "len_s": 1071,
+    "age": "8mo ago"
+   },
+   {
+    "type": "short",
+    "id": "ZPjpFLGVCaU",
+    "title": "Why You Can\u2019t Travel Between Hawaii\u2019s Islands by Boat",
+    "channel": "",
+    "views": 181000,
+    "len_s": 0,
+    "age": ""
+   },
+   {
+    "type": "video",
+    "id": "2FkyhjeguPQ",
+    "title": "Reacting To Why You Can't Travel Between Hawaii's Islands by Boat!",
+    "channel": "NotYourAverageFlight",
+    "views": 173390,
+    "len_s": 1648,
+    "age": "1y ago"
+   },
+   {
+    "type": "short",
+    "id": "ByygzyFPKTQ",
+    "title": "What's The Difference Between Every Hawaiian Island? #geography",
+    "channel": "",
+    "views": 163000,
+    "len_s": 0,
+    "age": ""
+   },
+   {
+    "type": "video",
+    "id": "vgZVwOIEKKs",
+    "title": "We Visited Every Hawaiian Island \u2013 Here\u2019s Which One You Should Choose",
+    "channel": "The Hawaii Vacation Guide",
+    "views": 128523,
+    "len_s": 1248,
+    "age": "10mo ago"
+   },
+   {
+    "type": "video",
+    "id": "fiq_ZfLw2K8",
+    "title": "5 Mistakes When Island Hopping in Hawaii | Plus Tips for Hawaii Inter-Island Travel",
+    "channel": "The Hawaii Vacation Guide",
+    "views": 81133,
+    "len_s": 608,
+    "age": "3y ago"
+   },
+   {
+    "type": "video",
+    "id": "cj7_57QAKtc",
+    "title": "Why We Left Hawaii (and Turned It Into Our Full-Time Job) | Our First Q&A",
+    "channel": "The Hawaii Vacation Guide",
+    "views": 77150,
+    "len_s": 1425,
+    "age": "4w ago"
+   },
+   {
+    "type": "video",
+    "id": "Spx_7EwybCE",
+    "title": "Don't Come to Hawaii vs Reality: What Locals and Visitors Really Think",
+    "channel": "HawaiianTraveler | Sean Kaleponi ",
+    "views": 76195,
+    "len_s": 1500,
+    "age": "1d ago"
+   },
+   {
+    "type": "video",
+    "id": "hSjtvfXKJQk",
+    "title": "Why You Can\u2019t Travel Between the Hawaiian Islands by Boat",
+    "channel": "Mondegeo \ud83c\udf0e",
+    "views": 75143,
+    "len_s": 1237,
+    "age": "1y ago"
+   },
+   {
+    "type": "video",
+    "id": "lzoVhFEPaUU",
+    "title": "Why Nobody Wants to Visit Hawaii Anymore",
+    "channel": "Paul McAllister",
+    "views": 72354,
+    "len_s": 2363,
+    "age": "2mo ago"
+   },
+   {
+    "type": "short",
+    "id": "HjFwkSveR9o",
+    "title": "Which Hawaiian Island Should You Visit",
+    "channel": "",
+    "views": 46000,
+    "len_s": 0,
+    "age": ""
+   },
+   {
+    "type": "video",
+    "id": "i-3FUJOlW1Y",
+    "title": "Why People STAY In Hawaii (It's Not The Beaches)",
+    "channel": "Geo Metrics",
+    "views": 45534,
+    "len_s": 1876,
+    "age": "2mo ago"
+   }
+  ]
+ }
+]

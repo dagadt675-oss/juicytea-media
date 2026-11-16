@@ -1,0 +1,45 @@
+<!doctype html><html><head><meta charset="utf-8">
+<script type="importmap">{"imports":{"three":"/three.module.min.js"}}</script>
+<style>html,body{margin:0;background:#000;overflow:hidden}</style></head><body>
+<script type="module">
+// Lab: any baked terrain region on the HawaiiStage (no text). Regions and their nesting stacks: ep/ep02/data/regions.json
+// (baked by lab/hawaii/tools/region_bake.py from ep/ep02/tools/regions_spec.json; rebuild with ep/ep02/tools/rebuild_regions.sh).
+// Render: node still.cjs --page lab_region.html --q '{"region":"midway"}' --frames 0 --outdir <dir> [--w 1920 --h 1080]
+// Q: {"region": name, "root": "ep/ep02/data", "stack": [names] (override), then any key of the region's 'view' to override it:
+//     "cam":{lon, lat, alt|agl, tLon, tLat, tH, fov, heading, pitch, shiftX, shiftY}, "level": m, "sun":[az,el], "look":"gold|day|warm",
+//     "water":"turq|lagoon|ocean", "vex", "foam", "tub", "line", "lineCol", "landSat", "landGain", "exposure", "sat", "contrast", "lift",
+//     "vignette", "samples", "fog":[dens,bg], "draft":1}
+import * as THREE from 'three';
+import { HawaiiStage } from './lab/hawaii/hterrain.js';
+const P = new URLSearchParams(location.search);
+const W = +P.get('w') || 1920, H = +P.get('h') || 1080;
+const Q = JSON.parse(P.get('q') || '{}');
+const log = (s) => fetch('/log', { method: 'POST', body: String(s) });
+const out = document.createElement('canvas'); out.width = W; out.height = H; document.body.appendChild(out); const ox = out.getContext('2d');
+const root = Q.root || 'ep/ep02/data';
+let S, shot;
+window.ready = (async () => {
+  const idx = await (await fetch(root + '/regions.json')).json();
+  const R = idx.regions[Q.region]; if (!R) throw new Error('unknown region ' + Q.region);
+  shot = Object.assign({}, R.view || {}, Q); if (!shot.cam) shot.cam = R.view?.cam;
+  S = new HawaiiStage(W, H, { samples: shot.draft ? 0 : (shot.samples ?? 4), vex: shot.vex ?? 1.0, fogDens: shot.fog?.[0], fogBg: shot.fog?.[1], stack: shot.stack,
+    heroGrid: shot.draft ? [700, 700] : undefined, skirtGrid: shot.draft ? [450, 340] : undefined });
+  const t0 = performance.now(); await S.loadRegion(root, Q.region);
+  log(`region=${Q.region} stack=${S.meta.stack.join('>')} loaded in ${(performance.now() - t0).toFixed(0)} ms`);
+})();
+window.renderFrame = async (f) => {
+  const t0 = performance.now();
+  S.setLook(shot.look || 'day'); S.setSun(...(shot.sun || [200, 30])); S.setWater(shot.water || 'turq');
+  S.setLevel(shot.level ?? 0);
+  S.set('foamAmt', shot.foam ?? 0); S.set('tubAmt', shot.tub ?? 0); S.set('oldLine', shot.line ?? 0);
+  for (const k of ['ringH', 'tubM', 'lineW', 'landSat', 'landGain', 'reefAmt', 'detail', 'foamPx', 'foamM', 'edgeGlow', 'fresMax', 'seaRelief', 'shadows', 'dbg']) if (shot[k] != null) S.set(k, shot[k]);
+  if (shot.basalt) S.set('basaltCol', new THREE.Vector3(...shot.basalt));
+  if (shot.sed) S.set('sedCol', new THREE.Vector3(...shot.sed));
+  if (shot.lineCol) S.set('lineCol', new THREE.Vector3(...(shot.lineCol === 'cream' ? [1.15, 1.1, 1.0] : shot.lineCol === 'cyan' ? [0.55, 1.6, 1.9] : shot.lineCol)));
+  for (const k of ['exposure', 'sat', 'contrast', 'lift', 'vignette', 'grain']) if (shot[k] != null) S.post(k, shot[k]);
+  S.setCamera(shot.cam);
+  ox.drawImage(S.render(f / 30, f), 0, 0);
+  log(`region=${Q.region} level=${shot.level ?? 0} render ${(performance.now() - t0).toFixed(0)} ms`);
+};
+window.grabBlob = () => new Promise(r => out.toBlob(r, 'image/jpeg', 0.94));
+</script></body></html>

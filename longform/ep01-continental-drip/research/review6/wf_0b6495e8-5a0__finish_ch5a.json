@@ -1,0 +1,254 @@
+{
+ "run": "wf_0b6495e8-5a0",
+ "agent": "a6b59c0807a6b2f8d",
+ "label": "finish ch5a",
+ "result": {
+  "module": "ch5a",
+  "results": [
+   {
+    "id": "S7-1",
+    "status": "fixed",
+    "change": "Done by the previous agent and checked by me on renders. The zipper is now driven by a continuous front, zipF = mono([[M.zip+0.1,0],[M.split,0.25],[M.firstt,0.6],[M.seam,0.85],[M.snap2-0.05,1]]), measured as fractional arc length along the seam (pair spacing is very uneven). The slider rides the front, scales in with E.outBack over 0.25 s and takes its heading from \u00b11.2\u00b0 of seam. Teeth are drawn only beyond the front. The cyan strip and ridge are clipped continuously to the front (new front mode in seamUnder). The pulsing dot sits in the middle of the still-closed part. G/H also got a soft dark plate behind the Ma chip.",
+    "files_lines": "engine/www/ep/ep01/ch5a.js:105-107 (seamCum/idxAt/frontIdx), 203-233 (seamUnder front mode), 154 + 167 (chip back plate), 396-433 (zipF, drawZipper), 435-469 (scenes G/H)",
+    "scene_ranges": [
+     [
+      639.75,
+      646.55
+     ],
+     [
+      646.55,
+      652.55
+     ]
+    ],
+    "evidence": "t_19200.mp4 (previous agent; I re-tiled it): the slider scales in at 640.55-640.8 and moves 1.0-1.8 px/frame. t_19340.mp4: across the G->H cut, then 4-6 px/frame in early H, with no jumps. t2_19470.mp4: 0.4-2.1 px/frame up to the snap at 19550, where it vanishes under the burst. The cyan strip grows behind the slider. No 313/215-px teleports remain."
+   },
+   {
+    "id": "S7-2",
+    "status": "fixed",
+    "change": "Previous agent: a MADAGASCAR index table un-excludes the 217-point Madagascar polygon from EXCL for 171-180 Ma, so it stays in the base land. I moved this into an exported exclSet(Ti, polys) and also applied it to the paper figure's BASE180, so the textbook figure matches the globe (Madagascar between Africa and India).",
+    "files_lines": "engine/www/ep/ep01/ch5a_paleo.js:32-36 (MADAGASCAR, exclSet), 88 (drawBase); ch5a.js:706 (ex180)",
+    "scene_ranges": [
+     [
+      604.37,
+      619.45
+     ],
+     [
+      619.45,
+      623.45
+     ],
+     [
+      628.79,
+      633.6
+     ],
+     [
+      633.6,
+      639.75
+     ],
+     [
+      672.25,
+      682
+     ],
+     [
+      681.55,
+      689.4
+     ]
+    ],
+    "evidence": "Offline: one consistent 217-point polygon at about -47..-45.6 lat, 21 lon in every snapshot 160-180, now drawn at every Ma. t2_18338.mp4: island present in 18347 and 18348; diff 3.49 vs neighbours 3.0-3.3. In the master the diff image shows the island blob vanishing (3.94). t2_19025.mp4: the 19061->19062 diff shows only the counter digit and uniform coastline motion (master spiked to 3.49 as the island popped back). t2_20340.mp4: Madagascar now appears in the paper figure."
+   },
+   {
+    "id": "S7-3",
+    "status": "fixed",
+    "change": "Previous agent: base land (everything except the four tracked plates, Antarctica included) is cross-blended between the two neighbouring integer-Ma snapshots, (1-f)*base(T0) + f*base(T0+1) with 'lighter' compositing, using an LRU cache of 3 base canvases. So it glides instead of ticking at each Ma, and class flips (Madagascar, the NE-Brazil sliver, the West Antarctic block) fade over 1 Ma. I kept this approach; making Antarctica a rotated plate was not needed. My only paleo change is the exclSet refactor, which behaves the same.",
+    "files_lines": "engine/www/ep/ep01/ch5a_paleo.js:72-130 (baseCanvas, drawBase, draw cross-blend)",
+    "scene_ranges": [
+     [
+      604.37,
+      619.45
+     ],
+     [
+      633.6,
+      639.75
+     ],
+     [
+      639.75,
+      652.55
+     ],
+     [
+      652.55,
+      653.85
+     ],
+     [
+      653.85,
+      659.7
+     ],
+     [
+      659.7,
+      664.62
+     ],
+     [
+      664.62,
+      668.4
+     ],
+     [
+      668.4,
+      672.55
+     ],
+     [
+      681.55,
+      689.4
+     ]
+    ],
+    "evidence": "F (t2_19025.mp4): phase correlation on the Antarctica crop gives 0.1-0.6 px per frame; the master jumped (-1,+4) px at 19057 and 19062 and (1.9,2.1) at 19067. The master's +0.6-0.9 diff spikes every 5-6 frames are gone; what remains (+0.2) is the counter digit. J (t2_19612.mp4): 19684/19690/19697/19703 = 0.78/0.77/0.73/0.61 vs master 1.01/1.05/0.94/0.83; the diff image shows only digits and uniform motion. K (t2_19798.mp4): 19804/19814 = 0.47/0.59 vs master 1.27/1.28. M (t2_20048.mp4): the Arabia-crop jumps of (3.1,-2.2) at 20093, (4.0,-3.7) at 20098 and (4.1,-3.9) at 20128 in the master are absent."
+   },
+   {
+    "id": "S7-4",
+    "status": "fixed",
+    "change": "Previous agent: the continental shelf now ramps with the final convergence, shelf = Math.round(12*prog(t, M.gond-0.2, M.gond-0.04, E.in)), instead of switching on in one frame 5 frames before the lock.",
+    "files_lines": "engine/www/ep/ep01/ch5a.js:267",
+    "scene_ranges": [
+     [
+      604.37,
+      619.45
+     ]
+    ],
+    "evidence": "t2_18496.mp4: frame diffs 18503-18509 = 0.12, 0.21, 1.45, 2.96, 4.13, 4.78, then the flash (32.2). The master had a lone 6.74 spike at 18504. Crops show the coasts thickening progressively with the converging pieces into the flash."
+   },
+   {
+    "id": "S7-5",
+    "status": "fixed",
+    "change": "Previous agent: an India-only pull into the impact (explode toward SLAM_C, eased E.in over tM..M.slam), carried through the trail, streaks, speed tag and seam; the clock stops on impact ([M.slam+0.25,43.5],[tN+0.4,43]). Its 2.2\u00b0 pull toward (36N,61E) was not enough: my first render showed India covering only a small island, with the tip and zigzags still in open water. I measured coast_043/044: the Asian mainland (Makran block #651, Lhasa #137) is 4-6\u00b0 from India's tip at 44 Ma. I recomputed the constants: SLAM_C = (32.03N, 50.80E), SLAM_PULL = 6.2\u00b0, IND_HIT = (36.46, 72.89), the tip vertex that makes contact. India's tip now presses 0.24\u00b0 into #651 at 44 Ma and stays 0.16-0.27\u00b0 in through 43 Ma, while every other block stays 2-3\u00b0 clear. I also redrew the crumple marks as parallel ridges with a dark under-stroke, set on the Asian land just beyond the contact (the old rows were out of phase and over water).",
+    "files_lines": "engine/www/ep/ep01/ch5a.js:123-125 (Tfwd clock stop), 586-598 (pull constants and helpers), 600-605/633-636 (tag and trail follow the pull), 666-692 (scene M: pull, rings on IND_HIT, crumple ridges, chip fade)",
+    "scene_ranges": [
+     [
+      668.4,
+      672.55
+     ]
+    ],
+    "evidence": "t2_20048.mp4 (second render) and t2_20090.mp4: India drives into the Asian coast. Its top edge moves 3-5 px/frame, accelerating into the impact at 20105, then holds fixed at 276-278 px from 20118 to 20169 (master: still creeping at 0.55 px/frame). The tip is pressed into the coast, the rings are centred on the contact, the crumple ridges sit on land, and the clock stops at 44->43. Offline (slam6/slam7.mjs): India's signed gap to #651 is -0.24\u00b0 at 44 Ma, -0.16..-0.21\u00b0 at 43.5 Ma and -0.27\u00b0 at 43 Ma."
+   },
+   {
+    "id": "S7-6",
+    "status": "fixed",
+    "change": "Previous agent: the drift now runs from tO+0.45 (after the dissolve) to 'orientation'+0.6 (682.00-684.95, 2.95 s, inOutSine) instead of about 1.1 s. The look morph, TODAY and the Antarctica fade follow it, and the number fades out before TODAY fades in. I added the missing 'orientation in motion': each tip carries a marker (with a dark/white backing over the bright paleo plates) and lays its dotted path down behind it as it drifts (tipTrail: smoothed path from the 180-Ma end to T, joined to the true tip). At TODAY the trail is exactly the full path, which then stays up through 'still aim back to where they tore away'. The dots are anchored at the 180-Ma end, so they don't crawl. drawPaths is shared with P, so O and P match.",
+    "files_lines": "engine/www/ep/ep01/ch5a.js:786-789 (tD0/tD1/TO), 791-829 (tipTrail, drawPaths), 849-857 (scene O: drawPaths with T and mark, chip/TODAY)",
+    "scene_ranges": [
+     [
+      681.55,
+      689.4
+     ],
+     [
+      689.4,
+      694.13
+     ]
+    ],
+    "evidence": "t2_20440.mp4: counter reads 180,173,158,136,110,81,54,30,12,2 at 0.3-s steps; 145->54 Ma now takes about 1.0 s instead of 0.3 s. Frame 20503 shows clear markers on Cape Horn, Agulhas and Kanyakumari with their trails. Chip crops: the ink 180 is gone before the globe 180 appears; 4, 2, 1, 0 fade out before TODAY (685.00), with no overlap. t2_20596.mp4: complete paths with the aim arrows on 'aim' (687.0). t2_20750.mp4: the scars still convert correctly."
+   },
+   {
+    "id": "S7-7",
+    "status": "fixed",
+    "change": "Previous agent: scene P's ripple uses the same phase as O (drawRing(..., M.aim-0.05)), and camP evaluates camAt with scene O's time origin, so the heading drift and altitude breathing run on across the invisible cut. With my change the dotted paths are also drawn identically on both sides.",
+    "files_lines": "engine/www/ep/ep01/ch5a.js:785 (camP), 866 (drawRing in P)",
+    "scene_ranges": [
+     [
+      689.4,
+      694.13
+     ]
+    ],
+    "evidence": "t2_20670.mp4: the diff at 20682 is 0.33 vs 0.29-0.34 for its neighbours (master 2.28). Phase correlation is 0.0 px across the cut. The amplified diff shows the ripples advancing normally (no reset) and no dash or outline jump."
+   },
+   {
+    "id": "S7-8",
+    "status": "fixed",
+    "change": "Previous agent: the seamUnder alpha (ga) and the new-ocean glow (na) now start at the word 'ocean' (tOcean-0.1 = 635.81). Africa's highlight stays on 'Africa'.",
+    "files_lines": "engine/www/ep/ep01/ch5a.js:366-383",
+    "scene_ranges": [
+     [
+      633.6,
+      639.75
+     ]
+    ],
+    "evidence": "Offline: the Africa-Antarctica seam is fully open (30/30 pairs) from T=168 at 635.81, so the strip can show. t2_19025.mp4: the cyan glow appears at 19078 (635.93; 'ocean' is at 635.91), the strip is visible by 19090 and grows, and Africa lights up at 19132 (637.73)."
+   },
+   {
+    "id": "S7-9",
+    "status": "fixed",
+    "change": "Previous agent: the paper figure's tip markers pop on 'pointy' (tPointy-0.12, staggered 0.1 s), and their dotted lines grow toward the ring until M.ant2+0.3 ('...close to Antarctica').",
+    "files_lines": "engine/www/ep/ep01/ch5a.js:716, 762-773",
+    "scene_ranges": [
+     [
+      672.25,
+      682
+     ]
+    ],
+    "evidence": "t2_20340.mp4: no markers at 20344 (678.13); all three at 20353 (678.43; 'pointy' is at 678.35). The dashed lines reach about 85% of the way to the ring by 680.2-680.5."
+   },
+   {
+    "id": "S7-10",
+    "status": "fixed",
+    "change": "Previous agent: the edge-on ShadowMaterial floor is hidden and replaced by a soft 2D contact shadow under the boots. Each frame, the cabin's roll and height are fitted to the projected limb of the globe (computed from the silhouette circle), so its base follows the curve.",
+    "files_lines": "engine/www/ep/ep01/ch5a.js:495, 554-572",
+    "scene_ranges": [
+     [
+      653.85,
+      659.7
+     ]
+    ],
+    "evidence": "t2_19612.mp4 and t2_19765.mp4 (19612-19795): no dark sliver at boot level. The cabin base runs parallel to the limb, both corners 8-17 px inside it and never hovering, through the end of the shot (porch light included). A soft shadow sits under the boots."
+   },
+   {
+    "id": "SYN-19",
+    "status": "fixed",
+    "change": "The '10:34.43 one-frame coastline jump' (f19033) is the crack shake: shakeAt's 91 rad/s reverses direction on every frame at 30 fps for 6 frames (strategist note: it reads as a render hiccup). For 'Cracks open' only, a new rumbleAt gives a ~4 Hz sway (7 frames per cycle) that decays over about half a second (0.8 s window). Amplitude, cue and timing are unchanged; the other designed shakes are untouched.",
+    "files_lines": "engine/www/ep/ep01/ch5a.js:147-149 (rumbleAt), 374 (scene F)",
+    "scene_ranges": [
+     [
+      633.6,
+      639.75
+     ]
+    ],
+    "evidence": "Phase correlation of the master, 19030-19035: (-10,13),(15,-11),(-10,-3),(6.5,11),(-4,-11),(2,6), flipping every frame. t2_19025.mp4: (-3,4),(-9,4),(4,-4),(8,-5),(6,-3),(0,0),(-4,2),(-5,3),(-3,3),(1,1),(3,0)..., reversing every 2-3 frames and decaying below 1 px by 19046. There is no isolated frame at 19033."
+   },
+   {
+    "id": "SYN-4",
+    "status": "fixed",
+    "change": "Optional effort-M redesign of 11:12-11:33. I did the contained parts: tips and dashed lines on 'pointy' (S7-9); a static 180 on the paper figure instead of the extra 43->180 counter roll (the existing rewind sound now accompanies the cut into the figure); counters that never double-expose (M->N and N->O dissolves, number->TODAY); a drift slowed to about 3 s with tip markers and paths laid during the move (S7-6); landing on the finished TODAY globe with dotted lines during 'still aim back...' and holding through the scars. Not done, deliberately: the hard cut instead of the 0.45-s dissolve (the S7 reviewer lists that dissolve as intended, and it no longer double-exposes), and a 6-s ease-out drift (it would still be running at 'aim' (686.91), where the aim arrows need complete paths).",
+    "files_lines": "engine/www/ep/ep01/ch5a.js:716, 762-776 (scene N tips and static ink chip), 786-857 (scene O drift, trails, chip)",
+    "scene_ranges": [
+     [
+      672.25,
+      682
+     ],
+     [
+      681.55,
+      689.4
+     ],
+     [
+      689.4,
+      694.13
+     ]
+    ],
+    "evidence": "t2_20160.mp4: the globe 43 fades out (672.20-672.40), then a static ink 180 fades in (672.50) with no roll and no overlap. t2_20340.mp4: tips on 'pointy'. t2_20440.mp4: drift with tip markers and trails, clean chip handoffs. t2_20596.mp4 and t2_20670.mp4: complete paths and aim arrows held into P. t2_20750.mp4: the scars still work."
+   },
+   {
+    "id": "SYN-10",
+    "status": "not_a_defect",
+    "change": "No change in ch5a. The plan removes the counter from the flat-map slider (9:58.6-10:04.4, module ch4) and the '62 Ma' counter at 8:22.5 (also outside ch5a), so that the ch5a globe count (10:07-10:16) is the only 0->180 count. That ch5a count is what the plan keeps.",
+    "files_lines": "none",
+    "scene_ranges": [],
+    "evidence": "modules.json: ch5a starts at 604.37 s, so both counters the plan removes belong to earlier modules. Scene A's chip (Tasm 0->180 from 605.32) is the count the plan keeps."
+   }
+  ],
+  "changed_ranges": [
+   [
+    604.37,
+    623.45
+   ],
+   [
+    628.79,
+    694.13
+   ]
+  ],
+  "shared_changes_needed": "None. All edits are in engine/www/ep/ep01/ch5a.js and ch5a_paleo.js.",
+  "notes": "All ten reported findings (S7-1 to S7-10) and SYN-19 are fixed and proven on test renders I looked at. SYN-4 is done in part (two sub-items deliberately skipped, reasons in its entry); SYN-10 needs no ch5a change.\n\n**Previous agent's work.** Its edits for S7-1, S7-2, S7-3, S7-4, S7-6 (retime only), S7-7, S7-8, S7-9 and S7-10 were complete and correct. Only its G-scene zipper had been checked on a render, so I verified the rest on renders.\n\n**Repaired.** Its slam fix (S7-5) did not work: the 2.2\u00b0 pull only covered a small island, so India still stopped in open water and the crumple marks floated over water. I recomputed the pull from the coast data (6.2\u00b0 toward 32.03N 50.80E). India's tip now presses into the Asian coast and stops, with the crumple marks redrawn on the land.\n\n**Added by me.**\n- S7-6: the tips now lay their paths down during the drift.\n- SYN-19: a decaying rumble replaces the per-frame crack jitter at f19033.\n- Madagascar now also appears in the paper figure, through a shared exclSet().\n- A static 180 on the paper figure (part of SYN-4).\n- The unused EXCL import is removed.\n\n**Re-render.** Only scene D (623.45-628.79, the Bacon insert) cannot change. Every other ch5a scene changes, so chunks 40-46 (frames 18000-21149) all need re-rendering.\n\n**Render command.** `\"only\":5` matches no module, because the ids are ch5a and ch5b (edit.js compares against \"5\" and \"ch5\"). That run would render background only. All my test renders used `\"only\":\"5a\"`.\n\n**Test renders.** All are in scratchpad/review6/fix_ch5a/ as t2_FRAME.mp4, with logs t2_FRAME.log; every one exited 0 and no scene errors were logged:\n- 18338 (20 frames), 18496 (20)\n- 19025 (150), 19470 (111)\n- 19612 (100), 19765 (31), 19798 (20)\n- 20048 (150), 20090 (40), 20098 (60), 20160 (45)\n- 20340 (80), 20440 (150), 20596 (24), 20670 (30), 20750 (40)\n\nThe last one, t2_20160 (20160-20204), exited 0. No render is left running."
+ }
+}

@@ -1,0 +1,6 @@
+[
+ {"file": "img/ch6_bacon_n246.jpg", "title": "Francis Bacon, Instauratio Magna / Novum Organum (London, 1620), Lib. II, p. 239 (same page as ch1_bacon_n246.jpg)", "url": "https://archive.org/download/instauratiomagna00baco/page/n246_w1600.jpg", "license": "Public domain (published 1620)"},
+ {"file": "img/bacon.jpg", "title": "Paul van Somer, Portrait of Francis Bacon (1617)", "url": "assets/pd/bacon.jpg (engine public-domain set)", "license": "Public domain (PD-Art / PD-old-100)"},
+ {"file": "tex/equal_earth.jpg, tex/day_8k.jpg", "title": "NASA Blue Marble imagery (engine textures)", "url": "engine textures", "license": "Public domain (NASA)"},
+ {"file": "paleo/coast_*.json, paleo/tracks.json", "title": "Simplified GPlates/EarthByte (Mueller et al. 2019) reconstructions, engine data", "url": "engine data", "license": "per engine data notes"}
+]

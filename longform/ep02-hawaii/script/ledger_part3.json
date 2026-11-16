@@ -1,0 +1,403 @@
+{
+ "part": 3,
+ "checker": "fact-checker #3",
+ "scope": "Chapters 5-6 (brief 8:00-12:45): Midway, Darwin, albatrosses, the AF decoy, carriers and wrecks, Kure and the Darwin Point, the Emperor seamounts, Kamaʻehuakanaloa, the crustal dent, Mauna Loa's 56,000 ft, the Hōlei Sea Arch",
+ "date": "2026-11-08",
+ "closes_brief_verify": {
+  "14 (AF is short of water)": "CLOSED with fixes: C5-11 (it was May, uncoded radio after a cable order, 'confirmed' not 'discovered')",
+  "17 (Midway albatross colony + gooney birds)": "CLOSED: colony verified (C5-08); nickname origin undocumented, wording fixed (C5-09)",
+  "niche 5.2.6 (Hōlei Sea Arch)": "VERIFIED real (C6-10); date corrected to 23-27 Sept 2026"
+ },
+ "brief_fixes": [
+  "fact 11: 157 m / 384 m are depths to basalt below the drill rig (Reef hole includes about 170 ft of clays), not reef-cap thickness (C5-03)",
+  "8:15 'Darwin guessed this in 1842': first presented 1837, published 1842; prefer the numberless 'he worked it out before he had seen a true coral reef' (C5-04); Darwin never knew Midway (sighted 1859)",
+  "8:15 'A drill here proved the volcano is down there': OK only as 'a drill here hit the volcano'; the first proof of Darwin's idea was Enewetak 1952 (C5-06)",
+  "fact 17 / 8:00 gag: 'clumsy landings earned them the WWII nickname' is undocumented; say 'On Midway they're known as gooney birds' over a tumble landing (C5-09)",
+  "8:45 'the most important spot in the Pacific' is opinion; use 'the battle that turned the war in the Pacific was fought over this sunken volcano' (C5-10)",
+  "8:45 decoy: happened in MAY 1942 ('weeks before the battle'); 'out of fresh water' -> 'fresh-water plant has broken down'; 'confirmed', not 'revealed' (C5-11)",
+  "'four Japanese carriers sunk' -> 'all four carriers in its strike force' (Japan had others) (C5-12)",
+  "fact 15 wrecks: depth 'more than three miles down' for all three; distances 172-189 mi are computed from 1942 sinking positions (no source states them; markers approximate); 'deep ocean floor', not 'flat abyssal plain' (C5-14, C5-15)",
+  "fact 13: drop 'northernmost' world superlatives for Kure (Bermuda reefs at 32 N); 6,100 km (USGS) is the whole Hawaiian-Emperor chain; at Kure the reef 'barely keeps up', beyond it the islands drowned (C5-17a/b, C5-18)",
+  "10:10 'that's the Big Island's future' -> 'that's where the Big Island is headed' (C5-19)",
+  "10:15 'The next Hawaiian island is already erupting' is FALSE (last eruption thought 1996; Aug 2026 M5.2 swarm, no eruption) (C6-02a/b); render an elongated ridge, not a cone (C6-01)",
+  "10:45 'Remember that ring of deep water?' -> 'that deep trench at its feet' (checker #2 C3-05) (C6-04)",
+  "11:10 counter must read 'ABOUT 56,000 FT' + 'FROM ITS TRUE BASE'; say 'true base' (USGS), not 'real base' (C6-06)",
+  "12:15 final line: 'Every beach and every postcard of Hawaii' is false (Oʻahu etc. are other volcanoes; Oʻahu may be rising); scope to the Big Island (C6-09a/b)",
+  "niche report: Hōlei Sea Arch fell 23-27 Sept 2026 (NPS, confirmed 1 Oct), not 'Oct 2'; no stated cause; never link it to subsidence (C6-10)",
+  "Ch5 number density: 28 million + 1842 + June 1942 + four in about 55 s breaks the 2-per-60-s cap (C6-11)"
+ ],
+ "computations": {
+  "great_circle_from_sand_island_28.208N_177.38W": {
+   "Yorktown_1942_sinking_30.5997N_176.5678W": "277 km / 172 mi",
+   "Akagi_1942_sinking_30.5N_178.667W": "284 km / 176 mi",
+   "Kaga_1942_sinking_30.383N_179.283W": "304 km / 189 mi",
+   "Honolulu_21.307N_157.858W": "2,112 km / 1,312 mi"
+  },
+  "maunaloa_true_relief_m": "4,170 + 5,000 + 8,000 = 17,170 (USGS); /8,849 = 1.94",
+  "everest_on_true_base_summit_m": "-13,000 + 8,849 = -4,151 (about 13,600 ft below sea level)"
+ },
+ "downloads": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/factcheck3/dl/ (PP 680-A text a.txt, FWS 1955 release, NA154 summary, HVO 2026 notices)",
+ "out_of_scope_noted": [
+  "Pronunciation of Kamaʻehuakanaloa, Kure/Hōlanikū, Hōlei, Papahānaumokuākea, Kuaihelani (Midway): lexicon pass still needed",
+  "NHHC pages (history.navy.mil) returned 503 to the fetch tool on 2026-11-08; the Parker and H-Gram wording above comes from search-indexed text of those pages plus Smithsonian and Wikipedia; re-open them in a browser before quoting on screen"
+ ],
+ "facts": [
+  {
+   "id": "C5-01-midway-age",
+   "claim": "Under this ring of reef lies a volcano about twenty-eight million years old.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.fws.gov/refuge/midway-atoll/about-us",
+    "https://www.usgs.gov/publications/revised-age-midway-volcano-hawaiian-volcanic-chain"
+   ],
+   "notes": "USFWS: 'The atoll, which is 28.7 million years old'. USGS (Dalrymple, Clague & Lanphere 1977): alkalic basalt pebbles from the Midway drill hole show Midway 'erupted lavas of the alkalic suite' 27.0 +/- 0.6 m.y. ago, i.e. late-stage lavas; the shield is a little older. NOAA Ocean Explorer and UH SOEST also say about 28 million years. So 'about 28 million' is safe; never '28.7' or a bare '28 MILLION YEARS' on screen: use 'ABOUT 28 MILLION YEARS' (or a 2-word kicker 'ABOUT' / 'VOLCANO AGE'). The age belongs to the VOLCANO, not the coral: the reef cap is Miocene and younger (USGS PP 680-A), so never 'this reef is 28 million years old'. Hero number #3; it counts as a spoken number."
+  },
+  {
+   "id": "C5-02-atoll-formation",
+   "claim": "As the volcano sank, the reef on top kept growing upward. What's left is a ring of reef sitting on a drowned volcano.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/observatories/hvo/evolution-hawaiian-volcanoes",
+    "https://pubs.usgs.gov/pp/0680a/report.pdf"
+   ],
+   "notes": "USGS HVO: 'As the volcanoes erode and islands subside, they become coral atolls'; 'These coral reefs begin to die as they sink below water depths with enough sunlight'. USGS PP 680-A abstract: the volcanic mound was 'partly truncated by wave action', then 'subsidence began' and clays 'were covered by reef limestones'; submergence 'was interrupted three or more times by emergence'. So do not say it sank 'steadily' or 'nonstop'. Say 'reef' or 'coral reef rock', not pure 'coral' (it is limestone built by corals and other organisms). Do NOT explain why the reef is a RING: the sinking-foundation part is solid, the ring-shape mechanism is debated (see C5-07)."
+  },
+  {
+   "id": "C5-03-midway-drill",
+   "claim": "Drills here went down through hundreds of feet of reef rock, and hit the volcano.",
+   "status": "verified",
+   "sources": [
+    "https://pubs.usgs.gov/pp/0680a/report.pdf",
+    "https://www.usgs.gov/publications/drilling-midway-atoll-hawaii"
+   ],
+   "notes": "USGS PP 680-A (Ladd, Tracey & Gross 1970), verbatim: 'Two holes were drilled during the summer of 1965'; 'The first hole, on Sand Island, entered basalt at a depth of 516 feet' (157 m); the 'Reef hole', drilled from a barge at the north edge of the lagoon, 'entered basalt at a depth of 1,261 feet' (384 m) and went on to 1,654 ft. Depths are from the rig's rotary table, 16.5 ft (Sand Island) and 10.5 ft (Reef) above datum. In the Reef hole about 170 ft of 'reworked volcanic clays' lie on the basalt, so its reef limestone is roughly 1,075 ft. BRIEF FIX (fact 11): 157 m and 384 m are DEPTHS TO BASALT, not 'reef cap thickness' (the Reef-hole figure includes the clays). Cut-away: basalt top about 515 ft under Sand Island, deepening to about 1,250 ft under the north lagoon rim; a thin clay band on the basalt is optional. Safe sizes: 'hundreds of feet' everywhere; 'more than a thousand feet under the lagoon's edge' is also true. If the year is spoken ('In 1965') it counts as a number. Never say this drill 'first proved Darwin right' (that was Enewetak in 1952, C5-06)."
+  },
+  {
+   "id": "C5-04-darwin-idea",
+   "claim": "Charles Darwin said he worked this out before he had ever seen a true coral reef. He never came here.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.darwinproject.ac.uk/darwin-coral-reefs",
+    "https://pubs.usgs.gov/pp/0680a/report.pdf",
+    "https://www.fws.gov/story/midway-atoll-you-might-not-know"
+   ],
+   "notes": "Darwin Correspondence Project: Darwin read his coral paper to the Geological Society in May 1837; 'The Structure and Distribution of Coral Reefs' (1842) is his fullest statement; Autobiography pp. 98-9: 'the whole theory was thought out on the west coast of S. America before I had seen a true coral reef.' The DCP notes no South American field note shows the theory 'thought out', so attribute it ('Darwin said...'). PP 680-A: 'Darwin had not visited the area.' Midway itself was first sighted by Captain N.C. Brooks in 1859 (USFWS), 17 years after the book, so Darwin never wrote about Midway: present his idea as a general one about sinking islands. BRIEF FIX (8:15 'Charles Darwin guessed this in 1842'): if a date is used, 'In 1842, Charles Darwin published the idea'; but 1842 + '28 million' + 'June 1942' + 'four' land within about 60 s, which breaks the cap of 2 spoken numbers per 60 s, so prefer the numberless line above. Darwin's theory was about sinking ISLANDS (their foundations), so 'a sinking island' is safer than 'a sunken volcano' when quoting his idea. Show his 1842 woodcut diagram (public domain) with motion, never a portrait."
+  },
+  {
+   "id": "C5-05-darwin-kure-blue",
+   "claim": "Darwin never saw these islands. But on his reef map, he coloured Kure blue: a reef on sinking ground.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://pubs.usgs.gov/pp/0680a/report.pdf",
+    "https://www.darwinproject.ac.uk/darwin-coral-reefs"
+   ],
+   "notes": "OPTIONAL callback for the Kure / Darwin Point beat (9:55). PP 680-A p. A1: Couthouy's description of Kure (then 'Ocean Island') 'led Darwin to color Kure blue on his reef map, thus indicating subsidence; on the same map Darwin colored the larger Hawaiian (Sandwich) Islands red to indicate emergence.' On Darwin's 1842 map blue marks atolls and barrier reefs (sinking areas) and red marks fringing reefs. Use the public-domain scan of Darwin's 1842 map cropped to 5 words or fewer, or tell it on our own map; never fake an 'old map'. Do not claim Midway is on his map (it was unknown until 1859)."
+  },
+  {
+   "id": "C5-06-drill-proof",
+   "claim": "Darwin didn't live to see it, but in the twentieth century drills finally reached the sunken islands under atolls, just as he had predicted.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://darwin-online.org.uk/converted/Ancillary/1982_Rosen_A320.html",
+    "https://www.darwinproject.ac.uk/darwin-coral-reefs",
+    "https://pubs.usgs.gov/pp/0680a/report.pdf"
+   ],
+   "notes": "Rosen 1982 (BioScience, on Darwin Online): the US Atomic Energy Commission's 1952 hole E-1 at Eniwetak (Enewetak, Marshall Islands) 'first proved Darwin's subsidence beneath an atoll'; 'the celebrated Eniwetak boreholes of 1952' were 'the first atoll drillings to successfully reach volcanic foundations'. DCP: 'test borings in the Marshall Islands confirmed' it, ending a controversy 'until the 1950s'. Darwin died in 1882. Midway's own 1965 holes (C5-03) then reached basalt under the Hawaiian chain's atoll. BRIEF FIX (8:15 'A drill here proved the volcano is down there'): true only as 'a drill here hit the volcano'; never 'the drill here proved Darwin right' or 'first proof'. Optional line, not required."
+  },
+  {
+   "id": "C5-07-ring-shape",
+   "claim": "DISPUTED WORDING: 'Darwin explained why atolls are rings.' / 'That's why it's a ring.'",
+   "status": "disputed",
+   "sources": [
+    "https://darwin-online.org.uk/converted/Ancillary/1982_Rosen_A320.html",
+    "https://en.wikipedia.org/wiki/Atoll"
+   ],
+   "notes": "Brief fact 12 already warns. Even the drilling team (Ladd) said Bikini and Enewetak had undergone 'Darwinian subsidence' but did not appear to have passed through the fringing-reef and barrier-reef stages Darwin postulated (Rosen 1982). Other models (sea-level-driven karst shaping) are debated. Say only that the reef sits on a drowned volcano (C5-02, C5-03)."
+  },
+  {
+   "id": "C5-08-albatross-colony",
+   "claim": "Midway has the biggest albatross colony on Earth. Most of the world's Laysan albatrosses nest here.",
+   "status": "verified",
+   "sources": [
+    "https://www.fws.gov/story/2017-11/midways-albatross-new-threat-puts-worlds-largest-colony-risk",
+    "https://www.fws.gov/refuge/midway-atoll/about-us",
+    "https://www.smithsonianmag.com/science-nature/where-the-gooney-birds-are-50427690/"
+   ],
+   "notes": "Closes brief VERIFY 17 (colony part). USFWS: Midway 'is home to the largest albatross colony in the world'; 'over 70% of the world's Laysan albatross population' returns to breed. USFWS refuge page: 'the world's largest population of albatrosses'. Smithsonian: '400,000 nesting pairs represent 70 percent of the world's Laysan population'. Bird totals vary by source and year (about 1-3 million birds of all species), so speak no count. Reserve-joke warning: Wisdom (oldest known wild bird) did NOT lay an egg in the 2025/26 season per USFWS via ACAP (Jan 2026), and her 2026/27 status was unknown on 29 Oct 2026, so do not use her as a current fact."
+  },
+  {
+   "id": "C5-09-gooney-landing",
+   "claim": "In the air, they're graceful. Landing is another story. On Midway, they're known as gooney birds.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.fws.gov/sites/default/files/documents/historic-news-releases/1955/19550213.PDF",
+    "https://www.audubon.org/magazine/seventy-never-looked-so-good-long-wondrous-life-of-wisdom-albatross",
+    "https://www.islandconservation.org/?p=5677",
+    "https://archives.starbulletin.com/2002/06/24/news/story12.html"
+   ],
+   "notes": "Closes brief VERIFY 17 (nickname part) WITH A FIX. The military-era use is documented: USFWS release of 13 Feb 1955, 'The gooney birds of Midway', on hazards to military aircraft ('black-footed and Laysan albatrosses (gooney birds)'); Audubon: a 'collective nickname for the albatross masses' around Midway's naval air station. Clumsy landings are documented: Island Conservation, 'In the absence of the braking effort of a strong wind, landing birds may occasionally tumble on landing.' But the ORIGIN of the name is not documented: the Honolulu Star-Bulletin (2002) says nobody knows who coined it, sailors used 'goney' for albatrosses in the 19th century, and only magazine prose (NWF 2000) ties it to the landings. So never say 'their landings earned them the nickname' or 'the WWII nickname'. 'The troops here called them gooney birds' is supportable but weaker; prefer the line above. Animate a believable tumble (wings out, forward roll, light wind), on the real terrain at 35-40% frame height."
+  },
+  {
+   "id": "C5-10-battle-turning-point",
+   "claim": "In June 1942, the battle that turned the war in the Pacific was fought over this sunken volcano.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.fws.gov/refuge/midway-atoll/about-us",
+    "https://en.wikipedia.org/wiki/Battle_of_Midway"
+   ],
+   "notes": "USFWS: 'The Battle of Midway was a major turning point in the Pacific Theater during World War II', fought June 4-7, 1942 (Wikipedia: 4-7 June 1942; Smithsonian says 3-7 June, counting the first air attacks). BRIEF FIX (8:45 'the most important spot in the Pacific'): that is opinion; use 'turned the war' / 'a turning point'. Say 'fought over' (Midway was Japan's invasion target and was bombed), not 'fought on': the carrier fight happened at sea, far from the atoll. 'June 1942' counts as a spoken number."
+  },
+  {
+   "id": "C5-11-af-water-decoy",
+   "claim": "Weeks before the battle, American codebreakers had Midway send an uncoded radio message: our fresh-water plant has broken down. Then Japan's own coded report passed it along: AF is short of water. AF was Midway.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.history.navy.mil/research/library/online-reading-room/title-list-alphabetically/p/priceless-advantage-by-fdparker.html",
+    "https://www.history.navy.mil/about-us/leadership/director/directors-corner/h-grams/h-gram-006/h-006-2.html",
+    "https://www.smithsonianmag.com/history/true-story-battle-midway-180973516/",
+    "https://en.wikipedia.org/wiki/Battle_of_Midway",
+    "https://en.wikipedia.org/wiki/Joseph_Rochefort",
+    "https://stationhypo.com/2025/06/06/how-codebreakers-helped-secure-u-s-victory-in-the-battle-of-midway/"
+   ],
+   "notes": "Closes brief VERIFY 14 WITH FIXES. Agreed by every account found: Station HYPO (idea credited to Jasper Holmes; do not name, people cap) had Midway, ordered over the secure undersea cable so Japan could not hear the order, radio an UNCODED message that its fresh-water equipment had failed; a Japanese intelligence report then said AF was short of water, which Allied codebreakers decrypted, confirming AF = Midway. Smithsonian: the plea went out on May 20, 1942. Wikipedia (Battle of Midway; Joseph Rochefort, citing Layton pp. 421-2 and Holmes, Double-Edged Secrets): 'secure undersea communications cable', 'uncoded' / 'plain-language' request; FRUMEL Melbourne relayed the decrypt with 'This will confirm identity of AF.' Station HYPO site (citing historian Craig Symonds): Midway reported 'that the salt-water evaporators on the base had broken down'; 'Rochefort did it to help convince Washington'. Parker's NSA history (as indexed by search; the NHHC copy returned 503 on 2026-11-08) words it as a message 'in the clear' that the 'water distillation plant had suffered serious damage', followed by an intercepted report that 'AF is short of water'. The breakdown is variously an evaporator, distillation plant or desalination failure, so say 'fresh-water plant'. FIXES: (1) It happened in MAY, so the line must say 'Weeks before the battle' (the brief's 'In June 1942...' followed by the decoy implies June). (2) Not 'we're out of fresh water': the message reported broken equipment and a short supply ('only enough water for two weeks' in one version); 'running short of fresh water' is OK. (3) Say 'confirmed', never 'this is how America found out the target': HYPO already believed AF = Midway, and the ruse was mainly to convince Washington (OP-20-G). (4) Quote marks only around 'AF is short of water', the standard translation; never put Midway's own message in quotes on screen (accounts differ). Re-open the NHHC pages in a browser before showing any verbatim quote. Story humour is fine here (no one has died yet); no gag once the battle starts."
+  },
+  {
+   "id": "C5-12-carriers-sunk",
+   "claim": "Japan lost all four carriers in its strike force. America lost the carrier Yorktown.",
+   "status": "verified",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Battle_of_Midway",
+    "https://www.smithsonianmag.com/history/true-story-battle-midway-180973516/",
+    "https://www.fws.gov/refuge/midway-atoll/about-us"
+   ],
+   "notes": "'All four Japanese fleet carriers present at the battle' sank: Akagi, Kaga, Sōryū, Hiryū (plus the heavy cruiser Mikuma). The US lost Yorktown and the destroyer Hammann. Yorktown was crippled on 4 June and sank on 7 June 1942 after torpedoes from the submarine I-168. Never 'Japan lost all its carriers' (it had others elsewhere; USFWS says 'two thirds'). Speak no casualty numbers (about 3,057 Japanese and 307 US dead per Wikipedia; sources vary). Number cap: 'four' is a spoken number; numberless option: 'Japan's whole carrier strike force went down.' NHHC Yorktown photo [PD]: check each catalog entry's credit line (some NHHC images are donated, not Navy-made)."
+  },
+  {
+   "id": "C5-13-wrecks-found",
+   "claim": "Three of those wrecks have been found: Yorktown, Kaga and Akagi.",
+   "status": "verified",
+   "sources": [
+    "https://news.mit.edu/1998/mindell-0610",
+    "https://www.papahanaumokuakea.gov/new-news/2019/10/21/kaga/",
+    "https://nautiluslive.org/blog/2023/09/14/exploring-iconic-shipwrecks-battle-midway-provide-never-seen-details",
+    "https://nautiluslive.org/sites/default/files/documents/2023-10/NA154%20expedition%20summary.pdf"
+   ],
+   "notes": "Yorktown: found 19 May 1998 by Robert Ballard's National Geographic expedition (MIT News). Kaga: identified 16 Oct 2019 by RV Petrel; Akagi: identified 20 Oct 2019 (Papahānaumokuākea), 'all within Papahānaumokuākea Marine National Monument'. E/V Nautilus surveyed all three on 8-12 Sept 2023 'in their final resting places' inside the monument. Sōryū and Hiryū: no public report of their discovery was found as of 2026-11-08, but absence of a report is not proof, so do not say 'still lost' or 'never found'; show three markers and say 'three have been found'. Never use OET, NOAA or Vulcan imagery (brief rule); render our own silhouettes."
+  },
+  {
+   "id": "C5-14-wreck-depth",
+   "claim": "They lie more than three miles down.",
+   "status": "verified",
+   "sources": [
+    "https://news.mit.edu/1998/mindell-0610",
+    "https://www.papahanaumokuakea.gov/new-news/2019/10/21/kaga/",
+    "https://nautiluslive.org/sites/default/files/documents/2023-10/NA154%20expedition%20summary.pdf",
+    "https://en.wikipedia.org/wiki/Japanese_aircraft_carrier_Akagi"
+   ],
+   "notes": "Yorktown 'at a depth of 16,650 feet' (5,075 m, 3.15 mi; MIT). Kaga and Akagi 'found 5,400 meters (more than 17,000 feet) below the surface' (Papahānaumokuākea; 3.36 mi). Nautilus 2023: the three surveys took 'a combined 43 hours at depths below 5,000 meters'; the cruise's deepest dive was 5,437 m. AP/Wikipedia give Akagi 5,490 m (18,011 ft), slightly deeper than Nautilus's deepest dive, so give no Akagi-specific depth. 'More than three miles down' and 'about three miles down' are both true for all three. Call the bottom 'the deep ocean floor'; 'flat abyssal plain' is looser than the data (abyssal hills, the flexural arch)."
+  },
+  {
+   "id": "C5-15-wreck-distance",
+   "claim": "Drain it, and you'd find them nowhere near the atoll: far out, more than three miles down, on the deep ocean floor.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Japanese_aircraft_carrier_Kaga",
+    "https://en.wikipedia.org/wiki/Japanese_aircraft_carrier_Akagi",
+    "https://en.wikipedia.org/wiki/USS_Yorktown_(CV-5)",
+    "https://www.hawaiipublicradio.org/local-news/2019-10-18/deep-sea-explorers-find-sunken-warship-from-key-wwii-battle"
+   ],
+   "notes": "No source states the wreck-to-Midway distance, and the discovered wreck coordinates are not published. Our great-circle distances from Sand Island (28.208 N, 177.38 W) to the RECORDED 1942 SINKING POSITIONS: Yorktown (30 deg 35' 59\" N, 176 deg 34' 04\" W) 277 km / 172 mi, north-northeast; Akagi (30 deg 30' N, 178 deg 40' W) 284 km / 176 mi, northwest; Kaga (30 deg 23' N, 179 deg 17' W) 304 km / 189 mi, northwest. The brief's '170-190 miles' matches. Place the markers at these positions, treat them as approximate (fine at chain scale), and show no coordinates or distance labels on screen. AP's 'hundreds of miles off Midway' is looser than the data; do not use it. Never 'off Midway' or 'around the atoll'. The USFWS '300 miles northeast of Midway' is the US carriers' 'Point Luck', not the wreck site. If a distance is ever spoken: 'nearly two hundred miles away' (only if the 60-s number cap allows)."
+  },
+  {
+   "id": "C5-16-war-graves",
+   "claim": "These are war graves, for American and Japanese sailors alike.",
+   "status": "verified",
+   "sources": [
+    "https://nautiluslive.org/blog/2023/09/14/exploring-iconic-shipwrecks-battle-midway-provide-never-seen-details",
+    "https://www.hawaiipublicradio.org/local-news/2019-10-18/deep-sea-explorers-find-sunken-warship-from-key-wwii-battle"
+   ],
+   "notes": "NHHC director Samuel Cox (Nautilus 2023): 'important war graves of both American and Japanese sailors'; NHHC historian Frank Thompson (2019): the wrecks are 'war graves'. Optional line; it justifies the framing rule: music down, no gags, no 'treasure', no gore, respectful silhouettes."
+  },
+  {
+   "id": "C5-17a-kure-superlative",
+   "claim": "BANNED WORDING: 'Kure, the northernmost atoll (or coral reef) in the world.'",
+   "status": "false",
+   "sources": [
+    "https://papahanaumokuakea.gov/wheritage/geology.html",
+    "https://en.wikipedia.org/wiki/Kure_Atoll",
+    "https://bios.asu.edu/research/projects/coral-reefs-seagrass-and-fishes"
+   ],
+   "notes": "Papahānaumokuākea writes 'Kure Atoll is the northernmost coral reef in the world', and Wikipedia says 'northernmost coral atoll in the world', but Bermuda's coral reefs (BIOS/ASU: 'the northernmost coral reefs of the Atlantic'; John Smith's Bay sits at 32.33 N in NOAA's paleoclimate catalogue) lie well north of Kure (28.4 N), and whether Bermuda counts as an 'atoll' is a matter of definition. A pedant can fault either world superlative. Use C5-17b ('the last atoll in this chain')."
+  },
+  {
+   "id": "C5-17b-kure-darwin-point",
+   "claim": "This is Kure, the last atoll in the chain. Here the water is so cool that the reef can barely keep up with the sinking. Scientists call this line the Darwin Point. Past it, every island has drowned.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://papahanaumokuakea.gov/wheritage/geology.html",
+    "https://doi.org/10.1007/bf00286537",
+    "https://www.usgs.gov/news/volcano-watch-island-hawaii-sits-end-a-long-old-chain-125-volcanoes"
+   ],
+   "notes": "Papahānaumokuākea: Kure 'has reached a latitude where coral growth rates, which decrease in cooler temperatures, are matched by the rate of subsidence'; 'a unique example of an atoll at the critical \"Darwin Point\"'. Grigg 1982 ('Darwin Point: A threshold for atoll formation', Coral Reefs 1:29-34): the threshold sits at about 29 N at the northern end of the Hawaiian chain; atolls carried past it drowned. USGS Volcano Watch (1993): 'The western-most island in the chain is Kure Island'; beyond it the chain is submerged. BRIEF FIX (9:55 'Past here, coral can't keep up'): at Kure the reef just keeps pace; it is the older islands beyond it that drowned, so say 'barely keeps up' here and 'past it, every island has drowned'. The name honours Darwin (Grigg named it), so the callback is fair without naming a new person. Kure's age ('about 30 million years', Wikipedia via a popular book) has no radiometric date: never speak or show it. Kure: /ˈkʊəriː/ ('KOOR-ee', Wikipedia); Hawaiian name Hōlanikū; both go to the lexicon check."
+  },
+  {
+   "id": "C5-18-emperor-to-kamchatka",
+   "claim": "Beyond Kure, the drowned volcanoes march on across the North Pacific, all the way to Kamchatka, where a deep-sea trench is swallowing them.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://papahanaumokuakea.gov/wheritage/geology.html",
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC9345910/",
+    "https://www.usgs.gov/observatories/hvo/evolution-hawaiian-volcanoes"
+   ],
+   "notes": "Papahānaumokuākea: past Kure the chain continues 'as a chain of submerged platforms that makes a sudden northward bend to become the Emperor Seamounts', which 'extend across the entire North Pacific to the base of the Kamchatka Peninsula in Russia'. Shu et al. 2022 (Nature Communications 13:4467, peer-reviewed): 'across Kamchatka where the Hawaii-Emperor Seamount Chain is being subducted'; Meiji Seamount is the part 'most proximal to Kamchatka'. USGS HVO: the whole chain has 'more than 129 volcanoes' and 'stretches for about 6,100 km (3,800 mi)'; the oldest dated volcano near the northern end is '81 million years' old. BRIEF FIX (fact 13 'The Emperor chain runs about 6,200 km to the Kuril-Kamchatka Trench'): 6,100 km (USGS) is the WHOLE Hawaiian-Emperor chain, not the Emperor part; the far end sits near the junction of the Aleutian and Kuril-Kamchatka trenches, so on screen say only 'TRENCH' or nothing. The age of the bend is disputed (43 Ma in a 1993 USGS column, about 47-50 Ma in Sharp & Clague 2006): show or say no bend age. Globe shot limits apply (4 s)."
+  },
+  {
+   "id": "C5-19-big-island-headed",
+   "claim": "That's where the Big Island is headed.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/observatories/hvo/evolution-hawaiian-volcanoes"
+   ],
+   "notes": "BRIEF FIX (10:10 'So that's the Big Island's future'): it is a projection over tens of millions of years, and whether a given island becomes an atoll depends on reef growth against sinking, so frame it as direction, not certainty: 'That's where the Big Island is headed' or 'That's the road the Big Island is on'. USGS: volcanoes 'erode and islands subside, they become coral atolls'; reefs 'begin to die as they sink'."
+  },
+  {
+   "id": "C5-20-midway-distance-honolulu",
+   "claim": "Midway lies about thirteen hundred miles northwest of Honolulu.",
+   "status": "verified",
+   "sources": [
+    "https://www.hawaiipublicradio.org/local-news/2019-10-18/deep-sea-explorers-find-sunken-warship-from-key-wwii-battle"
+   ],
+   "notes": "AP via Hawaiʻi Public Radio: Midway is 'about 1,300 miles (2,090 kilometers) northwest of Honolulu'. Our great-circle check, Honolulu (21.307 N, 157.858 W) to Sand Island (28.208 N, 177.38 W): 2,112 km / 1,312 mi, matching the brief's 2,110 km (1,311 mi). Optional (not in the brief's narration); if used it is a spoken number."
+  },
+  {
+   "id": "C6-01-kamaehuakanaloa-where",
+   "claim": "Just off the Big Island's south coast, about thirty-two hundred feet down, a young volcano is growing. Its name is Kamaʻehuakanaloa.",
+   "status": "verified",
+   "sources": [
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-kamaehuakanaloa-volcano-formerly-known-loihi-seamount",
+    "https://volcanoes.usgs.gov/hans-public/notice/DOI-USGS-HVO-2026-08-12T04:21:50+00:00",
+    "https://volcanoes.usgs.gov/hans-public/notice/DOI-USGS-HVO-2026-09-03T18:26:38+00:00"
+   ],
+   "notes": "HVO Volcano Watch (27 Jan 2022): the seamount is 'about 19 miles (30 km) south of the Kīlauea coastline', 'rising to 3,189 ft (975 m) below sea level'; renamed from Lōʻihi in July 2021 by the Hawaiʻi Board on Geographic Names; the name means 'reddish child of Kanaloa'. HVO statements (Aug and Sep 2026): 'Summit Elevation -3199 ft (-975 m)'; 'peak about 1,000 m (3,280 ft) below sea level'. On screen '3,200 FT DOWN' is fine. VISUAL FIX (brief 'a young cone'): Lōʻihi means 'long'; it is an elongated ridge with a summit platform and pit craters, so do not render a neat cone. Place it 30 km south of Kīlauea's coast (HVO coordinates 18 deg 55' 12\" N, 155 deg 16' 12\" W). Pronunciation goes to the lexicon check."
+  },
+  {
+   "id": "C6-02a-already-erupting",
+   "claim": "BANNED WORDING: 'The next Hawaiian island is already erupting.'",
+   "status": "false",
+   "sources": [
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-kamaehuakanaloa-volcano-formerly-known-loihi-seamount",
+    "https://volcanoes.usgs.gov/hans-public/notice/DOI-USGS-HVO-2026-09-03T18:26:38+00:00"
+   ],
+   "notes": "False in the present tense. HVO: 'Kamaʻehuakanaloa's most recent eruption is thought to have been in 1996.' HVO monthly statement of 3 Sep 2026: 'No significant activity was detected... during the past month'; alert level 'UNASSIGNED'. The August 2026 quakes were unrest with no reported eruption. (Kīlauea, on land, IS erupting in episodes, per checker #2; do not mix them up.) Use C6-02b."
+  },
+  {
+   "id": "C6-02b-alive",
+   "claim": "It's alive. It last erupted in our lifetime, and this summer it shook the Big Island with a magnitude-five earthquake.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://volcanoes.usgs.gov/hans-public/notice/DOI-USGS-HVO-2026-08-12T04:21:50+00:00",
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-kamaehuakanaloa-volcano-formerly-known-loihi-seamount"
+   ],
+   "notes": "HVO information statement, 11 Aug 2026: 'a magnitude-5.2 earthquake occurred beneath Kamaʻehuakanaloa volcano 26 mi (42 km) east-southeast offshore of Nāʻālehu' at 7 mi (11 km) depth, 'part of an ongoing sequence of earthquakes associated with unrest of Kamaʻehuakanaloa (formerly Lōʻihi) Seamount that started on Sunday, August 9'; felt 'Mostly across the southern and eastern parts of the Island of Hawaiʻi' (intensity IV, light shaking; more than 48 felt reports in the first hour). The 1996 sequence had 'more than 4,000 earthquakes'. Last eruption 'thought to have been in 1996': keep it vague ('in our lifetime') or say 'is thought to have erupted in 1996'; never a flat 'erupted in 1996'. 'This summer' date-stamps the film to 2026 (fine for a Nov 2026 upload; 'in 2026' ages better). Magnitude-five counts as a spoken number; numberless option: 'this summer it set off an earthquake people felt across the island's south'. Do not call it 'strong' (M5.2 is moderate) and do not imply an eruption followed."
+  },
+  {
+   "id": "C6-03-emergence",
+   "claim": "It could become the next Hawaiian island. Opening date: thousands of years from now, at least.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-kamaehuakanaloa-volcano-formerly-known-loihi-seamount"
+   ],
+   "notes": "HVO: 'It will be millennia before Kamaʻehuakanaloa emerges' and descendants might one day see it 'finally emerging and forming a new island'. Keep 'could' (brief must-fix 4: 'thousands of years at least'). Older popular estimates of 10,000-100,000 years are not in the current HVO text: do not speak a range. 'COMING SOON' gag is fine (no deaths here)."
+  },
+  {
+   "id": "C6-04-havent-hit-bottom",
+   "claim": "We've drained the whole ocean. But we still haven't reached the bottom of this mountain.",
+   "status": "verified",
+   "sources": [
+    "https://www.usgs.gov/center-news/volcano-watch-how-high-mauna-loa",
+    "https://www.usgs.gov/volcanoes/mauna-loa"
+   ],
+   "notes": "USGS Volcano Watch (20 Aug 1998): Mauna Loa's flanks 'continue another 5,000 m (16,400 ft) below sea level to the sea floor', and the volcano 'has depressed the sea floor another 8,000 m (26,000 ft)'. So with all the water gone the true base is still buried about 8 km below the surrounding sea floor. BRIEF FIX (10:45 'Remember that ring of deep water?'): checker #2 (C3-05) found no ring in the data, only a deep trench mostly on the east side; call back 'that deep trench at its feet' instead."
+  },
+  {
+   "id": "C6-05-sea-floor-pushed-down",
+   "claim": "This mountain is so heavy it has pushed the ocean floor down beneath it, by as much as five miles.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/center-news/volcano-watch-how-high-mauna-loa",
+    "https://www.usgs.gov/volcanoes/mauna-loa",
+    "https://www.usgs.gov/observatories/hvo/evolution-hawaiian-volcanoes"
+   ],
+   "notes": "USGS Volcano Watch: 'The massive central portion of the volcano has depressed the sea floor another 8,000 m (26,000 ft)'; 'the Moho was bowed downward by as much as 8 km ... beneath Mauna Loa' (the page's own conversion reads 4.8 mi; 8 km is 4.97 mi). USGS Mauna Loa page: 'the seafloor in turn is depressed by Mauna Loa's great mass another 8 km (26,200 ft)'. HVO: 'As mass increases, the oceanic crust subsides under the weight'. 'By miles' (brief) is safe; 'about five miles' / 'as much as five miles' is safe; keep 'as much as' because 8 km is the maximum under the centre. Cut-away: sag up to 8 km under the summit area, shape schematic (one bowling-ball-on-a-mattress metaphor, 3 s or less, no jargon on screen). 'Dent in the planet' is a fair metaphor for the bent crust and lithosphere; 'dent in Earth's crust' is the literal version."
+  },
+  {
+   "id": "C6-06-maunaloa-56000",
+   "claim": "Measured from its true base, Mauna Loa is about fifty-six thousand feet tall.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/center-news/volcano-watch-how-high-mauna-loa",
+    "https://www.usgs.gov/volcanoes/mauna-loa"
+   ],
+   "notes": "USGS Volcano Watch (1998), verbatim: 'Thus, the total relief of Mauna Loa, from its true base to its summit, is about 17,170 m (56,000 ft).' Built from 4,170 m above sea level + 5,000 m down to the sea floor + 8,000 m of depression. USGS Mauna Loa page: 'This makes the volcano's summit about 17 km (55,700 ft) above its base!' 'About 56,000 feet' covers both. ON SCREEN: 'ABOUT 56,000 FT' with the kicker 'FROM ITS TRUE BASE' (never drop either qualifier; craft rule). Always 'Mauna Loa', never 'Mauna Kea' or 'the Big Island' for this number (Mauna Kea's figure is 'more than 33,000 ft from the sea floor', checker #2). Use USGS's phrase 'true base', not 'real base'. Drive the counter from the USGS figures (base line at about -13,000 m under the summit), not from our DEM. Payoff only (87-91% of runtime); never in the first 30 s, the package or a Short hook."
+  },
+  {
+   "id": "C6-07-almost-twice-everest",
+   "claim": "Almost twice as tall as Everest.",
+   "status": "verified",
+   "sources": [
+    "https://www.usgs.gov/center-news/volcano-watch-how-high-mauna-loa",
+    "https://en.wikipedia.org/wiki/Mount_Everest"
+   ],
+   "notes": "17,170 m / 8,849 m = 1.94 (USGS 17 km / 8,849 m = 1.92). 'Almost twice' holds both ways. The comparison uses Everest's height above sea level, which flatters Everest, so it is conservative. Visual: Everest at true scale, VE 1.0, standing on the SAME base line, reaches about halfway (8,849 / 17,170 = 52%). Checker #2's C3-03 fix applies: Everest stands 8,849 m above the shared base line, not cut at a 5,000 m base."
+  },
+  {
+   "id": "C6-08-everest-underwater-option",
+   "claim": "Stand Everest on that same base, and its peak would still be deep underwater.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/center-news/volcano-watch-how-high-mauna-loa"
+   ],
+   "notes": "OPTIONAL, our own arithmetic from the USGS figures: the true base lies about 5,000 + 8,000 = 13,000 m below sea level under the summit area, so an 8,849-m Everest standing there would top out about 4,150 m (13,600 ft, about 2.6 mi) below the sea surface. It stays true for any depression greater than about 3,850 m, so it survives the 'as much as' hedge. Numberless, vivid and on the same frame as the payoff; do not stack a spoken number on it. Show the old sea level line in the same shot."
+  },
+  {
+   "id": "C6-09a-final-line-overclaim",
+   "claim": "BANNED WORDING: 'Every beach and every postcard of Hawaii is the very top of a mountain almost twice as tall as Everest, slowly sinking into the dent it made in the planet.'",
+   "status": "false",
+   "sources": [
+    "https://www.usgs.gov/center-news/volcano-watch-how-high-mauna-loa"
+   ],
+   "notes": "Overclaim. The 56,000-ft figure is Mauna Loa's (USGS); Waikīkī and every other postcard beach on Oʻahu, Maui and Kauaʻi sit on other volcanoes, and Oʻahu is thought to be rising on the flexural bulge, not sinking (checker #1, C12-09a). 'Every' fails. Use C6-09b."
+  },
+  {
+   "id": "C6-09b-final-line",
+   "claim": "Every postcard of the Big Island shows only the very top of a giant: a mountain almost twice as tall as Everest, slowly sinking into the dent it pressed into the planet.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/center-news/volcano-watch-how-high-mauna-loa",
+    "https://www.usgs.gov/volcanoes/mauna-loa",
+    "https://www.usgs.gov/observatories/hvo/news/volcano-watch-kamaehuakanaloa-volcano-formerly-known-loihi-seamount"
+   ],
+   "notes": "Scope it to the Big Island, whose biggest volcano is Mauna Loa (USGS: it covers just over half the island, checker #2 C3-11); 'a giant' / 'a mountain' then means Mauna Loa's massif. 'Slowly sinking' is checker #2's C3-06 (Hilo about 2.4 mm a year). 'The dent it pressed into the planet' = C6-05. Must be over the refill shot that returns to the frame-1 composition. One sentence, 29 words: if the 15-word sentence rule is enforced, split: 'Every postcard of the Big Island shows only the top of a giant. A mountain almost twice as tall as Everest, slowly sinking into the dent it made.'"
+  },
+  {
+   "id": "C6-10-holei-arch",
+   "claim": "This fall, the sea arch at Hōlei, on the Big Island's coast, collapsed into the ocean. The waves had carved it out of lava over centuries.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.nps.gov/havo/learn/news/20261001-nr-holei-sea-arch_collapses.htm",
+    "https://www.nps.gov/places/holei-sea-arch.htm",
+    "https://www.hawaiipublicradio.org/local-news/2026-10-01/the-holei-sea-arch-has-collapsed"
+   ],
+   "notes": "REAL. NPS Hawaiʻi Volcanoes National Park release, 1 Oct 2026: the 90-ft arch was seen standing on Wednesday 23 Sept and had collapsed by Sunday night 27 Sept 2026; 'the exact moment of collapse is unknown' and it may have fallen while the park was closed for Tropical Storm Nolo. NPS place page: 'about 90 ft. (27.4 meters) high', 'cut into the cliff of an ancient lava flow from about 550 years ago due to \"differential erosion\"', 'sculpted by the sea', at the end of Chain of Craters Road. Earlier damage: 2018 Kīlauea earthquakes, new cracks in January 2020, and later a chunk knocked off by Tropical Storm Darby surf (sources disagree on that year: do not mention). FIXES: the niche report's 'collapsed on Oct 2, 2026' is wrong (Oct 1 is the NPS confirmation, the collapse was 23-27 Sept; CNN reported it Oct 2). NPS states no cause for the collapse, so never 'the storm destroyed it' or 'the sinking island broke it'; do not tie it to subsidence at all (erosion is a separate process). 'The waves carved it' is supported by 'sculpted by the sea'. Placement: Ch6 before the payoff only (no new topic after the payoff). Numbers: '90-foot' and '550 years' are optional and would break the cap near the 3,200-ft and 56,000-ft beats; keep it numberless. Show it as a before/after on our own terrain or a PD NPS photo (check the credit line: NPS photos are usually public domain, but some are by volunteers). Pronunciation 'Hōlei' to the lexicon."
+  },
+  {
+   "id": "C6-11-number-budget",
+   "claim": "Spoken-number plan for Ch5-Ch6 (no new claim).",
+   "status": "verified",
+   "sources": [
+    "/home/user/juicytea-media/PLAYBOOK.md"
+   ],
+   "notes": "PLAYBOOK section 4 cap: at most 2 spoken numbers (dates included) and 1 hero number in any 60 s. The brief's Ch5 has '28 million' (8:15) + '1842' (8:20) + 'June 1942' (8:45) + 'four' (9:10): 4 in about 55 s. Fix: drop '1842' (C5-04 numberless line), and use the numberless carrier line (C5-12) or move 'four' past 9:16. Ch6: '3,200 ft' (10:15) + optional 'magnitude-five' (10:25) is already 2; keep the Hōlei beat numberless and leave 60 s before '56,000' (11:15)."
+  }
+ ]
+}

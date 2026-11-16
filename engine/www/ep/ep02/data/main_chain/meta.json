@@ -1,0 +1,218 @@
+{
+ "name": "main_chain",
+ "bbox": [
+  -160.9,
+  18.4,
+  -154.4,
+  22.7
+ ],
+ "wh": [
+  2048,
+  1426
+ ],
+ "px_m": 333.3,
+ "hmin": -8000.0,
+ "hrange": 17000.0,
+ "vex": 1.0,
+ "files": {
+  "h16": "h16.png",
+  "ao": "ao.png",
+  "color": "color.jpg"
+ },
+ "sources": [
+  {
+   "id": "etopo15",
+   "res_arcsec": 15.0
+  },
+  {
+   "id": "terrarium_z10",
+   "res_m": 143.1,
+   "land_only": true
+  }
+ ],
+ "colour": {
+  "modis": [
+   "Terra_2024-06-03",
+   "Aqua_2024-06-03",
+   "Terra_2024-06-19",
+   "Aqua_2024-06-19",
+   "Terra_2024-07-08",
+   "Aqua_2024-07-08",
+   "Terra_2024-07-21",
+   "Aqua_2024-07-21",
+   "Terra_2024-08-06",
+   "Aqua_2024-08-06",
+   "Terra_2024-08-25",
+   "Aqua_2024-08-25",
+   "Terra_2024-09-10",
+   "Aqua_2024-09-10",
+   "Terra_2024-09-22",
+   "Aqua_2024-09-22"
+  ]
+ },
+ "facts": {
+  "saddles_m": {
+   "hawaii-maui": -1917,
+   "maui-molokai": -79,
+   "molokai-oahu": -583,
+   "oahu-kauai": -3008,
+   "kauai-niihau": -748
+  },
+  "saddles_note": "highest sea level (m) at which the two points are joined by dry land on this grid (4-connected); null = not joined above -7,000 m",
+  "land_groups_at": {
+   "-3500": [
+    {
+     "names": [
+      "hawaii",
+      "maui",
+      "molokai",
+      "oahu",
+      "kauai",
+      "niihau"
+     ],
+     "area_km2": 83442
+    }
+   ],
+   "-4000": [
+    {
+     "names": [
+      "hawaii",
+      "maui",
+      "molokai",
+      "oahu",
+      "kauai",
+      "niihau"
+     ],
+     "area_km2": 97481
+    }
+   ],
+   "-4500": [
+    {
+     "names": [
+      "hawaii",
+      "maui",
+      "molokai",
+      "oahu",
+      "kauai",
+      "niihau"
+     ],
+     "area_km2": 168699
+    }
+   ]
+  },
+  "water_left_at": {
+   "-5000": {
+    "bodies": 47,
+    "largest": [
+     {
+      "area_km2": 25015,
+      "lon": [
+       -156.891,
+       -154.403
+      ],
+      "lat": [
+       19.859,
+       22.055
+      ]
+     },
+     {
+      "area_km2": 8062,
+      "lon": [
+       -160.9,
+       -159.634
+      ],
+      "lat": [
+       18.403,
+       19.66
+      ]
+     },
+     {
+      "area_km2": 6860,
+      "lon": [
+       -155.308,
+       -154.403
+      ],
+      "lat": [
+       18.403,
+       19.618
+      ]
+     },
+     {
+      "area_km2": 123,
+      "lon": [
+       -156.384,
+       -156.171
+      ],
+      "lat": [
+       18.403,
+       18.493
+      ]
+     }
+    ]
+   },
+   "-5500": {
+    "bodies": 27,
+    "largest": [
+     {
+      "area_km2": 6471,
+      "lon": [
+       -155.543,
+       -154.403
+      ],
+      "lat": [
+       19.932,
+       21.346
+      ]
+     },
+     {
+      "area_km2": 3013,
+      "lon": [
+       -156.463,
+       -155.571
+      ],
+      "lat": [
+       21.346,
+       21.759
+      ]
+     },
+     {
+      "area_km2": 387,
+      "lon": [
+       -154.625,
+       -154.403
+      ],
+      "lat": [
+       19.187,
+       19.507
+      ]
+     },
+     {
+      "area_km2": 24,
+      "lon": [
+       -154.444,
+       -154.403
+      ],
+      "lat": [
+       19.13,
+       19.211
+      ]
+     }
+    ]
+   }
+  },
+  "land_area_km2_at_0m": 17136.0,
+  "h_range_m": [
+   -5818,
+   4175
+  ]
+ },
+ "purpose": "s049-s050 the -4,000 m pullback (all main islands on one ridge), s057 the Hawaiian Deep strip left at about -5,500 m, s080-s082 the age pullback and the crash zoom out, s092 flight NW past Ni'ihau.",
+ "gaps": [],
+ "bake_s": 61.9,
+ "baked": "2026-11-08",
+ "bytes": {
+  "h16": 3611254,
+  "ao": 291378,
+  "color": 113273
+ }
+}

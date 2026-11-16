@@ -1,0 +1,131 @@
+{
+ "ours_q1_s4": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/final_work/plates/ours_P1_lift_a.jpg",
+  "wet": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P1_ridge_wet.jpg",
+  "crop": [
+   0.47,
+   0.52,
+   1.2
+  ],
+  "grade": {
+   "hero": {
+    "exposure": 1.18,
+    "sat": 1.15
+   },
+   "bg": {
+    "exposure": 1.12,
+    "lift": 1.3,
+    "sat": 0.5,
+    "warm": [
+     0.95,
+     1.0,
+     1.07
+    ]
+   },
+   "contrast": 1.04
+  },
+  "text": [
+   {
+    "s": "NO OCEAN",
+    "cap": 0.15,
+    "x": 0.955,
+    "y": 0.035,
+    "anchor": "r",
+    "fill": [
+     16,
+     22,
+     30
+    ],
+    "shadow": [
+     255,
+     255,
+     255,
+     110
+    ],
+    "shadow_off": [
+     0,
+     0
+    ],
+    "blur": 8
+   }
+  ]
+ },
+ "ours_q1_s4_white": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/final_work/plates/ours_P1_lift_a.jpg",
+  "wet": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P1_ridge_wet.jpg",
+  "crop": [
+   0.47,
+   0.52,
+   1.2
+  ],
+  "grade": {
+   "hero": {
+    "exposure": 1.18,
+    "sat": 1.15
+   },
+   "bg": {
+    "exposure": 1.12,
+    "lift": 1.3,
+    "sat": 0.5,
+    "warm": [
+     0.95,
+     1.0,
+     1.07
+    ]
+   },
+   "contrast": 1.04
+  },
+  "text": [
+   {
+    "s": "NO OCEAN",
+    "cap": 0.15,
+    "x": 0.955,
+    "y": 0.035,
+    "anchor": "r",
+    "fill": [
+     255,
+     255,
+     255
+    ],
+    "shadow": [
+     0,
+     0,
+     0,
+     200
+    ],
+    "shadow_off": [
+     0,
+     3
+    ],
+    "blur": 7
+   }
+  ]
+ },
+ "ours_q1_s4_notext": {
+  "plate": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/final_work/plates/ours_P1_lift_a.jpg",
+  "wet": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_question/work/r6/ours_P1_ridge_wet.jpg",
+  "crop": [
+   0.47,
+   0.52,
+   1.2
+  ],
+  "grade": {
+   "hero": {
+    "exposure": 1.18,
+    "sat": 1.15
+   },
+   "bg": {
+    "exposure": 1.12,
+    "lift": 1.3,
+    "sat": 0.5,
+    "warm": [
+     0.95,
+     1.0,
+     1.07
+    ]
+   },
+   "contrast": 1.04
+  },
+  "text": []
+ }
+}

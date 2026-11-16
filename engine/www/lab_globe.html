@@ -1,0 +1,75 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="fonts/fonts.css">
+<script type="importmap">{"imports":{"three":"/three.module.min.js"}}</script>
+<style>html,body{margin:0;background:#000;overflow:hidden}</style></head><body>
+<script type="module">
+// Lab: CINEMATIC GLOBE before/after. Same window.renderFrame / window.grabBlob contract as film.html (pure function of time).
+//   ?q={"shot":"atlantic"|"froward"|"dusk", "mode":"before"|"after", "ss":2}
+// before = ep01 engine (lib/globe.js, ep01 LOOK0, ep01 post vignette .42)   after = lab/globe/cineglobe.js
+import { Globe } from './lib/globe.js';
+import { CineGlobe } from './lab/globe/cineglobe.js';
+import * as F from './lib/fx.js';
+import { loadGeo, findFeature, fillEquirect, makeCanvas } from './lib/geo.js';
+const P = new URLSearchParams(location.search);
+const W = +P.get('w') || 1920, H = +P.get('h') || 1080, FPS = +P.get('fps') || 30;
+const Q = JSON.parse(P.get('q') || '{}');
+const SHOT = Q.shot || 'atlantic', AFTER = Q.mode === 'after';
+const log = (s) => fetch('/log', { method: 'POST', body: String(s) });
+const comp = document.createElement('canvas'); comp.width = W; comp.height = H; document.body.appendChild(comp);
+const cx = comp.getContext('2d');
+const LOOK0 = { flatBase: 0, ovMul: 0, ovAlpha: 0, dim: 0, desat: 0.12, relief: 0.8, nightAmt: 1, exposure: 1.25, specAmt: 0.5, rimAmt: 0.35, ambient: 0.10 };
+const FROWARD = [-53.9, -71.3];
+const SHOTS = {
+  // ep01's most common composition: whole Atlantic globe with a hero-orange highlight (Florida, ch5 ~12:34)
+  atlantic: {
+    overlay: 'florida',
+    before: { cam: (t) => ({ lat: 24, lon: -42 + 0.25 * t, alt: 2.45, fov: 34, sun: 'camera' }), look: { ovAlpha: 1 } },
+    after: {
+      cam: (t) => ({ lat: 23, lon: -42 + 0.25 * t, alt: 3.85, fov: 22, sun: 'world', sunLat: 1.0, sunLon: -79 + 0.25 * t, cloudOff: 0.04 * t, clouds: 0.62 }),
+      look: { ovAlpha: 1 }, post: {},
+    },
+  },
+  // ep01 ch1 s018: low oblique over Cape Froward looking north up the Andes (same patch)
+  froward: {
+    patch: { url: 'tex/patch/s_america_tip.jpg', bounds: [-82, -58, -56, -30] }, marker: FROWARD,
+    before: { cam: (t) => ({ lat: -53.6, lon: -71.4, alt: 0.27, tilt: 54, heading: -4 + 0.15 * t, fov: 34, sun: 'camera' }), look: { relief: 1.0, nightAmt: 0, desat: 0.08, exposure: 1.3 } },
+    after: {
+      cam: (t) => ({ lat: -53.6, lon: -71.4, alt: 0.36, tilt: 57, heading: -4 + 0.15 * t, fov: 26, sun: 'camera', sunAz: -50, sunEl: 30, focus: FROWARD, cloudOff: 0.04 * t, clouds: 0.8, cloudsLow: 0.8, clear: [-52.5, -71.5, 5, 11, 1] }),
+      look: { relief: 1.0, nightAmt: 0, cloudGamma: 2.3, haze: 0.24, atmo: 1.0 }, post: { dof: 7, contrast: 1.12 },
+    },
+  },
+};
+// dusk over the Mediterranean (world sun): ep01 never used a real terminator; before = the ep01 engine with sun:'world'
+SHOTS.dusk = {
+  before: { cam: (t) => ({ lat: 31, lon: 12 + 0.12 * t, alt: 0.95, tilt: 38, heading: 4, fov: 34, sun: 'world', sunLat: 1, sunLon: -73 }), look: {} },
+  after: { cam: (t) => ({ lat: 31, lon: 12 + 0.12 * t, alt: 1.25, tilt: 40, heading: 4, fov: 27, sun: 'world', sunLat: 1, sunLon: -73, cloudOff: 0.04 * t, cloudsLow: 0.9 }), look: {}, post: { bloom: 0.26 } },
+};
+const S = SHOTS[SHOT], V = AFTER ? S.after : S.before;
+let g;
+window.ready = (async () => {
+  await Promise.all(['400 100px "Bebas Neue"', '700 40px "Barlow Condensed"'].map(f => document.fonts.load(f)));
+  if (AFTER) { g = new CineGlobe(W, H, Object.assign({ ss: Q.ss ?? 2 }, V.post || {}, Q.post || {})); await g.init(Q.init || {}); g.post(Object.assign({}, V.post || {}, Q.post || {})); }
+  else { g = new Globe(W, H); await g.init(); }
+  if (S.patch) await g.setPatch(S.patch.url, S.patch.bounds);
+  if (S.overlay === 'florida') {
+    const fc = await loadGeo('tips_admin1');
+    const fl = fc.features.find(f => f.properties.name === 'Florida' && /United States/.test(f.properties.admin));
+    const ov = makeCanvas(4096, 2048); fillEquirect(ov, [-180, -90, 180, 90], [fl], { color: F.PAL.hero, alpha: 0.9, glow: 10 });
+    g.setOverlay(ov, [-180, -90, 180, 90]);
+  }
+})();
+window.renderFrame = async (f) => {
+  const t = f / FPS, t0 = performance.now();
+  const look = Object.assign({}, AFTER ? {} : LOOK0, V.look || {}, Q.look || {});
+  const st = Object.assign({ sun: 'camera', lookOffset: null, tilt: 0, heading: 0, fov: 34 }, V.cam(t), Q.cam || {});
+  g.set(st);
+  for (const k in look) g.look(k, look[k]);
+  cx.fillStyle = '#05070D'; cx.fillRect(0, 0, W, H);
+  if (!AFTER) g.starfield(cx, 1);
+  cx.drawImage(AFTER ? g.render(f) : g.render(), 0, 0);
+  // UI layer (identical in both modes): drawn after the world post, so it stays crisp
+  if (S.marker) { const q = g.project(...S.marker); if (q.visible) F.dot(cx, q.x, q.y, { r: 7, color: F.PAL.hero, ring: (t * 0.9) % 1 }); }
+  if (!AFTER) F.post(cx, W, H, f, { vignette: 0.42 });   // ep01 post (edit.js)
+  log(`${SHOT} ${AFTER ? 'after' : 'before'} f=${f}: ${(performance.now() - t0).toFixed(0)} ms`);
+};
+window.grabBlob = () => new Promise(r => comp.toBlob(r, 'image/jpeg', 0.95));
+</script></body></html>

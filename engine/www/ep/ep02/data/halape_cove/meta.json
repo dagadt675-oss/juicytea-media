@@ -1,0 +1,120 @@
+{
+ "name": "halape_cove",
+ "bbox": [
+  -155.268,
+  19.262,
+  -155.24,
+  19.282
+ ],
+ "hmin": -290.0,
+ "hrange": 620.0,
+ "vex": 1.0,
+ "sources": [
+  {
+   "id": "region:halape",
+   "px_m": 5.0
+  },
+  {
+   "id": "3dep",
+   "res_m": 1.0,
+   "cover": 0.642,
+   "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
+   "guard": {
+    "dropped_pct": 0.073,
+    "pieces": 9,
+    "pieces_kept": 4
+   }
+  }
+ ],
+ "colour": {
+  "ortho": {
+   "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+   "long": 4096,
+   "meas_px": 7980765,
+   "black_ref_pct": 0.0,
+   "imagery_pct": 99.9,
+   "filled_pct": 0.0,
+   "gain": 0.581,
+   "chroma": 1.2,
+   "dark_pct": 0.0,
+   "bright_pct": 0.55,
+   "covered_pct": 100.0,
+   "ref_scale_m": 3.6,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+   "smooth_pct": 40.7
+  }
+ },
+ "purpose": "Close-up detail patch for 'halape' (s016-s023): the cove, the grove and the fault scarp above it, 1 m heights (USGS 3DEP lidar, 2017) and 0.7 m colour (NAIP 2022). Loaded automatically as the finest layer of 'halape'.",
+ "gaps": [
+  "Today's (post-1975) ground, like 'halape': the 1975 drop is staged in the shot. Bare-earth heights: palms and tents are in the photo only."
+ ],
+ "patch": {
+  "parent": "halape",
+  "feather_m": 120
+ },
+ "wh": [
+  2940,
+  2220
+ ],
+ "px_m": 1.0,
+ "files": {
+  "h16": "h16.png",
+  "ao": "ao.png",
+  "color": "color.jpg",
+  "cres": "cres.png"
+ },
+ "res": {
+  "height_m": 1.0,
+  "height_src_m": 1.0,
+  "colour_texel_m": 0.72,
+  "height_interp": [],
+  "colour_src_m": 0.6,
+  "colour_wh": [
+   4096,
+   3099
+  ]
+ },
+ "detail": {
+  "colour": {
+   "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+   "long": 4096,
+   "quads": [
+    "m_1915546_se_05_060_20220419 (2022-04-19, 0.6 m read)",
+    "m_1915547_sw_05_060_20220419 (2022-04-19, 0.6 m read)"
+   ],
+   "meas_px": 7980765,
+   "black_ref_pct": 0.0,
+   "imagery_pct": 99.9,
+   "filled_pct": 0.0,
+   "gain": 0.581,
+   "chroma": 1.2,
+   "dark_pct": 0.0,
+   "bright_pct": 0.55,
+   "covered_pct": 100.0,
+   "ref_scale_m": 3.6,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+   "smooth_pct": 40.7
+  },
+  "height": {
+   "source": "3dep"
+  }
+ },
+ "bake_s": 39.7,
+ "baked": "2026-11-15",
+ "facts": {
+  "point_h_m": {
+   "halape_beach": 2
+  },
+  "land_area_km2_at_0m": 4.2,
+  "h_range_m": [
+   -273,
+   319
+  ]
+ },
+ "bytes": {
+  "h16": 5274404,
+  "ao": 757662,
+  "color": 1448466,
+  "cres": 258704
+ }
+}

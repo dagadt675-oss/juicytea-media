@@ -1,0 +1,318 @@
+{
+ "part": 2,
+ "checker": "fact-checker #2",
+ "scope": "Chapters 3-4 (brief 3:30-8:00)",
+ "date": "2026-11-08",
+ "closes_brief_verify": {
+  "18": "C3-10",
+  "20": "C3-09"
+ },
+ "brief_fixes": [
+  "fact 4: 2.5 mm/yr -> 2.4 mm/yr (C3-06); 'ring' -> trench on the east side (C3-05)",
+  "fact 3: Everest must stand 8,849 m above the shared base line, not cut at 5,000 m (C3-03)",
+  "fact 9: no date or population numbers for Nihoa (C4-07)",
+  "fact 10: 'in one night' unsupported; regrowth 'about half' (C4-10, C4-11); La Pérouse is not the chain's last rock (C4-09)",
+  "Ch3 lines: 'drive to the top' -> 'almost to the top'; 'already dying' -> 'already sinking'; 'same mountain' -> 'same hot spot'",
+  "Ch4 Maui line: 'a couple of million years' -> 'a million years or so' or numberless"
+ ],
+ "facts": [
+  {
+   "id": "C3-01-maunakea-height",
+   "claim": "Measured from the sea floor, Mauna Kea is more than thirty-three thousand feet tall. That's taller than Everest.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/faqs/how-big-are-hawaiian-volcanoes",
+    "https://oceanservice.noaa.gov/facts/highestpoint.html"
+   ],
+   "notes": "USGS FAQ (verbatim): 'Mauna Kea Volcano rises 13,796 feet (4,205 meters) above sea level but extends about 19,700 feet (6,000 meters) below sea level to meet the deep ocean floor. Its total height is nearly 33,500 feet (10,211 meters)'. NOAA: 'rises more than 10,210 meters from base to peak'. The two straddle 33,500 ('nearly' vs 'more than'), so: SPOKEN 'more than thirty-three thousand feet'; ON SCREEN the hero counter reads '33,000+ FT' (or 'NEARLY 33,500 FT'), never a bare '33,500 FT' and never '10,000+ M'. Our own ETOPO 2022 check (tools/moat_check.py, moat_map.py) puts the deepest moat floor within 100 km of the summit at about -5,600 m and within 150 km at about -5,760 m, so on our DEM Mauna Kea's relief is about 9,800-10,000 m (32,000-32,800 ft): do NOT drive the counter from the rendered moat floor (it would stop short of 33,500); treat the counter as a label that lands on the word, or start its base line at the USGS base (-6,000 m). Spent fact (17M-view Shorts): keep at 3:55, never in package or first 30 s. Summit elevation differs by source (USGS 13,796 ft; UH 13,803 ft): do not show the above-sea-level figure."
+  },
+  {
+   "id": "C3-02-most-below-sea",
+   "claim": "Most of this mountain's height is hidden below the waterline.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/faqs/how-big-are-hawaiian-volcanoes",
+    "https://www.usgs.gov/volcanoes/mauna-loa"
+   ],
+   "notes": "Pays the title's 'Most of'. Mauna Kea: about 19,700 ft below vs 13,796 ft above sea level (USGS), so about 59% of its height is underwater; our DEM gives about 57%. Mauna Loa: more than 4 km above sea level, submarine flanks about 5 km further down, plus the sea floor depressed another 8 km (USGS FAQ 'Where is the largest active volcano'). Say 'height' or 'mountain', never 'most of Hawaii's land' or 'most of its volume' (volume share not sourced)."
+  },
+  {
+   "id": "C3-03-everest-comparison",
+   "claim": "Everest, at the same scale, from the same base line.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.aljazeera.com/news/2020/12/8/mt-everest-nepal-china-announce-revised-height-at-8848-metres",
+    "https://www.usgs.gov/faqs/how-big-are-hawaiian-volcanoes"
+   ],
+   "notes": "Everest 8,848.86 m = 29,032 ft (Nepal-China joint survey, 8 Dec 2020); USGS FAQ still uses the 1954 figure 29,029 ft (8,848 m). Not spoken. VISUAL BUG IN THE BRIEF (fact 3): 'the 5,000 m base cut on the SRTM mesh is used for the base-to-peak comparison' compares Mauna Kea base-to-summit (about 10.2 km) with Everest's upper 3.8 km, which would make Mauna Kea look 2.7x Everest while the narration's claim is 10,211 m vs 8,849 m (1.15x). The USGS/NOAA comparison is against Everest's height ABOVE SEA LEVEL, so in the 3:55 shot and the payoff shot Everest's summit must stand 8,849 m above the shared base line (fill the 0 to about 2,955 m gap under the SRTM mesh with a plain pedestal, or raise the mesh). The payoff line 'Everest reaches roughly halfway' (8,849/17,170 = 52%) is true only with this full-height Everest. VE 1.0 in both shots."
+  },
+  {
+   "id": "C3-04-hawaiian-deep",
+   "claim": "Around the base, the sea floor dips into a deep trench, pushed down by the weight of the islands.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/observatories/hvo/science/ground-fractures-and-subsidence-hazards-island-hawaii",
+    "https://www.usgs.gov/news/volcano-watch-big-island-sinking-under-weight-volcano",
+    "https://en.wikipedia.org/wiki/Hawaiian_Trough",
+    "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/ep02/script/tools/moat_check.py",
+    "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/ep02/script/tools/moat_map.py"
+   ],
+   "notes": "Cause [V]: USGS HVO 'The enormous load (weight) of its volcanoes have caused the underlying ocean crust and lithosphere to sag over a large area'; Volcano Watch 'the lithosphere flexes downward under the increasing weight of the volcanoes'. Depth: Wikipedia 'about 18,045 feet (5,500 meters) deep' citing Rees, Detrick & Coakley 1993 (GSA Bull. 105:189-205); our ETOPO 2022 check agrees: moat floor about -5,350 to -5,600 m within 100 km of the Big Island, deepest -5,790 m north of Maui/Molokai (lon -155.90, lat 21.40); the open floor west of the island is only -4,300 to -4,800 m. If a number is needed say 'about 18,000 feet down' (no on-screen digits; not one of the hero numbers). The arch '200 m' and '14 km radius' are Wikipedia-only [S] (the radius looks wrong; Rees et al. give about 140 km): never narrate them. Call it a trench, moat or trough, NOT a ring (see C3-05)."
+  },
+  {
+   "id": "C3-05-ring-of-deep-water",
+   "claim": "A ring of deep water clings all the way around the island's base.",
+   "status": "false",
+   "sources": [
+    "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/ep02/script/tools/moat_map.py",
+    "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/ep02/script/tools/moat_check.py",
+    "https://en.wikipedia.org/wiki/Hawaiian_Trough"
+   ],
+   "notes": "Brief 3:30 ('A last ring of deep water clings around its base... Remember that ring.') and 10:45 ('Remember that ring of deep water?') are not supported by the data. ETOPO 2022 30-arc-second grid (scratchpad/hawaii_dl/skirt.tif): at a -5,000 m water level the remaining water is a broad crescent on the NE, E, SE and S sides only (west and south-west of the Big Island are dry, floor -4,300 to -4,800 m); at -5,500 m only a strip remains, from north of Molokai/Maui (min -5,790 m) to about 100 km east of Hilo (lon -154.6 to -154.2, lat 19.1-19.8, min -5,589 m). It is never a closed ring around the Big Island, and the Big Island is joined by dry ridge to Maui below about -1,900 m. USE: 'a deep trench curls around the island's east side' / 'Remember that deep trench?'. Render the last water from the real grid at the shot's level (sill/flood-fill per playbook section 4), no sculpted ring. Brief thumbnail-3 note already bans a sculpted ring."
+  },
+  {
+   "id": "C3-06-subsidence-rate",
+   "claim": "The Big Island is sinking, about a tenth of an inch a year.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/observatories/hvo/science/ground-fractures-and-subsidence-hazards-island-hawaii",
+    "https://www.usgs.gov/news/volcano-watch-big-island-sinking-under-weight-volcano"
+   ],
+   "notes": "USGS HVO: Hilo tide gauge 1947-1983 'the rate of sinking was 2.4 mm (0.09 inch) per year'; general 'a few millimeters (fractions of an inch) per year'. Volcano Watch: 'Hilo... is sinking at a rate of nearly one tenth of an inch each year.' The brief's '2.5 mm a year' (fact 4) comes from Wikipedia citing Volcano World: replace with 2.4 mm / 'nearly a tenth of an inch'. Supports backup title 'What's Holding Hawaii Up? (It's Slowly Sinking)'. Do not apply the rate to the whole chain; it is measured at Hilo."
+  },
+  {
+   "id": "C3-07-five-volcanoes",
+   "claim": "The Big Island is five volcanoes grown together into one mountain.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-a-geological-tour-hawaiian-islands-hawaii"
+   ],
+   "notes": "USGS: 'From oldest to youngest, they are Kohala, Hualālai, Mauna Kea, Mauna Loa, and Kīlauea' plus a sixth, submarine volcano, Māhukona, 'the oldest of the volcanoes that form the mass of Hawai‘i'. Say 'five volcanoes' only for the ones above sea level; once the drain exposes the whole massif, 'at least five' or just 'one mountain' is safest. STAGING FIX: the brief (3:30) has 'five volcanoes merge into one massif' as the water drops from -4,000 to -5,500 m, but the five are already one island at today's sea level; the deep drain reveals the full body, it does not merge them. Do not say Kamaʻehuakanaloa is part of the island. Labels use ʻokina and kahakō: Kohala, Hualālai, Mauna Kea, Mauna Loa, Kīlauea, Māhukona."
+  },
+  {
+   "id": "C3-08-deep-drain-geometry",
+   "claim": "Drain this far and the islands stop being islands: it's one long mountain range.",
+   "status": "verified-with-wording",
+   "sources": [
+    "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/ep02/script/tools/saddles.py",
+    "https://en.wikipedia.org/wiki/Hawaiian_Trough"
+   ],
+   "notes": "Own ETOPO 2022 30-arc-second sill check (approximate on a 1 km grid; HMRG 50 m must confirm before any label): Big Island-Maui (Haleakalā) link appears below about -1,900 m; Molokai-Oahu about -580 m; Oahu-Kauai about -3,000 m; Kauai-Niihau about -760 m. So by -4,000 m every main island from Hawaiʻi to Niʻihau is one continuous dry ridge. Never show or say the Big Island standing alone in the -4,000 to -5,500 m shots; frame it as the Big Island end of one ridge. No narration numbers needed."
+  },
+  {
+   "id": "C3-09-maunakea-road",
+   "claim": "There's a road almost to the top of this one.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://filmoffice.hawaii.gov/wp-content/uploads/2023/11/3a_CMS_Brochure_Visiting-Safely_2018-04.pdf",
+    "https://hilo.hawaii.edu/maunakea/visitor-information/station",
+    "https://hilo.hawaii.edu/maunakea/visitor-information/permits",
+    "https://www.hawaiinewsnow.com/2026/06/24/toll-booth-cultural-center-among-ideas-pitched-maunakea-access-road/"
+   ],
+   "notes": "Closes brief VERIFY 20. Center for Maunakea Stewardship brochure: 'Dependable, fully-operable 4WD vehicles with low-range are required for summit travel. The eight-mile summit road rises nearly 5,000 feet and unpaved sections are only wide enough for single-lane traffic.' UH Hilo: Visitor Information Station at 9,200 ft; 'Drivers are required to use 4-wheel drive vehicles above the VIS'; summit access '30min before sunrise; 30min after sunset'. The road reaches the observatories, but the true summit is a cinder cone: 'Puʻuwēkiu, the true summit of Maunakea, is a sensitive area. Casual visitors are asked to enjoy it respectfully from a distance.' So NOT 'you can drive to the top' (the brief's line): use 'drive almost to the top' or 'there's a road nearly to the top'. 2026: state agencies are weighing a toll booth and other changes for the access road; recheck it is open the week of upload. TONE (niche report 4.6, 5.2.5): Mauna Kea's summit and domes are never the punchline; the joke must land on the Everest climber's ordeal (a 4WD on the access road below the summit area is fine), no car or figure on Puʻuwēkiu, no gag about the telescopes. UH writes 'Maunakea' as one word; USGS 'Mauna Kea'; pick one spelling for all labels."
+  },
+  {
+   "id": "C3-10-maunaloa-largest-active",
+   "claim": "Mauna Loa, the largest active volcano on Earth.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/faqs/how-big-are-hawaiian-volcanoes",
+    "https://www.usgs.gov/volcanoes/mauna-loa",
+    "https://www.usgs.gov/news/volcano-watch-a-geological-tour-hawaiian-islands-hawaii",
+    "https://www.soest.hawaii.edu/soestwp/announce/news/uh-researchers-reveal-largest-and-hottest-shield-volcano-on-earth/",
+    "https://doi.org/10.1016/j.epsl.2020.116296"
+   ],
+   "notes": "Closes brief VERIFY 18. USGS (three pages, verbatim): 'Hawaii's Mauna Loa is the largest active volcano on our planet'; 'Mauna Loa is the largest active volcano on our planet'; 'Mauna Loa is the largest active volcano on Earth.' Last eruption began 27 Nov 2022. NEVER drop 'active' (no 'largest volcano on Earth / in the world', even though the older Volcano Watch 'How high is Mauna Loa?' says 'Mauna Loa is the largest volcano in the world'): Garcia et al. 2020 (EPSL 542:116296, UH SOEST) found the extinct Pūhāhonu (Gardner Pinnacles, in Papahānaumokuākea) about twice Mauna Loa's volume (148,000 vs 74,000 km3). On-screen label keeps the qualifier: 'LARGEST ACTIVE VOLCANO' (playbook: never drop a qualifier)."
+  },
+  {
+   "id": "C3-11-maunakea-not-the-giant",
+   "claim": "But Mauna Kea isn't the giant here. Its neighbor, Mauna Loa, is a little lower, and far bigger.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/faqs/how-big-are-hawaiian-volcanoes",
+    "https://www.usgs.gov/volcanoes/mauna-loa"
+   ],
+   "notes": "USGS: Mauna Loa 'stands not quite as high as Mauna Kea but is much larger in volume'; it 'covers just over half of the Island of Hawaiʻi' and 'by itself amounts to about 85 percent of the area of all the other Hawaiian Islands combined' (optional, numberless version: 'it covers half the island'). 'Giant' must mean bulk, not height (Mauna Kea's summit is higher). Do not give Mauna Loa's volume number (estimates differ by source and method). Hold the 56,000 ft back as planned."
+  },
+  {
+   "id": "C3-12-giant-already-dying",
+   "claim": "And this giant is already sinking.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/volcanoes/kilauea/volcano-updates",
+    "https://www.usgs.gov/volcanoes/mauna-loa",
+    "https://www.usgs.gov/observatories/hvo/science/ground-fractures-and-subsidence-hazards-island-hawaii"
+   ],
+   "notes": "The brief's 5:15 twist 'And this giant is already dying' is false as worded: Mauna Loa erupted in Nov-Dec 2022 and Kīlauea is in an episodic summit eruption (episode 56 of lava fountaining began 5 Nov 2026, USGS HVO). True and still a twist: 'already sinking' (C3-06) or 'already riding away from the heat that built it' (C4-01). Do not say 'dying', 'dead' or 'finished' about the Big Island."
+  },
+  {
+   "id": "C3-13-same-mountain-older",
+   "claim": "Every island to the northwest was born right here, over the same hot spot. Each one is older than the last.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-island-hawaii-sits-end-a-long-old-chain-125-volcanoes"
+   ],
+   "notes": "The brief's 'Every island to the northwest is this same mountain, older' (5:15) and chapter title 'Every Island Is This One, Older' are literally false (each is a different volcano). Safe framing: 'each one shows what the Big Island will become' (USGS: the chain is 'more than 125 volcanoes' that get older to the west-northwest, Kauaʻi 'about 5.0 to 5.5 million years', Midway 'about 28 million years'). Keep the chapter title only as an obvious metaphor or change to 'Every Island Was Once This One'."
+  },
+  {
+   "id": "C4-01-hotspot-plate-motion",
+   "claim": "Deep below, a hot spot melts its way up. The Pacific plate slides northwest over it, a few inches a year, and carries each new volcano away.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-island-hawaii-sits-end-a-long-old-chain-125-volcanoes",
+    "https://pubs.usgs.gov/pp/1987/1350/chapters.html",
+    "https://www.soest.hawaii.edu/earthsciences_archive/HCV/haw_formation.html",
+    "https://doi.org/10.1126/science.1086442"
+   ],
+   "notes": "USGS Volcano Watch: the Pacific plate carries each volcano 'towards the west-northwest', 'approximately 10 centimeters per year' (Clague & Dalrymple 1987, USGS PP 1350: age progression about 9.2 cm/yr along the Hawaiian chain; UH SOEST gives 5-10 cm/yr by location). If a rate is spoken: 'a few inches a year' (no fingernail comparison: nails grow about 4 cm/yr, so it is wrong). USGS frames the hot spot cautiously ('some scientists think it consists of hotter material'): a glowing plume in the cut-away is fine as a picture, but do not narrate 'a plume from the core' or 'the hot spot has never moved'. If the optional Emperor-bend line is used (Ch5), do not credit the bend only to the plate turning: the hotspot itself drifted during the Emperor stage (Tarduno et al. 2003, Science 301:1064). The candle-under-paper metaphor is fine for the Hawaiian chain."
+  },
+  {
+   "id": "C4-02-bigisland-age",
+   "claim": "The Big Island is the baby of the chain: its oldest volcano above water, Kohala, started erupting only about a million years ago.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-a-geological-tour-hawaiian-islands-hawaii"
+   ],
+   "notes": "USGS: 'Kohala began erupting just over 1 million years ago'; the submarine Māhukona is older still and 'last erupted about 300,000 years ago'. Because the submarine Māhukona is older than Kohala, never say 'the whole island is only a million years old' or 'its oldest volcano' without 'above water'. If an age bar shows a value: 'about 1 million years'. Optional line; it costs a spoken number."
+  },
+  {
+   "id": "C4-03-maui-age",
+   "claim": "Give it a million years or so, and it looks like Maui.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-geologic-tour-hawaiian-islands-maui"
+   ],
+   "notes": "USGS: the Maui Nui volcanoes (Lānaʻi, West Maui, Kahoʻolawe, Haleakalā) 'probably occurred between 1.5 and 2 million years ago'; 'The most recent eruption on Haleakalā took place about 400 years ago'. Maui is therefore about 0.5-1.5 million years ahead of the Big Island, so the brief's 'give it a couple of million years' (6:05) overstates: use 'a million years or so', or numberless 'give it time, and it looks like Maui' (saves a spoken number in the 6:05-7:05 window, which already holds 'seven million'). Do not call Maui extinct (Haleakalā erupted about 400 years ago)."
+  },
+  {
+   "id": "C4-04-oahu-age",
+   "claim": "Older still, Oʻahu, where half a volcano already fell into the sea.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-geologic-tour-hawaiian-islands-oahu"
+   ],
+   "notes": "USGS: Waiʻanae 'started growing from the sea floor around 4 million years ago'; Koʻolau's birth 'probably occurred a few hundred thousand years later'. Age bar: about 3-4 million years. Nuʻuanu callback wording is checker #1's (Ch2); keep 'more than a million years ago' for the slide."
+  },
+  {
+   "id": "C4-05-kauai-age",
+   "claim": "Older still: Kauaʻi, carved into canyons.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-geologic-tour-hawaiian-islands-kauai-and-niihau",
+    "https://www.usgs.gov/news/volcano-watch-island-hawaii-sits-end-a-long-old-chain-125-volcanoes"
+   ],
+   "notes": "USGS sources differ: 'both volcanoes formed about 6 million years ago' (2016 tour) vs 'Kaua`i being about 5.0 to 5.5 million years old'; shield volcanism 'ended by about 4 million years ago, after which, the islands' spectacular canyons and cliffs began to form'. If an age is shown, 'about 5 million years' or '5-6 million'; never '5.1 million' (lab-manual figure, not USGS). No spoken number here (the minute's number is Nihoa's)."
+  },
+  {
+   "id": "C4-06-nihoa-age-size",
+   "claim": "Seven million years in, it's a sliver of rock.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://pubs.usgs.gov/pp/1987/1350/chapters.html",
+    "https://ngmdb.usgs.gov/Prodesc/proddesc_93020.htm",
+    "https://en.wikipedia.org/wiki/Nihoa",
+    "https://www.papahanaumokuakea.gov/library/pdf/rpa-nihoa.pdf",
+    "https://www.fws.gov/refuge/hawaiian-islands/about-us"
+   ],
+   "notes": "Age: K-Ar 7.2 +/- 0.3 Ma (Clague & Dalrymple 1987, USGS Prof. Paper 1350 ch. 1, from Dalrymple et al. 1974); Wikipedia 'formed 7.2 million years ago'. Spoken 'seven million years' or 'about seven million' (this minute's one spoken number). Size: Papahānaumokuākea 'With about 170 acres of land, it is the largest volcanic island in the northwestern chain'; USFWS 'about 1-square km'; cliffs about 900 ft. 'Sliver of rock' is fair; do NOT call it the smallest or say it is 'barely above water' (it is the largest NW volcanic island, with about 900 ft cliffs)."
+  },
+  {
+   "id": "C4-07-nihoa-people",
+   "claim": "And people lived here. They built homes, farm terraces and shrines on this rock.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://papahanaumokuakea.gov/wheritage/archaeology.html",
+    "https://www.nps.gov/articles/archeology-of-the-mystery-islands.htm",
+    "https://www.fws.gov/refuge/hawaiian-islands/about-us",
+    "https://www.papahanaumokuakea.gov/library/pdf/rpa-nihoa.pdf"
+   ],
+   "notes": "Papahānaumokuākea: 'There are 89 identified archaeological sites on Nihoa', including 'residential sites, habitation terraces for dryland agriculture and a plethora of ceremonial complexes'; NPS: Nihoa had 'several long-term habitation sites and agricultural terraces as well as heiau' and 'It is likely that individuals in the past lived there year-round'; USFWS: '35 house terraces, 15 ceremonial structures', burial sites, caves, agricultural terraces. CONFLICTS, so do not narrate: dates (Papahānaumokuākea 'between 1000 and 1700 AD', USFWS 'up until the 13th century', NOAA sheet 'inhabited during the 16th century') -> say 'centuries ago' if a time is needed, never 'around AD 1000'; population (Emory/Cleghorn water estimate 'as many as 100' vs USFWS 'up to 175') -> no number. Nobody lives there now; it is a protected refuge with permit-only access. Draw terraces and house sites only from a published site map, otherwise mark them as approximate or show the real PD photo; no gags here (burials)."
+  },
+  {
+   "id": "C4-08-la-perouse-pinnacle",
+   "claim": "At French Frigate Shoals, one rock is all that's left of the volcano: La Pérouse Pinnacle, its last tooth.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.fws.gov/refuge/hawaiian-islands/about-us",
+    "https://www.papahanaumokuakea.gov/education/historic_la_perouse.html",
+    "https://www.fisheries.noaa.gov/species/hawaiian-monk-seal"
+   ],
+   "notes": "USFWS: 'a steep-sided basalt pinnacle that juts out of the water and is the last remnant of the original volcano'. Papahānaumokuākea: 'a basalt rock outcrop rising 122 feet from the lagoon', 'a remnant of the twelve million year old volcano'; named after La Pérouse's 1786 near-wreck. Height by source 120-122 ft (37 m): not spoken (brief plan), on screen at most 'about 120 ft'. The Hawaiian name of French Frigate Shoals is Lalo (NOAA Fisheries): label 'LALO (FRENCH FRIGATE SHOALS)' or say both once. 'Last tooth' must stay local to this volcano (see C4-09)."
+  },
+  {
+   "id": "C4-09-gardner-last-basalt",
+   "claim": "One more pair of rocks pokes out farther on. After that, no volcanic rock reaches the surface at all.",
+   "status": "verified",
+   "sources": [
+    "https://www.papahanaumokuakea.gov/monument_features/physical_high_islands.html"
+   ],
+   "notes": "Papahānaumokuākea: 'In the Northwestern Hawaiian Islands, the last high island in the chain is Gardner Pinnacles' and 'Beyond Gardner, basalt cannot be observed above the surface'. Gardner Pinnacles (Pūhāhonu) lie northwest of French Frigate Shoals. So never call La Pérouse Pinnacle the last volcanic rock in the chain, and the brief's 7:50 bridge ('Keep going, and the last of the volcano sinks out of sight') must either show Gardner as the last rock or stay vague ('Keep going, and the volcanoes sink out of sight one by one'). Optional reserve beat (C4-15)."
+  },
+  {
+   "id": "C4-10-walaka-east-island",
+   "claim": "In 2018, one hurricane washed almost all of East Island away.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.papahanaumokuakea.gov/new-news/2018/11/21/ffs-walaka/",
+    "https://nauticalcharts.noaa.gov/hsrp/meetings/2022/fall/docs/presentations/08+HaunaniKanePresentation2.pdf",
+    "https://civilbeat.org/2018/10/this-remote-hawaiian-island-just-vanished/"
+   ],
+   "notes": "Papahānaumokuākea (Nov 2018): 'In early October, Hurricane Walaka ripped through Papahānaumokuākea... as a category three storm' and passed directly over the shoals; 'East Island has been almost completely reclaimed by the ocean', 'a sliver of East remains'. Kane (UH, NOAA HSRP talk 2022): 'East island displaced ~ 100 m, reduced to 5% size'. Civil Beat: an '11-acre spit of sand and gravel'. DO NOT say 'in one night' or 'overnight' (only a news story says so; the monument says 'in early October'), 'erased' or 'gone completely' (5% survived); do not name a storm category (sources say 3 and 4). 'Most of' or 'almost all of' is safe. Before/after shoreline must come from dated imagery (July 2018 vs Oct 2018 per Kane), not a guess."
+  },
+  {
+   "id": "C4-11-east-island-regrowth",
+   "claim": "Since then, about half of it has washed back.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://nauticalcharts.noaa.gov/hsrp/meetings/2022/fall/docs/presentations/08+HaunaniKanePresentation2.pdf",
+    "https://civilbeat.org/2024/11/this-remote-hawaiian-island-had-vanished-heres-why-its-comeback-is-crucial/"
+   ],
+   "notes": "Kane 2022 (3-year monthly Planet satellite shoreline analysis): 'East island recovered 56% pre-Hurricane size, approx. 12 m/yr' (by July 2021). Civil Beat Nov 2024, UH researcher Kainalu Steward: 'returned to about 60% of the size it was before Walaka'; same article: 'just over half the size it was before the storm but still little more than a sandbar'. So 'about half' or 'more than half' are safe; never '60%' on screen and never 'fully back'. Vegetation has not returned ('The vegetation has yet to return'). The brief's 'It's half grown back since' is acceptable; 'about half of it has come back' is cleaner. Sept 2024: 'a dozen monk seals were basking' and turtles nested there again, which supports the gag's twist."
+  },
+  {
+   "id": "C4-12-monk-seals-east-island",
+   "claim": "Hawaiian monk seals used this island to rest and raise pups.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.fisheries.noaa.gov/species/hawaiian-monk-seal",
+    "https://www.papahanaumokuakea.gov/new-news/2018/11/21/ffs-walaka/",
+    "https://civilbeat.org/2018/10/this-remote-hawaiian-island-just-vanished/",
+    "https://www.fisheries.noaa.gov/resource/document/terrestrial-habitat-loss-and-long-term-viability-french-frigate-shoals-hawaiian"
+   ],
+   "notes": "NOAA Fisheries: endangered under the ESA since 1976; 'around 1,600 seals'; 'about 1,200' live in Papahānaumokuākea; Lalo (French Frigate Shoals) is a primary pupping site; 'On land, monk seals haul out to rest, molt, give birth, and nurse'. East Island: NOAA's Littnan via Civil Beat, about 30% of the seals at French Frigate Shoals had pups there [S, number not for narration]. Gag is fine (no deaths implied): most pups of the year were weaned before Walaka (Papahānaumokuākea) and NOAA estimated one mother and pup were on the island; impact unknown, so never show or imply a seal was hurt or lost. The seal model must look like a Hawaiian monk seal (grey-brown, no ear flaps), on the real terrain per the character rules."
+  },
+  {
+   "id": "C4-13-monk-seal-status",
+   "claim": "Hawaiian monk seals are endangered. Only about sixteen hundred are left.",
+   "status": "verified",
+   "sources": [
+    "https://www.fisheries.noaa.gov/species/hawaiian-monk-seal"
+   ],
+   "notes": "Optional; costs a spoken number, so only if the minute has room. NOAA: 'We estimate the population to be around 1,600 seals'; listed as endangered since 1976. Do not say 'critically endangered' (newspaper phrasing; the ESA listing is 'endangered')."
+  },
+  {
+   "id": "C4-14-name-spellings",
+   "claim": "Labels: Hawaiʻi, Mauna Kea (or Maunakea), Mauna Loa, Kīlauea, Hualālai, Kohala, Māhukona, Puʻuwēkiu, Maui, Haleakalā, Oʻahu, Kauaʻi, Niʻihau, Nihoa, Lalo (French Frigate Shoals), La Pérouse Pinnacle, Papahānaumokuākea, Pūhāhonu (Gardner Pinnacles).",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.usgs.gov/news/volcano-watch-a-geological-tour-hawaiian-islands-hawaii",
+    "https://hilo.hawaii.edu/maunakea/visitor-information/permits",
+    "https://www.fisheries.noaa.gov/species/hawaiian-monk-seal",
+    "https://www.papahanaumokuakea.gov/education/historic_la_perouse.html",
+    "https://www.soest.hawaii.edu/soestwp/announce/news/uh-researchers-reveal-largest-and-hottest-shield-volcano-on-earth/"
+   ],
+   "notes": "Spellings are as the agencies write them. Pronunciations are NOT verified here: the lexicon still needs wehewehe.org (and ideally a Hawaiian speaker) for every name before any narration render (niche report 5.2.4). 'Mauna Kea' (USGS) vs 'Maunakea' (UH): choose one and use it in every label and the description."
+  },
+  {
+   "id": "C4-15-puhahonu-reserve",
+   "claim": "Those two little rocks are the tip of Pūhāhonu, a dead volcano scientists measured at about twice the size of Mauna Loa.",
+   "status": "verified-with-wording",
+   "sources": [
+    "https://www.soest.hawaii.edu/soestwp/announce/news/uh-researchers-reveal-largest-and-hottest-shield-volcano-on-earth/",
+    "https://doi.org/10.1016/j.epsl.2020.116296",
+    "https://www.papahanaumokuakea.gov/monument_features/physical_high_islands.html"
+   ],
+   "notes": "RESERVE ONLY (not in the brief). Garcia et al. 2020, EPSL 542:116296: Pūhāhonu volume 148 +/- 29 x 10^3 km3 vs Mauna Loa 74.0 x 10^3 km3; only Gardner Pinnacles show above sea level; name means 'turtle rising for breath'. One peer-reviewed study [V], volume not height. Risk: it competes with the 'Mauna Loa is the giant' setup and the 56,000 ft payoff, so use it only if the payoff wording stays 'largest ACTIVE' and 'tallest from its true base'. If used, say 'about twice the volume' only in the description; the narration can say 'twice the size'. Its existence is the reason C3-10 must keep 'active'."
+  }
+ ]
+}

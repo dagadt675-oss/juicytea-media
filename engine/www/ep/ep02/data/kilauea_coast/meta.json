@@ -1,0 +1,131 @@
+{
+ "name": "kilauea_coast",
+ "bbox": [
+  -155.34,
+  19.235,
+  -155.05,
+  19.335
+ ],
+ "hmin": -2050.0,
+ "hrange": 3020.0,
+ "vex": 1.0,
+ "sources": [
+  {
+   "id": "region:kilauea_sf",
+   "px_m": 31.3
+  },
+  {
+   "id": "3dep",
+   "res_m": 1.0,
+   "cover": 0.639,
+   "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
+   "guard": {
+    "dropped_pct": 12.858,
+    "pieces": 10,
+    "pieces_kept": 1
+   }
+  }
+ ],
+ "colour": {
+  "ortho": {
+   "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+   "long": 6144,
+   "meas_px": 8719141,
+   "black_ref_pct": 0.91,
+   "imagery_pct": 99.2,
+   "filled_pct": 0.8,
+   "gain": 0.508,
+   "chroma": 1.2,
+   "dark_pct": 0.03,
+   "bright_pct": 1.6,
+   "covered_pct": 96.8,
+   "ref_scale_m": 31.3,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+   "smooth_pct": 89.9
+  }
+ },
+ "purpose": "Detail patch for 'kilauea_sf' (s014-s024, s044-s046): Kilauea's south-flank coast from Halape to Holei and the fault scarps above it, 7.5 m heights (USGS 3DEP lidar, 2017) and 5 m colour (NAIP 2022). Loaded automatically as the finest layer of 'kilauea_sf'.",
+ "gaps": [
+  "Bare-earth heights; lava flows newer than the 2017 lidar and the 2022 photos (the 2018 lower Puna flows lie east of this patch) are not in it."
+ ],
+ "patch": {
+  "parent": "kilauea_sf",
+  "feather_m": 400
+ },
+ "wh": [
+  4096,
+  1490
+ ],
+ "px_m": 7.46,
+ "files": {
+  "h16": "h16.png",
+  "ao": "ao.png",
+  "color": "color.jpg",
+  "cres": "cres.png"
+ },
+ "res": {
+  "height_m": 7.46,
+  "height_src_m": 1.0,
+  "colour_texel_m": 4.96,
+  "height_interp": [],
+  "colour_src_m": 0.6,
+  "colour_wh": [
+   6144,
+   2245
+  ]
+ },
+ "detail": {
+  "colour": {
+   "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+   "long": 6144,
+   "quads": [
+    "m_1915546_ne_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915546_nw_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915546_se_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915546_sw_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915547_ne_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915547_nw_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915547_se_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915547_sw_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915548_ne_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915548_nw_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915548_se_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915548_sw_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915554_ne_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915554_nw_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915555_ne_05_060_20220419 (2022-04-19, 2.4 m read)",
+    "m_1915555_nw_05_060_20220419 (2022-04-19, 2.4 m read)"
+   ],
+   "meas_px": 8719141,
+   "black_ref_pct": 0.91,
+   "imagery_pct": 99.2,
+   "filled_pct": 0.8,
+   "gain": 0.508,
+   "chroma": 1.2,
+   "dark_pct": 0.03,
+   "bright_pct": 1.6,
+   "covered_pct": 96.8,
+   "ref_scale_m": 31.3,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+   "smooth_pct": 89.9
+  },
+  "height": {
+   "source": "3dep"
+  }
+ },
+ "bake_s": 63.8,
+ "baked": "2026-11-15",
+ "facts": {
+  "land_area_km2_at_0m": 216.8,
+  "h_range_m": [
+   -2034,
+   952
+  ]
+ },
+ "bytes": {
+  "h16": 5425958,
+  "ao": 690516,
+  "color": 1519931,
+  "cres": 298465
+ }
+}

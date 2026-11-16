@@ -1,0 +1,11 @@
+{"cuts": [
+  [99.30, 131.10, "#1 Bacon recap and Forster's flood: a roll-call that plants nothing"],
+  [141.2333, 149.50, "#11 the hook's list read a second time over the hook's own map"],
+  [284.90, 290.30, "#6a 'sprinkled at random' restates '1 in 8'"],
+  [306.45, 312.10, "#6b 'no way to cut this planet in half' restates 'still more than half water'"],
+  [757.95, 775.8667, "#9 Nevada tangent after both payoffs"]
+ ],
+ "moves": [
+  {"src": [859.50, 875.40], "dst": [954.9667, 963.0333], "picture_from": 860.20,
+   "why": "#5 'the rest of the lopsided planet... a snapshot' replaces 'Whichever future wins': removes the false ending, sets up 'one frame of a very slow movie'"}
+ ]}

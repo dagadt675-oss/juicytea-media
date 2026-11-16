@@ -1,0 +1,86 @@
+{
+ "name": "everest",
+ "bbox": [
+  86.85,
+  27.92,
+  87.0,
+  28.05
+ ],
+ "wh": [
+  1024,
+  1024
+ ],
+ "px_m": 14.3,
+ "hmin": -8000.0,
+ "hrange": 17000.0,
+ "vex": 1.0,
+ "files": {
+  "h16": "h16.png",
+  "ao": "ao.png",
+  "color": "color.jpg"
+ },
+ "sources": [
+  {
+   "id": "etopo15",
+   "res_arcsec": 15.0
+  },
+  {
+   "id": "terrarium_z14",
+   "res_m": 8.4,
+   "land_only": true,
+   "cap_m": null
+  }
+ ],
+ "colour": {
+  "bmng": "BlueMarble_NextGeneration 2004-07",
+  "hls": {
+   "level": 11,
+   "dates": [
+    "S30_2024-06-10",
+    "L30_2024-06-10",
+    "S30_2024-04-26",
+    "S30_2024-06-05",
+    "S30_2024-05-01",
+    "L30_2024-05-01"
+   ],
+   "gain": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "bbox": [
+    86.85,
+    27.92,
+    87.0,
+    28.05
+   ]
+  }
+ },
+ "facts": {
+  "peaks_m": {
+   "everest": {
+    "h": 8748,
+    "lon": 86.9254,
+    "lat": 27.9893
+   }
+  },
+  "land_area_km2_at_0m": 213.4,
+  "h_range_m": [
+   5012,
+   8748
+  ]
+ },
+ "purpose": "s064 the paper climber on Everest's summit (real snow); the same-scale comparisons stay on BlockStage (lab/hawaii/data/everest_h16.png).",
+ "gaps": [
+  "Terrarium z14 (SRTM 30 m): summit 8,748 m on the grid vs 8,849 m surveyed (the same-scale comparisons stay on BlockStage, which scales to 8,849 m). HLS 30 m, November 2023 snow.",
+  "Colour (round 3, 2026-11-09): HLS 30 m from the pre-monsoon high-sun window (10 April-10 June 2022-2024, the 6 clearest days, median): near-black texels 3.3 % to 0.09 %, on north faces 6.1 % to 0.07 % (was October-December, low sun). The monsoon months are cloud-covered and the HLS Fmask calls the high snowfields cloud (half the pixels above 6,500 m never clear), so they are not used. Light from the south still reads best (preset everest); AO tangent."
+ ],
+ "bake_s": 23.2,
+ "baked": "2026-11-09",
+ "ao": "tangent (horizon above the local slope)",
+ "bytes": {
+  "h16": 1160464,
+  "ao": 771940,
+  "color": 181056
+ }
+}

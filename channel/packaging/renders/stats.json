@@ -1,0 +1,192 @@
+{
+ "compare_everest": {
+  "luma": 142,
+  "near_black": 0.0,
+  "sky": 46,
+  "water": 5,
+  "terrain": 49,
+  "gate": "PASS",
+  "colours": "tan=0% red=0% blue=5% cyan=0% white=0% brightsat=31%",
+  "dist": "C_hawa=10.26 G_real=10.97 B_with=11.09 F_craf=11.40 E_slee=11.44 D_temp=11.55 A_drai=13.31"
+ },
+ "compare_everest_34": {
+  "luma": 123,
+  "near_black": 0.0,
+  "sky": 37,
+  "water": 9,
+  "terrain": 54,
+  "gate": "PASS",
+  "colours": "tan=0% red=0% blue=8% cyan=0% white=1% brightsat=10%",
+  "dist": "C_hawa=10.07 G_real=10.81 B_with=11.05 F_craf=11.27 E_slee=11.32 D_temp=11.46 A_drai=13.27"
+ },
+ "compare_everest_guides": {
+  "luma": 143,
+  "near_black": 0.0,
+  "sky": 46,
+  "water": 5,
+  "terrain": 49,
+  "gate": "PASS",
+  "colours": "tan=0% red=0% blue=5% cyan=0% white=0% brightsat=31%",
+  "dist": "C_hawa=10.27 G_real=10.97 B_with=11.09 F_craf=11.40 E_slee=11.44 D_temp=11.55 A_drai=13.31"
+ },
+ "drained_massif_e": {
+  "luma": 135,
+  "near_black": 0.0,
+  "sky": 40,
+  "water": 1,
+  "terrain": 58,
+  "gate": "PASS",
+  "colours": "tan=0% red=0% blue=13% cyan=0% white=1% brightsat=29%",
+  "dist": "C_hawa=10.44 F_craf=10.99 B_with=11.00 E_slee=11.19 G_real=11.44 D_temp=11.58 A_drai=11.95"
+ },
+ "drained_massif_ne_x2": {
+  "luma": 105,
+  "near_black": 1.8,
+  "sky": 39,
+  "water": 28,
+  "terrain": 33,
+  "gate": "PASS",
+  "colours": "tan=0% red=0% blue=27% cyan=0% white=0% brightsat=26%",
+  "dist": "C_hawa=10.72 G_real=11.24 F_craf=11.48 E_slee=11.54 B_with=11.60 D_temp=11.72 A_drai=12.92"
+ },
+ "drained_massif_sw": {
+  "luma": 131,
+  "near_black": 0.0,
+  "sky": 40,
+  "water": 2,
+  "terrain": 58,
+  "gate": "PASS",
+  "colours": "tan=1% red=0% blue=11% cyan=0% white=0% brightsat=28%",
+  "dist": "C_hawa=10.49 B_with=11.04 F_craf=11.06 E_slee=11.12 G_real=11.51 D_temp=11.68 A_drai=11.91"
+ },
+ "half_contrast_ne": {
+  "luma": 140,
+  "near_black": 0.0,
+  "sky": 41,
+  "water": 32,
+  "terrain": 28,
+  "gate": "PASS",
+  "colours": "tan=1% red=0% blue=42% cyan=8% white=1% brightsat=59%",
+  "dist": "C_hawa=10.44 B_with=10.84 G_real=11.04 E_slee=11.21 F_craf=11.22 D_temp=11.31 A_drai=12.65"
+ },
+ "half_east_puna": {
+  "luma": 131,
+  "near_black": 0.0,
+  "sky": 41,
+  "water": 34,
+  "terrain": 26,
+  "gate": "PASS",
+  "colours": "tan=0% red=0% blue=31% cyan=8% white=0% brightsat=53%",
+  "dist": "C_hawa=10.48 G_real=10.82 B_with=10.89 D_temp=11.20 E_slee=11.25 F_craf=11.26 A_drai=12.56"
+ },
+ "half_golden_kona_x2": {
+  "luma": 138,
+  "near_black": 0.0,
+  "sky": 45,
+  "water": 22,
+  "terrain": 32,
+  "gate": "PASS",
+  "colours": "tan=1% red=0% blue=38% cyan=5% white=0% brightsat=54%",
+  "dist": "C_hawa=10.77 B_with=11.02 G_real=11.16 D_temp=11.21 E_slee=11.24 F_craf=11.41 A_drai=12.04"
+ },
+ "half_low_se_x2": {
+  "luma": 138,
+  "near_black": 0.0,
+  "sky": 47,
+  "water": 39,
+  "terrain": 14,
+  "gate": "PASS",
+  "colours": "tan=0% red=0% blue=32% cyan=24% white=0% brightsat=57%",
+  "dist": "C_hawa=10.17 B_with=10.89 G_real=10.91 F_craf=11.18 E_slee=11.31 D_temp=11.38 A_drai=13.11"
+ },
+ "half_oblique_w": {
+  "luma": 124,
+  "near_black": 0.0,
+  "sky": 36,
+  "water": 35,
+  "terrain": 29,
+  "gate": "PASS",
+  "colours": "tan=0% red=0% blue=29% cyan=7% white=0% brightsat=50%",
+  "dist": "C_hawa=10.35 B_with=11.01 G_real=11.05 E_slee=11.24 D_temp=11.32 F_craf=11.36 A_drai=12.43"
+ },
+ "mauinui_400ft_s": {
+  "luma": 135,
+  "near_black": 0.0,
+  "sky": 9,
+  "water": 55,
+  "terrain": 36,
+  "gate": "PASS",
+  "colours": "tan=9% red=0% blue=24% cyan=32% white=0% brightsat=63%",
+  "dist": "B_with=10.78 C_hawa=10.84 F_craf=10.90 D_temp=11.03 E_slee=11.05 G_real=11.13 A_drai=11.93"
+ },
+ "mauinui_400ft_sw": {
+  "luma": 141,
+  "near_black": 0.0,
+  "sky": 27,
+  "water": 56,
+  "terrain": 17,
+  "gate": "PASS",
+  "colours": "tan=5% red=0% blue=25% cyan=32% white=0% brightsat=68%",
+  "dist": "C_hawa=10.36 B_with=10.77 G_real=10.83 D_temp=11.07 E_slee=11.10 F_craf=11.14 A_drai=12.60"
+ },
+ "mid_drain_foam_kona": {
+  "luma": 117,
+  "near_black": 0.0,
+  "sky": 28,
+  "water": 46,
+  "terrain": 26,
+  "gate": "PASS",
+  "colours": "tan=1% red=0% blue=32% cyan=15% white=0% brightsat=51%",
+  "dist": "C_hawa=10.72 G_real=11.04 B_with=11.12 F_craf=11.20 D_temp=11.40 E_slee=11.63 A_drai=12.34"
+ },
+ "mid_drain_foam_se": {
+  "luma": 116,
+  "near_black": 0.0,
+  "sky": 23,
+  "water": 52,
+  "terrain": 25,
+  "gate": "PASS",
+  "colours": "tan=0% red=0% blue=6% cyan=45% white=0% brightsat=59%",
+  "dist": "C_hawa=10.37 G_real=10.81 B_with=11.05 F_craf=11.11 D_temp=11.30 E_slee=11.39 A_drai=12.50"
+ },
+ "mid_drain_puna": {
+  "luma": 118,
+  "near_black": 0.0,
+  "sky": 29,
+  "water": 50,
+  "terrain": 20,
+  "gate": "PASS",
+  "colours": "tan=0% red=0% blue=40% cyan=11% white=0% brightsat=53%",
+  "dist": "C_hawa=10.14 G_real=10.71 B_with=10.89 F_craf=11.08 E_slee=11.18 D_temp=11.23 A_drai=12.77"
+ },
+ "plate_ne": {
+  "luma": 118,
+  "near_black": 0.0,
+  "sky": 41,
+  "water": 9,
+  "terrain": 51,
+  "gate": "PASS",
+  "colours": "tan=1% red=0% blue=6% cyan=0% white=0% brightsat=29%",
+  "dist": "C_hawa=10.93 F_craf=11.19 B_with=11.28 E_slee=11.36 G_real=11.71 D_temp=11.76 A_drai=11.98"
+ },
+ "plate_ne_line": {
+  "luma": 120,
+  "near_black": 0.0,
+  "sky": 41,
+  "water": 9,
+  "terrain": 50,
+  "gate": "PASS",
+  "colours": "tan=0% red=0% blue=6% cyan=0% white=1% brightsat=29%",
+  "dist": "C_hawa=10.81 F_craf=11.13 B_with=11.24 E_slee=11.33 G_real=11.61 D_temp=11.81 A_drai=12.28"
+ },
+ "plate_ne_wide": {
+  "luma": 128,
+  "near_black": 0.0,
+  "sky": 44,
+  "water": 3,
+  "terrain": 54,
+  "gate": "PASS",
+  "colours": "tan=1% red=0% blue=1% cyan=0% white=0% brightsat=32%",
+  "dist": "A_drai=11.11 E_slee=11.15 F_craf=11.28 B_with=11.34 C_hawa=11.46 D_temp=11.62 G_real=12.02"
+ }
+}

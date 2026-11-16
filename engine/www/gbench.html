@@ -1,0 +1,16 @@
+<!doctype html><html><body><script type="module">
+import { Globe } from './lib/globe.js';
+const W=1920,H=1080; const comp=document.createElement('canvas'); comp.width=W; comp.height=H; document.body.appendChild(comp); const cx=comp.getContext('2d');
+const g=new Globe(W,H);
+window.ready=(async()=>{await g.init();})();
+window.bench=async()=>{
+  const out={};
+  const run=async(name, setup)=>{ setup(); let t=performance.now(); for(let i=0;i<6;i++){ g.set({lat:-20+i, lon:134, alt:0.9, tilt:20, sun:'camera'}); cx.drawImage(g.render(),0,0); await new Promise(r=>comp.toBlob(r,'image/jpeg',0.95)); } out[name]=Math.round((performance.now()-t)/6); };
+  await run('full', ()=>{});
+  await run('noRelief', ()=>{g.look('relief',0)});
+  await run('noAtmo', ()=>{g.look('relief',1); g.atmo.visible=false});
+  await run('noStars', ()=>{g.atmo.visible=true; g.stars.visible=false});
+  await run('nothing', ()=>{g.atmo.visible=false; g.earth.visible=false});
+  return out;
+};
+</script></body></html>

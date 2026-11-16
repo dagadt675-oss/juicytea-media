@@ -1,0 +1,382 @@
+{
+ "run": "wf_96e8f33f-afb",
+ "agent": "ab635b2d1b5f0e6dc",
+ "label": "panel: casual",
+ "result": {
+  "lens": "I watched as a 19-year-old who tapped this from the YouTube home feed on a phone: mildly curious, Shorts-trained, gone the moment I'm bored, lost or talked down to. I read the full script, the pacing table, all 9 overview sheets and the retention playbook. Because the user reports animation problems, I also checked at frame level every render seam, flash, pop cluster and black or still stretch that the temporal scan flagged, plus every counter and transition (frame tiles are in scratchpad/review6/grab_ret). Predicted for this audience: about 67% still watching at 0:30, about 57% at 1:00, and an average view duration of about 4:47 (28%), below the playbook's 35% target. The biggest loss is the 0:55-2:55 history block. The animation defects that matter most are the climax drift crammed into about 1.3 s at 11:21.7, the empty screen at 12:56 and the pure black at 0:53.",
+  "predicted_curve": [
+   {
+    "t": 0,
+    "pct": 100
+   },
+   {
+    "t": 3,
+    "pct": 90
+   },
+   {
+    "t": 10,
+    "pct": 81
+   },
+   {
+    "t": 20,
+    "pct": 74
+   },
+   {
+    "t": 30,
+    "pct": 67
+   },
+   {
+    "t": 45,
+    "pct": 62
+   },
+   {
+    "t": 55,
+    "pct": 58
+   },
+   {
+    "t": 70,
+    "pct": 54
+   },
+   {
+    "t": 90,
+    "pct": 50
+   },
+   {
+    "t": 120,
+    "pct": 46
+   },
+   {
+    "t": 150,
+    "pct": 42
+   },
+   {
+    "t": 161,
+    "pct": 40
+   },
+   {
+    "t": 175,
+    "pct": 38
+   },
+   {
+    "t": 200,
+    "pct": 36.5
+   },
+   {
+    "t": 240,
+    "pct": 35
+   },
+   {
+    "t": 280,
+    "pct": 34
+   },
+   {
+    "t": 320,
+    "pct": 33
+   },
+   {
+    "t": 345,
+    "pct": 32
+   },
+   {
+    "t": 360,
+    "pct": 30.5
+   },
+   {
+    "t": 400,
+    "pct": 29.5
+   },
+   {
+    "t": 440,
+    "pct": 28
+   },
+   {
+    "t": 480,
+    "pct": 26.5
+   },
+   {
+    "t": 540,
+    "pct": 25.5
+   },
+   {
+    "t": 580,
+    "pct": 24.5
+   },
+   {
+    "t": 600,
+    "pct": 23.5
+   },
+   {
+    "t": 615,
+    "pct": 22.5
+   },
+   {
+    "t": 660,
+    "pct": 21.5
+   },
+   {
+    "t": 689,
+    "pct": 20.5
+   },
+   {
+    "t": 720,
+    "pct": 18.5
+   },
+   {
+    "t": 760,
+    "pct": 17
+   },
+   {
+    "t": 780,
+    "pct": 15.5
+   },
+   {
+    "t": 820,
+    "pct": 14
+   },
+   {
+    "t": 860,
+    "pct": 12.5
+   },
+   {
+    "t": 880,
+    "pct": 12
+   },
+   {
+    "t": 930,
+    "pct": 11
+   },
+   {
+    "t": 960,
+    "pct": 10
+   },
+   {
+    "t": 990,
+    "pct": 9
+   },
+   {
+    "t": 1000,
+    "pct": 7.5
+   },
+   {
+    "t": 1011,
+    "pct": 5.5
+   }
+  ],
+  "would_leave_at": "2:41 (161 s), on 'Three years later, a geologist published his own version of the joke. Hold on to him. He matters more than you'd think.' By then I've had four 'someone else noticed it' stories in a row (Bacon, Forster, Humboldt, the 1973 magazine). The cape list from 0:03-0:12 was just repeated word for word at 2:21. On screen is a fake page of grey placeholder lines with a yellow ring around a blurred name. I've had nothing new on the 'why' since the 0:31 tease. What would have kept me: the dig-to-China and 'Antarctica sits opposite the Arctic' material (now 2:55-5:28) coming right after the hook, with the history cut to about a minute.",
+  "drop_risks": [
+   {
+    "t0": 0,
+    "t1": 4,
+    "severity": "medium",
+    "why": "The opening globe barely moves for 3 s: per-second motion is 0.3, 0.1, 0.1, and frames 0/30/60/90 are near-identical. Meanwhile the voice says 'Spin a globe'. The first real movement, the drip curves to the '?', only starts at 0:04. A viewer coming from Shorts decides in the first second.",
+    "fix": "Make the globe actually spin from frame 1, using the same asset: a fast spin that eases to a stop by 0:02. Start the 0:04 drip curves on the word 'melting' (about 0:02). Or open on the 0:17-0:18 shot of the 3D character watching the red drop slide off the planet, then cut to the globe.",
+    "fix_type": "add_visual"
+   },
+   {
+    "t0": 53.1,
+    "t1": 55,
+    "severity": "medium",
+    "why": "After the hook's last promise ('...crash into. Eventually.') the picture hard-cuts to pure black (mean luma 1/255) from 0:53.13 to 0:54.53, with no voice, then fades up over 0.5 s. That is 1.4 s of black at the steepest point of the curve. On a phone it looks like the video ended, an ad, or buffering. It's an animation and transition defect.",
+    "fix": "Keep the comedic beat but cut the black to 6-8 frames. Alternatively, dim the four-models grid to 30% instead of going to full black, and start the 1620 year counter on 'Bad news' (0:54.6).",
+    "fix_type": "trim"
+   },
+   {
+    "t0": 59,
+    "t1": 100,
+    "severity": "medium",
+    "why": "Right after a hook that promised dig-to-China and crashing continents, the video gives 40 s of 1620 Latin pages, tiny translation captions and portraits, with 20 cuts per 30 s over dense text. 1:25-1:39 ('you may have heard that Bacon predicted continental drift. He didn't... shaped alike, side by side') busts a myth a 19-year-old has never heard, so there's nothing to bust.",
+    "fix": "Keep 0:59-1:24: the quote, 'not to be attributed to mere accident' and 'is there a southern continent? Remember that.' They pay off at 10:23 and 16:03. Cut 1:25-1:39 (about 14 s). Reuse its JUICE CHECK: FALSE stamp on Forster's flood at 2:08 ('Geology later asked for a refund').",
+    "fix_type": "cut"
+   },
+   {
+    "t0": 100,
+    "t1": 175,
+    "severity": "high",
+    "why": "This is where I leave. Forster (1:48), Humboldt (2:11), the 1973 'continental drip' joke (2:29) and the blurred 1976 geologist (2:41) make four 'someone else noticed it' stories in a row. The 'why' doesn't move between 0:31 and 2:55. 2:21 repeats the 0:03-0:12 cape list. 2:30-2:51 is fake paper with grey placeholder lines, a typewriter and a yellow ring around a blurred bar, which reads as an unfinished graphic. The hook's first promise (dig to China) doesn't pay off until 3:56, well past the playbook's 'pay off item #1 before 2:00'.",
+    "fix": "Reorder the existing scenes. Put the hook (0:00-0:55) and the 2:49 line ('the shapes are just the first clue. The next one is on the far side of the planet') first. Then ch2 and dig to China (2:55-5:28), so the first promise pays off by about 1:40. Then the trimmed Bacon/Forster/Humboldt block, ending on Humboldt's 'pyramidal'. Then 5:39 'back in 1875, one man...', the subscribe ask, and the pyramid chapter. That runs in date order (1620 \u2192 1770s \u2192 1840s \u2192 1875) and 'Remember those pyramidal tips?' (6:13) lands right after. Move 2:29-2:49 (the 1973 joke and the Holden tease) to just before 11:34. Most bridge changes are deletions ('Hold on to him', 'Back to that second drip joke').",
+    "fix_type": "reorder"
+   },
+   {
+    "t0": 344.9,
+    "t1": 345.2,
+    "severity": "low",
+    "why": "Animation defect: at 5:45.00\u21925:45.03 (frame 10350\u219210351) the globe under the 1875 tetrahedron goes from fully lit to dark and semi-transparent in a single frame. This is exactly the boundary between render chunks 22 and 23, the worst seam in the temporal scan (diff ratio 12.4). It reads as a flicker, especially on a TV.",
+    "fix": "Re-render chunk 23 so the dim is a 12-15-frame fade that starts inside chunk 22, or render 22-23 in one pass.",
+    "fix_type": "other"
+   },
+   {
+    "t0": 434,
+    "t1": 467,
+    "severity": "medium",
+    "why": "After the fun checklist, 'how do we know it's wrong?' (7:14-7:47) becomes abstract physics: a cooling, shrinking Earth, measuring the squashed ball, radioactivity, 'the shrinking engine stalled'. The frames are near-still: motion is mostly 0.1-0.3 per second from 7:15 to 7:35, with 6 still seconds in 7:00-7:30. 7:31 is the fourth use of the same core cutaway (also 0:44, 3:36, 4:08).",
+    "fix": "Keep 'a ball, slightly squashed at the poles. Not a pyramid' with the red X (7:27-7:30) and 'radioactivity, quietly heating Earth from the inside' with the sparkle core (7:33). Cut 7:36-7:42 ('Over the next few decades, the shrinking engine stalled. The pyramid vanished from geology.') and go straight to 'Real clues. Wrong suspect.' (7:43).",
+    "fix_type": "trim"
+   },
+   {
+    "t0": 504,
+    "t1": 506,
+    "severity": "low",
+    "why": "Animation defect: the '1912: THE CONTINENTS MOVE' globe carries a stray paleo counter, '62 MILLION YEARS AGO \u00b7 SIMPLIFIED', that counts down to 1 (8:24-8:25). Two unrelated numbers sit on screen during a story about a 1912 lecture.",
+    "fix": "Hide the Ma counter in this shot and keep only the '1912' label.",
+    "fix_type": "text_on_screen"
+   },
+   {
+    "t0": 588.5,
+    "t1": 589,
+    "severity": "low",
+    "why": "Animation defect: at 9:48.57-9:48.73 the fingernails-vs-toenails card jerks for 5 frames, then the whole picture drops about 15% in brightness (luma 33.6\u219228.9) and stays dim. On a phone it reads as a glitch, not a punchline.",
+    "fix": "Replace it with one eased scale bump (about 1.05x over 6 frames) and no brightness drop.",
+    "fix_type": "other"
+   },
+   {
+    "t0": 598,
+    "t1": 613,
+    "severity": "medium",
+    "why": "Animation defect: the clock runs backwards twice. On the flat map the counter runs 1\u219221\u219289\u2192159\u2192179 Ma (10:00-10:04) while the continents don't move at all. Then the card 'CHAPTER 5: WHERE ARE THE DRIPS POINTING?' appears (10:05-10:06), which doesn't match the YouTube chapter 'Running the clock backwards'. Then a second counter restarts at 6 and runs 6\u219224\u219263\u2192121\u2192158\u2192175\u2192180 (10:07-10:13). It's a 'wait, what?' moment at the start of the payoff chapter.",
+    "fix": "Drop the counter from the flat-map shot and keep only the pins and dotted lines. Show the chapter card on 'Run the clock backwards' (9:58). Let the globe own the single 0\u2192180 Ma rewind. Use the same title on the card and in the YouTube chapter list.",
+    "fix_type": "other"
+   },
+   {
+    "t0": 634.3,
+    "t1": 634.6,
+    "severity": "low",
+    "why": "Animation defect: at 10:34.43 (frame 19033) the plate outlines on the Gondwana globe jump for one frame. That frame differs from both neighbours by about 8, while the neighbours differ from each other by 3.6, so the coastlines flicker.",
+    "fix": "Re-render the frame, or replace frame 19033 with a blend of frames 19032 and 19034.",
+    "fix_type": "other"
+   },
+   {
+    "t0": 673,
+    "t1": 689,
+    "severity": "high",
+    "why": "The answer to the title is where the animation fails. 11:14-11:21 is a static parchment polar map for 7 s (motion \u22640.4). Then at 11:21.7-11:23.1 the whole breakup from 180 Ma to today plays in about 40 frames (172, 157, 129, 86, 45, 20, 6, 1, TODAY). It runs through a double-exposed dissolve: the '180' and '178' counters ghost over each other at 11:21.7-11:21.9, and a '0' overlaps 'TODAY' at 11:23.0. All of this happens exactly as the voice says 'As they drifted apart, they roughly kept their orientation', so the proof can't be seen.",
+    "fix": "Retime the forward drift to about 6 s across 11:21-11:28 with an ease-out. Keep the white tip pins from the 10:29 shot on the continents so viewers see the tips still aiming at Antarctica. Use a clean cut instead of the ghosted dissolve, and land on the TODAY globe with the dotted lines exactly on 'They're scars' (11:29). Slide the pieces home during 11:14-11:21 instead of holding a still map.",
+    "fix_type": "other"
+   },
+   {
+    "t0": 694,
+    "t1": 760,
+    "severity": "medium",
+    "why": "Post-payoff sag. Once 'They're scars' (11:29) answers the title, the video spends about 66 s on Holden's joke. That includes the flipped Blue Marble aside (about 11:55-12:07), a near-still split screen (12:20-12:28, motion 0.1) that has no labels for its first 2 s, and a citation card made of grey placeholder lines (12:29-12:31). The Holden loop was opened about 9 minutes earlier (2:41), so most viewers have forgotten it.",
+    "fix": "Open 11:34 with the twist first: the man who joked about drips in 1976 had already mapped the breakup for real. Cut the flipped-photo aside. Keep Pangooy (12:07-12:19), which the 15:29 'not on a Tuesday' callback needs. Label both halves of the split screen from its first frame.",
+    "fix_type": "trim"
+   },
+   {
+    "t0": 775.5,
+    "t1": 777.5,
+    "severity": "medium",
+    "why": "Animation defect: from 12:56.0 to 12:57.0 the frame is an empty navy background. The grid's first tile appears at 12:57.0 and the grid is full at 12:57.5. This plays under 'Now, the honest part...', so it looks like the video froze, on a line that already warns 'caveats ahead'.",
+    "fix": "Start the 'THE HONEST PART' tile build on the cut (about 12:55.6), or cross-dissolve straight from the Nevada drip. Don't cut to an empty background.",
+    "fix_type": "other"
+   },
+   {
+    "t0": 812,
+    "t1": 822,
+    "severity": "medium",
+    "why": "The Florida limestone platform (13:32-13:41) is a flat beige trapezoid held for about 10 s (still run 13:32-13:37). The sea-life icons are about 30 px wide on a phone. Then, an animation defect: at 13:37.8-13:38.4 the bedrock layer is revealed by a hard-edged rectangular wipe across a black void under the platform, which looks like a render error.",
+    "fix": "Cut the platform hold to about 4 s and build the shells while 'built up by sea life' is spoken. Raise the bedrock from below with a soft edge. Go straight to the 13:42 dotted line to Africa and the moving-van gag.",
+    "fix_type": "trim"
+   },
+   {
+    "t0": 844,
+    "t1": 875,
+    "severity": "high",
+    "why": "14:04-14:35 is a 30-s recap ('So is the drip just a coincidence?... The likeliest answer: it's a snapshot') at 84% of the runtime. It sits over near-still globes (8 still seconds in 14:00-14:30), and the 14:15-14:20 arrow and shell icons are tiny. It's a classic 'we're wrapping up' cue, and it comes right before the part the hook promised at 0:47: which continent your country crashes into.",
+    "fix": "Keep the 'JUICE CHECK: IT'S COMPLICATED' sign (14:09) plus one line ('Big drips: scars. Small ones: mostly coincidence.'). Cut 14:13-14:34 (about 20 s) and go straight to 'So where is the drip going?'.",
+    "fix_type": "cut"
+   },
+   {
+    "t0": 896,
+    "t1": 930,
+    "severity": "low",
+    "why": "In the four-models sequence (14:56-15:30), each model ends on a frozen globe (motion 0.0-0.2 at 15:08-15:10). Then it snaps in or out of the grid with an un-eased 0.2-s zoom (about 15:02, 15:11, 15:20, 15:29). The narration also drops to 106 wpm in 15:00-15:30.",
+    "fix": "Keep the globes slowly rotating during the holds, ease the panel zooms over about 12 frames, and close the pauses between the model lines.",
+    "fix_type": "speed_up"
+   },
+   {
+    "t0": 935,
+    "t1": 938,
+    "severity": "low",
+    "why": "At 15:35-15:37.5 the 3D character runs across the model grid. It covers the bottom panels, including Aurica/Australia, right as the voice asks 'which neighbor are you betting on? One word, in the comments'. The choices the viewer is meant to compare are blocked.",
+    "fix": "Walk the character along the bottom edge below the panels, or bring it in after the question.",
+    "fix_type": "other"
+   },
+   {
+    "t0": 997,
+    "t1": 1011,
+    "severity": "low",
+    "why": "The end screen (16:37-16:51) is near-still (motion 0.2-0.3 per second). The spoken 'That's our next story' points to an Africa-split episode that doesn't exist yet, since this is ep01, so the WATCH NEXT slot will show something unrelated or nothing.",
+    "fix": "Publish ep02 or a playlist before this goes live, or point the end-screen element at an existing video. Keep the Y-rift pulsing brightly behind the slots.",
+    "fix_type": "other"
+   }
+  ],
+  "fatigue_points": [
+   {
+    "t": 72,
+    "why": "Three archival Latin pages in about 8 s (1:00-1:08), with tiny captions. It starts to feel like homework."
+   },
+   {
+    "t": 141,
+    "why": "2:21 repeats the 0:03-0:12 cape list (Greenland, Baja, Florida, India, Kamchatka) word for word."
+   },
+   {
+    "t": 161,
+    "why": "'Hold on to him' over grey placeholder pages: the fourth history story, with no new answer since 0:31. My exit point."
+   },
+   {
+    "t": 228,
+    "why": "3:48-3:53: a plain rotating globe with no overlay under 'land has ocean on its far side'."
+   },
+   {
+    "t": 300,
+    "why": "4:58-5:01 and 5:15-5:18: near-still globes in the half-planet puzzle."
+   },
+   {
+    "t": 440,
+    "why": "7:15-7:35: an abstract debunk over mostly near-still frames (0.1-0.3 per second), plus the fourth use of the core cutaway."
+   },
+   {
+    "t": 602,
+    "why": "10:00-10:13: two year counters, the first running while nothing moves."
+   },
+   {
+    "t": 675,
+    "why": "11:14-11:21: a static parchment map at the climax, followed by a 1.3-s blur of the actual drift."
+   },
+   {
+    "t": 742,
+    "why": "12:20-12:28: a split screen with 0.1 motion and no labels for its first 2 s."
+   },
+   {
+    "t": 777,
+    "why": "12:56: an empty screen, then 'the honest part', which signals caveats."
+   },
+   {
+    "t": 815,
+    "why": "13:32-13:41: the static Florida platform with icons too small for a phone."
+   },
+   {
+    "t": 855,
+    "why": "14:04-14:35: the recap reads as the ending."
+   },
+   {
+    "t": 1000,
+    "why": "The end screen: near-still, and the next episode doesn't exist yet."
+   }
+  ],
+  "strengths": [
+   "The hook copy is quick and funny (122-140 wpm): 'Spin a globe, and Earth looks like it's melting' and 'left the planet on the dashboard in July'. The 3D character watching a red drop slide off the globe (0:17-0:18) and the coin flip on 'just a coincidence?' (0:28-0:29) land. There's a flash-forward of the final Gondwana reveal at 0:31, as the playbook asks.",
+   "Dig to China (3:56-5:28) is the best stretch for my age group: Kansas comes out in the southern Indian Ocean, 'the people who can actually dig to China? Argentinians', the '1 IN 8' antipode map, the IF RANDOM vs REAL EARTH squares stacking into bars (4:48-4:50), and the 89% water half. These are facts you repeat to friends.",
+   "The jokes are visual and come every 30-60 s: Santa's workshop on an ice floe (3:04), the 1918 classroom 'Sleep tight, kids' (7:08-7:12), fingernails vs toenails (9:48), the Pangooy blob with its 'TUESDAY, 9:00 A.M.' calendar (12:14-12:19), the Florida moving van (13:45), 'Reminder: you're a mammal' (15:52).",
+   "The JUICE CHECK stamps work as verdict beats and as a brand device: FALSE (1:30), TRUE (9:52), IT'S COMPLICATED (14:09). The on-screen chapter titles are questions (2:56, 3:56, 5:58, 8:02, 14:36).",
+   "Loops are planted and closed: Bacon's 'is there a southern continent? Remember that' (1:15) pays off at 10:23-10:31; the Holden tease (2:41) at 12:19; Bacon's 'not... mere accident' (1:07) at 16:03 with 'It wasn't an accident. It was a breakup'; and 'the same ocean you just dug into' at 6:57.",
+   "The Wegener chapter (8:01-9:41) is the emotional peak: archival push-ins, 'Neither of them made it back', the film's only >1.2-s pause (9:39.9-9:41.1), and '1963 - 33 YEARS TOO LATE' (9:40).",
+   "The future chapter is shareable: four named supercontinents with a one-word comment prompt (15:29), the red-hot climate globe (15:48-15:52), and 'one frame of a very slow movie' over a film strip of globes (16:14-16:22), followed by a concrete next-episode tease (the Ethiopia Y-crack, 16:19-16:36).",
+   "The picture changes constantly (277 cuts; most 30-s windows have 4-20 cuts), the music changes per chapter, and the one-sentence subscribe ask (5:47-5:57) comes right after the first big payoff, over moving pictures."
+  ],
+  "top3": [
+   "1. Reorder the first 6 minutes using the existing scenes. Run the hook (0:00-0:55) and the 2:49 'next clue is on the far side of the planet' line, then 'What's on Earth's other side?' and 'Dig to China' (2:55-5:28). Then a trimmed history block: Bacon 0:59-1:24 and Forster/Humboldt 1:48-2:29, ending on 'pyramidal'. Then 5:39 'back in 1875, one man...', the subscribe ask, and the pyramid chapter. Move the 1973 'continental drip' joke and the Holden tease (2:29-2:49) to just before 11:34. The first promise then pays off by about 1:40 instead of 3:56, and the 0:55-2:55 slump where I left at 2:41 disappears. The bridge changes are mostly deletions.",
+   "2. Fix the animation defects the user noticed, all by re-rendering existing shots. Most important is the climax drift at 11:21.7-11:23.1: 180\u21920 Ma in about 40 frames, with ghosted 180/178 counters and '0' over 'TODAY'. Retime it to about 6 s with the tip pins kept on. Also fix: the empty navy screen at 12:56.0-12:57.0; the 1.4-s pure black at 0:53.13-0:54.53; the one-frame globe dim at 5:45.03 (render seam between chunks 22 and 23); the double rewind at 10:00-10:13 (1\u2192179 on a static map, then 6\u2192180); the hard-edged bedrock wipe over a black void at 13:37.8-13:38.4; the one-frame coastline jump at 10:34.43; and the stray '62 Ma' counter at 8:24.",
+   "3. Cut the post-payoff sag so the four-continents promise from 0:47 arrives about a minute sooner. Drop the 14:13-14:34 recap but keep the IT'S COMPLICATED sign. Drop the flipped Blue Marble aside (about 11:55-12:07) and lead the Holden section with its twist. Halve the Florida platform hold (13:32-13:41). While re-rendering, make the first 3 s actually spin the globe on 'Spin a globe'."
+  ]
+ }
+}

@@ -1,0 +1,215 @@
+{
+ "name": "nwhi_chain",
+ "bbox": [
+  -182.0,
+  18.5,
+  -158.5,
+  31.5
+ ],
+ "wh": [
+  2820,
+  1560
+ ],
+ "px_m": 884.2,
+ "hmin": -8000.0,
+ "hrange": 17000.0,
+ "vex": 1.0,
+ "files": {
+  "h16": "h16.png",
+  "ao": "ao.png",
+  "color": "color.jpg"
+ },
+ "sources": [
+  {
+   "id": "etopo30",
+   "res_arcsec": 30.0
+  },
+  {
+   "id": "terrarium_z9",
+   "res_m": 277.1,
+   "land_only": true
+  }
+ ],
+ "colour": {
+  "bmng": "BlueMarble_NextGeneration 2004-07"
+ },
+ "facts": {
+  "land_groups_at": {
+   "-2000": [
+    {
+     "names": [
+      "kauai"
+     ],
+     "area_km2": 6653
+    },
+    {
+     "names": [
+      "nihoa"
+     ],
+     "area_km2": 4409
+    },
+    {
+     "names": [
+      "mokumanamana"
+     ],
+     "area_km2": 4495
+    },
+    {
+     "names": [
+      "lalo"
+     ],
+     "area_km2": 11205
+    },
+    {
+     "names": [
+      "gardner"
+     ],
+     "area_km2": 13384
+    },
+    {
+     "names": [
+      "laysan"
+     ],
+     "area_km2": 1620
+    },
+    {
+     "names": [
+      "lisianski"
+     ],
+     "area_km2": 3908
+    },
+    {
+     "names": [
+      "pearl_hermes"
+     ],
+     "area_km2": 1716
+    },
+    {
+     "names": [
+      "midway"
+     ],
+     "area_km2": 935
+    },
+    {
+     "names": [
+      "kure"
+     ],
+     "area_km2": 869
+    }
+   ],
+   "-3000": [
+    {
+     "names": [
+      "kauai"
+     ],
+     "area_km2": 11383
+    },
+    {
+     "names": [
+      "nihoa"
+     ],
+     "area_km2": 9777
+    },
+    {
+     "names": [
+      "mokumanamana"
+     ],
+     "area_km2": 7016
+    },
+    {
+     "names": [
+      "lalo"
+     ],
+     "area_km2": 17435
+    },
+    {
+     "names": [
+      "gardner"
+     ],
+     "area_km2": 20518
+    },
+    {
+     "names": [
+      "laysan"
+     ],
+     "area_km2": 19183
+    },
+    {
+     "names": [
+      "lisianski"
+     ],
+     "area_km2": 6458
+    },
+    {
+     "names": [
+      "pearl_hermes"
+     ],
+     "area_km2": 3215
+    },
+    {
+     "names": [
+      "midway"
+     ],
+     "area_km2": 1594
+    },
+    {
+     "names": [
+      "kure"
+     ],
+     "area_km2": 1804
+    }
+   ],
+   "-4000": [
+    {
+     "names": [
+      "kauai"
+     ],
+     "area_km2": 26321
+    },
+    {
+     "names": [
+      "nihoa",
+      "mokumanamana",
+      "lalo",
+      "gardner",
+      "laysan"
+     ],
+     "area_km2": 237824
+    },
+    {
+     "names": [
+      "lisianski"
+     ],
+     "area_km2": 14389
+    },
+    {
+     "names": [
+      "pearl_hermes"
+     ],
+     "area_km2": 6338
+    },
+    {
+     "names": [
+      "midway",
+      "kure"
+     ],
+     "area_km2": 16337
+    }
+   ]
+  },
+  "land_area_km2_at_0m": 1695.0,
+  "h_range_m": [
+   -6747,
+   1666
+  ]
+ },
+ "purpose": "Context layer for the Northwestern Hawaiian Islands flights (s092-s111, s140-s146): Ni'ihau to Kure on one grid, across the antimeridian.",
+ "gaps": [],
+ "bake_s": 26.8,
+ "baked": "2026-11-08",
+ "bytes": {
+  "h16": 6003190,
+  "ao": 407527,
+  "color": 74902
+ }
+}
