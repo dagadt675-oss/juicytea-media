@@ -306,3 +306,10 @@ Rules added: facts (status keys, primary over listicles, verbatim quotes with el
 - Shader changes stay in a staging tree while chapter builds render through the live hterrain.js; data is promoted region by region under a lock with a backup.
 - Disk: 1.6 GB free before the bakes; removed ep01 render leftovers (master kept), 6.7 GB free.
 - Run: wf_72772185-59d (scratchpad/wf/ep02-closeup-r3.js).
+
+## 2026-11-16 Usage-limit cut of both runs; restart as fresh runs
+- The 5-hour limit cut the chapters run (wf_ce7d632a-dde) and close-up round 3 (wf_72772185-59d) at 23:39-23:41 UTC on 2026-11-15. Done before the cut: finish:ch2, fix:ch1, fix:ch3; the molokai_east patch (Maui Nui ride) and the 0.72 m pali_lookout colour were promoted; ch4.js and ch5.js held full drafts; a windward O'ahu patch was staged, not promoted. ch6, hero, shader and Everest never started.
+- No agent of the cut builds completed, so resume would replay nothing useful; two fresh runs embed what survived as RESUME notes (scratchpad wf/ep02-chapters-r4.js, wf/ep02-closeup-r3b.js), with the predecessors' transcripts named for wf/tx.py.
+- The audit's colour px halving on pali_lookout only follows from the doubled texture; the streaky strip under the wall is still visible in the A_3148 pair, so round 3b judges the strip itself and does not accept the promotion on the audit number.
+- Windward O'ahu patch: 47 to 39 flagged audit frames and much sharper Kailua and ridges, but about 2.3x GPU-process CPU per frame locally (43 to 100 s); a coarser per-patch mesh brings it to about 75-82 s. The L4 cost check stays on the integrate list.
+- Chapter 2 lessons (finish:ch2): Fritsch-Carlson weights and peak=[1] for camera paths; a comment swallowed code and passed node --check; fixing an overshoot moved the drain beat. Rules added to PLAYBOOK_production.md section 15, with the checkpoint rule (a NOTES.md per agent).
