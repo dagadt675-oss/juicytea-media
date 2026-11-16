@@ -3,7 +3,7 @@
 regions.json is what HawaiiStage.loadRegion('ep/ep02/data', name) and lab_region.html read: per region the data folder (absolute
 from the web root), files, bbox, size, pixel size, nesting stack, verification camera, purpose (script segments), sources, colour
 dates, sea-level facts measured on the baked grid, data gaps and sizes. Legacy regions (bigisland, hawaii_skirt) point at
-lab/hawaii/data and take their facts from its meta.json. A region baked with dated scenes ('dated' in the spec, meta 'variants') also
+lab/hawaii/data and take their facts (and the hero's res, colour_refine and sources, hero_refine.py) from its meta.json. A region baked with dated scenes ('dated' in the spec, meta 'variants') also
 gets one entry per date (e.g. lalo_2018_before), same grid and folder, its own heights and colour. Regions re-baked by
 lab/hawaii/tools/detail_bake.py carry 'res' (height and colour texel and source sizes, m) and 'detail'; a nested patch carries 'patch'. Run after any bake
 (rebuild_regions.sh does). Optional argument: another data folder (a test bake), whose regions.json is written there instead."""
@@ -24,7 +24,10 @@ for R in spec['regions']:
         e.update(dir='/' + R['dir'], files=R['files'], hmin=-8000.0, hrange=17000.0, rebuild=R.get('rebuild'))
         lm = os.path.join(WWW, R['dir'], 'meta.json')
         if os.path.exists(lm) and n == 'bigisland':
-            m = json.load(open(lm)); e['facts'] = m.get('facts', {}); e['sources'] = ['ETOPO 2022 15"', 'Terrarium z11 (land)', 'GIBS MODIS 250 m composite']
+            m = json.load(open(lm)); e['facts'] = m.get('facts', {}); e['sources'] = m.get('sources', ['ETOPO 2022 15"', 'Terrarium z11 (land)', 'GIBS MODIS 250 m composite'])
+            if 'res' in m: e['res'] = m['res']   # hero_refine.py: the 8192 colour with NASA HLS detail on Big Island land
+            if 'colour_refine' in m: e['colour_refine'] = dict(m['colour_refine'], boxes={k: dict({j: w for j, w in b.items() if j != 'scenes'}, scenes=len(b.get('scenes', [])))
+                                                                                           for k, b in m['colour_refine'].get('boxes', {}).items()})
         hp = os.path.join(WWW, R['dir'], R['files']['h16'])
         if R.get('facts') and os.path.exists(hp):  # the same measurements as region_bake.py, on the legacy grid
             import sys, numpy as np

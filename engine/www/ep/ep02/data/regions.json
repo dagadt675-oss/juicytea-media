@@ -210,13 +210,120 @@
    "sources": [
     "ETOPO 2022 15\"",
     "Terrarium z11 (land)",
-    "GIBS MODIS 250 m composite"
+    "GIBS MODIS 250 m composite",
+    "NASA HLS v2 30 m (Big Island land detail)"
    ],
    "px_m": 115.0,
    "bytes": {
     "h16": 15842611,
     "ao": 1555512,
-    "color": 463766
+    "color": 1738006
+   },
+   "res": {
+    "height_m": 115.0,
+    "height_src_m": 70,
+    "colour_texel_m": 57.5,
+    "colour_src_m": 30,
+    "colour_wh": [
+     8192,
+     8192
+    ],
+    "colour_src_note": "30 m (NASA HLS v2) detail on the land of the refined boxes only (bigisland); the rest of the layer and the sea stay MODIS 250 m / Blue Marble"
+   },
+   "colour_refine": {
+    "tool": "lab/hawaii/tools/hls_hero.py + hero_refine.py",
+    "date": "2026-11-16",
+    "base": "hero_color_base.jpg (hawaii_bake.py, MODIS 250 m / Blue Marble, the tone)",
+    "method": "detail transfer: reference tone and colour at ref_m, HLS detail finer; few clear looks fade to the reference, never-clear land takes the kept neighbours",
+    "source": "NASA HLS v2 (HLSS30 + HLSL30) via Microsoft Planetary Computer, Fmask-clear per-texel median",
+    "params": {
+     "size": 8192,
+     "ref_m": 250.0,
+     "chroma": 1.0,
+     "detail": 1.0,
+     "min_looks": 1.5,
+     "quality": 90
+    },
+    "boxes": {
+     "bigisland": {
+      "bbox": [
+       -156.10054,
+       18.87976,
+       -154.77998,
+       20.30037
+      ],
+      "rc": [
+       3150,
+       6134,
+       4004,
+       6408
+      ],
+      "passes": [
+       "hls2-l30_2025-08-29",
+       "hls2-l30_2025-09-06",
+       "hls2-s30_2023-09-29",
+       "hls2-l30_2024-07-16",
+       "hls2-l30_2023-07-14",
+       "hls2-l30_2023-08-07",
+       "hls2-s30_2025-08-29",
+       "hls2-l30_2025-09-22",
+       "hls2-l30_2023-08-16",
+       "hls2-s30_2025-08-19",
+       "hls2-l30_2025-07-04",
+       "hls2-l30_2025-05-09",
+       "hls2-s30_2023-08-08",
+       "hls2-l30_2025-05-25",
+       "hls2-l30_2023-05-12",
+       "hls2-l30_2024-07-09",
+       "hls2-s30_2024-08-14",
+       "hls2-s30_2023-09-27",
+       "hls2-s30_2024-09-28",
+       "hls2-s30_2025-07-25",
+       "hls2-l30_2023-09-16",
+       "hls2-s30_2023-08-20",
+       "hls2-l30_2025-09-05",
+       "hls2-l30_2024-06-30",
+       "hls2-s30_2025-05-06",
+       "hls2-s30_2025-09-23",
+       "hls2-s30_2023-07-01",
+       "hls2-l30_2023-07-30",
+       "hls2-s30_2023-09-04",
+       "hls2-s30_2024-09-23",
+       "hls2-l30_2023-08-08",
+       "hls2-s30_2024-06-25",
+       "hls2-l30_2025-07-11",
+       "hls2-l30_2025-06-09",
+       "hls2-s30_2024-09-08",
+       "hls2-s30_2024-08-29",
+       "hls2-s30_2025-07-30",
+       "hls2-l30_2024-05-13",
+       "hls2-s30_2025-07-10",
+       "hls2-l30_2024-09-10",
+       "hls2-s30_2023-05-12",
+       "hls2-l30_2024-05-14",
+       "hls2-l30_2023-08-31",
+       "hls2-s30_2025-07-15"
+      ],
+      "looks": {
+       "never_clear_pct": 0.72,
+       "under3_pct": 4.7,
+       "median": 17.0
+      },
+      "fuse": {
+       "gain": 0.571,
+       "chroma": 0.67,
+       "imagery_pct": 96.2,
+       "filled_pct": 3.7,
+       "dark_pct": 3.46,
+       "bright_pct": 2.12,
+       "box": "bigisland.npz",
+       "texel_m": 57.6,
+       "looks_faded_pct": 2.0,
+       "hole_pct": 0.72
+      },
+      "scenes": 312
+     }
+    }
    }
   },
   "hawaii_skirt": {
@@ -458,6 +565,7 @@
     2560
    ],
    "stack": [
+    "oahu_windward",
     "oahu_nuuanu",
     "hawaii_skirt"
    ],
@@ -645,6 +753,136 @@
    "bake_s": 115.6,
    "baked": "2026-11-09",
    "ao": "tangent (horizon above the local slope)"
+  },
+  "oahu_windward": {
+   "bbox": [
+    -158.293,
+    21.243,
+    -157.637,
+    21.724
+   ],
+   "wh": [
+    4096,
+    3228
+   ],
+   "stack": [
+    "oahu_windward",
+    "oahu_nuuanu",
+    "hawaii_skirt"
+   ],
+   "purpose": "Close-up detail patch for 'oahu_nuuanu' (s030-s041 the pull-back from the Pali and the views across O'ahu, ch4 O'ahu legs): the whole island and its near shore, 17 m heights (NOAA NCEI 1/3\" topo-bathy) and 8 m colour (NAIP 2021-2023 detail on the HLS grade). Loaded automatically as the finest layer of 'oahu_nuuanu'; the open sea floor stays the parent's.",
+   "gaps": [
+    "Heights NCEI 1/3\" (2011, USGS 10 m land): no buildings or trees; the mesh is 1280 vertices on the long side (about 53 m), so finer relief reaches the shading only.",
+    "NCEI filled ground it had no source for with exactly 0 m (Kailua town and Kailua Bay, the south of Kane'ohe Bay, Pearl Harbor's lochs) and, in Kailua town, with flat blocks 0.05-0.6 m below 0 m: the stage drew Kailua as a flooded flat with rectangular ponds. Where the NAIP photo is not water (NDWI under 0.5; open water reads 0.75-0.97 there, the town 0-0.3), the zero fill, and those shallow blocks where they join land, are now low land at 1 m (detail.height.zero_fill); water keeps its depth. Kailua's real ground (about 2-5 m) is not in the data.",
+    "Colour: NAIP winter photos (Dec 2022 - Jan 2023) give the detail, the summer HLS grade of 'oahu_nuuanu' keeps the tone at 100 m and above; NE-facing Ko'olau cliffs in baked shadow keep the grade (filled from their lit neighbours).",
+    "Sea: the parent's heights, colour and AO beyond 800 m from the coast (drained-ocean shots unchanged); NCEI near-shore bathymetry within 250 m, faded out by 800 m."
+   ],
+   "patch": {
+    "parent": "oahu_nuuanu",
+    "feather_m": 600
+   },
+   "dir": "/ep/ep02/data/oahu_windward",
+   "files": {
+    "h16": "h16.png",
+    "ao": "ao.png",
+    "color": "color.jpg",
+    "cres": "cres.png"
+   },
+   "hmin": -2850.0,
+   "hrange": 4100.0,
+   "px_m": 16.59,
+   "sources": [
+    {
+     "id": "region:oahu_nuuanu",
+     "px_m": 101.6
+    },
+    {
+     "id": "ncei:oahu_13_mhw_2011",
+     "res_arcsec": 0.33,
+     "cover": 1.0,
+     "near_m": 250,
+     "far_m": 800,
+     "zero_fill_land_km2": 6.6,
+     "shallow_fill_land_km2": 2.6,
+     "note": "NOAA NCEI coastal topo-bathy DEM on land and the near shore, the parent beyond; its exact-zero fill, and flat shallow fill joining land, set to low land where the NAIP photo is not water"
+    }
+   ],
+   "colour": {
+    "ortho": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 8192,
+     "read_m": 4.8,
+     "gain": 0.841,
+     "chroma": 1.2,
+     "imagery_pct": 98.7,
+     "filled_pct": 1.2,
+     "ref_scale_m": 101.6,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer"
+    }
+   },
+   "facts": {
+    "land_area_km2_at_0m": 1560.0,
+    "h_range_m": [
+     -2833,
+     1232
+    ]
+   },
+   "bytes": {
+    "h16": 13248460,
+    "ao": 1507386,
+    "color": 8281482,
+    "cres": 1209757
+   },
+   "bake_s": 843.2,
+   "baked": "2026-11-15",
+   "res": {
+    "height_m": 16.59,
+    "height_src_m": 10.3,
+    "colour_texel_m": 8.3,
+    "height_interp": [],
+    "colour_src_m": 0.6,
+    "colour_wh": [
+     8192,
+     6455
+    ]
+   },
+   "detail": {
+    "colour": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 8192,
+     "quads_n": 62,
+     "dates": [
+      "2021-11-17",
+      "2022-01-27",
+      "2022-02-11",
+      "2022-11-29",
+      "2022-12-15",
+      "2022-12-17",
+      "2022-12-31",
+      "2023-01-18",
+      "2023-01-19"
+     ],
+     "read_m": 4.8,
+     "gain": 0.841,
+     "chroma": 1.2,
+     "imagery_pct": 98.7,
+     "filled_pct": 1.2
+    },
+    "height": {
+     "source": "ncei:oahu_13_mhw_2011",
+     "long": 4096,
+     "near_m": 250,
+     "far_m": 800,
+     "pieces": 2,
+     "zero_fill": {
+      "land_m": 1.0,
+      "ndwi_water": 0.5,
+      "shallow_m": 0.6,
+      "sep_m": 150
+     }
+    },
+    "baker": "lab/hawaii/tools/oahu_patch.py"
+   }
   },
   "kauai": {
    "bbox": [

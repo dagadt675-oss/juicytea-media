@@ -16,6 +16,8 @@
 # for the detail step and about 210 MB of 3DEP downloads in DL_DIR (deleted unless KEEP=1); the data folder is about 130 MB.
 # Round 3 (2026-11-15): nested patch molokai_east (east Molokaʻi in mauinui, 10 m 3DEP, 8.65 m NAIP; parent base as a B-spline,
 # spec patch.base_interp); about 100 s and 56 MB of 3DEP downloads.
+# Round 3 (2026-11-16): the Big Island hero colour (legacy bigisland) re-baked in place at 8192^2 with NASA HLS 30 m detail on
+# Big Island land (lab/hawaii/tools/hls_hero.py + hero_refine.py, about 11 min, network to planetarycomputer.microsoft.com).
 # Verify one region: cd engine && node still.cjs --page lab_region.html --q '{"region":"midway"}' --frames 0 --outdir <dir>
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd); ROOT=$(cd "$HERE/../../../../.." && pwd)
@@ -23,6 +25,15 @@ DL=${1:-${TMPDIR:-/tmp}/ep02_regions_dl}; ONLY=${2:-}
 mkdir -p "$DL"
 if [ ! -s "$ROOT/engine/www/lab/hawaii/data/hero_h16.png" ]; then
   bash "$ROOT/engine/www/lab/hawaii/tools/fetch_hawaii.sh" "$DL/hawaii" "$ROOT/engine/www/lab/hawaii/data"
+fi
+# round 3 (2026-11-16): the Big Island hero colour (legacy bigisland, lab/hawaii/data/hero_color.jpg) re-baked in place at 8192^2 with
+# NASA HLS v2 30 m detail on Big Island land (hls_hero.py: Fmask-clear median of 44 passes, about 10 min, read into memory, nothing
+# stored; hero_refine.py: detail transfer onto the 4096 MODIS base kept as hero_color_base.jpg, under a minute; writes meta.json res)
+if [ -z "$ONLY" ] || [[ ",$ONLY," == *",bigisland,"* ]]; then
+  HD="$ROOT/engine/www/lab/hawaii/data"
+  python3 -I -u "$ROOT/engine/www/lab/hawaii/tools/hls_hero.py" --data "$HD" --box bigisland --out "$DL/bigisland.npz"
+  python3 -I -u "$ROOT/engine/www/lab/hawaii/tools/hero_refine.py" --data "$HD" --base "$HD/hero_color_base.jpg" --comp "$DL/bigisland.npz" --out "$HD/hero_color.jpg"
+  [ -n "${KEEP:-}" ] || rm -f "$DL/bigisland.npz"
 fi
 python3 -I -u "$ROOT/engine/www/lab/hawaii/tools/region_bake.py" --spec "$HERE/regions_spec.json" ${ONLY:+--only "$ONLY"} \
   --out "$ROOT/engine/www/ep/ep02/data" --dl "$DL" ${KEEP:+--keep}
@@ -34,5 +45,9 @@ if "$RIO_PY" -I -c 'import rasterio' 2>/dev/null; then
   if [ -z "$ONLY" ] || [[ ",$ONLY," == *",pali_lookout,"* ]]; then
     "$RIO_PY" -I -u "$ROOT/engine/www/lab/hawaii/tools/colour_refine.py" --data "$ROOT/engine/www/ep/ep02/data" --region pali_lookout --dl "$DL"
   fi
+  # round 3 (2026-11-15): spec entries with "baker": "oahu_patch.py" (oahu_windward: the whole of O'ahu in oahu_nuuanu,
+  # NCEI 1/3" heights on land and the near shore, NAIP detail on the HLS grade; about 15 min, about 150 MB of downloads)
+  "$RIO_PY" -I -u "$ROOT/engine/www/lab/hawaii/tools/oahu_patch.py" --spec "$HERE/regions_spec.json" ${ONLY:+--only "$ONLY"} \
+    --out "$ROOT/engine/www/ep/ep02/data" --dl "$DL" ${KEEP:+--keep}
 else echo "detail_bake.py skipped: no rasterio in $RIO_PY (set RIO_PY); the close-up detail regions keep their base bake"; fi
 python3 -I "$HERE/make_index.py"

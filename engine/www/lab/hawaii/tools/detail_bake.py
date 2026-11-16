@@ -480,6 +480,6 @@ if __name__ == '__main__':
     ap.add_argument('--keep', action='store_true')
     A = ap.parse_args()
     S = json.load(open(A.spec)); only = set(A.only.split(',')) if A.only else None
-    todo = [R for R in S['regions'] if (R.get('detail') or R.get('patch')) and (not only or R['name'] in only)]
+    todo = [R for R in S['regions'] if (R.get('detail') or R.get('patch')) and R.get('baker', 'detail_bake.py') == 'detail_bake.py' and (not only or R['name'] in only)]   # entries with another baker (oahu_patch.py) are not this tool's
     todo.sort(key=lambda R: 1 if R.get('patch') else 0)   # in-place upgrades first: a patch fades into its parent's final data
     for R in todo: bake(R, A.out, A.dl, A.keep)

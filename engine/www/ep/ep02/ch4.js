@@ -216,11 +216,16 @@ export async function build(api, kit, scenes) {
     [s0('s098') - 0.1, 230, 24], [T('dead') - 0.55, 255, 14], [s0('s099'), 250, 18], [T('ffs') - 0.2, 210, 35], [s0('s109'), 210, 35], [T('pokes') - 0.2, 210, 30], [s0('s110') + 0.6, 210, 30], [T('onlyreef') - 0.4, 200, 38]];
   const sunAz = monotone(SUNK.map(k => [k[0], k[1]])), sunEl = monotone(SUNK.map(k => [k[0], k[2]]));
   const SUN = (t) => [sunAz(t), sunEl(t)];
-  const EXPO = (t) => 1 + 0.22 * env(t, s0('s098') - 0.3, T('nobody') + 0.5, 1.2, 1.2) + 0.08 * env(t, T('canyons') - 0.2, s1('s091') + 0.2, 0.5, 0.6);
+  // Lalo's lagoon and white sand measured luma 133-150 (film range 85-130): trimmed from s101 to the s109 flight and again over Gardner
+  const LALO_DIM = (t) => Math.max(0.08 * env(t, s0('s101') - 0.5, s0('s105') + 0.4, 0.8, 0.6), 0.08 * env(t, T('away') - 0.5, s0('s109') + 0.35, 0.5, 0.45),
+    0.16 * env(t, T('pokes') - 1.6, s0('s110') + 1.25, 0.6, 0.6));   // not over the storm's high ocean (12348 was 69 dimmed); measured: 0.12 -> luma x0.87
+  // the windward pull-out under the high sun (r7 10459 137, 10480 144) and Nihoa's turquoise sea (10874-11518: 133-139) were over 130 as well
+  const HI_DIM = (t) => 0.1 * env(t, tSlid - 0.4, s0('s091') + 0.15, 0.5, 0.5) + 0.08 * env(t, T('nihoa') - 1.2, T('nobody') + 0.5, 1.0, 0.5);
+  const EXPO = (t) => 1 + 0.22 * env(t, s0('s098') - 0.3, T('nobody') + 0.5, 1.2, 1.2) + 0.08 * env(t, T('canyons') - 0.2, s1('s091') + 0.2, 0.5, 0.6) - LALO_DIM(t) - HI_DIM(t);
   const FOAM = (t) => (t > T('coast') - 1.5 && t < T('cent') + 2.0) ? 1 : 0.6;
   // the shot state: today, the film water blending to navy from far up, the chapter's sun (o: set extras, water name, sun override)
   const stAt = (c, t, o = {}) => { const st = { sun: o.sun || SUN(t), set: Object.assign({}, TODAY_SET, { foamAmt: o.foam ?? FOAM(t) }, o.set || {}) };
-    const wc = farWater(c.d); if (wc) st.waterCols = wc; else if (o.water) st.water = o.water;
+    const wc = farWater(c.d); if (wc) st.waterCols = wc; else if (o.waterCols) st.waterCols = o.waterCols; else if (o.water) st.water = o.water;
     const ex = EXPO(t); if (Math.abs(ex - 1) > 1e-3) st.post = { exposure: ex }; return st; };
 
   // ================================================================ camera: one ride (route of flights; each eases at its own ends)
@@ -230,15 +235,17 @@ export async function build(api, kit, scenes) {
     { t: T('old') - 0.1, lon: -155.50, lat: 19.57, h: 0, d: 205, tilt: 50, heading: 21, fov: 38 },
     { t: T('old') + 1.43, lon: -155.32, lat: 19.42, h: 0, d: 265, tilt: 43, heading: 6, fov: 38 },      // {old}: lift off, regional
     { t: T('notseen') - 0.22, lon: -155.16, lat: 19.33, h: 0, d: 95, tilt: 52, heading: 345, fov: 39 },
-    { t: T('notseen') + 1.03, lon: -155.108, lat: 19.302, h: 0, d: 16, tilt: 66, heading: 326, fov: 40 },
-    { t: tCoast, lon: ARCH[0], lat: ARCH[1], h: 0, d: 1.75, tilt: 76, heading: 318, fov: 40 },           // {coast}: the cliffs at Hōlei
+    { t: T('notseen') + 1.03, lon: -155.108, lat: 19.302, h: 0, d: 16, tilt: 68, heading: 300, fov: 40 },
+    // {coast}: the cliffs at Hōlei seen ALONG the coast from offshore (eye 1.4 km at bearing 102, 270 m up, over the sea): the cliff
+    // line and its surf run diagonally through the frame, sea left, the lava plain right (was: looking inland across a tan slope)
+    { t: tCoast, lon: ARCH[0], lat: ARCH[1], h: 0, d: 1.4, tilt: 79, heading: 282, fov: 40 },
   ];
   const A2 = [A1[5],
-    { t: s0('s087') + 0.27, lon: ARCH[0], lat: ARCH[1], h: 0, d: 1.62, tilt: 76.5, heading: 314.5, fov: 40 },
-    { t: s0('s088') - 0.04, lon: ARCH[0], lat: ARCH[1], h: 0, d: 1.48, tilt: 77, heading: 311.5, fov: 40 },
-    { t: tCent, lon: ARCH[0], lat: ARCH[1], h: 0, d: 1.40, tilt: 77.3, heading: 310, fov: 40 }];
+    { t: s0('s087') + 0.27, lon: ARCH[0], lat: ARCH[1], h: 0, d: 1.3, tilt: 79.3, heading: 279, fov: 40 },
+    { t: s0('s088') - 0.04, lon: ARCH[0], lat: ARCH[1], h: 0, d: 1.2, tilt: 79.6, heading: 276, fov: 40 },
+    { t: tCent, lon: ARCH[0], lat: ARCH[1], h: 0, d: 1.1, tilt: 80, heading: 274, fov: 40 }];
   const A3 = [A2[3],
-    { t: s0('s089') - 0.04, lon: -155.104, lat: 19.300, h: 0, d: 5, tilt: 70, heading: 312, fov: 40 },   // slow pull back and away
+    { t: s0('s089') - 0.04, lon: -155.104, lat: 19.300, h: 0, d: 5, tilt: 72, heading: 295, fov: 40 },   // slow pull back and away
     { t: T('maui2') - 1.32, lon: -155.70, lat: 20.00, h: 0, d: 150, tilt: 48, heading: 318, fov: 38 },
     { t: T('maui2') - 0.1, lon: -156.24, lat: 20.70, h: 1200, d: 58, tilt: 64, heading: 320, fov: 38 },  // Haleakalā fills the frame
     { t: tMauiE, lon: -156.255, lat: 20.715, h: 1200, d: 52, tilt: 65, heading: 322, fov: 38 }];
@@ -258,14 +265,15 @@ export async function build(api, kit, scenes) {
   const CN = [PK[5], orbit(tCan, [-159.655, 21.955], 2.4, [-159.66, 22.06], 600, 45),                  // {canyons}: down into the walls
     orbit(tNi0, [-159.657, 21.975], 2.2, [-159.662, 22.07], 600, 44)];
   const tNih = T('nihoa') - 0.1, tSeven = lead('seven'), tOut0 = T('outhere2') - 0.2, tOut1 = tOut0 + 1.1, tLived1 = T('lived') + 1.0;
-  const NF = [CN[2], { t: tNi0 + 1.05, lon: -160.6, lat: 22.5, h: 0, d: 200, tilt: 50, heading: 315, fov: 40 },
+  const NF = [CN[2], { t: tNi0 + 0.95, lon: -160.9, lat: 22.6, h: 0, d: 150, tilt: 56, heading: 312, fov: 40 },   // past Niʻihau, Nihoa ahead in frame
+    { t: tNih - 0.42, lon: NIH[0], lat: NIH[1], h: 40, d: 14, tilt: 70, heading: 328, fov: 39 },          // target locked on Nihoa: a centred push-in
     { t: tNih, lon: NIH[0], lat: NIH[1], h: 80, d: 2.8, tilt: 76, heading: 335, fov: 38 }];
-  const NH = [NF[2],
+  const NH = [NF[3],
     { t: T('seven') - 0.1, lon: NIH[0], lat: NIH[1], h: 80, d: 2.65, tilt: 76, heading: 338, fov: 38 },
     { t: T('rock') - 0.1, lon: NIH[0], lat: NIH[1], h: 80, d: 2.5, tilt: 76.5, heading: 341, fov: 38 },
     { t: T('rock') + 1.0, lon: NIH[0], lat: NIH[1], h: 60, d: 9, tilt: 70, heading: 336, fov: 38 },       // {rock}: how little is left
     { t: tOut0, lon: NIH[0], lat: NIH[1], h: 60, d: 9.8, tilt: 70, heading: 332, fov: 38 },
-    { t: tOut1, lon: -162.15, lat: 23.20, h: 0, d: 60, tilt: 62, heading: 315, fov: 40 },                 // {outhere2}: the open chain
+    { t: tOut1, lon: offLL(NIH, 4, 315)[0], lat: offLL(NIH, 4, 315)[1], h: 0, d: 48, tilt: 60, heading: 318, fov: 40 },   // {outhere2}: Nihoa a sliver in the open chain
     { t: tLived1, lon: NIH[0], lat: NIH[1] + 0.001, h: 90, d: 2.4, tilt: 74, heading: 355, fov: 38 },     // {lived}: into the valleys
     { t: lead('shrine'), lon: NIH[0], lat: NIH[1] + 0.001, h: 90, d: 2.15, tilt: 74, heading: 4, fov: 38 },
     { t: s0('s099'), lon: NIH[0] + 0.001, lat: NIH[1] + 0.001, h: 90, d: 2.0, tilt: 73, heading: 22, fov: 38 },   // late light drift
@@ -273,36 +281,61 @@ export async function build(api, kit, scenes) {
     { t: s1('s099') + 0.0, lon: NIH[0], lat: NIH[1], h: 60, d: 8.5, tilt: 68, heading: 30, fov: 38 }];
   const tLa0 = s1('s099'), tLaA = tLa0 + 0.75, tLa1 = T('ffs') - 0.85, tD0 = s0('s101') - 0.05, tD1 = tD0 + 2.0, tE0 = T('tooth') + 1.37;
   const LA = [NH[10],
-    { t: tLaA, lon: -164.1, lat: 23.4, h: 0, d: 330, tilt: 45, heading: 33, fov: 40 },
+    { t: tLaA, lon: -165.5, lat: 23.62, h: 0, d: 160, tilt: 56, heading: 25, fov: 40 },                   // past Mokumanamana's bank, Lalo ahead
     orbit(tLa1, [-166.37, 23.58], 14, [-166.22, 23.77], 0, 40),                                            // {ffs}: the lagoon at Lalo
     orbit(tD0, [-166.36, 23.59], 13.4, [-166.22, 23.77], 0, 40)];
   const pinEye = (b, dd, alt) => offLL(LAPER, dd, b);
   const LD = [LA[3], orbit(tD0 + 1.0, pinEye(236, 2.2), 0.9, LAPER, 14, 38),                                 // the pinnacle centred early, then down to it
     orbit(tD1, pinEye(236, 0.34), 0.05, LAPER, 14, 38), orbit(tE0, pinEye(224, 0.30), 0.046, LAPER, 14, 38)];   // s101 the tooth
   const tE1 = T('east') - 0.1, tS0 = s0('s105'), tS1 = tS0 + 1.5, tS2 = s1('s105'), tS3 = tS2 + 1.55, tGa0 = s0('s109');
+  const tTap = s0('s103') + 0.15, tAway = T('away'), tFr0 = tAway - 0.1, tFr1 = tAway + 0.7, tSurf = s1('s106') + 0.35, tGrunt = tSurf + 1.1, tFlop = T('seals') + 0.02;
   const EI = { c: EASTI.slice(), ring: null, done: false, brg: 100, half: 0.22 };      // East Island: centroid and ring from the 2018 BEFORE stage (filled lazily)
+  // the seal spots and the cameras that frame them share one fixed copy of that outline's centroid, long axis and half-length (as
+  // logged from lalo_2018_before: -166.2094, 23.7869, 125 deg, 0.248 km), so the async ring can never move a seal off its camera
+  const EIC = [-166.2094, 23.7869], EIBRG = 125, EIHALF = 0.248, eiFix = (u, v = 0) => offLL(offLL(EIC, u, EIBRG), v, EIBRG + 90);
+  const SPOT = { sp: eiFix(-0.12 * EIHALF), pup: eiFix(0.42 * EIHALF, 0.008), sand: eiFix(0, -0.004), s2: eiFix(0.42 * EIHALF, 0.01), s3: eiFix(0.1 * EIHALF, -0.03) };   // s3 on the wide far part of the regrown bar, behind the hero's back (in the regrown outline, checked in sim)
+  SPOT.water = offLL(SPOT.sand, 0.06, 260);       // the gag: in the water just off the old beach's edge, a short flop from the regrown sand
+  // a seal camera: target a km right of and b km beyond the spot P along the view, so the seal sits lower left at 35-45 % of frame height
+  const SC = (t, P, a, b, d, tilt, hd) => { const g = offLL(offLL(P, b, hd), a, hd + 90); return { t, lon: g[0], lat: g[1], h: 0, d, tilt, heading: hd, fov: 40 }; };
   const ES = [LD[3],
     { t: tE0 + 0.9, lon: -166.236, lat: 23.778, h: 0, d: 4, tilt: 60, heading: 48, fov: 40 },
-    { t: tE1, lon: EASTI[0], lat: EASTI[1], h: 0, d: 0.74, tilt: 66, heading: 50, fov: 40 },              // {east}: the island fills the frame
-    { t: tS0, lon: EASTI[0], lat: EASTI[1], h: 0, d: 0.62, tilt: 67, heading: 56, fov: 40 }];
-  const SS = [ES[3],
+    { t: tE1, lon: EIC[0], lat: EIC[1], h: 0, d: 0.74, tilt: 66, heading: 50, fov: 40 },                  // {east}: the island fills the frame
+    SC(tTap + 0.35, SPOT.sp, 0.03, 0.08, 0.33, 66, 42),                                                   // s103: down to the seal (38 % of frame height), the pup's spot right
+    SC(s0('s104'), SPOT.sp, 0.03, 0.08, 0.312, 66.5, 46),
+    SC(T('left') + 0.4, SPOT.sp, 0.028, 0.08, 0.288, 67, 48),                                              // {left}: slow push
+    SC(tS0, SPOT.sp, 0.028, 0.08, 0.28, 67, 49)];
+  const SS = [ES[6],
     { t: tS1, lon: -166.25, lat: 23.77, h: 0, d: 230, tilt: 40, heading: 20, fov: 42 },                    // s105: wide over the shoals
     { t: tS2, lon: -166.24, lat: 23.775, h: 0, d: 215, tilt: 41, heading: 22, fov: 42 },
-    { t: tS3, lon: EASTI[0], lat: EASTI[1], h: 0, d: 0.68, tilt: 66, heading: 52, fov: 40 },               // back down: an empty beach
-    { t: s0('s107'), lon: EASTI[0], lat: EASTI[1], h: 0, d: 0.64, tilt: 66.5, heading: 55, fov: 40 },
-    { t: tGa0, lon: EASTI[0], lat: EASTI[1], h: 0, d: 0.58, tilt: 67, heading: 58, fov: 40 }];
-  const tGa1 = tGa0 + 1.2, tGa2 = T('pokes') - 0.1, tEnd0 = s0('s110') - 0.1, tEnd1 = tEnd0 + 1.9;
+    { t: tS3, lon: EIC[0], lat: EIC[1], h: 0, d: 0.68, tilt: 64, heading: 30, fov: 40 },                   // back down: an empty beach
+    { t: tFr1 - 0.25, lon: EIC[0], lat: EIC[1], h: 0, d: 0.6, tilt: 62, heading: 22, fov: 40 },            // {away}: the wipe, the island centred
+    SC(tSurf - 0.08, SPOT.water, 0.04, 0.06, 0.27, 54, 22),                                                // the gag: the seal surfaces lower left (41 %), the old beach behind
+    SC(s0('s107'), SPOT.water, 0.04, 0.06, 0.265, 54, 24),
+    SC(T('sandback'), SPOT.water, 0.04, 0.06, 0.28, 54.5, 25),                                             // {sandback}: the sand regrows behind and right of it
+    SC(tFlop - 0.3, SPOT.water, 0.04, 0.06, 0.285, 55, 26),                                                // {seals}: one frame holds the flop and the haul-out
+    SC(tGa0, SPOT.water, 0.04, 0.06, 0.27, 55.5, 28)];
+  // every zoom-in locks its target on the subject one key before arrival (a centred push-in), every exit rises with the target held,
+  // then travels: the subject never slides out of frame while the distance collapses (r2-r5: empty-sea frames at 12805-12950, 13003-13030)
+  const tGa1 = tGa0 + 1.37, tGa2 = T('pokes') - 0.1, tEnd0 = s0('s110') - 0.1, tEnd1 = tEnd0 + 1.9, tAt = T('atall') - 0.4;
   const GMID = offLL(GARD, 0.05, 235);
-  const GA = [SS[5], { t: tGa1, lon: -167.1, lat: 24.4, h: 0, d: 160, tilt: 66, heading: 320, fov: 40 },
+  const GA = [SS[SS.length - 1], { t: tGa0 + 0.6, lon: EASTI[0], lat: EASTI[1], h: 0, d: 7, tilt: 62, heading: 30, fov: 40 },    // rise off East Island, the atoll held
+    { t: tGa1, lon: -167.4, lat: 24.55, h: 0, d: 150, tilt: 68, heading: 318, fov: 40 },                   // mid-flight, Pūhāhonu ahead in frame
+    { t: tGa2 - 0.53, lon: GMID[0], lat: GMID[1], h: 22, d: 6, tilt: 79, heading: 350, fov: 38 },          // target locked on the rocks: a centred push-in
     { t: tGa2, lon: GMID[0], lat: GMID[1], h: 22, d: 0.5, tilt: 85.5, heading: 6, fov: 38 },               // {pokes}: two rocks in open sea, low
     { t: tEnd0, lon: GMID[0], lat: GMID[1], h: 22, d: 0.48, tilt: 85.5, heading: 10, fov: 38 }];
-  const GOUT = offLL(GMID, 1.5, 320);                                                                      // s110: rise and turn NW, the rocks recede below
-  const EN = [GA[3], { t: tEnd0 + 0.8, lon: GOUT[0], lat: GOUT[1], h: 0, d: 5, tilt: 74, heading: 322, fov: 40 }, { t: tEnd1, lon: -171.6, lat: 26.0, h: 0, d: 600, tilt: 42, heading: 300, fov: 40 },
+  const EN = [GA[5], { t: tEnd0 + 0.75, lon: GMID[0], lat: GMID[1], h: 22, d: 2.4, tilt: 79, heading: 340, fov: 40 },   // s110: rise, the rocks held, then recede below
+    { t: tEnd1, lon: -171.3, lat: 25.85, h: 0, d: 230, tilt: 55, heading: 298, fov: 40 },                  // NW over open water, Laysan's pale ring passes
+    { t: tAt, lon: MIDW[0], lat: MIDW[1], h: 0, d: 110, tilt: 57, heading: 322, fov: 42 },                 // {atall}: Midway's reef ring ahead, centred
     { t: T('onlyreef'), lon: MIDW[0], lat: MIDW[1], h: 0, d: 18, tilt: 59, heading: 28, fov: 42 },        // {onlyreef}: a ring of reef
     { t: ch.t1x + 0.6, lon: MIDW[0], lat: MIDW[1] + 0.002, h: 0, d: 15.2, tilt: 60.5, heading: 31, fov: 42 }];
+  // ch5 opens on this flight with ch4's original keys (its EN, verbatim): from {onlyreef} on the camera runs on that path, so the
+  // dissolve 435.89-436.19 shows one identical camera (the two paths meet on the {onlyreef} key; slopes there differ by under 0.3 deg/s)
+  const EN_CH5 = chainPath([{ t: tEnd0, lon: GMID[0], lat: GMID[1], h: 22, d: 0.48, tilt: 85.5, heading: 10, fov: 38 },
+    { t: tEnd1, lon: -171.6, lat: 26.0, h: 0, d: 600, tilt: 42, heading: 300, fov: 40 }, EN[4], EN[5]]);
   const PATH = route([tA0, tCoast, chainPath(A1)], [tCoast, tCent, chainPath(A2)], [tCent, tMauiE, chainPath(A3)], [tMauiE, tPg, pathB],
     [tPg, tCanH, chainPath(PK)], [tCanH, tNi0, chainPath(CN)], [tNi0, tNih, chainPath(NF)], [tNih, tLa0, chainPath(NH)], [tLa0, tD0, chainPath(LA)],
-    [tD0, tE0, chainPath(LD)], [tE0, tS0, chainPath(ES)], [tS0, tGa0, chainPath(SS)], [tGa0, tEnd0, chainPath(GA)], [tEnd0, ch.t1x + 0.6, chainPath(EN)]);
+    [tD0, tE0, chainPath(LD)], [tE0, tS0, chainPath(ES)], [tS0, tGa0, chainPath(SS)], [tGa0, tEnd0, chainPath(GA)], [tEnd0, T('onlyreef'), chainPath(EN)],
+    [T('onlyreef'), ch.t1x + 0.6, EN_CH5]);
   const cross = (path, a, b, D) => { const up = path(b).d > path(a).d; let lo = a, hi = b; for (let k = 0; k < 44; k++) { const m = (lo + hi) / 2; if ((path(m).d > D) === up) hi = m; else lo = m; } return (lo + hi) / 2; };
   const tH1 = cross(PATH, A1[3].t, A1[4].t, 60), tH2 = cross(PATH, A1[4].t, A1[5].t, 6), tH3 = cross(PATH, A3[1].t, A3[2].t, 6), tH4 = cross(PATH, A3[1].t, A3[2].t, 90);
   const tH5 = cross(pathB, B[1].t, B[2].t, 100), tH6 = cross(PATH, tRise, PK[2].t, 8), tH7 = cross(PATH, PK[2].t, PK[3].t, 100), tH8 = cross(PATH, PK[3].t, PK[4].t, 85);
@@ -356,21 +389,26 @@ export async function build(api, kit, scenes) {
   const leg = (id, region, t0, t1, o = {}) => { const s = kit.terrainShot(Object.assign({ id, t0, t1, fadeIn: o.fadeIn ?? XF, region, preset: 'today',
     cam: (lt) => (o.cam || camAt)(t0 + lt), state: (lt) => stAt((o.path || PATH)(t0 + lt), t0 + lt, o.st ? o.st(t0 + lt) : {}) }, o.spec || {}));
     if (o.fadeIn !== K.XF) s.uiFrom = t0 + (o.fadeIn ?? XF); scenes.push(o.wrap ? o.wrap(s) : s); return s; };
-  // s086-s088 at Hōlei: foam puffs on {cent} where the arch stood (the waterline found on the grid seaward of the site)
+  // s086-s088 at Hōlei: surf washing against the cliff foot from {coast} on (stronger through {cent}, where the arch stood); the waterline
+  // found on the grid at 13 points along 1.2 km of coast. Repeating bursts (two per point, staggered) so the wash keeps moving.
   const WL = { pts: null };
   const waterline = (S) => { if (WL.pts) return WL.pts; const pts = [];
-    for (const b of [-0.08, -0.04, 0, 0.04, 0.08]) { const s = offLL(ARCH, b, 68); let q = s; for (let k = 0; k < 60; k++) { q = offLL(s, k * 0.004, 158); if (S.heightAt(q[0], q[1]) < 0.3) break; } pts.push(q); }
+    for (let b = -0.6; b < 0.61; b += 0.1) { const s = offLL(ARCH, b, 68), wet = S.heightAt(s[0], s[1]) < 0.3;      // walk to the waterline (seaward 158 from land, landward from water)
+      for (let k = 1; k <= 80; k++) { const q = offLL(s, k * 0.004, wet ? 338 : 158); if ((S.heightAt(q[0], q[1]) < 0.3) !== wet) { pts.push(wet ? offLL(q, 0.004, 158) : q); break; } } }
     return (WL.pts = pts); };
-  const foamPuffs = (ctx, t, view) => { const a = env(t, T('cent') - 0.75, T('cent') + 1.6, 0.25, 0.9); if (a <= 0) return;
+  const foamPuffs = (ctx, t, view) => { const a = env(t, T('coast') - 0.6, s0('s089') + 0.2, 0.4, 0.9) * (0.55 + 0.45 * env(t, T('cent') - 0.6, T('cent') + 2.2, 0.3, 0.9)); if (a <= 0.01) return;
     const pts = waterline(view.S); ctx.save();
-    pts.forEach((ll, i) => { const k = F.clamp((t - (T('cent') - 0.7 + i * 0.07)) / 1.5); if (k <= 0) return; const q = view.project(ll[0], ll[1], 1), e = view.project(ll[0] + 0.0004, ll[1], 1); if (!q || !e) return;
-      const r = Math.max(12, Math.hypot(e[0] - q[0], e[1] - q[1]) * (0.9 + 1.6 * E.out(k))), g = ctx.createRadialGradient(q[0], q[1], 0, q[0], q[1], r);
-      g.addColorStop(0, `rgba(250,252,255,${0.75 * a * (1 - 0.6 * k)})`); g.addColorStop(0.6, `rgba(240,246,250,${0.35 * a * (1 - 0.6 * k)})`); g.addColorStop(1, 'rgba(240,246,250,0)');
-      ctx.save(); ctx.translate(q[0], q[1]); ctx.scale(1, 0.38); ctx.translate(-q[0], -q[1]); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 7); ctx.fill(); ctx.restore(); });
+    pts.forEach((ll, i) => { const q = view.project(ll[0], ll[1], 1), e = view.project(ll[0] + 0.0004, ll[1], 1); if (!q || !e) return;
+      const base = Math.max(px(34), Math.hypot(e[0] - q[0], e[1] - q[1]) * 2.0);
+      for (let k = 0; k < 2; k++) { const u = (((t - T('coast')) / 1.25 + i * 0.29 + k * 0.5) % 1 + 1) % 1, r = base * (0.5 + 1.3 * E.out(u)), al = a * Math.pow(1 - u, 1.3) * 0.8;
+        const g = ctx.createRadialGradient(q[0], q[1], 0, q[0], q[1], r); g.addColorStop(0, `rgba(250,252,255,${al})`); g.addColorStop(0.55, `rgba(240,246,250,${0.45 * al})`); g.addColorStop(1, 'rgba(240,246,250,0)');
+        ctx.save(); ctx.translate(q[0], q[1]); ctx.scale(1, 0.38); ctx.translate(-q[0], -q[1]); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 7); ctx.fill(); ctx.restore(); } });
     ctx.restore(); };
+  // Hōlei: the sea is deep right off the cliffs (the photos show navy water); the grid's coarse shelf there gave a turquoise lagoon
+  const HOLEI_SEA = [[0.008, 0.11, 0.18], [0.005, 0.06, 0.12], [0.003, 0.035, 0.085]];
   leg('ch4-lift', 'bigisland', ch.t0, tH1 + XF, { fadeIn: K.XF });
   leg('ch4-coast', 'kilauea_sf', tH1, tH2 + XF);
-  leg('ch4-holei', 'holei', tH2, tH3 + XF, { spec: { world(ctx, lt, t, view) { foamPuffs(ctx, t, view); } } });
+  leg('ch4-holei', 'holei', tH2, tH3 + XF, { st: () => ({ waterCols: HOLEI_SEA }), spec: { world(ctx, lt, t, view) { foamPuffs(ctx, t, view); } } });
   leg('ch4-leave', 'kilauea_sf', tH3, tH4 + XF);
   api.cue(T('cent') - 0.62, 'wave_wash', -20); api.cue(s0('s089'), 'whoosh_big', -16);
   // {notseen}: the glance (1 s) down the drained south flank into the dark of the Hawaiian Deep, no text; it covers the first hand-off
@@ -404,9 +442,10 @@ export async function build(api, kit, scenes) {
   } });
 
   // ================================================================ PART B: Maui, Oʻahu, the Pali callback, Kauaʻi (mauinui ... waimea)
-  leg('ch4-maui', 'mauinui', tH4, tH5 + XF, { wrap: (s) => blurred(s, B[0].t + 0.3, B[2].t - 0.2, 5, 0.45),
+  // the blur windows never overlap a label (each blur sample draws the label again: ghosts, and ui.label then finds no free slot)
+  leg('ch4-maui', 'mauinui', tH4, tH5 + XF, { wrap: (s) => blurred(s, s0('s090') + 0.36, B[2].t - 0.2, 5, 0.45),
     spec: { ui(ctx, lt, t, view) { avoidGauge(t);
-      lab(ctx, 'MAUI', view.visible(HALEA[0], HALEA[1], 3100) ? view.project(HALEA[0], HALEA[1], 3150) : null, t, lead('maui2'), s0('s090') + 0.75); } } });
+      lab(ctx, 'MAUI', view.visible(HALEA[0], HALEA[1], 3100) ? view.project(HALEA[0], HALEA[1], 3150) : null, t, lead('maui2'), s0('s090') + 0.35); } } });
   const oahuUI = (ctx, lt, t, view) => { avoidGauge(t);
     const pa = env(t, T('hnl') - 0.1, tPg + 0.15, 0.2, 0.3), hq = view.project(HNL[0], HNL[1], 40);
     if (pa > 0 && hq && view.visible(HNL[0], HNL[1], 40)) { ui.avoid({ x: hq[0] - px(34), y: hq[1] - px(34), w: px(68), h: px(68) }); ctx.save(); ctx.globalAlpha *= pa; ui.pin(ctx, hq[0], hq[1], { r: 15, t: t - T('hnl'), color: PAL.text, p: 1 }); ctx.restore(); }
@@ -427,7 +466,8 @@ export async function build(api, kit, scenes) {
   const paliShot = kit.terrainShot({ id: 'ch4-pali', t0: tPg, t1: tH6 + XF, fadeIn: 0.2, region: 'pali', preset: 'today',
     cam: (lt) => camAt(tPg + lt),
     state: (lt) => { const t = tPg + lt, c = PATH(t), q = pr(t, tRise, tRise + 1.0);
-      const st = { sun: t < tSlid ? [75, 55] : SUN(t), set: { foamAmt: 0.25 * (1 - q), waveAmt: F.lerp(1, 0.4, q), glintAmt: F.lerp(0.12, 0.05, q) } }; const wc = farWater(c.d); if (wc) st.waterCols = wc; return st; },
+      const st = { sun: t < tSlid ? [75, 55] : SUN(t), set: { foamAmt: 0.25 * (1 - q), waveAmt: F.lerp(1, 0.4, q), glintAmt: F.lerp(0.12, 0.05, q) } }; const wc = farWater(c.d); if (wc) st.waterCols = wc;
+      const ex = EXPO(t); if (Math.abs(ex - 1) > 1e-3) st.post = { exposure: ex }; return st; },
     world(ctx, lt, t, view) {
       const S = view.S, hL = gh(view, ...LOOKOUT), b = view.project(LOOKOUT[0], LOOKOUT[1], hL); if (!b) return;
       const s = F.clamp(DREF / camDist(view, LOOKOUT[0], LOOKOUT[1], hL), 0, 1.4), hPx = H * 0.36 * s, fo = fold(t);
@@ -492,7 +532,7 @@ export async function build(api, kit, scenes) {
         ctx.beginPath(); ctx.moveTo(x - s, y - s * 0.3 * fl); ctx.quadraticCurveTo(x - s * 0.4, y - s * 0.45, x, y); ctx.quadraticCurveTo(x + s * 0.4, y - s * 0.45, x + s, y - s * 0.3 * fl); ctx.stroke(); }
       ctx.restore(); },
     ui(ctx, lt, t, view) { avoidGauge(t);
-      lab(ctx, 'NIHOA', gp(view, [NIH[0] - 0.004, NIH[1] + 0.0015], 60), t, lead('nihoa'), T('seven') + 0.35);
+      lab(ctx, 'NIHOA', gp(view, [NIH[0] - 0.004, NIH[1] + 0.0015], 60), t, lead('nihoa'), T('seven') + 0.35, { order: ['above-left', 'left', 'above', 'below', 'above-right'] });   // left side: above-right ran under the right-anchored 7 MILLION YEARS block (r7t2 10926)
       // HERO NUMBER #4: ABOUT / 7 MILLION YEARS lands with the age marker on {seven} (punch on the impact), out before s095
       const kp = F.clamp((t - (tSeven - 0.05)) / 0.35), kout = pr(t, s1('s094') - 0.75, s1('s094') - 0.3);
       if (kp > 0 && kout < 1) {
@@ -537,17 +577,26 @@ export async function build(api, kit, scenes) {
         EI.brg = (90 - th / D2R + 360) % 360; EI.half = Math.max(0.05, ...P.map(([x, y]) => Math.abs(x * Math.cos(th) + y * Math.sin(th)))); } if (dbg) api.log(`[ch4] East Island ${EI.c.map(v => v.toFixed(4))} area ${r.areaKm2?.toFixed?.(3)} km2, ${EI.ring?.length} pts, axis ${EI.brg.toFixed(0)} deg, half ${EI.half.toFixed(3)} km`);
     } catch (e) { api.log('[ch4] East Island ring: ' + e.message); } };
   const SEAL = {}; try { SEAL.a = await kit.paper('seal'); SEAL.p = await kit.paper('seal_pup'); } catch (e) { api.log('[ch4] seal cut-outs: ' + e.message); }
-  const EDREF = 0.62, SW = 0.16, sealScale = (view, ll) => F.clamp(EDREF / camDist(view, ll[0], ll[1], 0.5), 0, 1.3);
-  const eiAt = (u, v = 0) => offLL(offLL(EI.c, u, EI.brg), v, EI.brg + 90);     // along / across East Island's long axis (km)
+  // seal sizes are world-fixed (EDREF / distance) and the cameras come close: an adult at 0.25-0.3 km reads 35-45 % of frame height (PLAYBOOK_craft: figures 35-40 % or more)
+  const EDREF = 0.62, SW = 0.24, sealScale = (view, ll) => F.clamp(EDREF / camDist(view, ll[0], ll[1], 0.5), 0, 3.5);
+  // a lighter, tighter contact shadow for the big seals on white sand (the kit's full-width one read as a grey smear at 40 % height, r7t)
+  const SOFT = { contact: false, shadowA: 0.12 };
+  const softContact = (ctx, view, ll, hm, wPx, a = 1) => { const b0 = view.project(ll[0], ll[1], hm); if (!b0 || a <= 0.01) return; const r = wPx * 0.4, b = [b0[0], b0[1] + wPx * (SEAL.a ? SEAL.a.h / SEAL.a.w : 0.41) * 0.1];   // under the belly (the cut's sink)
+    const g = ctx.createRadialGradient(b[0], b[1], 0, b[0], b[1], r); g.addColorStop(0, `rgba(40,34,28,${0.34 * a})`); g.addColorStop(0.6, `rgba(40,34,28,${0.14 * a})`); g.addColorStop(1, 'rgba(40,34,28,0)');
+    ctx.save(); ctx.translate(b[0], b[1]); ctx.scale(1, 0.13); ctx.translate(-b[0], -b[1]); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b[0], b[1], r, 0, 7); ctx.fill(); ctx.restore(); };
+  // dbg: the measured screen height of each seal as drawn (fraction of H; vis = the part above the waterline for a swimming one)
+  const sealLog = (tag, t, r, wl) => { if (dbg && r) api.log(`[ch4] seal f=${Math.round(t * 30)} ${tag} h=${(r.h / H).toFixed(3)}${wl != null ? ` vis=${(Math.max(0, wl - r.top) / H).toFixed(3)}` : ''} x=${(r.x / W).toFixed(2)}`); return r; };
   // s103-s104 on the sand: the seal pops up on paper_tap, the pup shuffles in on {pups}, {left} the head lifts toward the camera; both
   // shrink with distance as the camera pulls wide for the storm and are gone before it comes back (nobody is on the beach at {away})
-  const tTap = 402.36 - 402.36 + (s0('s103') + 0.15), sealsBefore = (ctx, t, view) => {
-    if (!SEAL.a || t < tTap || t > tS0 + 0.9) return; const fa = 1 - pr(t, tS0 + 0.3, tS0 + 0.8);
-    const sp = eiAt(-0.12 * EI.half), s = sealScale(view, sp), pp = eiAt(0.5 * EI.half, 0.008);   // the pup along the sand, clear of the adult
+  // the gust at s105: both fold flat and fade as the camera starts to rise (gone before they could read small)
+  const sealsBefore = (ctx, t, view) => {
+    if (!SEAL.a || t < tTap || t > tS0 + 0.35) return; const fa = 1 - pr(t, tS0 - 0.05, tS0 + 0.3), fold = pr(t, tS0 - 0.2, tS0 + 0.15, E.inSine);
+    const sp = SPOT.sp, s = sealScale(view, sp), pp = SPOT.pup;   // the pup along the sand, clear of the adult
     const pupT = F.clamp((t - (lead('pups') - 0.1)) / 0.9), lift = pr(t, lead('left') - 0.05, lead('left') + 0.45, E.outBack);
     if (pupT > 0 && SEAL.p) { const shuffle = Math.abs(Math.sin(pupT * Math.PI * 4)) * (1 - pupT);
-      kit.drawCutout(ctx, view, SEAL.p, { lon: pp[0], lat: pp[1], hm: 0.6, wPx: W * 0.1 * sealScale(view, pp), alpha: fa * F.clamp(pupT * 4), hop: px(8) * shuffle * s, squash: 0.05 * shuffle, lean: 0.02 * Math.sin(t * 9) * (1 - pupT), t, seed: 5, wobble: 0.01 }); }
-    kit.drawCutout(ctx, view, SEAL.a, { lon: sp[0], lat: sp[1], hm: 0.6, wPx: W * SW * s, pop: F.clamp((t - tTap) / 0.45), alpha: fa, lean: -0.11 * lift, turn: 0.1 * lift, t, seed: 2, wobble: 0.006 });
+      sealLog('pup', t, kit.drawCutout(ctx, view, SEAL.p, { lon: pp[0], lat: pp[1], hm: 0.6, wPx: W * 0.12 * sealScale(view, pp), alpha: fa * F.clamp(pupT * 4), hinge: fold, hop: px(8) * shuffle * s, squash: 0.05 * shuffle, lean: 0.02 * Math.sin(t * 9) * (1 - pupT), t, seed: 5, wobble: 0.01 })); }
+    softContact(ctx, view, sp, 0.6, W * SW * s, fa * (1 - fold) * F.clamp((t - tTap) / 0.3));
+    sealLog('adult', t, kit.drawCutout(ctx, view, SEAL.a, { ...SOFT, lon: sp[0], lat: sp[1], hm: 0.6, wPx: W * SW * s, ...(t < tTap + 0.6 ? { pop: F.clamp((t - tTap) / 0.45) } : { hinge: fold }), alpha: fa, lean: -0.11 * lift, turn: 0.1 * lift, t, seed: 2, wobble: 0.006 }));
   };
   // the storm (s105): tiles of the cloud disc laid on a plane 8 km up, centre on a 22.5 deg track, closest (just west of the atoll) on {shoals}
   const STORM = { tiles: null }, SR = 300, tCl = T('shoals'), sV = 110;
@@ -561,13 +610,12 @@ export async function build(api, kit, scenes) {
     for (const tl of tiles) { const q = [P(tl.u0, tl.v0), P(tl.u1, tl.v0), P(tl.u1, tl.v1), P(tl.u0, tl.v1)]; if (q.some(p => !p)) continue;
       const xs = q.map(p => p[0]), ys = q.map(p => p[1]); if (Math.max(...xs) < 0 || Math.min(...xs) > W || Math.max(...ys) < 0 || Math.min(...ys) > H) continue;
       if (Math.max(...xs) - Math.min(...xs) > W * 3) continue; kit.drawQuad(g, tl.img, q, 2, 1); n++; }
-    if (!n) return; ctx.save(); ctx.globalAlpha *= a; ctx.globalCompositeOperation = 'screen'; ctx.drawImage(cv, 0, 0); ctx.restore(); };
-  const tAway = T('away'), tFr0 = tAway - 0.1, tFr1 = tAway + 0.7;
+    if (!n) return; ctx.save(); ctx.globalAlpha *= a * 0.55; ctx.globalCompositeOperation = 'screen'; ctx.drawImage(cv, 0, 0); ctx.restore(); };   // 0.55: the eye frame read luma 153 at full strength (film max 130)
   const eastState = (t) => stAt(PATH(t), t, { foam: 0.35, water: 'ocean' });
   const eastShot = leg('ch4-east', 'lalo_2018_before', tH12, tH13 + XF, { st: () => ({ foam: 0.35, water: 'ocean' }), spec: {
     world(ctx, lt, t, view) { sealsBefore(ctx, t, view); drawStorm(ctx, t, view); },
     ui(ctx, lt, t, view) { avoidGauge(t);
-      if (t < tS0 && SEAL.a && t > tTap) { const sp = eiAt(-0.12 * EI.half), q = view.project(sp[0], sp[1], 0.6), s = sealScale(view, sp); if (q) ui.avoid({ x: q[0] - W * 0.11 * s, y: q[1] - W * 0.1 * s, w: W * 0.22 * s, h: W * 0.11 * s }); }
+      if (t < tS0 && SEAL.a && t > tTap) { const sp = SPOT.sp, q = view.project(sp[0], sp[1], 0.6), w = W * SW * sealScale(view, sp); if (q) ui.avoid({ x: q[0] - w / 2, y: q[1] - w * 0.45, w, h: w * 0.48 }); }
       lab(ctx, 'EAST ISLAND', view.project(EI.c[0], EI.c[1], 3), t, lead('east'), tTap + 0.1, { order: ['above', 'above-left', 'above-right'] }); } } });
   scenes.splice(scenes.indexOf(eastShot), 1, ready(eastShot, eiPrep));
   api.cue(tTap, 'paper_tap', -22); api.cue(tHur - 0.9, 'storm_pass', -14);
@@ -575,18 +623,25 @@ export async function build(api, kit, scenes) {
   // stages differ only inside the island's focus circle, so the reveal is full-frame); then the gag and the regrowth on top of it
   const AFT = kit.terrainShot({ id: 'ch4-east-after', t0: tFr0, t1: tH13 + XF, region: 'lalo_2018_after', preset: 'today',
     cam: (lt) => camAt(tFr0 + lt), state: (lt) => eastState(tFr0 + lt), world(ctx, lt, t, view) { AFT.view = view; } });
-  const OFF = {}, tRg0 = s0('s107') - 0.2, tRg1 = T('sandback') + 1.3, tSurf = s1('s106') + 0.35, tGrunt = tSurf + 1.1, tFlop = T('seals') + 0.02;
+  const OFF = {}, tRg0 = s0('s107') - 0.2, tRg1 = T('sandback') + 1.3;
   const ringScreen = (view, k) => { if (!EI.ring) return null; const c = EI.c, pts = [];
     for (const p of EI.ring) { const q = view.project(c[0] + (p[0] - c[0]) * k, c[1] + (p[1] - c[1]) * k, 0.4); if (!q) return null; pts.push(q); } return pts; };
   const polyFill = (g, pts) => { g.beginPath(); pts.forEach((q, i) => i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1])); g.closePath(); g.fill(); };
-  const sealSpots = () => ({ water: offLL(EI.c, 0.11, 230), sand: eiAt(0, -0.004), s2: eiAt(0.42 * EI.half, 0.01), s3: eiAt(-0.42 * EI.half, -0.006) });
+  const sealSpots = () => SPOT;
   // a seal in the water: drawn on a scratch canvas and cut at its waterline (dy px below the base point), a foam ring where it breaks the surface
   const wetSeal = (ctx, view, cut, o, wl) => { const c = OFF.s || (OFF.s = kit.P.cv(W, H)), g = c.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
     const r = kit.drawCutout(g, view, cut, Object.assign({ shadow: false, contact: false }, o)); if (!r) return null;
     g.globalCompositeOperation = 'destination-out'; g.fillStyle = '#000'; g.fillRect(0, wl, W, H - wl); g.globalCompositeOperation = 'source-over';
     ctx.drawImage(c, 0, 0);
-    const fw = r.w * 0.62; ctx.save(); ctx.strokeStyle = 'rgba(245,250,252,0.85)'; ctx.lineWidth = px(4); ctx.beginPath(); ctx.ellipse(r.x, wl, fw * (0.5 + 0.04 * Math.sin(o.t * 6)), fw * 0.07, 0, 0, 7); ctx.stroke(); ctx.restore();
-    return r; };
+    foam(ctx, r.x, wl, r.w * 0.62, o.t, 1); return r; };
+  // where a body breaks the surface: a soft white wash on the waterline and two ripples that spread and fade (k: strength 0..1)
+  const foam = (ctx, x, y, fw, t, k) => { if (k <= 0.01) return; ctx.save();
+    const g = ctx.createRadialGradient(x, y, 0, x, y, fw * 0.55); g.addColorStop(0, `rgba(240,248,250,${0.42 * k})`); g.addColorStop(0.7, `rgba(240,248,250,${0.18 * k})`); g.addColorStop(1, 'rgba(240,248,250,0)');
+    ctx.translate(x, y); ctx.scale(1, 0.12); ctx.translate(-x, -y); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, fw * 0.55, 0, 7); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.lineWidth = px(2.5);
+    for (let i = 0; i < 2; i++) { const u = ((t * 0.7 + i * 0.5) % 1 + 1) % 1; ctx.strokeStyle = `rgba(240,248,250,${0.5 * (1 - u) * k})`;
+      ctx.beginPath(); ctx.ellipse(x, y, fw * (0.5 + 0.3 * u), fw * (0.06 + 0.035 * u), 0, -0.15, Math.PI + 0.15, false); ctx.stroke(); }   // the front arc only (the back one is behind the body)
+    ctx.restore(); };
   scenes.push(ready({ id: 'ch4-east-after', t0: tFr0, t1: tH13 + XF, layer: 1, fadeOut: XF, async draw(ctx, lt, t, api) {
     const c = OFF.a || (OFF.a = kit.P.cv(W, H)), g = c.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.clearRect(0, 0, W, H);
     await AFT.draw(g, t - tFr0, t, api); const view = AFT.view; if (!view) return;
@@ -605,27 +660,40 @@ export async function build(api, kit, scenes) {
     // GAG in the gap: the seal surfaces where its beach was, bobs, looks left, looks right (paper turn), grunts, blinks; it waits while
     // the sand comes back, flops onto it on {seals} (landing squash), and two more haul out beside it
     const S = sealSpots(), sw = view.project(S.water[0], S.water[1], 0), ss = view.project(S.sand[0], S.sand[1], 0.6); if (!sw || !ss) return;
-    const sc = sealScale(view, S.water), wP = W * SW * sc, bob = Math.sin((t - tSurf) * 4.2) * px(6) * sc;
+    const hopT = E.inOut(F.clamp((t - (tFlop - 0.3)) / 0.3)), sc = F.lerp(sealScale(view, S.water), sealScale(view, S.sand), hopT), wP = W * SW * sc, bob = Math.sin((t - tSurf) * 4.2) * px(6) * sc;   // the hop shrinks it to the sand's distance
     const turnK = (t) => pr(t, tSurf + 0.62, tSurf + 0.86) - pr(t, tGrunt + 0.28, tGrunt + 0.5);
     const gr = (() => { const u = (t - tGrunt) / 0.32; return u > 0 && u < 1 ? Math.sin(Math.PI * u) : 0; })();
-    if (t >= tSurf - 0.05 && t < tFlop + 0.3) {
-      const up = E.outBack(F.clamp((t - (tSurf - 0.05)) / 0.35)), hopU = F.clamp((t - (tFlop - 0.3)) / 0.3), arc = Math.sin(Math.PI * Math.min(1, hopU)) * px(60) * sc;
-      const bx = F.lerp(sw[0], ss[0], E.inOut(hopU)), by = F.lerp(sw[1], ss[1], E.inOut(hopU)) - arc, hs = wP * SEAL.a.h / SEAL.a.w, wl = sw[1] + (hopU > 0 ? -arc * 3 : 0);
-      const o = { x: bx, y: by + hs * (1 - up) * 0.9 + hs * 0.38 * (1 - hopU) + bob * (1 - hopU), wPx: wP, turn: turnK(t), squash: 0.09 * gr, lean: -0.05 * gr, t, seed: 2, wobble: 0.008 };
-      const r = wetSeal(ctx, view, SEAL.a, o, wl);
+    if (t >= tSurf - 0.05 && t < tFlop) {
+      const up = E.outBack(F.clamp((t - (tSurf - 0.05)) / 0.35)), hopU = F.clamp((t - (tFlop - 0.3)) / 0.3), hs = wP * SEAL.a.h / SEAL.a.w, arc = Math.sin(Math.PI * Math.min(1, hopU)) * hs * 0.45;
+      const bx = F.lerp(sw[0], ss[0], E.inOut(hopU)), by = F.lerp(sw[1], ss[1], E.inOut(hopU)) - arc;
+      const o = { x: bx, y: by + hs * (1 - up) * 0.9 + hs * 0.12 * (1 - hopU) + bob * (1 - hopU), wPx: wP, turn: turnK(t), squash: 0.09 * gr - 0.06 * Math.sin(Math.PI * hopU), lean: -0.05 * gr - 0.12 * Math.sin(Math.PI * hopU), t, seed: 2, wobble: 0.008 };
+      // in the water: cut at the waterline with foam; airborne (the hop to the sand): whole, the splash left behind on the water
+      if (hopU > 0) foam(ctx, sw[0], sw[1], W * SW * sealScale(view, S.water) * 0.62, t, 1 - hopU);
+      const r = hopU <= 0 ? sealLog('swim', t, wetSeal(ctx, view, SEAL.a, o, sw[1]), sw[1]) : hopU < 1 ? sealLog('hop', t, kit.drawCutout(ctx, view, SEAL.a, Object.assign({ shadow: false, contact: false }, o)))
+        : sealLog('landed', t, kit.drawCutout(ctx, view, SEAL.a, { lon: S.sand[0], lat: S.sand[1], hm: 0.6, wPx: wP, squash: o.squash, lean: o.lean, t, seed: 2, wobble: 0.004 }));
       const tb = tGrunt + 0.75; if (r && t > tb && t < tb + 0.16 && Math.abs(o.turn) < 0.05) {                      // the blink: lids over both eyes
         const kk = r.h / SEAL.a.h, rot = (o.lean || 0) + (SEAL.a.tilt || 0), cs = Math.cos(rot), sn = Math.sin(rot);
         ctx.save(); ctx.fillStyle = '#6a625b'; for (const [ex, ey] of [[23, 23], [69, 23]]) { const lx = -r.w / 2 + ex * kk, ly = -r.h + ey * kk;
           ctx.beginPath(); ctx.ellipse(r.x + cs * lx - sn * ly, r.y + sn * lx + cs * ly, 10 * kk, 8 * kk * Math.sin(Math.PI * (t - tb) / 0.16), rot, 0, 7); ctx.fill(); } ctx.restore(); }
-      if (hopU >= 1) { }
     }
-    if (t >= tFlop + 0.3 || (t >= tFlop && false)) {
-      const land = (() => { const u = (t - (tFlop + 0.3)) / 0.25; return u > 0 && u < 1 ? Math.sin(Math.PI * u) : 0; })(), g2 = (() => { const u = (t - (s1('s108') + 0.19)) / 0.3; return u > 0 && u < 1 ? Math.sin(Math.PI * u) : 0; })();
-      for (const [ll, sz, t0, seed] of [[S.s2, 0.64, tFlop + 0.35, 7], [S.s3, 0.56, tFlop + 0.75, 9]]) { const u = F.clamp((t - t0) / 0.7); if (u <= 0) continue; const q = view.project(ll[0], ll[1], 0.4);
-        if (!q) continue; const w2 = W * SW * sz * sealScale(view, ll), h2 = w2 * SEAL.a.h / SEAL.a.w;
-        if (u < 1) wetSeal(ctx, view, SEAL.a, { x: q[0], y: q[1] + h2 * 0.5 * (1 - E.out(u)), wPx: w2, flip: seed === 9, t, seed, wobble: 0.01 }, q[1] + h2 * 0.08 * (1 - u));
-        else kit.drawCutout(ctx, view, SEAL.a, { lon: ll[0], lat: ll[1], hm: 0.4, wPx: w2, flip: seed === 9, t, seed, wobble: 0.004 }); }
-      kit.drawCutout(ctx, view, SEAL.a, { lon: S.sand[0], lat: S.sand[1], hm: 0.6, wPx: W * SW * sealScale(view, S.sand), squash: 0.12 * land + 0.07 * g2, lean: -0.06 * g2, t, seed: 2, wobble: 0.004 });
+    if (t >= tFlop) {                                                                                      // landed on the seal_flop cue: the squash starts there
+      const land = (() => { const u = (t - tFlop) / 0.25; return u > 0 && u < 1 ? Math.sin(Math.PI * u) : 0; })(), g2 = (() => { const u = (t - (s1('s108') + 0.19)) / 0.3; return u > 0 && u < 1 ? Math.sin(Math.PI * u) : 0; })();
+      // the hero has no cast shadow: with the card's sink its base line runs below the tail, and the faint shadow showed there as a hard-edged grey band on the sand (r7t2 12750)
+      // two more haul out: s3 behind the hero (from the far water, facing right: its head over the hero's tail end), s2 in front right (from the
+      // near water off the bar's end); drawn far to near by screen depth (base y), the hero between them; card heights about 0.42 H (hero), 0.38-0.40 (s2, s3)
+      const hero = () => (softContact(ctx, view, S.sand, 0.6, W * SW * sealScale(view, S.sand)), sealLog('hero', t, kit.drawCutout(ctx, view, SEAL.a, { ...SOFT, shadow: false, lon: S.sand[0], lat: S.sand[1], hm: 0.6, wPx: W * SW * sealScale(view, S.sand), squash: 0.12 * land + 0.07 * g2, lean: -0.06 * g2, t, seed: 2, wobble: 0.004 })));
+      // each comes out of the water (s2 off the bar's near end, s3 off its far side) with three humps (a paper bounce), world-placed so its size follows its depth
+      // the waterline cut sits at the belly line (0.14 h above the base: seal.png's belly with PAPER sink 0.12), so a seal still in the water never hovers over it (r7mot 12763-12766)
+      // s2 humps in dry from fully off-frame right: its water lies past the frame edge, and a waterline cut over the visible sand bar read as sunk into the sand (r7t2 12750-12760)
+      const ext = [[S.s3, 0.97, tFlop + 0.75, 9, EIBRG - 90, 0.09], [S.s2, 0.9, tFlop + 0.35, 7, EIBRG, 0.13]].map(([ll, sz, t0, seed, out, dist]) => {
+        const u = F.clamp((t - t0) / 0.8), p = offLL(ll, dist * (1 - E.out(u)), out); const q = view.project(p[0], p[1], 0.4); return { p, sz, u, seed, dd: q ? q[1] : -1e9 }; });
+      const dh = ss[1]; let drawn = false;
+      for (const { p, sz, u, seed, dd } of ext.sort((a, b) => a.dd - b.dd)) { if (!drawn && dd > dh) { hero(); drawn = true; }
+        if (u <= 0) continue; const w2 = W * SW * sz * sealScale(view, p), h2 = w2 * SEAL.a.h / SEAL.a.w, bump = Math.abs(Math.sin(Math.PI * 3 * u)) * (1 - u);
+        const oo = { wPx: w2, alpha: F.clamp(u * 40), squash: -0.05 * bump, flip: seed === 9, t, seed, wobble: 0.004 + 0.01 * (1 - u) };
+        if (u < 0.4 && seed === 9) { const q = view.project(p[0], p[1], 0.4); if (q) sealLog('s' + seed, t, wetSeal(ctx, view, SEAL.a, Object.assign(oo, { x: q[0], y: q[1] + h2 * (0.2 * (1 - u / 0.4) + 0.65 * (1 - E.outBack(F.clamp(u / 0.18)))) }), q[1] - 0.14 * h2), q[1]); }   // still in the water off the bar's end: rises through the waterline (no alpha ghost)
+        else { softContact(ctx, view, p, 0.4, w2, oo.alpha); sealLog('s' + seed, t, kit.drawCutout(ctx, view, SEAL.a, Object.assign(oo, SOFT, { lon: p[0], lat: p[1], hm: 0.4, hop: h2 * 0.12 * bump }))); } }
+      if (!drawn) hero();
     }
   } }, eiPrep));
   api.cue(tAway, 'sand_wash', -16); api.cue(tSurf - 0.12, 'seal_surface', -18); api.cue(tGrunt, 'monk_seal_grunt', -18); api.cue(tFlop, 'seal_flop', -19); api.cue(s1('s108') + 0.19, 'monk_seal_grunt', -20);
@@ -641,7 +709,7 @@ export async function build(api, kit, scenes) {
       kit.drawCutout(ctx, view, R.card, { x: b[0], y: b[1], hPx, base: false, shadow: false, contact: true, t, seed: 4, wobble: 0.003 });
       R.top = [tp[0], tp[1]];
     } };
-  leg('ch4-gardner', 'gardner', tH13, tH14 + XF, { st: () => ({ water: 'turq' }), spec: {
+  leg('ch4-gardner', 'gardner', tH13, tH14 + XF, { st: () => ({ water: 'turq' }), wrap: (s) => blurred(blurred(s, tH13, tGa2 - 0.6, 5, 0.45), tEnd0 + 0.62, tH14 + XF, 5, 0.45), spec: {
     world(ctx, lt, t, view) { if (t > tGa1 - 0.4) drawRocks(ctx, t, view); },
     ui(ctx, lt, t, view) { avoidGauge(t); const r = ROCKS[0]; if (t > tGa2 - 0.2 && r.top) { const pts = [r.top, view.project(r.ll[0], r.ll[1], 0), ROCKS[1].top].filter(Boolean); if (pts.length > 1) ui.avoid(ui.boxOf(pts, px(20)));
       lab(ctx, 'PŪHĀHONU (GARDNER PINNACLES)', r.top, t, lead('pokes'), tEnd0 + 0.6, { order: ['above', 'above-right', 'above-left', 'right', 'left'], dist: 40 }); } } } });

@@ -35,7 +35,7 @@ const EMPEROR = [[-187.7, 32.1], [-187.7, 32.7], [-188.4, 33.6], [-188.4, 35.2],
 const TRENCH = [[-212, 43], [-207, 46.5], [-203, 49.5], [-200, 51.8], [-197.5, 53.8], [-195.5, 55.4]];
 const LAGOON = [[0.020, 0.42, 0.40], [0.005, 0.19, 0.22], [0.002, 0.085, 0.12]];
 // the Midway cut: N-S (az 5.5) through Sand Island, the camera side (east) removed; drill holes at u 0 and u 7.6 km
-const PLANE = { lon: -177.3775, lat: 28.209, az: 5.5, side: 1, u0: -6, u1: 13, du: 0.025, bottomKm: 3.5, loadU: 0, waterTopMax: 0 };
+const PLANE = { lon: -177.3775, lat: 28.209, az: 5.5, side: 1, u0: -100, u1: 110, du: 0.05, bottomKm: 20, loadU: 0, waterTopMax: 0 };   // the whole volcano (flanks to about -4,500 m at u -50 and +40)
 const bt = (u) => F.lerp(-157, -384, F.clamp(u / 7.6));                 // basalt top (m): about 515 ft (u 0) and 1,260 ft (u 7.6)
 // the Kure cut: W-E through the atoll, the south side removed
 const KPLANE = { lon: KURE[0], lat: KURE[1], az: 90, side: 1, u0: -12, u1: 12, du: 0.025, bottomKm: 3.5, loadU: 0, waterTopMax: 0 };
@@ -165,7 +165,7 @@ export async function build(api, kit, scenes) {
   const LEVEL = (t) => -1500 * (pr(t, 455.38, 457.6) - pr(t, 461.9, 462.5)) - 6000 * (pr(t, 540.91, 543.4) - pr(t, 556.6, 557.6))
     - 2000 * (pr(t, 579.57, 581.0) - pr(t, 584.35, 584.95));
   const SUNK = [[ch.t0, 200, 38], [454.5, 200, 38], [457.3, 125, 35], [480.62, 125, 35], [480.64, 92, 16], [486.3, 98, 22], [489.0, 150, 45], [544.8, 150, 45],
-    [545.9, 190, 62], [556.5, 190, 62], [558.6, 200, 38], [575.0, 200, 38], [ch.t1x, 200, 30]];
+    [545.9, 190, 30], [556.5, 190, 30], [558.6, 200, 38], [575.0, 200, 38], [ch.t1x, 200, 30]];
   const sunAz = monotone(SUNK.map(k => [k[0], k[1]])), sunEl = monotone(SUNK.map(k => [k[0], k[2]]));
   const SUN = (t) => [sunAz(t), sunEl(t)];
   const EXPO = (t) => 1.2 + 0.12 * env(t, 480.6, 487.6, 0.02, 1.0) + 0.35 * env(t, 545.4, 556.5, 0.5, 0.6) + (api.Q.ex5 ? +api.Q.ex5 : 0);
@@ -225,13 +225,20 @@ export async function build(api, kit, scenes) {
     { t: ch4.t1x + 0.6, lon: MIDW[0], lat: MIDW[1] + 0.002, h: 0, d: 15.2, tilt: 60.5, heading: 31, fov: 42 }];
   // the section camera (section coordinates of PLANE: u km along, f km to the east, alt km, target u, target elevation m); Q.cc overrides
   const secCam = (t, c) => orbit(t, offLL(offLL(SAND, c[0], 5.5), c[1], 95.5), c[2], offLL(SAND, c[3], 5.5), c[4], c[5] ?? 40);
-  const CC = Object.assign({ 0: [-2.5, 3.5, 0.4, 3.5, -150, 40], 1: [-2.45, 3.45, 0.4, 3.5, -150, 40], 2: [-2.2, 3.2, 0.38, 3.6, -170, 40], 3: [-2.0, 3.0, 0.36, 3.6, -180, 40],
-    4: [-1.9, 3.1, 0.38, 3.8, -190, 40], 5: [-1.6, 2.9, 0.34, 3.8, -200, 40], 6: [-1.5, 2.85, 0.33, 3.8, -200, 40] }, typeof api.Q.cc === 'object' ? api.Q.cc : {});
+  // keys (film s): 0 457.3 the pull-up over the drained atoll, the cut line; 1 458.64 the cut opens, coming down; 2 460.2 / 3 461.7 the whole
+  // volcano in section (its flanks fall away left and right, the cream cap a thin line on top); 4 462.7 / 5 466.5 / 6 469.5 close and
+  // straight on over the north half (frame about 6 km: the cap 300-380 m reads; aimed low, the horizon near the top: basalt fills
+  // the frame, little sky); 7 472.8 / 8 478.0 both drill sites; 9 478.9 / 10 480.64
+  // the push to the north bit
+  const CC = Object.assign({ 0: [-2, 16, 4.0, 4, -600, 40], 1: [-4, 17.5, 2.2, 4, -1500, 40], 2: [-6, 18, 0.8, 4, -2600, 40], 3: [-5.6, 17.6, 0.75, 4.1, -2500, 40],
+    4: [6.0, 4.4, 0.35, 7.0, -700, 40], 5: [6.3, 4.2, 0.33, 7.1, -700, 40], 6: [6.1, 4.3, 0.34, 7.0, -700, 40], 7: [3.0, 8.4, 0.6, 3.8, -1400, 40],
+    8: [3.3, 7.8, 0.7, 3.9, -1400, 40], 9: [6.0, 5.0, 0.4, 7.2, -750, 40], 10: [6.4, 4.4, 0.32, 7.3, -700, 40] }, typeof api.Q.cc === 'object' ? api.Q.cc : {});
   const C0 = secCam(457.3, CC[0]), C0b = secCam(458.64, CC[1]);
   const HD = 335, KD2 = { t: 445.95, lon: -177.379, lat: 28.2085, h: 3, d: 0.115, tilt: 82, heading: HD, fov: 42 };
   const K1 = [EN[3],
     { t: 438.95, lon: MIDW[0], lat: 28.232, h: 0, d: 13.8, tilt: 58, heading: 34, fov: 42 },          // {midway}: a slow push on the ring
-    { t: 439.85, lon: -174, lat: 27.6, h: 0, d: 900, tilt: 12, heading: 12, fov: 40 },               // s113: pull out
+    { t: 439.45, lon: -177.15, lat: 28.12, h: 0, d: 95, tilt: 34, heading: 22, fov: 41 },           // s113: pull out, Midway stays in frame
+    { t: 439.85, lon: -175.6, lat: 27.8, h: 0, d: 900, tilt: 12, heading: 12, fov: 40 },
     { t: 440.35, lon: -140, lat: 30, h: 0, d: 11000, tilt: 0, heading: 0, fov: 40 },
     { t: 441.2, lon: -122, lat: 32, h: 0, d: 12000, tilt: 0, heading: 0, fov: 40 },                  // {ny}: New York in view
     { t: 442.1, lon: -165.5, lat: 25.6, h: 0, d: 5200, tilt: 0, heading: 0, fov: 40 },               // {miami}: the two lines side by side
@@ -243,7 +250,9 @@ export async function build(api, kit, scenes) {
     { t: 456.0, lon: -177.37, lat: 28.20, h: 0, d: 2.5, tilt: 70, heading: 315, fov: 40 },          // s117: the pull-up, the sea falls
     C0, C0b];
   const PD = route([ch.t0, EN[3].t, chainPath(EN)], [EN[3].t, 458.64, chainPath(K1)]);
-  const tU1 = cross(PD, 438.95, 439.85, 700), tD1 = cross(PD, 444.4, 445.95, 700), XF = 0.4;
+  // the pull-out climbs fast (95 to 900 km in 0.4 s) and the stack's data rectangle shows from about 500 km (mot 440.0 at d 700):
+  // the globe takes over at 220 km in 0.25 s
+  const tU1 = cross(PD, 438.95, 439.85, 220), tD1 = cross(PD, 444.4, 445.95, 700), XF = 0.4, XU = 0.25;
   const terrLeg = (id, region, a, b, path, o = {}) => {
     const s = kit.terrainShot(Object.assign({ id, t0: a, t1: b, fadeIn: o.fadeIn, region, preset: o.preset || 'today',
       cam: (lt) => kit.terrainCamOf(path(a + lt)), state: (lt) => stOf(path(a + lt).d, a + lt, o.st ? o.st(a + lt) : {}) }, o.spec || {}));
@@ -256,7 +265,7 @@ export async function build(api, kit, scenes) {
   if (dbg) api.log(`[ch5] onlyreef ${T('onlyreef').toFixed(2)} ch4.t1x ${ch4.t1x.toFixed(2)} drag hand-offs ${tU1.toFixed(2)} ${tD1.toFixed(2)}`);
 
   // leg 0: Midway, MIDWAY on {midway}
-  terrLeg('ch5-drag-0', 'midway', ch.t0, tU1 + XF, PD, { fadeIn: K.XF, wrap: (s) => blurred(s, 439.55, tU1 + XF, 5, 0.45), spec: {
+  terrLeg('ch5-drag-0', 'midway', ch.t0, tU1 + XU, PD, { fadeIn: K.XF, wrap: (s) => blurred(s, Math.min(439.55, tU1 - 0.1), tU1 + XU, 5, 0.45), spec: {
     ui(ctx, lt, t, view) { avoidGauge(t); lab(ctx, 'MIDWAY', gp(view, MIDW, 40), t, lead('midway'), 439.45); } } });
   // leg 1: the globe. HNL-MIDWAY (1,312 mi) in white; the NY-MIA great circle (1,092 mi, true length on the sphere) in yellow lifts off,
   // flies with the camera and lands beside it, starting at the Honolulu end: it comes up short
@@ -268,7 +277,7 @@ export async function build(api, kit, scenes) {
     if (t < 441.25) return { S: NYC, B: B0, h: 0.035 * pr(t, 441.0, 441.25), p: 1 };
     const f = pr(t, 441.25, 442.0); if (t < 442.0) return { S: gcAt(NYC, L0, f), B: B0 + dB * f, h: 0.035, p: 1 };
     return { S: L0, B: BL, h: 0.035 * (1 - pr(t, 442.0, 442.11)), p: 1 }; };
-  globeLeg('ch5-drag-1', tU1, tD1 + XF, PD, { fadeIn: XF, wrap: (s) => blurred(s, tU1, 440.4, 4, 0.4), spec: {
+  globeLeg('ch5-drag-1', tU1, tD1 + XF, PD, { fadeIn: XU, wrap: (s) => blurred(s, tU1, 440.4, 4, 0.4), spec: {
     ui(ctx, lt, t, view) {
       const P = (ll, h = 0) => { const q = view.project(ll[1], ll[0], h); return q && q.visible ? [q.x, q.y] : null; };
       const fa = 1 - pr(t, 443.9, 444.4), pw = pr(t, 440.15, 440.75);
@@ -351,17 +360,17 @@ export async function build(api, kit, scenes) {
       const x = l2q[0] + (hash(k, 12) - 0.5) * hL * 0.9 + Math.sin(uf * 6 + k) * hL * 0.1, y = l2q[1] - hL * (0.9 + 0.3 * hash(k, 13)) + uf * hL * (0.7 + 0.25 * hash(k, 14));
       feather(ctx, x, y, hL * 0.06, Math.sin(uf * 5 + k * 2) * 0.9, F.clamp((1 - uf) * 3)); }
   };
-  terrLeg('ch5-drag-2', 'midway', tD1, 458.64, PD, { fadeIn: XF, wrap: (s) => blurred(s, tD1, 445.7, 4, 0.4), spec: {
+  terrLeg('ch5-drag-2', 'midway', tD1, 458.64, PD, { fadeIn: XF, wrap: (s) => blurred(s, tD1, 445.7, 6, 0.4), spec: {
     world(ctx, lt, t, view) { colonyWorld(ctx, t, view); },
     ui(ctx, lt, t, view) { avoidGauge(t);
       if (HR.top && t > 446.2 && t < 448.6) lab(ctx, 'LAYSAN ALBATROSS', HR.top, t, 446.3, 448.3, { order: ['above-right', 'right', 'above', 'above-left', 'left'], dist: 60 });
       const pc = pr(t, 457.8, 458.2); if (pc > 0) {                         // the cut line along the section plane (slice_reveal)
-        const pts = []; for (let u = -2.6; u <= 10.2; u += 0.1) pts.push(offLL(SAND, u, 5.5));
+        const pts = []; for (let u = -16; u <= 26; u += 0.1) pts.push(offLL(SAND, u, 5.5));   // across the drained volcano top and flanks in frame
         ui.line(ctx, druns(view, pts, 6, 1), { color: '#FFFFFF', width: 6, p: pc }); }
     } } });
 
   // ================================================================ CAKE: the cut-away through the drained atoll (s118-s122)
-  const K2 = [C0b, secCam(462.0, CC[2]), secCam(466.5, CC[3]), secCam(472.8, CC[4]), secCam(478.0, CC[5]), secCam(480.64, CC[6])];
+  const K2 = [C0b, ...[[460.2, 2], [461.7, 3], [462.7, 4], [466.5, 5], [469.5, 6], [472.8, 7], [478.0, 8], [478.9, 9], [480.64, 10]].map(([t, k]) => secCam(t, CC[k]))];
   const PC = route([ch.t0, 458.64, PD], [458.64, 480.64, chainPath(K2)]);
   const shake = (c, t) => { let a = 0; for (const t0 of [478.97, 479.69]) if (t > t0) a += 0.35 * Math.exp(-(t - t0) / 0.15) * Math.sin((t - t0) * 70) * (t0 === 478.97 ? 1 : 0.6);
     return a ? Object.assign({}, c, { heading: c.heading + a, tilt: c.tilt + a * 0.6 }) : c; };
@@ -384,10 +393,13 @@ export async function build(api, kit, scenes) {
   const cakePaint = (ctx, view, t) => {
     const sec = view.sec; if (!sec) return;
     // the section face's own basalt colour, sampled once per frame under the cap (painted bands then match it)
-    if (BAS.at !== t) { BAS.at = t; const q = sec.project(3.5, bt(3.5) - 140, 0.002);
-      if (q && q[0] > 2 && q[0] < W - 2 && q[1] > 2 && q[1] < H - 2) { try { const d = ctx.getImageData(Math.round(q[0]), Math.round(q[1]), 1, 1).data; BAS.col = `rgb(${d[0]},${d[1]},${d[2]})`; } catch (e) { /* keep */ } } }
+    // (pure per frame: the first on-screen point of a fixed list, else a constant; never the previous frame's value)
+    if (BAS.at !== t) { BAS.at = t; BAS.col = '#4A433D';
+      for (const u of [3.5, 5.5, 1.5, 7.5, 9.5, 0, 11]) { const q = sec.project(u, bt(u) - 140, 0.002);
+        if (!(q && q[0] > 2 && q[0] < W - 2 && q[1] > 2 && q[1] < H - 2)) continue;
+        try { const d = ctx.getImageData(Math.round(q[0]), Math.round(q[1]), 1, 1).data; BAS.col = `rgb(${d[0]},${d[1]},${d[2]})`; } catch (e) { /* constant */ } break; } }
     const X = XK(t), G = GK(t), runs = []; let cur = null;
-    for (let u = -3.4; u <= 10.8 + 1e-6; u += 0.05) { const s = sec.surf(u), b = bt(u);
+    for (let u = -4.8; u <= 12.98 + 1e-6; u += 0.05) { const s = sec.surf(u), b = bt(u);            // the cap's real extent on the DEM (about -4.3 to 12.9)
       if (s < b + 20) { if (cur && cur.us.length > 1) runs.push(cur); cur = null; continue; }
       if (!cur) cur = { us: [], b: [], B: [], c: [], s: [] };
       const B = Math.min(b + X, s), c = Math.max(B, Math.min(s - G, s)); cur.us.push(u); cur.b.push(b); cur.B.push(B); cur.c.push(c); cur.s.push(s); }
@@ -411,7 +423,7 @@ export async function build(api, kit, scenes) {
     const sec = view.sec; if (!sec || t < tRig) return;
     for (const [k, u] of DRILL.entries()) {
       const s = sec.surf(u), base = sec.project(u, s, -0.035), top = sec.project(u, s, 0.003), dep = sec.project(u, drillDepth(u, s, t), 0.003); if (!base || !top || !dep) continue;
-      const [lon, lat] = sec.ll(u, -0.035), dist = camDist(view, lon, lat, s), hPx = 0.13 * H * F.clamp(3.6 / dist, 0.45, 1.5);
+      const hPx = 0.15 * H;   // one screen size through the camera moves
       const hop = (() => { const v = (t - 479.69) / 0.28; return v > 0 && v < 1 ? Math.sin(Math.PI * v) * px(16) : 0; })();
       // the string and the bit
       if (t > 473.2) { ctx.save(); ctx.strokeStyle = '#1C1C1E'; ctx.lineWidth = px(5); ctx.beginPath(); ctx.moveTo(top[0], top[1]); ctx.lineTo(dep[0], dep[1]); ctx.stroke();
@@ -430,14 +442,14 @@ export async function build(api, kit, scenes) {
   scenes.push(kit.cutawayShot({ id: 'ch5-cake', t0: 458.34, t1: 480.64, fadeIn: 0.3, region: 'midway', preset: 'today',
     cam: (lt) => kit.terrainCamOf(shake(PC(458.34 + lt), 458.34 + lt)),
     state: (lt) => stOf(PC(458.34 + lt).d, 458.34 + lt),
-    cut: { plane: PLANE, state: (lt) => { const t = 458.34 + lt, lv = LEVEL(t); return { sag: 0, sagM: 0, alphaKm: 90, oldFloor: -5000, crustM: 6500, waterTop: Math.min(0, lv), waterA: F.clamp(1 + lv / 1500) * 0.85, floorLine: 0, trenchA: 0, edgeA: 1 }; } },
+    cut: { plane: PLANE, state: (lt) => { const t = 458.34 + lt, lv = LEVEL(t); return { sag: 0, sagM: 0, alphaKm: 90, oldFloor: -20000, crustM: 6500, waterTop: Math.min(0, lv), waterA: F.clamp(1 + lv / 1500) * 0.85, floorLine: 0, trenchA: 0, edgeA: 1 }; } },   // oldFloor under the wall's bottom: the whole face is the volcano's basalt (no crust band in ch5)
     world(ctx, lt, t, view) { cakePaint(ctx, view, t); drills(ctx, view, t); },
     ui(ctx, lt, t, view) { avoidGauge(t);
       const sec = view.sec; if (!sec) return;
       // ABOUT / 28 MILLION YEARS with a thin straight pointer to the basalt (no arrow)
       const t0 = lead('old28') - 0.1, t1 = 462.4;
-      if (t > t0 && t < t1) { const tq = sec.project(3.4, bt(3.4) - 320, 0.002);
-        const box = heroNum(ctx, t, 'ABOUT', 28, 'MILLION YEARS', t0, t1, T('old28'), [{ x: W - px(96), y: px(96), anchor: 'right' }, { x: W - px(96), y: px(250), anchor: 'right' }, { x: W / 2, y: px(96), anchor: 'center' }]);
+      if (t > t0 && t < t1) { const tq = sec.project(4.0, -1600, 0.002);   // into the volcano's body (the age is the volcano's)
+        const box = heroNum(ctx, t, 'ABOUT', 28, 'MILLION YEARS', t0, t1, 460.93, [{ x: W - px(96), y: px(96), anchor: 'right' }, { x: W - px(96), y: px(250), anchor: 'right' }, { x: W / 2, y: px(96), anchor: 'center' }]);   // punch on hit_body 460.93 (spot notes)
         if (box && tq) { const a = F.clamp((t - t0 - 0.35) / 0.3) * (1 - F.clamp((t - (t1 - 0.3)) / 0.3)), sx = box.x + px(40), sy = box.y + box.h;
           ctx.save(); ctx.globalAlpha *= a; ctx.strokeStyle = 'rgba(5,9,15,0.6)'; ctx.lineWidth = px(6); ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(tq[0], tq[1]); ctx.stroke();
           ctx.strokeStyle = PAL.text; ctx.lineWidth = px(3); ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(F.lerp(sx, tq[0], pr(t, t0 + 0.35, t0 + 0.75)), F.lerp(sy, tq[1], pr(t, t0 + 0.35, t0 + 0.75))); ctx.stroke();
@@ -450,15 +462,29 @@ export async function build(api, kit, scenes) {
 
   // ================================================================ WAR: dawn over the atoll, the water trick, the carriers, the wrecks (s123-s139)
   const GEO = { floor: -5312, plat: null };
-  const PWk = (fl) => [
+  // two paths with a hard cut between them at tC (the end of the s132 pause, just before "Japan"): the globe's own texture seam at the
+  // antimeridian shows from about 1,000 km up (seen at 525.8 in a zoom to the fleet), so the globe never comes close to it
+  const tC = 525.2;
+  const PW1k = [
     { t: 480.64, lon: MIDW[0], lat: 28.215, h: 0, d: 22, tilt: 32, heading: 350, fov: 40 },            // s123: hard cut, dawn
     { t: 486.9, lon: MIDW[0], lat: 28.218, h: 0, d: 17, tilt: 30, heading: 354, fov: 40 },
-    { t: 488.7, lon: -176.4, lat: 28.4, h: 0, d: 620, tilt: 16, heading: 0, fov: 40 },               // {pac}: the regional map
-    { t: 524.0, lon: -176.5, lat: 28.42, h: 0, d: 580, tilt: 14, heading: 0, fov: 40 },
-    { t: 527.2, lon: -178.0, lat: 29.4, h: 0, d: 520, tilt: 3, heading: 0, fov: 40 },                // s133: NW over the battle
-    { t: 535.5, lon: -177.92, lat: 29.45, h: 0, d: 505, tilt: 3, heading: 0, fov: 40 },
-    { t: 540.6, lon: -177.86, lat: 29.48, h: 0, d: 495, tilt: 3, heading: 0, fov: 40 },
-    { t: 544.75, lon: -177.8, lat: 29.5, h: 0, d: 485, tilt: 4, heading: 0, fov: 40 },
+    { t: 488.5, lon: MIDW[0] + 0.5, lat: 28.08, h: 0, d: 420, tilt: 4, heading: 12, fov: 40 },        // {pac}: straight up, Midway kept in frame
+    // the STORY globe of the central Pacific, Midway left and Oʻahu right on one level (heading 21 = the bearing Midway > Oʻahu less 90)
+    { t: 489.9, lon: -171.0, lat: 26.0, h: 0, d: 3000, tilt: 12, heading: 21, fov: 40 },
+    { t: 497.0, lon: -171.3, lat: 26.1, h: 0, d: 2950, tilt: 12, heading: 20, fov: 40 },             // the intercepts come in from the west
+    { t: 504.2, lon: -170.8, lat: 25.95, h: 0, d: 2900, tilt: 12, heading: 21.5, fov: 40 },          // the telegram to Washington (east)
+    { t: 513.6, lon: -171.2, lat: 26.1, h: 0, d: 2800, tilt: 12, heading: 21, fov: 40 },             // the bait
+    { t: 523.6, lon: -171.4, lat: 26.2, h: 0, d: 2700, tilt: 12, heading: 20.5, fov: 40 },           // AF = MIDWAY
+    { t: tC, lon: -172.2, lat: 26.6, h: 0, d: 2350, tilt: 12, heading: 17, fov: 40 }];               // the pause: a slow push west
+  const PWk = (fl) => [
+    // s133-s137, straight down: the terrain stack ends at 31.5 N and 182 W (a pale strip past it), so the frame top stays under about
+    // 31.4 N and the left edge east of 181.8 W; the wrecks (30.4-30.6 N) clear of the gauge (Kaga right of it), the atoll at the bottom
+    { t: tC, lon: -178.3, lat: 29.65, h: 0, d: 520, tilt: 0.5, heading: 0, fov: 40 },                 // s133: cut to north and west of Midway, the fleet
+    { t: 527.6, lon: -178.5, lat: 29.85, h: 0, d: 450, tilt: 0.5, heading: 0, fov: 40 },
+    { t: 533.0, lon: -178.52, lat: 29.8, h: 0, d: 450, tilt: 0.5, heading: 0, fov: 40 },
+    { t: 535.9, lon: -178.55, lat: 29.42, h: 0, d: 450, tilt: 0.5, heading: 0, fov: 40 },               // s136: the wrecks and the atoll in one frame
+    { t: 540.6, lon: -178.55, lat: 29.4, h: 0, d: 452, tilt: 0.5, heading: 0, fov: 40 },
+    { t: 544.75, lon: -178.5, lat: 29.38, h: 0, d: 455, tilt: 1, heading: 0, fov: 40 },
     { t: 545.9, lon: YORK[0], lat: YORK[1], h: fl + 40, d: 2.2, tilt: 80, heading: 300, fov: 40 },   // s138: down on the floor
     { t: 550.9, lon: YORK[0], lat: YORK[1], h: fl + 40, d: 2.1, tilt: 80.5, heading: 312, fov: 40 },
     { t: 555.3, lon: YORK[0], lat: YORK[1], h: fl + 40, d: 2.0, tilt: 81, heading: 322, fov: 40 },
@@ -467,20 +493,27 @@ export async function build(api, kit, scenes) {
     { t: 565.8, lon: KURE[0], lat: KURE[1], h: 0, d: 18, tilt: 50, heading: 255, fov: 40 },
     { t: 570.9, lon: KURE[0] + 0.03, lat: KURE[1] - 0.005, h: 0, d: 12, tilt: 54, heading: 258, fov: 40 },
     { t: 571.25, lon: KURE[0] + 0.032, lat: KURE[1] - 0.005, h: 0, d: 11.6, tilt: 54.3, heading: 258.5, fov: 40 }];
-  let PW = chainPath(PWk(GEO.floor));
-  const PWf = (t) => PW(t), tK = cross(PWf, 556.8, 558.6, 70);
+  // the switch sits just before tC: route() keeps the first leg at t = tC, and war-2's first frame (525.20) showed the globe camera
+  // (d 2,350 km over the terrain stack: its whole data rectangle, one frame; mot f15756)
+  const PW1 = chainPath(PW1k), mkPW = (fl) => route([480.64, tC - 1e-4, PW1], [tC - 1e-4, 571.25, chainPath(PWk(fl))]);
+  let PW = mkPW(GEO.floor);
+  const PWf = (t) => PW(t), tK = cross(PWf, 556.8, 558.6, 70), tW1 = cross(PWf, 486.9, 489.9, 350), tW2 = tC;
+  // the globe leg's view in the terrain view's shape (project(lon, lat, hm) -> [x, y] | null), so warWorld/warUI/props serve both
+  const gv = (view) => ({ project: (lon, lat, hm = 0) => { const q = view.project(lat, lon, Math.max(0, hm) / 6371000); return q && q.visible ? [q.x, q.y] : null; },
+    visible: () => true, level: 0, S: { heightAt: () => 0 }, sec: null });
+  const OAHU = [-157.95, 21.36];                                           // Pearl Harbor (the codebreakers)
   const warPrep = async () => {
     if (GEO.plat !== null) return;
     GEO.plat = [];
     try { const S = await kit.hub.terrain('midway', 1, {}); const fl = S.heightAt(YORK[0], YORK[1]);
-      if (Math.abs(fl - GEO.floor) > 25) { GEO.floor = fl; PW = chainPath(PWk(fl)); }
+      if (Math.abs(fl - GEO.floor) > 25) { GEO.floor = fl; PW = mkPW(fl); }
       const isl = await kit.island({ region: 'midway', bbox: [-177.47, 28.15, -177.27, 28.32], level: -25, seeds: [MIDW, SAND], step: 2 });
       GEO.plat = isl.rings || [];
       logOnce('war', `[ch5] floor at Yorktown ${fl.toFixed(0)} m, Akagi ${S.heightAt(AKAGI[0], AKAGI[1]).toFixed(0)} m, Kaga ${S.heightAt(KAGA[0], KAGA[1]).toFixed(0)} m; platform rings ${GEO.plat.length}; war>kure hand-off ${tK.toFixed(2)}`);
     } catch (e) { api.log('[ch5] war prep: ' + e.message); } };
   // the props of the water trick live on Midway's pin (screen space, paper cut-outs); P0 = when the props fade
-  const tP1 = 525.27, tAF = 498.59, LANE = [0.2, 0.275, 0.35], SP = px(190), VS = px(470);
-  const props = (ctx, t, pin) => {
+  const tP1 = 525.1, tAF = 498.59, LANE = [0.2, 0.275, 0.35], SP = px(190), VS = px(470);
+  const props = (ctx, t, pin, oq = null) => {
     const pa = 1 - pr(t, tP1 - 0.6, tP1), [x0, y0] = pin; if (pa <= 0) return [];
     const obs = []; ctx.save(); ctx.globalAlpha *= pa;
     // s125: a paper water drop pops on the pin, wobbles and drips
@@ -501,10 +534,11 @@ export async function build(api, kit, scenes) {
         TY.txt(ctx, 'AF', 0, px(76) * 0.5, { cap: 76, color: PAL.yellow, align: 'center', stroke: true, alpha: a }); ctx.restore();
         obs.push({ x: x0 - px(60), y: y - px(50), w: px(120), h: px(100) }); } }
     // s127: the telegram to Washington (off the Hawaiʻi-side edge) and back with a '?' tag; it hovers until the tag falls on {conf}
-    const tE0 = wordAt('s127', 'Washington') + 0.05, tE1 = tE0 + 0.7, tR0 = 505.4, tR1 = 506.05, HOV = [x0 + px(190), y0 - px(200)];
+    const tE0 = wordAt('s127', 'Washington') + 0.05, tE1 = tE0 + 0.7, tR0 = 505.4, tR1 = 506.05;
+    const P0 = ON(oq, -px(60)) ? [oq[0], oq[1] - px(70)] : [x0 + px(40), y0 - px(60)], HOV = ON(oq, -px(60)) ? [Math.min(oq[0] - px(40), W - px(170)), oq[1] - px(230)] : [x0 + px(190), y0 - px(200)];
     if (t > tE0 - 0.25) { let p, a = 1, tag = false;
-      if (t < tE0) p = [x0 + px(40), y0 - px(60)];
-      else if (t < tE1) p = bez([x0 + px(40), y0 - px(60)], [x0 + px(420), y0 - px(260)], [W + px(160), y0 - px(240)], pr(t, tE0, tE1, E.in));
+      if (t < tE0) p = P0;
+      else if (t < tE1) p = bez(P0, [P0[0] + px(160), P0[1] - px(200)], [W + px(160), P0[1] - px(180)], pr(t, tE0, tE1, E.in));
       else if (t < tR0) p = null;
       else { tag = true; p = t < tR1 ? bez([W + px(160), y0 - px(300)], [x0 + px(520), y0 - px(320)], HOV, pr(t, tR0, tR1, E.out)) : [HOV[0], HOV[1] + Math.sin((t - tR1) * 2.2) * px(6)]; }
       if (p) { const r = kit.drawCutout(ctx, null, ENV, { x: p[0], y: p[1] + px(40), hPx: px(80), pop: F.clamp((t - (tE0 - 0.25)) / 0.25), lean: t < tE1 ? -0.15 : 0.06 * Math.sin(t * 2), base: false, shadow: false, contact: false, t, seed: 41, wobble: 0.02 });
@@ -518,7 +552,7 @@ export async function build(api, kit, scenes) {
     for (let k = 0; k < 3; k++) { const u = (t - (T('plain') - 0.08) - k * 0.2) / 1.0; if (u <= 0 || u >= 1) continue;
       ctx.save(); ctx.globalAlpha *= 0.85 * (1 - u); ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = px(4); ctx.beginPath(); ctx.arc(x0, y0, px(30) + E.out(u) * px(240), 0, 7); ctx.stroke(); ctx.restore(); }
     // s129: the bait, a paper drop on a fishing line cast west from the pin; s130: Japan bites (tug) and it is pulled away
-    const tB = T('bait') - 0.1, tBit = T('bit');
+    const tB = T('bait') - 0.1, tBit = (() => { try { return K.word('s130', 'bit').end - 0.05; } catch (e) { return T('bit') + 0.55; } })();   // the twitch lands at the end of "bit" (spot notes 10)
     if (t > tB && t < tBit + 0.9) { const a = 1 - pr(t, tBit + 0.6, tBit + 0.9), cast = pr(t, tB, tB + 0.6, E.out), tug = F.clamp((t - tBit) / 0.18), gone = pr(t, tBit + 0.25, tBit + 0.85, E.in);
       const tip = [x0 - px(70), y0 - px(150)], hang = [x0 - px(70) - px(300) * cast - px(50) * tug - gone * px(700), y0 - px(40) + Math.sin((t - tB) * 2.6) * px(10) * (1 - tug) - px(40) * tug - gone * px(120)];
       ctx.save(); ctx.globalAlpha *= a; ctx.strokeStyle = '#7A5A3A'; ctx.lineWidth = px(6); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x0 - px(6), y0 - px(6)); ctx.lineTo(tip[0], tip[1]); ctx.stroke();
@@ -570,11 +604,11 @@ export async function build(api, kit, scenes) {
     // s138-s139 the floor: Yorktown's hull upright in a pool of soft blue light
     if (t > 545.3 && t < 557.2) { const b = view.project(YORK[0], YORK[1], GEO.floor); if (!b) return;
       const dist = camDist(view, YORK[0], YORK[1], GEO.floor), sc = F.clamp(2.25 / dist, 0.05, 1.4), a = F.clamp((t - 545.3) / 0.5) * (1 - pr(t, 556.2, 557.0));
-      const br = 1 + 0.12 * Math.sin(F.clamp((t - (T('alike') - 0.1)) / 0.9) * Math.PI), R = W * 0.36 * sc * br;
+      const br = 1 + 0.12 * Math.sin(F.clamp((t - (T('alike') - 0.1)) / 0.9) * Math.PI), R = W * 0.62 * sc * br;   // the pool and the hull at one screen size (the subject fills the frame)
       ctx.save(); ctx.globalAlpha *= a; ctx.globalCompositeOperation = 'screen';
       const rg = ctx.createRadialGradient(b[0], b[1] - R * 0.15, 0, b[0], b[1] - R * 0.15, R); rg.addColorStop(0, 'rgba(120,190,245,0.55)'); rg.addColorStop(0.5, 'rgba(70,140,210,0.28)'); rg.addColorStop(1, 'rgba(40,90,160,0)');
       ctx.fillStyle = rg; ctx.beginPath(); ctx.ellipse(b[0], b[1] - R * 0.15, R, R * 0.62, 0, 0, 7); ctx.fill(); ctx.restore();
-      kit.drawCutout(ctx, view, HULL, { lon: YORK[0], lat: YORK[1], hm: GEO.floor, wPx: W * 0.22 * sc, alpha: a, base: false, shadowA: 0.35, t, seed: 50, wobble: 0.002 }); }
+      kit.drawCutout(ctx, view, HULL, { lon: YORK[0], lat: YORK[1], hm: GEO.floor, wPx: W * 0.5 * sc, alpha: a, base: false, shadowA: 0.35, t, seed: 50, wobble: 0.002 }); }
   };
   const warUI = (ctx, t, view) => {
     avoidGauge(t);
@@ -584,17 +618,17 @@ export async function build(api, kit, scenes) {
     if (vo > 0 && GEO.plat?.length) { const pulse = 0.75 + 0.25 * Math.sin(F.clamp((t - T('volc42')) / 0.5) * Math.PI);
       for (const r of GEO.plat) ui.line(ctx, druns(view, r, 0, 1, 0), { color: PAL.hero, width: 8, alpha: vo * pulse, p: pr(t, T('volc42') - 0.1, T('volc42') + 0.5) }); }
     // the pin and the props (s124-s132)
-    const pin = gp(view, MDY, 20), pa = env(t, 488.3, tP1, 0.3, 0.6);
-    if (pin && pa > 0) { ctx.save(); ctx.globalAlpha *= pa; ui.pin(ctx, pin[0], pin[1], { r: 15, t: t - 488.3, color: PAL.text, p: 1 }); ctx.restore(); ui.avoid({ x: pin[0] - px(30), y: pin[1] - px(30), w: px(60), h: px(60) }); }
-    if (pin && t > 488.65 && t < 491.7) lab(ctx, 'MIDWAY', pin, t, 488.65, 491.6, { order: ['above', 'above-left', 'left', 'above-right'] });
-    if (pin && t > 491.5 && t < tP1) for (const b of props(ctx, t, pin)) ui.avoid(b);
+    const tPin = Math.max(488.3, tW1 + XF + 0.05), pin = gp(view, MDY, 20), pa = env(t, tPin, tP1, 0.3, 0.6);
+    if (pin && pa > 0) { ctx.save(); ctx.globalAlpha *= pa; ui.pin(ctx, pin[0], pin[1], { r: 15, t: t - tPin, color: PAL.text, p: 1 }); ctx.restore(); ui.avoid({ x: pin[0] - px(30), y: pin[1] - px(30), w: px(60), h: px(60) }); }
+    if (pin && t > tPin + 0.3 && t < 491.7) lab(ctx, 'MIDWAY', pin, t, tPin + 0.3, 491.6, { order: ['above', 'above-left', 'left', 'above-right'] });
+    if (pin && t > 491.5 && t < tP1) for (const b of props(ctx, t, pin, view.project(OAHU[0], OAHU[1], 20))) ui.avoid(b);
     // {mid2}: AF = MIDWAY (the props fade, the map dims a little)
-    const dm = 0.13 * env(t, T('mid2') - 0.2, 529.8, 0.6, 0.5); if (dm > 0) { ctx.save(); ctx.fillStyle = `rgba(4,8,16,${dm})`; ctx.fillRect(0, 0, W, H); ctx.restore(); }
-    const m0 = lead('mid2'), m1 = 525.4;
+    const dm = 0.13 * env(t, T('mid2') - 0.2, tC, 0.6, 0.05); if (dm > 0) { ctx.save(); ctx.fillStyle = `rgba(4,8,16,${dm})`; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+    const m0 = lead('mid2'), m1 = tC - 0.02;
     if (t > m0 && t < m1) ui.block(ctx, [{ text: 'AF = MIDWAY', role: 'headline' }], W / 2, px(96), { anchor: 'center', p: F.clamp((t - m0) / 0.4), out: F.clamp((t - (m1 - 0.35)) / 0.35), bar: PAL.yellow,
-      at: [{ x: W / 2, y: px(96), anchor: 'center' }, { x: W - px(96), y: px(96), anchor: 'right' }, { x: px(96), y: px(96), anchor: 'left' }] });
+      at: [...(pin ? [{ x: pin[0] + px(80), y: Math.max(px(96), pin[1] - px(250)), anchor: 'left' }] : []), { x: W / 2, y: px(96), anchor: 'center' }, { x: W - px(96), y: px(96), anchor: 'right' }, { x: px(96), y: px(96), anchor: 'left' }] });
     // s136: wreck rings (>= 64 px) on their names, one block, each word on its spoken word
-    if (t > T('york2') - 0.2 && t < 545.6) { const fa = 1 - pr(t, 545.0, 545.6);
+    if (t > T('york2') - 0.2 && t < 545.1) { const fa = 1 - pr(t, 544.7, 545.05);   // gone before the dive's motion blur (it tripled them: mot 545.0)
       for (const w of WRECKS) { const q = view.project(w.ll[0], w.ll[1], Math.max(view.level, 0) + 20), t0 = T(w.w) - 0.08; if (!q || t < t0) continue;
         const a = F.clamp((t - t0) / 0.2) * fa, u = (t - t0) / 0.7; ctx.save(); ctx.globalAlpha *= a; ctx.strokeStyle = 'rgba(5,9,15,0.6)'; ctx.lineWidth = px(9); ctx.beginPath(); ctx.arc(q[0], q[1], px(44), 0, 7); ctx.stroke();
         ctx.strokeStyle = PAL.text; ctx.lineWidth = px(5); ctx.beginPath(); ctx.arc(q[0], q[1], px(44), 0, 7); ctx.stroke();
@@ -605,19 +639,26 @@ export async function build(api, kit, scenes) {
       wordTimes: [T('york2') - 0.08, T('kaga') - 0.08, T('akagi') - 0.08], lt: t, grow: true,
       at: [{ x: W - px(96), y: px(96), anchor: 'right' }, { x: W - px(96), y: H * 0.42, anchor: 'right' }, { x: W / 2, y: H * 0.42, anchor: 'center' }, { x: px(96), y: H * 0.42, anchor: 'left' }] });
     // s137 {atoll}: yellow lines from the atoll to the three wrecks
-    const pl = pr(t, T('atoll') - 0.1, T('atoll') + 0.5), la = 1 - pr(t, 545.0, 545.5);
+    const pl = pr(t, T('atoll') - 0.1, T('atoll') + 0.5), la = 1 - pr(t, 544.7, 545.05);
     if (pl > 0 && la > 0) { const mq = view.project(MIDW[0], MIDW[1], Math.max(view.level, 0) + 20);
       for (const w of WRECKS) { const q = view.project(w.ll[0], w.ll[1], Math.max(view.level, 0) + 20); if (mq && q) ui.line(ctx, [[mq, q]], { color: PAL.yellow, width: 10, p: pl, alpha: la }); } }
     // s138 {threemi}: MORE THAN / 3 MILES DOWN (the gauge pulses)
     const n0 = lead('threemi') - 0.1, n1 = 550.6;
     if (t > n0 && t < n1) heroNum(ctx, t, 'MORE THAN', 3, 'MILES DOWN', n0, n1, T('threemi'), [{ x: W - px(96), y: px(96), anchor: 'right' }, { x: W / 2, y: px(96), anchor: 'center' }]);
   };
-  scenes.push(ready(blurred(kit.terrainShot({ id: 'ch5-war', t0: 480.64, t1: tK + 0.45, fadeIn: 0, region: 'midway', preset: 'today',
-    cam: (lt) => kit.terrainCamOf(PWf(480.64 + lt)), state: (lt) => stOf(PWf(480.64 + lt).d, 480.64 + lt),
+  // war-0 dawn over the atoll {midway}; war-1 the STORY globe of the central Pacific ({pac} to the fleet); war-2 the battle, the drained
+  // floor and the lift towards Kure {midway}. One camera path PW; both hand-offs where d crosses 700 km (detail resolves, no double image)
+  const warTerr = (id, a, b, fadeIn) => { const s = kit.terrainShot({ id, t0: a, t1: b, fadeIn, region: 'midway', preset: 'today',
+    cam: (lt) => kit.terrainCamOf(PWf(a + lt)), state: (lt) => stOf(PWf(a + lt).d, a + lt),
     world(ctx, lt, t, view) { const e = view.S.cam.position; if (e.y < Math.max(view.level, view.S.heightAt(PWf(t).lon, PWf(t).lat)) * 0.001 + 0.002) logOnce('under' + Math.round(t), `[ch5] war camera below the surface at ${t.toFixed(2)}`);
       warWorld(ctx, t, view); },
-    ui(ctx, lt, t, view) { warUI(ctx, t, view); } }), 544.8, 545.85, 4, 0.4), warPrep));
-  api.log(`[ch5] war>kure hand-off at ${tK.toFixed(2)}`);
+    ui(ctx, lt, t, view) { warUI(ctx, t, view); } }); if (fadeIn) s.uiFrom = a + fadeIn; return s; };
+  scenes.push(ready(warTerr('ch5-war-0', 480.64, tW1 + XF, 0), warPrep));
+  // the globe: no sun glint under the pin, light cloud (the islands read), hard cut out at tC
+  globeLeg('ch5-war-1', tW1, tC, PWf, { fadeIn: XF, spec: { look: { specAmt: 0.08 }, sun: { clouds: 0.1 },
+    ui(ctx, lt, t, view) { const v = gv(view); warWorld(ctx, t, v); warUI(ctx, t, v); } } });
+  scenes.push(ready(blurred(warTerr('ch5-war-2', tC, tK + 0.45, 0), 544.8, 545.85, 6, 0.4), warPrep));
+  api.log(`[ch5] war hand-offs: globe ${tW1.toFixed(2)}, terrain ${tW2.toFixed(2)}, kure ${tK.toFixed(2)}`);
   // s134: the Yorktown photo (U.S. Navy 80-G-21627, public domain; credit in the description), about 3 s, a slow 2 % push
   if (PH.york) { const p0 = 529.6, p1 = 532.6; scenes.push({ id: 'ch5-yorktown-photo', t0: p0, t1: p1, layer: 1, draw(ctx, lt, t) {
     const A = env(t, p0, p1, 0.35, 0.35); if (A <= 0) return; ctx.save(); ctx.globalAlpha *= A; kb(ctx, PH.york, F.lerp(1.0, 1.02, pr(t, p0, p1, lin)), 0.5, 0.6); ctx.restore(); } }); }
@@ -657,8 +698,11 @@ export async function build(api, kit, scenes) {
 
   // ================================================================ KCUT: Kure in section, the cap barely keeps pace (s143)
   const KCT = offLL(KURE, 3.0, 90);
-  const KC1 = { t: 570.9, lon: KCT[0], lat: KCT[1], h: -110, d: 2.5, tilt: 77, heading: 0, fov: 40 }, KC2 = { t: 575.05, lon: KCT[0] + 0.004, lat: KCT[1], h: -105, d: 2.3, tilt: 77.5, heading: 2, fov: 40 };
-  const DV = { t: 576.6, lon: -179.45, lat: 29.15, h: 0, d: 300, tilt: 6, heading: 0, fov: 40 }, DV2 = { t: 584.39, lon: -179.6, lat: 29.25, h: 0, d: 285, tilt: 8, heading: 356, fov: 40 };
+  // aimed at the cap's base, a narrower lens: the waterline sits at about 0.25 H, the sea is a band above it, the section fills the rest
+  const KC1 = { t: 570.9, lon: KCT[0], lat: KCT[1], h: -330, d: 2.5, tilt: 74, heading: 0, fov: 34 }, KC2 = { t: 575.05, lon: KCT[0] + 0.004, lat: KCT[1], h: -320, d: 2.3, tilt: 74.5, heading: 2, fov: 34 };
+  // the line (28.7 N) at about 0.6 of the frame height, so DARWIN POINT fits above it inside the label area (labels end at 670 px);
+  // a slow drift north and out: Kure low right of centre, the drowned banks above the line, room for the ghost beside them
+  const DV = { t: 576.6, lon: -179.2, lat: 28.85, h: 0, d: 300, tilt: 6, heading: 0, fov: 40 }, DV2 = { t: 584.39, lon: -178.8, lat: 29.05, h: 0, d: 440, tilt: 6, heading: 0, fov: 40 };
   const PCH = chainPath([KC2, DV, DV2,
     { t: 585.3, lon: -178, lat: 37, h: 0, d: 9500, tilt: 0, heading: 0, fov: 40 },               // s147: up to the globe, the chain lights
     { t: 588.6, lon: -182, lat: 40, h: 0, d: 8500, tilt: 0, heading: 0, fov: 40 },
@@ -670,28 +714,36 @@ export async function build(api, kit, scenes) {
     { t: ch.t1, lon: -155.55, lat: 19.75, h: 0, d: 560, tilt: 28, heading: 140, fov: 40 },       // FINAL KEY (ch6 starts here)
     { t: ch.t1x, lon: -155.55, lat: 19.75, h: 0, d: 560, tilt: 28, heading: 140, fov: 40 }]);
   const PK = route([570.9, 575.05, chainPath([KC1, KC2])], [575.05, ch.t1x, PCH]);
-  const ZK = (t) => 50 * pr(t, 571.1, 574.9, lin);
-  const lagK = (t) => 7 + 6 * Math.sin((t - 571.2) * 3.1) + 14 * Math.abs(Math.sin((t - T('sinking')) * Math.PI * 5)) * env(t, T('sinking') - 0.05, T('sinking') + 0.7, 0.05, 0.3);
+  const ZK = (t) => 160 * pr(t, 571.1, 574.9, lin);   // the volcano sinks 160 m in the shot (about 30 px/s): the old top and the reef layers ride down
+  const lagK = (t) => 7 + 6 * Math.sin((t - 571.2) * 3.1) + 28 * Math.abs(Math.sin((t - T('sinking')) * Math.PI * 5)) * env(t, T('sinking') - 0.05, T('sinking') + 0.7, 0.05, 0.3);
   scenes.push(kit.cutawayShot({ id: 'ch5-kcut', t0: 570.9, t1: 575.4, fadeIn: 0.35, region: 'kure', preset: 'today',
     cam: (lt) => kit.terrainCamOf(PK(570.9 + lt)), state: (lt) => stOf(2, 570.9 + lt, { level: 0 }),
     cut: { plane: KPLANE, state: { sag: 0, sagM: 0, alphaKm: 90, oldFloor: -5000, crustM: 6500, waterTop: 0, waterA: 0.85, floorLine: 0, trenchA: 0, edgeA: 1 } },
     world(ctx, lt, t, view) { const sec = view.sec; if (!sec) return;
       const us = [], lo = [], Bv = [], ct = [], ss = [], Z = ZK(t), lag = Math.max(0, lagK(t));
-      for (let u = -4.8; u <= 4.8 + 1e-6; u += 0.05) { const s = sec.surf(u); if (s < -60) continue; us.push(u); ss.push(s); const b = s - 300; lo.push(b); Bv.push(b + 50 - Z); ct.push(Math.max(b + 50 - Z, s - lag)); }
+      // the cap runs to the bank's edge (no painted end in frame); the old volcano top (Bv, a dark basalt strip) sinks with Z
+      for (let u = -11.5; u <= 11.5 + 1e-6; u += 0.05) { const s = sec.surf(u); if (s < -60) continue; us.push(u); ss.push(s); const b = s - 220 - Z; Bv.push(b); lo.push(b - 45); ct.push(Math.max(b, s - lag)); }
       if (us.length < 2) return; ctx.save();
-      band(ctx, sec, us, lo, Bv, '#4A433D'); band(ctx, sec, us, Bv, ct, '#EBDDBE'); band(ctx, sec, us, ct, ss, 'rgba(38,128,156,0.92)');
+      band(ctx, sec, us, lo, Bv, '#3B3531'); band(ctx, sec, us, Bv, ct, '#EBDDBE'); band(ctx, sec, us, ct, ss, 'rgba(38,128,156,0.92)');
+      // reef layers laid down at the top ride down with the volcano: new lines appear under the waterline, old ones sink
+      ctx.lineWidth = px(2.5);
+      for (let k = 1; k < 10; k++) { ctx.beginPath(); let n = 0, al = 0;
+        us.forEach((u, i) => { const e = Bv[i] + k * 55; if (e > ct[i] - 6) return; const q = sec.project(u, e, 0.002); if (!q) return; n ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); n++; al = Math.max(al, F.clamp((ct[i] - 6 - e) / 25)); });
+        if (n > 1) { ctx.strokeStyle = `rgba(150,118,78,${(0.55 * al).toFixed(3)})`; ctx.stroke(); } }
       ctx.strokeStyle = 'rgba(30,24,20,0.7)'; ctx.lineWidth = px(3); ctx.beginPath(); us.forEach((u, i) => { const q = sec.project(u, Bv[i], 0.002); if (q) i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.stroke();
       const wl = []; for (let u = -6; u <= 6; u += 0.2) { const q = sec.project(u, 0, 0.003); if (q) wl.push(q); }
       ui.line(ctx, [wl], { color: '#E8FBFF', width: 3, alpha: 0.85 }); ctx.restore(); },
     ui(ctx, lt, t, view) { avoidGauge(t); } }));
 
   // ================================================================ CHAIN: the Darwin Point, the drowned chain, Kamchatka, the whip (s144-s149)
-  const tU2 = cross(PK, 584.39, 585.3, 800), tD2 = cross(PK, 598.6, ch.t1, 900);
+  // the globe takes over while the camera is still near d 440: the stack's data edge (182 W / 31.5 N) shows from about d 480 (pI 584.6, pJ 584.5)
+  const tU2 = 584.15,
+        tD2 = cross(PK, 598.6, ch.t1, 900);
   const GH = { rings: null };
   const ghostPrep = async () => { if (GH.rings !== null) return; GH.rings = [];
     try { const isl = await kit.island({ region: 'bigisland', bbox: [-156.1, 18.85, -154.75, 20.3], level: 0, seeds: [[-155.47, 19.82]], step: 2 });
-      GH.rings = (isl.rings || []).map(r => shiftLL(r, [-155.45, 19.6], [-180.35, 29.95])); } catch (e) { api.log('[ch5] ghost: ' + e.message); } };
-  const DPTS = []; for (let lo = -181.35; lo <= -177.2; lo += 0.05) DPTS.push([lo, DPL]);
+      GH.rings = (isl.rings || []).map(r => shiftLL(r, [-155.45, 19.6], [-177.95, 29.58])); } catch (e) { api.log('[ch5] ghost: ' + e.message); } };
+  const DPTS = []; for (let lo = -182.0; lo <= -175.5; lo += 0.05) DPTS.push([lo, DPL]);
   terrLeg('ch5-chain-0', 'kure', 575.05, tU2 + XF, PK, { fadeIn: 0.35, wrap: (s) => ready(s, ghostPrep), spec: {
     world(ctx, lt, t, view) {
       const ga = env(t, T('roadon') - 0.1, T('roadon') + 1.4, 0.3, 0.35); if (ga > 0 && GH.rings?.length) { const runs = GH.rings.map(r => druns(view, r, 0, 1, 0)).flat();
@@ -707,8 +759,14 @@ export async function build(api, kit, scenes) {
   const EMP = []; for (let i = 0; i < EMPEROR.length - 1; i++) { const seg = gcPts(EMPEROR[i], EMPEROR[i + 1], 8); EMP.push(...(i ? seg.slice(1) : seg)); }
   const TRP = []; for (let i = 0; i < TRENCH.length - 1; i++) { const seg = gcPts(TRENCH[i], TRENCH[i + 1], 8); TRP.push(...(i ? seg.slice(1) : seg)); }
   const SLIDE = (t) => pr(t, 593.35, T('takes'), E.in);
-  globeLeg('ch5-chain-1', tU2, tD2 + 0.3, PK, { fadeIn: XF, wrap: (s) => blurred(s, 597.65, tD2 + 0.3, 4, 0.5), spec: {
+  // the globe also draws the ghost (the compositor fades this whole shot in, UI included), so it holds through the early hand-off:
+  // the ghost stays about 1.5 s on {roadon} (s146) although the globe takes over at 584.15. The Darwin Point line is left to the
+  // terrain leg and fades with the dissolve (a globe copy doubled it off centre, flat vs curved projection: gag/g2 584.30-584.60)
+  const chain1 = globeLeg('ch5-chain-1', tU2, tD2 + 0.3, PK, { fadeIn: XF, wrap: (s) => blurred(s, 597.65, tD2 + 0.3, 4, 0.5), spec: {
     ui(ctx, lt, t, view) {
+      if (t > tU2 && t < 584.95) { const v = gv(view), ga = env(t, T('roadon') - 0.1, T('roadon') + 1.4, 0.3, 0.35);
+        if (ga > 0 && GH.rings?.length) { const runs = GH.rings.map(r => druns(v, r, 0, 1, 0)).flat();
+          ui.fill(ctx, runs, { color: PAL.hero, fill: 0.28, alpha: ga }); ui.line(ctx, runs, { color: PAL.hero, width: 4, alpha: 0.75 * ga }); } }
       const P = (ll, h = 0.0006) => { const q = view.project(ll[1], ll[0], h); return q && q.visible ? [q.x, q.y] : null; };
       const fa = 1 - pr(t, 597.6, 598.1); if (fa <= 0) return;
       ctx.save(); ctx.globalAlpha *= fa;
@@ -731,13 +789,16 @@ export async function build(api, kit, scenes) {
       ctx.restore();
       lab(ctx, 'KAMCHATKA', P(KAMCH, 0), t, lead('kam') - 0.12, 590.5, { order: ['above-left', 'left', 'above', 'above-right'] });
     } } });
+  chain1.uiFrom = tU2;   // its UI (the ghost above) from the start of the dissolve; the chain itself starts at 584.95
   terrLeg('ch5-chain-2', 'bigisland', tD2, ch.t1x, PK, { fadeIn: 0.3, st: () => ({ level: 0 }), wrap: (s) => blurred(s, tD2, ch.t1 - 0.05, 4, 0.5) });
 
-  // ================================================================ sound cues (sync points from the brief)
+  // ================================================================ sound cues (the picture's event times under the mix's names; the mix is spot_sfx.json)
+  // Midway hush 524.3-565.3: no one-shot (no thunk on AF = MIDWAY, hero #6 silent); radio_squelch (the line twitch) is OFF in the mix by default
+  const tBitC = (() => { try { return K.word('s130', 'bit').end; } catch (e) { return T('bit') + 0.6; } })();
   [[440.92, 'whoosh_big', -15], [445.65, 'whoosh_soft', -18], [446.2, 'paper_tap', -20], [447.96, 'whoosh_soft', -20], [451.76, 'albatross_tumble', -14], [455.38, 'drain_start', -12],
     [457.8, 'slice_reveal', -14], [460.57, 'impact_deep', -10], [460.93, 'hit_body', -14], [463.05, 'impact_short', -14], [464.45, 'impact_short', -14], [473.16, 'drill_grind', -18],
     [478.97, 'impact_deep', -10], [479.69, 'hit_body', -14], [487.28, 'whoosh_soft', -18], [492.36, 'drip_single', -18], [495.72, 'morse_intercept', -20], [505.49, 'paper_flutter', -16],
-    [508.33, 'radio_pulse', -16], [514.37, 'line_tug', -18], [515.26, 'morse', -20], [523.11, 'thunk_soft', -16], [540.91, 'drain_flow', -14], [547.87, 'tick_soft', -16],
+    [508.33, 'radio_pulse', -16], [tBitC, 'radio_squelch', -18], [515.26, 'morse_intercept', -20], [540.91, 'drain_flow', -14],
     [575.21, 'line_draw', -20], [579.57, 'drain_flow', -14], [584.39, 'whoosh_big', -15], [593.35, 'tension_groan', -15], [597.7, 'whoosh_big', -15]].forEach(c => api.cue(...c));
 
   // ================================================================ layer-0 contiguity check (gaps would show navy placeholders)
