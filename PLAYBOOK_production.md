@@ -128,9 +128,13 @@ Sections 14-17 of the playbook (Shorts, pipeline and rendering, QC gates, delive
 - Hand files over 400 MiB to the owner by uploading 40 MB parts to a Colab CPU session, md5-verifying the reassembled file there, giving him colab url -s up so he runs the two-line Drive copy cell himself, then stopping the session. (the 806,486,391-byte v3 master arrived with a matching md5; engine/tools/colab/README.md; commit 602e7bf) [measured]
 - Put every credit in the description only: 'Imagery: Esri World Imagery (Esri, Maxar, Earthstar Geographics)', GEBCO, SOEST HMRG, USGS, NOAA, NASA, Natural Earth, GPlates/EarthByte (Müller et al. 2019, CC BY 4.0), Quaternius/Kenney when used and each public-domain image; never credit or name the voice or music tool; check Esri's terms before the first monetised upload. (engine/ASSETS.md; brief section 5; bundle:san_juan/BUILD_REPORT.md; owner rule against mentioning AI) [reviewed]
 
+- When the owner asks for the upload to be done for him (ep02, 2026-11-22), upload through vidIQ's social post tools: the owner connects the channel to vidIQ himself (vidiq_connect_youtube_channel gives him the link; an account that already has a channel first confirms it), then vidiq_video_upload with localFile (up to 4000 MB) puts the master in vidIQ storage, vidiq_social_post_draft_create with a YOUTUBE destination sets title, description, tags, privacy, publishAt and the main thumbnail, the owner sees the draft, and only his explicit yes publishes it (vidiq_social_post_publish). The 3-thumbnail Test & Compare is started by the owner in Studio: no tool can start it. (vidIQ tool descriptions read 2026-11-22; vidiq_video_upload alone only imports into vidIQ storage) [reviewed]
+- Check which channel a connected tool really reaches by channel ID or by where ep01 sits (public oEmbed author_url of the ep01 video), never by the account's or the owner's wording. (2026-11-22: vidIQ and Metricool both reach 'Receipt Math', a finance channel, while ep01 HOIsbhstOgw sits on @JuicyTea-l6l) [measured]
+
 ### DONT (banned)
 
 - Never send a single file over 40 MB with colab upload (it returns HTTP 500); split -b 40m, upload each part with up to 4 retries, cat on the VM and compare md5s. (the 343 MB tar failed, then passed as parts; scratch:colab/upload.log; scratch:colab/upload_parts.log) [measured]
+- Never upload, publish or schedule on a tool-connected channel that is not the one ep01 sits on, and never start a public upload without the owner's yes on the exact draft (title, thumbnail, visibility, time). (2026-11-22 vidIQ/Metricool connections) [reviewed]
 
 ## Superseded (do not revive)
 

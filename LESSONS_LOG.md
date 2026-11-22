@@ -14,6 +14,18 @@ One dated entry per episode, project or major task, newest first. Each entry: wh
 
 ---
 
+## 2026-11-22 Ep02 finishing runs started; the upload path
+
+What was made: two finishing runs (scratch wf/ep02-finish-picture.js: gate and promote the round-3 shader and shared.js fixes, final passes of ch4-ch6 and a re-check of ch1-3, then a film integrator for picture lock, the close-up verify and the Colab render plan; wf/ep02-finish-sound-pack.js: sound mix v2 and three thumbnails for Test & Compare with metadata and a Hungarian upload guide). Before starting, the cut runs' state was checked: Everest colour promoted with its gates (scratch closeup/r3/everest/NOTES.md milestone 2), everest_wide v2 not promoted, ch6 at its sixth fix round, promote_r3.sh --dry clean.
+
+Real results: none yet (runs in progress). The owner asked for the upload to be done for him. vidIQ and Metricool both reach only 'Receipt Math' (a finance channel); ep01 sits on @JuicyTea-l6l (public oEmbed). vidIQ's social post tools can upload to YouTube once the owner connects Myth Juice; vidIQ paid credits are at zero (the upload path is free). ElevenLabs: 42,341 credits left until 1 Dec; the sound run is capped at 12,000.
+
+What worked: checking channel ownership by the ep01 video's oEmbed author, not by names; a dry run of the promotion script before planning the order (promote before the chapter final passes so their sign-off stills do not go stale).
+
+What failed: nothing new.
+
+Rules added: PLAYBOOK_production section 17 (upload through vidIQ social posts after the owner connects the channel; check the channel by ID or ep01; never upload to another channel or publish without a yes on the exact draft).
+
 ## 2026-11-09: ep02 region data round 3 (the open region faults)
 
 What was made: engine/www/lab/hawaii/tools/region_bake.py gained opt-in spec options (README lists them): HLS v2 with its Fmask cloud mask from the Microsoft Planetary Computer ('pc', median of cloud-free observations through the measured GIBS tone curve), one measured chroma factor, sea-floor texels by depth or by the HLS picture, slope-relative AO, a surveyed-top rescale, modelled features (sea stacks), a parent region as height source and dated Landsat scenes as regions of their own; make_index.py lists the dated scenes and per-region 'film' state hints. Re-baked: pali, oahu_nuuanu, nihoa, lalo, nwhi_west, everest_wide, everest; new: laperouse (2.5 m nest), lalo_2018_before, lalo_2018_after. Stills: scratchpad regfix/ (before b_*, after a_*, comparisons cmp_*.jpg). Nothing was published, uploaded or posted.
