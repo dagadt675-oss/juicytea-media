@@ -1,0 +1,3 @@
+/home/user/juicytea-media/engine/www	{"ep":"ep02","only":"ch1"}	600,639,640,660	/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/ep02/finish/gate/st/V_ch1
+/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/ep02/finish/gate/www	{"ep":"ep02","only":"ch1"}	639,640,660	/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/ep02/finish/gate/st/G5_ch1
+/home/user/juicytea-media/engine/www	{"ep":"ep02","only":"ch2","draft":1}	3738	/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/ep02/finish/gate/st/V_ch2g

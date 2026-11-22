@@ -1,0 +1,475 @@
+{
+ "run": "wf_96e8f33f-afb",
+ "agent": "a0ea48a0c4e2af29d",
+ "label": "panel: fan",
+ "result": {
+  "lens": "35-year-old geography/history fan on a living-room TV (RealLifeLore / Johnny Harris / Kurzgesagt core audience). I stay for substance and craft and leave when it feels padded, repetitive, shallow or confusing. As the user asked ('there were problems with the animation in places, find the errors'), I added a frame-level animation-defect pass using exact frame grabs, the temporal scan, captions and audio levels. Predicted average view duration is about 42% (7:04); the 0:30 and 1:00 marks meet the playbook targets, and no mid-video dip exceeds 2.1 points. Frame grabs backing every finding are in /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/grab_ret/",
+  "predicted_curve": [
+   {
+    "t": 0,
+    "pct": 100
+   },
+   {
+    "t": 5,
+    "pct": 92
+   },
+   {
+    "t": 10,
+    "pct": 86
+   },
+   {
+    "t": 20,
+    "pct": 78
+   },
+   {
+    "t": 30,
+    "pct": 71
+   },
+   {
+    "t": 45,
+    "pct": 66
+   },
+   {
+    "t": 53,
+    "pct": 63.5
+   },
+   {
+    "t": 55,
+    "pct": 62
+   },
+   {
+    "t": 60,
+    "pct": 60.5
+   },
+   {
+    "t": 90,
+    "pct": 57.5
+   },
+   {
+    "t": 120,
+    "pct": 55
+   },
+   {
+    "t": 150,
+    "pct": 53
+   },
+   {
+    "t": 175,
+    "pct": 51
+   },
+   {
+    "t": 210,
+    "pct": 50.2
+   },
+   {
+    "t": 240,
+    "pct": 49.4
+   },
+   {
+    "t": 270,
+    "pct": 48.6
+   },
+   {
+    "t": 300,
+    "pct": 47.8
+   },
+   {
+    "t": 330,
+    "pct": 47
+   },
+   {
+    "t": 347,
+    "pct": 46.4
+   },
+   {
+    "t": 357,
+    "pct": 45
+   },
+   {
+    "t": 390,
+    "pct": 44.3
+   },
+   {
+    "t": 420,
+    "pct": 43.4
+   },
+   {
+    "t": 450,
+    "pct": 42.3
+   },
+   {
+    "t": 480,
+    "pct": 41.4
+   },
+   {
+    "t": 510,
+    "pct": 39.9
+   },
+   {
+    "t": 540,
+    "pct": 38.6
+   },
+   {
+    "t": 570,
+    "pct": 37.9
+   },
+   {
+    "t": 600,
+    "pct": 37.2
+   },
+   {
+    "t": 630,
+    "pct": 36.4
+   },
+   {
+    "t": 660,
+    "pct": 35.8
+   },
+   {
+    "t": 690,
+    "pct": 34.9
+   },
+   {
+    "t": 720,
+    "pct": 34.2
+   },
+   {
+    "t": 750,
+    "pct": 33.6
+   },
+   {
+    "t": 776,
+    "pct": 33
+   },
+   {
+    "t": 800,
+    "pct": 32
+   },
+   {
+    "t": 830,
+    "pct": 30.9
+   },
+   {
+    "t": 845,
+    "pct": 30.3
+   },
+   {
+    "t": 875,
+    "pct": 28.2
+   },
+   {
+    "t": 900,
+    "pct": 27.7
+   },
+   {
+    "t": 930,
+    "pct": 27.1
+   },
+   {
+    "t": 960,
+    "pct": 26.3
+   },
+   {
+    "t": 990,
+    "pct": 25.2
+   },
+   {
+    "t": 998,
+    "pct": 23.5
+   },
+   {
+    "t": 1011,
+    "pct": 13
+   }
+  ],
+  "would_leave_at": "end",
+  "drop_risks": [
+   {
+    "t0": 672,
+    "t1": 692,
+    "severity": "high",
+    "why": "The title's answer is barely animated. The polar Gondwana map sits static 11:14-11:21 (fully still 11:18-11:21). Then the drift from 178 to 20 Mya whips past in 0.8 s (11:21.8-11:22.6, with a double exposure of map and globe at 11:21.83) while the narrator is still saying 'As they drifted apart, they roughly kept their orientation' (caption 11:21.71-11:25.59). The counter reads '0DAY' at 11:23, and the TODAY globe with dotted lines barely moves 11:24-11:31. I never see the pieces keep their orientation, so 'They're scars' lands on narration alone.",
+    "fix": "Reuse the paleo-globe breakup that already plays well at 10:32-11:12: run it 180\u21920 over about 6 s from 11:21.7 to 11:28, with the tip-to-Antarctica tether lines drawn from the first frame and stretching as the pieces drift, so the tips visibly keep aiming home. Cut the static polar hold to about 2 s (11:14-11:16), land 'They're scars' (11:31.8) on the finished TODAY globe, and fade the number out before 'TODAY' fades in to remove the '0DAY' overlap.",
+    "fix_type": "add_visual"
+   },
+   {
+    "t0": 53.1,
+    "t1": 54.6,
+    "severity": "medium",
+    "why": "Hard cut to pure black (RGB at most 4) from 0:53.10 to 0:54.53 for the 'Eventually.' gag (caption 53.12-54.57). The impact SFX sits up to 10.3 dB over the voice from 53.10 to 53.75, so the punchline word is buried. At the exact end of the hook, a bang plus black screen on a TV reads as the video ending or buffering.",
+    "fix": "Keep the gag but cut the black to about 0.4-0.5 s. Move the hit onto 'crash into' (~52.6 s) and duck it 10 dB under the voice before 'Eventually.' starts, or say 'Eventually.' over the four 0:52 model tiles slamming together instead of over black.",
+    "fix_type": "trim"
+   },
+   {
+    "t0": 775.9,
+    "t1": 777.4,
+    "severity": "medium",
+    "why": "About 1.3 s of empty dark-navy screen (12:55.97-12:57.3) with only an orphan teal horizon line sliding down, exactly as 'Now, the honest part...' begins (caption 12:55.93). The first tile of the grid only ghosts in at 12:57.0. It looks like a missing render layer and opens the film's weakest stretch on a dead screen.",
+    "fix": "Start the 'THE HONEST PART' tile grid's stagger-in at 12:56.0 (shift that module's intro about 1.3 s earlier), or crossfade straight from the Nevada drip into the grid. Delete the stray teal line.",
+    "fix_type": "trim"
+   },
+   {
+    "t0": 599,
+    "t1": 616,
+    "severity": "medium",
+    "why": "Double rewind with a wrong counter. On the flat map the counter runs '0 \u2192 179 MYA' (9:59-10:04) while the continents stay roughly where they are today, which is wrong for 179 Ma and the first thing a geography fan notices. After the chapter card (10:05-10:06.5) the globe counter restarts at 6 Mya (10:07) and rewinds to 180 a second time (10:16).",
+    "fix": "Remove the Mya numbers from the flat-map rewind and keep only the \u25c2\u25c2 icon and the converging tip lines under 'Run the clock backwards...', or cut 9:59-10:04 entirely so the globe rewind (10:07-10:16) is the only clock. Also rename the YouTube chapter 'Running the clock backwards' to match the on-screen card 'Where are the drips pointing?'.",
+    "fix_type": "cut"
+   },
+   {
+    "t0": 99,
+    "t1": 175,
+    "severity": "medium",
+    "why": "After the Bacon myth-bust (1:30) comes a stack of archival quotes and names (Forster, 'the most famous scientist alive', a magazine writer, an unnamed geologist) at 136-170 wpm with 9-20 cuts per 30 s. Paper cards fly in within 3-4 frames and stop dead (abrupt stops at 1:45.4, 1:46.4, 1:48.1), piling over the globe edges, and the hook map comes back near-still for 7 s (2:22-2:29). This is the classic post-hook slope, with no new geography for about 75 s.",
+    "fix": "Trim about 15 s: cut 'For centuries, nobody else could.' and the Humboldt portrait plus page scan (2:11-2:21), keeping the 'exact list you saw at the start' callback on the map. Ease the cards in over 8-10 frames with at most two on screen, and slow 2:29-2:55 from 170 to about 150 wpm.",
+    "fix_type": "trim"
+   },
+   {
+    "t0": 497,
+    "t1": 536,
+    "severity": "medium",
+    "why": "The familiar part of the Wegener story (1912 talk, the war burying the book, 'utter, damned rot', the Austria professorship, spin and tides) is something this audience has seen in every continental-drift video, and it doesn't move the drip question forward. 8:30-9:00 also has 12 abrupt motion starts and stops.",
+    "fix": "Trim about 15 s: cut the professorship line with the corridor and Austria map (8:33.5-8:40) and the 1915-book fade (8:25-8:28). Keep the letter, 'utter, damned rot', the missing-engine question and the Newton quote, and reach Greenland by about 8:42.",
+    "fix_type": "trim"
+   },
+   {
+    "t0": 782,
+    "t1": 844,
+    "severity": "medium",
+    "why": "After the payoff and the Holden twist, a dense exception list (Cape York, Yucat\u00e1n, Jutland, Taymyr, Antarctic Peninsula, Baja, Florida, Agulhas) at 134-166 wpm runs over the stillest minute of the film: 13:30-14:30 has motion of 0.72-1.06 with 8-9 still seconds per 30 s window. This is where my thumb would start drifting toward the remote.",
+    "fix": "Drop the spoken names Jutland and Taymyr (the north-pointing tiles still show them). Keep the Antarctic Peninsula joke ('every direction is north'), Baja, and Florida's 'originally from somewhere else' gag. This saves about 6-8 s, and the list then reads as three stories rather than a roll call.",
+    "fix_type": "trim"
+   },
+   {
+    "t0": 844.8,
+    "t1": 875,
+    "severity": "medium",
+    "why": "'So is the drip just a coincidence?' (14:04.8) plus a full summary and 'The likeliest answer: it's a snapshot...' sounds like the conclusion at 83% of the runtime with 2.5 min left. Nothing on screen reminds me that the four promised futures (hook, 0:43-0:54) are still coming, and the 'NOT A FORCE. A SNAPSHOT.' polaroid sits static 14:32-14:35.",
+    "fix": "Keep the verdict narration. At 14:31-14:35, let the polaroid develop into the four-model tile grid from 0:52, then go straight into the chapter-6 card, so the hook's open loop visibly re-opens before anyone reaches for the remote.",
+    "fix_type": "add_visual"
+   },
+   {
+    "t0": 407,
+    "t1": 434,
+    "severity": "low",
+    "why": "27 s of extra support for a theory I already know is wrong: the 1899 page scans (6:48-6:57), North America opposite the Indian Ocean, and the 1918 kids' magazine. It ends with a hard cut from a full-white page to a dark globe at 6:57.93.",
+    "fix": "Keep the 'same ocean you just dug into' callback (6:57-7:05) and the 'Sleep tight, kids' gag. Cut the 1899 page scans and say the 1899 claim over the 7:00 North America globe instead.",
+    "fix_type": "trim"
+   },
+   {
+    "t0": 435,
+    "t1": 444,
+    "severity": "low",
+    "why": "The tetrahedron with a '?' holds for about 9 s (fully still 7:18-7:22), after the same shape already filled 5:40-6:00 and 6:24-6:47.",
+    "fix": "Bring in the squeeze arrows and the 'SQUASHED BALL, NOT A PYRAMID' measurement at 7:20 on 'critics could measure the planet' instead of at 7:24/7:28.",
+    "fix_type": "add_visual"
+   },
+   {
+    "t0": 811,
+    "t1": 821,
+    "severity": "low",
+    "why": "The Florida 'giant limestone platform' is a flat beige trapezoid that barely moves for about 10 s (fully still 13:32-13:37). The only changes are a few shells at 13:37 and a red base at 13:39.5.",
+    "fix": "Build the platform up layer by layer under 'built up by sea life in warm, shallow water' (13:31-13:37), then slide the African bedrock in underneath on 'started out next to West Africa' (13:38).",
+    "fix_type": "add_visual"
+   },
+   {
+    "t0": 739,
+    "t1": 748,
+    "severity": "low",
+    "why": "The best history twist in the film ('the very same John Holden had helped map, for real, how Pangaea broke apart') plays over a near-still split screen (still 12:20-12:23 and 12:24-12:27).",
+    "fix": "Draw the 1970 breakup arrows on the left map progressively during 'for real, how Pangaea broke apart', and at 'It was basically the answer' (12:35) morph one teardrop onto its matching arrow.",
+    "fix_type": "add_visual"
+   },
+   {
+    "t0": 275.1,
+    "t1": 276.3,
+    "severity": "low",
+    "why": "A 1.2-s reuse of the 4:12 'character surfacing in the Indian Ocean' shot sits under 'Now flip every continent to the far side of the planet' (4:35.1-4:36.3), then wipes to the grey map. The picture doesn't match the words.",
+    "fix": "Cut the insert and start the antipodal-map build (currently 4:36.4) at 4:35.1, so the flip happens on the word 'flip'.",
+    "fix_type": "cut"
+   },
+   {
+    "t0": 225,
+    "t1": 233,
+    "severity": "low",
+    "why": "The key claim 'almost everywhere you look, land has ocean on its far side' plays over a plain rotating globe, with only a 1.5-s overlay flash at 3:50.5 and 5 s of low motion (3:48-3:53).",
+    "fix": "Hold the 3:50.5 antipode overlay for the whole line, or borrow 3 s of the 4:40 teal/yellow antipodal map, which also previews the payoff at 4:40.",
+    "fix_type": "add_visual"
+   },
+   {
+    "t0": 902,
+    "t1": 930,
+    "severity": "low",
+    "why": "On each future model the 'MODEL: ...' label disappears in one frame and the globe freezes for a few frames (motion 0.00) before shrinking back into the grid (15:02.1, 15:19.8, 15:29.2), and the zoom frame pops away at 15:12.6. The same stutter repeats three times.",
+    "fix": "Fade the label over 6-8 frames and keep the globe rotating through the shrink with ease-in/ease-out. Let the tile border fade rather than pop.",
+    "fix_type": "other"
+   },
+   {
+    "t0": 942.4,
+    "t1": 943.1,
+    "severity": "low",
+    "why": "The 'TUESDAY, 9:00 A.M., 1,786,379 A.D.' callback card is on screen for only about 0.5 s (15:42.5-15:43.0). It reads as a flicker, and the 'Just not on a Tuesday' callback doesn't land.",
+    "fix": "Hold the card 1.5-2 s (about 15:41.5-15:43.5) with an 8-frame ease in and out.",
+    "fix_type": "text_on_screen"
+   },
+   {
+    "t0": 360,
+    "t1": 418,
+    "severity": "low",
+    "why": "Full-frame cream archival pages hard-cut to near-black space: frame difference 174 at 6:03.87 (Green's title page to the dark globe) and 141 at 6:57.93 (1899 page to the globe). On a TV in a dark room these are eye-jolting flashes.",
+    "fix": "Use a 6-8 frame dip or crossfade at those cuts, and vignette or darken full-frame pages to about 70% brightness (the same applies to the 1:52-2:00 and 2:20 page shots).",
+    "fix_type": "other"
+   },
+   {
+    "t0": 870.8,
+    "t1": 871.3,
+    "severity": "low",
+    "why": "The 'snapshot' camera flash jumps average luma from 40 to 202 in one frame at 14:30.83, then decays over 0.45 s. One flash is not a photosensitivity risk, but it's harsh after two minutes of dark frames.",
+    "fix": "Cap the flash at about half brightness (luma ~120) or use a white ring-wipe instead of a full-frame flash.",
+    "fix_type": "other"
+   },
+   {
+    "t0": 578.5,
+    "t1": 581.1,
+    "severity": "low",
+    "why": "The '1963 / 33 YEARS TOO LATE' frame is completely frozen for 2.2 s (9:38.5-9:40.7) on top of a 1.2-s narration pause (9:39.9-9:41.1). On TV, a dead-still frame plus silence reads as a stall.",
+    "fix": "Keep the pause as an emotional beat, but add a slow push-in or let the stripes keep spreading from the ridge during the hold.",
+    "fix_type": "add_visual"
+   },
+   {
+    "t0": 345,
+    "t1": 345.2,
+    "severity": "low",
+    "why": "One-frame brightness drop on the 1875 tetrahedron shot at a render-chunk seam (5:45.00, chunk 22\u219223, seam ratio 12.4); the globe visibly dims in one frame.",
+    "fix": "Re-render chunks 22-23 with matched exposure, or crossfade 4 frames across the seam.",
+    "fix_type": "other"
+   },
+   {
+    "t0": 426.5,
+    "t1": 426.8,
+    "severity": "low",
+    "why": "'1918: A SORT OF PYRAMID' appears alone on a black frame (7:06.50) before its classroom card drops in (7:06.57-7:06.80), so the label floats with nothing under it.",
+    "fix": "Parent the label to the card and fade it in after the card lands (~7:06.8).",
+    "fix_type": "other"
+   },
+   {
+    "t0": 644,
+    "t1": 656,
+    "severity": "low",
+    "why": "When the paleo globe is zoomed in (10:44-10:56), the counter's 'MILLION YEARS AGO \u00b7 SIMPLIFIED' sub-label renders under the coastline layer (it reads 'SIMPL\u25aeIED' at 10:49), and the big number overlaps the globe rim.",
+    "fix": "Put the counter on the top layer with a dark backing pill.",
+    "fix_type": "text_on_screen"
+   },
+   {
+    "t0": 502,
+    "t1": 505,
+    "severity": "low",
+    "why": "During the 1912 lecture, a 3-s breakup preview runs a counter from '200' to '1 million years ago' next to the '1912' label (8:22.5-8:25). It spoils chapter 5's payoff and is a third, different clock alongside 9:59 and 10:07.",
+    "fix": "Drop the Mya counter here and show plain drift arrows on the globe, so that chapter 5's rewind is the first time the clock runs.",
+    "fix_type": "cut"
+   },
+   {
+    "t0": 347,
+    "t1": 357.5,
+    "severity": "low",
+    "why": "A 10-s subscribe ask mid-tease (5:47-5:57). It's well placed with the 1875 loop open, but any CTA costs a point or two, and the SUBSCRIBE pill only appears at 5:56.0, after the ask has mostly been said.",
+    "fix": "Keep the line, and start the SUBSCRIBE pill on 'Want the next one?' (~5:54) so the button glow lines up with the ask.",
+    "fix_type": "text_on_screen"
+   },
+   {
+    "t0": 998,
+    "t1": 1011,
+    "severity": "low",
+    "why": "The voice ends at about 16:38, leaving 13 s of music only with an empty 'WATCH NEXT' box. If video #2 isn't live yet, the box stays empty and viewers leave.",
+    "fix": "Fill the box with a playlist or 'best for viewer' end-screen element. If there's nothing to link yet, trim the end screen to about 8 s.",
+    "fix_type": "trim"
+   },
+   {
+    "t0": 549,
+    "t1": 939,
+    "severity": "low",
+    "why": "Speech recognition misheard 'Villumsen' as 'Wilhelmsen' (9:09, 9:18) and 'Wegener' as 'Wedner' (9:50.7), and didn't catch 'Amasia' at 15:18.6 or 'lopsided planet?' at 14:20.5. A model name may be getting swallowed, and the checklist lists mispronounced names as a click-away cause.",
+    "fix": "Listen at those four timestamps, and re-voice with phonetic spellings (VAY-guh-ner, uh-MAY-zhuh) wherever the word is unclear. Splice only the affected words.",
+    "fix_type": "re_voice"
+   },
+   {
+    "t0": 7,
+    "t1": 16,
+    "severity": "low",
+    "why": "The hook's core map is near-still for 8 s (0:08-0:16): the names pop on one by one, but the tip pins all drop together only at 0:14-0:16.",
+    "fix": "Drop each tip's pin as its name is spoken (Greenland ~0:07, Florida ~0:08, Baja ~0:09, Kamchatka ~0:10), with a slow 5% push-in across the shot.",
+    "fix_type": "add_visual"
+   }
+  ],
+  "fatigue_points": [
+   {
+    "t": 106,
+    "why": "1:45-1:48: paper quote cards fly in within 3-4 frames, stop dead and pile over the globe edges. It's the third old source in 40 s, and the frame feels cluttered."
+   },
+   {
+    "t": 150,
+    "why": "2:22-2:30: the hook map is replayed near-still for 7 s, and 2:30-3:00 runs at 170 wpm with 1840s/1970s/'three years later' dates stacking faster than I can file them."
+   },
+   {
+    "t": 288,
+    "why": "4:30-5:00 at 178 wpm, stat after stat (1 in 8, a random-vs-real dot grid that reflows in 0.4 s at 4:48, best half), with 7 still seconds in the window."
+   },
+   {
+    "t": 415,
+    "why": "6:47-7:14: more evidence for a theory I already know is dead (1899 page scans, the 1918 magazine)."
+   },
+   {
+    "t": 438,
+    "why": "7:15-7:24: the tetrahedron again, near-still with a '?' (third stretch of the same shape)."
+   },
+   {
+    "t": 461,
+    "why": "7:40.0-7:42.7: the character stands idle on the globe for 2.7 s before the evidence board."
+   },
+   {
+    "t": 505,
+    "why": "8:17-8:56: the Wegener biography I've heard in every drift video, with the drip question parked."
+   },
+   {
+    "t": 579,
+    "why": "9:38.5-9:41.1: frozen '1963' frame plus a 1.2 s silence. Moving, but on TV it feels like a stall."
+   },
+   {
+    "t": 744,
+    "why": "12:20-12:28: the twist plays on a near-still split screen. Then the Nevada drip is 9 s of low motion (12:44-12:53), followed by the empty frame at 12:56."
+   },
+   {
+    "t": 815,
+    "why": "13:31-13:41: static Florida platform in the middle of a long exception list. The stillest minute of the film (13:30-14:30) is where I'd be closest to leaving."
+   },
+   {
+    "t": 850,
+    "why": "14:04-14:35: 'So is the drip just a coincidence?' and the summary sound like the ending, with 2.5 min still to go."
+   },
+   {
+    "t": 868,
+    "why": "14:28: sixth use of the same Earth-core cutaway (0:44, 2:55, 3:36, 4:08, 7:32, 14:28), each time meaning something different."
+   },
+   {
+    "t": 920,
+    "why": "15:02-15:33: the same tile zoom-in/zoom-out move repeats four times, each with a label pop and a micro-freeze."
+   }
+  ],
+  "strengths": [
+   "Hook 0:00-0:31: motion from frame 1 with the thumbnail's own idea (red tips, '?' ring on Antarctica, arcs converging 0:04-0:07). The myth is stated at 0:24 and broken at 0:28 ('They're not. Not entirely.'), the promise comes at 0:31, and the 'dashboard in July' gag lands on the melting-drip shot at 0:16.5.",
+   "Loop craft: 'Remember that' (Antarctica, 1:15-1:24) pays off at 10:23-10:32 over Bacon's portrait. 'Hold on to him' (2:41) pays off with the 'DIETZ & HOLDEN (1970)' citation at 12:28-12:31. 'The same ocean you just dug into' (6:57) and the coincidence coin returning at 14:06-14:08 add more callbacks, and Bacon bookends the film (0:59 / 16:03).",
+   "First jaw-drop right on schedule: the Arctic Ocean dragged onto Antarctica, with sizes matching and lining up (3:25-3:45).",
+   "Dig to China (3:56-4:35): Kansas to the southern Indian Ocean, then the 'Argentinians' punchline. Concrete, playful, and it sets up the 1-in-8 antipode statistic.",
+   "Green's tetrahedron (5:57-7:47) is genuinely new to this audience. The animated checklist (6:25-6:47) and the pyramid deflating back into a ball (7:36-7:39) explain it without a word wasted.",
+   "Gondwana breakup 10:32-11:12 is the best animation in the film: a zipper unzipping the South Atlantic, 'Antarctica keeps the house' with the lights popping on (10:58.9), and India's 'reckless driving' with a live counter.",
+   "Honest verdict device: 'JUICE CHECK: IT'S COMPLICATED' planted at Africa's tip (14:09-14:10), building on FALSE (1:30) and TRUE (9:52). 'We're not going to fake you a tidy answer' earns trust with a skeptical, Kurzgesagt-literate viewer.",
+   "Ending: the four-model tiles with a one-word comment prompt (15:29-15:44), 'Reminder: you're a mammal' (15:52), the film-strip metaphor (16:14-16:22) and a real cliffhanger on the Afar 'Y' (16:19-16:30).",
+   "Audio bed: a new music cue per chapter (10 cues), voice well above music, no dead air or clicks. The 1.2 s pause after 'died.' (9:39.9) is the only long silence, and it's earned."
+  ],
+  "top3": [
+   "Fix the three moments that look like broken playback. (1) 0:53.10-0:54.53 pure black with an impact SFX burying 'Eventually.': cut it to at most 0.5 s and move or duck the hit. (2) 12:55.97-12:57.3 empty navy frame with an orphan teal line: start the 'honest part' grid at 12:56.0. (3) 9:59-10:07 double rewind with '179 MYA' over modern continents: drop the flat-map counter, or the whole flat-map rewind, so the globe rewind is the only clock.",
+   "Rebuild the title payoff (11:12-11:32) from the existing paleo-globe module. Run the breakup 180\u21920 over about 6 s under 'As they drifted apart, they roughly kept their orientation' (11:21.7-11:28), with tip-to-Antarctica tethers stretching as the pieces move, and land 'They're scars' on the finished TODAY globe. Cut the static polar hold to 2 s and fix the '0DAY' counter. This one moment decides whether viewers feel the title was answered.",
+   "Tighten the two sag zones and the false ending. Trim about 15 s of familiar Wegener biography (the 8:25-8:28 book fade and the 8:33.5-8:40 professorship/corridor). Drop Jutland and Taymyr from the exception list and animate the static Florida platform (13:31-13:41). At 14:31-14:35, develop the 'snapshot' polaroid into the four-model grid from 0:52 so the 14:04 verdict doesn't read as the ending."
+  ]
+ }
+}

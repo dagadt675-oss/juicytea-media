@@ -1,0 +1,809 @@
+{
+ "note": "mix v2 selection (2026-11-22): new takes for M11 and M13 (tail lifted in-file); rest-filled M04 and M05; all others as v1. music picks 2026-11-08 (sound producer); measures from engine/tools/sfx_check.py music; no ear verdict: the owner listens",
+ "cues": [
+  {
+   "id": "M01_cold_open_wonder",
+   "t_in": 0.0,
+   "t_out": 52.43,
+   "gain_db": -9,
+   "fade_in": 0.05,
+   "fade_out": 1.6,
+   "file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/M01_cold_open_wonder_52b8f2bfd7.mp3",
+   "mode": "prompt (force_instrumental)",
+   "alternates": [],
+   "dur_s": 55.484,
+   "raw_lufs": -13.9,
+   "true_peak_db": -1.2,
+   "lead_s": 0.02,
+   "holes_in_window": [],
+   "section_spread_lu": 0.9,
+   "energy_mean_by_label": {
+    "low": -14.2,
+    "mid": -13.9,
+    "high": -14.2
+   },
+   "key": {
+    "requested": "D Lydian",
+    "estimated": "D major",
+    "corr": 0.77,
+    "match": true
+   },
+   "tempo": {
+    "requested_bpm": 96,
+    "estimated_bpm": 127.7,
+    "match": false
+   },
+   "vad_speech_s": 0.0,
+   "sync": [
+    {
+     "t_rel": 15.77,
+     "what": "STOP-DOWN 1.15 s as the sea drops (dip -24)",
+     "found_at": 16.25,
+     "offset_s": 0.48,
+     "step_lu": -0.5,
+     "lands": false
+    },
+    {
+     "t_rel": 16.97,
+     "what": "arrival chord under -400 FT",
+     "found_at": 20.0,
+     "offset_s": 3.03,
+     "step_lu": 1.0,
+     "lands": false
+    },
+    {
+     "t_rel": 19.03,
+     "what": "bright bloom: ONE ISLAND",
+     "found_at": 20.0,
+     "offset_s": 0.97,
+     "step_lu": 1.0,
+     "lands": false
+    },
+    {
+     "t_rel": 44.43,
+     "what": "rising swell",
+     "found_at": 47.25,
+     "offset_s": 2.82,
+     "step_lu": 1.0,
+     "lands": false
+    },
+    {
+     "t_rel": 50.83,
+     "what": "thins out",
+     "found_at": 54.75,
+     "offset_s": 3.92,
+     "step_lu": -3.2,
+     "lands": false
+    }
+   ],
+   "flags": [
+    "5 of 5 planned events do not land within 0.5 s",
+    "tempo: asked 96 bpm, measured about 127.7"
+   ],
+   "choice": "only take",
+   "v2": "kept v1 after render r1: take3 thinned 2 s early (2.75 s music trough under \"Usually, that's slow. Not\"), its 12.8 LU spread was the decayed tail (4.6 LU without it, low/mid order flipped), quiet opening against \"light and bright from the first beat\"; take3 is an alternate for the owner",
+   "alternates_v2": [
+    "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music_v2/gen/M01_cold_open_wonder_take3_4647c4db9d.mp3"
+   ]
+  },
+  {
+   "id": "M02_halape_1975_night",
+   "t_in": 50.43,
+   "t_out": 96.39,
+   "gain_db": -11,
+   "fade_in": 2.0,
+   "fade_out": 2.6,
+   "file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/M02_halape_1975_night_06944040ba.mp3",
+   "mode": "prompt (force_instrumental)",
+   "alternates": [],
+   "dur_s": 49.006,
+   "raw_lufs": -15.2,
+   "true_peak_db": -1.2,
+   "lead_s": 0.68,
+   "holes_in_window": [],
+   "section_spread_lu": 3.1,
+   "energy_mean_by_label": {
+    "low": -15.6,
+    "mid": -15.5
+   },
+   "key": {
+    "requested": "D minor",
+    "estimated": "C# minor",
+    "corr": 0.35,
+    "match": false
+   },
+   "tempo": {
+    "requested_bpm": null,
+    "estimated_bpm": 100.0,
+    "match": null
+   },
+   "vad_speech_s": 0.0,
+   "sync": [
+    {
+     "t_rel": 13.84,
+     "what": "music does NOT hit: the quake SFX carries the shock; music holds its drone",
+     "found_at": 10.0,
+     "offset_s": -3.84,
+     "step_lu": 0.7,
+     "lands": false
+    },
+    {
+     "t_rel": 30.62,
+     "what": "faint warm chord with the archival still",
+     "found_at": 32.5,
+     "offset_s": 1.88,
+     "step_lu": 1.2,
+     "lands": false
+    },
+    {
+     "t_rel": 41.44,
+     "what": "the swell under the whip",
+     "found_at": 39.5,
+     "offset_s": -1.94,
+     "step_lu": 2.2,
+     "lands": false
+    }
+   ],
+   "flags": [
+    "starts late: 0.68 s",
+    "3 of 3 planned events do not land within 0.5 s",
+    "key: asked D minor, sounds like C# minor (corr 0.35)"
+   ],
+   "choice": "only take"
+  },
+  {
+   "id": "M03_pali_wind_playful",
+   "t_in": 93.79,
+   "t_out": 115.95,
+   "gain_db": -9,
+   "fade_in": 0.8,
+   "fade_out": 3.0,
+   "file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/M03_pali_wind_playful_f249ee4776.mp3",
+   "mode": "prompt (force_instrumental)",
+   "alternates": [],
+   "dur_s": 25.208,
+   "raw_lufs": -17.5,
+   "true_peak_db": -1.2,
+   "lead_s": 0.02,
+   "holes_in_window": [],
+   "section_spread_lu": 0.4,
+   "energy_mean_by_label": {
+    "mid": -17.7
+   },
+   "key": {
+    "requested": "G major",
+    "estimated": "G major",
+    "corr": 0.89,
+    "match": true
+   },
+   "tempo": {
+    "requested_bpm": 104,
+    "estimated_bpm": 103.4,
+    "match": true
+   },
+   "vad_speech_s": 0.0,
+   "sync": [
+    {
+     "t_rel": 19.66,
+     "what": "low suspended chord",
+     "found_at": 18.25,
+     "offset_s": -1.41,
+     "step_lu": 0.9,
+     "lands": false
+    }
+   ],
+   "flags": [
+    "1 of 1 planned events do not land within 0.5 s"
+   ],
+   "choice": "only take"
+  },
+  {
+   "id": "M04_nuuanu_drain_reveal",
+   "t_in": 112.95,
+   "t_out": 184.15,
+   "gain_db": -9,
+   "fade_in": 3.0,
+   "fade_out": 1.2,
+   "file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music_v2/M04_nuuanu_drain_reveal_filled.wav",
+   "mode": "prompt (force_instrumental)",
+   "alternates": [
+    "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/plan/M04_nuuanu_drain_reveal_plan_837e73fdf0.mp3"
+   ],
+   "dur_s": 82.233,
+   "raw_lufs": -17.6,
+   "true_peak_db": -1.2,
+   "lead_s": 0.03,
+   "holes_in_window": [
+    [
+     46.03,
+     47.19
+    ]
+   ],
+   "section_spread_lu": 7.5,
+   "energy_mean_by_label": {
+    "mid": -19.8,
+    "high": -20.9
+   },
+   "key": {
+    "requested": "D minor",
+    "estimated": "A major",
+    "corr": 0.56,
+    "match": false
+   },
+   "tempo": {
+    "requested_bpm": 90,
+    "estimated_bpm": 89.6,
+    "match": true
+   },
+   "vad_speech_s": 0.0,
+   "sync": [
+    {
+     "t_rel": 17.9,
+     "what": "DROPOUT 2.0 s (dip -30)",
+     "found_at": 14.5,
+     "offset_s": -3.4,
+     "step_lu": -0.2,
+     "lands": false
+    },
+    {
+     "t_rel": 22.22,
+     "what": "REVEAL: music back with the swell + impact",
+     "found_at": 21.25,
+     "offset_s": -0.97,
+     "step_lu": 3.0,
+     "lands": false
+    },
+    {
+     "t_rel": 40.56,
+     "what": "lift: 100 MILES",
+     "found_at": 39.75,
+     "offset_s": -0.81,
+     "step_lu": 1.4,
+     "lands": false
+    }
+   ],
+   "flags": [
+    "holes inside the window [[46.03, 47.19]]",
+    "energy labels not in order: {'mid': -19.8, 'high': -20.9}",
+    "3 of 3 planned events do not land within 0.5 s",
+    "key: asked D minor, sounds like A major (corr 0.56)"
+   ],
+   "choice": "prompt take kept: the plan take is flat (0.9 LU spread, no reveal swell); NOTE its unplanned 1.2 s hole at 46.0-47.2 s = film 159.0-160.2 s",
+   "v1_file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/M04_nuuanu_drain_reveal_9bd109a4a6.mp3",
+   "v2": "v1 take with unplanned rests filled by beat-aligned loop extension (music_v2/fill_report.json)"
+  },
+  {
+   "id": "M05_island_stands_up",
+   "t_in": 181.55,
+   "t_out": 266.59,
+   "gain_db": -9,
+   "fade_in": 1.0,
+   "fade_out": 1.5,
+   "file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music_v2/M05_island_stands_up_filled.wav",
+   "mode": "prompt (force_instrumental)",
+   "alternates": [
+    "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/plan/M05_island_stands_up_plan_a109aec1bb.mp3"
+   ],
+   "dur_s": 88.085,
+   "raw_lufs": -17.4,
+   "true_peak_db": -1.2,
+   "lead_s": 0.03,
+   "holes_in_window": [],
+   "section_spread_lu": 12.3,
+   "energy_mean_by_label": {
+    "low": -15.8,
+    "mid": -20.6,
+    "high": -22.9
+   },
+   "key": {
+    "requested": "D minor",
+    "estimated": "D major",
+    "corr": 0.66,
+    "match": false
+   },
+   "tempo": {
+    "requested_bpm": null,
+    "estimated_bpm": 95.2,
+    "match": null
+   },
+   "vad_speech_s": 0.0,
+   "sync": [
+    {
+     "t_rel": 9.84,
+     "what": "the bloom lands on the downbeat: set \"offset\" so the file downbeat sits here",
+     "found_at": 10.0,
+     "offset_s": 0.16,
+     "step_lu": 1.3,
+     "lands": false
+    },
+    {
+     "t_rel": 52.5,
+     "what": "lift: 33,000+ FT",
+     "found_at": 55.5,
+     "offset_s": 3.0,
+     "step_lu": 4.1,
+     "lands": false
+    },
+    {
+     "t_rel": 72.46,
+     "what": "broad swell: far bigger",
+     "found_at": 75.5,
+     "offset_s": 3.04,
+     "step_lu": 16.8,
+     "lands": false
+    }
+   ],
+   "flags": [
+    "energy labels not in order: {'low': -15.8, 'mid': -20.6, 'high': -22.9}",
+    "3 of 3 planned events do not land within 0.5 s",
+    "key: asked D minor, sounds like D major (corr 0.66)"
+   ],
+   "choice": "prompt take kept: its biggest rise sits 0.16 s after the stand-up mark (set offset 0.16 s); the plan take blooms 1.9 s late and has 2.5 s and 1.7 s holes",
+   "offset_suggested_s": 0.16,
+   "v1_file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/M05_island_stands_up_58643ead2b.mp3",
+   "v2": "v1 take with unplanned rests filled by beat-aligned loop extension (music_v2/fill_report.json)"
+  },
+  {
+   "id": "M06_hotspot_and_the_chain",
+   "t_in": 264.63,
+   "t_out": 318.05,
+   "gain_db": -9,
+   "fade_in": 1.4,
+   "fade_out": 1.0,
+   "file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/M06_hotspot_and_the_chain_8012ed3032.mp3",
+   "mode": "prompt (force_instrumental)",
+   "alternates": [],
+   "dur_s": 56.477,
+   "raw_lufs": -14.1,
+   "true_peak_db": -1.3,
+   "lead_s": 0.02,
+   "holes_in_window": [],
+   "section_spread_lu": 15.3,
+   "energy_mean_by_label": {
+    "low": -19.3,
+    "mid": -13.9
+   },
+   "key": {
+    "requested": "A minor",
+    "estimated": "A major",
+    "corr": 0.77,
+    "match": false
+   },
+   "tempo": {
+    "requested_bpm": 92,
+    "estimated_bpm": 122.4,
+    "match": false
+   },
+   "vad_speech_s": 0.0,
+   "sync": [],
+   "flags": [
+    "key: asked A minor, sounds like A major (corr 0.77)",
+    "tempo: asked 92 bpm, measured about 122.4"
+   ],
+   "choice": "only take"
+  },
+  {
+   "id": "M07_time_machine_travel",
+   "t_in": 315.45,
+   "t_out": 374.53,
+   "gain_db": -9,
+   "fade_in": 2.5,
+   "fade_out": 2.2,
+   "file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/M07_time_machine_travel_69d06911aa.mp3",
+   "mode": "prompt (force_instrumental)",
+   "alternates": [],
+   "dur_s": 62.119,
+   "raw_lufs": -16.2,
+   "true_peak_db": -1.3,
+   "lead_s": 0.02,
+   "holes_in_window": [],
+   "section_spread_lu": 1.6,
+   "energy_mean_by_label": {
+    "low": -16.7,
+    "mid": -17.4
+   },
+   "key": {
+    "requested": "G major",
+    "estimated": "G major",
+    "corr": 0.79,
+    "match": true
+   },
+   "tempo": {
+    "requested_bpm": 100,
+    "estimated_bpm": 66.7,
+    "match": false
+   },
+   "vad_speech_s": 0.0,
+   "sync": [
+    {
+     "t_rel": 25.02,
+     "what": "lift: Maui",
+     "found_at": 28.75,
+     "offset_s": 3.73,
+     "step_lu": 2.2,
+     "lands": false
+    },
+    {
+     "t_rel": 27.62,
+     "what": "lift: Oahu",
+     "found_at": 28.75,
+     "offset_s": 1.13,
+     "step_lu": 2.2,
+     "lands": false
+    },
+    {
+     "t_rel": 35.9,
+     "what": "lift: Kauai",
+     "found_at": 38.25,
+     "offset_s": 2.35,
+     "step_lu": 1.8,
+     "lands": false
+    }
+   ],
+   "flags": [
+    "3 of 3 planned events do not land within 0.5 s",
+    "tempo: asked 100 bpm, measured about 66.7"
+   ],
+   "choice": "only take"
+  },
+  {
+   "id": "M08_nihoa_elegy_to_lalo",
+   "t_in": 372.0,
+   "t_out": 438.39,
+   "gain_db": -11,
+   "fade_in": 2.5,
+   "fade_out": 1.0,
+   "file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/M08_nihoa_elegy_to_lalo_bd7b589a67.mp3",
+   "mode": "prompt (force_instrumental)",
+   "alternates": [],
+   "dur_s": 69.433,
+   "raw_lufs": -23.2,
+   "true_peak_db": -3.7,
+   "lead_s": 0.03,
+   "holes_in_window": [],
+   "section_spread_lu": 7.8,
+   "energy_mean_by_label": {
+    "low": -26.3,
+    "mid": -23.4
+   },
+   "key": {
+    "requested": "E minor",
+    "estimated": "E minor",
+    "corr": 0.76,
+    "match": true
+   },
+   "tempo": {
+    "requested_bpm": null,
+    "estimated_bpm": 142.9,
+    "match": null
+   },
+   "vad_speech_s": 0.0,
+   "sync": [
+    {
+     "t_rel": 41.87,
+     "what": "storm swell",
+     "found_at": 41.5,
+     "offset_s": -0.37,
+     "step_lu": 12.0,
+     "lands": true
+    },
+    {
+     "t_rel": 46.23,
+     "what": "near silence: room for the seal gag",
+     "found_at": 43.5,
+     "offset_s": -2.73,
+     "step_lu": -1.5,
+     "lands": false
+    },
+    {
+     "t_rel": 52.59,
+     "what": "warm lift",
+     "found_at": 55.0,
+     "offset_s": 2.41,
+     "step_lu": 2.4,
+     "lands": false
+    }
+   ],
+   "flags": [
+    "2 of 3 planned events do not land within 0.5 s"
+   ],
+   "choice": "only take"
+  },
+  {
+   "id": "M09_midway_bright",
+   "t_in": 435.79,
+   "t_out": 480.24,
+   "gain_db": -9,
+   "fade_in": 1.5,
+   "fade_out": 0.45,
+   "file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/M09_midway_bright_263dc21b93.mp3",
+   "mode": "prompt (force_instrumental)",
+   "alternates": [],
+   "dur_s": 47.491,
+   "raw_lufs": -14.6,
+   "true_peak_db": -1.3,
+   "lead_s": 0.02,
+   "holes_in_window": [],
+   "section_spread_lu": 1.4,
+   "energy_mean_by_label": {
+    "low": -15.4,
+    "mid": -14.7,
+    "high": -14.0
+   },
+   "key": {
+    "requested": "A major",
+    "estimated": "C major",
+    "corr": 0.72,
+    "match": false
+   },
+   "tempo": {
+    "requested_bpm": 108,
+    "estimated_bpm": 107.1,
+    "match": true
+   },
+   "vad_speech_s": 0.0,
+   "sync": [
+    {
+     "t_rel": 24.86,
+     "what": "broad low chord: 28 MILLION YEARS",
+     "found_at": 22.0,
+     "offset_s": -2.86,
+     "step_lu": 0.8,
+     "lands": false
+    },
+    {
+     "t_rel": 43.26,
+     "what": "FIRM STOP with the drill impact",
+     "found_at": 45.25,
+     "offset_s": 1.99,
+     "step_lu": -6.9,
+     "lands": false
+    }
+   ],
+   "flags": [
+    "2 of 2 planned events do not land within 0.5 s",
+    "key: asked A major, sounds like C major (corr 0.72)"
+   ],
+   "choice": "only take"
+  },
+  {
+   "id": "M10_af_codebreak",
+   "t_in": 480.64,
+   "t_out": 524.37,
+   "gain_db": -9,
+   "fade_in": 0.05,
+   "fade_out": 0.5,
+   "file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/M10_af_codebreak_88ab8df27e.mp3",
+   "mode": "prompt (force_instrumental)",
+   "alternates": [],
+   "dur_s": 46.759,
+   "raw_lufs": -15.0,
+   "true_peak_db": -1.3,
+   "lead_s": 0.02,
+   "holes_in_window": [],
+   "section_spread_lu": 3.9,
+   "energy_mean_by_label": {
+    "low": -18.3,
+    "mid": -15.0
+   },
+   "key": {
+    "requested": "D minor",
+    "estimated": "D minor",
+    "corr": 0.81,
+    "match": true
+   },
+   "tempo": {
+    "requested_bpm": 112,
+    "estimated_bpm": 111.1,
+    "match": true
+   },
+   "vad_speech_s": 0.0,
+   "sync": [],
+   "flags": [],
+   "choice": "only take"
+  },
+  {
+   "id": "M11_losses_graves_to_darwin_point",
+   "t_in": 523.87,
+   "t_out": 601.57,
+   "gain_db": -12,
+   "fade_in": 1.0,
+   "fade_out": 1.0,
+   "file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music_v2/gen/M11_losses_graves_to_darwin_point_take2_8390ebef8f.mp3",
+   "mode": "prompt (force_instrumental)",
+   "alternates": [],
+   "dur_s": 80.718,
+   "raw_lufs": -20.4,
+   "true_peak_db": -2.5,
+   "lead_s": 0.83,
+   "holes_in_window": [],
+   "section_spread_lu": 9.8,
+   "energy_mean_by_label": {
+    "low": -21.6,
+    "mid": -24.0
+   },
+   "key": {
+    "requested": "D minor",
+    "estimated": "C# minor",
+    "corr": 0.51,
+    "match": false
+   },
+   "tempo": {
+    "requested_bpm": null,
+    "estimated_bpm": 157.9,
+    "match": null
+   },
+   "vad_speech_s": 0.0,
+   "sync": [
+    {
+     "t_rel": 41.5,
+     "what": "gentle lift only after the 10 s hush",
+     "found_at": 41.0,
+     "offset_s": -0.5,
+     "step_lu": 0.7,
+     "lands": false
+    }
+   ],
+   "flags": [
+    "starts late: 0.64 s",
+    "1 of 1 planned events do not land within 0.5 s",
+    "key: asked D minor, sounds like C# minor (corr 0.32)"
+   ],
+   "choice": "only take",
+   "v1_file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/M11_losses_graves_to_darwin_point_364c797072.mp3",
+   "v2": "round 1 prompt; hush dead still, lift after file 42.0",
+   "take_id": "M11_losses_graves_to_darwin_point_take2"
+  },
+  {
+   "id": "M12_newborn_and_descent",
+   "t_in": 598.97,
+   "t_out": 677.89,
+   "gain_db": -9,
+   "fade_in": 2.0,
+   "fade_out": 0.25,
+   "file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/plan/M12_newborn_and_descent_plan_1453c9d51b.mp3",
+   "mode": "composition plan",
+   "alternates": [
+    "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/M12_newborn_and_descent_aa6129fda3.mp3"
+   ],
+   "dur_s": 81.92,
+   "raw_lufs": -16.1,
+   "true_peak_db": -1.3,
+   "lead_s": 0.55,
+   "holes_in_window": [],
+   "section_spread_lu": 12.5,
+   "energy_mean_by_label": {
+    "low": -23.7,
+    "mid": -14.8,
+    "high": -14.2
+   },
+   "key": {
+    "requested": "D minor",
+    "estimated": "D minor",
+    "corr": 0.83,
+    "match": true
+   },
+   "tempo": {
+    "requested_bpm": null,
+    "estimated_bpm": 176.5,
+    "match": null
+   },
+   "vad_speech_s": 0.0,
+   "sync": [
+    {
+     "t_rel": 78.92,
+     "what": "ABRUPT STOP = the 1.2 s payoff dropout (remove layers and drop register, not only level, so it survives Stable volume)",
+     "found_at": 78.25,
+     "offset_s": -0.67,
+     "step_lu": -7.6,
+     "lands": false
+    }
+   ],
+   "flags": [
+    "starts late: 0.55 s",
+    "1 of 1 planned events do not land within 0.5 s"
+   ],
+   "choice": "plan take: its own stop lands 0.67 s before the planned dropout (the prompt take plays on), energy order low<mid<high, key D minor as asked"
+  },
+  {
+   "id": "M13_payoff_awe",
+   "t_in": 679.05,
+   "t_out": 701.43,
+   "gain_db": -7,
+   "fade_in": 0.02,
+   "fade_out": 1.5,
+   "file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music_v2/M13_payoff_awe_take3_tail.wav",
+   "mode": "prompt (force_instrumental)",
+   "alternates": [],
+   "dur_s": 25.443,
+   "raw_lufs": -11.9,
+   "true_peak_db": -0.8,
+   "lead_s": 0.31,
+   "holes_in_window": [],
+   "section_spread_lu": 10.4,
+   "energy_mean_by_label": {
+    "low": -22.4,
+    "high": -12.0
+   },
+   "key": {
+    "requested": "D major",
+    "estimated": "D minor",
+    "corr": 0.83,
+    "match": false
+   },
+   "tempo": {
+    "requested_bpm": null,
+    "estimated_bpm": 166.7,
+    "match": null
+   },
+   "vad_speech_s": 0.0,
+   "sync": [
+    {
+     "t_rel": 4.32,
+     "what": "second swell: Everest rises",
+     "found_at": 8.0,
+     "offset_s": 3.68,
+     "step_lu": 2.0,
+     "lands": false
+    }
+   ],
+   "flags": [
+    "1 of 1 planned events do not land within 0.5 s",
+    "key: asked D major, sounds like D minor (corr 0.67)"
+   ],
+   "choice": "only take",
+   "v1_file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/M13_payoff_awe_5a07be7028.mp3",
+   "v2": "probe prompt; hit at file 0.52 s, played from 0.49 s; tail lifted +15 dB in-file from file 19.2-19.7 s to the end (music_v2/gain_report.json) so the duck under \"Now put the ocean back\" does not push it under -60 dBFS",
+   "take_id": "M13_payoff_awe_take3",
+   "take_file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music_v2/gen/M13_payoff_awe_take3_02172b6aee.mp3"
+  },
+  {
+   "id": "M14_refill_theme_finale",
+   "t_in": 699.13,
+   "t_out": 746.93,
+   "gain_db": -8,
+   "fade_in": 2.5,
+   "fade_out": 0.0,
+   "file": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music/M14_refill_theme_finale_38666edcf0.mp3",
+   "mode": "prompt (force_instrumental)",
+   "alternates": [],
+   "dur_s": 50.834,
+   "raw_lufs": -15.6,
+   "true_peak_db": -1.3,
+   "lead_s": 0.02,
+   "holes_in_window": [],
+   "section_spread_lu": 1.3,
+   "energy_mean_by_label": {
+    "mid": -15.8,
+    "high": -16.6
+   },
+   "key": {
+    "requested": "D Lydian",
+    "estimated": "D major",
+    "corr": 0.72,
+    "match": true
+   },
+   "tempo": {
+    "requested_bpm": 96,
+    "estimated_bpm": 127.7,
+    "match": false
+   },
+   "vad_speech_s": 0.0,
+   "sync": [
+    {
+     "t_rel": 0.8,
+     "what": "theme swells with the water (music-only refill, lift +3 dB)",
+     "found_at": 1.25,
+     "offset_s": 0.45,
+     "step_lu": 0.3,
+     "lands": false
+    }
+   ],
+   "flags": [
+    "1 of 1 planned events do not land within 0.5 s",
+    "tempo: asked 96 bpm, measured about 127.7"
+   ],
+   "choice": "only take"
+  }
+ ]
+}

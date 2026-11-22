@@ -1,0 +1,229 @@
+{
+ "run": "wf_f960301e-cc0",
+ "agent": "ab42e53f9f91b4837",
+ "label": "fix ch3",
+ "result": {
+  "module": "ch3",
+  "results": [
+   {
+    "id": "S5-1",
+    "status": "fixed",
+    "change": "Title-page push is now one move. Deleted the A.green+1.15 and A.hawaii-1.2 keys; the A.hawaii-0.05 key (z 1.95) now uses E.inOutSine, so the page pushes from z 0.53 at 360.10 to z 1.95 at 362.87 in a single ease. The last creep key changed from E.lin to E.inOutSine so the creep doesn't start at full speed. The first (chapter-card) segment is unchanged.",
+    "files_lines": "engine/www/ep/ep01/ch3.js:81-87 (keys K of the s045 title page)",
+    "scene_ranges": [
+     [
+      357.66,
+      363.85
+     ]
+    ],
+    "evidence": "t_10780.mp4 (frames 10780-10919): motion energy rises smoothly from 0.15 at 10803 to about 11 at 10851, falls to 0.9 at 10887 (landing), then the creep goes 0.9 -> 2.45 -> 0.42 into the cut at 10916. No intermediate stops; the master had dead stops at 10829 (0.39), 10853 (0.12) and 10884 (0.60) between three surges. Energy before 360.10 matches the master within encoder noise. The tile shows a continuous zoom from the full page to the minister line."
+   },
+   {
+    "id": "S5-2",
+    "status": "fixed",
+    "change": "The first-shot cooling ring is turned half a step (rot 0.31 + PI/10), so no arrow points straight down the top where the Explorer stands. The nearest arrows are 18 deg either side of vertical. The later tetra shots keep the default rotation; I checked that their arrows are clear of him.",
+    "files_lines": "engine/www/ep/ep01/ch3.js:219-222",
+    "scene_ranges": [
+     [
+      375.613,
+      407.9
+     ]
+    ],
+    "evidence": "t_11390.mp4, cropped frames 11395-11417: a gap at the top of the ring, nearest arrows about 60-80 px from his body, none crossing him (in the master the top arrow ran through his legs, 11395-11415). s053-s055 master crops (13280-13315, 13700-13735) show the arrows already clear of him there."
+   },
+   {
+    "id": "S5-3",
+    "status": "fixed",
+    "change": "Roll plays exactly once over the path: speed = clip duration / (ROLL1-ROLL0) (about 0.78), once:true, then a 0.25 s crossfade to Idle_Neutral. The 'path' facing now uses the travel direction (dPerch - top, projected onto the tangent plane) instead of dPerch - posL, which swung back toward the axis. After ROLL1 the facing slerps from travel to camera over 0.3 s instead of switching in one frame.",
+    "files_lines": "engine/www/ep/ep01/ch3_tetra.js:46-52, 176-194",
+    "scene_ranges": [
+     [
+      375.613,
+      407.9
+     ]
+    ],
+    "evidence": "t_11390.mp4, frames 11473-11539 (every frame checked): one tumble 11475-11512, then he comes out arms-out, crouches and stands (11512-11524), then turns smoothly to camera (11524-11533). The clip no longer restarts at 11508, there is no inverted flailing at 11524-11527 and no 180-degree flip at 11528. Energy across 11467-11539 is smooth with no one-frame spikes. Rig output is unchanged from 384.44 on (same idle clip time and facing), so the s053/s055 shots are unaffected."
+   },
+   {
+    "id": "S5-4",
+    "status": "fixed",
+    "change": "Page 237 is drawn until tJ1+1.0 and fades out under page 238 (alpha 1 - prog(t, tJ1+0.4, tJ1+1.0)) instead of popping off at tJ1+0.45. drawPage in ch3_lib now multiplies the incoming globalAlpha instead of overwriting it with 0.9/1. All other drawPage calls run at alpha 1, so they are unaffected.",
+    "files_lines": "engine/www/ep/ep01/ch3.js:243-244; engine/www/ep/ep01/ch3_lib.js:55",
+    "scene_ranges": [
+     [
+      407.9,
+      417.93
+     ]
+    ],
+    "evidence": "t_12330.mp4 / t_12340.mp4: the page-237 strip at the left fades over 12354-12363. Frame-to-frame energy at 12350 is 0.14 (t_12340) against a 17.96 one-frame spike in the master."
+   },
+   {
+    "id": "S5-5",
+    "status": "fixed",
+    "change": "inwardArrows: each arrow's alpha is windowed by inOutSine(s/0.2) * inOutSine((1-s)/0.25), so it fades in as its push starts and out as it ends; the jump back to the outer radius happens at alpha 0. In the s055 stall shot the phase is offset so the ring freezes at phase 0.25, where both arrow halves are fully visible. Without that, the old freeze phase (0.49) would have left half the arrows faded.",
+    "files_lines": "engine/www/ep/ep01/ch3_lib.js:96-98; engine/www/ep/ep01/ch3.js:441-443",
+    "scene_ranges": [
+     [
+      375.613,
+      407.9
+     ],
+     [
+      434.55,
+      444.84
+     ],
+     [
+      456.31,
+      462.73
+     ]
+    ],
+    "evidence": "The one-frame energy spikes every 20 frames are gone: 11400/11420/11440/11460 were 0.51-0.62 in the master and are 0.12-0.22 in t_11390; 13280-13340 were 0.54-0.60 and are 0.14-0.15 in t_13265; 13700-13760 were 0.50-0.52 and are 0.13-0.16 in t_13690. Tiles show the ring pulsing half-and-half with no outward jumps. In t_13690, frames 13780-13790, all ten arrows freeze visible at the stall and fade together."
+   },
+   {
+    "id": "S5-6",
+    "status": "fixed",
+    "change": "The quake twitch now reads. Camera jitter is 4.5x instead of 0.9x (seeded offsets up to about 1.5 deg, decaying over 0.54 s). Both continents jolt 2.5 deg apart (outBack over 0.2 s), hold until 0.6 s and ease back over 0.6 s. The orange fills move with the coast strokes: a globeShot pre() hook redraws the overlay canvas and calls refreshOverlay(), but only while the offset changes. The shot then ends in the original resting state (fills in place, strokes split 0.6 deg). The rumble cue is unchanged.",
+    "files_lines": "engine/www/ep/ep01/ch3.js:537-563",
+    "scene_ranges": [
+     [
+      476.32,
+      479.54
+     ]
+    ],
+    "evidence": "t_14280b.mp4: at row 600 the SA/AF coast gap grows from 590 to 642 px within 6 frames of A.say, holds through 14318 and is back by 14328 (master: 582 -> 591 px). Phase correlation of the globe surface gives 13 px/frame jolts at 14301-14302 and up to 8 px through 14309 (master: 3 px or less). Tiles show the orange continents springing apart and gliding back with no other artefacts. The cut to the flat map at 14387 is unchanged."
+   },
+   {
+    "id": "S5-7",
+    "status": "fixed",
+    "change": "K2 (page 238) is a single continuous push from z 0.4 at tJ1 to z 1.25 at A.squeeze-0.1, with ease u -> inOutSine(u^2): it starts slow, builds, and lands before the fig-5a outline draws. The page then holds still until the flash cut at tJ2. This replaces the old drift, the dead stop at A.squeeze-0.1, and the 2x lunge in 0.73 s into the cut. Outline timing is unchanged.",
+    "files_lines": "engine/www/ep/ep01/ch3.js:235-237",
+    "scene_ranges": [
+     [
+      407.9,
+      417.93
+     ]
+    ],
+    "evidence": "t_12340.mp4: energy rises smoothly from 0.6 at 12364 to about 12 at 12430-12441, then falls to 0.48 at 12471. The page is completely still (0.00-0.20) over 12472-12491 while the outline draws, and the flash cut comes at 12492. Peak motion is 12.7 against 27 for the master's lunge, and there is no stop at an intermediate key. The tile shows a continuous push from the full page to fig 5a."
+   },
+   {
+    "id": "S5-8",
+    "status": "fixed",
+    "change": "topPill now passes an optional bg through to F.pill. The two pills over printed paper ('THE NORMAL FORM OF A CONTINENT' and '1899: TENDING TO BECOME TETRAHEDRAL') use bg rgba(8,11,18,0.94). Every other pill keeps the default.",
+    "files_lines": "engine/www/ep/ep01/ch3.js:72-73, 136, 256",
+    "scene_ranges": [
+     [
+      366.16,
+      371.55
+     ],
+     [
+      407.9,
+      417.93
+     ]
+    ],
+    "evidence": "Crop of t_11036.mp4 frame 11040: 'FIGURE 1.' no longer reads through the pill. Crop of t_12415.mp4 frame 12520: 'tends to acquire a shape in' no longer reads through the 1899 pill."
+   },
+   {
+    "id": "S5-9",
+    "status": "fixed",
+    "change": "Pins ride on their cards: the radius is 9*scale and the offset above the card centre is scaled by the card's pop-in scale (clue cards, suspect card, '?' card), so pins grow with their cards. The suspect card's pin and the strings' end point turn with the card as it falls. The red X is drawn inside a rotation of (trot+2) deg about the card centre, so it tilts and falls with the card. At-rest positions are exactly as before.",
+    "files_lines": "engine/www/ep/ep01/ch3.js:471-474, 487-496, 505, 509",
+    "scene_ranges": [
+     [
+      462.73,
+      471.59
+     ]
+    ],
+    "evidence": "t_13880.mp4: frames 13913-13918 (clue card) and 13953-13958 (suspect card) show the pin small at the card's top edge and growing with the card; no full-size pin floating above. t_14035.mp4: frames 14046-14052 show the X and pin tilting with the falling card; frames 14058-14064 show the '?' card pin growing with its card."
+   },
+   {
+    "id": "S5-10",
+    "status": "fixed",
+    "change": "Fixed inside ch3 without touching lib/fx.js. Added outExpoN = (1 - 2^(-10t)) / (1 - 2^(-10)), clamped to 1 at t >= 1, to ch3_lib.js. All ch3 slide-ins use it: the checklist panel and its 3D offset, the page-238 slide, the 1918 kids page, and the board's globe engraving. The checklist text fade (ch3.js:196, a 0.06 px effect) was left on E.outExpo.",
+    "files_lines": "engine/www/ep/ep01/ch3_lib.js:23-26; engine/www/ep/ep01/ch3.js:10, 174, 217, 246, 343, 484",
+    "scene_ranges": [
+     [
+      375.613,
+      407.9
+     ],
+     [
+      407.9,
+      417.93
+     ],
+     [
+      426.44,
+      434.55
+     ],
+     [
+      462.73,
+      471.59
+     ]
+    ],
+    "evidence": "Page 238: t_12340 energy at 12349/12350 is 0.10/0.14, so the 1.5 px last-frame shift is gone. Kids page: t_12785 at 12809/12810/12811 is 0.29/0.29/0.11 (master spike 1.76 at 12810). Engraving: t_13880 at 13905 is 0.06 (master blip 0.20). Panel: t_11630 lands smoothly at 11653, otherwise identical to the master."
+   },
+   {
+    "id": "RET-fan-426.5",
+    "status": "fixed",
+    "change": "The '1918: A SORT OF PYRAMID' pill now starts at tK0+0.3 (426.74) instead of A.y1918-0.05. It fades in as the page lands rather than floating alone on the empty desk before the page drops in.",
+    "files_lines": "engine/www/ep/ep01/ch3.js:358",
+    "scene_ranges": [
+     [
+      426.44,
+      434.55
+     ]
+    ],
+    "evidence": "t_12785.mp4: frames 12794-12796 show the empty desk with no pill (the master showed the pill alone there). The pill fades in from 12803 after the page has landed and is fully visible by about 12809."
+   },
+   {
+    "id": "RET-strategist-427.9",
+    "status": "not_a_defect",
+    "change": "None.",
+    "files_lines": "engine/www/ep/ep01/ch3_stages.js:93-110 (unchanged)",
+    "scene_ranges": [],
+    "evidence": "Master frames 12838-12852: the kids pop in with a staggered 0.45 s outBack scale, not in one frame. Frames 12950-12956: the sit-to-stand on 'pyramid' is a 6-frame crossfade with visible in-between poses, followed by the nod and the middle kid's spin. The still sitting pose is a deliberate hold while the chalk globe morphs into a pyramid. The S5 frame-level reviewer also found the kids page clean."
+   },
+   {
+    "id": "RET-fan-360-418",
+    "status": "not_a_defect",
+    "change": "None.",
+    "files_lines": "engine/www/ep/ep01/ch3.js (cuts at tTitle1 363.85 and tJ3 417.93, unchanged)",
+    "scene_ranges": [],
+    "evidence": "Both are hard cuts from a cream page to a dark globe, landing on narration beats (the S5 reviewer lists every hard cut as intended). A bright-to-dark cut isn't a flash or a glitch; softening it is a stylistic choice outside this defect pass."
+   },
+   {
+    "id": "RET-fan-435-444",
+    "status": "not_a_defect",
+    "change": "None.",
+    "files_lines": "engine/www/ep/ep01/ch3.js:364-373 (unchanged)",
+    "scene_ranges": [],
+    "evidence": "The frozen tetra with the '?' is a deliberate calm hold (the S5 reviewer calls it 'calm but deliberate'). The suggestion is a pacing change (add_visual), not a broken or glitchy animation."
+   }
+  ],
+  "changed_ranges": [
+   [
+    357.66,
+    363.85
+   ],
+   [
+    366.16,
+    371.55
+   ],
+   [
+    375.613,
+    417.93
+   ],
+   [
+    426.44,
+    444.84
+   ],
+   [
+    456.31,
+    471.59
+   ],
+   [
+    476.32,
+    479.54
+   ]
+  ],
+  "shared_changes_needed": "None needed for ch3: every fix is inside ch3*.js. Optional, for other chapters: the S5-10 root cause is in lib/fx.js:13. Normalising it there would remove the same last-frame snap from every outExpo slide-in in the film: `outExpo: t => t >= 1 ? 1 : (1 - Math.pow(2, -10 * t)) / (1 - Math.pow(2, -10))`. ch3 uses its own identical outExpoN, so that change would not alter ch3 frames.",
+  "notes": "Scene ranges in film seconds (scene t0-t1): title 357.66-363.85; Figure 1 366.16-371.55; tetra+checklist 375.613-407.90; 1899 journal 407.90-417.93; 1918 kids 426.44-434.55; s053/s054 '?' tetra 434.55-444.84; s055 stall 456.31-462.73; detective board 462.73-471.59; photoreal coasts globe 476.32-479.54. Within those, the frames that actually differ are 360.10-363.85, 366.38-371.15, 378.48-384.44 plus the panel slide 387.82-388.42, 411.19-417.93, 426.44-427.0, 441.86-444.84, 456.31-459.97, 462.78-468.6, and 476.32-479.54. The unchanged scenes are the chapter-card overlay, Hawaii globe, bent-card diorama, triangle flash, North America globe, measure globe, cutaway, Ortelius map and the Greenland flat map.\n\nFiles: only ch3.js, ch3_lib.js and ch3_tetra.js changed (ch3_stages.js is untouched). Originals: /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/fix_ch3/orig/. Diff: /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/fix_ch3/ch3.diff. Test renders: /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/fix_ch3/t_*.mp4; t_14280b.mp4 is the final coasts version and t_12340.mp4 the final page-238 push. Every render exited 0 with no SCENE-ERROR or page errors. The last render, t_11630.mp4 (30 frames, exit 0), ran on the final code; ch3.js was last saved before both it and t_14280b.\n\nDesign side effects to be aware of:\n(1) The roll now runs at about 0.78x so a single roll fills the 1.70 s path.\n(2) Page 238 now pushes in continuously from 411.19 to 415.69 instead of drifting and then lunging, so the framing tightens earlier during 'a leading geologist was telling Britain's top geographers'.\n(3) During the quake jolt the orange fills slide off the photoreal land by about 25 px for about 0.5 s, the same moving-highlight look as the film's other moving-continent shots, then settle back.\n(4) The cooling arrows in all three arrow shots now fade at the ends of each push, so the ring pulses half-and-half.\n\nLeft unchanged on purpose:\n- The one-frame turn from camera-facing to the roll direction at ROLL0 (11473 to 11474) is the same as in the delivered film, masked by the lunge, and wasn't reported.\n- The Figure 1 key at A.demo (370.24), mentioned in S5-1's likely cause, eases from 0.85 to a 0.33 energy floor while the shield fill animates; it reads as a settle, not a stop-then-lunge.\n- The reviewer's non-finding timing notes (empty board for 6 frames at 13882, arrows overlapping the tetra's bottom corner) were not changed.\n\nRetention items in range that I didn't treat as visual defects: casual 434-467 (trim), fan 407-434 (trim), fatigue 0-998 (re-voice). Out of range or another module: fan 347-357.5, strategist 347.3-357.7 (subscribe pill), fatigue 339-358 (5:45 seam) and strategist 180-358 (music), all ch2. The rumble_quake cue and every narration marker are untouched."
+ }
+}

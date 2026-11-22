@@ -1,0 +1,357 @@
+{
+ "run": "wf_f960301e-cc0",
+ "agent": "aa84ff83818147f7b",
+ "label": "fix ch1",
+ "result": {
+  "module": "ch1",
+  "results": [
+   {
+    "id": "S1-1",
+    "status": "fixed",
+    "change": "Planted feet in gag 1. Measured the rig's clips with a debug probe (later removed): Walk's stance foot moves ~0.75 u/s at speed 1, while Interact, HitRecieve_2 and Idle keep both feet fixed. The walk-in is now a constant-speed root (W1 = 0.75*1.4/3 rad/s) under a 1.4x Walk that starts before the cut (fade 0), so f488 is a mid-stride pose instead of an Idle/Walk blend. The root decelerates linearly over the 0.15 s Walk->Interact crossfade, phased so the right foot passes the Interact stance mid-fade, then holds at al=0.31. The +0.14 lunge, -0.06 recoil and 0.05*wob position terms are gone; they are now a lean about the feet (0.10 forward, -0.05 recoil) plus the existing pitch teeter. The root also lifts so the body rocks on the toe or heel edge rather than sinking the toes into the planet.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:305-320 (constants, ramp(), hero timeline), 330-340 (gag 1 al/lean/pitch/lift)",
+    "scene_ranges": [
+     [
+      16.24,
+      18.8
+     ]
+    ],
+    "evidence": "Original: confirmed skating on f489-f560 (frames + code). Test render review6/fix_ch1/t_484.mp4 (film f484-567) with the per-frame foot logger, analysed by review6/fix_ch1/tools/feet.py. Walk-in stance foot moves 0.5-3.3 px/frame (was 15+). Crossfade peaks at 4.4 px/frame (first try was 10.9 before re-phasing). Interact/recoil hold 0-1.6 px. Teeter is now rotation only: foot motion is the rocking arc, no lateral skate, no toes through the surface. Grabs grab/t484ht_00002_24x1_*.jpg (every frame of the walk-in) and t484gt_00046_18x2_*.jpg (feet crops)."
+   },
+   {
+    "id": "S1-2",
+    "status": "fixed",
+    "change": "City-dot exit decoupled from the staggered grow-in gain. cin drives the stagger and size; cout = 1 - prog(s006+0.3, s006+0.9, inOutSine) multiplies the halo and core alpha. The dots now fade over 0.6 s with the equator ring instead of blinking off in 2 frames.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:376-388",
+    "scene_ranges": [
+     [
+      18.8,
+      30.06
+     ]
+    ],
+    "evidence": "Original f748-765 confirmed the blink (full through f761, gone at f763). Test render t_744.mp4 (f744-775), grab grab/t744t_00004_24x1_*.jpg: dots dim progressively f751-f763 together with the ring. Only frames 25.02-25.62 s actually differ."
+   },
+   {
+    "id": "S1-3",
+    "status": "fixed",
+    "change": "The s008->s009 hand-off is one continuous move. s009 keys[0] = s008's exact last camera state (lat -56, lon 22, tilt 14, heading 0.5*L8 from the drift, alt including the breathing term). The whip ease sits on key 1 (E.inOutSine), because camAt only reads the destination key's ease. s009 inherits s008's lookOffset [0,-0.05] through a getter that eases to 0 with the whip. s008's overlay alpha, the arcs and the pole ring fade over its last 0.35 s.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:442-456 (s008: END8, out8, look/arcs/ring alpha), 462-467 (s009: lo9 getter, keys, pre)",
+    "scene_ranges": [
+     [
+      31.09,
+      38.28
+     ],
+     [
+      38.28,
+      41.47
+     ]
+    ],
+    "evidence": "Original f1142-1165 confirmed the jump cut. Test render t_1132.mp4 (f1132-1251), grabs grab/t1132at_00006_24x1.jpg and t1132bt_00030_30x3.jpg. Red fill, arcs and ring fade out f1138-1148, f1148->f1149 is the same framing, and the camera accelerates smoothly into the whip to North America."
+   },
+   {
+    "id": "S1-4",
+    "status": "fixed",
+    "change": "F_US = [findFeature(C50, 'USA')]. 'United States of America' also matches SOVEREIGNT and returned feature #11, the Northern Mariana Islands; 'USA' returns #16, the mainland (verified on the geojson). No shared change was needed.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:78",
+    "scene_ranges": [
+     [
+      38.28,
+      41.47
+     ]
+    ],
+    "evidence": "Original f1166-1238: no US fill (confirmed). Python check of the geojson: old lookup -> #11 MNP, 'USA' -> #16 USA. Test render t_1132.mp4, grab grab/t1132c_00104.jpg (film f1236): the contiguous US is lit red, with the Kansas dot and cyan dig line readable on it."
+   },
+   {
+    "id": "S1-5",
+    "status": "fixed",
+    "change": "Cutaway camera pulled back along the same view direction and recentred: pos lerp([9.21,5.09,8.86] -> [8.68,4.79,8.35]), target [0,-0.1,0], fov 32. The reviewer's target y +0.1 would push the '?' glyph to y 1058, so I chose this projection-tuned framing instead.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:505-507",
+    "scene_ranges": [
+     [
+      41.47,
+      44.25
+     ]
+    ],
+    "evidence": "Projection check (review6/fix_ch1/tools/proj2.py): the entry dot moves from y -24..-68 (off-frame) to y 103..73, and the '?' glyph spans y 852-1022. Test render t_1240.mp4 (f1240-1331), grab grab/t1240t_00004_6x16.jpg: whole sphere in frame, the drill starts at the visible top, the white entry dot shows at the top and the '?' at the antipode."
+   },
+   {
+    "id": "S1-6",
+    "status": "fixed",
+    "change": "The '\"ACUMINATI\": SHARPENED TO A POINT' pill moved out of the narrow shot into an over() layer from t.narrow+1.9 to t.breath+0.5. It now spans the (now seamless) cut into the s013 tilt and stays up about 2.2 s instead of about 0.7 s.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:655-657",
+    "scene_ranges": [
+     [
+      64.79,
+      67.91
+     ],
+     [
+      66.76,
+      68.96
+     ],
+     [
+      67.91,
+      69.35
+     ]
+    ],
+    "evidence": "Test render t_1990.mp4 (f1990-2089), grab grab/t1990at_00032_30x1.jpg: the pill stays at full opacity across f2022-2051 and fades out at 68.71-68.96 (was gone by f2036)."
+   },
+   {
+    "id": "S1-7",
+    "status": "fixed",
+    "change": "p387, its underline and the x2 stamp now dissolve out (alpha 1-out, out = prog(S12_1-0.35, S12_1-0.02, inOutSine)) while p246's dim lifts (0.45*slide*(1-out)) and the acum underline alpha lerps to s013's 0.7. s013 now starts on the narrow shot's end framing [0.48,0.222,1.5], and its desk clock continues (drawDesk(ctx, tt-N12)), so the shot boundary is invisible. A fade was chosen over a slide-out: an E.in slide left a sliver of the page on the last frame, and the fade keeps the stamped page readable longer.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:639-654 (narrow shot), 660-667 (s013)",
+    "scene_ranges": [
+     [
+      64.79,
+      67.91
+     ],
+     [
+      67.91,
+      69.35
+     ]
+    ],
+    "evidence": "Test render t_1990.mp4. The mean-abs-diff check across f2037->f2038 is 0.38 (the dissolve frames are about 5), page luma is 199.7 on both sides, and the desk edges change by 0.04. Grab grab/t1990at_00032_30x1.jpg shows p387 fading f2027-2036 and the same undimmed page continuing."
+   },
+   {
+    "id": "S1-8",
+    "status": "fixed",
+    "change": "Removed the double ease. s013 passes linear progress (prog(...,E.lin)) with a single printKB ease (E.inOutSine). The p387 drift in the narrow shot also gets E.lin progress, since it had the same prog-default-inOut plus printKB-inOutSine double ease.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:647 (p387 KB), 664 (s013 KB)",
+    "scene_ranges": [
+     [
+      64.79,
+      67.91
+     ],
+     [
+      67.91,
+      69.35
+     ]
+    ],
+    "evidence": "Phase-correlation vertical shift per frame on t_1990.mp4 (review6/fix_ch1/tools/vshift.py): 0 px through f2041, then a smooth bell 1,2,...,14 peak (f2062-2063),...,2,0 over f2042-2077. The original was frozen, then a 71 px/frame lurch, then frozen."
+   },
+   {
+    "id": "S2-1",
+    "status": "fixed",
+    "change": "The topple is now an unclamped cubic (tu=(tt-(tryW-0.05))/0.75, tp=tu^3), identical to the old E.in curve for tp<=1, so the print keeps accelerating out of frame instead of clamping and hanging at the edge. The stack uses the same tp but is already off-screen.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:808-810",
+    "scene_ranges": [
+     [
+      99.29,
+      108.15
+     ]
+    ],
+    "evidence": "Original f3236-3245: print frozen at lower-left f3241-3244 (confirmed). Corner computation: the print leaves the frame at f3243. Test render t_3228.mp4 (f3228-3249), grab grab/t3228t_00006_16x1.jpg: the print falls through f3241-3242, the frame is clean at f3243-3244, and the cut lands at f3245. Only frames 3241-3244 change."
+   },
+   {
+    "id": "S2-2",
+    "status": "fixed",
+    "change": "The whip is one key segment (7.2/77.9/0.24/55/8 -> 8.8/77.3/0.21/58/-2) with ease (x)=>0.8*outExpo(x)+0.2*inOutSine(x) on the destination key. The camera is fastest on the cut, under the smear, and decays monotonically into a slow push; the old ignored first-key outExpo and the 0.35 s key are gone.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:858-860",
+    "scene_ranges": [
+     [
+      117.06,
+      118.53
+     ]
+    ],
+    "evidence": "Frame-to-frame mean abs diff, old vs new (t_3506.mp4). Old: 1.7->4.0 peak, dead stop 0.06-0.12 at ~f3523-3525, second push to 2.8. New: 2.82 on the first India frame, decaying 2.7, 2.6, ... 1.0 (f3532), 0.5 (f3546), 0.22 (f3554), with no stop."
+   },
+   {
+    "id": "S2-3",
+    "status": "fixed",
+    "change": "Found the root cause beyond the reviewer's diagnosis: facing the camera, Run_Right is a strafe that travels toward screen-left (its stance foot moves +X), so the legs ran toward the wave while the root moved right, a true moonwalk. Switched to the mirror clip Run_Left at speed 0.8. To keep the original composition (root path -0.05 -> 0.2, start upright at screen x~744, wave lip at 'carved'), the root runs at constant speed with a 0.15 s ramp-in matching the clip fade and a 0.06 s stop at the hit. The tiny planet turns under him (about Z, P2 = W2 - 1.75*0.8/3 rad/s) for the rest of the stride, which is the engine's tiny-planet technique, so the stance foot stays fixed to the ground. The planet keeps its final roll afterwards, including in the close-up. A pure speed-matched root without the rolling planet was tried first and rejected: it put him tilted 22 deg at the frame's left edge.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:313-318 (RUN_S, run2, W2, P2, ZAX), 322 (Run_Left timeline), 884-892 (g2Hero be + planet rotation)",
+    "scene_ranges": [
+     [
+      121.44,
+      126.28
+     ],
+     [
+      126.28,
+      131.08
+     ]
+    ],
+    "evidence": "Clip probe (Run_Left vs Run_Right stance-foot X velocity: -1.6..-2.0 vs +1.6..+2.0 u/s). Test render t_3636.mp4 (f3636-3785) with the logger, analysed relative to the rotating surface by tools/feet2.py: stance feet hold 0.5-3.6 px/frame. The one exception is a single 14 px frame inside the Idle->Run crossfade; the post-hit slide is the deliberate wave pushback. Grab grab/t3636ct_00006_40x2.jpg: original start composition, real strides with travel, the planet rolls under him. The clean rerun t_3636_final.mp4 is pixel-identical."
+   },
+   {
+    "id": "S2-4",
+    "status": "fixed",
+    "change": "Wave progress is unclamped (wp=(tt-(carved-1.25))/2.1, same speed) and the wave is drawn while p<1.45. It is fully off-frame from p~1.32 (computed from the wave geometry), at 125.3 s, well before the 126.28 cut.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:883, 909",
+    "scene_ranges": [
+     [
+      121.44,
+      126.28
+     ]
+    ],
+    "evidence": "Original f3731->3732: half the wave vanished in one frame (confirmed). Test render t_3636.mp4, every-frame grab grab/t3636dt_00086_36x1.jpg (f3722-3757): the wave keeps travelling up-right and leaves past the right edge by f3751, with no pop."
+   },
+   {
+    "id": "S2-5",
+    "status": "fixed",
+    "change": "The bead is no longer hidden at fall 0.75. It stays visible until fall=1 and shrinks to zero over fall 0.55-1.0, and the next bead starts at scale 0.15 instead of popping in at 0.4.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:898-901",
+    "scene_ranges": [
+     [
+      121.44,
+      126.28
+     ],
+     [
+      126.28,
+      131.08
+     ]
+    ],
+    "evidence": "Original f3862-3885: the bead vanished mid-fall at f3879 (confirmed). Test render t_3780.mp4 (f3780-3929), head crops grab/t3780bt_00078_32x1_*.jpg: the bead falls and shrinks to a dot f3873-3884, then a tiny new bead appears under the beard and grows. No pop."
+   },
+   {
+    "id": "S2-6",
+    "status": "fixed",
+    "change": "The quote bar now fades in (a = prog(quote21-0.1, quote21+0.15, out) x the existing fade-out; the cursor follows the same alpha). It moved to F.round(360,142,1200,104): text baseline 218, cursor y 168. That band lies between Greenland's tip (y<=132), Africa's top (y>=261) and Kamchatka (x>=1578), computed from the Equal Earth framing over the whole quote. The reviewer's bottom band (y 950-1054) was not used: it would sit entirely in the bottom 12% that the house style reserves (and captions use) and would cover Antarctica. Same height and font; only narrower and lower.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:976-983",
+    "scene_ranges": [
+     [
+      141.23,
+      149.5
+     ]
+    ],
+    "evidence": "Tip positions from tools/eepos.py. Test render t_4380.mp4 (f4380-4491). Grab grab/t4380at_00004_12x1_*.jpg: the KAMCHATKA pill fades, then the bar fades in with the typing. Full frame grab/t4380b_00060.jpg: Greenland, Kamchatka, Baja, Florida and India all fully visible around the bar."
+   },
+   {
+    "id": "S2-7",
+    "status": "fixed",
+    "change": "The magnifier is gated by env(tt, staring-0.6, s023+0.5, 0.15, 0.3) with globalAlpha. It fades in on the CAMS cut frame and fades out in the wide shot instead of popping in at f4774 and vanishing at f4856.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:1069-1074",
+    "scene_ranges": [
+     [
+      149.5,
+      169.27
+     ]
+    ],
+    "evidence": "Test render t_4766.mp4 (f4766-4861). Grabs grab/t4766at_00002_12x1.jpg: no lens on cut frame f4770, faint f4771, full by f4774. grab/t4766bt_00070_24x1.jpg: the lens fades out over f4848-4855 in the wide, with no one-frame vanish."
+   },
+   {
+    "id": "S2-8",
+    "status": "fixed",
+    "change": "The byline ring is ellipse(220, 206, 205, 38, -0.04), fitted to the byline bars (y 182-214). Its stroke top edge is now >=163.7 everywhere (it was 143.9), clear of the comma descender (about 160) and the 'I' serif (150). Ink lines start at 260, below the ring bottom (about 247.5).",
+    "files_lines": "engine/www/ep/ep01/ch1.js:1037-1039",
+    "scene_ranges": [
+     [
+      149.5,
+      169.27
+     ]
+    ],
+    "evidence": "Ellipse edge computation (old vs new). Test render t_4984.mp4 (f4984-5033): grab grab/t4984b_00046.jpg (full res, f5030) reads 'THE DRIP, REVISITED' with the ring below the title; crop tile grab/t4984at_00004_8x1_*.jpg shows the ring drawing on under the comma."
+   },
+   {
+    "id": "R-open-globe (casual 0-4, fatigue 0-16, strategist 0-3.6)",
+    "status": "fixed",
+    "change": "Opening globe camera keys[0] lon -24 -> -85. The existing ease-out first segment (0-1.6 s) is now a 70 deg spin that settles on the unchanged framing at 1.6 s, in the same direction as every later cold-open camera move, under 'Spin a globe' and the existing t=0 whoosh cue. It was a 9 deg drift that read as a frozen frame. The thumbnails are flat maps, so the first frame does not need to match one. The 0-16 s map pacing part of the fatigue note is an add-visual suggestion and was not changed.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:215-216",
+    "scene_ranges": [
+     [
+      0,
+      7.71
+     ]
+    ],
+    "evidence": "Original f0-90 near-static (confirmed). Test render t_0.mp4 (f0-109), grab grab/t0t_00000_32x2.jpg: South America sweeps left and Africa enters, decelerating onto the original framing by about 1.2-1.6 s; the pole '?' ring stays put. Frames from 1.6 s on are unchanged."
+   },
+   {
+    "id": "R-black-53 (casual 53.1-55, fan 53.1-54.6, fatigue 52-66, strategist 53.1-55.04)",
+    "status": "not_a_defect",
+    "change": "No change. The 1.4 s hard cut to black on 'Eventually.' is a deliberate comedic beat (S1 reviewer event E16), with a clean 0.55 s fade-up and nothing glitchy. All four suggested fixes are trims or edit changes (shorten the black, move or duck the SFX), which are handled separately.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:597-599 (unchanged)",
+    "scene_ranges": [],
+    "evidence": "Code: base scene t.eventually-0.04 -> t.s011-0.55 fills pure black by design; the S1 reviewer listed it as an intended designed cut."
+   },
+   {
+    "id": "R-cards (fan 99-175: cards fly in within 3-4 frames and stop dead at 1:45.4, 1:46.4, 1:48.1)",
+    "status": "not_a_defect",
+    "change": "No change to the page drops at 105.4 and 106.4 s: each is a 12-frame accelerating (gravity) fall with a 10 px bounce on landing. That reads as pages dropped onto a pile and is intended (S2 reviewer listed E7-E9 as designed). The 1:48.1 'stop dead' was the clamped topple, fixed under S2-1. 'At most two cards' and easing changes are layout and pacing suggestions.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:818-823 (unchanged)",
+    "scene_ranges": [],
+    "evidence": "Original frames f3150-3167 (grab/mt_03150_18x1.jpg): the card falls in over f3154-3162 rotating, then lands with a small bounce."
+   },
+   {
+    "id": "R-flood (fatigue 118-131: runs in place, wave passes with no reaction, pose snap, wave stops dead, stands about 2 s)",
+    "status": "fixed",
+    "change": "The animation defects in this note are fixed by S2-3 (run in place -> real run with planted feet) and S2-4 (wave no longer stops dead or vanishes). The run->hit pose change happens exactly while the wave crest covers him (f3704-3706), so it reads as the impact, not a snap. Standing in Idle_Neutral until the cut is intended, and cutting away earlier is a trim suggestion handled separately.",
+    "files_lines": "see S2-3, S2-4",
+    "scene_ranges": [
+     [
+      121.44,
+      126.28
+     ],
+     [
+      126.28,
+      131.08
+     ]
+    ],
+    "evidence": "Every-frame grab of the hit in the final render: grab/tfint_00062_18x1_*.jpg (f3698-3715)."
+   },
+   {
+    "id": "R-papers-cut (strategist 55-175: papers cut mid-flight by the hard cut at 1:48.17)",
+    "status": "fixed",
+    "change": "Covered by S2-1: the toppling print now leaves the frame at f3243, before the 1:48.15 cut, instead of hanging in frame.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:808-810",
+    "scene_ranges": [
+     [
+      99.29,
+      108.15
+     ]
+    ],
+    "evidence": "t_3228.mp4, grab/t3228t_00006_16x1.jpg"
+   },
+   {
+    "id": "R-map-still (fan 7-16: map near-still, pins drop together at 0:14-0:16)",
+    "status": "not_a_defect",
+    "change": "No change. Intended: each tip's fill and pill pop on its spoken name (7.8, 9.2, 10.0, 11.0 s), the map has a slow drift and zoom, and the drip arrows drop together on 'Every point aims south' (13.84 s). The note asks for added visuals, not a fix for something broken.",
+    "files_lines": "engine/www/ep/ep01/ch1.js:255-268 (unchanged)",
+    "scene_ranges": [],
+    "evidence": "S1 reviewer checked 7.7-16.2 s at full frame rate as clean; code timing matches the narration words."
+   },
+   {
+    "id": "R-other (fatigue 100-108 repeated drip globe; casual 100-175 placeholder paper and story order)",
+    "status": "not_a_defect",
+    "change": "Reorder and cut suggestions are handled separately. The grey ink-line 'placeholder' copy is a deliberate stylization (X.inkLines stands in for unreadable body text), not a broken render. The part of that note about the yellow ring around the blurred byline was a real glitch (it made the title read 'DRTP.') and is fixed under S2-8.",
+    "files_lines": "n/a",
+    "scene_ranges": [],
+    "evidence": "Code review of ch1_fx.js inkLines / ch1.js s022-s023."
+   }
+  ],
+  "changed_ranges": [
+   [
+    0,
+    7.71
+   ],
+   [
+    16.24,
+    30.06
+   ],
+   [
+    31.09,
+    44.25
+   ],
+   [
+    64.79,
+    69.35
+   ],
+   [
+    99.29,
+    108.15
+   ],
+   [
+    117.06,
+    118.53
+   ],
+   [
+    121.44,
+    131.08
+   ],
+   [
+    141.23,
+    169.27
+   ]
+  ],
+  "shared_changes_needed": "None. All fixes are in ch1.js only; ch1_fx.js and ch1_ee.js are unchanged. Two shared quirks were worked around locally, with no shared change required: (1) shots.js camAt applies only the destination key's ease, so an ease on keys[0] is silently ignored (also at ch1 keys for the paleo flash, s008 and the 'last' spin, which read smoothly and were left alone). (2) geo.js findFeature also matches SOVEREIGNT and returns the first hit, so a lookup by full country name can return a territory. A later shared cleanup could match ADMIN/NAME/ISO before SOVEREIGNT.",
+  "notes": "Chunks to re-render (chunk k = frames 450k..450k+449): 0, 1, 2, 4, 6, 7, 8, 9, 10, 11, covering the changed_ranges. Exact frames that actually differ inside those scenes, for anyone who wants to minimise work: 0-47 (spin); 488-563 (gag 1); 751-768 (dots); 1138-1244 (s008 tail + s009); 1245-1327 (cutaway); 1990-2080 plus the overlay to 2068 (pages); 3241-3244 (topple); 3512-3555 (whip); 3654-3932 (gag 2 run, wave, bead, rolled planet in the close-up); 4386-4484 (quote bar); 4770-4774 and 4847-4855 (magnifier fades); 4988-5078 (ring). Chunk 6 only contains the head of the s017 scene; its frames are unchanged, but the scene range is reported as requested.\n\nShot boundaries and narration markers are unchanged; the only new scene is a layer-6 overlay [66.76, 68.96] for the ACUMINATI pill. No sound cues changed.\n\nFinal module state: ch1.js md5 b2fcf5443a2afa241c2503792711f0e5. Original backup in /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/fix_ch1/orig/, full diff in /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/fix_ch1/ch1.diff. Temporary debug instrumentation (clip probe, foot logger) was removed before the final renders. The last test render (/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/fix_ch1/t_3636_final.mp4, 150 frames, exit 0) is pixel-identical to the instrumented render of the same range. The S2-8 render (t_4984.mp4) was also made with the final code. None of the 14 test renders logged a SCENE-ERROR or coverage GAP.\n\nDeviations from the reviewers' suggestions:\n- S2-3: Run_Right was itself the moonwalk cause. Fixed with Run_Left plus the tiny-planet roll, which keeps the original start composition.\n- S2-6: the bar went to a mid-top band rather than the bottom band, to respect the bottom-12% rule.\n- S1-7: p387 dissolves rather than sliding out, which avoids a last-frame sliver.\n- S1-5: framing tuned by projection so the '?' clears the bottom.\n\ngrab.py can label frames one late, so all frame checks used an exact passthrough grabber: /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/fix_ch1/tools/xg.py."
+ }
+}

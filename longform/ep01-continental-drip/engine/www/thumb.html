@@ -1,0 +1,54 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="fonts/fonts.css">
+<script type="importmap">{"imports":{"three":"/three.module.min.js"}}</script>
+<style>html,body{margin:0;background:#000}</style></head><body>
+<script type="module">
+// Thumbnail compositor: q = {ep, variant}; loads ep/<ep>/thumbs.js exporting async draw(ctx, W, H, api, variant)
+import { Globe } from './lib/globe.js';
+import * as F from './lib/fx.js';
+import * as G from './lib/geo.js';
+const P = new URLSearchParams(location.search); const W = +P.get('w') || 1920, H = +P.get('h') || 1080;
+const Q = JSON.parse(P.get('q') || '{}');
+const comp = document.createElement('canvas'); comp.width = W; comp.height = H; document.body.appendChild(comp);
+const cx = comp.getContext('2d');
+let globe, mod;
+const imgs = {};
+const api = { W, H, F, G, get g() { return globe; },
+  async globe() { if (!globe) { globe = new Globe(W, H); await globe.init(); } return globe; },
+  async image(src) { if (!imgs[src]) imgs[src] = await new Promise((r, j) => { const i = new Image(); i.onload = () => r(i); i.onerror = j; i.src = src; }); return imgs[src]; },
+  // boxed thumbnail words: [{w:'ONLY', c:'#fff', bg:'#000'}, ...] stacked lines
+  boxText(ctx, lines, x, y, o = {}) {
+    const size = o.size || 150, fam = o.fam || F.FAM.black, pad = size * 0.14, lh = size * 1.12;
+    lines.forEach((line, li) => {
+      let cxp = x; const words = line.map(w => typeof w === 'string' ? { w } : w);
+      const widths = words.map(w => F.measure(ctx, w.w, { size, fam, weight: 400 }));
+      const total = widths.reduce((a, b) => a + b, 0) + (words.length - 1) * size * 0.22;
+      if (o.align === 'center') cxp = x - total / 2 - pad; else if (o.align === 'right') cxp = x - total - 2 * pad;
+      const yy = y + li * lh;
+      ctx.save(); ctx.translate(cxp, yy); ctx.rotate((o.rot || 0) * Math.PI / 180);
+      ctx.fillStyle = o.bg || '#000'; ctx.fillRect(0, -size * 0.92 - pad * 0.5, total + 2 * pad, size * 1.05 + pad);
+      let wx = pad;
+      words.forEach((w, i) => { F.text(ctx, w.w, wx, 0, { size, fam, weight: 400, color: w.c || '#fff', shadow: false }); wx += widths[i] + size * 0.22; });
+      ctx.restore();
+    });
+  },
+  arrow(ctx, x0, y0, x1, y1, o = {}) {
+    const w = o.width || 18, col = o.color || F.PAL.yellow, bend = o.bend ?? 0.25;
+    const mx = (x0 + x1) / 2 - (y1 - y0) * bend, my = (y0 + y1) / 2 + (x1 - x0) * bend;
+    ctx.save(); ctx.strokeStyle = '#000'; ctx.lineWidth = w + 10; ctx.lineCap = 'round';
+    for (const [lw, c] of [[w + 10, 'rgba(0,0,0,0.85)'], [w, col]]) {
+      ctx.strokeStyle = c; ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(mx, my, x1, y1); ctx.stroke();
+      const ang = Math.atan2(y1 - my, x1 - mx), hl = lw * 2.6;
+      ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(x1 + Math.cos(ang) * lw * 0.6, y1 + Math.sin(ang) * lw * 0.6);
+      ctx.lineTo(x1 - Math.cos(ang - 0.5) * hl, y1 - Math.sin(ang - 0.5) * hl); ctx.lineTo(x1 - Math.cos(ang + 0.5) * hl, y1 - Math.sin(ang + 0.5) * hl); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  },
+  ring(ctx, x, y, r, o = {}) { ctx.save(); for (const [lw, c] of [[(o.width || 12) + 8, 'rgba(0,0,0,0.8)'], [o.width || 12, o.color || F.PAL.yellow]]) { ctx.strokeStyle = c; ctx.lineWidth = lw; ctx.beginPath(); ctx.ellipse(x, y, r, r * (o.squash || 1), 0, 0, Math.PI * 2); ctx.stroke(); } ctx.restore(); },
+};
+window.ready = (async () => {
+  await Promise.all(['400 100px "Anton"', '400 100px "Bebas Neue"', '700 40px "Barlow Condensed"', '900 100px "Inter"'].map(f => document.fonts.load(f)));
+  mod = await import(`./ep/${Q.ep}/thumbs.js`);
+})();
+window.renderFrame = async (f) => { cx.clearRect(0, 0, W, H); await mod.draw(cx, W, H, api, f); };
+window.grabBlob = () => new Promise(r => comp.toBlob(r, 'image/jpeg', 0.95));
+</script></body></html>

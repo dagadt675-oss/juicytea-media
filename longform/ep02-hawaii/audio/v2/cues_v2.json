@@ -1,0 +1,499 @@
+{
+ "global": "Cinematic documentary score: modern hybrid orchestral, warm analog synth pulses, felt piano, deep low strings, soft mallets, subtle organic percussion, rich wide stereo, high-end production. Instrumental only, no vocals, no choir words, no lead melody that competes with a male narrator; keep the 1-4 kHz range sparse; no ukulele, no steel guitar, no tiki or luau cliches; clean ending without a fade-out tail",
+ "model": "music_v2_5",
+ "plan_global": {
+  "positive": [
+   "cinematic documentary score",
+   "modern hybrid orchestral",
+   "warm analog synth pulses",
+   "felt piano",
+   "deep low strings",
+   "soft mallets",
+   "subtle organic percussion",
+   "rich wide stereo",
+   "high-end production"
+  ],
+  "negative": [
+   "lead melody competing with a narrator",
+   "busy 1-4 kHz",
+   "ukulele",
+   "steel guitar",
+   "tiki",
+   "luau",
+   "fade-out tail"
+  ]
+ },
+ "cues": [
+  {
+   "id": "M13_payoff_awe_take2",
+   "dur": 22.38,
+   "plan": true,
+   "take": 2,
+   "prompt": "payoff awe in D major (measurement text only; plan mode)",
+   "sections": [
+    {
+     "name": "massive downbeat",
+     "duration_ms": 4280,
+     "positive_local_styles": [
+      "starts instantly on a massive fortissimo downbeat on the very first beat",
+      "full orchestra tutti hit",
+      "timpani and low brass",
+      "huge wide sustained D major chord",
+      "no intro"
+     ],
+     "negative_local_styles": [
+      "fade in",
+      "soft intro",
+      "build-up",
+      "riser",
+      "reverse swell",
+      "silence at the start"
+     ]
+    },
+    {
+     "name": "Everest rises: second swell",
+     "duration_ms": 8900,
+     "positive_local_styles": [
+      "second huge swell",
+      "brass and strings crescendo to fortissimo",
+      "majestic",
+      "slow",
+      "awe",
+      "D major"
+     ],
+     "negative_local_styles": [
+      "drum fills",
+      "stinger",
+      "pause"
+     ]
+    },
+    {
+     "name": "reflection",
+     "duration_ms": 9200,
+     "positive_local_styles": [
+      "sudden drop to pianissimo",
+      "solo felt piano and a very soft sustained string pad",
+      "still, reflective, sparse",
+      "warm sustained chord"
+     ],
+     "negative_local_styles": [
+      "drums",
+      "brass",
+      "percussion",
+      "crescendo",
+      "loud"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "M13_payoff_awe_take3",
+   "dur": 22.38,
+   "take": 3,
+   "prompt": "Begins instantly, with no intro, on a massive fortissimo orchestral downbeat on the very first beat: full orchestra tutti, timpani and low brass, a huge wide D major chord. About four seconds later a second, even bigger swell of brass and strings rises to a majestic peak and holds. About thirteen seconds in it drops suddenly to pianissimo: a solo felt piano and a very soft sustained string pad, still and reflective, quiet to the end. No fade-in, no riser, no stinger tail, no drum fills."
+  },
+  {
+   "id": "M03_pali_wind_playful_take2",
+   "dur": 22.16,
+   "plan": true,
+   "take": 2,
+   "prompt": "playful pizzicato in G major at 104 bpm, then awe (measurement text only; plan mode)",
+   "sections": [
+    {
+     "name": "pizzicato bounce",
+     "duration_ms": 11840,
+     "positive_local_styles": [
+      "playful bouncy pizzicato strings",
+      "nylon guitar harmonics",
+      "light shaker",
+      "airy flute-like synth",
+      "G major",
+      "104 bpm",
+      "light and classy, mezzo-piano",
+      "breezy space between phrases",
+      "the phrase ends cleanly at the end of this section"
+     ],
+     "negative_local_styles": [
+      "sustained string pad",
+      "drums",
+      "brass",
+      "big swell"
+     ]
+    },
+    {
+     "name": "the edge of something huge",
+     "duration_ms": 7820,
+     "positive_local_styles": [
+      "the bounce stops",
+      "wide sustained legato strings open up in awe",
+      "slow crescendo from piano to forte",
+      "spacious"
+     ],
+     "negative_local_styles": [
+      "pizzicato",
+      "shaker",
+      "drums",
+      "playful"
+     ]
+    },
+    {
+     "name": "low suspended chord",
+     "duration_ms": 2500,
+     "positive_local_styles": [
+      "darkening",
+      "a single low suspended string chord, held",
+      "quiet",
+      "still"
+     ],
+     "negative_local_styles": [
+      "resolution",
+      "melody",
+      "percussion",
+      "fade-out"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "M01_cold_open_wonder_take2",
+   "dur": 52.43,
+   "take": 2,
+   "prompt": "Cold open of a wonder documentary in D Lydian at 96 bpm. From the first beat to about 10 s: an airy, curious pulse, felt piano and soft synth arpeggios, light and bright, mezzo-piano. From about 10 s: low strings and a deep pulse build steadily to forte, a big warm open arrival chord at about 17 s and a bright full bloom at about 19 s, the loudest moment of the cue. From about 20 s: a sudden drop to piano, sparse and light, only plucked notes and a soft pad. From about 27 s: the pulse drops an octave into something deep and mysterious, mezzo-piano, with a simple three-note descending felt-piano figure (the look-down motif) at about 29 s and a held unresolved chord at about 33 s. From about 44 s: a slow rising swell to mezzo-forte, then at about 50 s it thins to a single soft sustained pad, pianissimo, to the end. No intro sting, no big drums."
+  },
+  {
+   "id": "M14_refill_theme_finale_take2",
+   "dur": 47.8,
+   "take": 2,
+   "prompt": "Reprise of the cold-open theme in D Lydian at 96 bpm: the same airy, curious pulse with felt piano and soft synth arpeggios. From the first beat to about 15 s: full, warm and swelling with rising water, forte, the theme at its fullest and widest with low strings. At about 15 s it drops to mezzo-piano, gentle and settled, sparse felt piano and pad; a simple three-note descending felt-piano figure (the look-down motif) once at about 27 s; at about 30 s a short curious lift like a question; from about 36 s a final warm phrase, mezzo-piano, landing gently on a single sustained felt-piano note at about 46 s that decays to silence by about 48 s."
+  },
+  {
+   "id": "M07_time_machine_travel_take2",
+   "dur": 59.08,
+   "take": 2,
+   "prompt": "A travelling documentary cue in G major at 100 bpm. From the first beat to about 9 s: muted plucked arpeggios, a soft kick pulse, shaker and warm strings, a steady sense of a journey across millions of years, mezzo-forte. From about 9 s: it drops to piano, restrained and reflective, only a soft pad and sparse felt piano, no percussion. From about 22 s: forward motion returns, mezzo-forte, with a gentle lift at about 25 s, another at about 28 s and a bigger one at about 36 s, the fullest part of the cue. From about 42 s: the texture thins to piano, open and wind-like, smaller and lower, with one soft low accent at about 49 s, and it resolves quietly at about 57 s."
+  },
+  {
+   "id": "M09_midway_bright_take2",
+   "dur": 44.45,
+   "take": 2,
+   "prompt": "A bright, open documentary cue in A major at 108 bpm. From the first beat to about 12 s: light mallets and plucked strings, a little mischievous, mezzo-forte. From about 12.5 s: it drops to piano, a graceful legato phrase on soft strings that trips with a playful hiccup at about 16 s, sparse. From about 20 s: deeper and rising with wonder, a crescendo to forte, a broad low chord with low strings and a brass-like synth at about 25 s, the loudest part of the cue. From about 30 s: mezzo-forte, curious and intelligent with a steady pulse and a driving mechanical undertone, building to a firm, clean final stop at about 43 s."
+  },
+  {
+   "id": "M11_losses_graves_to_darwin_point_take2",
+   "dur": 77.7,
+   "take": 2,
+   "prompt": "A low, respectful documentary pad in D minor, very slow. From the start to about 41 s: pianissimo and completely still, one long sustained low string pad with quiet aquatic low drones, no melody, no percussion, no new entries, no swells and no accents, settling on a single held low note from about 27 s. From about 41.5 s: a gentle lift into reflective wonder, piano, soft felt piano and pads in F major with a slow pulse. From about 54 s: mezzo-forte, darker and inevitable, a slow marching low pulse, descending. From about 71 s: a brief hopeful rising phrase, mezzo-forte, resolving on a warm chord at about 77 s."
+  },
+  {
+   "id": "M03_pali_wind_playful_take3",
+   "dur": 22.16,
+   "take": 3,
+   "prompt": "Light, classy, playful documentary underscore in G major at 104 bpm. From the first beat to about 11.5 s: bouncy pizzicato strings, nylon-guitar harmonics, a light shaker and an airy flute-like synth, mezzo-piano, with breezy space between phrases; the phrase ends cleanly at about 11.8 s, then a short breath. From about 12 s: the bounce is gone, a soft pad only. At about 15.5 s wide sustained legato strings open up in awe with a crescendo to forte. At about 19.5 s it darkens into a quiet low suspended string chord, held, piano."
+  },
+  {
+   "id": "M07_time_machine_travel_take3",
+   "dur": 59.08,
+   "plan": true,
+   "take": 3,
+   "prompt": "travelling cue in G major at 100 bpm (measurement text only; plan mode)",
+   "sections": [
+    {
+     "name": "lift off",
+     "duration_ms": 8820,
+     "positive_local_styles": [
+      "starts immediately on the first beat",
+      "steady travelling pulse",
+      "muted plucked arpeggios",
+      "soft kick",
+      "shaker",
+      "warm strings",
+      "G major",
+      "100 bpm",
+      "mezzo-forte"
+     ],
+     "negative_local_styles": [
+      "fade in",
+      "intro",
+      "silence"
+     ]
+    },
+    {
+     "name": "the coast wearing down",
+     "duration_ms": 13120,
+     "positive_local_styles": [
+      "drop to piano",
+      "restrained and reflective",
+      "sparse felt piano",
+      "soft pad only"
+     ],
+     "negative_local_styles": [
+      "drums",
+      "percussion",
+      "kick",
+      "loud"
+     ]
+    },
+    {
+     "name": "Maui, Oahu, Kauai",
+     "duration_ms": 19980,
+     "positive_local_styles": [
+      "forward motion returns",
+      "mezzo-forte building to forte",
+      "a lift at each new island",
+      "kick and strings",
+      "fullest part of the cue"
+     ],
+     "negative_local_styles": [
+      "sparse",
+      "quiet"
+     ]
+    },
+    {
+     "name": "smaller and lower: Nihoa",
+     "duration_ms": 17160,
+     "positive_local_styles": [
+      "thins out to piano",
+      "open and wind-like",
+      "one soft low accent",
+      "quiet resolve at the end"
+     ],
+     "negative_local_styles": [
+      "drums",
+      "kick",
+      "build",
+      "loud"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "M09_midway_bright_take3",
+   "dur": 44.45,
+   "plan": true,
+   "take": 3,
+   "prompt": "bright cue in A major at 108 bpm (measurement text only; plan mode)",
+   "sections": [
+    {
+     "name": "Midway: bright and open",
+     "duration_ms": 12560,
+     "positive_local_styles": [
+      "starts immediately on the first beat",
+      "bright and open",
+      "light mallets and plucked strings",
+      "a little mischievous",
+      "A major",
+      "108 bpm",
+      "mezzo-forte"
+     ],
+     "negative_local_styles": [
+      "fade in",
+      "intro",
+      "silence",
+      "dark"
+     ]
+    },
+    {
+     "name": "albatross: graceful, then clumsy",
+     "duration_ms": 7940,
+     "positive_local_styles": [
+      "piano",
+      "graceful legato strings",
+      "a playful hiccup",
+      "sparse"
+     ],
+     "negative_local_styles": [
+      "drums",
+      "loud",
+      "brass"
+     ]
+    },
+    {
+     "name": "the 28-million-year volcano",
+     "duration_ms": 9940,
+     "positive_local_styles": [
+      "deeper",
+      "rising with wonder",
+      "crescendo to forte",
+      "a broad low chord",
+      "low strings and brass-like synth",
+      "loudest part of the cue"
+     ],
+     "negative_local_styles": [
+      "sparse",
+      "quiet",
+      "silence"
+     ]
+    },
+    {
+     "name": "Darwin's idea and the drills",
+     "duration_ms": 14010,
+     "positive_local_styles": [
+      "mezzo-forte",
+      "curious and intelligent",
+      "steady pulse",
+      "driving mechanical undertone",
+      "keeps going to the very end",
+      "firm clean stop on the last beat"
+     ],
+     "negative_local_styles": [
+      "fade-out",
+      "silence",
+      "decay",
+      "ambient",
+      "quiet"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "M01_cold_open_wonder_take3",
+   "dur": 52.43,
+   "plan": true,
+   "take": 3,
+   "prompt": "cold open in D major at 96 bpm (measurement text only; plan mode)",
+   "sections": [
+    {
+     "name": "frame-1 wonder",
+     "duration_ms": 10470,
+     "positive_local_styles": [
+      "starts immediately on the first beat",
+      "airy curious pulse",
+      "felt piano and soft synth arpeggios",
+      "D major",
+      "96 bpm",
+      "light and bright",
+      "mezzo-piano"
+     ],
+     "negative_local_styles": [
+      "fade in",
+      "intro sting",
+      "silence",
+      "big drums"
+     ]
+    },
+    {
+     "name": "Maui Nui drain build",
+     "duration_ms": 9680,
+     "positive_local_styles": [
+      "low strings and a deep pulse build to forte",
+      "big warm open arrival chord",
+      "bright full bloom",
+      "loudest part of the cue"
+     ],
+     "negative_local_styles": [
+      "sparse",
+      "quiet"
+     ]
+    },
+    {
+     "name": "Ice Age walk",
+     "duration_ms": 7220,
+     "positive_local_styles": [
+      "sudden drop to piano",
+      "sparse and light",
+      "plucked notes and a soft pad"
+     ],
+     "negative_local_styles": [
+      "drums",
+      "loud",
+      "string swell"
+     ]
+    },
+    {
+     "name": "look down: the deep",
+     "duration_ms": 17060,
+     "positive_local_styles": [
+      "the pulse drops an octave",
+      "deep and mysterious",
+      "mezzo-piano",
+      "a simple three-note descending felt-piano figure (the look-down motif)",
+      "held unresolved chord"
+     ],
+     "negative_local_styles": [
+      "bright",
+      "loud"
+     ]
+    },
+    {
+     "name": "sea rises, thin out",
+     "duration_ms": 8000,
+     "positive_local_styles": [
+      "slow rising swell to mezzo-forte",
+      "then thins to a single soft sustained pad, pianissimo"
+     ],
+     "negative_local_styles": [
+      "drums"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "M14_refill_theme_finale_take3",
+   "dur": 47.8,
+   "plan": true,
+   "take": 3,
+   "prompt": "reprise in D major at 96 bpm (measurement text only; plan mode)",
+   "sections": [
+    {
+     "name": "the ocean returns (theme)",
+     "duration_ms": 15200,
+     "positive_local_styles": [
+      "starts immediately on the first beat",
+      "reprise of the opening theme",
+      "airy curious pulse",
+      "felt piano and soft synth arpeggios",
+      "D major",
+      "96 bpm",
+      "full, warm and swelling",
+      "forte",
+      "low strings"
+     ],
+     "negative_local_styles": [
+      "fade in",
+      "silence",
+      "intro"
+     ]
+    },
+    {
+     "name": "only the top of a giant",
+     "duration_ms": 12780,
+     "positive_local_styles": [
+      "drops to mezzo-piano",
+      "gentle and settled",
+      "sparse felt piano and pad"
+     ],
+     "negative_local_styles": [
+      "drums",
+      "loud"
+     ]
+    },
+    {
+     "name": "Louisiana?",
+     "duration_ms": 7820,
+     "positive_local_styles": [
+      "a simple three-note descending felt-piano figure (the look-down motif) once",
+      "a short curious lift like a question",
+      "mezzo-piano"
+     ],
+     "negative_local_styles": [
+      "drums",
+      "loud"
+     ]
+    },
+    {
+     "name": "end screen",
+     "duration_ms": 12000,
+     "positive_local_styles": [
+      "final warm phrase",
+      "mezzo-piano",
+      "lands gently on a single sustained felt-piano note that decays to silence"
+     ],
+     "negative_local_styles": [
+      "drums",
+      "new theme"
+     ]
+    }
+   ]
+  }
+ ]
+}

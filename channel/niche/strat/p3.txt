@@ -1,0 +1,84 @@
+====================================================================================================
+QUERY: below the postcard
+SUMMARY: {"query": "below the postcard", "n_results": 49, "longform_matching": 13, "longform_matching_100k": 1, "max_longform_matching_views": 886340, "best_short_views": 1300, "top_any_views": 886340}
+  [v]     886,340  121m32s  4y ago         the bootleg boy        | Below The Depths 🌿 Chill Lofi Beats
+  [v]     384,413   13m07s  3y ago         Mind Unveiled          | Repopulation Postcards : CABBAGE PATCH KIDS / 1800s Cloning / Babylon Babies
+  [v]     371,776    1m44s  7y ago         Marwa Ebaid            | How to write a  Postcard
+  [v]      10,344    4m13s  6y ago         Mark Montano           | Postcard Swap & DIY - Join in! - Rules below!
+  [v]       4,991   14m20s  6h ago         TrendsTV               | Why Visiting Every Country Wasn’t Enough | David Langan | Traveller’s World Ep 04 from ETF
+  [s]       1,300    0m00s                                        | Making a Pokemon 30th Anniversary Fanart Postcard - Who Wants One?! (Sneak Peek) #pokemon 
+  [s]       1,300    0m00s                                        | another watercolor post card ! #art #artshorts #drawing #watercolorpainting #watercolor
+  [s]       1,100    0m00s                                        | What If Every Friend You Lost Touch With Sent You a Postcard Every Year?
+  [s]         985    0m00s                                        | Collectors Are Quietly Buying Up This LEGO Set... 🤫 Creator Australia Postcard 40651  #leg
+  [s]         966    0m00s                                        | The Yosemite Postcard That Left Out the Truth #vintagepostcards #vintagetravel #yosemite
+  [s]         945    0m00s                                        | The Floating Postcard Ship Hiding a Torture Site #Shorts
+  [s]         792    0m00s                                        | I Mailed a Postcard 10 m UNDERWATER… and It VANISHED! 🌊📮
+  [v]         621   46m00s  1mo ago        Gen X Stamps           | REVEAL! Unboxing a Forgotten WWII POW Postcard (and More!) V27
+  [s]         611    0m00s                                        | Jamaica Beyond the Postcard
+  [s]         548    0m00s                                        | Unofficial Enhypen Merch Haul (Postcards) #shorts
+  [v]         367   33m39s  19h ago        AnewZ                  | Documentary | Crude & Ink: Stories Written in Oil
+  [v]         348   26m14s  3y ago         Tokubetsumemori        | Organize Postcards into Daiso Postcard Organizer
+  [s]         197    0m00s                                        | Blue Lachenaultia Hand painted postcard
+  [s]         183    0m00s                                        | Dairy King, Mickey Mantle Vintage Signs & Places | Postcards # 56
+  [s]         166    0m00s                                        | Utah from below | FPV Drone Desert Flythrough
+  [s]         138    0m00s                                        | Sometimes it’s what’s underneath that stands out! | Behind My Postcard
+  [s]         104    0m00s                                        | Learn French with Stories (Beginner A2) - The Postcard
+  [s]          98    0m00s                                        | Beyond the Postcard | Favela Life & Copacabana’s Edge
+  [v]          87   23m37s  10d ago        Below the Skyline      | Myanmar Beyond the Postcard: Work, Displacement and Survival
+  [v]          73   22m32s  11mo ago       Mark's Postcard Travel | The Postcard News Update, December 2025. #postcard #philately
+====================================================================================================
+QUERY: hawaii is only the summit we measured the rest
+SUMMARY: {"query": "hawaii is only the summit we measured the rest", "n_results": 47, "longform_matching": 0, "longform_matching_100k": 0, "max_longform_matching_views": 0, "best_short_views": 334000, "top_any_views": 2431120}
+  [v]   2,431,120   22m27s  4mo ago        Astrum Earth           | This Super El Niño Will Be the Strongest In Living Memory
+  [s]     334,000    0m00s                                        | Hawaii is Way Bigger Than Maps Show You #shorts
+  [v]     325,542   42m46s  7mo ago        SteveMarsh             | The Most Isolated Metropolis in the World. But STAY OUT OF THE WATER! (We Go for a Swim)
+  [v]     253,764   86m18s  5y ago         Cozy Ambience-Sollani  | Hawaiian Beach Ambience | Tropical  Resort for Best Relaxation ASMR
+  [v]      86,963   33m36s  5y ago         Seeker                 | Inside The Controversy Over Building One Of The World’s Largest Telescopes | Beyond the Ma
+  [v]      58,869   86m51s  20h ago        FINAiUS                | The Pentagon: The Entire History of Money and Power | Full Documentary
+  [v]      56,630  221m53s  3d ago         Best Documentary       | The Great Fracture: The Origins of Trump's America
+  [v]      45,158   33m48s  5d ago         The Cold War           | Is the United States an Empire?
+  [s]      25,000    0m00s                                        | Hawaii Is Way Bigger Than You Think 🌋#shorts
+  [v]      21,561   22m39s  2y ago         Live That Adventure    | This is the Scariest Hike in Oahu, Hawaii!
+  [v]      15,617   42m23s  5y ago         Yes to Hawaii | with M | How is the ACTUAL Diamond Head Hike | Real-Time HIKE | OAHU
+  [v]       7,775  441m43s  1y ago         Gim's Hawaii           | BIG ISLAND, Hawaii - 7 hours - Circle Tour (Town/Scenic Drives/Homes)
+  [s]       6,700    0m00s                                        | Hawaii Is MUCH Bigger Than You Think 🌋#Hawaii #USA #Geography
+  [s]       6,100    0m00s                                        | Your State, Part 2: Hawaii Has No Mainland 🤯
+  [s]       3,000    0m00s                                        | Mauna Kea: The Tallest Mountain on Earth Explained! 🌋
+  [v]       2,953   21m22s  9mo ago        Melissa June           | Big Island Hawaii Itinerary | Fairmont Orchid, Volcanoes & Mauna Kea (June 2025)
+  [v]       2,141   28m27s  1y ago         Day Adder              | Koko Head Crater Hike – Hawaii’s Hardest Short Hike | Full Route
+  [s]       1,800    0m00s                                        | Hawaii Is Even Stranger Than Alaska
+  [s]       1,600    0m00s                                        | How Did Hawaii Form? (Taller Than Everest)
+  [v]       1,574   99m09s  Streamed 2d ago HVERI                  | Hawaiian Volcano Update: Episode 56 Begins at Kīlauea Summit - November 5, 2026
+  [s]       1,500    0m00s                                        | Hawaii Is NOT Just 8 Islands 🌋🇺🇸 The 1,500-Mile Volcano Chain #shorts
+  [s]       1,300    0m00s                                        | The True Size of Hawaii (It's Bigger Than You Think) 🌋 #geovault #geography#usa
+  [s]       1,300    0m00s                                        | The TALLEST Mountain on Earth Is UNDERWATER 🌊
+  [s]       1,200    0m00s                                        | How Big Is Hawaii Actually? 🌋🗺️ True Size of Hawaii 🏝️🌊
+  [s]       1,200    0m00s                                        | You’ve been wrong about Hawaii’s size #shocking #hawaii #usa
+====================================================================================================
+QUERY: how tall is hawaii
+SUMMARY: {"query": "how tall is hawaii", "n_results": 49, "longform_matching": 13, "longform_matching_100k": 3, "max_longform_matching_views": 15543490, "best_short_views": 255000, "top_any_views": 15543490}
+  [v]  15,543,490  182m44s  1y ago         Outdoor Boys           | Exploring Every Island in Hawaii - 9 weeks fishing, camping, hiking, diving & exploring
+  [v]   2,364,778   43m39s  1y ago         Wu’s World             | We Tried Hawaii’s Craziest Activities For 5 Days!
+  [v]     949,166   28m11s  1y ago         Map Pack               | Harsh Reality of Living in Hawaii No One Tells You
+  [s]     255,000    0m00s                                        | Everest 🏔️ VS 🌋 Mauna Kea: Tallest Mountain? 🤔 #MountEverest #MaunaKea #TallestMountain #F
+  [s]     174,000    0m00s                                        | The tallest mountain in the world 🤯Mauna Kea, Big Island Hawaii
+  [s]     109,000    0m00s                                        | Is Everest really the tallest mountain on Earth?
+  [v]      51,868   38m16s  1d ago         Tamim | تميم           | A Wall of Water Killed 228,000 People in 14 Countries... Many Had Two Hours, and No One Wa
+  [s]      44,000    0m00s                                        | Everest Is Not the Tallest Mountain on Earth 🏔️
+  [s]      37,000    0m00s                                        | This Mountain Is Taller Than Everest 😱 Mauna Kea #shorts #maunakea #everest
+  [v]      35,819   47m51s  5mo ago        Mapmerica              | 35 Crazy facts about Hawaii (It's Beautiful, Dangerous, and Amazing)
+  [v]      29,347   22m00s  2y ago         Flat Water FE          | When Hawaii Was Peopled By Giants
+  [s]      28,000    0m00s                                        | Being 6 ft tall in Hawaii is a whole new level of tall 🥲🙃 #physicianassistant #healthcare 
+  [s]      25,000    0m00s                                        | Hawaii Is Way Bigger Than You Think 🌋#shorts
+  [v]       9,235   23m47s  4y ago         Travelscapes           | [Virtual Roadtrip] Driving up Mauna Kea, Big Island, Hawaii
+  [v]       7,806   39m34s  1y ago         Dani Fernandez 🐿️      | MY FIRST SOLO TRIP TO HAWAII 🌺 (staying at a hostel, meeting people, new friends & memorie
+  [v]       5,410  113m45s  4d ago         Project Nightwatch and | Hawaii's Big Island Volcano Is About To Erupt Again — And It's Building Fast
+  [v]       2,446   27m17s  7y ago         SEVEN 2 TALL “SEVEN 2  | MY TRIP TO MAUI HAWAII - vacation vlog
+  [s]       1,600    0m00s                                        | How Did Hawaii Form? (Taller Than Everest)
+  [v]       1,567    2m21s  8y ago         Cities & Skyscrapers   | Honolulu, Hawaii | Top 10 Tallest Skyscrapers In Honolulu
+  [s]       1,300    0m00s                                        | Hawaii Is Taller Than Everest 🏔️
+  [v]       1,238   26m50s  9mo ago        About The United State | 50 Mind-Blowing Facts About Hawaii | United States
+  [s]       1,200    0m00s                                        | Drain the Ocean: Hawaii Has the Tallest Mountain on Earth 🌋
+  [s]       1,100    0m00s                                        | Taller Than Mount Everest: The Hidden Wonders of Hawaii's Mauna Kea
+  [s]       1,100    0m00s                                        | The Tallest Mountain On Earth Is Hiding Underwater 🌋 #facts #nature #hawaii
+  [s]       1,000    0m00s                                        | 🏔️ Mauna Kea’s SECRET HEIGHT Beats Everest! 🌊 (Hawaii’s Underwater Giant!)

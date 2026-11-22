@@ -1,0 +1,443 @@
+{
+ "run": "wf_96e8f33f-afb",
+ "agent": "acec6c46df74aa54b",
+ "label": "synthesis",
+ "result": {
+  "predicted_curve": [
+   {
+    "t": 0,
+    "pct": 100
+   },
+   {
+    "t": 3,
+    "pct": 93.1
+   },
+   {
+    "t": 5,
+    "pct": 89.8
+   },
+   {
+    "t": 10,
+    "pct": 83.8
+   },
+   {
+    "t": 16,
+    "pct": 78.7
+   },
+   {
+    "t": 20,
+    "pct": 75.5
+   },
+   {
+    "t": 30,
+    "pct": 68
+   },
+   {
+    "t": 45,
+    "pct": 63.4
+   },
+   {
+    "t": 53,
+    "pct": 60.6
+   },
+   {
+    "t": 60,
+    "pct": 58.3
+   },
+   {
+    "t": 75,
+    "pct": 55.8
+   },
+   {
+    "t": 90,
+    "pct": 53.6
+   },
+   {
+    "t": 105,
+    "pct": 51.9
+   },
+   {
+    "t": 120,
+    "pct": 50.1
+   },
+   {
+    "t": 150,
+    "pct": 47.4
+   },
+   {
+    "t": 175,
+    "pct": 45
+   },
+   {
+    "t": 200,
+    "pct": 43.9
+   },
+   {
+    "t": 240,
+    "pct": 42.4
+   },
+   {
+    "t": 290,
+    "pct": 40.7
+   },
+   {
+    "t": 345,
+    "pct": 38.4
+   },
+   {
+    "t": 360,
+    "pct": 37.1
+   },
+   {
+    "t": 420,
+    "pct": 35.7
+   },
+   {
+    "t": 480,
+    "pct": 33.9
+   },
+   {
+    "t": 540,
+    "pct": 32.4
+   },
+   {
+    "t": 600,
+    "pct": 30.9
+   },
+   {
+    "t": 660,
+    "pct": 29.7
+   },
+   {
+    "t": 690,
+    "pct": 28.7
+   },
+   {
+    "t": 720,
+    "pct": 27.6
+   },
+   {
+    "t": 776,
+    "pct": 26.1
+   },
+   {
+    "t": 800,
+    "pct": 25
+   },
+   {
+    "t": 845,
+    "pct": 23.3
+   },
+   {
+    "t": 875,
+    "pct": 22
+   },
+   {
+    "t": 900,
+    "pct": 21.3
+   },
+   {
+    "t": 930,
+    "pct": 20.6
+   },
+   {
+    "t": 960,
+    "pct": 19.7
+   },
+   {
+    "t": 990,
+    "pct": 18.1
+   },
+   {
+    "t": 998,
+    "pct": 16.1
+   },
+   {
+    "t": 1011,
+    "pct": 10.4
+   }
+  ],
+  "verdict": "No, most viewers won't reach the end, though the film is on target rather than broken. The consensus curve holds 68% at 0:30 and 58% at 1:00 (both inside the playbook's targets) and averages about 35.7% AVD (6:01 of 16:51), right at the 35% target. About 16% are still there when the voice ends at 16:38 and about 10% at 16:51. The spread by audience is wide: 28% for a Shorts-trained 19-year-old, 42% for a geography fan. Viewers tire in three places. First, 1:40-2:55, a roll-call of people who noticed the pattern (Bacon recap, Forster's flood, Humboldt, the hook's list read again, two 1970s jokes), with nothing new on the 'why' since 0:31: the curve sheds 8 points in minute 2 and 5 in minute 3, and the casual viewer leaves at 2:41. Second, and milder, 4:35-5:20: six statistics at 172-178 wpm over near-still globes under a single 3-minute music bed, which is where the average viewer starts to tire. Third, and the one that costs the ending, everything after 'They're scars' (11:33). The proof itself is a 1.3-s blur. It is followed by a tangent (Nevada), an empty frame at 12:56, the stillest minute of the film (13:30-14:30) and a 30-s recap at 14:04 that sounds like the end, so the curve sags 2.1-2.4 points a minute just before the four-continents payoff and comment prompt promised at 0:47. Between those stretches, the pyramid, Wegener and Gondwana chapters (5:57-11:12) hold at about 1.5 points a minute. Fixes 1-11 are cuts, picture-only re-renders and audio edits with no new narration. They take about 1:17 out (to roughly 15:34) and should lift AVD to roughly 39-40% and end-screen reach to about 19-20%. Order of work: apply the re-renders and the vo_proc.wav cleanup first, then make every cut in one edl.py pass. All times in this plan are on the current 16:51 master.",
+  "fixes": [
+   {
+    "rank": 1,
+    "t0": 99.3,
+    "t1": 131.1,
+    "problem": "1:39-2:55 is a roll-call of people who noticed the pattern (Bacon recap, Forster, Humboldt, the hook list read again, two 1970s jokes). Nothing new on the 'why' arrives after 0:31, and the first promised payoff (dig to China) lands only at 4:09, past the playbook's 2:00. The consensus curve sheds 8.2 points in minute 2 and 5.4 in minute 3, the steepest slope after the intro; the casual viewer leaves at 2:41. Of this block, the Forster flood stretch plants nothing for later, and it holds five of the bug-finder's animation defects (S2-1 to S2-5: paper snag 1:48.0, whip hiccup 1:57.1-1:58.5, running in place 2:01.8-2:03.5, wave pop 2:04.4, vanishing water beads 2:07.7-2:10.9).",
+    "votes": 4,
+    "fix": "Cut 99.30-131.10 s (1:39.30-2:11.10, 31.8 s), from the first frame of the Latin page to the first frame of the Humboldt portrait. This removes 'So Bacon saw the drip... That did not stop them from trying.' and all of Forster through 'Geology later asked for a refund.' The join reads '...shaped alike, side by side. / By the eighteen-forties, the most famous scientist alive was calling the tips pyramidal.' Both sides are digital silence in vo_proc.wav, and the onset of 'By' (from 131.12 s) survives. Every plant survives: 'not... mere accident' (1:07), 'Remember that' (1:24), the first JUICE CHECK stamp (1:30), 'pyramidal' (2:11), 'Hold on to him' (2:46). The word 'drip' is now coined at 2:29 before it is used. If the ~0.25-s pause sounds rushed, pad 0.25 s and freeze the last map frame for 8 frames (a one-line edl.py extension).",
+    "fix_type": "cut",
+    "effort": "S",
+    "needs_new_voice": false,
+    "expected_effect": "The history block drops from 120 s to 88 s; 'They line up' moves to ~3:06 and the dig-to-China payoff to ~3:38. Expect about 2 more points held from 2:11 on (AVD +1-1.5 points), and five animation defects disappear without a re-render."
+   },
+   {
+    "rank": 2,
+    "t0": 0,
+    "t1": 16.3,
+    "problem": "Frames 0-90 (0:00.0-0:03.0) show the same still globe (motion 0.10-0.35/s) while the voice says 'Spin a globe'. The white arrows into the '?' ring, which are thumbnail B's whole idea ('POINTING AT WHAT?'), only start at 0:03.3. The flat map (0:07.8-0:16) is then the longest still run of the first minute: seven names are read and all the tip pins drop together at 0:14-0:16. The 0:30 number (YouTube's Intro metric, 68% consensus) is decided here.",
+    "votes": 4,
+    "fix": "Re-render the first 16 s with existing assets and no narration change. Enter on the globe mid-spin (about 150 degrees), easing onto the current framing by 0:02.5. Start the three tip-to-'?' arcs at about frame 10 instead of 0:03.3, so frame 1 reads as thumbnail B in motion. On the flat map, drop each tip's pin and red drip on its name (Greenland 0:07.8, Florida 0:09.2, Baja 0:10.0, Kamchatka 0:11.0) and add a slow 5% push-in over 0:07.8-0:16. Alternative from R3: open on the 0:16 flat-map drip frame for 2 s, then cut to the globe on 'South America' (0:03.9).",
+    "fix_type": "animation",
+    "effort": "M",
+    "needs_new_voice": false,
+    "expected_effect": "+2-4 points at 0:30. Because everything later scales from it, that is about +1-1.5 points AVD."
+   },
+   {
+    "rank": 3,
+    "t0": 53.1,
+    "t1": 55.04,
+    "problem": "Right after the hook's last promise, the picture hard-cuts to pure black at 0:53.10 and stays black for 1.43 s, with 'Eventually.' (0:53.12-0:54.32) said over it. It then fades up to the history map over 0:54.53-0:55.04. On a TV or phone this reads as the video ending or buffering, at the 0:30-1:00 decision point.",
+    "votes": 4,
+    "fix": "Picture-only, timeline unchanged: keep the 0:52 four-model grid on screen through 'Eventually.' and slam the four tiles together on the word (the existing impact hit already sits there), or dim the grid to ~30% with a slow push. Crossfade to the sepia map so it is fully up on 'Bad news' (0:55.04). If any black stays, keep it to 6-8 frames. The hit itself is fine: the audio check found the voice 15-40 dB clear at 1-4 kHz.",
+    "fix_type": "add_visual",
+    "effort": "S",
+    "needs_new_voice": false,
+    "expected_effect": "+1-1.5 points at 1:00 (58% to about 59.5%)."
+   },
+   {
+    "rank": 4,
+    "t0": 672.35,
+    "t1": 693.43,
+    "problem": "The title's answer is barely animated. The polar map holds still from 11:12.35 to 11:21.6. Its tip markers arrive only on 'Antarctica' (S7-9), and a fourth Ma counter rolls 38-176 over the already-assembled map (11:12.5-11:13.3). Then, on 'As they drifted apart, they roughly kept their orientation', the whole 180-to-0 Ma breakup runs in about 40 frames (11:21.63-11:23.03), through a double exposure: '180/178' ghosted at 11:21.7-11:21.9, and '1' over 'TODAY' at 11:22.93. No tip markers show during the move, so 'kept their orientation' can't be seen, and 'They're scars' lands on narration alone.",
+    "votes": 4,
+    "fix": "Re-time 11:12.35-11:33.4 using the paleo-globe module from 10:32-11:12. Show a static '180' on the polar map, and draw the red tip markers and dashed lines on 'pointy ends' (~11:18.4). Cut cleanly, with no dissolve, to the 180 Ma globe on 'As they drifted' (11:21.71). Run 180 to 0 over ~6 s (11:21.7-11:27.8, ease-out), with tip-to-Antarctica tether lines from the first frame that stretch as the pieces move. Fade the counter out before 'TODAY' fades in. Land on the finished TODAY globe with dotted lines during 'still aim back to where they tore away' (11:25.6-11:29.0), and hold through 'They're scars' (11:31.87) and its 1-s pause.",
+    "fix_type": "animation",
+    "effort": "M",
+    "needs_new_voice": false,
+    "expected_effect": "The payoff becomes visible proof. That raises satisfaction, likes and subscriptions where viewers judge whether the title was answered, and keeps about +0.5-1 point across 11:30-13:00."
+   },
+   {
+    "rank": 5,
+    "t0": 859.5,
+    "t1": 875.4,
+    "problem": "'So is the drip just a coincidence?' (14:04.77), then a summary and 'The likeliest answer: it's a snapshot...' (to 14:34.77), makes a 30-s recap at 84% of the runtime. It sits over the stillest window of the film (14:00-14:30: motion 0.72, 8 still seconds) and reads as the ending, 2.5 min before the four-continents payoff promised at 0:47 and the comment prompt at 15:30. Three closers then stack again at 15:55-16:19 ('Whichever future wins...', the Bacon callback, 'one frame of a very slow movie').",
+    "votes": 4,
+    "fix": "Keep the verdict 14:04.77-14:19.41 with the IT'S COMPLICATED stamp, and show the 11:32 scar-lines shot under 'they're scars from a supercontinent' (14:09.8). Move 859.50-875.40 s ('And the rest of the lopsided planet?... happen to be right now' plus its polaroid; cap the 14:30.83 flash at about half brightness) into the slot of 954.93-963.03 s ('Whichever future wins... where the pieces have been'), which is dropped. 'Connecting dots.' then runs into the chapter-6 card and 'So where is the drip going?' with a ~0.45-s pause, and 'snapshot' sets up 'one frame of a very slow movie' (16:14.6), with every loop still closed. edl.py only cuts, so the move needs a small extension or a hand edit. Fallback: cut both ranges (24 s).",
+    "fix_type": "reorder",
+    "effort": "M",
+    "needs_new_voice": false,
+    "expected_effect": "Removes the false ending and one stacked closer (net -7.8 s). Expect +1.5-2 points still watching at the 15:30 comment prompt and the end screen, and about +0.5 point AVD."
+   },
+   {
+    "rank": 6,
+    "t0": 284.9,
+    "t1": 312.1,
+    "problem": "Right after the best punchline ('Argentinians', 4:33.9), six numbers arrive in 53 s at 172-178 wpm, over the stillest pictures so far (7 still seconds in each of 4:30-5:00 and 5:00-5:30). The takes s035-s036 are the fastest in the film (4.82 syllables/s, 27% over the median), and the IF RANDOM grid pops on over 10 consecutive frames (4:48.0-4:48.3). This is where the average viewer starts to tire.",
+    "votes": 5,
+    "fix": "Cut two restatements, both on digital silence. (a) 284.90-290.27 s (4:44.90-4:50.27): 'That's less than half of what you'd expect if the continents had been sprinkled at random.' plus the dot grid; '1 IN 8' carries the point, and the join lands on the puzzle globe on 'So try a puzzle.' (b) 306.45-312.10 s (5:06.45-5:12.10): 'There is no way to cut this planet in half and get a half that's mostly land.' plus the X grids; 'And it's still more than half water.' already says it. The join lands on the 89% globe on 'Now flip the globe over.' Each join keeps a ~0.4-s pause. This also removes the bug-finder's S4-8 defect (moth-eaten grids).",
+    "fix_type": "cut",
+    "effort": "S",
+    "needs_new_voice": false,
+    "expected_effect": "11 s less of the densest stretch; about +0.5-1 point held from 5:00."
+   },
+   {
+    "rank": 7,
+    "t0": 28.3,
+    "t1": 919.97,
+    "problem": "Stray take fragments survive in the narration. '[Nei-]' (9:10.16-9:10.26) stands 17.9 dB above the ice bed on the film's most solemn beat ('...Villumsen. [Nei-] ... Neither of them made it back'). '[n-]' (4:17.28-4:17.38) stands 17.8 dB above the bed right before the 'Not China.' punchline. Smaller ticks or hisses sit at 0:28.52 (before 'They're not.'), 12:03.40 and 14:04.25 (inside the hold before 'So is the drip just a coincidence?'). 'So Wegener was right.' (9:50.4-9:51.1), the chapter's payoff line, comes out as 'WAY-ner' (6/6 ASR passes: 'Wedner'). The record scratch at 9:48.50 steps on '...which government agency you ask.'",
+    "votes": 2,
+    "fix": "Edit vo_proc.wav; nothing moves in time. Silence 549.85-550.30, 256.95-257.42, 28.30-28.60, 723.20-723.56 and 844.00-844.42 s with 30-ms fades, plus the buried 639.15-639.65 and 919.40-919.97 s. Paste the 0.40-s 'Wegener' from 538.17-538.57 s over 590.71-591.11 s with 10-ms crossfades. In mix_v2.json, move record_scratch.wav to 589.55 s, at most 0.8 s long, at -16 dB. Remix. Then change tts.py to trim take tails at the last voiced run before a gap of 300 ms or more, so ep02 doesn't repeat this.",
+    "fix_type": "audio_edit",
+    "effort": "S",
+    "needs_new_voice": false,
+    "expected_effect": "Removes the audible AI-splice glitches on the 4:17 punchline and the 9:10 death beat, and fixes the name on the chapter's payoff line. Small curve effect (+0.2-0.3 point) but real gains in perceived quality and trust."
+   },
+   {
+    "rank": 8,
+    "t0": 775.87,
+    "t1": 777.4,
+    "problem": "12:55.87-12:57.0 is an empty dark-navy frame with only a teal scan line sliding down. The first tile ghosts in at 12:57.0, and the 12-tile grid is full at about 12:57.4, all under 'Now, the honest part...'. It looks like a missing render layer and opens the film's weakest stretch; the fatigue reviewer leaves here.",
+    "votes": 4,
+    "fix": "Start the 'THE HONEST PART' tile stagger about 1.3 s earlier, so the first tiles are on screen on the cut (12:55.87), and let the scan line reveal tiles as it passes, or delete it. Keep the narration line: R2 counts 'we're not going to fake you a tidy answer' as a trust builder. This is also the landing frame for fix 9.",
+    "fix_type": "animation",
+    "effort": "S",
+    "needs_new_voice": false,
+    "expected_effect": "+0.3-0.5 point held after 12:56; removes a 'frozen video' moment."
+   },
+   {
+    "rank": 9,
+    "t0": 757.95,
+    "t1": 775.87,
+    "problem": "After both payoffs ('They're scars' at 11:33, Holden's twist at 12:19-12:37), the Nevada 'real drip' (12:38.5-12:55.4) is a tangent: it says nothing about why the tips point south. It plays over a near-still cross-section (12:44-12:53; 9 still seconds in 12:30-13:00), and the post-payoff exit starts here.",
+    "votes": 3,
+    "fix": "Cut 757.95-775.87 s (12:37.95-12:55.87, 17.9 s), from 0.4 s after 'It was basically the answer.' to the first frame of the honest-part module (fix 8). Both sides are digital silence, and the join leaves a ~0.45-s pause. This also removes the bug-finder's S8-8 and S8-9 defects.",
+    "fix_type": "cut",
+    "effort": "S",
+    "needs_new_voice": false,
+    "expected_effect": "The honest part, and the four-continents payoff after it, arrive 18 s sooner; about +0.5-1 point held from 13:00 to the end."
+   },
+   {
+    "rank": 10,
+    "t0": 598.63,
+    "t1": 616,
+    "problem": "There are too many clocks. The flat-map rewind counts 1 to 179 MYA (9:59-10:04) while the continents sit where they are today, and its number grows into the rewind icon (S6-12). Then the chapter card plays, and the globe counter starts over near 0 (10:07) and climbs to 180 by 10:16. Earlier, a stray '62 MILLION YEARS AGO' counter sits next to the '1912: THE CONTINENTS MOVE' label (8:22.5-8:26). The double rewind is at the entrance to the payoff chapter, where people who skip ahead land.",
+    "votes": 4,
+    "fix": "Remove the number from the flat-map slider (9:58.6-10:04.4). Keep the rewind icon and the converging drip lines on 'all start pointing at the same place'. The globe (10:07-10:16) then owns the only 0-to-180 count. Hide the Ma counter on the 1912 globe (8:22.5-8:26) and show plain drift arrows. (The 11:12.5 roll is handled in fix 4.)",
+    "fix_type": "text_on_screen",
+    "effort": "S",
+    "needs_new_voice": false,
+    "expected_effect": "Removes a 'wait, is it repeating?' moment at the start of the payoff chapter; about +0.3 point held from 10:00."
+   },
+   {
+    "rank": 11,
+    "t0": 141.2,
+    "t1": 149.5,
+    "problem": "2:21.2-2:28.9 reads the hook's list again ('Greenland, Baja, Florida, India, Kamchatka') over the hook's own map, near-still for 7 s (2:22-2:29), and a dark quote bar pops on in one frame (S2-6, 2:26.2).",
+    "votes": 2,
+    "fix": "Cut 141.20-149.50 s (2:21.20-2:29.50, 8.3 s), from the first frame of the list map to the start of the 1973-page dissolve, on digital silence (pause at the join about 0.28 s). Keep 'And someone had written down almost the exact list you saw at the start.' over the 1849 page, whose names are already underlined in red. That keeps the callback R2 values.",
+    "fix_type": "cut",
+    "effort": "S",
+    "needs_new_voice": false,
+    "expected_effect": "With fix 1, the history block shrinks from 120 s to ~80 s and the dig-to-China payoff lands at ~3:30 instead of 4:09; about +0.3-0.5 point."
+   },
+   {
+    "rank": 12,
+    "t0": 604.67,
+    "t1": 875.4,
+    "problem": "The YouTube chapter at 10:04, 'Running the clock backwards', isn't a question, doesn't match the on-screen card 'WHERE ARE THE DRIPS POINTING?', and runs 4:31. The chapter at 8:01, 'Continental drift: why did geologists laugh at Wegener?', puts the answer's subject in the progress bar.",
+    "votes": 4,
+    "fix": "Description only, with the post-cut times from edl.py's report.json. Rename the 10:04 chapter 'Where are the drips pointing?'. Add 'Was the answer hidden in a joke?' at 11:34 and 'What doesn't drip?' at the honest part (12:55 now). Retitle the 8:01 chapter 'Why did geologists laugh at Wegener?'.",
+    "fix_type": "metadata",
+    "effort": "S",
+    "needs_new_voice": false,
+    "expected_effect": "The chapter names match the on-screen cards and stay questions, so viewers can skip within the long middle chapter instead of leaving. Small (+0.2 point); better Key Moments in search."
+   },
+   {
+    "rank": 13,
+    "t0": 998.53,
+    "t1": 1011,
+    "problem": "The voice ends at 16:38.5, leaving 12.5 s of music under an empty WATCH NEXT box. 'That's our next story' promises an Africa-split episode that doesn't exist yet, so the element will show something unrelated or nothing.",
+    "votes": 4,
+    "fix": "Before publishing, give the box a real target. Cut a 45-60-s Short from 16:19.7-16:33.5 (the Afar Y, 'What happens if Africa splits in two?') or make a Myth Juice playlist, and point the end-screen element at it. Swap in ep02 when it's live. Keep the rift lines animating behind the slots. If nothing is ready, trim the end screen to ~8 s.",
+    "fix_type": "metadata",
+    "effort": "S",
+    "needs_new_voice": false,
+    "expected_effect": "Moves end-screen CTR toward the playbook's 5%+ (session time rather than AVD). The spoken promise then pays off."
+   },
+   {
+    "rank": 14,
+    "t0": 344.9,
+    "t1": 357.04,
+    "problem": "At 5:45.00-5:45.03 (frames 10350-10351, the render-chunk 22/23 seam, scan ratio 12.4), the globe inside the 1875 tetrahedron drops to about half brightness in one frame, 0.3 s before 'And it wasn't a ball'. The SUBSCRIBE pill appears only at 5:56.5, after 'Want the next one?' (5:54.7) and on the last word of the ask.",
+    "votes": 4,
+    "fix": "Re-render 5:43-5:47 in one pass, so the dim becomes a 12-15-frame fade starting on 'wasn't' (5:45.68). Bring the SUBSCRIBE pill in on 'Want the next one?' (5:54.72) and glow it on 'Subscribe.' (5:56.56). Keep the 10-s ask as it is: it sits 34% in, after a payoff, inside an open loop.",
+    "fix_type": "animation",
+    "effort": "S",
+    "needs_new_voice": false,
+    "expected_effect": "Removes a visible flicker just before the CTA, and the first ask converts better (subs/1000 toward the 4.6 target)."
+   },
+   {
+    "rank": 15,
+    "t0": 227.74,
+    "t1": 233.5,
+    "problem": "The key claim 'Almost everywhere you look, land has ocean on its far side, not more land' (3:47.7-3:53.2) plays over a plain rotating globe. The antipode overlay that proves it is visible for only about 1.5 s (3:50.0-3:51.5) and is gone before 'not more land'.",
+    "votes": 3,
+    "fix": "Hold the existing cyan/yellow antipode overlay from 3:47.7 until the 'DIG STRAIGHT DOWN TO CHINA?' title (3:53.5), and add a two-item key (land over ocean / land over land). It previews the 4:40 antipode map.",
+    "fix_type": "add_visual",
+    "effort": "S",
+    "needs_new_voice": false,
+    "expected_effect": "Fills a 5-s near-still stretch with the proof; about +0.2 point."
+   },
+   {
+    "rank": 16,
+    "t0": 173.8,
+    "t1": 359.2,
+    "problem": "One bed (m03 'otherside') runs from 2:53.8 to 5:59.2, across two YouTube chapters and the stats block. It is the only 3-minute stretch without a music change, and it sits under the fastest narration in the film (146-195 wpm).",
+    "votes": 2,
+    "fix": "In mix_v2.json, start a new cue (or a variation of m03) on the 'DIG STRAIGHT DOWN TO CHINA?' card (3:53.5), and pull the bed down for ~1 s before 'Argentinians' (4:33.0-4:33.9) so the punchline gets a beat. Mix-only changes; make them before edl.py, which shifts cues on cuts.",
+    "fix_type": "music",
+    "effort": "S",
+    "needs_new_voice": false,
+    "expected_effect": "Resets attention at the chapter change, where the average viewer starts to tire; +0.2-0.4 point."
+   },
+   {
+    "rank": 17,
+    "t0": 892.85,
+    "t1": 943.65,
+    "problem": "The four future models use one template four times. Each full-screen model snaps into its grid cell in 3-4 frames and stops dead (15:02.2, 15:11.3, 15:19.9, 15:29.3; motion 0 to 9 to 0.00), with label pops and frozen globes, during the film's slowest narration (106 wpm). This is the payoff of the 0:47 promise. The walking character then covers the Aurica panel during 'which neighbor are you betting on?' (15:35.2-15:37.6), and the 'TUESDAY' calendar callback shows for only ~0.5 s (15:42.50-15:43.03), after the joke.",
+    "votes": 4,
+    "fix": "Drop the grid round trips. Cross-dissolve or whip from globe to globe on 'Two:' (15:02.5), 'Three:' (15:12.1) and 'Four:' (15:20.2), keep every globe slowly rotating, and fade the MODEL labels over 6-8 frames. Keep the grid only at 14:52 and for the comment prompt (15:29.9-15:37.5), and walk the character below the panels. Bring the calendar in on 'Just' (15:41.9), hold it ~1.5 s, and strike through 'TUESDAY' on the word. Optional (R4): show each collision with the 1:30 shake-and-stamp hit.",
+    "fix_type": "animation",
+    "effort": "M",
+    "needs_new_voice": false,
+    "expected_effect": "Removes four flicker-snaps from the section the hook promised; +0.3-0.5 point held into the comment prompt, and more comments."
+   },
+   {
+    "rank": 18,
+    "t0": 807.49,
+    "t1": 826.45,
+    "problem": "Florida's 'limestone platform' is a flat beige trapezoid. It shoots up in 0.6 s, then sits near-still for about 9 s (13:31.9-13:41), with sea-life icons ~30 px wide on a phone. At 13:37.8-13:38.4 the bedrock is revealed by a hard-edged dark-red rectangle wiping across a black void under the platform, which looks like a render error. This sits inside the stillest minute of the film (13:30-14:30).",
+    "votes": 4,
+    "fix": "Keep the narration (Florida is named in the hook, and 'originally from somewhere else' lands). Re-render so the platform builds up layer by layer, with shells, during 'built up by sea life in warm, shallow water' (13:29.6-13:37.5), under a slow push-in. Raise the bedrock from below with a soft edge on 'And under all that limestone sits bedrock' (13:37.5), then go to the dotted line to West Africa (13:42.4).",
+    "fix_type": "animation",
+    "effort": "M",
+    "needs_new_voice": false,
+    "expected_effect": "Replaces a 9-s still hold and a render-error look; +0.3-0.5 point in the 13:30-14:00 sag."
+   },
+   {
+    "rank": 19,
+    "t0": 275.1,
+    "t1": 742,
+    "problem": "Other render faults the reviewers flagged; the 5:32, 9:48 and 12:19 ones are frame-checked. 5:32.2-5:34.6: the Pacific 'water half' globe sits on an opaque, tilted black square (S4-4). 9:48.6-9:48.73: the FINGERNAILS VS TOENAILS card jerks, then the whole frame stays ~15% darker (luma 33.6 to 28.9). 10:34.43: a one-frame coastline jump on 'Cracks open'. 7:06.5-7:12: the '1918' label floats on black, and the kids pop in on single frames and snap poses at 7:11.9. 12:19.5-12:22.0: the right half of the split screen is empty for 0.5 s, and the label arrives only at 12:22.0. 6:03.87 and 6:57.93: full-white pages hard-cut to near-black (frame diff 174 and 141). 4:35.1-4:36.3: a reused 'surfacing' insert sits under 'Now flip every continent'.",
+    "votes": 4,
+    "fix": "Fold these into the running defect re-render pass (task #9). Mask the Pacific inset with a circle. Replace the card jerk with one eased 1.05x bump and no dim. Blend or replace frame 19033. Give the kids 6-8-frame pop-ins and blended poses, and parent the label to the card. Label both split-screen halves from 12:19.3, and draw Holden's 1970 arrows on 'for real, how Pangaea broke apart'. Put 6-8-frame dips on the two page cuts. Start the antipodal-map build on 'flip' (4:35.8).",
+    "fix_type": "animation",
+    "effort": "M",
+    "needs_new_voice": false,
+    "expected_effect": "No single item moves the curve, but together they remove the 'broken animation' impression the user reported; about +0.3 point and better satisfaction."
+   },
+   {
+    "rank": 20,
+    "t0": 434.55,
+    "t1": 450.06,
+    "problem": "'So, hang on... how do we know it's wrong?' plays over a tetrahedron with a '?' that holds still for about 9 s (fully still 7:18-7:22). It is the third stretch of the same shape (after 5:40-6:00 and 6:24-6:47), and the squeeze arrows and squashed-ball measurement arrive only at 7:24 and 7:28.",
+    "votes": 2,
+    "fix": "Bring the cooling/squeeze arrows in on 'cooling, shrinking Earth' (7:20.2) and the 'SQUASHED BALL, NOT A PYRAMID' measurement on 'critics could measure the planet' (7:24.0). Keep 7:36-7:42: the pyramid deflating into a ball is a payoff visual (R2), so R1's cut is declined.",
+    "fix_type": "animation",
+    "effort": "S",
+    "needs_new_voice": false,
+    "expected_effect": "Fills the only still hold in the pyramid chapter; +0.1-0.2 point."
+   },
+   {
+    "rank": 21,
+    "t0": 55.04,
+    "t1": 357.04,
+    "problem": "Even after fixes 1 and 11, the first promised payoff (dig to China) lands at ~3:30, past the playbook's 'pay off item #1 before 2:00'. A Shorts-trained viewer still sits through ~80 s of history before any 'why'.",
+    "votes": 2,
+    "fix": "Optional; do it only if the first-48-h retention graph still shows a steep 1:00-3:00 slope after fixes 1-3 and 11. New order: hook (0:00-0:55), then 'But the shapes are just the first clue...' (2:49.3), then chapters 2-3 (2:55-5:39), then the trimmed history (0:55-1:39 and 2:11-2:21), then 'back in 1875, one man...' (5:39), the subscribe ask and the pyramid chapter. Move the 1973/1976 jokes (2:29.6-2:46.9) to just before 11:34 and drop 'Hold on to him...' and 'Back to that second drip joke'. Needs a reorder tool (edl.py only cuts), new cue placement and a check that 'Bad news: you're not the first to notice' still reads after 'the drip might be just the part you can see'; it may need one bridge line.",
+    "fix_type": "reorder",
+    "effort": "L",
+    "needs_new_voice": false,
+    "expected_effect": "Dig to China starts at ~2:02 and pays off at ~2:15. Perhaps +1-2 points at 3:00 for casual viewers beyond fixes 1 and 11, with real risk to the date order and the loop timing."
+   },
+   {
+    "rank": 22,
+    "t0": 275.8,
+    "t1": 859.41,
+    "problem": "All 109 takes use the default speed, so delivery stays at 3.6-4.2 syllables/s in every minute. The honest part (12:55-14:35) is six long, uniform takes (s091-s096) with no hold over 1.0 s, right where the title question is answered. 'A bent card dipped in water' (6:11.3-6:12.2) is heard as 'a bent car' in 4/4 ASR passes. R4 wants 0.5-0.9-s beats before about 12 punchlines; the audio check finds pausing mostly fine and puts the real risk in these stretches.",
+    "votes": 2,
+    "fix": "Regenerate a few takes, keeping lengths within 0.2 s wherever the picture keys off word times. s046: 'a bent card, dipped in water'. s095: 'So is the drip just a coincidence?' as its own take at speed 0.9, with a ~1.1-s hold. Add a 0.7-1.0-s hold before 'And Africa's real southern tip' (~13:46.8). s064-s065 (the death beat): speed 0.9. s035: split before 'Only about one-eighth', with a 0.5-s pause at speed 0.92, only if 4:36-4:52 is re-rendered anyway. Accept a take only when ASR returns the right words.",
+    "fix_type": "re_voice",
+    "effort": "L",
+    "needs_new_voice": true,
+    "expected_effect": "Breaks the 'one long read' feel in the honest part and lets the key question land; +0.2-0.4 point, mostly in perceived quality."
+   }
+  ],
+  "keep": [
+   "Hook copy 0:00-0:53: 'Spin a globe, and Earth looks like it's melting', the seven-name list, 'dashboard in July' (0:14.7), the myth stated at 0:24.7 and broken at 0:28.9 ('They're not. Not entirely.'), the 0:30 Gondwana flash-forward, and the three-item roadmap ending on 'Eventually.'",
+   "The Bacon loops: 'not to be attributed to mere accident' (1:07.7), paid off by 'It wasn't an accident. It was a breakup.' (16:11-16:14); and 'is there even a southern continent?... Remember that.' (1:15-1:25), paid off at 10:23-10:31.",
+   "The JUICE CHECK verdict stamps: FALSE (1:30), ? (5:52), TRUE (9:52), IT'S COMPLICATED (14:09). They are the brand device, so keep the 1:25-1:39 Bacon myth-bust that carries the first one.",
+   "Chapter 2's set pieces: the poles as photographic negatives, the Arctic dragged onto Antarctica and 'They line up' (3:18-3:45), the first jaw-drop right where the playbook wants it; and the dig from Kansas to the Indian Ocean ending on 'Argentinians' (3:56-4:35).",
+   "The pyramid chapter: the checklist filling to 5/5 on the rotating tetrahedron (6:25-6:47, the film's highest motion), 'Sleep tight, kids' (7:12.6), the pyramid deflating into a ball (7:36-7:39), and 'Real clues. Wrong suspect.'",
+   "The Wegener chapter (8:01-9:58): the letter, 'UTTER, DAMNED ROT', the corridor to the Austria door, the Greenland archive photos, the film's only long pause after 'died.' (9:39.9-9:41.1), and '33 YEARS TOO LATE'.",
+   "The Gondwana breakup (10:32-11:12): the zipper, 'It keeps the house' (10:57.9) and India's 'reckless driving'. It is the best animation in the film; reuse it for the 11:21 drift.",
+   "'The big drips aren't drips at all. They're scars.' (11:29.5-11:33.4), with the on-word 'THE BIG DRIPS ARE SCARS' text and its 1-s pause.",
+   "The Holden thread: 'Hold on to him' (2:45.8) leads to the teardrop continents, the flipped Blue Marble, Pangooy's 'TUESDAY, 9:00 A.M.' (12:07-12:18), the twist (12:19-12:37) and 'Just not on a Tuesday' (15:42).",
+   "The subscribe ask (5:47-5:57): one sentence, 34% in, after a payoff, inside the open 1875 loop, naming what the channel offers.",
+   "The ending mechanics: four named models and the one-word comment prompt (15:29.9-15:37.5), 'Reminder: you're a mammal' (15:52.8), the film strip 'one frame of a very slow movie' (16:14.6), the Ethiopia Y cliffhanger (16:19.7-16:33.5), then a short end screen.",
+   "The sound: 10 chapter music cues with beds 14-19 dB under the voice, -14 LUFS, no clipping or dead air. The reveal stings on 'Eventually', 'They're scars' and 'Here's the twist' are clear in the speech band, so leave them."
+  ],
+  "disagreements": "1) Opening motion: R2 credits the hook with 'motion from frame 1'. R1, R3 and R4 say the globe is still. Frame grabs settle it: frames 0-90 are identical and the arcs start at 0:03.3, so R1, R3 and R4 are right.\n2) The history block: R1 wants a big reorder (other side and dig to China first); R3 and R4 want cuts; R2 wants a ~15-s trim. Cuts come first, because they are an S-effort edl.py pass that keeps the date order and every plant; the reorder stays optional (fix 21). They also disagree on which part to cut. R1 would drop the Bacon myth-bust (1:25.9-1:39.1) and keep Forster; R3 drops Forster. R3 is more likely right: the myth-bust carries the first JUICE CHECK stamp, while Forster plants nothing and holds five bug-finder defects. On the re-read list (2:21-2:29), R1 and R4 would cut it and R2 would keep the callback; the plan cuts the list and keeps the 'exact list you saw at the start' line.\n3) SFX masking: R2 and R4 say the impact hits bury 'Eventually', 'They're scars' and 'Here's the twist'. The audio check measured the hits below 300 Hz, with the voice 15-40 dB clear at 1-4 kHz and ASR at 0.93-1.00, so the audio check is right. Only the record scratch at 9:48.5 needs moving.\n4) Names: R2 would re-voice Villumsen, Amasia and Wegener. The audio check clears all but 'Wegener' at 9:50.4 (Villumsen's V/W is uncheckable and not shown on screen; Amasia is clear and labelled), and it is right. Fix that one name with a paste from 8:58.2.\n5) Pacing: R4 calls the narration wall-to-wall (pacing.md lists one pause over 1.2 s). The audio check counts 407 pauses, with 1.5-1.8-s holds on the big beats, and puts the real risk only at 4:00-5:15 and 12:55-14:35. The audio check is more likely right, so the plan uses targeted holds (fix 22), not a global re-time.\n6) Nevada: R3 would cut it; R4 would animate the blob. Cut it: it comes after both payoffs, it is off-question, and cutting is cheaper.\n7) Florida: R3 would cut it; R1, R2 and R4 would trim and animate it. The majority is right: Florida is named in the hook and its gag lands.\n8) The flipped Blue Marble aside (11:54-12:07): R1 would cut it; R4 lists it as a strength. Keep it: it is a true, surprising fact on a moving picture. Just silence the 12:03.4 fragment.\n9) 'Now, the honest part, because we're not going to fake you a tidy answer': R4 would delete it as an epilogue signal; R2 counts it as a trust builder. Keep the line and fix the empty frame under it.\n10) 7:36-7:42: R1 would cut it; R2 lists the pyramid deflating into a ball as a strength. Keep it and fix the still 7:16-7:24 hold instead.\n11) R2 would trim the Wegener biography (8:25-8:28, 8:33.5-8:40). R1, R3 and R4 call the chapter the best-built stretch, and R4 singles out the corridor-to-Austria gag. Don't trim.\n12) 9:48.6: R3 calls it a fine one-frame zoom punch; R1 says the card jerks and the whole frame stays dim. Frames show the frame darker from 9:48.73 onward, so R1 is right.\n13) Subscribe: R3 says nothing on screen points to subscribing; R2 and R4 place a pill at ~5:56. Frames show the pill from 5:56.5, so R2 and R4 are right; it just needs to come in 2 s earlier.\n14) 10:34.43: R1 sees one bad frame, R3 a 6-frame shake. It can't be told apart at tile resolution, and it is low severity either way.\n15) R3 would add a 'JUICE CHECK: NOT A COINCIDENCE' stamp at 11:32. Declined: the on-word 'THE BIG DRIPS ARE SCARS' text already lands there, and the stamp would pre-empt the 14:09 'IT'S COMPLICATED' verdict.\n16) Level and exit points: AVD ranges from 28.4% (R1) through 35.3% (R3) and 37.0% (R4) to 42.0% (R2), and the exits from 2:41 (R1) through 12:56 (R4) and 14:04 (R3) to the end (R2). That reflects audience mix, not a factual dispute. The consensus (35.7%) assumes a browse-heavy launch, and the plan targets all three exit zones."
+ }
+}

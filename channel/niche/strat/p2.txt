@@ -1,0 +1,280 @@
+====================================================================================================
+QUERY: grand canyon was under the sea
+SUMMARY: {"query": "grand canyon was under the sea", "n_results": 59, "longform_matching": 26, "longform_matching_100k": 8, "max_longform_matching_views": 10274797, "best_short_views": 8199999, "top_any_views": 10274797}
+  [v]  10,274,797   24m25s  3y ago         The Why Files          | Smithsonian Cover-Up: Ancient Egyptians and Giants in the Grand Canyon
+  [s]   8,199,999    0m00s                                        | How The Grand Canyon Was Formed Demonstration (📸:latortadelchavodel8)
+  [s]   6,600,000    0m00s                                        | Ep.45 Egyptian ruins found in the Grand Canyon?? #ninjasarebutterflies #podcast #sundaycoo
+  [v]   3,246,629   92m40s  2mo ago        thePOVchannel          | The Bottom of the Grand Canyon is Extremely Strange
+  [v]   3,130,839   31m15s  1y ago         Kara and Nate          | We Explored the Secret Village in the Grand Canyon
+  [v]   1,333,984    3m51s  11y ago        Be Smart               | How Was the Grand Canyon Formed?
+  [v]   1,236,588   28m45s  1y ago         Marked Mysteries and M | 6 GRAND CANYON Mysteries They Don't Want You Seeing — Evidence Inside
+  [v]   1,037,419   11m20s  3y ago         Sidetrack Adventures   | We Drove to the Bottom of the Grand Canyon and the Colorado River
+  [v]     785,094    2m21s  10y ago        Smithsonian Channel    | How Was the Grand Canyon Formed?
+  [s]     713,000    0m00s                                        | Something Is Hiding In The Grand Canyon
+  [v]     537,625   11m46s  6y ago         Atlas Pro              | What's the Biggest Canyon on Earth?
+  [s]     533,000    0m00s                                        | How was the Grand Canyon formed?
+  [v]     482,278   45m10s  2mo ago        Space Documentaries    | How the Grand Canyon Was Formed - Secrets of Earth's Deepest Chasm
+  [s]     377,000    0m00s                                        | Deeper Than the Grand Canyon
+  [v]     303,673    1m41s  15y ago        BBC                    | The World's Largest Ocean Canyon - Richard Hammond's Journey to the Bottom of the Ocean - 
+  [s]     206,000    0m00s                                        | The Grand Canyon: Where is it? How was it formed? How deep is it?
+  [v]     165,064   45m10s  11mo ago       Spark                  | The 2 Billion Years Of Earth's History Exposed By The Grand Canyon
+  [v]     109,302   45m10s  4mo ago        Pure Science Docs      | How the Grand Canyon Was Formed - Secrets of Earth's Greatest Chasm
+  [s]      74,000    0m00s                                        | Why the river that carved the Grand Canyon dies 90 miles from the sea
+  [v]      72,731    1m07s  6y ago         MBARI (Monterey Bay Aq | Monterey Canyon: A Grand Canyon beneath the waves
+  [v]      46,804   10m01s  8mo ago        OzGeology              | The Hidden Grand Canyon Beneath The Nile River
+  [v]      45,060    6m16s  3y ago         Is Genesis History?    | Did Massive Lakes Form the Grand Canyon?
+  [s]      43,000    0m00s                                        | Drop Everest Into the Deepest Holes. The Ocean Hides It Under 2 km of Water 🏔️ #Shorts #ev
+  [v]      39,041   27m45s  3mo ago        Origin Decoder         | Scientists Found Something Beneath The Grand Canyon That Rewrites Human History
+  [s]      34,000    0m00s                                        | The Bottom Of Grand Canyon Is Scary!
+====================================================================================================
+QUERY: everest summit seafloor fossils
+SUMMARY: {"query": "everest summit seafloor fossils", "n_results": 54, "longform_matching": 8, "longform_matching_100k": 0, "max_longform_matching_views": 1361, "best_short_views": 41000, "top_any_views": 41000}
+  [s]      41,000    0m00s                                        | Sea Fossils on Top of Mount Everest?! 🤯
+  [v]      39,461    1m01s  9y ago         CMI Video              | Marine Fossils on Mount Everest
+  [v]      35,455    4m01s  2y ago         GeologyHub             | Why Ocean Fossils Exist on the Summit of Mount Everest
+  [s]      29,000    0m00s                                        | Marine fossils at the top of Mt Everest?
+  [s]      25,000    0m00s                                        | 450 Million Year Old Fossils on Mount Everest...
+  [s]      17,000    0m00s                                        | Marine Fossils at the Summit of Mount Everest #fossils  #mountains #everest
+  [s]      10,000    0m00s                                        | The Summit of Everest Is Made of Ancient Seafloor 🏔️
+  [v]       8,090    5m38s  23h ago        Takhti                 | How Did Ocean Fossils Reach the Top of Mount Everest? | اردو | हिन्दी
+  [v]       7,710   41m01s  3w ago         지구다큐관                  | The Peak of Everest Was Once the Ocean Floor | Traces from 460 Million Years Ago
+  [s]       4,000    0m00s                                        | The Top of Everest Was Once the Bottom of the Sea 🏔️ #maps #earth #facts
+  [v]       2,729    4m52s  7mo ago        TheFindTv              | Scientists Discover Ancient Marine Fossils on Mount Everest | TheFindTv 
+  [s]       2,700    0m00s                                        | Why Are There Ocean Fossils on Mount Everest? #shorts
+  [s]       2,600    0m00s                                        | Ocean fossils on Everest! 🏔️🌊 #mountains #didyouknow #shorts
+  [s]       2,500    0m00s                                        | Why Everest Has Sea Fossils on Top 🇳🇵🇨🇳
+  [s]       2,100    0m00s                                        | Everest's Summit Is a 450-Million-Year-Old Seafloor 🐚
+  [v]       1,835   21m10s  6mo ago        SANDICHEM              | MARINE FOSSILS ON EVEREST'S PEAK: EVIDENCE THAT EARTH WAS ONCE DIFFERENT!
+  [s]       1,700    0m00s                                        | The top of Everest is an old sea floor 🐚 #nature #science #fyp
+  [v]       1,521   23m37s  1mo ago        LO OCULTO and SUPERVIV | EVEREST HIDES AN ANCIENT OCEAN: How Did Sea Life Reach the Top?
+  [s]       1,400    0m00s                                        | Why Are There OCEAN FOSSILS on Top of Mount Everest?! 🤯
+  [v]       1,361   24m12s  1mo ago        Oculterra              | Nepal: The mystery of the marine fossils on the summit of Everest 4K
+  [s]       1,300    0m00s                                        | Marine Fossils on the Summit of Mount Everest #MountEverest #Geology #ScienceFacts #Himala
+  [s]       1,100    0m00s                                        | Why Are There Sea Fossils on Everest? How Mount Everest Was Formed
+  [s]       1,100    0m00s                                        | Why are there sea fossils on top of Mount Everest?
+  [s]       1,000    0m00s                                        | Everest Was Once Ocean Floor 🌊 — Fossils on the Summit #Shorts
+  [v]         922   58m56s  13y ago        Digital Commons @ Mont | Seafloor to Summit: The Birth of Everest
+====================================================================================================
+QUERY: death valley lake manly
+SUMMARY: {"query": "death valley lake manly", "n_results": 61, "longform_matching": 29, "longform_matching_100k": 1, "max_longform_matching_views": 157370, "best_short_views": 61000, "top_any_views": 293217}
+  [v]     293,217   17m26s  10mo ago       Sin City Outdoors      | The Hottest Place on Earth has Flooded!
+  [v]     157,370   24m48s  3y ago         Wonderhussy Adventures | Death Valley Life #38: A Day at Lake Manly and a Tour of Our Guest Trailer
+  [v]      88,920   17m37s  2y ago         Wonderhussy Adventures | Canoeing on Lake Manly in Death Valley's Badwater Basin With Better Call Paul
+  [v]      69,487   10m23s  2y ago         California Through My  | Exploring Death Valley's Lost Lake at the Lowest Point in North America
+  [s]      61,000    0m00s                                        | Death Valley's ancient lake has returned after record rainfall
+  [s]      60,000    0m00s                                        | Lake Found In Death Valley 😱
+  [v]      53,725   14m43s  2y ago         FlyingDawnMarie        | 239: Kayaking at BADWATER BASIN on Lake Manly (Death Valley National Park)
+  [v]      53,514   18m05s  2y ago         Ride to Food           | Solo Motorcycle Trip to DEATH VALLEY! (Dante's View, Lake Manly, Beatty, and more!)
+  [s]      51,000    0m00s                                        | Kayakers take advantage of temporary Death Valley lake
+  [v]      18,257   12m15s  2y ago         Robert Witham          | Ancient Lake Manly Reappears at Badwater Basin in Death Valley
+  [s]      11,000    0m00s                                        | Death Valley’s Ancient Lake is BACK!
+  [s]       7,900    0m00s                                        | Lake Manly at Badwater Basin in Death Valley
+  [s]       5,200    0m00s                                        | Lake Manly in Death Valley is typically cracked & dry. But there was actual water for seve
+  [v]       5,093   39m58s  3mo ago        The Hidden States      | Death Valley Is Hiding Something Nobody Talks About
+  [s]       3,700    0m00s                                        | Lake Manly / Badwater Basin 🏜️💦
+  [v]       3,549    2m16s  10mo ago       Mountain Guy Adventure | Death Valley Under Water!  Lake Manly is back in 2026 after recent winter rains 
+  [s]       3,200    0m00s                                        | Lake Manly in Death Valley had water in it for the first time in 10 years! #travel #deathv
+  [v]       2,531   34m33s  2mo ago        After Hours Archive    | Death Valley Is Far More Dangerous Than You Realize
+  [v]       2,235   35m12s  3w ago         American Bedrock       | Geologists Just Found Out What California’s Death Valley Actually Is
+  [v]       1,822    1m27s  2y ago         ABC News               | By The Numbers: Lake Manly
+  [s]       1,800    0m00s                                        | Lake Manly.  #deathvalleynationalpark @DeathValleyNP
+  [s]       1,800    0m00s                                        | Lake Manly at North America's lowest point, Death Valley #travel #shorts #nationalpark #de
+  [s]       1,100    0m00s                                        | Badwater Basin | Standing Alone in Ancient Lake Manly | Death Valley, CA
+  [v]       1,048    9m15s  10mo ago       Happy Trails Hiking    | Death Valley National Park with Lake Manly
+  [s]       1,000    0m00s                                        | What it's really like to visit Lake Manly at Death Valley #bts #desert #deathvalley #lakem
+====================================================================================================
+QUERY: california fall into the ocean san andreas
+SUMMARY: {"query": "california fall into the ocean san andreas", "n_results": 55, "longform_matching": 12, "longform_matching_100k": 2, "max_longform_matching_views": 682947, "best_short_views": 109000, "top_any_views": 3133320}
+  [v]   3,133,320    8m25s  7y ago         Insider Science        | What If A Mega Earthquake Hit California
+  [v]   1,440,773   14m58s  2y ago         Insane Curiosity       | Why Recent Unusual Activities in the San Andreas Fault Could Trigger a Major Earthquake
+  [v]     682,947   28m37s  4mo ago        Vanished Worlds        | SAN ANDREAS: The Big One That Could Destroy California
+  [v]     447,012   28m40s  1y ago         Places                 | The Natural Disaster That Could Obliterate California...
+  [v]     409,871   13m27s  3mo ago        Nick Jackson           | LA Won't Fall Into the Ocean. It's Doing Something Weirder.
+  [v]     250,428   28m29s  5d ago         Critical Latitude      | Everything We Know About the San Andreas Fault - And What's Building Up Beneath It
+  [v]     138,471    8m30s  2y ago         Shawn Willsey: Geology | The Southern Tip of the San Andreas Fault in California's Salton Trough
+  [v]     126,897   28m03s  1mo ago        On the Pulse with Silk | 4 Earthquake Clusters Strike Southern California at Once — Is the San Andreas About to Rup
+  [s]     109,000    0m00s                                        | What If California Fell Into The Ocean?
+  [s]     106,000    0m00s                                        | The Shocking Truth About the San Andreas Fault Revealed!
+  [v]      70,960   16m01s  4mo ago        Geology with Solomon   | Is The San Andreas Fault Finally Waking Up? Geologist Explains
+  [v]      51,189   20m24s  2mo ago        Breakpoint             | California's "Big One" Just Got a Terrifying New Warning—Here's What Scientists Are Saying
+  [v]      49,377    8m05s  10mo ago       Geology Watch          | CALIFORNIA ALERT: The San Andreas Fault Has Snapped—The Western State is Literally SLIDING
+  [s]      49,000    0m00s                                        | Kai Experienced The Legendary Voice Line In GTA San Andreas! 🔥
+  [s]      45,000    0m00s                                        | San Andreas Fault: The Deadly Threat Beneath California | Earthquake Risk Explained
+  [v]      43,728   24m01s  3mo ago        On the Pulse with Silk | MOVEMENT Beneath California DETECTED !! Is the BIG ONE Getting Closer?
+  [s]      42,000    0m00s                                        | Disaster scenes | San Andreas Fault | Movie Clip #shorts #disastermovies #earthquake #tsun
+  [v]      40,611   21m51s  3mo ago        Canadian Weather Alert | If The San Andreas Snaps, These California Cities Fall First
+  [v]      39,044    2m09s  2y ago         Alluring Planet        | San Andreas Fault: A Geological Marvel of California | 2 Minutes Video!
+  [s]      24,000    0m00s                                        | This Giant Crack Is Slowly Splitting California!
+  [v]      22,224  135m09s  1mo ago        Snoozy Science         | The Overdue Megaquake That Will Split California
+  [s]      22,000    0m00s                                        | California falling into the ocean
+  [v]      20,944   22m58s  3mo ago        Canadian Weather Alert | If The San Andreas Snaps, These 7 California Cities Fall First
+  [v]      13,727   21m52s  3mo ago        BRIGHT SIDE            | California's Most Dangerous Fault Is Moving Again
+  [v]      13,318   23m36s  2d ago         Breakpoint             | If The San Andreas Goes, All Of California Will Feel It - And The Signs Are Stacking Up
+====================================================================================================
+QUERY: yellowstone magma chamber mostly solid
+SUMMARY: {"query": "yellowstone magma chamber mostly solid", "n_results": 58, "longform_matching": 5, "longform_matching_100k": 0, "max_longform_matching_views": 12880, "best_short_views": 2600000, "top_any_views": 5804758}
+  [v]   5,804,758    3m30s  11y ago        Smithsonian Channel    | Why the Yellowstone Supervolcano Could Be Huge
+  [s]   2,600,000    0m00s                                        | How Did Yellowstone Form  🌋🔥   The Supervolcano Beneath Yellowstone Explained
+  [s]     755,000    0m00s                                        | Hydrothermal eruption at Yellowstone sends tourists running
+  [v]      35,631    0m47s  11y ago        New Scientist          | Hidden magma found under Yellowstone volcano
+  [v]      32,897    3m41s  1y ago         USGS                   | Yellowstone's Magma Chamber - A Hot Mess! (Yellowstone Monthly Update - June 2025)
+  [s]      31,000    0m00s                                        | Yellowstone's Massive Magma Chamber 🌋
+  [s]      27,000    0m00s                                        | When I saw this in Yellowstone National Park, my mind was BLOWN by how big the magma chamb
+  [v]      16,398   20m27s  4mo ago        Canadian Weather Alert | Yellowstone Supervolcano JUST RUMORED To Have A New Eruption Risk!
+  [v]      12,880   10m47s  1y ago         Earthly                | Yellowstone’s Magma Chamber Is Moving! Signs Of An Eruption?
+  [v]       9,862   35m06s  7mo ago        Elias Stone            | 1 MIN AGO: Yellowstone's Magma Chamber SWELLS 14 Inches — "We've Never Seen This Before"
+  [v]       8,886   20m22s  8mo ago        Dr. Hendric Bale - Nat | The U.S. Is Drilling 6 Miles Beneath the Yellowstone Supervolcano — And Hit Something Unex
+  [v]       4,538   18m52s  3mo ago        The Brilliant          | Scientists Say the Yellowstone Supervolcano Is Moving Into a Dangerous New Phase
+  [v]       3,006   93m53s  9mo ago        Bright Side Global     | A Massive Hole Has Formed in Yellowstone Overnight — Is This the Beginning?
+  [v]       2,516   26m54s  4mo ago        US Weather Alert and C | Yellowstone Magma Chamber Is EXPANDING — What Scientists Found Beneath It Is Alarming
+  [v]       1,342   26m08s  6mo ago        Flash Discovery        | Scientists Dropped a Probe Into Yellowstone's Supervolcano — What It Recorded Shouldn't Be
+  [v]       1,129    9m52s  1y ago         Space & Sun            | A Manhattan-Sized Magma Chamber Just Found Under Yellowstone 😱🌋
+  [s]       1,100    0m00s                                        | Imagine If Yellowstone Erupted: Its Ash Could Reach New York #shorts #yellowstone #volcano
+  [v]         891   21m42s  1mo ago        Xyron                  | What’s Actually Happening Inside Yellowstone’s Magma Chamber Right Now
+  [s]         792    0m00s                                        | Is Yellowstone Overdue for an Eruption?
+  [s]         562    0m00s                                        | Yellowstone Magma Chamber Deep Dive #shorts #geology
+  [s]         528    0m00s                                        | Yellowstone Isn't Overdue. Its Magma Is Mostly Solid
+  [v]         513   76m04s  8y ago         Geologists of Jackson  | Dynamics of a Magma Chamber Using Zircons-A Fine Art
+  [v]         434   20m29s  5mo ago        US Weather Alert and 2 | Shocking Images Of Yellowstone Thermal Explosion Risk — Tourists Standing Above Pressure Z
+  [s]         409    0m00s                                        | The magma chamber under Yellowstone is mostly solid
+  [s]         372    0m00s                                        | How Much of Yellowstone's Magma Is Molten?
+====================================================================================================
+QUERY: niagara falls moving retreat
+SUMMARY: {"query": "niagara falls moving retreat", "n_results": 53, "longform_matching": 13, "longform_matching_100k": 2, "max_longform_matching_views": 1484655, "best_short_views": 1300000, "top_any_views": 1916840}
+  [v]   1,916,840  480m00s  3y ago         Soothing Sleep Sounds  | Sleep to the Soothing Sounds of a Powerful Waterfall - Relaxing White Noise for Deeper Sle
+  [v]   1,503,356   25m06s  2y ago         Walk With Me Tim       | I Stay In A Treehouse Hotel! - I Wasn't expecting this!
+  [v]   1,484,655   20m17s  1y ago         IT'S HISTORY           | Why Niagara Falls Looked Way Different in 1901
+  [v]   1,335,416  605m53s  5y ago         Nature Zilla           | Calming Powerful Mountain Waterfall and River. Relaxing Nature Sounds. (10 Hours, 4K). Whi
+  [s]   1,300,000    0m00s                                        | Niagara Falls Walks Back
+  [v]     712,715   80m00s  1y ago         8K Paradise            | Experience Powerful Waterfalls in 8K (Dolby Vision™) HDR | 8K VIDEO ULTRA HD
+  [v]     174,354    8m29s  4y ago         Discovery UK           | The Legendary History Behind Niagara Falls | Legendary Locations
+  [v]      66,712   48m12s  5mo ago        Island Max             | Negril UNFILTERED: The Side That Tourists NEVER See (2026)
+  [v]      62,127   22m21s  3mo ago        Roof Line              | 8 Dirt Cheap MOVE IN READY New York Farmhouses You Can Still Buy in 2026
+  [v]      60,662   45m19s  3mo ago        Pure Physics           | Ice Carved the Great Lakes: Kelly's Island Grooves, Niagara's Moving Clock
+  [v]      45,530   60m13s  4w ago         Lvfree Adventures      | Fall Road Trip - Algonquin Park and Muskoka Autumn Best Places to see Foliage | 4K
+  [s]      39,000    0m00s                                        | Why They Turned Off Half of Niagara Falls
+  [v]      11,095    5m22s  3y ago         Should We Live Here    | 7 Reasons NOT to MOVE to Niagara Falls - Better to Just Visit
+  [v]       4,775   27m08s  3y ago         Fisayo Ariyo           | Canada Vlog🇨🇦:Come with me to work at Niagara Falls|Airbnb Tour|Explore Niagara on the lak
+  [v]       2,218   27m59s  1y ago         Living in Niagara ON   | Best and Worst of Crystal Beach | What Is It Really Like to Live in Niagara ON?
+  [v]       1,949   21m27s  4w ago         ПУТЕШЕСТВЕННИК Sablin2 | Edipsos Was a Pleasant Surprise! In the City: Waterfalls, a Cave, a Park, and the Best The
+  [s]       1,900    0m00s                                        | Why Niagara Falls Is Moving Upstream | Niagara Gorge Erosion Explained #Shorts
+  [v]       1,887   31m10s  4w ago         The Dig Ledger         | In 1969 Niagara's American Falls Went Dry. Nearly 90,000 People Came to See It
+  [s]       1,600    0m00s                                        | Why Niagara Falls Keeps Moving Upstream
+  [s]       1,400    0m00s                                        | Niagara Falls Moved 7 Miles—Here’s Why 💀🌊
+  [v]       1,303   33m39s  3y ago         Louise Ware-Armstrong  | 📍Ontario Staycation, Irondale | AirBnB, Tall Pines Nature Retreat, L'Orange Yurt
+  [s]       1,300    0m00s                                        | Why Niagara Falls Now Moves 10 Times Slower #shorts
+  [s]       1,300    0m00s                                        | Why Niagara Falls Retreats Upstream
+  [s]       1,200    0m00s                                        | Niagara Falls Is Still Moving 😳 | The Secret Behind The World's Most Famous Waterfall
+  [v]       1,155   23m53s  2mo ago        Jessica Karam          | TORONTO VLOG 🍁🇨🇦 exploring the city, niagara falls, and café hopping
+====================================================================================================
+QUERY: lituya bay wave run up
+SUMMARY: {"query": "lituya bay wave run up", "n_results": 50, "longform_matching": 14, "longform_matching_100k": 0, "max_longform_matching_views": 60692, "best_short_views": 3000000, "top_any_views": 3000000}
+  [s]   3,000,000    0m00s                                        | Lituya Bay's Famous 1,720-Foot Wave Never Existed #shorts
+  [s]   3,000,000    0m00s                                        | Tallest Tsunami Ever Recorded | Lituya Bay, Alaska (1958)#shorts
+  [s]   2,000,000    0m00s                                        | The worlds largest recorded Tsunami (500 m) 🤯🌊
+  [s]     612,000    0m00s                                        | The Lituya Bay Tsunami: The Largest Recorded Wave
+  [s]     100,000    0m00s                                        | Alaska's Monster Wave: The 1958 Lituya Bay Tsunami
+  [v]      60,692   30m46s  3mo ago        FAULT LINES            | LITUYA BAY: The 1,720-Foot Wave That Shouldn't Exist
+  [s]      35,000    0m00s                                        | How Alaska's Record Tsunami Reached 524 m Above Sea Level
+  [s]      18,000    0m00s                                        | The Wave That Stripped Trees 1,719 Feet Up
+  [s]      15,000    0m00s                                        | 🌊 The 1,700-Foot Wave #shorts #history #mystery #viral #tsunami #huge #amazing #alaska #di
+  [v]      10,737   73m07s  4d ago         Earth in Hindsight     | Lituya Bay: The Terrifying Truth About The Largest Wave Ever Recorded
+  [s]      10,000    0m00s                                        | Lituya Bay Megatsunami: 1,720ft Wave Run-Up #historyshorts #history #tsunami
+  [s]       5,700    0m00s                                        | This Wave Ran 1,720 Feet Up a Mountain (Lituya Bay, 1958)
+  [s]       4,500    0m00s                                        | The Largest Tsunami Runup Ever Recorded — And People Were Below It
+  [s]       1,300    0m00s                                        | The Wave That Climbed 1,719 Feet: Inside the 1958 Lituya Bay Megatsunami #Shorts
+  [s]       1,200    0m00s                                        | The Wave That Climbed 1,740 Feet | Lituya Bay’s Megatsunami
+  [s]       1,200    0m00s                                        | The Tallest Wave Ever Recorded 🌊😱
+  [v]       1,113   79m30s  1mo ago        Fictional Radio Broadc | Lituya Bay 1958: The Wave That Shouldn’t Exist | Megatsunami | Fictional Radio Broadcast!
+  [s]       1,100    0m00s                                        | Lituya Bay: The Tallest Wave Ever Recorded
+  [s]       1,100    0m00s                                        | The 1,700-Foot Wave That Really Happened
+  [s]       1,000    0m00s                                        | Lituya Bay 1958: The 1,720-Foot Wave Nobody Believed #shorts
+  [v]         686   15m05s  3w ago         The Saster             | The Mega-Tsunami That Created the Tallest Wave Ever – Alaska 1958
+  [v]         637    2m55s  1mo ago        Earth’s Giants         | The Tallest Wave Ever Recorded Was 524 Meters — And There Were Survivors.
+  [s]         469    0m00s                                        | Lituya Bay (1958): The Wave That Climbed a Mountain
+  [v]         422   22m29s  2mo ago        GeoNautical            | The Story of the 524 Meter High Mega Tsunami
+  [v]         381   21m18s  2w ago         Planet Evidence        | The Lituya Bay Tsunami That Climbed a Mountain
+====================================================================================================
+QUERY: karl bushby bering strait walk
+SUMMARY: {"query": "karl bushby bering strait walk", "n_results": 56, "longform_matching": 8, "longform_matching_100k": 2, "max_longform_matching_views": 1459125, "best_short_views": 61000000, "top_any_views": 61000000}
+  [s]  61,000,000    0m00s                                        | 27 Years to Walk Around the World 😱 The Longest Distance in History🚶‍♂️
+  [s]  13,000,000    0m00s                                        | He Walked Around the ENTIRE World for 28 Years🤯🚶‍♂️| Karl Bushby
+  [s]   2,500,000    0m00s                                        | He Tried To Walk Around The Earth…😳🌍
+  [v]   1,459,125   12m40s  4w ago         Global News            | Adventurer Karl Bushby arrives home in UK after 28-year walk
+  [v]   1,245,465    5m59s  5d ago         BBC News               | British adventurer Karl Bushby completes 28-year journey | BBC News
+  [s]   1,200,000    0m00s                                        | He Walked From Chile to England… It Took 28 Years
+  [s]   1,200,000    0m00s                                        | Karl Bushby Walked Home For 28 Years 🥾
+  [s]     755,000    0m00s                                        | He Walked Around THE ENTIRE WORLD! (28 Years)
+  [s]     602,000    0m00s                                        | 28 Years to Walk Around the World 😱 The Longest Distance in History 🚶‍♂️#karlbushby #geogr
+  [s]     541,000    0m00s                                        | Karl Bushby - Walking through the channel tunnel
+  [v]     468,037   10m44s  5d ago         ITV News               | Watch the moment Karl Bushby and his mum are reunited after completing 28-year walk around
+  [s]     187,000    0m00s                                        | Karl Bushby's INCREDIBLE three decade WALK around the world
+  [v]     185,831    2m44s  4d ago         NBC News               | British adventurer Karl Bushby completes 28-year walk around the world
+  [s]     145,000    0m00s                                        | British adventurer arrives home after 28-year walk
+  [v]     136,765    7m56s  5d ago         Sky News               | A hug 28 years in the making - Karl Bushby reunited with mother after walking around world
+  [s]     118,000    0m00s                                        | Karl Bushby Returns Home After 28-Year Walk Across the World | Mo of Everything
+  [s]     103,000    0m00s                                        | Crossing the Darien amongst gators
+  [s]      71,000    0m00s                                        | He Walked Around the World for 28 Years! The Karl Bushby Story
+  [s]      70,000    0m00s                                        | Karl Bushby: He Tried to Walk from Chile to England — 27 Years Later… #shorts
+  [s]      62,000    0m00s                                        | Adventurer Karl Bushby see's his mother again after 28 years after epic walk from South Am
+  [v]      60,762   59m51s  1y ago         Lee Matthews Elite pod | A Paratrooper's Epic 25-Year Walk - Karl Bushby (Elite Podcast #24)
+  [v]      47,878   52m59s  8y ago         The Crew               | THE TRAVELER FILM - Man walks across Bering Strait and Russia and rides bike to China
+  [v]      47,501    6m45s  19y ago        BullEntertainment      | Karl Bushby - Goliath Expedition (Part 1 of 4)
+  [v]      43,339   23m08s  Streamed 5d ago Associated Press       | LIVE: British adventurer Karl Bushby arrives home after 28 years walking across the world
+  [v]      39,597   29m22s  10y ago        Nexus Expedition       | BBC 2006 Inside Out  Bering Strait crossing
+====================================================================================================
+QUERY: crater lake mount mazama
+SUMMARY: {"query": "crater lake mount mazama", "n_results": 60, "longform_matching": 21, "longform_matching_100k": 2, "max_longform_matching_views": 146390, "best_short_views": 12000000, "top_any_views": 12000000}
+  [s]  12,000,000    0m00s                                        | The Cursed Stump of Crater Lake
+  [v]     146,390    6m20s  2y ago         Cascade PBS            | Mount Mazama Blows Its Top | Mossback's Northwest
+  [v]     130,338    3m30s  7y ago         CraterLakeNPS          | Mount Mazama Collapse - Animated
+  [s]     111,000    0m00s                                        | Crater Lake is not a crater. It is a collapsed 12,000-foot volcano.
+  [v]     106,344   23m23s  1mo ago        Prideledge and Doomed  | Most STUPID Crater Lake Deaths Ever Recorded
+  [v]      67,159    6m53s  2y ago         GeologyHub             | The Active Volcano in Oregon; Crater Lake
+  [v]      65,471    3m24s  11y ago        hugefloods             | Mount Mazama Ash from Crater Lake volcano eruption 7,700 years ago
+  [s]      59,000    0m00s                                        | 🌋💙 Crater Lake: The Mysterious Lake Hidden Inside an Ancient Volcano! 🌊✨ #shorts #oregon #
+  [v]      39,972   24m27s  1mo ago        Lost Chronicle         | Scientists Sent a Camera to Crater Lake’s Bottom — What It Found Was SHOCKING
+  [s]      37,000    0m00s                                        | Crater Lake Blows Beside Our Tour Boat 🚤🌋 Phones Slam the Rail!
+  [s]      34,000    0m00s                                        | Crater Lake Volcano's Preceding Explosive Eruption; Llao Rock
+  [v]      32,001    9m15s  3y ago         Mysterious Archaeology | Revealed: The Long-Lost Legend That Tells of a Volcanic Doomsday!
+  [v]      30,898   32m19s  8mo ago        OfficialFaultLineMedia | Oregon's Volcanoes: The Sleeping Giants Ready to Destroy Everything
+  [v]      30,053    0m24s  5y ago         metfan869              | Crater Lake Animation
+  [v]      15,527    5m22s  6y ago         CraterLakeNPS          | The Collapsing Volcano - Virtual Junior Ranger Activity
+  [v]       8,775   20m38s  12d ago        syeda muhibba Banu     | Geologists Found Out What Oregon’s Crater Lake Actually Is
+  [v]       8,557   35m40s  2w ago         The Unmarked Ground    | Something About Oregon’s Crater Lake No Longer Makes Sense
+  [s]       6,700    0m00s                                        | The Secret History of Crater Lake: Why It's One of the Deepest Lakes on Earth
+  [v]       5,146   28m03s  9mo ago        Astrum Mystery         | Experts Warn: Crater Lake’s Next Eruption Could Defy Everything We Think We Know!
+  [v]       4,039   22m19s  2w ago         Atlas Unfolded         | Crater Lake Is a 12,000-Foot Volcano That Collapsed Into Itself 7,700 Years Ago
+  [s]       3,100    0m00s                                        | Crater Lake, Oregon formed when Mount Mazama's volcano collapsed on itself about 7,700 yea
+  [s]       2,800    0m00s                                        | Deepest in the United States? #shorts #trending #mountain #eruption #usa #geography #orego
+  [v]       2,705   22m57s  5mo ago        Discover Tube          | Scientists Keep Finding Impossible Things Beneath Crater Lake
+  [s]       2,500    0m00s                                        | Crater Lake: Why America's Deepest Lake is a Lie
+  [s]       1,900    0m00s                                        | HOW A VOLCANO CREATED CRATER LAKE
+====================================================================================================
+QUERY: tristan da cunha 1961 eruption evacuation
+SUMMARY: {"query": "tristan da cunha 1961 eruption evacuation", "n_results": 57, "longform_matching": 1, "longform_matching_100k": 0, "max_longform_matching_views": 57555, "best_short_views": 1900, "top_any_views": 227289}
+  [v]     227,289   22m46s  1y ago         The History Chap       | Tristan da Cunha: Britain's Most Remote Colony & The Forgotten Garrison
+  [v]      57,555   20m16s  9y ago         The Royal Society      | Volcanic Eruption on Tristan da Cunha, 1961 - Objectivity
+  [v]      34,272    4m55s  16y ago        theworldvideos1        | TRISTAN DA CUNHA - Mary Swain
+  [v]       7,795    2m25s  9y ago         Southampton on Video   | A Home by the Sea Tristan Da Cunha Survivors At Southampton 1961
+  [v]       4,291   42m35s  3w ago         Living The Unseen      | How People Live In Tristan | Why 270 People Refuse to Leave The World’s Most Isolated Isla
+  [v]       4,074   31m37s  2mo ago        Geo Tricolore          | Why The Most ISOLATED Town on Earth WON'T LET YOU IN
+  [v]       3,553   60m34s  4mo ago        Kori Inu               | How People Live Cut Off From the World |Tristan da Cunha | 4K Documentary
+  [s]       1,900    0m00s                                        | They Escaped a Volcanic Eruption… Then Returned to the Island! 😳
+  [s]       1,700    0m00s                                        | In 1961, a volcano emptied an entire island. All 264 people left. #Shorts #TristanDaCunha 
+  [v]       1,577   29m20s  1mo ago        Folkvoya               | Why Did They Return to the World’s Most Remote Island? | Tristan da Cunha 4K
+  [v]       1,305   11m15s  6d ago         SightseeingSprints     | Why Did They Return to the World's Most Remote Island
+  [s]       1,300    0m00s                                        | The Island That Had to Escape a Volcano! 🌋 | Tristan da Cunha 1961
+  [s]       1,300    0m00s                                        | Tristan da Cunha: would you move back after this volcano?
+  [s]       1,300    0m00s                                        | How Did Tristan da Cunha Return Home? #Shorts
+  [s]       1,200    0m00s                                        | Tristan da Cunha, 1961: the islanders who chose to go back to the volcano
+  [s]       1,200    0m00s                                        | The World's Most Isolated Inhabited Island 🌍 #Geography #tristandacunha #remoteisland #Geo
+  [v]       1,156   21m52s  2mo ago        Extraordinary Places ( | The Extraordinary Story of Tristan da Cunha: The Island That Chose the Volcano
+  [s]       1,100    0m00s                                        | A Volcano Erupted. 148 of Them Voted to Go Back #Shorts
+  [s]         768    0m00s                                        | The Island That Went Home to Its Volcano
+  [s]         672    0m00s                                        | Tristan da Cunha: The Most Isolated Island Where 236 People Live 6 Days From Civilization
+  [v]         604   24m33s  2mo ago        Why Here?              | Why People Live on Tristan da Cunha? | An Island With No Airport | 4K Travel
+  [v]         385   21m31s  2w ago         Who Lives Here?        | What Is It Like Living on the Most REMOTE Island on Earth?
+  [s]         368    0m00s                                        | Uncovering the 1961 Volcano Eruption's Impact on Island Life
+  [v]         339   18m20s  2w ago         Hidden World Revealed  | How People Live on Tristan da Cunha | Volcano Forced 264 Out, They Came Back | 4K Document
+  [v]         320   56m31s  2mo ago        Erased From Earth      | Living in Tristan da Cunha | 236 People on Earth's Most Remote Island | 1,750 Miles From L

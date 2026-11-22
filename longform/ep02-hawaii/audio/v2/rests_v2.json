@@ -1,0 +1,54 @@
+{
+ "stem": "stems_v2/music.wav",
+ "drop_db": 12.0,
+ "min_s": 0.5,
+ "rests": [
+  {
+   "t0": 264.0,
+   "t1": 264.5,
+   "dur": 0.5,
+   "min_db": -54.1,
+   "ref_db": -40.3,
+   "cue": [
+    "M05"
+   ],
+   "class": "xfade"
+  },
+  {
+   "t0": 314.75,
+   "t1": 315.75,
+   "dur": 1.0,
+   "min_db": -56.1,
+   "ref_db": -40.5,
+   "cue": [
+    "M06"
+   ],
+   "class": "card"
+  },
+  {
+   "t0": 412.5,
+   "t1": 413.5,
+   "dur": 1.0,
+   "min_db": -63.4,
+   "ref_db": -39.6,
+   "cue": [
+    "M08"
+   ],
+   "class": "pre_sync"
+  },
+  {
+   "t0": 435.5,
+   "t1": 436.0,
+   "dur": 0.5,
+   "min_db": -50.1,
+   "ref_db": -37.6,
+   "cue": [
+    "M08"
+   ],
+   "class": "card"
+  }
+ ],
+ "n": 4,
+ "classes": "card: within 1 s of a chapter card; xfade: within 1.5 s of a cue start/end; pre_sync: a spotted sync point within 1.5 s after the rest; else unplanned",
+ "unplanned": []
+}

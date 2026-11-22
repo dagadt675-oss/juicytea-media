@@ -1,0 +1,42 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="fonts/fonts.css">
+<script type="importmap">{"imports":{"three":"/three.module.min.js"}}</script>
+<style>html,body{margin:0;background:#000;overflow:hidden}</style></head><body>
+<script type="module">
+// Lab page for the phone-first type + map-graphics system (lab/type/type.js). Same contract as film.html:
+// window.ready, window.renderFrame(f) (pure function of t = f / FPS), window.grabBlob().
+// Timeline: shot A 0-5 s (frames 0-149), B 5-10 s (150-299), C 10-15 s (300-449), S = style card 15-20 s (450-599). q.shot = 'A'|'B'|'C'|'S' pins one shot (frame = local).
+// Layering per frame: WORLD (globe + map graphics) -> post (vignette) -> UI (text, never vignetted/blurred).
+import { Globe } from './lib/globe.js';
+import * as F from './lib/fx.js';
+import * as T from './lab/type/type.js';
+import { build, OVB } from './lab/type/shots.js';
+const P = new URLSearchParams(location.search);
+const W = +P.get('w') || 1920, H = +P.get('h') || 1080, FPS = +P.get('fps') || 30;
+const Q = JSON.parse(P.get('q') || '{}');
+for (const Cx of [CanvasRenderingContext2D]) { const P0 = Cx.prototype, arc = P0.arc; P0.arc = function (x, y, r, a0, a1, ccw) { return arc.call(this, x, y, r > 0 ? r : 0, a0, a1, ccw); }; }
+const comp = document.createElement('canvas'); comp.width = W; comp.height = H; document.body.appendChild(comp);
+const cx = comp.getContext('2d');
+const log = (s) => fetch('/log', { method: 'POST', body: String(s) });
+const api = { W, H, FPS, Q, log, g: null };
+let SHOTS, curOv = null;
+window.ready = (async () => {
+  await Promise.all(['400 100px "Anton"', '800 100px "Barlow Condensed"', '700 40px "Barlow Condensed"', '900 100px "Inter"'].map(f => document.fonts.load(f)));
+  const r = await T.init(H); log('[type] cap ratios ' + JSON.stringify(r));
+  api.g = new Globe(W, H); await api.g.init();
+  SHOTS = await build(api);
+})();
+window.renderFrame = async (f) => {
+  let t = f / FPS, i = Math.min(SHOTS.length - 1, Math.floor(t / 5));
+  if (Q.shot) { i = 'ABCS'.indexOf(Q.shot); }
+  const s = SHOTS[i], lt = Q.shot ? t : t - i * 5;
+  if (s.ov && curOv !== s.ov) { api.g.setOverlay(s.ov, OVB); curOv = s.ov; }
+  cx.setTransform(1, 0, 0, 1, 0, 0); cx.globalAlpha = 1; cx.globalCompositeOperation = 'source-over';
+  cx.fillStyle = '#05070D'; cx.fillRect(0, 0, W, H);
+  T.QC.begin();
+  const t0 = performance.now(); cx.save(); s.world(cx, lt, api); cx.restore();
+  F.post(cx, W, H, f, { vignette: 0.32, grain: 0.035 });
+  const t1 = performance.now(); cx.save(); s.ui(cx, lt, api); cx.restore(); const t2 = performance.now();
+  const qc = T.QC.report(); log(`[typeqc] f=${f} shot=${'ABCS'[i]} texts=${qc.n} minCap@1080=${qc.min}px world=${(t1 - t0).toFixed(0)}ms ui=${(t2 - t1).toFixed(0)}ms${qc.fail.length ? ' FAIL ' + qc.fail.join('|') : ''}`);
+};
+window.grabBlob = () => new Promise(r => comp.toBlob(r, 'image/jpeg', 0.93));
+</script></body></html>

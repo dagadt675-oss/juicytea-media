@@ -1,0 +1,110 @@
+{
+ "run": "wf_9820647a-970",
+ "agent": "a94abd18a3aae2470",
+ "label": "find S9 ch5b 13:02.40",
+ "result": {
+  "segment": 9,
+  "events_reviewed": 19,
+  "findings": [
+   {
+    "id": "S9-1",
+    "t0": 831.033,
+    "t1": 831.133,
+    "frames": "24930 (globe, luma 32.3) -> 24931 (near-black, luma 4.2) -> 24932 (15.3) -> 24933 (27.4) -> 24934 (39.2) -> 24935 (41.6, plate fully up)",
+    "category": "flash_glitch",
+    "severity": "major",
+    "confidence": "high",
+    "what_viewer_sees": "On 'Cape Agulhas', the zoomed-in globe of the Cape cuts to an almost black frame, and the ASTER satellite plate then ramps up over 3 frames. The result is a dark blink at the cut. Every other cut in the segment is clean, so this one stands out as a glitch.",
+    "evidence": "Detector event E8. Exact-frame mean luma: f24929 32.3, f24930 32.3, f24931 4.2, f24932 15.3, f24933 27.4, f24934 39.2, f24935 41.6. Motion energy at 24931-24934 is 28.4 / 11.1 / 12.1 / 11.9, then 2.9. I viewed 24928-24935 at full rate: 24931 is black with only a faint ghost of the plate.",
+    "likely_cause": "M2 (the ASTER plate) has fadeIn 0.12, but LM ends exactly at M2's start (LMb = M2a = M.agul - 0.07). film.html draws a fading scene into layerA and composites it at alpha lt/fadeIn over whatever was already drawn that frame. LM is no longer active, so all that is underneath is the #05070D background, and the 'fade' becomes a dip from black. ch4 and ch5b scene B1 avoid this by overlapping the outgoing scene by the fade length (e.g. B1a = A_end - 0.4). M2 is missing that overlap.",
+    "code_location": "engine/www/ep/ep01/ch5b.js:700 (LMb = M.agul - 0.07), :734 (M2a = LMb), :755 ({ fadeIn: 0.12 }); compositing in engine/www/film.html:67-71",
+    "suggested_fix": "Make it a real crossfade. At ch5b.js:700 set LMb = M.agul - 0.07 + 0.12, and at ch5b.js:734 set const M2a = M.agul - 0.07 (instead of = LMb). LM then keeps drawing for the 0.12 s fade; scenes are drawn in t0 order, so LM lands first and M2 composites over it. Alternatively, delete { fadeIn: 0.12 } at :755 for a clean hard cut like the rest of the chapter. Re-render chunk 55 (frames 24750-25199)."
+   },
+   {
+    "id": "S9-2",
+    "t0": 850.6,
+    "t1": 850.633,
+    "frames": "25518 -> 25519 (E12)",
+    "category": "jump_snap",
+    "severity": "minor",
+    "confidence": "medium",
+    "what_viewer_sees": "The 'IT'S COMPLICATED' globe hard-cuts to the scars globe at almost the same size, the same screen position and the same heading, only tilted 25 deg south. The red Africa/India mass jumps up by about a quarter of the disc in one frame, and the stamp and coin vanish. With the same subject and framing, it reads as a skipped chunk (a jump cut) rather than a new shot.",
+    "evidence": "E12 strip, plus frames 25517-25520 at 960 px. The disc centre is unchanged and the radius changes about 8% (alt 2.885 -> 3.2). The heading is matched: N1 ends at 0 + 1.2 deg/s x 5.97 s = 7.2 deg, and N2 starts at 8 deg. Only the latitude jumps (-30 -> -55). The other globe-to-globe cuts here (E10, E13, E14) change hemisphere or zoom and read as normal cuts.",
+    "likely_cause": "N1 and N2 are separate globe shots joined by a plain cut, with keys at lat -30 (end of N1) and lat -55 (start of N2). Everything else in the framing is matched, which is exactly what makes it a jump cut.",
+    "code_location": "engine/www/ep/ep01/ch5b.js:790 (N1 keys), :806-807 (N2 keys and look)",
+    "suggested_fix": "Replace the jump with a camera tilt. At ch5b.js:806 change N2's keys to [{ t: N2a, lat: -30, lon: 16, alt: 2.9, heading: 7.2 }, { t: N2a + 0.8, lat: -55, lon: 15, alt: 3.2, heading: 8 }, { t: N2b, lat: -58, lon: 12, alt: 3.1, heading: 8 }]. At :807, make the look a function that eases dim from 0.55 to 0.35 over the same 0.8 s (N1 ends at dim 0.55). Fade the stamp and coin out over N1's last 0.2 s. Re-render chunk 56 (25200-25649)."
+   },
+   {
+    "id": "S9-3",
+    "t0": 801.99,
+    "t1": 805.11,
+    "frames": "24060-24153 (two peninsulas visible while the red copy slides); the white cross-line is visible on the red Baja through 24221",
+    "category": "continuity",
+    "severity": "minor",
+    "confidence": "medium",
+    "what_viewer_sees": "When Baja lights up, the red Baja appears about 270 km south-east of the real one, lying over the Gulf of California and the Sonora coast, while the real unhighlighted peninsula is clearly visible just west of it. For about 3 s there are two Bajas on screen, until the red copy slides onto the real one, so at first it reads as a misaligned highlight. A white line also cuts across the red peninsula at about 28 N for the whole shot.",
+    "evidence": "Full-res frame 24074 (grab_s9b/crop_24074.jpg) shows both peninsulas and the cross-line. A run every 13 frames from 24066 to 24209 follows the slide until the red copy covers the real coast at about 24153.",
+    "likely_cause": "The red copy is pre-shifted to the pre-rift position (bajaStart = moveRings(bajaR0, BAJA_P, BAJA_Q, 1), with BAJA_Q = dest(26.5, -112.5, 274 km, bearing 125)) and slid back to its true position. Nothing hides the real peninsula in the globe texture and patch underneath. The cross-line comes from bajaFeat matching both admin-1 polygons, 'Baja California' and 'Baja California Sur'; strokeProjected strokes their shared border.",
+    "code_location": "engine/www/ep/ep01/ch5b.js:130-133 (bajaFeat, BAJA_Q, bajaStart), :636-638 (fill and stroke of the moving rings R)",
+    "suggested_fix": "In K's extra (ch5b.js:637-638), before drawing the red copy, paint the real peninsula out with a sea-coloured fill that fades as the copy arrives, e.g. fillProjected(ctx, g, bajaR0, { color: '#123a5c', alpha: 0.85 * ap * (1 - p) }). Alternatively, show the start position as a dashed 'ghost' outline and fill only at arrival. For the cross-line, merge the two features once at build time (drop edges shared by both rings, or topojson/d3 merge) and stroke the merged outline instead of each admin ring. Re-render chunks 53-54 (23850-24749)."
+   },
+   {
+    "id": "S9-4",
+    "t0": 849.81,
+    "t1": 852.57,
+    "frames": "word 'scars' at about f25494 (over the stamp hold); N2 cut at f25519; scar lines start drawing at f25577",
+    "category": "sync",
+    "severity": "minor",
+    "confidence": "medium",
+    "what_viewer_sees": "'...they're SCARS from a supercontinent' is heard over the coin and the 'IT'S COMPLICATED' stamp, which holds still for 2.2 s after it lands. The stitched scar lines only start drawing on 'Antarctica', 2.8 s after the word 'scars'.",
+    "evidence": "s095 word times: likely 848.37, scars 849.81, supercontinent 850.61, Antarctica 852.69. N1 runs to 850.62 (cut E12). Motion energy over 25461-25518 is only encoder noise, i.e. a static stamp hold. Scar lines start at M.v_ant - 0.12 = 852.57 and are visible in sheet_08 from 14:13.00.",
+    "likely_cause": "N1b = M.likely + 2.25 holds the stamp well past its beat, and the scar draw is keyed to M.v_ant ('Antarctica') instead of 'scars'.",
+    "code_location": "engine/www/ep/ep01/ch5b.js:784 (N1b), :811 (scar start st = M.v_ant - 0.12 + i * 0.12)",
+    "suggested_fix": "Cut on 'they're scars': N1b = M.likely + 1.1 (about 849.47; the stamp is still up for about 1 s, enough to read). Add scars: mk('scars', 's095') to M, and at :811 use st = M.scars - 0.1 + i * 0.35, so the three sutures draw across 'scars from a supercontinent that tore apart' and finish by 'Antarctica'. Re-render chunk 56."
+   },
+   {
+    "id": "S9-5",
+    "t0": 853.89,
+    "t1": 854.733,
+    "frames": "N2 holds its finished scars to f25641; N3 (small drips) cuts in at f25642 (E13)",
+    "category": "sync",
+    "severity": "minor",
+    "confidence": "medium",
+    "what_viewer_sees": "'The small ones' is heard over the already-finished big-drip scars shot. The small-drips view (Americas side) only cuts in on 'have', 0.7 s after 'small' and 0.85 s after the sentence starts.",
+    "evidence": "Words: The 853.89, small 854.05, ones 854.37, have 854.61. N2b = s095.start + 9.95 = 854.72, so the first N3 frame is 25642 (854.733). The last scar line completes at 853.71, so N2 sits static for its last second (motion 0.09-0.11).",
+    "likely_cause": "N2b is a hard-coded offset from the segment start (s095.start + 9.95), not a word marker.",
+    "code_location": "engine/www/ep/ep01/ch5b.js:804 (N2b = SEG('s095').start + 9.95)",
+    "suggested_fix": "Key the cut to the word: const small = C.words('s095').find(w => /^small/i.test(w.w)).start; N2b = small - 0.12 (about 853.93). With S9-4 applied, the scars finish around 853.4, before the new cut. Re-render chunk 56."
+   },
+   {
+    "id": "S9-6",
+    "t0": 797.9,
+    "t1": 798.2,
+    "frames": "23926-23950; near standstill 23938-23945 between two moves in the same direction",
+    "category": "jerky_motion",
+    "severity": "minor",
+    "confidence": "low",
+    "what_viewer_sees": "Right after the cut to the Americas globe, the camera drifts toward Baja, slows to a full stop for about 0.25 s around 'stories', then restarts in the same direction for the long dive into Baja. It reads as a small hesitation in what should be one move.",
+    "evidence": "Frame-to-frame motion energy rises to 2.33 at f23918, falls to 0.07-0.13 over f23938-23945, then climbs to 8.1 at f23993 (the dive). I viewed every 3rd frame from 23896 to 23965.",
+    "likely_cause": "camAt eases every key segment with E.inOut, so the intermediate key at M.stories - 0.2 forces zero velocity mid-move, even though that key lies on the way to the final key.",
+    "code_location": "engine/www/ep/ep01/ch5b.js:632 (K camera keys)",
+    "suggested_fix": "Delete the middle key { t: M.stories - 0.2, lat: 23.6, lon: -119, alt: 1.8 } so the camera does one E.inOut move from Ka to M.stories + 3.0. Alternatively, keep it with ease: E.in on that key and ease: E.out on the last key, with the segment speeds tuned to match. Re-render chunk 53 (23850-24299)."
+   },
+   {
+    "id": "S9-7",
+    "t0": 811.9,
+    "t1": 814.8,
+    "frames": "24357-24444 static after the rise (and again 24465-24525 after the sea-life icons)",
+    "category": "dead_hold",
+    "severity": "minor",
+    "confidence": "low",
+    "what_viewer_sees": "The limestone platform shoots up in about 0.6 s on 'limestone'. The cross-section then sits essentially still for about 2.9 s through 'platform, miles thick, built up by', and again for about 2 s after the small sea-life icons appear. 'Miles thick' gets no visual.",
+    "evidence": "Motion energy for the rise is 2.8 -> 0.4 over f24337-24356, then 0.03-0.2 for f24357-24443 (only a 5% slow push). Sheet_04 frames 13:32.50-13:34.50 are identical. The sea-life icons (f24444-24465) are about 40 px and barely register.",
+    "likely_cause": "The platform rise rp uses E.outExpo over 2.3 s, so about 90% of the rise happens in the first 0.7 s. No element is keyed to 'miles thick' (812.93-813.45).",
+    "code_location": "engine/www/ep/ep01/ch5b.js:680 (rp = prog(t, M.lime - 0.12, M.lime + 2.2, E.outExpo))",
+    "suggested_fix": "Use E.out (cubic) or E.inOut for rp at ch5b.js:680 so the strata keep stacking until about 813.3, through 'miles thick'. Optionally add a depth bracket on the platform that draws on at the word 'thick' (813.45). Re-render chunk 54 (24300-24749)."
+   }
+  ],
+  "intended_notes": "EVENTS:\n- Intended and reading well:\n  - E1/E2: the 0.65 s re-layout of the tiles from grid to strip. Tiles cross each other for about 4 frames, but it reads as a shuffle.\n  - Hard cuts on narration beats, each within about 0.1 s of its word: E3 (Peninsula), E4, E5 (Florida), E6 (limestone), E7 (West), E9 (compass), E10, E13, E14, E16, E17.\n  - E9: the compass pops in with an outBack scale.\n  - E11: stamp slam plus a 0.35 s shake.\n  - E15: the northern land slams to red in 2 frames on 'lopsided', with an exposure boost.\n  - E17/E18: the slice pops in with an outBack overshoot and settles.\n  - E19: shutter flash, then the Polaroid develops and the caption wipes in.\n- Defects: E8 is a dip-to-black blink (S9-1). E12 reads as a jump cut (S9-2).\n\nCLEAN AT FULL FRAME RATE:\n- York and Yucatan needle swings (the yellow-to-white switch mid-swing is fine).\n- J push-in and pull-out (the stop is at a natural direction reversal) and the 16-arrow burst.\n- Florida swoop.\n- The arc and the truck crossing, which lands on 'else'.\n- The fly to the Cape. The energy dip mid-flight is low-texture ocean, not a speed change.\n- The Good Hope to Agulhas hop.\n- M2 Ken Burns. The tip marker math is valid (the image is 1.85:1) and the bottom fill band's colour is stable (max 0.55 per frame).\n- Compass spin, settle and ring.\n- Coin spin and settle (a 2-frame speed-up at f25444-45 is hidden by the stamp).\n- N3 glitch flicker-in and the connecting dots.\n- O1, the O2 zoom, O3 arrow and X, and P.\n- Smaller, not reported: the J yellow arrowhead appears at the end of its path one frame before the line reaches it (f23749).\n\nCHUNK SEAMS (23850, 24300, 24750, 25200, 25650, 26100): no look change at any of them. Seam diffs are mildly raised (largest at 24300: 1.06 vs 0.13-0.30 for the neighbouring pairs), but the extra difference is spread evenly as edge and texture noise. That is the I-frame refresh of the separately encoded CRF-12 chunk files. Mean RGB is unchanged and the Florida crop is identical. There is no state-dependent rendering of the ch2_sets kind. getSnap (P) is built once per page with an explicit look, and every globe shot here sets its overlay and patch itself.\n\nSAME RUNTIME CAVEAT ELSEWHERE: film.html fades from black when the outgoing scene does not overlap the fadeIn. ch5b.js:202 (B1) overlaps correctly. The other modules' fadeIn scenes (ch3:139/535, ch5a:706/768, ch6:555/591/704) are worth a quick check for that overlap.\n\nTOOLING: tools/grab.py duplicates the first decoded frame (ffmpeg's default constant-frame-rate mode, combined with -ss (f0-0.5)/30). Every label after the first is therefore one frame late: label N shows frame N-1. Verified: the black frame 24931 appears under label 24932. Fix: add '-fps_mode', 'passthrough' to the ffmpeg call at tools/grab.py:26. The pack's sheets and event strips are numbered correctly. I used a fixed copy (review6/s9work/grab2.py), so all frame numbers above are exact.\n\nAUDIO: the README flag at 14:04.36 is real. There is an abrupt drop at 844.36-844.37, the end of s094 'north.'. No visual event coincides with it (the N1 cut is at 844.67). It is outside the animation scope."
+ }
+}

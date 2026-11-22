@@ -1,0 +1,753 @@
+{
+ "video": "ep01 live: Why the Continents Point South (Not Just a Coincidence), 15:34",
+ "baseline": {
+  "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/deliver/ep01/thumb_B_pointing_at_what.jpg",
+  "sim": {
+   "home_scroll": {
+    "luma": {
+     "cand": 60.88,
+     "comp_median": 123.29,
+     "ranks": [
+      "6/6",
+      "5/6",
+      "6/6"
+     ]
+    },
+    "p90luma": {
+     "cand": 122.56,
+     "comp_median": 210.22,
+     "ranks": [
+      "6/6",
+      "6/6",
+      "6/6"
+     ]
+    },
+    "brightsat": {
+     "cand": 0.15,
+     "comp_median": 0.26,
+     "ranks": [
+      "6/6",
+      "5/6",
+      "6/6"
+     ]
+    },
+    "colorful": {
+     "cand": 79.61,
+     "comp_median": 89.92,
+     "ranks": [
+      "4/6",
+      "2/6",
+      "4/6"
+     ]
+    },
+    "edges": {
+     "cand": 0.07,
+     "comp_median": 0.07,
+     "ranks": [
+      "4/6",
+      "2/6",
+      "3/6"
+     ]
+    },
+    "distinct": {
+     "cand": 12.48,
+     "comp_median": 11.56,
+     "ranks": [
+      "1/6",
+      "3/6",
+      "1/6"
+     ]
+    }
+   },
+   "upnext": {
+    "luma": {
+     "cand": 60.72,
+     "comp_median": 129.31,
+     "ranks": [
+      "3/3",
+      "4/4",
+      "2/2"
+     ]
+    },
+    "p90luma": {
+     "cand": 123.12,
+     "comp_median": 200.54,
+     "ranks": [
+      "3/3",
+      "4/4",
+      "2/2"
+     ]
+    },
+    "brightsat": {
+     "cand": 0.14,
+     "comp_median": 0.22,
+     "ranks": [
+      "2/3",
+      "3/4",
+      "2/2"
+     ]
+    },
+    "colorful": {
+     "cand": 78.39,
+     "comp_median": 53.42,
+     "ranks": [
+      "1/3",
+      "3/4",
+      "1/2"
+     ]
+    },
+    "edges": {
+     "cand": 0.13,
+     "comp_median": 0.13,
+     "ranks": [
+      "2/3",
+      "3/4",
+      "2/2"
+     ]
+    },
+    "distinct": {
+     "cand": 12.54,
+     "comp_median": 12.43,
+     "ranks": [
+      "2/3",
+      "2/4",
+      "1/2"
+     ]
+    }
+   },
+   "sidebar": {
+    "luma": {
+     "cand": 60.72,
+     "comp_median": 109.11,
+     "ranks": [
+      "5/5",
+      "5/5",
+      "5/5"
+     ]
+    },
+    "p90luma": {
+     "cand": 123.12,
+     "comp_median": 199.44,
+     "ranks": [
+      "5/5",
+      "5/5",
+      "5/5"
+     ]
+    },
+    "brightsat": {
+     "cand": 0.14,
+     "comp_median": 0.26,
+     "ranks": [
+      "4/5",
+      "5/5",
+      "4/5"
+     ]
+    },
+    "colorful": {
+     "cand": 78.39,
+     "comp_median": 75.91,
+     "ranks": [
+      "3/5",
+      "3/5",
+      "4/5"
+     ]
+    },
+    "edges": {
+     "cand": 0.13,
+     "comp_median": 0.14,
+     "ranks": [
+      "3/5",
+      "4/5",
+      "5/5"
+     ]
+    },
+    "distinct": {
+     "cand": 12.41,
+     "comp_median": 11.61,
+     "ranks": [
+      "1/5",
+      "1/5",
+      "3/5"
+     ]
+    }
+   }
+  },
+  "gate": "FAIL (red 9%, blue 68%)"
+ },
+ "simulator": {
+  "spec": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_ep01/spec/ep01_repack.json",
+  "hosts": "refs/hosts/hosts.json#ep01 (12)",
+  "now_playing": "Atlas Pro, What Did Pangaea Look like?",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "outputs": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/feeds/design_ep01",
+  "note": "metrics are means over seeds 1-3; ranks per seed; identical social proof (52 views, 2d ago) for every arm"
+ },
+ "gate": {
+  "cand_1": "PASS drain 12.81 farms 12.44",
+  "cand_2": "PASS drain 12.94 farms 12.13",
+  "cand_3": "PASS drain 12.46 farms 12.27",
+  "craft_bar": "drain >= 11.71, farms >= 11.43"
+ },
+ "pairs": [
+  {
+   "id": "cand_1",
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_ep01/cand_1.jpg",
+   "title": "South America Points at Antarctica. So Does Africa",
+   "chars": 50,
+   "thumb_text": "",
+   "idea": "Real NASA Blue Marble Earth (engine textures: day_8k + DEM normal map) seen from above the South Atlantic, on a pale studio backdrop; the tapering tips of South America and Africa aim down at a luminous Antarctica.",
+   "render": "python3 /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_ep01/work/target.py cand_1.jpg lat=-52 lon=-19 dist=1.9 fov=62 lift=0.12 bgtop=0.96,0.96,0.96 bgbot=0.78,0.79,0.80",
+   "film_proof": {
+    "0:00-0:31": "tips of South America and Africa shown, \"why do the continents point south\"",
+    "0:34": "\"what they are really pointing at\"",
+    "9:07-9:40": "the drips all point at the same place; Gondwana; Antarctica the keypiece; \"pointing at it the whole time\"",
+    "10:34-10:42": "points aim back to where they tore away"
+   },
+   "sim": {
+    "home_scroll": {
+     "luma": {
+      "cand": 125.85,
+      "comp_median": 123.29,
+      "ranks": [
+       "4/6",
+       "3/6",
+       "4/6"
+      ]
+     },
+     "p90luma": {
+      "cand": 202.5,
+      "comp_median": 210.22,
+      "ranks": [
+       "5/6",
+       "3/6",
+       "4/6"
+      ]
+     },
+     "brightsat": {
+      "cand": 0.02,
+      "comp_median": 0.26,
+      "ranks": [
+       "6/6",
+       "6/6",
+       "6/6"
+      ]
+     },
+     "colorful": {
+      "cand": 18.09,
+      "comp_median": 89.92,
+      "ranks": [
+       "6/6",
+       "6/6",
+       "6/6"
+      ]
+     },
+     "edges": {
+      "cand": 0.03,
+      "comp_median": 0.07,
+      "ranks": [
+       "6/6",
+       "6/6",
+       "6/6"
+      ]
+     },
+     "distinct": {
+      "cand": 12.83,
+      "comp_median": 11.71,
+      "ranks": [
+       "1/6",
+       "2/6",
+       "1/6"
+      ]
+     }
+    },
+    "upnext": {
+     "luma": {
+      "cand": 122.18,
+      "comp_median": 129.31,
+      "ranks": [
+       "2/3",
+       "1/4",
+       "2/2"
+      ]
+     },
+     "p90luma": {
+      "cand": 202.86,
+      "comp_median": 200.54,
+      "ranks": [
+       "2/3",
+       "2/4",
+       "2/2"
+      ]
+     },
+     "brightsat": {
+      "cand": 0.02,
+      "comp_median": 0.22,
+      "ranks": [
+       "3/3",
+       "4/4",
+       "2/2"
+      ]
+     },
+     "colorful": {
+      "cand": 17.94,
+      "comp_median": 53.42,
+      "ranks": [
+       "3/3",
+       "4/4",
+       "2/2"
+      ]
+     },
+     "edges": {
+      "cand": 0.07,
+      "comp_median": 0.13,
+      "ranks": [
+       "3/3",
+       "4/4",
+       "2/2"
+      ]
+     },
+     "distinct": {
+      "cand": 12.9,
+      "comp_median": 12.45,
+      "ranks": [
+       "1/3",
+       "2/4",
+       "1/2"
+      ]
+     }
+    },
+    "sidebar": {
+     "luma": {
+      "cand": 122.18,
+      "comp_median": 109.11,
+      "ranks": [
+       "2/5",
+       "3/5",
+       "2/5"
+      ]
+     },
+     "p90luma": {
+      "cand": 202.86,
+      "comp_median": 199.44,
+      "ranks": [
+       "3/5",
+       "4/5",
+       "3/5"
+      ]
+     },
+     "brightsat": {
+      "cand": 0.02,
+      "comp_median": 0.26,
+      "ranks": [
+       "5/5",
+       "5/5",
+       "5/5"
+      ]
+     },
+     "colorful": {
+      "cand": 17.94,
+      "comp_median": 75.91,
+      "ranks": [
+       "5/5",
+       "5/5",
+       "5/5"
+      ]
+     },
+     "edges": {
+      "cand": 0.07,
+      "comp_median": 0.14,
+      "ranks": [
+       "5/5",
+       "5/5",
+       "5/5"
+      ]
+     },
+     "distinct": {
+      "cand": 12.7,
+      "comp_median": 11.67,
+      "ranks": [
+       "1/5",
+       "1/5",
+       "2/5"
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "cand_2",
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_ep01/cand_2.jpg",
+   "title": "The Continents Look Like They're Dripping South",
+   "chars": 47,
+   "thumb_text": "",
+   "idea": "A wax-white globe (real present-day coastlines, GPlates coast_000) with a charcoal sea on a cool grey backdrop; the southern tips of Africa and South America run down like candle wax. Visual metaphor of the film's first line and the continental-drip name.",
+   "render": "python3 /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_ep01/work/meltwax.py cand_2.jpg lat=-38 lon=-8 dist=1.9 fov=62 lift=0.15 sea=0.09,0.095,0.105 bgtop=0.84,0.86,0.88 bgbot=0.58,0.61,0.65 drips=<see cand_2.json>",
+   "film_proof": {
+    "0:00-0:03": "\"Spin a globe, and Earth looks like it's melting\"",
+    "0:16-0:18": "drip/droplet gag on the globe",
+    "~1:50": "\"continental drip\" named",
+    "9:07-10:42": "the real reason (scars of the Gondwana breakup)"
+   },
+   "sim": {
+    "home_scroll": {
+     "luma": {
+      "cand": 106.32,
+      "comp_median": 123.29,
+      "ranks": [
+       "4/6",
+       "3/6",
+       "4/6"
+      ]
+     },
+     "p90luma": {
+      "cand": 183.65,
+      "comp_median": 210.22,
+      "ranks": [
+       "5/6",
+       "4/6",
+       "4/6"
+      ]
+     },
+     "brightsat": {
+      "cand": 0.02,
+      "comp_median": 0.26,
+      "ranks": [
+       "6/6",
+       "6/6",
+       "6/6"
+      ]
+     },
+     "colorful": {
+      "cand": 7.95,
+      "comp_median": 89.92,
+      "ranks": [
+       "6/6",
+       "6/6",
+       "6/6"
+      ]
+     },
+     "edges": {
+      "cand": 0.02,
+      "comp_median": 0.07,
+      "ranks": [
+       "6/6",
+       "6/6",
+       "6/6"
+      ]
+     },
+     "distinct": {
+      "cand": 12.12,
+      "comp_median": 11.63,
+      "ranks": [
+       "1/6",
+       "3/6",
+       "1/6"
+      ]
+     }
+    },
+    "upnext": {
+     "luma": {
+      "cand": 103.8,
+      "comp_median": 129.31,
+      "ranks": [
+       "2/3",
+       "1/4",
+       "2/2"
+      ]
+     },
+     "p90luma": {
+      "cand": 184.13,
+      "comp_median": 200.54,
+      "ranks": [
+       "2/3",
+       "3/4",
+       "2/2"
+      ]
+     },
+     "brightsat": {
+      "cand": 0.02,
+      "comp_median": 0.22,
+      "ranks": [
+       "3/3",
+       "4/4",
+       "2/2"
+      ]
+     },
+     "colorful": {
+      "cand": 7.63,
+      "comp_median": 53.42,
+      "ranks": [
+       "3/3",
+       "4/4",
+       "2/2"
+      ]
+     },
+     "edges": {
+      "cand": 0.07,
+      "comp_median": 0.13,
+      "ranks": [
+       "3/3",
+       "4/4",
+       "2/2"
+      ]
+     },
+     "distinct": {
+      "cand": 12.75,
+      "comp_median": 12.27,
+      "ranks": [
+       "2/3",
+       "1/4",
+       "1/2"
+      ]
+     }
+    },
+    "sidebar": {
+     "luma": {
+      "cand": 103.8,
+      "comp_median": 109.11,
+      "ranks": [
+       "3/5",
+       "3/5",
+       "3/5"
+      ]
+     },
+     "p90luma": {
+      "cand": 184.13,
+      "comp_median": 199.44,
+      "ranks": [
+       "4/5",
+       "4/5",
+       "3/5"
+      ]
+     },
+     "brightsat": {
+      "cand": 0.02,
+      "comp_median": 0.26,
+      "ranks": [
+       "5/5",
+       "5/5",
+       "5/5"
+      ]
+     },
+     "colorful": {
+      "cand": 7.63,
+      "comp_median": 75.91,
+      "ranks": [
+       "5/5",
+       "5/5",
+       "5/5"
+      ]
+     },
+     "edges": {
+      "cand": 0.07,
+      "comp_median": 0.14,
+      "ranks": [
+       "5/5",
+       "5/5",
+       "5/5"
+      ]
+     },
+     "distinct": {
+      "cand": 12.08,
+      "comp_median": 11.38,
+      "ranks": [
+       "2/5",
+       "2/5",
+       "3/5"
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "cand_3",
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_ep01/cand_3.jpg",
+   "title": "Why the Continents Point South (It's a Breakup)",
+   "chars": 47,
+   "thumb_text": "",
+   "idea": "Simplified reconstruction about 116 million years ago (GPlates / EarthByte, Mueller et al. 2019 coastlines, the model the film uses): South America and Africa still joined in the north, the South Atlantic tearing open from the south as a lit seam of new ocean, Antarctica below. Land drawn as plain stone so no modern surface is implied.",
+   "render": "python3 /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/research/packaging/design_ep01/work/breakup.py cand_3.jpg T=116 lat=-50 lon=-14 dist=1.8 fov=64 lift=-0.03 riftd=2.2",
+   "film_proof": {
+    "0:31": "\"So why do the continents point south?\"",
+    "9:22-9:55": "Gondwana; \"the South Atlantic unzips from the bottom up\"",
+    "10:34-10:42": "\"those points still aim back to where they tore away... They're scars\"",
+    "12:55-13:02": "hedge kept in film: \"the big ones are most likely not [a coincidence]\"",
+    "14:53-14:57": "\"It wasn't an accident. It was a breakup.\""
+   },
+   "sim": {
+    "home_scroll": {
+     "luma": {
+      "cand": 79.82,
+      "comp_median": 123.29,
+      "ranks": [
+       "6/6",
+       "5/6",
+       "6/6"
+      ]
+     },
+     "p90luma": {
+      "cand": 217.55,
+      "comp_median": 210.22,
+      "ranks": [
+       "3/6",
+       "3/6",
+       "4/6"
+      ]
+     },
+     "brightsat": {
+      "cand": 0.13,
+      "comp_median": 0.26,
+      "ranks": [
+       "6/6",
+       "6/6",
+       "6/6"
+      ]
+     },
+     "colorful": {
+      "cand": 17.19,
+      "comp_median": 89.92,
+      "ranks": [
+       "6/6",
+       "6/6",
+       "6/6"
+      ]
+     },
+     "edges": {
+      "cand": 0.03,
+      "comp_median": 0.07,
+      "ranks": [
+       "6/6",
+       "6/6",
+       "6/6"
+      ]
+     },
+     "distinct": {
+      "cand": 12.13,
+      "comp_median": 11.48,
+      "ranks": [
+       "2/6",
+       "4/6",
+       "1/6"
+      ]
+     }
+    },
+    "upnext": {
+     "luma": {
+      "cand": 80.56,
+      "comp_median": 129.31,
+      "ranks": [
+       "3/3",
+       "3/4",
+       "2/2"
+      ]
+     },
+     "p90luma": {
+      "cand": 217.76,
+      "comp_median": 200.54,
+      "ranks": [
+       "2/3",
+       "1/4",
+       "2/2"
+      ]
+     },
+     "brightsat": {
+      "cand": 0.13,
+      "comp_median": 0.22,
+      "ranks": [
+       "2/3",
+       "3/4",
+       "2/2"
+      ]
+     },
+     "colorful": {
+      "cand": 16.98,
+      "comp_median": 53.42,
+      "ranks": [
+       "3/3",
+       "4/4",
+       "2/2"
+      ]
+     },
+     "edges": {
+      "cand": 0.06,
+      "comp_median": 0.13,
+      "ranks": [
+       "3/3",
+       "4/4",
+       "2/2"
+      ]
+     },
+     "distinct": {
+      "cand": 12.17,
+      "comp_median": 12.21,
+      "ranks": [
+       "2/3",
+       "3/4",
+       "1/2"
+      ]
+     }
+    },
+    "sidebar": {
+     "luma": {
+      "cand": 80.56,
+      "comp_median": 109.11,
+      "ranks": [
+       "4/5",
+       "5/5",
+       "5/5"
+      ]
+     },
+     "p90luma": {
+      "cand": 217.76,
+      "comp_median": 199.44,
+      "ranks": [
+       "2/5",
+       "3/5",
+       "2/5"
+      ]
+     },
+     "brightsat": {
+      "cand": 0.13,
+      "comp_median": 0.26,
+      "ranks": [
+       "4/5",
+       "5/5",
+       "4/5"
+      ]
+     },
+     "colorful": {
+      "cand": 16.98,
+      "comp_median": 75.91,
+      "ranks": [
+       "5/5",
+       "5/5",
+       "5/5"
+      ]
+     },
+     "edges": {
+      "cand": 0.06,
+      "comp_median": 0.14,
+      "ranks": [
+       "5/5",
+       "5/5",
+       "5/5"
+      ]
+     },
+     "distinct": {
+      "cand": 12.07,
+      "comp_median": 11.6,
+      "ranks": [
+       "1/5",
+       "2/5",
+       "3/5"
+      ]
+     }
+    }
+   }
+  }
+ ]
+}

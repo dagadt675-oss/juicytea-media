@@ -1,0 +1,1929 @@
+{
+ "meta": {
+  "episode": "ep02 Why Can't You See Most of Hawaii? (Look Down)",
+  "built_by": "build_spot.py (re-run after any VO change)",
+  "timing_json": "../ep02_vo/timing.json",
+  "timing_md5": "183ad505479d8026f58c4b5f7a6d38b1",
+  "vo_duration_s": 734.85,
+  "last_word_end_s": 733.93,
+  "film_end_s": 746.93,
+  "film_end_rule": "last word + 1.0 s cut + 12.0 s end screen (script timing_model); back-time M14 to the real last frame of the EDL",
+  "chapter_cards_s": {
+   "2": 93.79,
+   "3": 181.55,
+   "4": 315.45,
+   "5": 435.79,
+   "6": 598.97
+  }
+ },
+ "global": "Cinematic documentary score: modern hybrid orchestral, warm analog synth pulses, felt piano, deep low strings, soft mallets, subtle organic percussion, rich wide stereo, high-end production. Instrumental only, no vocals, no choir words, no lead melody that competes with a male narrator; keep the 1-4 kHz range sparse; no ukulele, no steel guitar, no tiki or luau cliches; clean ending without a fade-out tail",
+ "model": "music_v2_5",
+ "duck": {
+  "db": -11,
+  "attack": 0.08,
+  "release": 0.6
+ },
+ "conventions": {
+  "gain_db": "mix.json music gain (ep01 used -9 for every bed); ducked -11 dB under the voice",
+  "dur": "window length; music.py requests dur+3 s",
+  "offset": "set after generation so each sync point lands (music editing)",
+  "sections": "optional ElevenLabs composition-plan sections with duration_ms (music.py sends only the prompt today; see spot_notes.md). Sections under about 3 s (M04 held breath) may be refused: then merge them into the next section and make the dropout with the dip"
+ },
+ "cues": [
+  {
+   "id": "M01_cold_open_wonder",
+   "chapter": 1,
+   "t_in": 0.0,
+   "t_out": 52.43,
+   "dur": 52.43,
+   "fade_in": 0.05,
+   "fade_out": 1.6,
+   "gain_db": -9,
+   "offset": 0.0,
+   "emotion": "wonder at the drain, playful curiosity, then the pull of the deep",
+   "prompt": "Cold open of a wonder documentary: an airy, curious pulse at 96 bpm in D Lydian, felt piano and soft synth arpeggios, light and bright from the first beat; gentle low strings join and build to a warm open arrival, then a lighter playful stretch, then the pulse drops an octave into something deep and mysterious with a simple three-note descending felt-piano figure (the look-down motif), a slow rising swell, and it thins to a single soft sustained pad at the end. No intro sting, no big drums.",
+   "sections": [
+    {
+     "name": "frame-1 wonder",
+     "t0": 0.0,
+     "t1": 10.47,
+     "duration_ms": 10470,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "airy curious pulse",
+      "felt piano",
+      "soft synth arpeggio",
+      "D Lydian",
+      "96 bpm"
+     ],
+     "negative_local_styles": [
+      "drums",
+      "stinger"
+     ]
+    },
+    {
+     "name": "Maui Nui drain build",
+     "t0": 10.47,
+     "t1": 20.15,
+     "duration_ms": 9680,
+     "energy": "high",
+     "job": "tension",
+     "positive_local_styles": [
+      "low strings ostinato joins",
+      "gentle crescendo",
+      "drops out for a moment",
+      "bright open arrival chord"
+     ],
+     "negative_local_styles": [
+      "big drums"
+     ]
+    },
+    {
+     "name": "Ice Age walk",
+     "t0": 20.15,
+     "t1": 27.37,
+     "duration_ms": 7220,
+     "energy": "low",
+     "job": "thinking",
+     "positive_local_styles": [
+      "lighter",
+      "sparse",
+      "staccato pizzicato",
+      "playful"
+     ],
+     "negative_local_styles": [
+      "busy percussion"
+     ]
+    },
+    {
+     "name": "look down: the deep",
+     "t0": 27.37,
+     "t1": 44.43,
+     "duration_ms": 17060,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "pulse drops an octave",
+      "a simple three-note descending felt-piano figure (the look-down motif)",
+      "dark low strings",
+      "mysterious",
+      "unresolved"
+     ],
+     "negative_local_styles": [
+      "bright",
+      "major resolution"
+     ]
+    },
+    {
+     "name": "sea rises, thin out",
+     "t0": 44.43,
+     "t1": 52.43,
+     "duration_ms": 8000,
+     "energy": "low",
+     "job": "thinking",
+     "positive_local_styles": [
+      "rising swell then thinning",
+      "single soft sustained pad at the end"
+     ],
+     "negative_local_styles": [
+      "ending hit",
+      "percussion"
+     ]
+    }
+   ],
+   "sync_points": [
+    {
+     "t": 0.0,
+     "what": "music on frame 1, already moving"
+    },
+    {
+     "t": 15.77,
+     "what": "STOP-DOWN 1.15 s as the sea drops (dip -24)"
+    },
+    {
+     "t": 16.97,
+     "what": "arrival chord under -400 FT"
+    },
+    {
+     "t": 19.03,
+     "what": "bright bloom: ONE ISLAND"
+    },
+    {
+     "t": 29.03,
+     "what": "octave drop + look-down motif"
+    },
+    {
+     "t": 33.13,
+     "what": "held, unresolved"
+    },
+    {
+     "t": 44.43,
+     "what": "rising swell"
+    },
+    {
+     "t": 50.83,
+     "what": "thins out"
+    }
+   ],
+   "transition_in": "starts on frame 1 (0.05 s fade only, no sting, no logo)",
+   "transition_out": "thins and fades over 1.6 s from Not always into the 1975 night cue"
+  },
+  {
+   "id": "M02_halape_1975_night",
+   "chapter": 1,
+   "t_in": 50.43,
+   "t_out": 96.39,
+   "dur": 45.96,
+   "fade_in": 2.0,
+   "fade_out": 2.6,
+   "gain_db": -11,
+   "offset": 0.0,
+   "emotion": "dread and restraint, then grief, then an ominous lean into the next chapter",
+   "prompt": "Restrained dread for a true night disaster: a very quiet low drone of cello and soft synth pad in D minor, no pulse at first; then a slow, soft low heartbeat-like pulse with growing unease but no hits; then near stillness, one sustained low cello note and a faint warm chord like first light; at the very end a slow low swell that rises into a held unresolved note. No stingers, no percussion hits, no big drums, no horror effects, no melody.",
+   "sections": [
+    {
+     "name": "pre-dawn hush",
+     "t0": 50.43,
+     "t1": 61.33,
+     "duration_ms": 10900,
+     "energy": "low",
+     "job": "texture",
+     "positive_local_styles": [
+      "very quiet low drone",
+      "cello",
+      "soft pad",
+      "D minor",
+      "still"
+     ],
+     "negative_local_styles": [
+      "pulse",
+      "percussion",
+      "melody"
+     ]
+    },
+    {
+     "name": "unease",
+     "t0": 61.33,
+     "t1": 77.01,
+     "duration_ms": 15680,
+     "energy": "low",
+     "job": "tension",
+     "positive_local_styles": [
+      "slow soft low pulse at 54 bpm",
+      "restrained unease"
+     ],
+     "negative_local_styles": [
+      "hits",
+      "stingers",
+      "drums"
+     ]
+    },
+    {
+     "name": "grief",
+     "t0": 77.01,
+     "t1": 89.05,
+     "duration_ms": 12040,
+     "energy": "low",
+     "job": "feeling",
+     "positive_local_styles": [
+      "one sustained low note",
+      "faint warm chord at first light",
+      "very quiet"
+     ],
+     "negative_local_styles": [
+      "pulse",
+      "percussion"
+     ]
+    },
+    {
+     "name": "ominous lean",
+     "t0": 89.05,
+     "t1": 96.39,
+     "duration_ms": 7340,
+     "energy": "mid",
+     "job": "tension",
+     "positive_local_styles": [
+      "slow low swell rising",
+      "held unresolved note"
+     ],
+     "negative_local_styles": [
+      "hit",
+      "cymbal"
+     ]
+    }
+   ],
+   "sync_points": [
+    {
+     "t": 64.27,
+     "what": "music does NOT hit: the quake SFX carries the shock; music holds its drone"
+    },
+    {
+     "t": 77.21,
+     "what": "single held low note, bed -3 dB"
+    },
+    {
+     "t": 81.05,
+     "what": "faint warm chord with the archival still"
+    },
+    {
+     "t": 91.87,
+     "what": "the swell under the whip"
+    }
+   ],
+   "transition_in": "crossfades in under the cold-open cue as the light falls to pre-dawn",
+   "transition_out": "the swell hands over to the Pali cue on the Ch2 card; 2.6 s fade under it"
+  },
+  {
+   "id": "M03_pali_wind_playful",
+   "chapter": 2,
+   "t_in": 93.79,
+   "t_out": 115.95,
+   "dur": 22.16,
+   "fade_in": 0.8,
+   "fade_out": 3.0,
+   "gain_db": -9,
+   "offset": 0.0,
+   "emotion": "playful curiosity in the wind, then the awe of standing on the edge of something huge",
+   "prompt": "Light, classy, playful documentary underscore in G major at 104 bpm: bouncy pizzicato strings, nylon-guitar harmonics, a light shaker and an airy flute-like synth, with breezy space between phrases; then the bounce falls away and wide sustained strings open up in awe, darkening at the end into a low suspended chord.",
+   "sections": [
+    {
+     "name": "lookout, wind, light comedy",
+     "t0": 93.79,
+     "t1": 105.73,
+     "duration_ms": 11940,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "bouncy pizzicato",
+      "nylon guitar harmonics",
+      "light shaker",
+      "airy",
+      "G major 104 bpm"
+     ],
+     "negative_local_styles": [
+      "ukulele",
+      "cartoon",
+      "slide whistle"
+     ]
+    },
+    {
+     "name": "edge of something huge",
+     "t0": 105.73,
+     "t1": 115.95,
+     "duration_ms": 10220,
+     "energy": "mid",
+     "job": "feeling",
+     "positive_local_styles": [
+      "wide sustained strings",
+      "awe",
+      "darkens to a low suspended chord"
+     ],
+     "negative_local_styles": [
+      "pizzicato",
+      "percussion"
+     ]
+    }
+   ],
+   "sync_points": [
+    {
+     "t": 93.79,
+     "what": "enters with the card (0.8 s fade, not 2.5: the card needs it)"
+    },
+    {
+     "t": 105.63,
+     "what": "a phrase ends: space for the hat gag"
+    },
+    {
+     "t": 109.45,
+     "what": "strings open"
+    },
+    {
+     "t": 113.45,
+     "what": "low suspended chord"
+    }
+   ],
+   "transition_in": "starts on the Ch2 card under the Pali wind",
+   "transition_out": "crossfades (3 s) into the Nuuanu drain cue as the camera moves out to sea"
+  },
+  {
+   "id": "M04_nuuanu_drain_reveal",
+   "chapter": 2,
+   "t_in": 112.95,
+   "t_out": 184.15,
+   "dur": 71.2,
+   "fade_in": 3.0,
+   "fade_out": 1.2,
+   "gain_db": -9,
+   "offset": 0.0,
+   "emotion": "tension in the drain, the held breath, then the reveal of a giant landslide; dry humour; creeping unease; the big question",
+   "prompt": "Documentary tension and discovery in D minor at 90 bpm: a low ostinato of deep strings and a pulsing synth bass, descending, building; low tom pulses intensify, then a sudden stop to near silence for two seconds; then a big wide low swell in open fifths, awe and scale, moving forward; a lighter dry moment, a confident lift, a steady pulse; then back to a low, quiet creeping pulse, and finally a rising questioning figure that builds like a riser into the next chapter.",
+   "sections": [
+    {
+     "name": "drain to the deep",
+     "t0": 112.95,
+     "t1": 123.21,
+     "duration_ms": 10260,
+     "energy": "mid",
+     "job": "tension",
+     "positive_local_styles": [
+      "low ostinato",
+      "deep strings",
+      "pulsing synth bass",
+      "descending",
+      "D minor 90 bpm"
+     ],
+     "negative_local_styles": [
+      "bright",
+      "melody"
+     ]
+    },
+    {
+     "name": "blocks surfacing",
+     "t0": 123.21,
+     "t1": 132.25,
+     "duration_ms": 9040,
+     "energy": "high",
+     "job": "tension",
+     "positive_local_styles": [
+      "ostinato intensifies",
+      "low tom pulse on each block",
+      "rising",
+      "stops dead for the last 2 seconds, only a sustained sub"
+     ],
+     "negative_local_styles": [
+      "cymbal crash"
+     ]
+    },
+    {
+     "name": "reveal: the debris field",
+     "t0": 132.25,
+     "t1": 147.53,
+     "duration_ms": 15280,
+     "energy": "high",
+     "job": "feeling",
+     "positive_local_styles": [
+      "big wide low swell",
+      "open fifths",
+      "awe and scale",
+      "forward motion"
+     ],
+     "negative_local_styles": [
+      "stinger"
+     ]
+    },
+    {
+     "name": "Manhattan and 100 miles",
+     "t0": 147.53,
+     "t1": 162.33,
+     "duration_ms": 14800,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "lighter dry moment",
+      "confident lift",
+      "steady pulse",
+      "unresolved end"
+     ],
+     "negative_local_styles": [
+      "comedy horns"
+     ]
+    },
+    {
+     "name": "creeping flank and the question",
+     "t0": 162.33,
+     "t1": 184.15,
+     "duration_ms": 21820,
+     "energy": "mid",
+     "job": "tension",
+     "positive_local_styles": [
+      "low quiet creeping pulse",
+      "restrained",
+      "rising questioning figure",
+      "riser-like build that peaks and rings out"
+     ],
+     "negative_local_styles": [
+      "big drums"
+     ]
+    }
+   ],
+   "sync_points": [
+    {
+     "t": 117.73,
+     "what": "the drain starts"
+    },
+    {
+     "t": 123.81,
+     "what": "block tops surface"
+    },
+    {
+     "t": 130.85,
+     "what": "DROPOUT 2.0 s (dip -30)"
+    },
+    {
+     "t": 135.17,
+     "what": "REVEAL: music back with the swell + impact"
+    },
+    {
+     "t": 153.51,
+     "what": "lift: 100 MILES"
+    },
+    {
+     "t": 173.57,
+     "what": "breath for Creeping"
+    },
+    {
+     "t": 181.55,
+     "what": "build peaks into the Ch3 card"
+    }
+   ],
+   "transition_in": "3 s crossfade from the Pali cue",
+   "transition_out": "own ending: the build peaks on the Ch3 card and rings out (1.2 s tail) under the stand-up cue"
+  },
+  {
+   "id": "M05_island_stands_up",
+   "chapter": 3,
+   "t_in": 181.55,
+   "t_out": 266.59,
+   "dur": 85.04,
+   "fade_in": 1.0,
+   "fade_out": 1.5,
+   "gain_db": -9,
+   "offset": 0.0,
+   "emotion": "awe at the payoff of the first drain, mystery of the trench clue, comparison swagger, the real giant",
+   "prompt": "Big, rising, wide documentary score: it builds from deep drums swelling in D minor to a huge awe bloom in D major Lydian with soaring strings and a brass-like synth swell, then settles into a slow majestic pulse; calm wonder with a simple three-note descending felt-piano figure (the look-down motif) repeated lower and lower; a quiet mysterious two-note question; a rumbling confident stride with a lift and a bright resolve; a lighter dry stretch; then a slow, heavy, broad and darker swell that ends on an unresolved suspended note.",
+   "sections": [
+    {
+     "name": "drain all the way",
+     "t0": 181.55,
+     "t1": 191.34,
+     "duration_ms": 9790,
+     "energy": "high",
+     "job": "tension",
+     "positive_local_styles": [
+      "rising",
+      "deep drums swelling",
+      "D minor",
+      "brief near-stop just before the end"
+     ],
+     "negative_local_styles": [
+      "melody"
+     ]
+    },
+    {
+     "name": "THE STAND-UP",
+     "t0": 191.34,
+     "t1": 201.87,
+     "duration_ms": 10530,
+     "energy": "high",
+     "job": "feeling",
+     "positive_local_styles": [
+      "huge awe bloom on the first downbeat",
+      "soaring strings",
+      "D major Lydian",
+      "slow majestic pulse"
+     ],
+     "negative_local_styles": [
+      "stinger",
+      "cymbal crash"
+     ]
+    },
+    {
+     "name": "high shoreline, going and going",
+     "t0": 201.87,
+     "t1": 213.79,
+     "duration_ms": 11920,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "calm wonder",
+      "a simple three-note descending felt-piano figure (the look-down motif)",
+      "each repeat lower"
+     ],
+     "negative_local_styles": [
+      "drums"
+     ]
+    },
+    {
+     "name": "the trench clue",
+     "t0": 213.79,
+     "t1": 222.01,
+     "duration_ms": 8220,
+     "energy": "low",
+     "job": "thinking",
+     "positive_local_styles": [
+      "quiet",
+      "mysterious two-note question",
+      "suspended"
+     ],
+     "negative_local_styles": [
+      "resolution"
+     ]
+    },
+    {
+     "name": "Everest at the same scale",
+     "t0": 222.01,
+     "t1": 239.17,
+     "duration_ms": 17160,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "rumbling build",
+      "confident stride",
+      "lift",
+      "bright resolve"
+     ],
+     "negative_local_styles": [
+      "bombast"
+     ]
+    },
+    {
+     "name": "the summit road",
+     "t0": 239.17,
+     "t1": 246.65,
+     "duration_ms": 7480,
+     "energy": "low",
+     "job": "thinking",
+     "positive_local_styles": [
+      "lighter",
+      "sparse",
+      "dry playful"
+     ],
+     "negative_local_styles": [
+      "cartoon"
+     ]
+    },
+    {
+     "name": "Mauna Loa, the real giant",
+     "t0": 246.65,
+     "t1": 266.59,
+     "duration_ms": 19940,
+     "energy": "high",
+     "job": "feeling",
+     "positive_local_styles": [
+      "slow heavy broad swell",
+      "darker",
+      "majestic",
+      "unresolved suspended note at the end"
+     ],
+     "negative_local_styles": [
+      "resolution"
+     ]
+    }
+   ],
+   "sync_points": [
+    {
+     "t": 191.39,
+     "what": "the bloom lands on the downbeat: set \"offset\" so the file downbeat sits here"
+    },
+    {
+     "t": 211.93,
+     "what": "look-down motif"
+    },
+    {
+     "t": 221.25,
+     "what": "two-note question"
+    },
+    {
+     "t": 234.05,
+     "what": "lift: 33,000+ FT"
+    },
+    {
+     "t": 236.03,
+     "what": "bright resolve"
+    },
+    {
+     "t": 254.01,
+     "what": "broad swell: far bigger"
+    },
+    {
+     "t": 263.71,
+     "what": "suspended, unresolved"
+    }
+   ],
+   "transition_in": "starts on the Ch3 card (1 s fade) on top of the M04 build",
+   "transition_out": "own ending: the suspended note rings out (1.5 s) as the twist pulse enters"
+  },
+  {
+   "id": "M06_hotspot_and_the_chain",
+   "chapter": 3,
+   "t_in": 264.63,
+   "t_out": 318.05,
+   "dur": 53.42,
+   "fade_in": 1.4,
+   "fade_out": 1.0,
+   "gain_db": -9,
+   "offset": 0.0,
+   "emotion": "the twist (it moves), intimate curiosity, sinking, then warm pride and a dry laugh",
+   "prompt": "A low steady pulse in A minor at 92 bpm starts at once, a sense of slow unstoppable movement; intimate and curious felt piano with soft pizzicato; the pulse broadens and moves forward, then shifts downward; descending aquatic mallets and soft pads, sinking; warm and proud rising phrases along a chain of islands with a light dry wink; ends on a reflective, open phrase that rings out.",
+   "sections": [
+    {
+     "name": "it is already moving",
+     "t0": 264.63,
+     "t1": 268.57,
+     "duration_ms": 3940,
+     "energy": "mid",
+     "job": "tension",
+     "positive_local_styles": [
+      "low steady pulse",
+      "A minor 92 bpm",
+      "unstoppable"
+     ],
+     "negative_local_styles": [
+      "drums"
+     ]
+    },
+    {
+     "name": "candle and paper",
+     "t0": 268.57,
+     "t1": 274.81,
+     "duration_ms": 6240,
+     "energy": "low",
+     "job": "thinking",
+     "positive_local_styles": [
+      "intimate",
+      "felt piano",
+      "soft pizzicato",
+      "curious"
+     ],
+     "negative_local_styles": [
+      "heavy"
+     ]
+    },
+    {
+     "name": "the plate rides away, and sinks",
+     "t0": 274.81,
+     "t1": 286.73,
+     "duration_ms": 11920,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "broadening pulse",
+      "forward",
+      "downward shift at the end"
+     ],
+     "negative_local_styles": [
+      "melody"
+     ]
+    },
+    {
+     "name": "drowned reefs",
+     "t0": 286.73,
+     "t1": 299.45,
+     "duration_ms": 12720,
+     "energy": "low",
+     "job": "thinking",
+     "positive_local_styles": [
+      "descending",
+      "aquatic mallets",
+      "soft pads",
+      "sinking"
+     ],
+     "negative_local_styles": [
+      "bright"
+     ]
+    },
+    {
+     "name": "born right here, a very big baby",
+     "t0": 299.45,
+     "t1": 311.57,
+     "duration_ms": 12120,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "warm",
+      "proud",
+      "rising",
+      "light dry wink",
+      "a breath before the end"
+     ],
+     "negative_local_styles": [
+      "cartoon"
+     ]
+    },
+    {
+     "name": "what it will become",
+     "t0": 311.57,
+     "t1": 318.05,
+     "duration_ms": 6480,
+     "energy": "low",
+     "job": "feeling",
+     "positive_local_styles": [
+      "reflective",
+      "open-ended phrase",
+      "leads into a journey"
+     ],
+     "negative_local_styles": [
+      "ending"
+     ]
+    }
+   ],
+   "sync_points": [
+    {
+     "t": 265.99,
+     "what": "TWIST: pulse already running"
+    },
+    {
+     "t": 286.73,
+     "what": "downward shift on the hard cut"
+    },
+    {
+     "t": 310.87,
+     "what": "weighty landing after the breath"
+    }
+   ],
+   "transition_in": "short 1.4 s crossfade on the twist line (marks the turn)",
+   "transition_out": "own ending: the open phrase rings out on the Ch4 card (1 s tail)"
+  },
+  {
+   "id": "M07_time_machine_travel",
+   "chapter": 4,
+   "t_in": 315.45,
+   "t_out": 374.53,
+   "dur": 59.08,
+   "fade_in": 2.5,
+   "fade_out": 2.2,
+   "gain_db": -9,
+   "offset": 0.0,
+   "emotion": "journey through time, a coastline wearing away, island after island, thinning out",
+   "prompt": "A travelling documentary cue in G major at 100 bpm: muted plucked arpeggios, a soft kick pulse, shaker and warm strings, a steady sense of a journey across millions of years; a restrained reflective passage; then forward motion with a gentle lift for each new island; then the texture thins, open and wind-like, and resolves quietly.",
+   "sections": [
+    {
+     "name": "lift off",
+     "t0": 315.45,
+     "t1": 324.27,
+     "duration_ms": 8820,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "steady pulse",
+      "muted plucked arpeggios",
+      "G major 100 bpm"
+     ],
+     "negative_local_styles": [
+      "heavy drums"
+     ]
+    },
+    {
+     "name": "the coast wearing down",
+     "t0": 324.27,
+     "t1": 337.39,
+     "duration_ms": 13120,
+     "energy": "low",
+     "job": "thinking",
+     "positive_local_styles": [
+      "restrained",
+      "reflective",
+      "pulse kept"
+     ],
+     "negative_local_styles": [
+      "drama"
+     ]
+    },
+    {
+     "name": "Maui, Oahu, Kauai",
+     "t0": 337.39,
+     "t1": 357.37,
+     "duration_ms": 19980,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "forward journey",
+      "gentle lift at each island"
+     ],
+     "negative_local_styles": [
+      "bombast"
+     ]
+    },
+    {
+     "name": "smaller and lower: Nihoa",
+     "t0": 357.37,
+     "t1": 374.53,
+     "duration_ms": 17160,
+     "energy": "low",
+     "job": "thinking",
+     "positive_local_styles": [
+      "thinning texture",
+      "open",
+      "wind-like",
+      "soft accent",
+      "quiet resolve"
+     ],
+     "negative_local_styles": [
+      "big ending"
+     ]
+    }
+   ],
+   "sync_points": [
+    {
+     "t": 340.47,
+     "what": "lift: Maui"
+    },
+    {
+     "t": 343.07,
+     "what": "lift: Oahu"
+    },
+    {
+     "t": 351.35,
+     "what": "lift: Kauai"
+    },
+    {
+     "t": 364.21,
+     "what": "soft accent: 7 MILLION YEARS"
+    },
+    {
+     "t": 372.53,
+     "what": "quiet resolve before the people beat"
+    }
+   ],
+   "transition_in": "starts on the Ch4 card (2.5 s fade)",
+   "transition_out": "resolves on \"out here\" and fades 2.2 s under the elegy"
+  },
+  {
+   "id": "M08_nihoa_elegy_to_lalo",
+   "chapter": 4,
+   "t_in": 372.0,
+   "t_out": 438.39,
+   "dur": 66.39,
+   "fade_in": 2.5,
+   "fade_out": 1.0,
+   "gain_db": -11,
+   "offset": 0.0,
+   "emotion": "solemn restraint for the people and graves of Nihoa, then tenderness, a brief storm, hope, and calm open water",
+   "prompt": "A respectful documentary elegy that becomes tender: solo felt piano and soft sustained low strings in E minor, slow and sparse, getting quieter; then gentle, open, airy pads and harp-like plucks over open ocean; tender and warm; a brief darker swell with low string tremolo like a passing storm that ends in a sudden thin-out to near silence; a warm hopeful lift; finally thinning to a few high soft notes, calm and open.",
+   "sections": [
+    {
+     "name": "people lived here; their graves",
+     "t0": 372.0,
+     "t1": 386.63,
+     "duration_ms": 14630,
+     "energy": "low",
+     "job": "feeling",
+     "positive_local_styles": [
+      "solo felt piano",
+      "soft sustained low strings",
+      "E minor",
+      "slow 60 bpm",
+      "sparse",
+      "getting quieter"
+     ],
+     "negative_local_styles": [
+      "pulse",
+      "percussion",
+      "any playfulness"
+     ]
+    },
+    {
+     "name": "Lalo, open ocean",
+     "t0": 386.63,
+     "t1": 398.45,
+     "duration_ms": 11820,
+     "energy": "low",
+     "job": "thinking",
+     "positive_local_styles": [
+      "gentle",
+      "open",
+      "airy pads",
+      "harp-like plucks"
+     ],
+     "negative_local_styles": [
+      "drums"
+     ]
+    },
+    {
+     "name": "monk seals",
+     "t0": 398.45,
+     "t1": 409.51,
+     "duration_ms": 11060,
+     "energy": "low",
+     "job": "feeling",
+     "positive_local_styles": [
+      "tender",
+      "warm",
+      "quiet"
+     ],
+     "negative_local_styles": [
+      "comic"
+     ]
+    },
+    {
+     "name": "the hurricane, then the empty beach",
+     "t0": 409.51,
+     "t1": 420.03,
+     "duration_ms": 10520,
+     "energy": "mid",
+     "job": "tension",
+     "positive_local_styles": [
+      "brief darker swell",
+      "low string tremolo",
+      "sudden thin-out to near silence for the last 2 seconds"
+     ],
+     "negative_local_styles": [
+      "thunder",
+      "big drums"
+     ]
+    },
+    {
+     "name": "the sand and seals come back",
+     "t0": 420.03,
+     "t1": 425.83,
+     "duration_ms": 5800,
+     "energy": "mid",
+     "job": "feeling",
+     "positive_local_styles": [
+      "warm hopeful lift"
+     ],
+     "negative_local_styles": [
+      "bombast"
+     ]
+    },
+    {
+     "name": "only reef",
+     "t0": 425.83,
+     "t1": 438.39,
+     "duration_ms": 12560,
+     "energy": "low",
+     "job": "thinking",
+     "positive_local_styles": [
+      "thinning",
+      "a few high soft notes",
+      "calm and open"
+     ],
+     "negative_local_styles": [
+      "ending hit"
+     ]
+    }
+   ],
+   "sync_points": [
+    {
+     "t": 372.85,
+     "what": "the elegy is already in"
+    },
+    {
+     "t": 382.07,
+     "what": "quietest point (bed dip -6)"
+    },
+    {
+     "t": 413.87,
+     "what": "storm swell"
+    },
+    {
+     "t": 418.23,
+     "what": "near silence: room for the seal gag"
+    },
+    {
+     "t": 424.59,
+     "what": "warm lift"
+    }
+   ],
+   "transition_in": "2.5 s crossfade as \"And people lived here\" begins",
+   "transition_out": "own ending: the last high notes ring out on the Ch5 card (1 s tail)"
+  },
+  {
+   "id": "M09_midway_bright",
+   "chapter": 5,
+   "t_in": 435.79,
+   "t_out": 480.24,
+   "dur": 44.45,
+   "fade_in": 1.5,
+   "fade_out": 0.45,
+   "gain_db": -9,
+   "offset": 0.0,
+   "emotion": "bright arrival, a little mischievous, graceful-then-clumsy, wonder at the drowned volcano, intelligent curiosity",
+   "prompt": "A bright, open documentary cue in A major at 108 bpm: light mallets and plucked strings, a little mischievous; a graceful legato phrase that trips with a playful hiccup; then deeper and rising with wonder, a broad low chord; then curious and intelligent with a steady pulse and a driving mechanical undertone, building to a firm, clean final stop.",
+   "sections": [
+    {
+     "name": "Midway: bright and open",
+     "t0": 435.79,
+     "t1": 448.35,
+     "duration_ms": 12560,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "bright",
+      "open",
+      "light mallets",
+      "plucked strings",
+      "A major 108 bpm",
+      "a little mischievous"
+     ],
+     "negative_local_styles": [
+      "tropical cliches"
+     ]
+    },
+    {
+     "name": "albatross: graceful, then clumsy",
+     "t0": 448.35,
+     "t1": 456.29,
+     "duration_ms": 7940,
+     "energy": "low",
+     "job": "thinking",
+     "positive_local_styles": [
+      "graceful legato phrase",
+      "playful hiccup",
+      "light"
+     ],
+     "negative_local_styles": [
+      "cartoon"
+     ]
+    },
+    {
+     "name": "the 28-million-year volcano",
+     "t0": 456.29,
+     "t1": 466.23,
+     "duration_ms": 9940,
+     "energy": "high",
+     "job": "feeling",
+     "positive_local_styles": [
+      "deeper",
+      "rising",
+      "wonder",
+      "broad low chord"
+     ],
+     "negative_local_styles": [
+      "stinger"
+     ]
+    },
+    {
+     "name": "Darwin's idea and the drills",
+     "t0": 466.23,
+     "t1": 480.24,
+     "duration_ms": 14010,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "curious",
+      "intelligent",
+      "steady pulse",
+      "mechanical driving undertone",
+      "builds to a firm clean stop"
+     ],
+     "negative_local_styles": [
+      "fade-out tail"
+     ]
+    }
+   ],
+   "sync_points": [
+    {
+     "t": 451.69,
+     "what": "space for the albatross tumble"
+    },
+    {
+     "t": 460.65,
+     "what": "broad low chord: 28 MILLION YEARS"
+    },
+    {
+     "t": 479.05,
+     "what": "FIRM STOP with the drill impact"
+    }
+   ],
+   "transition_in": "starts on the Ch5 card (1.5 s fade)",
+   "transition_out": "HARD CUT: ends on the drill impact (0.45 s fade); the impact tail and the cut-away bed carry the 0.8 s pause; M10 hits on \"In June\""
+  },
+  {
+   "id": "M10_af_codebreak",
+   "chapter": 5,
+   "t_in": 480.64,
+   "t_out": 524.37,
+   "dur": 43.73,
+   "fade_in": 0.05,
+   "fade_out": 0.5,
+   "gain_db": -9,
+   "offset": 0.0,
+   "emotion": "tension in the Midway codebreaking, serious weight, then a wry deadpan bait, a satisfying click",
+   "prompt": "Taut, clandestine, intelligent tension in D minor at 112 bpm, starting at once on a low downbeat: muted staccato strings in a Morse-like rhythm, a ticking hi-hat, a low synth pulse, restrained and serious; then curious codebreaking tension; then a dry, understated, clever counter-line over the pulse, a quiet wink rather than comedy; then it thins to leave space, and lands a firm, satisfying final cadence that stops cleanly. No war drums, no brass fanfare, no explosions.",
+   "sections": [
+    {
+     "name": "June 1942: the battle",
+     "t0": 480.64,
+     "t1": 492.01,
+     "duration_ms": 11370,
+     "energy": "mid",
+     "job": "tension",
+     "positive_local_styles": [
+      "taut pulse from the first beat",
+      "low downbeat",
+      "serious",
+      "restrained weight",
+      "D minor 112 bpm"
+     ],
+     "negative_local_styles": [
+      "war drums",
+      "fanfare"
+     ]
+    },
+    {
+     "name": "codebreakers: AF",
+     "t0": 492.01,
+     "t1": 505.01,
+     "duration_ms": 13000,
+     "energy": "mid",
+     "job": "tension",
+     "positive_local_styles": [
+      "clandestine",
+      "ticking",
+      "Morse-like staccato rhythm",
+      "curious tension"
+     ],
+     "negative_local_styles": [
+      "melody"
+     ]
+    },
+    {
+     "name": "the bait",
+     "t0": 505.01,
+     "t1": 517.51,
+     "duration_ms": 12500,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "dry understated clever counter-line",
+      "a quiet wink",
+      "deadpan"
+     ],
+     "negative_local_styles": [
+      "cartoon",
+      "slide whistle",
+      "comedy"
+     ]
+    },
+    {
+     "name": "short of water, confirmed",
+     "t0": 517.51,
+     "t1": 524.37,
+     "duration_ms": 6860,
+     "energy": "low",
+     "job": "tension",
+     "positive_local_styles": [
+      "thins for the line",
+      "firm satisfying final cadence",
+      "clean stop"
+     ],
+     "negative_local_styles": [
+      "fade-out tail",
+      "triumph"
+     ]
+    }
+   ],
+   "sync_points": [
+    {
+     "t": 480.69,
+     "what": "HARD IN on \"In June\": downbeat at t_in"
+    },
+    {
+     "t": 498.69,
+     "what": "AF lights"
+    },
+    {
+     "t": 514.37,
+     "what": "the line twitches"
+    },
+    {
+     "t": 519.39,
+     "what": "dip -10 under the punchline"
+    },
+    {
+     "t": 523.11,
+     "what": "final cadence lands: AF = MIDWAY"
+    }
+   ],
+   "transition_in": "HARD IN at s123 (0.05 s fade): a hard cut on the turn",
+   "transition_out": "stops cleanly in the 1.2 s pause after Midway: the comedy ends here"
+  },
+  {
+   "id": "M11_losses_graves_to_darwin_point",
+   "chapter": 5,
+   "t_in": 523.87,
+   "t_out": 601.57,
+   "dur": 77.7,
+   "fade_in": 1.0,
+   "fade_out": 1.0,
+   "gain_db": -12,
+   "offset": 0.0,
+   "emotion": "solemn restraint for the losses and the war graves, then reflective wonder, inevitability, a turn toward beginnings",
+   "prompt": "A low, respectful documentary pad in D minor, very slow, sustained strings with no percussion; deep, dark and still with quiet aquatic low drones; a single held low note and near stillness, then one very soft warm chord; then a gentle lift into reflective wonder with soft felt piano and pads in F major and a slow pulse; then darker and inevitable, a slow marching low pulse, descending; and a brief hopeful rising phrase at the end.",
+   "sections": [
+    {
+     "name": "the losses",
+     "t0": 523.87,
+     "t1": 535.75,
+     "duration_ms": 11880,
+     "energy": "low",
+     "job": "feeling",
+     "positive_local_styles": [
+      "low respectful pad",
+      "sustained strings",
+      "D minor",
+      "very slow"
+     ],
+     "negative_local_styles": [
+      "percussion",
+      "brass",
+      "drama"
+     ]
+    },
+    {
+     "name": "found, far out, three miles down",
+     "t0": 535.75,
+     "t1": 550.31,
+     "duration_ms": 14560,
+     "energy": "low",
+     "job": "texture",
+     "positive_local_styles": [
+      "deep",
+      "dark",
+      "still",
+      "quiet aquatic low drones"
+     ],
+     "negative_local_styles": [
+      "percussion",
+      "melody"
+     ]
+    },
+    {
+     "name": "war graves",
+     "t0": 550.31,
+     "t1": 565.37,
+     "duration_ms": 15060,
+     "energy": "low",
+     "job": "feeling",
+     "positive_local_styles": [
+      "single held low note",
+      "near stillness",
+      "one very soft warm chord"
+     ],
+     "negative_local_styles": [
+      "any movement",
+      "percussion"
+     ]
+    },
+    {
+     "name": "Kure and Darwin's blue",
+     "t0": 565.37,
+     "t1": 577.77,
+     "duration_ms": 12400,
+     "energy": "low",
+     "job": "thinking",
+     "positive_local_styles": [
+      "gentle lift",
+      "reflective wonder",
+      "soft felt piano",
+      "pads",
+      "F major",
+      "slow pulse"
+     ],
+     "negative_local_styles": [
+      "drums"
+     ]
+    },
+    {
+     "name": "past the Darwin Point to Kamchatka",
+     "t0": 577.77,
+     "t1": 594.69,
+     "duration_ms": 16920,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "darker",
+      "inevitable",
+      "slow marching low pulse",
+      "descending"
+     ],
+     "negative_local_styles": [
+      "bombast"
+     ]
+    },
+    {
+     "name": "every volcano had to start somewhere",
+     "t0": 594.69,
+     "t1": 601.57,
+     "duration_ms": 6880,
+     "energy": "mid",
+     "job": "feeling",
+     "positive_local_styles": [
+      "brief hopeful rising phrase"
+     ],
+     "negative_local_styles": [
+      "ending hit"
+     ]
+    }
+   ],
+   "sync_points": [
+    {
+     "t": 527.83,
+     "what": "no accents on the losses"
+    },
+    {
+     "t": 554.59,
+     "what": "held low note; bed -3 dB through the 2.2 s silence"
+    },
+    {
+     "t": 565.37,
+     "what": "gentle lift only after the 10 s hush"
+    },
+    {
+     "t": 577.29,
+     "what": "quiet realisation"
+    },
+    {
+     "t": 594.27,
+     "what": "descending"
+    },
+    {
+     "t": 597.93,
+     "what": "hopeful turn"
+    }
+   ],
+   "transition_in": "enters in the 1.2 s pause after AF was Midway (1 s fade)",
+   "transition_out": "own ending: the hopeful phrase resolves on the Ch6 card (1 s tail)"
+  },
+  {
+   "id": "M12_newborn_and_descent",
+   "chapter": 6,
+   "t_in": 598.97,
+   "t_out": 677.89,
+   "dur": 78.92,
+   "fade_in": 2.0,
+   "fade_out": 0.25,
+   "gain_db": -9,
+   "offset": 0.0,
+   "emotion": "mystery and reverence for the newborn volcano, a light dry gag, then the long dread-and-awe descent to the true base",
+   "prompt": "A deep documentary cue that builds toward a climax: mysterious, warm and slow, reverent, in D minor; a faint tremor-like low pulse, then calm; a light, dry, playful lift with space; then a deep slow heavy pulse building steadily with rising tension; heavier and darker, gravity, low brass-like synth; and finally a long rising build with a simple three-note descending felt-piano figure (the look-down motif) on top, intensifying to a peak and stopping abruptly at the very end.",
+   "sections": [
+    {
+     "name": "the young volcano",
+     "t0": 598.97,
+     "t1": 616.45,
+     "duration_ms": 17480,
+     "energy": "low",
+     "job": "thinking",
+     "positive_local_styles": [
+      "mysterious",
+      "warm",
+      "deep",
+      "slow",
+      "reverent",
+      "D minor"
+     ],
+     "negative_local_styles": [
+      "accents",
+      "percussion"
+     ]
+    },
+    {
+     "name": "felt across the south; the old name",
+     "t0": 616.45,
+     "t1": 625.27,
+     "duration_ms": 8820,
+     "energy": "low",
+     "job": "tension",
+     "positive_local_styles": [
+      "faint tremor-like low pulse",
+      "then calm"
+     ],
+     "negative_local_styles": [
+      "hits"
+     ]
+    },
+    {
+     "name": "COMING SOON",
+     "t0": 625.27,
+     "t1": 633.97,
+     "duration_ms": 8700,
+     "energy": "low",
+     "job": "thinking",
+     "positive_local_styles": [
+      "light",
+      "dry",
+      "playful lift",
+      "space"
+     ],
+     "negative_local_styles": [
+      "cartoon"
+     ]
+    },
+    {
+     "name": "drain it all; slice the rock",
+     "t0": 633.97,
+     "t1": 653.31,
+     "duration_ms": 19340,
+     "energy": "mid",
+     "job": "tension",
+     "positive_local_styles": [
+      "deep slow heavy pulse",
+      "building steadily",
+      "rising tension"
+     ],
+     "negative_local_styles": [
+      "melody"
+     ]
+    },
+    {
+     "name": "the dent",
+     "t0": 653.31,
+     "t1": 667.35,
+     "duration_ms": 14040,
+     "energy": "high",
+     "job": "tension",
+     "positive_local_styles": [
+      "heavier",
+      "darker",
+      "gravity",
+      "low brass-like synth"
+     ],
+     "negative_local_styles": [
+      "release"
+     ]
+    },
+    {
+     "name": "look down",
+     "t0": 667.35,
+     "t1": 677.89,
+     "duration_ms": 10540,
+     "energy": "high",
+     "job": "tension",
+     "positive_local_styles": [
+      "long rising build",
+      "a simple three-note descending felt-piano figure (the look-down motif)",
+      "peak",
+      "abrupt stop at the very end"
+     ],
+     "negative_local_styles": [
+      "fade-out",
+      "resolution"
+     ]
+    }
+   ],
+   "sync_points": [
+    {
+     "t": 610.47,
+     "what": "no accent on the name"
+    },
+    {
+     "t": 628.75,
+     "what": "space: COMING SOON"
+    },
+    {
+     "t": 633.77,
+     "what": "space: the droop"
+    },
+    {
+     "t": 635.93,
+     "what": "the build starts"
+    },
+    {
+     "t": 668.43,
+     "what": "look-down motif"
+    },
+    {
+     "t": 677.89,
+     "what": "ABRUPT STOP = the 1.2 s payoff dropout (remove layers and drop register, not only level, so it survives Stable volume)"
+    }
+   ],
+   "transition_in": "starts on the Ch6 card (2 s fade)",
+   "transition_out": "cuts off (0.25 s) exactly 1.2 s before \"tall\": the number is spoken over the earth tone and the counter only"
+  },
+  {
+   "id": "M13_payoff_awe",
+   "chapter": 6,
+   "t_in": 679.05,
+   "t_out": 701.43,
+   "dur": 22.38,
+   "fade_in": 0.02,
+   "fade_out": 1.5,
+   "gain_db": -7,
+   "offset": 0.0,
+   "emotion": "awe at the payoff, scale, then quiet reflection before the refill",
+   "prompt": "Starts immediately on a massive low downbeat: huge, wide awe in D major, slow and majestic, sustained strings and a towering brass-like synth swell, a second swell a few seconds later, then it softens into a warm, reflective sustained chord, quiet and almost still. No stinger tail, no drum fills.",
+   "sections": [
+    {
+     "name": "THE HIT: 56,000 ft",
+     "t0": 679.05,
+     "t1": 691.67,
+     "duration_ms": 12620,
+     "energy": "high",
+     "job": "feeling",
+     "positive_local_styles": [
+      "massive low downbeat at 0 s",
+      "huge wide awe",
+      "D major",
+      "majestic",
+      "second swell"
+     ],
+     "negative_local_styles": [
+      "busy drums",
+      "cymbal"
+     ]
+    },
+    {
+     "name": "never get to see",
+     "t0": 691.67,
+     "t1": 701.43,
+     "duration_ms": 9760,
+     "energy": "low",
+     "job": "feeling",
+     "positive_local_styles": [
+      "soft",
+      "warm sustained chord",
+      "reflective",
+      "almost still"
+     ],
+     "negative_local_styles": [
+      "percussion"
+     ]
+    }
+   ],
+   "sync_points": [
+    {
+     "t": 679.09,
+     "what": "HIT: downbeat at t_in (with impact_deep + payoff_boom)"
+    },
+    {
+     "t": 683.37,
+     "what": "second swell: Everest rises"
+    },
+    {
+     "t": 694.83,
+     "what": "softens: reflection"
+    }
+   ],
+   "transition_in": "HARD IN on \"tall\" after the 1.2 s dropout",
+   "transition_out": "own ending: the reflective chord rings out (1.5 s) as the theme reprise enters"
+  },
+  {
+   "id": "M14_refill_theme_finale",
+   "chapter": 6,
+   "t_in": 699.13,
+   "t_out": 746.93,
+   "dur": 47.8,
+   "fade_in": 2.5,
+   "fade_out": 0.0,
+   "gain_db": -8,
+   "offset": 0.0,
+   "emotion": "the opening theme returns with the ocean: wonder resolved, warm, a curious question for the hand-off, a clean ending on the last frame",
+   "prompt": "Reprise of the cold-open theme: the same airy, curious pulse at 96 bpm in D Lydian with felt piano and soft synth arpeggios, now full, warm and swelling with rising water, peaking as the opening view returns; then gentle and settled under narration with a simple three-note descending felt-piano figure (the look-down motif) once; a short curious lift like a question that resolves; and a final phrase that lands gently and ends on a single sustained felt-piano note that decays to silence.",
+   "sections": [
+    {
+     "name": "the ocean returns (theme)",
+     "t0": 699.13,
+     "t1": 714.33,
+     "duration_ms": 15200,
+     "energy": "high",
+     "job": "feeling",
+     "positive_local_styles": [
+      "opening theme reprise",
+      "airy curious pulse",
+      "felt piano",
+      "synth arpeggio",
+      "D Lydian 96 bpm",
+      "full and warm",
+      "swelling"
+     ],
+     "negative_local_styles": [
+      "new theme",
+      "drums"
+     ]
+    },
+    {
+     "name": "only the top of a giant",
+     "t0": 714.33,
+     "t1": 727.11,
+     "duration_ms": 12780,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "gentle",
+      "settled",
+      "a simple three-note descending felt-piano figure (the look-down motif) once"
+     ],
+     "negative_local_styles": [
+      "busy"
+     ]
+    },
+    {
+     "name": "Louisiana?",
+     "t0": 727.11,
+     "t1": 734.93,
+     "duration_ms": 7820,
+     "energy": "mid",
+     "job": "thinking",
+     "positive_local_styles": [
+      "curious lift like a question",
+      "resolves"
+     ],
+     "negative_local_styles": [
+      "stinger"
+     ]
+    },
+    {
+     "name": "end screen",
+     "t0": 734.93,
+     "t1": 746.93,
+     "duration_ms": 12000,
+     "energy": "mid",
+     "job": "feeling",
+     "positive_local_styles": [
+      "final phrase",
+      "lands gently",
+      "single sustained felt-piano note decaying to silence at the very end"
+     ],
+     "negative_local_styles": [
+      "fade-out",
+      "loop"
+     ]
+    }
+   ],
+   "sync_points": [
+    {
+     "t": 699.93,
+     "what": "theme swells with the water (music-only refill, lift +3 dB)"
+    },
+    {
+     "t": 714.93,
+     "what": "settles under the final lines"
+    },
+    {
+     "t": 726.41,
+     "what": "look-down motif once"
+    },
+    {
+     "t": 733.93,
+     "what": "last word: end-screen phrase begins"
+    },
+    {
+     "t": 746.93,
+     "what": "file ends on the last frame"
+    }
+   ],
+   "transition_in": "2.5 s fade-in from \"Now put the ocean back\"",
+   "transition_out": "BACK-TIMED: the file's natural end (last sample above -60 dBFS) must land on the last frame; set \"offset\" so it does",
+   "back_time_to_last_frame": true,
+   "fallback": "if the reprise does not sound like M01, lay M01's own first 10-15 s (offset 0) under the refill and crossfade into M14 at the frame-1 composition"
+  }
+ ],
+ "dips": [
+  [
+   15.77,
+   16.92,
+   -24,
+   "DROPOUT 1.15 s: the sea drops, the music drops; drain sound carries into the -400 FT hit"
+  ],
+  [
+   24.13,
+   25.33,
+   -10,
+   "gag: No ferry needed (1.2 s before the line)"
+  ],
+  [
+   77.01,
+   85.21,
+   -3,
+   "Two people died: music down 3 dB, single low note"
+  ],
+  [
+   103.07,
+   104.27,
+   -10,
+   "gag: Hold on to your hat"
+  ],
+  [
+   130.95,
+   132.75,
+   -30,
+   "DROPOUT 1.8 s: the held breath before the landslide reveal"
+  ],
+  [
+   148.0,
+   149.2,
+   -10,
+   "gag: With room to spare"
+  ],
+  [
+   172.52,
+   173.57,
+   -10,
+   "dry button: Creeping"
+  ],
+  [
+   190.59,
+   191.34,
+   -24,
+   "DROPOUT 0.75 s: the inhale before the island stands up"
+  ],
+  [
+   242.29,
+   243.49,
+   -10,
+   "gag: the road almost to the top"
+  ],
+  [
+   308.83,
+   309.83,
+   -10,
+   "gag: A very big baby"
+  ],
+  [
+   372.85,
+   380.77,
+   -3,
+   "Nihoa: people lived here (softer)"
+  ],
+  [
+   380.77,
+   386.93,
+   -6,
+   "Nihoa: they buried their dead (softer still)"
+  ],
+  [
+   418.33,
+   419.73,
+   -9,
+   "gag: the seal finds water"
+  ],
+  [
+   448.3,
+   449.5,
+   -10,
+   "gag: Landing is another story"
+  ],
+  [
+   518.01,
+   520.29,
+   -10,
+   "punchline: AF is short of water (under the line, per script)"
+  ],
+  [
+   554.09,
+   565.37,
+   -3,
+   "war graves: held low note, the hush runs 10 s past the line"
+  ],
+  [
+   631.13,
+   632.62,
+   -10,
+   "gag tag: At least."
+  ]
+ ],
+ "lifts": [
+  [
+   700.13,
+   714.63,
+   3,
+   "music-only refill: the theme returns full (mix.py dips multiply, so +3 lifts)"
+  ]
+ ],
+ "dropouts": [
+  {
+   "t0": 15.77,
+   "t1": 16.92,
+   "how": "dip -24 dB inside M01",
+   "floor": "drain_start + surf bed",
+   "then": "impact_deep + arrival chord on -400 FT"
+  },
+  {
+   "t0": 130.95,
+   "t1": 132.75,
+   "how": "dip -30 dB inside M04",
+   "floor": "amb_drained_seabed (+ the drain gurgle tail)",
+   "then": "impact_deep on slides"
+  },
+  {
+   "t0": 190.59,
+   "t1": 191.34,
+   "how": "dip -24 dB inside M05 (under the voice)",
+   "floor": "drain_flow + deep_riser",
+   "then": "impact_deep + M05 bloom on up"
+  },
+  {
+   "t0": 480.24,
+   "t1": 480.64,
+   "how": "cue gap: M09 stops on the drill hit, M10 starts hard on \"In June\"",
+   "floor": "impact_deep tail + amb_earth_deep",
+   "then": "M10 downbeat"
+  },
+  {
+   "t0": 677.89,
+   "t1": 679.05,
+   "how": "cue gap: M12 stops abruptly 1.2 s before \"tall\"",
+   "floor": "voice + counter ticks + amb_earth_deep",
+   "then": "impact_deep + payoff_boom + M13 downbeat"
+  }
+ ],
+ "music_py_cues": {
+  "global": "Cinematic documentary score: modern hybrid orchestral, warm analog synth pulses, felt piano, deep low strings, soft mallets, subtle organic percussion, rich wide stereo, high-end production. Instrumental only, no vocals, no choir words, no lead melody that competes with a male narrator; keep the 1-4 kHz range sparse; no ukulele, no steel guitar, no tiki or luau cliches; clean ending without a fade-out tail",
+  "model": "music_v2_5",
+  "cues": [
+   {
+    "id": "M01_cold_open_wonder",
+    "dur": 52.43,
+    "prompt": "Cold open of a wonder documentary: an airy, curious pulse at 96 bpm in D Lydian, felt piano and soft synth arpeggios, light and bright from the first beat; gentle low strings join and build to a warm open arrival, then a lighter playful stretch, then the pulse drops an octave into something deep and mysterious with a simple three-note descending felt-piano figure (the look-down motif), a slow rising swell, and it thins to a single soft sustained pad at the end. No intro sting, no big drums."
+   },
+   {
+    "id": "M02_halape_1975_night",
+    "dur": 45.96,
+    "prompt": "Restrained dread for a true night disaster: a very quiet low drone of cello and soft synth pad in D minor, no pulse at first; then a slow, soft low heartbeat-like pulse with growing unease but no hits; then near stillness, one sustained low cello note and a faint warm chord like first light; at the very end a slow low swell that rises into a held unresolved note. No stingers, no percussion hits, no big drums, no horror effects, no melody."
+   },
+   {
+    "id": "M03_pali_wind_playful",
+    "dur": 22.16,
+    "prompt": "Light, classy, playful documentary underscore in G major at 104 bpm: bouncy pizzicato strings, nylon-guitar harmonics, a light shaker and an airy flute-like synth, with breezy space between phrases; then the bounce falls away and wide sustained strings open up in awe, darkening at the end into a low suspended chord."
+   },
+   {
+    "id": "M04_nuuanu_drain_reveal",
+    "dur": 71.2,
+    "prompt": "Documentary tension and discovery in D minor at 90 bpm: a low ostinato of deep strings and a pulsing synth bass, descending, building; low tom pulses intensify, then a sudden stop to near silence for two seconds; then a big wide low swell in open fifths, awe and scale, moving forward; a lighter dry moment, a confident lift, a steady pulse; then back to a low, quiet creeping pulse, and finally a rising questioning figure that builds like a riser into the next chapter."
+   },
+   {
+    "id": "M05_island_stands_up",
+    "dur": 85.04,
+    "prompt": "Big, rising, wide documentary score: it builds from deep drums swelling in D minor to a huge awe bloom in D major Lydian with soaring strings and a brass-like synth swell, then settles into a slow majestic pulse; calm wonder with a simple three-note descending felt-piano figure (the look-down motif) repeated lower and lower; a quiet mysterious two-note question; a rumbling confident stride with a lift and a bright resolve; a lighter dry stretch; then a slow, heavy, broad and darker swell that ends on an unresolved suspended note."
+   },
+   {
+    "id": "M06_hotspot_and_the_chain",
+    "dur": 53.42,
+    "prompt": "A low steady pulse in A minor at 92 bpm starts at once, a sense of slow unstoppable movement; intimate and curious felt piano with soft pizzicato; the pulse broadens and moves forward, then shifts downward; descending aquatic mallets and soft pads, sinking; warm and proud rising phrases along a chain of islands with a light dry wink; ends on a reflective, open phrase that rings out."
+   },
+   {
+    "id": "M07_time_machine_travel",
+    "dur": 59.08,
+    "prompt": "A travelling documentary cue in G major at 100 bpm: muted plucked arpeggios, a soft kick pulse, shaker and warm strings, a steady sense of a journey across millions of years; a restrained reflective passage; then forward motion with a gentle lift for each new island; then the texture thins, open and wind-like, and resolves quietly."
+   },
+   {
+    "id": "M08_nihoa_elegy_to_lalo",
+    "dur": 66.39,
+    "prompt": "A respectful documentary elegy that becomes tender: solo felt piano and soft sustained low strings in E minor, slow and sparse, getting quieter; then gentle, open, airy pads and harp-like plucks over open ocean; tender and warm; a brief darker swell with low string tremolo like a passing storm that ends in a sudden thin-out to near silence; a warm hopeful lift; finally thinning to a few high soft notes, calm and open."
+   },
+   {
+    "id": "M09_midway_bright",
+    "dur": 44.45,
+    "prompt": "A bright, open documentary cue in A major at 108 bpm: light mallets and plucked strings, a little mischievous; a graceful legato phrase that trips with a playful hiccup; then deeper and rising with wonder, a broad low chord; then curious and intelligent with a steady pulse and a driving mechanical undertone, building to a firm, clean final stop."
+   },
+   {
+    "id": "M10_af_codebreak",
+    "dur": 43.73,
+    "prompt": "Taut, clandestine, intelligent tension in D minor at 112 bpm, starting at once on a low downbeat: muted staccato strings in a Morse-like rhythm, a ticking hi-hat, a low synth pulse, restrained and serious; then curious codebreaking tension; then a dry, understated, clever counter-line over the pulse, a quiet wink rather than comedy; then it thins to leave space, and lands a firm, satisfying final cadence that stops cleanly. No war drums, no brass fanfare, no explosions."
+   },
+   {
+    "id": "M11_losses_graves_to_darwin_point",
+    "dur": 77.7,
+    "prompt": "A low, respectful documentary pad in D minor, very slow, sustained strings with no percussion; deep, dark and still with quiet aquatic low drones; a single held low note and near stillness, then one very soft warm chord; then a gentle lift into reflective wonder with soft felt piano and pads in F major and a slow pulse; then darker and inevitable, a slow marching low pulse, descending; and a brief hopeful rising phrase at the end."
+   },
+   {
+    "id": "M12_newborn_and_descent",
+    "dur": 78.92,
+    "prompt": "A deep documentary cue that builds toward a climax: mysterious, warm and slow, reverent, in D minor; a faint tremor-like low pulse, then calm; a light, dry, playful lift with space; then a deep slow heavy pulse building steadily with rising tension; heavier and darker, gravity, low brass-like synth; and finally a long rising build with a simple three-note descending felt-piano figure (the look-down motif) on top, intensifying to a peak and stopping abruptly at the very end."
+   },
+   {
+    "id": "M13_payoff_awe",
+    "dur": 22.38,
+    "prompt": "Starts immediately on a massive low downbeat: huge, wide awe in D major, slow and majestic, sustained strings and a towering brass-like synth swell, a second swell a few seconds later, then it softens into a warm, reflective sustained chord, quiet and almost still. No stinger tail, no drum fills."
+   },
+   {
+    "id": "M14_refill_theme_finale",
+    "dur": 47.8,
+    "prompt": "Reprise of the cold-open theme: the same airy, curious pulse at 96 bpm in D Lydian with felt piano and soft synth arpeggios, now full, warm and swelling with rising water, peaking as the opening view returns; then gentle and settled under narration with a simple three-note descending felt-piano figure (the look-down motif) once; a short curious lift like a question that resolves; and a final phrase that lands gently and ends on a single sustained felt-piano note that decays to silence."
+   }
+  ]
+ }
+}

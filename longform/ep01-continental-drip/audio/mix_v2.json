@@ -1,0 +1,1816 @@
+{
+ "duration": 1011.0,
+ "vo": "$SCRATCH/audio/vo/vo_proc.wav",
+ "vo_gain_db": 0,
+ "music": [
+  {
+   "file": "$SCRATCH/audio/music/out/m01_hook_4917a566c3.mp3",
+   "start": 0,
+   "end": 56.0,
+   "gain_db": -9,
+   "fade_in": 0.05,
+   "fade_out": 3.0,
+   "offset": 0,
+   "loop": false
+  },
+  {
+   "file": "$SCRATCH/audio/music/out/m02_history_ce0ea76063.mp3",
+   "start": 53.0,
+   "end": 176.8,
+   "gain_db": -9,
+   "fade_in": 2.5,
+   "fade_out": 3.0,
+   "offset": 0,
+   "loop": false
+  },
+  {
+   "file": "$SCRATCH/audio/music/out/m03_otherside_4954f1506b.mp3",
+   "start": 173.8,
+   "end": 359.2,
+   "gain_db": -9,
+   "fade_in": 2.5,
+   "fade_out": 3.0,
+   "offset": 0,
+   "loop": false
+  },
+  {
+   "file": "$SCRATCH/audio/music/out/m04_pyramid_487092fc5a.mp3",
+   "start": 356.2,
+   "end": 483.0,
+   "gain_db": -9,
+   "fade_in": 2.5,
+   "fade_out": 3.0,
+   "offset": 0,
+   "loop": false
+  },
+  {
+   "file": "$SCRATCH/audio/music/out/m05_wegener_e1c41e98fe.mp3",
+   "start": 480.0,
+   "end": 537.8,
+   "gain_db": -9,
+   "fade_in": 2.5,
+   "fade_out": 3.0,
+   "offset": 0,
+   "loop": false
+  },
+  {
+   "file": "$SCRATCH/audio/music/out/m06_ice_d8a01b2584.mp3",
+   "start": 534.8,
+   "end": 605.9,
+   "gain_db": -9,
+   "fade_in": 2.5,
+   "fade_out": 3.0,
+   "offset": 0,
+   "loop": false
+  },
+  {
+   "file": "$SCRATCH/audio/music/out/m07_gondwana_669d30a468.mp3",
+   "start": 602.9,
+   "end": 695.6,
+   "gain_db": -9,
+   "fade_in": 2.5,
+   "fade_out": 3.0,
+   "offset": 0,
+   "loop": false
+  },
+  {
+   "file": "$SCRATCH/audio/music/out/m08_holden_d73d60645c.mp3",
+   "start": 692.6,
+   "end": 777.1,
+   "gain_db": -9,
+   "fade_in": 2.5,
+   "fade_out": 3.0,
+   "offset": 0,
+   "loop": false
+  },
+  {
+   "file": "$SCRATCH/audio/music/out/m09_honest_770bf600e8.mp3",
+   "start": 774.1,
+   "end": 876.9,
+   "gain_db": -9,
+   "fade_in": 2.5,
+   "fade_out": 3.0,
+   "offset": 0,
+   "loop": false
+  },
+  {
+   "file": "$SCRATCH/audio/music/out/m10_future_b21e44ab75.mp3",
+   "start": 873.9,
+   "end": 1012.5,
+   "gain_db": -9,
+   "fade_in": 2.5,
+   "fade_out": 3.0,
+   "offset": 0,
+   "loop": false
+  }
+ ],
+ "sfx": [
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 0,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 2.99,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 3.86,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 5.3,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 6.62,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 7.58,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 7.71,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 9.11,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 9.91,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 10.91,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 13.74,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/cartoon_fall.wav",
+   "t": 17.54,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/tick_counter.wav",
+   "t": 21.04,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/tick_counter.wav",
+   "t": 22.88,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/bell_small.wav",
+   "t": 27.36,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_short.wav",
+   "t": 29.3,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 30.06,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/riser_tension.wav",
+   "t": 32.88,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 38.28,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/sonar_ping.wav",
+   "t": 41.54,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 44.27,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 47.52,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_big.wav",
+   "t": 48.82,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/glitch_click.wav",
+   "t": 51.79,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_deep.wav",
+   "t": 53.1,
+   "gain_db": -6.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/time_rewind.wav",
+   "t": 55.09,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 57.88,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 64.81,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 67.26,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 72.54,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 78.82,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/tick_counter.wav",
+   "t": 81.98,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/record_scratch.wav",
+   "t": 89.89,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 89.96,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/time_rewind.wav",
+   "t": 91.72,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 96.98,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 105.34,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 106.29,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 107.24,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 107.27,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 117.06,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_big.wav",
+   "t": 121.43,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/splash_big.wav",
+   "t": 123.49,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 127.33,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 135.58,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 136.43,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 137.43,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 139.32,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 141.23,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 142.27,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 143.43,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 144.19,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 145.03,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/typewriter.wav",
+   "t": 146.25,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/typewriter.wav",
+   "t": 149.65,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 153.39,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/typewriter.wav",
+   "t": 155.83,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/bell_small.wav",
+   "t": 156.79,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/typewriter.wav",
+   "t": 164.3,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/riser_tension.wav",
+   "t": 171.32,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/sonar_ping.wav",
+   "t": 173.06,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 175.32,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 177.69,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 180.89,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/sonar_ping.wav",
+   "t": 186.84,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/rumble_quake.wav",
+   "t": 186.96,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_big.wav",
+   "t": 190.7,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/ice_wind.wav",
+   "t": 191.89,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 198.5,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/glitch_click.wav",
+   "t": 200.13,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 207.89,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 210.34,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 211.89,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_deep.wav",
+   "t": 217.61,
+   "gain_db": -6.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 226.57,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 229.76,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_short.wav",
+   "t": 235.69,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 238.9,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_big.wav",
+   "t": 240.31,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 241.75,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/dig_shovel.wav",
+   "t": 245.1,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/sonar_ping.wav",
+   "t": 247.47,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/rumble_quake.wav",
+   "t": 247.52,
+   "gain_db": -20.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/splash_big.wav",
+   "t": 250.76,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 254.37,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 258,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 259.81,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 263.37,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 265.42,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 266.93,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 269.21,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/bell_small.wav",
+   "t": 273.89,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/crickets.wav",
+   "t": 274.99,
+   "gain_db": -20.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 276.42,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 279.62,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 280.34,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 280.96,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/tick_counter.wav",
+   "t": 281.13,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/tick_counter.wav",
+   "t": 285.42,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 288.39,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 290.87,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 292.79,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 295.23,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 299.88,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_short.wav",
+   "t": 304.39,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 307.31,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 307.91,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 308.392,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 308.874,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 309.356,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 309.838,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 310.32,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_big.wav",
+   "t": 312.37,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/tick_counter.wav",
+   "t": 313.88,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_deep.wav",
+   "t": 314.85,
+   "gain_db": -8.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 320.73,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 323.04,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 323.49,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 323.99,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 324.44,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 324.89,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 325.84,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 326.38,
+   "gain_db": -8.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 327.98,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 329.34,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 330.86,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 332.21,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 334.54,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 337.79,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 338.87,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/riser_tension.wav",
+   "t": 342.587,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_short.wav",
+   "t": 346.537,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 350.38,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 352.71,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 356.48,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 357.66,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 362.84,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 363.85,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 372.79,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 374.263,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 382.42,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 390.64,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 394.64,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 398.37,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 400.97,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 404.41,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 404.95,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 407.92,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 411.19,
+   "gain_db": -20.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 420.45,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/sonar_ping.wav",
+   "t": 421.64,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 426.49,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 444.89,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 449.02,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 452.28,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 459.35,
+   "gain_db": -8.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 463.79,
+   "gain_db": -20.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_short.wav",
+   "t": 466.46,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 471.62,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/rumble_quake.wav",
+   "t": 476.53,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/riser_tension.wav",
+   "t": 477.49,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 479.71,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 481.51,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 486.43,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 489.61,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 493.84,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 494.26,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 500.17,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 502.18,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/rumble_quake.wav",
+   "t": 504.55,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 509.03,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_short.wav",
+   "t": 511.94,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_short.wav",
+   "t": 512.54,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_short.wav",
+   "t": 512.86,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 515.99,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 516.45,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 516.91,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/bell_small.wav",
+   "t": 518.47,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 519.12,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 520.27,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 524.37,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 527.01,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/glitch_click.wav",
+   "t": 529.81,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/glitch_click.wav",
+   "t": 530.36,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/typewriter.wav",
+   "t": 532.94,
+   "gain_db": -20.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 536.29,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 539.65,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/ice_wind.wav",
+   "t": 541.37,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/ice_wind.wav",
+   "t": 543.43,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/ice_wind.wav",
+   "t": 551.57,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/ice_wind.wav",
+   "t": 555.59,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 561.35,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 565.43,
+   "gain_db": -20.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 568.95,
+   "gain_db": -22.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/tick_counter.wav",
+   "t": 576.55,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_deep.wav",
+   "t": 577.55,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 581.81,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 584.66,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 586.53,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/record_scratch.wav",
+   "t": 588.5,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 591.25,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/riser_tension.wav",
+   "t": 592.88,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 593.59,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/time_rewind.wav",
+   "t": 599.33,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 604.42,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/time_rewind.wav",
+   "t": 605.17,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 609.79,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 610.99,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 611.79,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 612.51,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 616.92,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 619.53,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 620.66,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 621.99,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 623.43,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 625.79,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 628.76,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_deep.wav",
+   "t": 629.55,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/time_rewind.wav",
+   "t": 633.65,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/rumble_quake.wav",
+   "t": 634.25,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 640.35,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 640.45,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_short.wav",
+   "t": 651.62,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 653.99,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 654.64,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 655.29,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 655.37,
+   "gain_db": -15.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/glitch_click.wav",
+   "t": 658.84,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_big.wav",
+   "t": 660.11,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 661.13,
+   "gain_db": -15.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_deep.wav",
+   "t": 670.17,
+   "gain_db": -8.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 672.2,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/time_rewind.wav",
+   "t": 672.73,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 677.2,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 680.01,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 681.55,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 682.49,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 686.86,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 689.65,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_deep.wav",
+   "t": 692.17,
+   "gain_db": -6.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 694.15,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/typewriter.wav",
+   "t": 694.58,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 704.12,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 712.67,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 716.98,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 722.51,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 723.95,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 726.54,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/splash_big.wav",
+   "t": 732.367,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/bell_small.wav",
+   "t": 735.04,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_deep.wav",
+   "t": 739.25,
+   "gain_db": -6.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 741.39,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 745.07,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 748.17,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 752.07,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 756.57,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 759.89,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 760.94,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 771.3,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 772.71,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/glitch_click.wav",
+   "t": 776.93,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 783.19,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 786.03,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 787.55,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 789.07,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 790.93,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 798.08,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/rumble_quake.wav",
+   "t": 802.51,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 807.39,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 811.23,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 814.83,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 823.99,
+   "gain_db": -20.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 826.47,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/bell_small.wav",
+   "t": 843.44,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/bell_small.wav",
+   "t": 845.93,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/stamp.wav",
+   "t": 848.31,
+   "gain_db": -10.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 850.62,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/glitch_click.wav",
+   "t": 855.29,
+   "gain_db": -20.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 860.18,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 868.21,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/glitch_click.wav",
+   "t": 870.83,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 875.44,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 879.03,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 880.37,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 880.91,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 881.27,
+   "gain_db": -20.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 882.61,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/tick_counter.wav",
+   "t": 883.93,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_big.wav",
+   "t": 887.28,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/riser_tension.wav",
+   "t": 888.07,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 888.97,
+   "gain_db": -22.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 889.33,
+   "gain_db": -22.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 891.99,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 893.05,
+   "gain_db": -15.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 897.22,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/tick_counter.wav",
+   "t": 897.85,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 900.94,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 902.66,
+   "gain_db": -15.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 906.62,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 908.2,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 912.24,
+   "gain_db": -15.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 916.12,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 918.58,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 920.38,
+   "gain_db": -15.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 924.43,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 924.78,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 926.25,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 928.743,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 929.84,
+   "gain_db": -20.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 930.76,
+   "gain_db": -20.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 931.76,
+   "gain_db": -20.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 932.72,
+   "gain_db": -20.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 933.94,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 935.09,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 936.61,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 938.67,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/splash_big.wav",
+   "t": 939.76,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/bell_small.wav",
+   "t": 942.53,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 943.9,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/tick_counter.wav",
+   "t": 948.48,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/thunk_heavy.wav",
+   "t": 953.25,
+   "gain_db": -22.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/time_rewind.wav",
+   "t": 955.96,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 958.05,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 960.15,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 961.75,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/paper_rustle.wav",
+   "t": 963.06,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/tick_counter.wav",
+   "t": 963.34,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_soft.wav",
+   "t": 965.53,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 965.95,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/shimmer.wav",
+   "t": 968.52,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 970.28,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/impact_short.wav",
+   "t": 973,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/riser_tension.wav",
+   "t": 974.89,
+   "gain_db": -18.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/bell_small.wav",
+   "t": 976.94,
+   "gain_db": -22.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/whoosh_big.wav",
+   "t": 982.09,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 983.28,
+   "gain_db": -16.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/rumble_quake.wav",
+   "t": 984.59,
+   "gain_db": -12.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/riser_tension.wav",
+   "t": 985.69,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 993.93,
+   "gain_db": -14.0
+  },
+  {
+   "file": "$SCRATCH/audio/sfx/norm/pop_ui.wav",
+   "t": 997.44,
+   "gain_db": -12.0
+  }
+ ],
+ "duck": {
+  "db": -11,
+  "attack": 0.08,
+  "release": 0.6
+ },
+ "target_lufs": -14,
+ "true_peak": -1.5
+}

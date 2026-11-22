@@ -1,0 +1,8 @@
+voice typical (phone proxy, 50 ms): -21.2 dBFS
+x010   17.33 ft400.end (gap)                hit  -28.7 | over music+amb  +8.6 dB | under voice typ  -7.5 dB | voice in window  -51.3
+x055  154.16 miles.end (gap)                hit  -30.6 | over music+amb +12.7 dB | under voice typ  -9.4 dB | voice in window  -58.6
+x065  191.65 up.end (2.5 s pause)           hit  -29.4 | over music+amb +15.4 dB | under voice typ  -8.2 dB | voice in window  -53.0
+x074  234.39 tall33.end (gap)               hit  -31.2 | over music+amb +13.8 dB | under voice typ -10.0 dB | voice in window  -52.3
+x140  460.93 old28.end (1.0 s pause)        hit  -30.1 | over music+amb +12.1 dB | under voice typ  -8.9 dB | voice in window  -46.7
+x145  479.69 hitvolc.end (gap before the ha hit  -30.8 | over music+amb +14.5 dB | under voice typ  -9.6 dB | voice in window  -56.6
+x189  679.41 tall56.end (1.8 s pause)       hit  -28.4 | over music+amb +15.9 dB | under voice typ  -7.2 dB | voice in window  -50.7

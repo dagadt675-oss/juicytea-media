@@ -1,0 +1,44 @@
+[
+ {
+  "n": 1,
+  "title": "Why does Earth look like it's dripping?",
+  "first_segment": "s001",
+  "t0": 0.0,
+  "t1": 175.32
+ },
+ {
+  "n": 2,
+  "title": "What's on Earth's other side?",
+  "first_segment": "s025",
+  "t0": 175.32,
+  "t1": 357.66
+ },
+ {
+  "n": 3,
+  "title": "Is Earth secretly a pyramid?",
+  "first_segment": "s045",
+  "t0": 357.66,
+  "t1": 481.49
+ },
+ {
+  "n": 4,
+  "title": "Why did geologists laugh at Wegener?",
+  "first_segment": "s057",
+  "t0": 481.49,
+  "t1": 604.37
+ },
+ {
+  "n": 5,
+  "title": "Where are the drips pointing?",
+  "first_segment": "s072",
+  "t0": 604.37,
+  "t1": 875.39
+ },
+ {
+  "n": 6,
+  "title": "Where is the drip going next?",
+  "first_segment": "s097",
+  "t0": 875.39,
+  "t1": 1010.95
+ }
+]

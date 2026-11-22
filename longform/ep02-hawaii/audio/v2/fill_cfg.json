@@ -1,0 +1,8 @@
+{"report": "music_v2/fill_report.json",
+ "cues": [
+  {"in": "music/M04_nuuanu_drain_reveal_9bd109a4a6.mp3", "out": "music_v2/M04_nuuanu_drain_reveal_filled.wav",
+   "patches": [{"t0": 42.9, "t1": 47.95, "beats": 8, "xin": 0.5, "xout": 1.0, "gain_pts": [[42.9, 0], [47.95, 0]]}]},
+  {"in": "music/M05_island_stands_up_58643ead2b.mp3", "out": "music_v2/M05_island_stands_up_filled.wav",
+   "patches": [{"t0": 40.4, "t1": 45.47, "beats": 8, "xin": 0.4, "xout": 0.12, "gain_pts": [[40.4, -3], [42.0, -12], [45.47, -12]]},
+               {"t0": 72.9, "t1": 75.70, "beats": 8, "xin": 1.0, "xout": 0.12, "gain_pts": [[72.9, 0], [75.7, 0]]}]}
+ ]}

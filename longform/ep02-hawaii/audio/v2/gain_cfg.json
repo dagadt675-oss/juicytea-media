@@ -1,0 +1,4 @@
+{"cues": [{"in": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music_v2/gen/M13_payoff_awe_take3_02172b6aee.mp3",
+           "out": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music_v2/M13_payoff_awe_take3_tail.wav",
+           "gain_pts": [[19.2, 0], [19.7, 15], [23.2, 15]]}],
+ "report": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music_v2/gain_report.json"}

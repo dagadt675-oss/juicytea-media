@@ -1,0 +1,53 @@
+{
+ "comment": "ep01 repackage proposal: the live package (baseline) and three title+thumbnail pairs, same social proof, among the 12 ep01 hosts.",
+ "candidates": [
+  {
+   "id": "ep01_live",
+   "thumb": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/deliver/ep01/thumb_B_pointing_at_what.jpg",
+   "title": "Why the Continents Point South (Not Just a Coincidence)",
+   "channel": "Myth Juice",
+   "views": "52 views",
+   "age": "2d ago",
+   "duration": "15:34",
+   "avatar": "../../feedsim/ours_avatar.jpg"
+  },
+  {
+   "id": "cand_1",
+   "thumb": "../cand_1.jpg",
+   "title": "South America Points at Antarctica. So Does Africa",
+   "channel": "Myth Juice",
+   "views": "52 views",
+   "age": "2d ago",
+   "duration": "15:34",
+   "avatar": "../../feedsim/ours_avatar.jpg"
+  },
+  {
+   "id": "cand_2",
+   "thumb": "../cand_2.jpg",
+   "title": "The Continents Look Like They're Dripping South",
+   "channel": "Myth Juice",
+   "views": "52 views",
+   "age": "2d ago",
+   "duration": "15:34",
+   "avatar": "../../feedsim/ours_avatar.jpg"
+  },
+  {
+   "id": "cand_3",
+   "thumb": "../cand_3.jpg",
+   "title": "Why the Continents Point South (It's a Breakup)",
+   "channel": "Myth Juice",
+   "views": "52 views",
+   "age": "2d ago",
+   "duration": "15:34",
+   "avatar": "../../feedsim/ours_avatar.jpg"
+  }
+ ],
+ "hosts": "../../refs/hosts/hosts.json#ep01",
+ "now_playing": "VKq0pr4rbRs",
+ "seed": 1,
+ "n": {
+  "home": 6,
+  "upnext": 10,
+  "sidebar": 10
+ }
+}

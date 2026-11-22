@@ -1,0 +1,12 @@
+{
+ "comment": "Template for ep02 candidates. Replace candidate.thumb with a cand_*.jpg and the title with the arm under test. Add '+hawaii_direct' to the hosts string to also mix in the 5 same-premise drain uploads.",
+ "candidates": [
+  {"id": "smoke", "thumb": "../../../niche/work/mock_M3_postcard_basalt.jpg",
+   "title": "Hawaii Is Only the Summit. We Measured the Rest.", "channel": "Myth Juice",
+   "views": "52 views", "age": "1d ago", "duration": "16:40", "avatar": "../ours_avatar.jpg"}
+ ],
+ "hosts": "../../refs/hosts/hosts.json#hawaii",
+ "now_playing": "34Ojnyi9xLw",
+ "seed": 2,
+ "n": {"home": 6, "upnext": 10, "sidebar": 10}
+}

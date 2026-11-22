@@ -1,0 +1,227 @@
+{
+ "run": "wf_549ac364-42a",
+ "agent": "a17d95897c93afbb5",
+ "label": "finish ch4",
+ "result": {
+  "module": "ch4",
+  "results": [
+   {
+    "id": "S6-1",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The push through the far door now runs from T('austria')-0.06 to T('austria')+0.4 with a quadratic ease, so it is visible from its first frames. The Graz map (tGraz unchanged at 518.97, so the pop and whoosh cues stay put) dissolves in only after the warm flash is full. The corridor scene holds that full flash under the 0.32 s fade-in, up to tGraz+0.37, the same end time as before.",
+    "files_lines": "ch4.js:148-151 (tOpen/tPush/tPushEnd/tGraz), ch4.js:261 (corridor t1); ch4_sets.js:54 (k*k push ease)",
+    "scene_ranges": [
+     [
+      513.83,
+      519.34
+     ],
+     [
+      518.97,
+      527.26
+     ]
+    ],
+    "evidence": "Test render t_15540 (frame 0 = film 15540), frames 15552-15575 checked one by one: the push starts at 15556, the door grows steadily, the frame is full warm white at 15569, and the Austria map comes up out of the white from 15570 to 15578. No doorframe ghost over the map."
+   },
+   {
+    "id": "S6-2",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The Graz dot and its ring are drawn at alpha 1-prog(t, tPull+0.8, tPull+2.0), so they fade together with the Austria overlay. The hard cutoff t < tPull+2.0 is gone.",
+    "files_lines": "ch4.js:282-283",
+    "scene_ranges": [
+     [
+      518.97,
+      527.26
+     ]
+    ],
+    "evidence": "Tracked full-res crops of t_15540, film 15644-15667: the dot and ring fade together with the red Austria fill over about 15 frames and are already faint before they reach the frame edge. Nothing drops out in a single frame."
+   },
+   {
+    "id": "S6-3",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The Graz shot's last camera key is now the spin shot's opening camera (lat 6, lon -30, alt 3.0, with the drift and breathing cancelled at tSpin). lookOffset and the look values (ovAlpha, dim, desat) ramp to the spin shot's values over tSpin-1.4..tSpin. The '?' fades out over tSpin-0.5..tSpin, and the spin shot's fadeIn is 0, so the hand-off is a seamless cut instead of a 6-frame double exposure.",
+    "files_lines": "ch4.js:268-288 (LSPIN key, lookOffset/look ramps, bigQ alpha), ch4.js:291 (spin fadeIn 0)",
+    "scene_ranges": [
+     [
+      518.97,
+      527.26
+     ],
+     [
+      527.01,
+      532
+     ]
+    ],
+    "evidence": "t_15700, film 15798-15823: the globe disc is identical on both sides of the cut (centre x 573, radius 483). The frame difference is 0.10 at 15810->15811 and was 3.0 per frame in the move before it. The '?' fades out over 15800-15809. There is only ever one globe, and it does not jump or shrink."
+   },
+   {
+    "id": "S6-4",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The Villumsen pan keys now stay inside the valid crop range: x 0.472 at z 1.06 (minimum 0.4717) and x 0.68 at z 1.55 (maximum 0.681). kenburns' hard clamp therefore never engages, and the inOut pan stays one continuous move.",
+    "files_lines": "ch4.js:344-346",
+    "scene_ranges": [
+     [
+      547.27,
+      555.2
+     ]
+    ],
+    "evidence": "Simulation of the crop (same formulas as photo/kenburns): 0 clamped frames from 547.27 to 554.4, with a smooth bell-shaped velocity curve. Patch tracking on the test render t_16405, film 16428-16494: motion builds from -1 to -19.6 px/frame (peak at 16448) and eases back to 0 by 16475. There is no reversal at 16435-16437 and no brake at 16458-16461."
+   },
+   {
+    "id": "S6-5",
+    "status": "needs_shared_change",
+    "change": "No picture change; this is in the voice stem. The stray TTS fragment at the end of the s064 take survives in vo_proc.wav and cannot be fixed from ch4*.js. Fix: silence vo_proc.wav from about 549.85 to 550.30 s with 10-30 ms fades (synthesis fix 7 already includes this range), or apply a vo_mutes ramp in tools/mix.py, then remix and remux. Nothing in the video needs re-rendering.",
+    "files_lines": "none in ch4*.js (tools/mix.py, audio/vo/out/seg/s064.mp3, vo_proc.wav)",
+    "scene_ranges": [],
+    "evidence": "Per the finding's own measurement, the burst is in the voice stem (-14 dB at 550.19-550.24, 94% of its energy below 300 Hz) at the end of s064.mp3. The ch4 module only emits SFX cues and has no cue near 550.2."
+   },
+   {
+    "id": "S6-6",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The photo's white ramp now ends exactly at tIce (prog(t, tWhite, tIce, E.in)), and the ice shot's fadeIn is 0. The ice shot opens on its own full-white veil, giving a clean photo -> white -> ice.",
+    "files_lines": "ch4.js:349 (white ramp), ch4.js:356 (ice fadeIn 0)",
+    "scene_ranges": [
+     [
+      547.27,
+      555.2
+     ],
+     [
+      554.35,
+      561.45
+     ]
+    ],
+    "evidence": "t_16550: mean brightness climbs steadily to its peak at 16630, the cut frame. That peak (mean 212, min 144) is full white under the film's post vignette; it was about 185 in the delivered film. The ice coast then emerges from white from 16631 on. Tile of 16600-16669: Villumsen's face never shows over the ice."
+   },
+   {
+    "id": "S6-7",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The compass needles became a helper that draws them on any surface map. The floor's right-side needles are now drawn before the flipping page, so the lifting page covers them. The page carries its own copy of the needles, which starts exactly on top of the floor's.",
+    "files_lines": "ch4_sets.js:205-232",
+    "scene_ranges": [
+     [
+      565.33,
+      581.16
+     ]
+    ],
+    "evidence": "t_17040, full-res crops of film 17070-17081: as the page lifts, the floor needles beneath it are hidden, and the only needles over the page area are the ones riding on the page."
+   },
+   {
+    "id": "S6-8",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The left-side needles ride in on the page and land with it, so they no longer pop in at flip = 1. The left front-face dikes fade in over flip 0.8-1.0 (dl = clamp((fp-0.8)/0.2)) instead of switching on at flip = 1.",
+    "files_lines": "ch4_sets.js:224-231 (page needles), ch4_sets.js:274-281 (dike fade)",
+    "scene_ranges": [
+     [
+      565.33,
+      581.16
+     ]
+    ],
+    "evidence": "t_17040, crops of film 17086-17100: the needles arrive on the descending page, and the dikes build up gradually from 17086 to 17097. Nothing appears in one frame at 17096->17097."
+   },
+   {
+    "id": "S6-9",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. Each chevron fades in over the first 15% of its 2 s run and out over the last 15% (alpha x clamp(min(ph,1-ph)/0.15)), so the wrap back to the ridge happens while the chevron is invisible.",
+    "files_lines": "ch4_sets.js:242-245",
+    "scene_ranges": [
+     [
+      565.33,
+      581.16
+     ]
+    ],
+    "evidence": "New test render t2_17270 (frame 0 = film 17270), crops of film 17273-17284: the chevrons fade out over 17276-17279, are invisible at the 17280 wrap, and fade back in at the ridge from 17281. No inward jump. The same formula covers the 17219/17220 wrap."
+   },
+   {
+    "id": "S6-10",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The 'PLATE SPEED = FINGERNAIL GROWTH' title is centred on the visible part of the nail panel, at ((px+W)/2, 150), and rides in with it. Plate arrows whose heads the panel would cut fade out as the panel arrives (alpha clamp((px-24-maxX)/48)), so no arrow ends on the panel border.",
+    "files_lines": "ch4.js:431-437 (panel x, arrow fade), ch4.js:450-451 (title)",
+    "scene_ranges": [
+     [
+      580.96,
+      586.93
+     ]
+    ],
+    "evidence": "t2_17530, full frame at film 17580: the title spans about x 1145-1795, entirely inside the panel (left edge x 1017), and Europe is uncovered. No arrow is cut by the panel. The East-Africa arrows go under the arriving panel at 17541-17542 and stay faded in the final layout. Tile of 17536-17559 checked."
+   },
+   {
+    "id": "S6-11",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. Each drip arrow now hangs along its meridian toward the pole, using the on-screen direction from the tip to a point 3 deg further south, instead of straight down the screen. Tips near the limb now hang along the globe instead of into space.",
+    "files_lines": "ch4.js:478-483",
+    "scene_ranges": [
+     [
+      593.59,
+      598.78
+     ]
+    ],
+    "evidence": "t2_17800 (frame 0 = film 17800), full frame at 17900 and crops of 17820-17930: Cape Horn's arrow starts on the red edge of South America and points along the surface toward the Antarctic ring. India's arrow runs from its red tip down the right limb, still on the disc. Neither leaves the globe at any point in the move. Remaining limit: India's tip sits about 63 deg from the view centre, so only a sliver of India shows; that is the framing of three tips about 145 deg apart, not a rendering fault."
+   },
+   {
+    "id": "S6-12",
+    "status": "fixed",
+    "change": "Previous agent's fix, checked and kept. The MYA counter is removed from the rewind card; synthesis fix 10 asks for exactly this, since chapter 5's globe owns the only 0-180 Ma clock. The rewind glyph sits just in front of the track (bx-86..bx-30), and the backing box is shrunk to match (x 854-1780).",
+    "files_lines": "ch4.js:799-810",
+    "scene_ranges": [
+     [
+      598.53,
+      604.37
+     ]
+    ],
+    "evidence": "t2_17982, film 17982-18131 (every 6th frame), plus a full frame at 18131, the chapter's last frame: no number anywhere. The glyph ends at x 950 and the playhead dot rests at x 969-991 at the end, so they never touch. The box stays clear of the South America drip, and the drip arrows and swing lines are intact."
+   },
+   {
+    "id": "SYN-10",
+    "status": "fixed",
+    "change": "Both parts are in this module. (1) Flat-map rewind slider: the number is removed (see S6-12; the previous agent's edit, verified). (2) New in this pass, the 1912 paleo globe: the '200..0 MILLION YEARS AGO \u00b7 SIMPLIFIED' counter is removed and replaced with three plain drift arrows (hero red, outlined) on North America, South America and Africa. Each arrow's anchor is a fixed interior point of the plate, carried by that plate's rotation, which I fitted to the paleo coastline vertices (residual 0.013 deg) and tabulated every 10 Ma. Each arrow points along its plate's overall 200 Ma -> today drift, so they read NW, NW and NE as the Atlantic opens. The arrows follow the overlay's 2-Ma steps so they stay locked to their plates. They grow in with outBack from 502.48, fade near the limb instead of popping, and fade out over 504.43-504.78, before the war smoke and the 1915 book.",
+    "files_lines": "ch4.js:32-36 (bearing helper), ch4.js:212-237 (DRIFT table, driftAt, paleo scene extra); ch4.js:799-810 (slider)",
+    "scene_ranges": [
+     [
+      502.18,
+      507.8
+     ],
+     [
+      598.53,
+      604.37
+     ]
+    ],
+    "evidence": "t2_15060 (frame 0 = film 15060; final render, exit 0): no counter and no 'million years' label at any point in 15068-15163. Full frames at 15082, 15100, 15118 and 15136 show the three arrows riding their continents. A first pass in white was low-contrast on the cream land, so I switched to hero red. The NA arrow fades smoothly at the limb (15110-15115), and all arrows are gone by 15143, before the book arrives at about 15142-15146. Slider: t2_17982 as in S6-12."
+   },
+   {
+    "id": "SYN-19",
+    "status": "fixed",
+    "change": "In-range part only, the 9:48.6 fight card. The rest of the item is in other modules. Replaced the record-scratch 'jerk' with one eased 1.05x punch-in (prog over 0.3 s with E.out, then the existing slow creep) about the frame centre. Removed the sideways shake: the previous agent's alternating 15 Hz shake also went, per the plan. Removed the 25% dim that left the held frame darker until the stamp. The fight still freezes on 'agency' (588.55), per the script.",
+    "files_lines": "ch4.js:676-682 (zoom, no jit), dim fill removed after ch4.js:701",
+    "scene_ranges": [
+     [
+      586.53,
+      590.54
+     ]
+    ],
+    "evidence": "t2_17530, film 17648-17679, measured: the title width grows 997 -> 1049 px over 17657-17664 (+8, 14, 10, 7, 5, 4, 2 px per frame), one smooth punch-in. Its centre stays at x 960.5 throughout, so there is no shake. Mean luma goes 40.3 -> 41.7 with no dim. The delivered film went 33.8 -> 29.0 and the title jumped sideways at 17657-17664."
+   }
+  ],
+  "changed_ranges": [
+   [
+    502.18,
+    507.8
+   ],
+   [
+    513.83,
+    532
+   ],
+   [
+    547.27,
+    561.45
+   ],
+   [
+    565.33,
+    590.54
+   ],
+   [
+    593.59,
+    604.37
+   ]
+  ],
+  "shared_changes_needed": "1) S6-5 (audio, not picture): silence the stray take fragment in vo_proc.wav at about 549.85-550.30 s with 10-30 ms fades (synthesis fix 7 already covers this range), or add a vo_mutes ramp in tools/mix.py, then remix and remux. Nothing to re-render. 2) Coordination on synthesis fix 7: if the audio pass moves record_scratch to 589.55 s, the visual freeze still lands on 'agency' at 588.55 (as the script specifies). Also, ch4.js still emits cue(tAgency-0.05 = 588.50, 'record_scratch', -14), so a mix rebuilt from the film's cue list would put the scratch back at 588.50 unless mix_v2.json overrides it. 3) Tooling: tools/grab.py still lacks '-fps_mode passthrough', so its first tile is duplicated and every label after it is one frame high. I used the passthrough copy at /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/fix_ch4/grabx.py.",
+  "notes": "I checked the previous agent's edits (S6-1, -2, -3, -4, -6, -7, -8, -9, -10, -11, -12 and the fight-card shake) against test renders. All were complete; none made things worse, so nothing was reverted. Its own renders t_15540, t_15700, t_16405, t_16550 and t_17040 were made after its last code edit, and I re-checked them with exact-frame (passthrough) grabs, patch tracking and disc measurements. Its t_17270 render had crashed, so I re-rendered that range and also rendered the ranges it never reached.\n\nNew code this pass (ch4.js only; ch4_sets.js is unchanged from the previous agent): the fight-card change (SYN-19: one eased 1.05x punch-in, no shake, no dim) and the 1912 globe change (SYN-10 part 2: counter removed, three plate-locked drift arrows added). The previous agent also added a slow 8% camera push-in during the '33 YEARS TOO LATE' hold, for the fan-panel note about a 2.2 s frozen frame (seafloor scene, 577.55-581.16). That is not a reported finding, but I kept and verified it: edge tracking in t2_17270 shows a smooth 0.3-1 px/frame drift with no kink.\n\nMy test renders, all 1920x1080, all exit 0, no SCENE-ERROR (frame 0 = film frame in the name):\n- t2_17270: chevrons and the push-in.\n- t2_17530: nail panel and fight card.\n- t2_17800: drip globe.\n- t2_17982: rewind card, through the chapter's last frame 18131.\n- t2_15060: 1912 globe, the last render. An earlier white-arrow pass is kept as t2_15060_white.mp4.\nAll are in /tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/review6/fix_ch4/. No cut ranges or the moved 859.5-875.4 block fall inside ch4 (481.49-604.37). Re-render chunks touched: 33-40 (film frames 15065-18131)."
+ }
+}

@@ -1,0 +1,75 @@
+[
+ {
+  "in": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music_v2/gen/M13_payoff_awe_take3_02172b6aee.mp3",
+  "out": "/tmp/claude-0/-home-user-juicytea-media/4a181100-5b6b-5601-bf64-5ea13c092764/scratchpad/audio/ep02_sound/music_v2/M13_payoff_awe_take3_tail.wav",
+  "gain_pts": [
+   [
+    19.2,
+    0
+   ],
+   [
+    19.7,
+    15
+   ],
+   [
+    23.2,
+    15
+   ]
+  ],
+  "lufs_in": -11.943,
+  "lufs_out": -12.589,
+  "norm_lufs_for_same_gain": -16.646,
+  "peak_out": 0.9124,
+  "outside_patch_identical": true,
+  "len_s": 25.443270833333333,
+  "env_from": 18.2,
+  "env_before": [
+   -31.9,
+   -33.4,
+   -33.6,
+   -34.5,
+   -34.9,
+   -36.7,
+   -38.1,
+   -41.9,
+   -39.0,
+   -39.7,
+   -38.6,
+   -38.7,
+   -38.0,
+   -39.1,
+   -39.7,
+   -39.9,
+   -40.8,
+   -39.0,
+   -38.9,
+   -42.5,
+   -45.7,
+   -48.0
+  ],
+  "env_after": [
+   -31.9,
+   -33.4,
+   -33.6,
+   -34.5,
+   -30.9,
+   -25.0,
+   -23.1,
+   -26.9,
+   -24.0,
+   -24.7,
+   -23.6,
+   -23.7,
+   -23.0,
+   -24.1,
+   -24.7,
+   -24.9,
+   -25.8,
+   -24.0,
+   -23.9,
+   -27.5,
+   -45.7,
+   -48.0
+  ]
+ }
+]

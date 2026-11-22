@@ -1,0 +1,224 @@
+{
+ "name": "halape",
+ "bbox": [
+  -155.32,
+  19.24,
+  -155.18,
+  19.31
+ ],
+ "wh": [
+  2940,
+  1560
+ ],
+ "px_m": 5.0,
+ "hmin": -530.0,
+ "hrange": 1350.0,
+ "vex": 1.0,
+ "files": {
+  "h16": "h16.png",
+  "ao": "ao.png",
+  "color": "color.jpg",
+  "cres": "cres.png"
+ },
+ "sources": [
+  {
+   "id": "etopo15",
+   "res_arcsec": 15.0
+  },
+  {
+   "id": "ncei:hilo_13_mhw_2011",
+   "res_arcsec": 0.33,
+   "cover": 1.0
+  },
+  {
+   "id": "3dep",
+   "res_m": 1.0,
+   "cover": 0.691,
+   "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
+   "guard": {
+    "dropped_pct": 6.144,
+    "pieces": 13,
+    "pieces_kept": 1
+   }
+  }
+ ],
+ "colour": {
+  "modis": [
+   "Terra_2024-06-03",
+   "Aqua_2024-06-03",
+   "Terra_2024-06-19",
+   "Aqua_2024-06-19",
+   "Terra_2024-07-08",
+   "Aqua_2024-07-08",
+   "Terra_2024-07-21",
+   "Aqua_2024-07-21",
+   "Terra_2024-08-06",
+   "Aqua_2024-08-06",
+   "Terra_2024-08-25",
+   "Aqua_2024-08-25",
+   "Terra_2024-09-10",
+   "Aqua_2024-09-10",
+   "Terra_2024-09-22",
+   "Aqua_2024-09-22",
+   "Terra_2022-06-14",
+   "Aqua_2022-06-14",
+   "Terra_2022-07-17",
+   "Aqua_2022-07-17",
+   "Terra_2022-08-09",
+   "Aqua_2022-08-09",
+   "Terra_2022-09-05",
+   "Aqua_2022-09-05"
+  ],
+  "hls": {
+   "level": 11,
+   "dates": [
+    "S30_2024-10-13",
+    "S30_2024-10-03",
+    "S30_2024-03-02",
+    "S30_2024-08-14",
+    "S30_2024-09-08",
+    "S30_2024-09-23",
+    "S30_2024-10-18",
+    "L30_2024-10-13"
+   ],
+   "gain": [
+    0.6,
+    0.6,
+    0.6
+   ],
+   "bbox": [
+    -155.32,
+    19.24,
+    -155.18,
+    19.31
+   ]
+  },
+  "ortho": {
+   "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+   "long": 4096,
+   "meas_px": 5992014,
+   "black_ref_pct": 2.03,
+   "imagery_pct": 98.6,
+   "filled_pct": 1.4,
+   "gain": 0.582,
+   "chroma": 1.2,
+   "dark_pct": 0.0,
+   "bright_pct": 4.73,
+   "covered_pct": 100.0,
+   "ref_scale_m": 30.0,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+   "smooth_pct": 85.4
+  }
+ },
+ "facts": {
+  "peaks_m": {
+   "pali_above_halape": {
+    "h": 451,
+    "lon": -155.2547,
+    "lat": 19.2958
+   }
+  },
+  "point_h_m": {
+   "halape_beach": 2
+  },
+  "land_area_km2_at_0m": 79.3,
+  "h_range_m": [
+   -514,
+   808
+  ]
+ },
+ "purpose": "s016-s023 Halape cove at a 1-3 km oblique (pre-dawn), the coastal block dropping about 3.5 m and the flooded grove.",
+ "gaps": [],
+ "bake_s": 47.4,
+ "baked": "2026-11-15",
+ "bytes": {
+  "h16": 4922644,
+  "ao": 606723,
+  "color": 1170013,
+  "cres": 263252
+ },
+ "base": {
+  "wh": [
+   1536,
+   768
+  ],
+  "px_m": 9.9,
+  "sources": [
+   {
+    "id": "etopo15",
+    "res_arcsec": 15.0
+   },
+   {
+    "id": "ncei:hilo_13_mhw_2011",
+    "res_arcsec": 0.33,
+    "cover": 1.0
+   }
+  ],
+  "facts": {
+   "peaks_m": {
+    "pali_above_halape": {
+     "h": 451,
+     "lon": -155.2553,
+     "lat": 19.296
+    }
+   },
+   "point_h_m": {
+    "halape_beach": 2
+   },
+   "land_area_km2_at_0m": 79.3,
+   "h_range_m": [
+    -514,
+    808
+   ]
+  }
+ },
+ "res": {
+  "height_m": 5.0,
+  "height_src_m": 1.0,
+  "colour_texel_m": 3.59,
+  "height_interp": [],
+  "colour_src_m": 0.6,
+  "colour_wh": [
+   4096,
+   2170
+  ]
+ },
+ "detail": {
+  "colour": {
+   "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+   "long": 4096,
+   "quads": [
+    "m_1915546_ne_05_060_20220419 (2022-04-19, 1.2 m read)",
+    "m_1915546_se_05_060_20220419 (2022-04-19, 1.2 m read)",
+    "m_1915546_sw_05_060_20220419 (2022-04-19, 1.2 m read)",
+    "m_1915547_ne_05_060_20220419 (2022-04-19, 1.2 m read)",
+    "m_1915547_nw_05_060_20220419 (2022-04-19, 1.2 m read)",
+    "m_1915547_se_05_060_20220419 (2022-04-19, 1.2 m read)",
+    "m_1915547_sw_05_060_20220419 (2022-04-19, 1.2 m read)",
+    "m_1915554_ne_05_060_20220419 (2022-04-19, 1.2 m read)",
+    "m_1915554_nw_05_060_20220419 (2022-04-19, 1.2 m read)",
+    "m_1915555_ne_05_060_20220419 (2022-04-19, 1.2 m read)",
+    "m_1915555_nw_05_060_20220419 (2022-04-19, 1.2 m read)"
+   ],
+   "meas_px": 5992014,
+   "black_ref_pct": 2.03,
+   "imagery_pct": 98.6,
+   "filled_pct": 1.4,
+   "gain": 0.582,
+   "chroma": 1.2,
+   "dark_pct": 0.0,
+   "bright_pct": 4.73,
+   "covered_pct": 100.0,
+   "ref_scale_m": 30.0,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+   "smooth_pct": 85.4
+  },
+  "height": {
+   "source": "3dep",
+   "wh": [
+    2940,
+    1560
+   ]
+  }
+ }
+}
