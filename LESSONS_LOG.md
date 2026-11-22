@@ -22,7 +22,7 @@ Real results: none yet (runs in progress). The owner asked for the upload to be 
 
 What worked: checking channel ownership by the ep01 video's oEmbed author, not by names; a dry run of the promotion script before planning the order (promote before the chapter final passes so their sign-off stills do not go stale).
 
-What failed: nothing new.
+What failed: connecting a second channel to vidIQ: the account's existing channel (Receipt Math) must be confirmed first through a Google sign-in, and that confirmation failed three times late at night (the owner kept landing on Myth Juice in the chooser); the owner then dropped vidIQ and will upload in Studio from the release package.
 
 Rules added: PLAYBOOK_production section 17 (upload through vidIQ social posts after the owner connects the channel; check the channel by ID or ep01; never upload to another channel or publish without a yes on the exact draft).
 
