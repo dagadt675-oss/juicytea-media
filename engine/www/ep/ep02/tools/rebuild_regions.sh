@@ -18,6 +18,8 @@
 # spec patch.base_interp); about 100 s and 56 MB of 3DEP downloads.
 # Round 3 (2026-11-16): the Big Island hero colour (legacy bigisland) re-baked in place at 8192^2 with NASA HLS 30 m detail on
 # Big Island land (lab/hawaii/tools/hls_hero.py + hero_refine.py, about 11 min, network to planetarycomputer.microsoft.com).
+# Round 3 (2026-11-16): everest's colour re-baked in place with Copernicus Sentinel-2 L2A 10 m detail (lab/hawaii/tools/s2_refine.py,
+# spec "baker": "s2_refine.py"; about 2 min).
 # Verify one region: cd engine && node still.cjs --page lab_region.html --q '{"region":"midway"}' --frames 0 --outdir <dir>
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd); ROOT=$(cd "$HERE/../../../../.." && pwd)
@@ -50,4 +52,9 @@ if "$RIO_PY" -I -c 'import rasterio' 2>/dev/null; then
   "$RIO_PY" -I -u "$ROOT/engine/www/lab/hawaii/tools/oahu_patch.py" --spec "$HERE/regions_spec.json" ${ONLY:+--only "$ONLY"} \
     --out "$ROOT/engine/www/ep/ep02/data" --dl "$DL" ${KEEP:+--keep}
 else echo "detail_bake.py skipped: no rasterio in $RIO_PY (set RIO_PY); the close-up detail regions keep their base bake"; fi
+# round 3 (2026-11-16): spec entries with "baker": "s2_refine.py" (everest: Copernicus Sentinel-2 L2A 10 m, the median of the
+# SCL-clear pre-monsoon passes, added as detail on the HLS grade; about 2 min and about 0.6 GB of reads, deleted after each window;
+# no rasterio needed; network to planetarycomputer.microsoft.com)
+python3 -I -u "$ROOT/engine/www/lab/hawaii/tools/s2_refine.py" --spec "$HERE/regions_spec.json" ${ONLY:+--only "$ONLY"} \
+  --out "$ROOT/engine/www/ep/ep02/data" --dl "$DL" ${KEEP:+--keep}
 python3 -I "$HERE/make_index.py"

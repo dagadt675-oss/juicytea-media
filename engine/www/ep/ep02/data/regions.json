@@ -1,6 +1,6 @@
 {
  "about": "ep02 terrain/seafloor regions for HawaiiStage.loadRegion(root, name) (engine/www/lab/hawaii/hterrain.js). Heights: RG 16-bit PNG, h = v / 65535 * hrange + hmin, row 0 = north. stack = layers finest first, each inside the next. Facts are measured on the baked grid (not survey values): use them to stage shots, check every narrated number against the fact ledger.",
- "generated": "2026-11-15 16:24",
+ "generated": "2026-11-16 15:03",
  "root": "ep/ep02/data",
  "rebuild": "bash engine/www/ep/ep02/tools/rebuild_regions.sh [DL_DIR] [name,name]",
  "regions": {
@@ -213,12 +213,6 @@
     "GIBS MODIS 250 m composite",
     "NASA HLS v2 30 m (Big Island land detail)"
    ],
-   "px_m": 115.0,
-   "bytes": {
-    "h16": 15842611,
-    "ao": 1555512,
-    "color": 1738006
-   },
    "res": {
     "height_m": 115.0,
     "height_src_m": 70,
@@ -324,6 +318,12 @@
       "scenes": 312
      }
     }
+   },
+   "px_m": 115.0,
+   "bytes": {
+    "h16": 15842611,
+    "ao": 1555512,
+    "color": 1738006
    }
   },
   "hawaii_skirt": {
@@ -552,6 +552,171 @@
    },
    "bake_s": 84.8,
    "baked": "2026-11-08"
+  },
+  "molokai_east": {
+   "bbox": [
+    -157.1,
+    20.99,
+    -156.7,
+    21.31
+   ],
+   "wh": [
+    4152,
+    3562
+   ],
+   "stack": [
+    "molokai_east",
+    "mauinui",
+    "bigisland",
+    "hawaii_skirt"
+   ],
+   "purpose": "Detail patch for 'mauinui' (the s007-s013 ride, above all s010 over central and east Molokaʻi and s011 down its north slope): 10 m heights (USGS 3DEP) and about 9 m colour (NAIP 2022 by detail transfer onto the mauinui grade); the drained seabed keeps the parent's ETOPO heights (as the stage shades them, cubic B-spline). Its 1280-vertex mesh (about 32 m) replaces the 128 m hero mesh there. Loaded automatically as the finest layer of 'mauinui'.",
+   "view": {
+    "level": -122,
+    "look": "day",
+    "sun": [
+     128,
+     30
+    ],
+    "water": "film",
+    "foam": 1,
+    "landSat": 0.95,
+    "cam": {
+     "lon": -156.87,
+     "lat": 21.02,
+     "alt": 4.5,
+     "tLon": -156.93,
+     "tLat": 21.16,
+     "tH": 300,
+     "fov": 46
+    }
+   },
+   "gaps": [
+    "Seafloor as in 'mauinui' (ETOPO 2022 15\", about 460 m, smooth): only the land is finer.",
+    "Mesh at most 1280 vertices on the long side (about 32 m): ridge outlines still step at that scale; the coast is the union of the 3DEP land and the parent's 78 m land (strips of the parent's land up to about 50 m wide where its coast bulges out)."
+   ],
+   "patch": {
+    "parent": "mauinui",
+    "feather_m": 2000,
+    "base_interp": "bspline"
+   },
+   "dir": "/ep/ep02/data/molokai_east",
+   "files": {
+    "h16": "h16.png",
+    "ao": "ao.png",
+    "color": "color.jpg",
+    "cres": "cres.png"
+   },
+   "hmin": -2020.0,
+   "hrange": 3550.0,
+   "px_m": 10.0,
+   "sources": [
+    {
+     "id": "region:mauinui",
+     "px_m": 77.9
+    },
+    {
+     "id": "3dep",
+     "res_m": 1.0,
+     "cover": 0.3,
+     "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
+     "guard": {
+      "dropped_pct": 4.476,
+      "pieces": 489,
+      "pieces_kept": 6
+     }
+    }
+   ],
+   "colour": {
+    "ortho": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4800,
+     "meas_px": 6388409,
+     "black_ref_pct": 0.15,
+     "imagery_pct": 95.5,
+     "filled_pct": 4.5,
+     "gain": 0.641,
+     "chroma": 1.2,
+     "dark_pct": 5.75,
+     "bright_pct": 2.49,
+     "covered_pct": 64.5,
+     "ref_scale_m": 77.9,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 64.9
+    }
+   },
+   "facts": {
+    "land_area_km2_at_0m": 481.8,
+    "h_range_m": [
+     -2003,
+     1520
+    ]
+   },
+   "bytes": {
+    "h16": 11242259,
+    "ao": 1241390,
+    "color": 1908189,
+    "cres": 309931
+   },
+   "bake_s": 99.4,
+   "baked": "2026-11-15",
+   "res": {
+    "height_m": 10.0,
+    "height_src_m": 1.0,
+    "colour_texel_m": 8.65,
+    "height_interp": [],
+    "colour_src_m": 0.6,
+    "colour_wh": [
+     4800,
+     4117
+    ]
+   },
+   "detail": {
+    "colour": {
+     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
+     "long": 4800,
+     "quads": [
+      "m_2115649_ne_04_060_20220204 (2022-02-04, 4.8 m read)",
+      "m_2115649_nw_04_060_20220204 (2022-02-04, 4.8 m read)",
+      "m_2115649_se_04_060_20220204 (2022-02-04, 4.8 m read)",
+      "m_2115649_sw_04_060_20220204 (2022-02-04, 4.8 m read)",
+      "m_2115650_se_04_060_20220204 (2022-02-04, 4.8 m read)",
+      "m_2115650_sw_04_060_20220204 (2022-02-04, 4.8 m read)",
+      "m_2115651_sw_04_060_20220204 (2022-02-04, 4.8 m read)",
+      "m_2115756_ne_04_060_20220204 (2022-02-04, 4.8 m read)",
+      "m_2115756_nw_04_060_20220204 (2022-02-04, 4.8 m read)",
+      "m_2115756_se_04_060_20220204 (2022-02-04, 4.8 m read)",
+      "m_2115756_sw_04_060_20220204 (2022-02-04, 4.8 m read)",
+      "m_2115657_ne_04_060_20220109 (2022-01-09, 4.8 m read)",
+      "m_2115657_nw_04_060_20220109 (2022-01-09, 4.8 m read)",
+      "m_2115657_se_04_060_20220109 (2022-01-09, 4.8 m read)",
+      "m_2115657_sw_04_060_20220109 (2022-01-09, 4.8 m read)",
+      "m_2115658_ne_04_060_20220109 (2022-01-09, 4.8 m read)",
+      "m_2115658_nw_04_060_20220109 (2022-01-09, 4.8 m read)",
+      "m_2115658_se_04_060_20220109 (2022-01-09, 4.8 m read)",
+      "m_2115658_sw_04_060_20220109 (2022-01-09, 4.8 m read)",
+      "m_2115659_nw_04_060_20220109 (2022-01-09, 4.8 m read)",
+      "m_2115764_ne_04_060_20220109 (2022-01-09, 4.8 m read)",
+      "m_2115764_nw_04_060_20220109 (2022-01-09, 4.8 m read)",
+      "m_2015603_nw_04_060_20220108 (2022-01-08, 4.8 m read)"
+     ],
+     "meas_px": 6388409,
+     "black_ref_pct": 0.15,
+     "imagery_pct": 95.5,
+     "filled_pct": 4.5,
+     "gain": 0.641,
+     "chroma": 1.2,
+     "dark_pct": 5.75,
+     "bright_pct": 2.49,
+     "covered_pct": 64.5,
+     "ref_scale_m": 77.9,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "smooth_pct": 64.9
+    },
+    "height": {
+     "source": "3dep"
+    }
+   }
   },
   "oahu_nuuanu": {
    "bbox": [
@@ -4797,13 +4962,15 @@
    },
    "gaps": [
     "Terrarium z14 (SRTM 30 m): summit 8,748 m on the grid vs 8,849 m surveyed (the same-scale comparisons stay on BlockStage, which scales to 8,849 m). HLS 30 m, November 2023 snow.",
-    "Colour (round 3, 2026-11-09): HLS 30 m from the pre-monsoon high-sun window (10 April-10 June 2022-2024, the 6 clearest days, median): near-black texels 3.3 % to 0.09 %, on north faces 6.1 % to 0.07 % (was October-December, low sun). The monsoon months are cloud-covered and the HLS Fmask calls the high snowfields cloud (half the pixels above 6,500 m never clear), so they are not used. Light from the south still reads best (preset everest); AO tangent."
+    "Colour (round 3, 2026-11-09): HLS 30 m from the pre-monsoon high-sun window (10 April-10 June 2022-2024, the 6 clearest days, median): near-black texels 3.3 % to 0.09 %, on north faces 6.1 % to 0.07 % (was October-December, low sun). The monsoon months are cloud-covered and the HLS Fmask calls the high snowfields cloud (half the pixels above 6,500 m never clear), so they are not used. Light from the south still reads best (preset everest); AO tangent.",
+    "Colour (round 3, 2026-11-16): Copernicus Sentinel-2 L2A 10 m detail on the HLS grade (lab/hawaii/tools/s2_refine.py: per-pixel median of 18 SCL-clear pre-monsoon passes, 10 April-10 June 2019-2025, never clear 0.41 %), colour 2048x2010 (7.2 m texel); the grade's tone and hue stay (the olive tint on bare rock is the HLS grade's), heights unchanged (no open DEM finer than 30 m here; GLO-30, AW3D30 and NASADEM checked)."
    ],
    "dir": "/ep/ep02/data/everest",
    "files": {
     "h16": "h16.png",
     "ao": "ao.png",
-    "color": "color.jpg"
+    "color": "color.jpg",
+    "cres": "cres.png"
    },
    "hmin": -8000.0,
    "hrange": 17000.0,
@@ -4843,6 +5010,77 @@
       87.0,
       28.05
      ]
+    },
+    "ortho": {
+     "source": "Copernicus Sentinel-2 L2A 10 m, median of SCL-clear observations (Planetary Computer)",
+     "long": 2048,
+     "months": [
+      [
+       "2019-04-10",
+       "2019-06-10"
+      ],
+      [
+       "2020-04-10",
+       "2020-06-10"
+      ],
+      [
+       "2021-04-10",
+       "2021-06-10"
+      ],
+      [
+       "2022-04-10",
+       "2022-06-10"
+      ],
+      [
+       "2023-04-10",
+       "2023-06-10"
+      ],
+      [
+       "2024-04-10",
+       "2024-06-10"
+      ],
+      [
+       "2025-04-10",
+       "2025-06-10"
+      ]
+     ],
+     "n": 12,
+     "curve": "HLS display curve without the 0.70 knee",
+     "passes": 18,
+     "windows": 1,
+     "baselines": [
+      "04.00",
+      "05.09",
+      "05.10",
+      "05.11"
+     ],
+     "read_wh": [
+      1475,
+      1447
+     ],
+     "never_clear_pct": 0.41,
+     "never_clear_above_6500_pct": 1.18,
+     "refl_ge_070_above_6000_pct": 65.6,
+     "clear_passes_median": 17,
+     "meas_px": 4099388,
+     "black_ref_pct": 0.0,
+     "imagery_pct": 99.6,
+     "filled_pct": 0.0,
+     "gain": 0.584,
+     "chroma": 1.2,
+     "dark_pct": 0.01,
+     "bright_pct": 0.03,
+     "covered_pct": 99.6,
+     "ref_scale_m": 30.0,
+     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+     "repaired_pct": 0.51,
+     "repair_gain": 0.584,
+     "repair_tint": [
+      1.0,
+      1.002,
+      0.979
+     ],
+     "cres_10m_pct": 95.1
     }
    },
    "facts": {
@@ -4862,175 +5100,117 @@
    "bytes": {
     "h16": 1160464,
     "ao": 771940,
-    "color": 181056
+    "color": 667384,
+    "cres": 2200
    },
-   "bake_s": 23.2,
-   "baked": "2026-11-09",
-   "ao": "tangent (horizon above the local slope)"
-  },
-  "molokai_east": {
-   "bbox": [
-    -157.1,
-    20.99,
-    -156.7,
-    21.31
-   ],
-   "wh": [
-    4152,
-    3562
-   ],
-   "stack": [
-    "molokai_east",
-    "mauinui",
-    "bigisland",
-    "hawaii_skirt"
-   ],
-   "purpose": "Detail patch for 'mauinui' (the s007-s013 ride, above all s010 over central and east Molokaʻi and s011 down its north slope): 10 m heights (USGS 3DEP) and about 9 m colour (NAIP 2022 by detail transfer onto the mauinui grade); the drained seabed keeps the parent's ETOPO heights (as the stage shades them, cubic B-spline). Its 1280-vertex mesh (about 32 m) replaces the 128 m hero mesh there. Loaded automatically as the finest layer of 'mauinui'.",
-   "view": {
-    "level": -122,
-    "look": "day",
-    "sun": [
-     128,
-     30
-    ],
-    "water": "film",
-    "foam": 1,
-    "landSat": 0.95,
-    "cam": {
-     "lon": -156.87,
-     "lat": 21.02,
-     "alt": 4.5,
-     "tLon": -156.93,
-     "tLat": 21.16,
-     "tH": 300,
-     "fov": 46
-    }
-   },
-   "gaps": [
-    "Seafloor as in 'mauinui' (ETOPO 2022 15\", about 460 m, smooth): only the land is finer.",
-    "Mesh at most 1280 vertices on the long side (about 32 m): ridge outlines still step at that scale; the coast is the union of the 3DEP land and the parent's 78 m land (strips of the parent's land up to about 50 m wide where its coast bulges out)."
-   ],
-   "patch": {
-    "parent": "mauinui",
-    "feather_m": 2000,
-    "base_interp": "bspline"
-   },
-   "dir": "/ep/ep02/data/molokai_east",
-   "files": {
-    "h16": "h16.png",
-    "ao": "ao.png",
-    "color": "color.jpg",
-    "cres": "cres.png"
-   },
-   "hmin": -2020.0,
-   "hrange": 3550.0,
-   "px_m": 10.0,
-   "sources": [
-    {
-     "id": "region:mauinui",
-     "px_m": 77.9
-    },
-    {
-     "id": "3dep",
-     "res_m": 1.0,
-     "cover": 0.3,
-     "note": "USGS 3DEP best available (1 m lidar DEMs here), 3DEPElevation ImageServer",
-     "guard": {
-      "dropped_pct": 4.476,
-      "pieces": 489,
-      "pieces_kept": 6
-     }
-    }
-   ],
-   "colour": {
-    "ortho": {
-     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
-     "long": 4800,
-     "meas_px": 6388409,
-     "black_ref_pct": 0.15,
-     "imagery_pct": 95.5,
-     "filled_pct": 4.5,
-     "gain": 0.641,
-     "chroma": 1.2,
-     "dark_pct": 5.75,
-     "bright_pct": 2.49,
-     "covered_pct": 64.5,
-     "ref_scale_m": 77.9,
-     "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
-     "smooth_pct": 64.9
-    }
-   },
-   "facts": {
-    "land_area_km2_at_0m": 481.8,
-    "h_range_m": [
-     -2003,
-     1520
-    ]
-   },
-   "bytes": {
-    "h16": 11242259,
-    "ao": 1241390,
-    "color": 1908189,
-    "cres": 309931
-   },
-   "bake_s": 99.4,
-   "baked": "2026-11-15",
+   "bake_s": 15.3,
+   "baked": "2026-11-16",
+   "ao": "tangent (horizon above the local slope)",
    "res": {
-    "height_m": 10.0,
-    "height_src_m": 1.0,
-    "colour_texel_m": 8.65,
+    "height_m": 14.3,
+    "height_src_m": 30.0,
+    "colour_texel_m": 7.2,
     "height_interp": [],
-    "colour_src_m": 0.6,
+    "colour_src_m": 10.0,
     "colour_wh": [
-     4800,
-     4117
+     2048,
+     2010
     ]
    },
    "detail": {
     "colour": {
-     "source": "USDA NAIP 2021-2023 Hawaii 0.6 m (NOAA Digital Coast 9668)",
-     "long": 4800,
-     "quads": [
-      "m_2115649_ne_04_060_20220204 (2022-02-04, 4.8 m read)",
-      "m_2115649_nw_04_060_20220204 (2022-02-04, 4.8 m read)",
-      "m_2115649_se_04_060_20220204 (2022-02-04, 4.8 m read)",
-      "m_2115649_sw_04_060_20220204 (2022-02-04, 4.8 m read)",
-      "m_2115650_se_04_060_20220204 (2022-02-04, 4.8 m read)",
-      "m_2115650_sw_04_060_20220204 (2022-02-04, 4.8 m read)",
-      "m_2115651_sw_04_060_20220204 (2022-02-04, 4.8 m read)",
-      "m_2115756_ne_04_060_20220204 (2022-02-04, 4.8 m read)",
-      "m_2115756_nw_04_060_20220204 (2022-02-04, 4.8 m read)",
-      "m_2115756_se_04_060_20220204 (2022-02-04, 4.8 m read)",
-      "m_2115756_sw_04_060_20220204 (2022-02-04, 4.8 m read)",
-      "m_2115657_ne_04_060_20220109 (2022-01-09, 4.8 m read)",
-      "m_2115657_nw_04_060_20220109 (2022-01-09, 4.8 m read)",
-      "m_2115657_se_04_060_20220109 (2022-01-09, 4.8 m read)",
-      "m_2115657_sw_04_060_20220109 (2022-01-09, 4.8 m read)",
-      "m_2115658_ne_04_060_20220109 (2022-01-09, 4.8 m read)",
-      "m_2115658_nw_04_060_20220109 (2022-01-09, 4.8 m read)",
-      "m_2115658_se_04_060_20220109 (2022-01-09, 4.8 m read)",
-      "m_2115658_sw_04_060_20220109 (2022-01-09, 4.8 m read)",
-      "m_2115659_nw_04_060_20220109 (2022-01-09, 4.8 m read)",
-      "m_2115764_ne_04_060_20220109 (2022-01-09, 4.8 m read)",
-      "m_2115764_nw_04_060_20220109 (2022-01-09, 4.8 m read)",
-      "m_2015603_nw_04_060_20220108 (2022-01-08, 4.8 m read)"
+     "source": "Copernicus Sentinel-2 L2A 10 m, median of SCL-clear observations (Planetary Computer)",
+     "long": 2048,
+     "months": [
+      [
+       "2019-04-10",
+       "2019-06-10"
+      ],
+      [
+       "2020-04-10",
+       "2020-06-10"
+      ],
+      [
+       "2021-04-10",
+       "2021-06-10"
+      ],
+      [
+       "2022-04-10",
+       "2022-06-10"
+      ],
+      [
+       "2023-04-10",
+       "2023-06-10"
+      ],
+      [
+       "2024-04-10",
+       "2024-06-10"
+      ],
+      [
+       "2025-04-10",
+       "2025-06-10"
+      ]
      ],
-     "meas_px": 6388409,
-     "black_ref_pct": 0.15,
-     "imagery_pct": 95.5,
-     "filled_pct": 4.5,
-     "gain": 0.641,
+     "n": 12,
+     "curve": "HLS display curve without the 0.70 knee",
+     "passes": 18,
+     "dates": [
+      "2022-04-12",
+      "2022-04-17",
+      "2022-06-01",
+      "2023-04-12",
+      "2023-04-17",
+      "2023-04-22",
+      "2023-05-07",
+      "2023-05-22",
+      "2023-06-01",
+      "2024-04-21",
+      "2024-04-26",
+      "2024-05-11",
+      "2024-06-05",
+      "2024-06-10",
+      "2025-04-16",
+      "2025-04-21",
+      "2025-05-11",
+      "2025-06-10"
+     ],
+     "windows": 1,
+     "baselines": [
+      "04.00",
+      "05.09",
+      "05.10",
+      "05.11"
+     ],
+     "read_wh": [
+      1475,
+      1447
+     ],
+     "never_clear_pct": 0.41,
+     "never_clear_above_6500_pct": 1.18,
+     "refl_ge_070_above_6000_pct": 65.6,
+     "clear_passes_median": 17,
+     "meas_px": 4099388,
+     "black_ref_pct": 0.0,
+     "imagery_pct": 99.6,
+     "filled_pct": 0.0,
+     "gain": 0.584,
      "chroma": 1.2,
-     "dark_pct": 5.75,
-     "bright_pct": 2.49,
-     "covered_pct": 64.5,
-     "ref_scale_m": 77.9,
+     "dark_pct": 0.01,
+     "bright_pct": 0.03,
+     "covered_pct": 99.6,
+     "ref_scale_m": 30.0,
      "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
-     "smooth_pct": 64.9
+     "repaired_pct": 0.51,
+     "repair_gain": 0.584,
+     "repair_tint": [
+      1.0,
+      1.002,
+      0.979
+     ],
+     "cres_10m_pct": 95.1
     },
-    "height": {
-     "source": "3dep"
-    }
+    "height": {},
+    "baker": "s2_refine.py"
    }
   }
  }

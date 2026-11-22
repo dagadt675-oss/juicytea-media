@@ -219,8 +219,9 @@ export async function build(api, kit, scenes) {
   // Lalo's lagoon and white sand measured luma 133-150 (film range 85-130): trimmed from s101 to the s109 flight and again over Gardner
   const LALO_DIM = (t) => Math.max(0.08 * env(t, s0('s101') - 0.5, s0('s105') + 0.4, 0.8, 0.6), 0.08 * env(t, T('away') - 0.5, s0('s109') + 0.35, 0.5, 0.45),
     0.16 * env(t, T('pokes') - 1.6, s0('s110') + 1.25, 0.6, 0.6));   // not over the storm's high ocean (12348 was 69 dimmed); measured: 0.12 -> luma x0.87
-  // the windward pull-out under the high sun (r7 10459 137, 10480 144) and Nihoa's turquoise sea (10874-11518: 133-139) were over 130 as well
-  const HI_DIM = (t) => 0.1 * env(t, tSlid - 0.4, s0('s091') + 0.15, 0.5, 0.5) + 0.08 * env(t, T('nihoa') - 1.2, T('nobody') + 0.5, 1.0, 0.5);
+  // the windward pull-out under the high sun (r7 10459 137, 10480 144) and Nihoa's turquoise sea (10874-11518: 133-139) were over 130 as well;
+  // at 0.1 the middle of the pull-out (r8motr 10468-10476) still measured 131-133, so 0.135 there
+  const HI_DIM = (t) => 0.135 * env(t, tSlid - 0.4, s0('s091') + 0.15, 0.5, 0.5) + 0.08 * env(t, T('nihoa') - 1.2, T('nobody') + 0.5, 1.0, 0.5);
   const EXPO = (t) => 1 + 0.22 * env(t, s0('s098') - 0.3, T('nobody') + 0.5, 1.2, 1.2) + 0.08 * env(t, T('canyons') - 0.2, s1('s091') + 0.2, 0.5, 0.6) - LALO_DIM(t) - HI_DIM(t);
   const FOAM = (t) => (t > T('coast') - 1.5 && t < T('cent') + 2.0) ? 1 : 0.6;
   // the shot state: today, the film water blending to navy from far up, the chapter's sun (o: set extras, water name, sun override)
@@ -653,9 +654,16 @@ export async function build(api, kit, scenes) {
     g.globalCompositeOperation = 'source-over'; ctx.drawImage(c, 0, 0);
     // the wave front's foam over the old sand
     const fa = env(t, tFr0, tFr1 + 0.2, 0.15, 0.35); const isl = ringScreen(view, 1.15);
-    if (fa > 0 && isl) { ctx.save(); ctx.beginPath(); isl.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip();
-      const fg = ctx.createLinearGradient(wx - px(70), 0, wx + px(30), 0); fg.addColorStop(0, 'rgba(250,252,255,0)'); fg.addColorStop(0.6, `rgba(250,252,255,${0.9 * fa})`); fg.addColorStop(1, 'rgba(250,252,255,0)');
-      ctx.fillStyle = fg; ctx.fillRect(wx - px(70), 0, px(100), H); ctx.restore(); }
+    // soft foam puffs along a wavy front, only where the front crosses the old island; no clip (a clipped straight band read as a white
+    // rectangle on the 390 px sheet, r7 12532)
+    if (fa > 0 && isl) { const ys = isl.map(q => q[1]), y0 = Math.min(...ys), y1 = Math.max(...ys), st = px(8), r = px(30);
+      const inside = (x, y) => { let c = false; for (let i = 0, j = isl.length - 1; i < isl.length; j = i++) { const a = isl[i], b = isl[j];
+        if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
+      ctx.save();
+      for (let y = y0; y <= y1; y += st) { const x = wx - px(20) + px(18) * Math.sin(y * 0.045 / px(1) + t * 5) + px(8) * Math.sin(y * 0.11 / px(1) - t * 3.1); if (!inside(x, y)) continue;
+        const g2 = ctx.createRadialGradient(x, y, 0, x, y, r); g2.addColorStop(0, `rgba(250,252,255,${0.5 * fa})`); g2.addColorStop(0.5, `rgba(250,252,255,${0.22 * fa})`); g2.addColorStop(1, 'rgba(250,252,255,0)');
+        ctx.fillStyle = g2; ctx.fillRect(x - r, y - r, 2 * r, 2 * r); }
+      ctx.restore(); }
     if (!SEAL.a) return;
     // GAG in the gap: the seal surfaces where its beach was, bobs, looks left, looks right (paper turn), grunts, blinks; it waits while
     // the sand comes back, flops onto it on {seals} (landing squash), and two more haul out beside it

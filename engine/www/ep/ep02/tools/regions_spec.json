@@ -2607,9 +2607,48 @@
    },
    "gaps": [
     "Terrarium z14 (SRTM 30 m): summit 8,748 m on the grid vs 8,849 m surveyed (the same-scale comparisons stay on BlockStage, which scales to 8,849 m). HLS 30 m, November 2023 snow.",
-    "Colour (round 3, 2026-11-09): HLS 30 m from the pre-monsoon high-sun window (10 April-10 June 2022-2024, the 6 clearest days, median): near-black texels 3.3 % to 0.09 %, on north faces 6.1 % to 0.07 % (was October-December, low sun). The monsoon months are cloud-covered and the HLS Fmask calls the high snowfields cloud (half the pixels above 6,500 m never clear), so they are not used. Light from the south still reads best (preset everest); AO tangent."
+    "Colour (round 3, 2026-11-09): HLS 30 m from the pre-monsoon high-sun window (10 April-10 June 2022-2024, the 6 clearest days, median): near-black texels 3.3 % to 0.09 %, on north faces 6.1 % to 0.07 % (was October-December, low sun). The monsoon months are cloud-covered and the HLS Fmask calls the high snowfields cloud (half the pixels above 6,500 m never clear), so they are not used. Light from the south still reads best (preset everest); AO tangent.",
+    "Colour (round 3, 2026-11-16): Copernicus Sentinel-2 L2A 10 m detail on the HLS grade (lab/hawaii/tools/s2_refine.py: per-pixel median of 18 SCL-clear pre-monsoon passes, 10 April-10 June 2019-2025, never clear 0.41 %), colour 2048x2010 (7.2 m texel); the grade's tone and hue stay (the olive tint on bare rock is the HLS grade's), heights unchanged (no open DEM finer than 30 m here; GLO-30, AW3D30 and NASADEM checked)."
    ],
-   "ao": "tangent"
+   "ao": "tangent",
+   "baker": "s2_refine.py",
+   "detail": {
+    "colour": {
+     "source": "s2",
+     "long": 2048,
+     "months": [
+      [
+       "2019-04-10",
+       "2019-06-10"
+      ],
+      [
+       "2020-04-10",
+       "2020-06-10"
+      ],
+      [
+       "2021-04-10",
+       "2021-06-10"
+      ],
+      [
+       "2022-04-10",
+       "2022-06-10"
+      ],
+      [
+       "2023-04-10",
+       "2023-06-10"
+      ],
+      [
+       "2024-04-10",
+       "2024-06-10"
+      ],
+      [
+       "2025-04-10",
+       "2025-06-10"
+      ]
+     ],
+     "n": 12
+    }
+   }
   }
  ]
 }

@@ -17,7 +17,8 @@
  "files": {
   "h16": "h16.png",
   "ao": "ao.png",
-  "color": "color.jpg"
+  "color": "color.jpg",
+  "cres": "cres.png"
  },
  "sources": [
   {
@@ -54,6 +55,77 @@
     87.0,
     28.05
    ]
+  },
+  "ortho": {
+   "source": "Copernicus Sentinel-2 L2A 10 m, median of SCL-clear observations (Planetary Computer)",
+   "long": 2048,
+   "months": [
+    [
+     "2019-04-10",
+     "2019-06-10"
+    ],
+    [
+     "2020-04-10",
+     "2020-06-10"
+    ],
+    [
+     "2021-04-10",
+     "2021-06-10"
+    ],
+    [
+     "2022-04-10",
+     "2022-06-10"
+    ],
+    [
+     "2023-04-10",
+     "2023-06-10"
+    ],
+    [
+     "2024-04-10",
+     "2024-06-10"
+    ],
+    [
+     "2025-04-10",
+     "2025-06-10"
+    ]
+   ],
+   "n": 12,
+   "curve": "HLS display curve without the 0.70 knee",
+   "passes": 18,
+   "windows": 1,
+   "baselines": [
+    "04.00",
+    "05.09",
+    "05.10",
+    "05.11"
+   ],
+   "read_wh": [
+    1475,
+    1447
+   ],
+   "never_clear_pct": 0.41,
+   "never_clear_above_6500_pct": 1.18,
+   "refl_ge_070_above_6000_pct": 65.6,
+   "clear_passes_median": 17,
+   "meas_px": 4099388,
+   "black_ref_pct": 0.0,
+   "imagery_pct": 99.6,
+   "filled_pct": 0.0,
+   "gain": 0.584,
+   "chroma": 1.2,
+   "dark_pct": 0.01,
+   "bright_pct": 0.03,
+   "covered_pct": 99.6,
+   "ref_scale_m": 30.0,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+   "repaired_pct": 0.51,
+   "repair_gain": 0.584,
+   "repair_tint": [
+    1.0,
+    1.002,
+    0.979
+   ],
+   "cres_10m_pct": 95.1
   }
  },
  "facts": {
@@ -75,12 +147,154 @@
   "Terrarium z14 (SRTM 30 m): summit 8,748 m on the grid vs 8,849 m surveyed (the same-scale comparisons stay on BlockStage, which scales to 8,849 m). HLS 30 m, November 2023 snow.",
   "Colour (round 3, 2026-11-09): HLS 30 m from the pre-monsoon high-sun window (10 April-10 June 2022-2024, the 6 clearest days, median): near-black texels 3.3 % to 0.09 %, on north faces 6.1 % to 0.07 % (was October-December, low sun). The monsoon months are cloud-covered and the HLS Fmask calls the high snowfields cloud (half the pixels above 6,500 m never clear), so they are not used. Light from the south still reads best (preset everest); AO tangent."
  ],
- "bake_s": 23.2,
- "baked": "2026-11-09",
+ "bake_s": 15.3,
+ "baked": "2026-11-16",
  "ao": "tangent (horizon above the local slope)",
  "bytes": {
   "h16": 1160464,
   "ao": 771940,
-  "color": 181056
+  "color": 667384,
+  "cres": 2200
+ },
+ "base": {
+  "wh": [
+   1024,
+   1024
+  ],
+  "px_m": 14.3,
+  "sources": [
+   {
+    "id": "etopo15",
+    "res_arcsec": 15.0
+   },
+   {
+    "id": "terrarium_z14",
+    "res_m": 8.4,
+    "land_only": true,
+    "cap_m": null
+   }
+  ],
+  "facts": {
+   "peaks_m": {
+    "everest": {
+     "h": 8748,
+     "lon": 86.9254,
+     "lat": 27.9893
+    }
+   },
+   "land_area_km2_at_0m": 213.4,
+   "h_range_m": [
+    5012,
+    8748
+   ]
+  },
+  "hmin": -8000.0,
+  "hrange": 17000.0
+ },
+ "res": {
+  "height_m": 14.3,
+  "height_src_m": 30.0,
+  "colour_texel_m": 7.2,
+  "height_interp": [],
+  "colour_src_m": 10.0,
+  "colour_wh": [
+   2048,
+   2010
+  ]
+ },
+ "detail": {
+  "colour": {
+   "source": "Copernicus Sentinel-2 L2A 10 m, median of SCL-clear observations (Planetary Computer)",
+   "long": 2048,
+   "months": [
+    [
+     "2019-04-10",
+     "2019-06-10"
+    ],
+    [
+     "2020-04-10",
+     "2020-06-10"
+    ],
+    [
+     "2021-04-10",
+     "2021-06-10"
+    ],
+    [
+     "2022-04-10",
+     "2022-06-10"
+    ],
+    [
+     "2023-04-10",
+     "2023-06-10"
+    ],
+    [
+     "2024-04-10",
+     "2024-06-10"
+    ],
+    [
+     "2025-04-10",
+     "2025-06-10"
+    ]
+   ],
+   "n": 12,
+   "curve": "HLS display curve without the 0.70 knee",
+   "passes": 18,
+   "dates": [
+    "2022-04-12",
+    "2022-04-17",
+    "2022-06-01",
+    "2023-04-12",
+    "2023-04-17",
+    "2023-04-22",
+    "2023-05-07",
+    "2023-05-22",
+    "2023-06-01",
+    "2024-04-21",
+    "2024-04-26",
+    "2024-05-11",
+    "2024-06-05",
+    "2024-06-10",
+    "2025-04-16",
+    "2025-04-21",
+    "2025-05-11",
+    "2025-06-10"
+   ],
+   "windows": 1,
+   "baselines": [
+    "04.00",
+    "05.09",
+    "05.10",
+    "05.11"
+   ],
+   "read_wh": [
+    1475,
+    1447
+   ],
+   "never_clear_pct": 0.41,
+   "never_clear_above_6500_pct": 1.18,
+   "refl_ge_070_above_6000_pct": 65.6,
+   "clear_passes_median": 17,
+   "meas_px": 4099388,
+   "black_ref_pct": 0.0,
+   "imagery_pct": 99.6,
+   "filled_pct": 0.0,
+   "gain": 0.584,
+   "chroma": 1.2,
+   "dark_pct": 0.01,
+   "bright_pct": 0.03,
+   "covered_pct": 99.6,
+   "ref_scale_m": 30.0,
+   "method": "detail transfer: reference tone and colour at its own scale, imagery detail finer",
+   "repaired_pct": 0.51,
+   "repair_gain": 0.584,
+   "repair_tint": [
+    1.0,
+    1.002,
+    0.979
+   ],
+   "cres_10m_pct": 95.1
+  },
+  "height": {},
+  "baker": "s2_refine.py"
  }
 }
