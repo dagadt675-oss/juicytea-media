@@ -1,0 +1,108 @@
+{
+ "limit_credits": 10800,
+ "rate": 13.7,
+ "note": "music only; 12,000 run budget minus ~1,200 reserve for beds; records rebuilt by hand after a copy mistake (3 probe takes)",
+ "spent": [
+  {
+   "id": "M13_payoff_awe_take2",
+   "s": 25.38,
+   "credits": 347.7,
+   "status": "ok",
+   "file": "music_v2/gen/M13_payoff_awe_take2_b12c395128.mp3"
+  },
+  {
+   "id": "M13_payoff_awe_take3",
+   "s": 25.38,
+   "credits": 347.7,
+   "status": "ok",
+   "file": "music_v2/gen/M13_payoff_awe_take3_02172b6aee.mp3"
+  },
+  {
+   "id": "M03_pali_wind_playful_take2",
+   "s": 25.16,
+   "credits": 344.7,
+   "status": "ok",
+   "file": "music_v2/gen/M03_pali_wind_playful_take2_43bfe65f0d.mp3"
+  },
+  {
+   "id": "M01_cold_open_wonder_take2",
+   "s": 55.43,
+   "credits": 759.4,
+   "status": "ok",
+   "file": "music_v2/gen/M01_cold_open_wonder_take2_175a0c3cb3.mp3",
+   "wall_s": 6.9
+  },
+  {
+   "id": "M14_refill_theme_finale_take2",
+   "s": 50.8,
+   "credits": 696.0,
+   "status": "ok",
+   "file": "music_v2/gen/M14_refill_theme_finale_take2_5626336af9.mp3",
+   "wall_s": 4.9
+  },
+  {
+   "id": "M03_pali_wind_playful_take3",
+   "s": 25.16,
+   "credits": 344.7,
+   "status": "ok",
+   "file": "music_v2/gen/M03_pali_wind_playful_take3_24d3d33eff.mp3",
+   "wall_s": 3.7
+  },
+  {
+   "id": "M07_time_machine_travel_take2",
+   "s": 62.08,
+   "credits": 850.5,
+   "status": "ok",
+   "file": "music_v2/gen/M07_time_machine_travel_take2_6fd879ccd2.mp3",
+   "wall_s": 6.1
+  },
+  {
+   "id": "M09_midway_bright_take2",
+   "s": 47.45,
+   "credits": 650.1,
+   "status": "ok",
+   "file": "music_v2/gen/M09_midway_bright_take2_ec31299023.mp3",
+   "wall_s": 6.9
+  },
+  {
+   "id": "M11_losses_graves_to_darwin_point_take2",
+   "s": 80.7,
+   "credits": 1105.6,
+   "status": "ok",
+   "file": "music_v2/gen/M11_losses_graves_to_darwin_point_take2_8390ebef8f.mp3",
+   "wall_s": 7.1
+  },
+  {
+   "id": "M07_time_machine_travel_take3",
+   "s": 62.08,
+   "credits": 850.5,
+   "status": "ok",
+   "file": "music_v2/gen/M07_time_machine_travel_take3_651af41d1d.mp3",
+   "wall_s": 5.0
+  },
+  {
+   "id": "M09_midway_bright_take3",
+   "s": 47.45,
+   "credits": 650.1,
+   "status": "ok",
+   "file": "music_v2/gen/M09_midway_bright_take3_d610589300.mp3",
+   "wall_s": 4.8
+  },
+  {
+   "id": "M01_cold_open_wonder_take3",
+   "s": 55.43,
+   "credits": 759.4,
+   "status": "ok",
+   "file": "music_v2/gen/M01_cold_open_wonder_take3_4647c4db9d.mp3",
+   "wall_s": 5.0
+  },
+  {
+   "id": "M14_refill_theme_finale_take3",
+   "s": 50.8,
+   "credits": 696.0,
+   "status": "ok",
+   "file": "music_v2/gen/M14_refill_theme_finale_take3_3a3bf7a6bd.mp3",
+   "wall_s": 5.3
+  }
+ ]
+}

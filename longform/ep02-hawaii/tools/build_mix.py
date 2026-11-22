@@ -17,7 +17,12 @@ What it does on top of the spot:
 - Music: loudness-matches every cue (norm_lufs), equal-power fades, the measured offsets (M05 bloom on "up", M12's own stop on the
   payoff dropout, M14 back-timed to the last frame), stop-downs with 30-40 ms ramps, gag dips with 0.25 s ramps, solemn dips
   with 1 s ramps, nested Nihoa dips (no bump between -3 and -6).
-- Writes a 'qc' block (reveals, restraint windows, comic ids, cards) that engine/tools/mix_qc.py reads; mix.py ignores it."""
+- Writes a 'qc' block (reveals, restraint windows, comic ids, cards) that engine/tools/mix_qc.py reads; mix.py ignores it.
+
+Mix v2 options (2026-11-22; all optional, the defaults rebuild mix_ep02_v1.json byte-identical):
+--music-sel / --sfx-sel use other selection files (same format as music/selected.json and sfx/selected.json: new cue takes,
+rest-filled cue files, denoised beds), --music-ovr JSON {cue_id: {offset, fade_in, fade_out, norm_lufs, ...}} merged after
+MUSIC_OVR (a cue whose take changed gets its own offset; a patched file keeps the old cue gain through norm_lufs), --version."""
 import argparse, hashlib, json
 
 MUSIC_OVR = {
@@ -73,10 +78,16 @@ def main():
     ap.add_argument('--band-db', type=float, default=-15.0, help='extra speech-band cut on the ambience bus under the voice (dB)')
     ap.add_argument('--band-lo', type=float, default=600.0); ap.add_argument('--band-hi', type=float, default=7000.0)
     ap.add_argument('--sfx-band-db', type=float, default=-8.0, help='speech-band cut on the SFX bus while the voice speaks (dB)')
+    ap.add_argument('--music-sel', help='music selection file (default SOUND_DIR/music/selected.json)')
+    ap.add_argument('--sfx-sel', help='SFX selection file (default SOUND_DIR/sfx/selected.json)')
+    ap.add_argument('--music-ovr', help='JSON {cue_id: {key: value}} merged into each cue after MUSIC_OVR')
+    ap.add_argument('--version', default='v1')
     a = ap.parse_args()
     S = a.sound
+    ovr2 = json.load(open(a.music_ovr)) if a.music_ovr else {}
     spot_s = json.load(open(f'{S}/spot_sfx.json')); spot_m = json.load(open(f'{S}/spot_music.json'))
-    sel_s = json.load(open(f'{S}/sfx/selected.json')); sel_m = {c['id']: c for c in json.load(open(f'{S}/music/selected.json'))['cues']}
+    sel_s = json.load(open(a.sfx_sel or f'{S}/sfx/selected.json'))
+    sel_m = {c['id']: c for c in json.load(open(a.music_sel or f'{S}/music/selected.json'))['cues']}
     timing = json.load(open(a.timing)); mk = timing['markers']
     h = md5(a.timing)
     assert h == spot_s['meta']['timing_md5'] == spot_m['meta']['timing_md5'], f'timing.json changed ({h}): re-run build_spot.py first'
@@ -90,6 +101,7 @@ def main():
              'fade_in': c['fade_in'], 'fade_out': c['fade_out'], 'offset': c.get('offset', 0.0), 'curve': 'eqp', 'norm_lufs': a.norm,
              'raw_lufs': s.get('raw_lufs'), 'transition_in': c.get('transition_in'), 'transition_out': c.get('transition_out')}
         m.update(MUSIC_OVR.get(c['id'], {}))
+        m.update({k: v for k, v in ovr2.get(c['id'], {}).items() if not k.startswith('_')})
         music.append(m)
 
     # ---- dips: stop-downs fast, gags 0.25 s, solemn 1 s; adjacent same-sign dips nested so the level steps without a bump
@@ -176,7 +188,7 @@ def main():
     reveals = [{'name': n, 't': mk[n]['start'], 'word': mk[n]['word']} for n in
                ('ft400', 'slides', 'miles', 'up', 'tall33', 'seven', 'old28', 'threemi', 'tall56')]
     spec = {
-        'episode': 'ep02 Why Can\'t You See Most of Hawaii? (Look Down)', 'version': 'v1',
+        'episode': 'ep02 Why Can\'t You See Most of Hawaii? (Look Down)', 'version': a.version,
         'built_by': 'longform/ep02-hawaii/tools/build_mix.py', 'timing_md5': h,
         'duration': dur, 'vo': a.vo, 'vo_gain_db': 0,
         'music': music, 'sfx': sfx, 'amb': amb, 'dips': dips,

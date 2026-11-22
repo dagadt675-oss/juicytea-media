@@ -94,10 +94,13 @@ export function label(ctx, s, x, y, o = {}) {
   const cap = px(o.cap || CAP.label), p = o.p ?? 1; if (p <= 0) return null;
   const tw = width(ctx, s, { cap: o.cap || CAP.label }), padX = cap * 0.5, bar = Math.max(px(9), cap * 0.15), h = cap * 1.95, w = tw + padX * 2 + bar;
   let bx = o.anchor === 'center' ? x - w / 2 : o.anchor === 'right' ? x - w : x, by = y - h / 2;
-  const pw = F.prog(p, 0.0, 0.55, F.E.outExpo), pt = F.prog(p, 0.3, 1, F.E.out);
+  // o.sync (ep02 ui.label): nothing is drawn before the text starts (p 0.3); the plate then wipes open with the text (the wipe reveals
+  // it), so it never shows empty. The text's own timing is the same either way.
+  const pw = o.sync ? F.prog(p, 0.3, 0.6, F.E.out) : F.prog(p, 0.0, 0.55, F.E.outExpo), pt = F.prog(p, 0.3, 1, F.E.out);
+  if (o.sync && pw <= 0) return { x: bx, y: by, w, h };
   ctx.save(); ctx.globalAlpha *= (o.alpha ?? 1);
   if (o.leader) {
-    const [lx, ly] = o.leader, ex = F.clamp(lx, bx, bx + w), ey = F.clamp(ly, by, by + h), lp = F.prog(p, 0, 0.6);
+    const [lx, ly] = o.leader, ex = F.clamp(lx, bx, bx + w), ey = F.clamp(ly, by, by + h), lp = o.sync ? F.prog(p, 0.3, 0.75) : F.prog(p, 0, 0.6);
     const mx = F.lerp(ex, lx, lp), my = F.lerp(ey, ly, lp);
     ctx.lineCap = 'round';
     ctx.strokeStyle = C.inkA(0.7); ctx.lineWidth = px(9); ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(mx, my); ctx.stroke();

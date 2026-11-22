@@ -14,6 +14,23 @@ One dated entry per episode, project or major task, newest first. Each entry: wh
 
 ---
 
+## 2026-11-22 Owner stop: everything halted and saved mid-finish
+
+What was made: on the owner's order ("stop everything, save first") both finishing runs were stopped. Where they got to:
+- Picture run: the round-3 shader and shared.js fixes are promoted to live (hterrain.js md5 04240615, shared.js 1d74b47c, regions.json patch.grid set) and the step-4 engine edits are live (ch1/ch3/ch4 noDetail flags, ui.number lead0, ui.label sync plate, texel_audit colour source). All JS passes node --check. Gate: frame-1 masked SSIM 0.944 (same as before), water foam speckle and stripe artefacts gone in ch2-ch6, GPU cost -21 to -25 % on the heavy shots, phone-size pairs read the same (longform/ep02-hawaii/research/finish/PROMOTE_NOTES.md). Not done: the step-4 still triage on live (q2 renders were running), API.md update (draft in research/finish/gate/API.md.draft), the ch4-ch6 final passes, the ch1-3 re-check, integrate and picture lock. Rollback point: commit df9ed8f.
+- Sound and packaging run: mix v2 finished (longform/ep02-hawaii/audio/mix_report_v2.md, hang_hu_v2.md, audio/v2/; the wav and stems stay outside git). Three thumbnails, metadata.md and feltoltes_hu.md are in longform/ep02-hawaii/release/; the review ranked A (NO OCEAN), then B (ONE ISLAND), then C (WALK TO MAUI) and recommends a 2-arm test with A first. The pack fix pass was stopped before it ran.
+- Colab: an A100 and an L4 were still assigned (8.67 compute units per hour). colab stop -s did nothing because the container restart had emptied the local sessions.json; released both through the CLI client (now engine/tools/colab_release_all.py). After: 0 assignments, rate 0.0/hr, balance 80.59 units.
+
+Real results: no video rendered or uploaded; nothing published. Picture is not locked, so the "only if everything is good" upload condition is not met.
+
+What worked: a gate tree (live + patches, all else symlinks) let the promotion be judged on stills before touching live; md5-checked promote steps make a half-applied state detectable (live matched the H tree on all 9 files, so the stop left a consistent state).
+
+What failed: leaving Colab GPUs assigned after runs ended; trusting colab stop by name after a container restart.
+
+Rules added: PLAYBOOK_production section 15 DO (release Colab and confirm "Active assignments: 0" on stop or session end, with engine/tools/colab_release_all.py) and DONT (never trust colab sessions or colab stop alone after a container restart).
+
+Next time (resume order): triage the q2 step-4 stills, update API.md from the draft, run the ch4-ch6 final passes and the ch1-3 re-check, integrate and lock picture (746.93 s), the review fix pass on the packaging, then the Colab L4 render, master, QC, and the release package for the owner's own Studio upload.
+
 ## 2026-11-22 Ep02 finishing runs started; the upload path
 
 What was made: two finishing runs (scratch wf/ep02-finish-picture.js: gate and promote the round-3 shader and shared.js fixes, final passes of ch4-ch6 and a re-check of ch1-3, then a film integrator for picture lock, the close-up verify and the Colab render plan; wf/ep02-finish-sound-pack.js: sound mix v2 and three thumbnails for Test & Compare with metadata and a Hungarian upload guide). Before starting, the cut runs' state was checked: Everest colour promoted with its gates (scratch closeup/r3/everest/NOTES.md milestone 2), everest_wide v2 not promoted, ch6 at its sixth fix round, promote_r3.sh --dry clean.

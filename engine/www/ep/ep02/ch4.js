@@ -444,8 +444,9 @@ export async function build(api, kit, scenes) {
 
   // ================================================================ PART B: Maui, Oʻahu, the Pali callback, Kauaʻi (mauinui ... waimea)
   // the blur windows never overlap a label (each blur sample draws the label again: ghosts, and ui.label then finds no free slot)
+  // stage noDetail: Maui fills the frame from far up and East Molokai's detail patch only cost GPU time here (GPU s per still: 10240 150 -> 102, blurred 10271 731 -> 491)
   leg('ch4-maui', 'mauinui', tH4, tH5 + XF, { wrap: (s) => blurred(s, s0('s090') + 0.36, B[2].t - 0.2, 5, 0.45),
-    spec: { ui(ctx, lt, t, view) { avoidGauge(t);
+    spec: { stage: { noDetail: true }, ui(ctx, lt, t, view) { avoidGauge(t);
       lab(ctx, 'MAUI', view.visible(HALEA[0], HALEA[1], 3100) ? view.project(HALEA[0], HALEA[1], 3150) : null, t, lead('maui2'), s0('s090') + 0.35); } } });
   const oahuUI = (ctx, lt, t, view) => { avoidGauge(t);
     const pa = env(t, T('hnl') - 0.1, tPg + 0.15, 0.2, 0.3), hq = view.project(HNL[0], HNL[1], 40);

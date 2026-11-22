@@ -1,0 +1,16 @@
+{
+ "M13_payoff_awe": {
+  "offset": 0.49,
+  "fade_in": 0.02,
+  "_why": "take3 hit at file 0.52 s: the downbeat lands at 679.08 (spot 679.09); norm_lufs -16.646 keeps the take3 cue gain after the in-file tail lift (gated LUFS fell 0.646 LU)",
+  "norm_lufs": -16.646
+ },
+ "M04_nuuanu_drain_reveal": {
+  "norm_lufs": -16.014,
+  "_why": "filled file is 0.014 LU louder; keeps the v1 cue gain"
+ },
+ "M05_island_stands_up": {
+  "norm_lufs": -16.222,
+  "_why": "filled file is 0.222 LU louder; keeps the v1 cue gain"
+ }
+}

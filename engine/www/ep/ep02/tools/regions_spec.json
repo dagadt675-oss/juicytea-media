@@ -445,7 +445,11 @@
    ],
    "patch": {
     "parent": "oahu_nuuanu",
-    "feather_m": 600
+    "feather_m": 600,
+    "grid": [
+     640,
+     504
+    ]
    },
    "baker": "oahu_patch.py",
    "detail": {

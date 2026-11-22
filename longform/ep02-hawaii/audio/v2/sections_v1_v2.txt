@@ -1,0 +1,29 @@
+music stem (after duck), median 0.4 s RMS dBFS per spotted section; spread = loudest - quietest section
+M04_nuuanu_drain_reveal
+   drain to the deep                  mid   v1  -42.6  v2  -42.6
+   blocks surfacing                   high  v1  -42.6  v2  -42.6
+   reveal: the debris field           high  v1  -38.2  v2  -38.2
+   Manhattan and 100 miles            mid   v1  -38.8  v2  -37.7
+   creeping flank and the question    mid   v1  -36.1  v2  -36.1
+   spread v1 6.5  v2 6.5
+M05_island_stands_up
+   drain all the way                  high  v1  -46.0  v2  -46.0
+   THE STAND-UP                       high  v1  -38.9  v2  -38.9
+   high shoreline, going and going    mid   v1  -35.8  v2  -35.8
+   the trench clue                    low   v1  -35.5  v2  -35.6
+   Everest at the same scale          mid   v1  -51.3  v2  -46.9
+   the summit road                    low   v1  -38.6  v2  -38.6
+   Mauna Loa, the real giant          high  v1  -45.7  v2  -45.1
+   spread v1 15.7  v2 11.3
+M11_losses_graves_to_darwin_point
+   the losses                         low   v1  -41.4  v2  -41.2
+   found, far out, three miles down   low   v1  -41.1  v2  -40.1
+   war graves                         low   v1  -42.6  v2  -43.0
+   Kure and Darwin's blue             low   v1  -42.2  v2  -39.7
+   past the Darwin Point to Kamchatka mid   v1  -41.5  v2  -38.9
+   every volcano had to start somewhe mid   v1  -41.3  v2  -47.9
+   spread v1 1.5  v2 9.0
+M13_payoff_awe
+   THE HIT: 56,000 ft                 high  v1  -35.3  v2  -37.9
+   never get to see                   low   v1  -32.6  v2  -39.2
+   spread v1 2.7  v2 1.3

@@ -120,7 +120,7 @@ uniform vec3 basaltCol, sedCol, reefCol, tubCol, lineCol;
 uniform float reefAmt, tubM, tubAmt, oldLine, lineW, detail;
 uniform sampler2D maskTex; uniform vec4 maskBB; uniform float maskOn, heroAmt, dimAmt; uniform vec3 heroCol;
 uniform vec4 clipN, capBB; uniform float heroPass, seaMat, nearAmt, landLift; uniform vec2 lineFar;
-uniform sampler2D hTexF, dVeg, dRock, dSoil, cresTex; uniform float crisp, colBias, colSharp, detAmt, detRel, colRes, cresOn; uniform vec2 detFar;
+uniform sampler2D hTexF, dVeg, dRock, dSoil, cresTex; uniform float crisp, colBias, colSharp, detAmt, detRel, colRes, cresOn, steepAmt; uniform vec2 detFar;
 varying vec2 vUv; varying vec3 vW; varying vec2 vD;
 // heights for the shading's central differences and cavity: with crisp on, a bilinear of the float32 grid (4 texelFetch), so ground
 // that the bicubic path leaves out (kB = 0: a height texel under about a pixel along the foreshortened axis) is not shaded from half
@@ -300,6 +300,7 @@ void main(){
   // patches, re-bakes), full from about 2 px; each octave also fades out once the imagery resolves its scale (octW) and where it is
   // finer than the pixel (octF). The pattern belongs to the ground, so neither it nor its fade swims when the camera moves.
   vec2 dpx = dFdx(vD), dpy = dFdy(vD);
+  float hvx = dFdx(h) * vex, hvy = dFdy(h) * vex;   // displayed height (m) per pixel, for the steep faces' projections
   float pfm = max(min(length(dpx), length(dpy)), 1e-4);
   float texM = (bb.z - bb.x) * ${(KM_DEG * 1000).toFixed(1)} * cos(lat) / float(textureSize(colTex, 0).x);
   // the colour map's real resolution (m): its texel, or the coarser source imagery baked into it (colRes: HLS 30 m, NAIP 0.6 m);
@@ -315,6 +316,27 @@ void main(){
   float kD = detAmt * fadeD * smoothstep(0.8, 2.0, res / pfm) * (1.0 - smoothstep(16.0, 28.0, pfm)) * (1.0 - smoothstep(6.0, 20.0, level - h));
   // dbg 6: R = log2(res) / 5 (1 m black, 32 m full), G = log2(res / pixel footprint) / 4 (1 px black, 16 px full), B = kD
   if (dbg > 5.5 && dbg < 6.5) { gl_FragColor = vec4(clamp(log2(res) / 5.0, 0.0, 1.0), clamp(log2(res / pfm) / 4.0, 0.0, 1.0), kD, 1.0); return; }
+  // steep faces (2026-11-16; steepAmt, 1 by default, scales with detAmt, so it is off wherever detail is off): on a cliff the top-down maps
+  // are stretched down the fall line (a colour texel spans res across the face and res x slope down it), and so was the top-down
+  // detail. There the detail is projected on the two vertical planes instead (biplanar: metres east or south from the 4 km anchor
+  // against the displayed height, world-locked like the rest), weighted by the face's direction, from a displayed slope of about
+  // 0.9 to 1.8 (42-61 degrees). Gated like kD with the face's own pixel footprint and the colour's resolution along the face; the
+  // top-down detail gives way to it there.
+  // the face's slope is read over about 12 m or 3 height texels (the longer): the gradient of 1-2 m lidar flips across 45 degrees from
+  // metre to metre (micro-relief, terraced interpolation bands), which would switch the projection on and off in patches
+  vec2 sxy = vec2(gx, gy);
+  if (detAmt * steepAmt > 0.0 && fadeD > 0.0) {
+    vec2 mU = vec2((bb.z - bb.x) * cos(lat), bb.w - bb.y) * ${(KM_DEG * 1000).toFixed(1)}, Lu = max(3.0 * texel, 12.0 / mU);
+    sxy = vec2(Hm(vUv + vec2(Lu.x, 0.0)) - Hm(vUv - vec2(Lu.x, 0.0)), Hm(vUv + vec2(0.0, Lu.y)) - Hm(vUv - vec2(0.0, Lu.y))) * vex / (2.0 * Lu * mU);
+  }
+  float sD = length(sxy), stW = steepAmt * smoothstep(0.9, 1.8, sD);
+  float aX = pow(abs(sxy.x), 4.0), aZ = pow(abs(sxy.y), 4.0), wX = aX / max(aX + aZ, 1e-12);
+  vec2 sXx = vec2(dpx.y, -hvx), sXy = vec2(dpy.y, -hvy), sZx = vec2(dpx.x, -hvx), sZy = vec2(dpy.x, -hvy);
+  float pfS = mix(max(min(length(sZx), length(sZy)), 1e-4), max(min(length(sXx), length(sXy)), 1e-4), wX), resF = res * sqrt(1.0 + sD * sD);
+  float gS = fadeD * smoothstep(0.8, 2.0, resF / pfS) * (1.0 - smoothstep(16.0, 28.0, pfS)) * (1.0 - smoothstep(6.0, 20.0, level - h)) * smoothstep(-6.0, 4.0, h);
+  float kS = detAmt * stW * gS;
+  // dbg 8: the steep pass (R = the slope weight, G = its gate, B = its strength)
+  if (dbg > 7.5 && dbg < 8.5) { gl_FragColor = vec4(stW, gS, kS, 1.0); return; }
   if (kD > 0.002) {
     float onL = smoothstep(-6.0, 4.0, h), s3 = land.r + land.g + land.b + 1e-4, lL = dot(land, vec3(0.2126, 0.7152, 0.0722));
     float exg = (2.0 * land.g - land.r - land.b) / s3, chr = (max(land.r, max(land.g, land.b)) - min(land.r, min(land.g, land.b))) / (max(land.r, max(land.g, land.b)) + 1e-4);
@@ -331,7 +353,7 @@ void main(){
     vec3 W = vec3(wV * fo, (1.0 - wV - wS) * rkL, (1.0 - wV - wS) * (1.0 - rkL) + wS + wV * (1.0 - fo));
     float rkS = 0.5 * smoothstep(0.035, 0.11, slope);
     W = mix(vec3(0.0, rkS, 1.0 - rkS), W, onL);
-    float amp = kD * (1.0 - 0.75 * snow) * mix(0.5, 1.0, onL);
+    float amp = kD * (1.0 - 0.75 * snow) * mix(0.5, 1.0, onL) * (1.0 - stW * gS);
     // dbg 7: the detail classes (R canopy, G rock and lava, B soil, grass and sand) times the strength
     if (dbg > 6.5 && dbg < 7.5) { gl_FragColor = vec4(W * amp, 1.0); return; }
     // variant fields (stochastic tiling): cells of 125 m and 500 m (and 25 m for the soil's finest), whole fractions of 4 km;
@@ -372,6 +394,43 @@ void main(){
     alb *= mix(vec3(1.0), mod3, amp);
     n = normalize(n / max(n.y, 0.08) - vec3(G.x, 0.0, G.y) * vex * detRel * amp);
     ao *= clamp(1.0 + 0.8 * Hd * amp, 0.55, 1.15);
+  }
+  if (kS > 0.002) {   // the steep pass: rock (blocks, outcrops, grit) or, where the colour is green, plants (crowns, clumps, leaves)
+    float s3 = land.r + land.g + land.b + 1e-4, lL = dot(land, vec3(0.2126, 0.7152, 0.0722));
+    float vS = smoothstep(0.02, 0.10, (land.g - max(land.r, land.b)) / s3) * smoothstep(0.02, 0.10, (2.0 * land.g - land.r - land.b) / s3);
+    float chr = (max(land.r, max(land.g, land.b)) - min(land.r, min(land.g, land.b))) / (max(land.r, max(land.g, land.b)) + 1e-4);
+    float amp = kS * (1.0 - 0.75 * smoothstep(0.28, 0.5, lL) * (1.0 - smoothstep(0.08, 0.2, chr)));
+    float ra = octW(5.0, resF) * octF(5.0, pfS), rb = octW(20.0, resF) * octF(20.0, pfS), rc = octW(1.2, resF) * octF(1.2, pfS);
+    float va = octW(6.0, resF) * octF(6.0, pfS), vb = octW(25.0, resF) * octF(25.0, pfS), vc = octW(1.5, resF) * octF(1.5, pfS);
+    vec3 M = vec3(0.0), P = vec3(0.0); float Hs = 0.0;
+    for (int k = 0; k < 2; k++) {   // k 0: the plane facing east-west (u = metres south), k 1: facing north-south (u = metres east)
+      float w = k == 0 ? wX : 1.0 - wX;
+      if (w < 0.03) continue;
+      vec2 p = vec2(k == 0 ? vD.y : vD.x, -h * vex), px = k == 0 ? sXx : sZx, py = k == 0 ? sXy : sZy;
+      vec3 Tu = k == 0 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+      vec3 m = vec3(1.0); vec2 g = vec2(0.0); float hh = 0.0;
+      if (vS < 0.99) {
+        vec4 a = ra > 0.03 ? ra * dTap(dRock, p, px, py, 4000.0 / 127.0, 0.0, vec2(0.41, 0.17)) : vec4(0.0);
+        vec4 b = rb > 0.03 ? rb * dTap(dRock, p, px, py, 4000.0 / 33.0, 1.0, vec2(0.63, 0.29)) : vec4(0.0);
+        vec4 c = rc > 0.03 ? rc * dTap(dRock, p, px, py, 4000.0 / 509.0, 0.0, vec2(0.11, 0.77)) : vec4(0.0);
+        float hr = a.x + 0.6 * b.x + 0.4 * c.x;
+        m = mix(m, vec3(clamp(1.0 + 0.8 * hr + 0.35 * a.w, 0.4, 1.5)), 1.0 - vS); g += (1.0 - vS) * (1.6 * a.yz + 4.5 * b.yz + 0.3 * c.yz); hh += (1.0 - vS) * hr;
+      }
+      if (vS > 0.01) {
+        vec4 a = va > 0.03 ? va * dTap(dVeg, p, px, py, 4000.0 / 61.0, 1.0, vec2(0.27, 0.58)) : vec4(0.0);
+        vec4 b = vb > 0.03 ? vb * dTap(dVeg, p, px, py, 4000.0 / 17.0, 0.0, vec2(0.83, 0.12)) : vec4(0.0);
+        vec4 c = vc > 0.03 ? vc * dTap(dVeg, p, px, py, 4000.0 / 263.0, 1.0, vec2(0.49, 0.91)) : vec4(0.0);
+        a *= 0.45 + 1.1 * clamp(b.x + 0.5, 0.0, 1.0);
+        float hv = a.x + 0.8 * b.x + 0.25 * c.x;
+        m = mix(m, vec3(clamp(1.0 + 0.8 * hv, 0.45, 1.35)) * (1.0 + a.w * vec3(0.20, 0.11, -0.26) + b.w * vec3(0.16, 0.09, -0.14)), vS);
+        g += vS * (2.0 * a.yz + 5.5 * b.yz + 0.35 * c.yz); hh += vS * hv;
+      }
+      // bump on the face: n' = n - dd/du Tu - dd/dv Tv (v points down: Tv = -y), whichever way the face looks
+      M += w * m; P += w * (g.y * vec3(0.0, 1.0, 0.0) - g.x * Tu); Hs += w * hh;
+    }
+    alb *= mix(vec3(1.0), M, amp);
+    n = normalize(n + P * detRel * amp);
+    ao *= clamp(1.0 + 0.8 * Hs * amp, 0.55, 1.15);
   }
   float exposed = step(h, -1.0) * step(level, h);
   float above = h - level;
@@ -424,7 +483,7 @@ const WATER_FS = /* glsl */`
 ${COMMON}
 ${HEIGHT}
 uniform float level, time, sunI, dbg, foamAmt, foamPx, foamM, edgeGlow, fresMax, waveAmt, glintAmt, surfAmt;
-uniform vec3 wShallow, wMid, wDeep; uniform vec4 wRamp, clipN;
+uniform vec3 wShallow, wMid, wDeep; uniform vec4 wRamp, clipN; uniform float crisp, foamW;
 varying vec3 vW; varying vec2 vLL;
 float hBlend(vec2 ll){
   vec2 us = (ll - bbSkirt.xy) / (bbSkirt.zw - bbSkirt.xy);
@@ -441,8 +500,32 @@ float hBlend(vec2 ll){
     if (ud.x > 0.0 && ud.y > 0.0 && ud.x < 1.0 && ud.y < 1.0) { vec2 ed = min(ud, 1.0 - ud); hh = mix(hh, texture2D(hDet, ud).r, smoothstep(0.0, 0.025, min(ed.x, ed.y))); } }
   return hh;
 }
+// crisp (2026-11-16): the height gradient at ll (m per degree), from central differences one texel either side of each layer's
+// bilinear heights: continuous across texels (the bilinear's own gradient, which fwidth(depth) reads, jumps at every texel edge,
+// so the foam rim and the luminous shallow edge sized from it drew stair-stepped cyan rings on coarse grids: Maui Nui, O'ahu wides)
+vec2 gradL(sampler2D t, vec4 bb, vec2 u){
+  vec2 e = 1.0 / vec2(textureSize(t, 0));
+  return vec2(textureLod(t, u + vec2(e.x, 0.0), 0.0).r - textureLod(t, u - vec2(e.x, 0.0), 0.0).r,
+              textureLod(t, u + vec2(0.0, e.y), 0.0).r - textureLod(t, u - vec2(0.0, e.y), 0.0).r) / (2.0 * e * (bb.zw - bb.xy));
+}
+// blended across the layer edges with hBlend's own weights (finest first, a coarser layer read only where a finer one's weight is
+// under 1), so the rim width does not jump where a layer edge crosses a coast
+vec2 hGradW(vec2 ll){
+  vec2 g = vec2(0.0); float r = 1.0;
+  vec2 uh = (ll - bbHero.xy) / (bbHero.zw - bbHero.xy);
+  if (uh.x > 0.0 && uh.y > 0.0 && uh.x < 1.0 && uh.y < 1.0) {
+    if (detOn > 0.5) { vec2 ud = (ll - bbDet.xy) / (bbDet.zw - bbDet.xy);
+      if (ud.x > 0.0 && ud.y > 0.0 && ud.x < 1.0 && ud.y < 1.0) { vec2 ed = min(ud, 1.0 - ud); float w = smoothstep(0.0, 0.025, min(ed.x, ed.y)); g = w * gradL(hDet, bbDet, ud); r = 1.0 - w; } }
+    if (r > 0.0) { vec2 e = min(uh, 1.0 - uh); float w = smoothstep(0.0, 0.025, min(e.x, e.y)); if (w > 0.0) g += r * w * gradL(hHero, bbHero, uh); r *= 1.0 - w; }
+  }
+  if (r > 0.0) { vec2 um = (ll - bbMid.xy) / (bbMid.zw - bbMid.xy);
+    if (um.x > 0.0 && um.y > 0.0 && um.x < 1.0 && um.y < 1.0 && bbMid != bbSkirt) { vec2 em = min(um, 1.0 - um); float w = smoothstep(0.0, 0.025, min(em.x, em.y)); if (w > 0.0) g += r * w * gradL(hMid, bbMid, um); r *= 1.0 - w; } }
+  if (r > 0.0) g += r * gradL(hSkirt, bbSkirt, (ll - bbSkirt.xy) / (bbSkirt.zw - bbSkirt.xy));
+  return g;
+}
 void main(){
   if (clipN.w > 0.5 && dot(vW.xz, clipN.xy) + clipN.z > 0.0) discard;
+  vec2 dLx = dFdx(vLL), dLy = dFdy(vLL);
   float h = hBlend(vLL);
   float depth = level - h;
   if (depth <= 0.0) discard;
@@ -471,11 +554,27 @@ void main(){
   vec3 body = mix(wShallow, wMid, smoothstep(wRamp.x, wRamp.y, depth)); body = mix(body, wDeep, smoothstep(wRamp.z, wRamp.w, depth));
   body *= 0.55 + 0.45 * sunI / 3.0;
   // foam rim + luminous shallow edge, sized in screen pixels via the depth derivative
-  float fwD = max(fwidth(depth), 0.05);
+  float fwD = fwidth(depth);
+  if (crisp > 0.5) { vec2 gD = hGradW(vLL); fwD = abs(dot(gD, dLx)) + abs(dot(gD, dLy)); }   // the same measure, continuous
+  fwD = max(fwD, 0.05);
   float fr = foamPx * fwD + foamM;
   float pf = max(fwidth(vLL.x), fwidth(vLL.y));
   float fn = fbmL(vLL, 2400.0, pf) * 0.7 + fbmL(vLL, 300.0, pf) * 0.6;
-  float foam = foamAmt * (1.0 - smoothstep(fr * (0.35 + 0.5 * fn), fr * (0.7 + 0.6 * fn), depth));
+  // crisp (2026-11-16): the shore foam's constant depth band (foamM) is capped at what the bottom drops across foamW metres (default
+  // 40), so the band is at most about foamW wide; on a flat whose depth hovers inside foamM (Honolulu reef flat, ch4 10320; the Midway
+  // flats, ch5 13160) it otherwise covered the whole flat in noise-broken white stripes. The pixel term (foamPx) and the edge glow are
+  // unchanged; foamW 0 = the old band. The footprint never drops under ~1.5 px a side (no sub-pixel band breaking into dashes), and
+  // the foam reads the footprint's mean depth as well (dF), so a lone reef head or a 1-px dip in the data rings no foam speck.
+  float frF = fr, dF = depth;
+  if (crisp > 0.5 && foamW > 0.0 && foamAmt > 0.0) {
+    float mLat = ${(KM_DEG * 1000).toFixed(1)}, mLon = mLat * cos(radians(vLL.y));
+    float hw = max(0.5 * foamW, 1.5 * max(fwidth(vLL.x) * mLon, fwidth(vLL.y) * mLat));
+    vec2 dl = vec2(hw / mLon, hw / mLat);
+    float hxp = hBlend(vLL + vec2(dl.x, 0.0)), hxm = hBlend(vLL - vec2(dl.x, 0.0)), hyp = hBlend(vLL + vec2(0.0, dl.y)), hym = hBlend(vLL - vec2(0.0, dl.y));
+    frF = foamPx * fwD + min(foamM, length(vec2(hxp - hxm, hyp - hym)));
+    dF = max(depth, level - 0.25 * (hxp + hxm + hyp + hym));
+  }
+  float foam = foamAmt * (1.0 - smoothstep(frF * (0.35 + 0.5 * fn), frF * (0.7 + 0.6 * fn), dF));
   float edge = edgeGlow * (1.0 - smoothstep(fr, fr * 3.0, depth));
   // broken surf band a little offshore (surfAmt): white water where the bottom shoals, in streaks along the swell
   // (in metres of depth, faded where one metre of depth spans more than a pixel row: no streaks at grazing angles)
@@ -615,6 +714,16 @@ export function sampleH(hm, u, v) {  // bilinear, u,v in 0..1 (v from south)
   const i = x | 0, j = y | 0, fx = x - i, fy = y - j, d = hm.data, W = hm.W;
   return d[j * W + i] * (1 - fx) * (1 - fy) + d[j * W + i + 1] * fx * (1 - fy) + d[(j + 1) * W + i] * (1 - fx) * fy + d[(j + 1) * W + i + 1] * fx * fy;
 }
+// Catmull-Rom bicubic (interpolating), the same coordinates as sampleH: the mesh's estimate of the ground between its vertices
+export function sampleC(hm, u, v) {
+  const W = hm.W, H = hm.H, d = hm.data, x = Math.min(Math.max(u * (W - 1), 0), W - 1), y = Math.min(Math.max(v * (H - 1), 0), H - 1);
+  const i = Math.min(x | 0, W - 2), j = Math.min(y | 0, H - 2), fx = x - i, fy = y - j;
+  const x0 = Math.max(i - 1, 0), x3 = Math.min(i + 2, W - 1), y0 = Math.max(j - 1, 0), y3 = Math.min(j + 2, H - 1);
+  const ax = fx * (-0.5 + fx * (1 - 0.5 * fx)), bx = 1 + fx * fx * (-2.5 + 1.5 * fx), cx = fx * (0.5 + fx * (2 - 1.5 * fx)), dx = fx * fx * (-0.5 + 0.5 * fx);
+  const ay = fy * (-0.5 + fy * (1 - 0.5 * fy)), by = 1 + fy * fy * (-2.5 + 1.5 * fy), cy = fy * (0.5 + fy * (2 - 1.5 * fy)), dy = fy * fy * (-0.5 + 0.5 * fy);
+  const row = (r) => ax * d[r + x0] + bx * d[r + i] + cx * d[r + i + 1] + dx * d[r + x3];
+  return ay * row(y0 * W) + by * row(j * W) + cy * row((j + 1) * W) + dy * row(y3 * W);
+}
 export const C = (hex, k = 1) => new THREE.Color(hex).multiplyScalar(k);  // sRGB hex -> linear
 const V3 = (a) => new THREE.Vector3(...a);
 
@@ -661,12 +770,14 @@ export class HawaiiStage {
   // fourth, finest layer drawn inside its bbox (1-2 m lidar heights, sub-metre to metre aerial colour, faded into the region at its
   // edge). The region's own layer stays the hero (hero_bbox, hHero, heroMat and the world origin c0 are unchanged; meta.detail_bbox is
   // the patch), and heightAt reads the patch, so cameras with agl and labels sit on the surface that is drawn. o.noDetail skips it;
-  // o.detGrid sets its mesh (default at most 1280 vertices on the long side).
+  // o.detGrid sets its mesh (else the patch's own regions.json patch.grid, else at most 1280 vertices on the long side). With o.noDetail
+  // the patch still leaves the stack (2026-11-16: it used to stay in as the region's own layer, which moved the hero, the origin and
+  // the outermost layer of the stack).
   async loadRegion(root, name) {
     const idx = await cached('regions:' + root, async () => (await fetch(root + '/regions.json')).json());
     const R = idx.regions[name]; if (!R) throw new Error('unknown region ' + name);
     let stack = (this.o.stack || R.stack || [name]).slice();
-    const detName = !this.o.noDetail && stack.length > 1 && idx.regions[stack[0]]?.patch ? stack.shift() : null;
+    const patch = stack.length > 1 && idx.regions[stack[0]]?.patch ? stack.shift() : null, detName = this.o.noDetail ? null : patch;
     stack = stack.slice(0, 3); const big = [1500, 1000, 900], all = detName ? [detName, ...stack] : stack;
     const L = await Promise.all(all.map(async (n, j) => {
       const i = detName ? j - 1 : j;   // index in the 1-3 layer stack; -1 = the detail patch
@@ -675,7 +786,7 @@ export class HawaiiStage {
       const [col, ao, hT, cres] = await Promise.all([loadTex(d + '/' + r.files.color, true), loadTex(d + '/' + r.files.ao, false), cached('htex:' + d + '/' + r.files.h16, async () => heightTexture(hm)),
         r.files.cres ? loadTex(d + '/' + r.files.cres, false) : null]);
       const k = Math.min(1, (i < 0 ? 1280 : big[i]) / Math.max(...r.wh));  // mesh: at most 1500 / 1000 / 900 vertices on the long side (patch 1280), never more than the texels
-      const g = (i < 0 ? this.o.detGrid : i === 0 ? this.o.heroGrid : i === stack.length - 1 ? this.o.skirtGrid : this.o.midGrid) || [Math.max(2, Math.round(r.wh[0] * k)), Math.max(2, Math.round(r.wh[1] * k))];
+      const g = (i < 0 ? this.o.detGrid || r.patch?.grid : i === 0 ? this.o.heroGrid : i === stack.length - 1 ? this.o.skirtGrid : this.o.midGrid) || [Math.max(2, Math.round(r.wh[0] * k)), Math.max(2, Math.round(r.wh[1] * k))];
       // colRes: the real resolution of the colour (m), as texel_audit.js reads it: res.colour_src_m (detail_bake.py), else HLS 30 m,
       // MODIS 250 m, Blue Marble 500 m (the legacy Big Island hero and skirt: MODIS 250 m, 1000 m)
       const c = r.colour || {}, colRes = r.res?.colour_src_m ?? (n === 'bigisland' ? 250 : n === 'hawaii_skirt' ? 1000 : c.hls ? 30 : c.modis ? 250 : 500);
@@ -725,7 +836,7 @@ export class HawaiiStage {
         maskTex: this.maskU.tex, maskBB: this.maskU.bb, maskOn: this.maskU.on, heroAmt: this.maskU.heroAmt, dimAmt: this.maskU.dimAmt, heroCol: this.maskU.heroCol,
         clipN: this.clipU, capBB: { value: new THREE.Vector4(-1e4, -1e4, 1e4, 1e4) }, heroPass: { value: 0 }, seaMat: { value: 0 }, nearAmt: { value: 0 }, landLift: { value: 0 }, lineFar: { value: new THREE.Vector2(1e5, 2e5) },
         hTexF: { value: crisp ? heightTexture32(hm) : hTex }, dVeg: { value: det ? det.veg : blank }, dRock: { value: det ? det.rock : blank }, dSoil: { value: det ? det.soil : blank },
-        crisp: { value: 0 }, colBias: { value: 0 }, colSharp: { value: 0 }, colRes: { value: 0 }, cresTex: { value: blank }, cresOn: { value: 0 }, detAmt: { value: 0 }, detRel: { value: 1 }, detFar: { value: new THREE.Vector2(6, 16) },
+        crisp: { value: 0 }, colBias: { value: 0 }, colSharp: { value: 0 }, colRes: { value: 0 }, cresTex: { value: blank }, cresOn: { value: 0 }, detAmt: { value: 0 }, detRel: { value: 1 }, detFar: { value: new THREE.Vector2(6, 16) }, steepAmt: { value: 1 },
       }), vertexShader: TERRAIN_VS, fragmentShader: TERRAIN_FS,
     });
     // one mesh per layer; each coarser layer drops out of sight inside the next finer layer's bbox
@@ -738,12 +849,14 @@ export class HawaiiStage {
     L.forEach((l, i) => { this.mats[i].uniforms.colRes.value = l.colRes || 0;   // the source resolution of each layer's colour (m)
       if (l.cres) { this.mats[i].uniforms.cresTex.value = l.cres; this.mats[i].uniforms.cresOn.value = 1; } });   // and per texel (cres.png)
     this.heroMat = this.mats[o0]; this.skirtMat = this.mats[L.length - 1];
-    L.forEach((l, i) => this.scene.add(new THREE.Mesh(this.grid(l.bbox, l.hm, l.grid), this.mats[i])));
+    // o.crisp: each mesh quad split along the diagonal that matches the ground between its vertices (grid(), diag 'mid')
+    const diag = this.o.diag ?? (crisp ? 'mid' : null);
+    L.forEach((l, i) => this.scene.add(new THREE.Mesh(this.grid(l.bbox, l.hm, l.grid, diag), this.mats[i])));
     this.waterMat = new THREE.ShaderMaterial({
       uniforms: Object.assign({}, this.U, HU, {
         bb: { value: new THREE.Vector4(...sb) }, level: { value: 0 }, yLevel: { value: 0 }, time: { value: 0 }, sunI: { value: 3.2 }, dbg: { value: 0 },
         foamAmt: { value: 0 }, foamPx: { value: 2.5 }, foamM: { value: 2.0 }, edgeGlow: { value: 0.6 }, fresMax: { value: 0.55 },
-        wRamp: { value: new THREE.Vector4(6, 120, 150, 900) }, waveAmt: { value: 0 }, glintAmt: { value: 0.08 }, surfAmt: { value: 0 }, clipN: this.clipU,
+        wRamp: { value: new THREE.Vector4(6, 120, 150, 900) }, waveAmt: { value: 0 }, glintAmt: { value: 0.08 }, surfAmt: { value: 0 }, clipN: this.clipU, crisp: { value: 0 }, foamW: { value: 40 },
         wShallow: { value: V3(WATERS.turq[0]) }, wMid: { value: V3(WATERS.turq[1]) }, wDeep: { value: V3(WATERS.turq[2]) },
       }),
       vertexShader: WATER_VS, fragmentShader: WATER_FS, transparent: true, depthWrite: false,
@@ -761,14 +874,24 @@ export class HawaiiStage {
     this.postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   }
   xyz(lon, lat, hm = 0) { return new THREE.Vector3((lon - this.c0.lon) * KM_DEG * Math.cos(lat * Math.PI / 180), hm * this.vex * 0.001, -(lat - this.c0.lat) * KM_DEG); }
-  grid(bb, hm, [nx, ny]) {
-    const pos = new Float32Array(nx * ny * 3), uv = new Float32Array(nx * ny * 2);
+  // diag (heights only; null = every quad split b-c, the legacy mesh): 'mid' splits each quad along the diagonal whose midpoint is closer
+  // to the ground at the quad centre (Catmull-Rom of the height grid), so a ridge or valley crossing the grid diagonally keeps its crest
+  // line instead of a sawtooth of tents (zigzag ridge silhouettes, Maui Nui ride f965); 'dh' along the diagonal with the smaller height
+  // difference (ties keep b-c)
+  grid(bb, hm, [nx, ny], diag = null) {
+    const pos = new Float32Array(nx * ny * 3), uv = new Float32Array(nx * ny * 2), hv = diag && hm ? new Float32Array(nx * ny) : null;
     for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
-      const u = i / (nx - 1), v = j / (ny - 1), lon = bb[0] + u * (bb[2] - bb[0]), lat = bb[1] + v * (bb[3] - bb[1]), k = j * nx + i;
-      const p = this.xyz(lon, lat, hm ? sampleH(hm, u, v) : 0); pos[k * 3] = p.x; pos[k * 3 + 1] = p.y; pos[k * 3 + 2] = p.z; uv[k * 2] = u; uv[k * 2 + 1] = v;
+      const u = i / (nx - 1), v = j / (ny - 1), lon = bb[0] + u * (bb[2] - bb[0]), lat = bb[1] + v * (bb[3] - bb[1]), k = j * nx + i, h = hm ? sampleH(hm, u, v) : 0;
+      const p = this.xyz(lon, lat, h); pos[k * 3] = p.x; pos[k * 3 + 1] = p.y; pos[k * 3 + 2] = p.z; uv[k * 2] = u; uv[k * 2 + 1] = v; if (hv) hv[k] = h;
     }
     const idx = new Uint32Array((nx - 1) * (ny - 1) * 6); let n = 0;
-    for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i, b = a + 1, c = a + nx, d = c + 1; idx[n++] = a; idx[n++] = b; idx[n++] = c; idx[n++] = b; idx[n++] = d; idx[n++] = c; }
+    for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i, b = a + 1, c = a + nx, d = c + 1;
+      let ad = false;
+      if (hv) { const hA = hv[a], hB = hv[b], hC = hv[c], hD = hv[d];
+        if (diag === 'dh') ad = Math.abs(hA - hD) < Math.abs(hB - hC);
+        else { const hc = sampleC(hm, (i + 0.5) / (nx - 1), (j + 0.5) / (ny - 1)); ad = Math.abs(0.5 * (hA + hD) - hc) < Math.abs(0.5 * (hB + hC) - hc); } }
+      if (ad) { idx[n++] = a; idx[n++] = b; idx[n++] = d; idx[n++] = a; idx[n++] = d; idx[n++] = c; }
+      else { idx[n++] = a; idx[n++] = b; idx[n++] = c; idx[n++] = b; idx[n++] = d; idx[n++] = c; } }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(new THREE.BufferAttribute(idx, 1));
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e5); return g;
   }

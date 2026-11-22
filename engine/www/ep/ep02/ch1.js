@@ -112,6 +112,10 @@ export async function build(api, kit, scenes) {
   const tOne = lead('one');                                                    // ONE ISLAND lands 3 frames before the word
   const TA = tOne + 2.4;                                                       // hand-off to the s007 dive (ONE ISLAND readable 2.1 s)
   const REG = 'mauinui', STAGE = CH1_STAGE;
+  // the ice shot (TA to the ride cut, frames 640-743) sees East Molokai only from far off: its own stage leaves out the detail patch
+  // (cheaper frames, no visible change). The demo keeps CH1_STAGE: ONE ISLAND (frame 600) flies low over East Molokai and loses its
+  // gullies without the patch (gate 2026-11-22); so do the ride (which flies over it) and the island outlines
+  const STAGE_ND = Object.assign({}, CH1_STAGE, { noDetail: true });
   const PC = '/ep/ep02/img/postcard_bigisland.jpg';
   let postcard = null;
   try { const r = await fetch(PC, { method: 'HEAD' }); if (r.ok) { await api.loadImages([PC]); postcard = kit.makePostcard(api.img(PC), 'HAWAIʻI'); } } catch (e) { /* fallback below */ }
@@ -251,7 +255,7 @@ export async function build(api, kit, scenes) {
   function pickCam(c) { return { lon: c.lon, lat: c.lat, alt: c.alt, tLon: c.tLon, tLat: c.tLat, tH: c.tH, fov: c.fov, shiftX: c.shiftX || 0, shiftY: c.shiftY || 0, dYaw: c.dYaw || 0, dPitch: c.dPitch || 0 }; }
   const birds = [{ y0: 0.66, y1: 0.58, t0: tIce - 0.9, d: 2.0, s: 110, seed: 1 }, { y0: 0.74, y1: 0.67, t0: tIce - 0.65, d: 2.2, s: 92, seed: 2 }, { y0: 0.62, y1: 0.57, t0: tIce - 0.3, d: 2.0, s: 78, seed: 3 }];
   scenes.push(ready(kit.terrainShot({
-    id: 'ch1-ice', t0: TA, t1: TC, region: REG, stage: STAGE, cam: (lt) => Object.assign(camB0(lt + TA), { near: 0.05, far: 900 }), level: L400,
+    id: 'ch1-ice', t0: TA, t1: TC, region: REG, stage: STAGE_ND, cam: (lt) => Object.assign(camB0(lt + TA), { near: 0.05, far: 900 }), level: L400,
     state: (lt) => blend(st0, GOLD, E.inOut(F.clamp(lt / 1.6))),
     mask: (lt) => { const f = E.inOut(F.clamp(lt / 0.7)); return isl.mnTex && f < 1 ? { tex: isl.mnTex, bb: isl.one.g.bb, hero: 0.38 * (1 - f), dim: 0.75 * (1 - f) } : null; },
     world(ctx, lt) {

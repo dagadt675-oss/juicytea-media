@@ -944,7 +944,11 @@
    ],
    "patch": {
     "parent": "oahu_nuuanu",
-    "feather_m": 600
+    "feather_m": 600,
+    "grid": [
+     640,
+     504
+    ]
    },
    "dir": "/ep/ep02/data/oahu_windward",
    "files": {

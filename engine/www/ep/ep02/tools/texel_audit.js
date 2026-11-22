@@ -31,8 +31,14 @@ const IDX = JSON.parse(fs.readFileSync(path.join(WWW, 'ep/ep02/data/regions.json
 
 // ---------- effective resolutions of a layer (m): colour source and finest height source
 const LEGACY = { hero: 'bigisland', skirt: 'hawaii_skirt' };
+// bigisland's colour is 30 m (HLS) only on the land inside the refined boxes (lab/hawaii/tools/hero_refine.py; the boxes are in
+// lab/hawaii/data/meta.json colour_refine.boxes); the rest of the layer stays MODIS 250 m, although regions.json gives the whole layer
+// res.colour_src_m 30. Water points are skipped anyway, so the box alone decides.
+const REFINE = (() => { try { return Object.values(JSON.parse(fs.readFileSync(path.join(WWW, 'lab/hawaii/data/meta.json'))).colour_refine?.boxes || {}).map(b => b.bbox); }
+  catch (e) { console.warn('texel_audit: no colour_refine boxes in lab/hawaii/data/meta.json (' + e.message + '): bigisland colour counted as 250 m'); return []; } })();
 function colSrcM(name, lon, lat) {
   const r = IDX[LEGACY[name] || name] || {};
+  if ((LEGACY[name] || name) === 'bigisland') return REFINE.some(b => lon >= b[0] && lon <= b[2] && lat >= b[1] && lat <= b[3]) ? 30 : 250;
   if (r.res?.colour_src_m) return r.res.colour_src_m;
   if ((LEGACY[name] || name) === 'bigisland') return 250;       // hawaii_bake.py: 48-day MODIS composite
   if ((LEGACY[name] || name) === 'hawaii_skirt') return 1000;

@@ -1,0 +1,19 @@
+recursive diff mix_ep02_v1.json -> mix_ep02_v2.json (every other value identical)
+/amb[8]/file : amb_dawn_lapping_v0.wav -> amb_dawn_lapping_v0_gated.wav
+/amb[11]/file : amb_drained_seabed_v0.wav -> amb_drained_seabed_v0_gated.wav
+/amb[14]/file : amb_drained_seabed_v0.wav -> amb_drained_seabed_v0_gated.wav
+/amb[18]/file : amb_drained_seabed_v0.wav -> amb_drained_seabed_v0_gated.wav
+/amb[40]/file : amb_drained_seabed_v0.wav -> amb_drained_seabed_v0_gated.wav
+/amb[42]/file : amb_drained_seabed_v0.wav -> amb_drained_seabed_v0_gated.wav
+/music[3]/file : M04_nuuanu_drain_reveal_9bd109a4a6.mp3 -> M04_nuuanu_drain_reveal_filled.wav
+/music[3]/norm_lufs : -16.0 -> -16.014
+/music[4]/file : M05_island_stands_up_58643ead2b.mp3 -> M05_island_stands_up_filled.wav
+/music[4]/norm_lufs : -16.0 -> -16.222
+/music[10]/file : M11_losses_graves_to_darwin_point_364c797072.mp3 -> M11_losses_graves_to_darwin_point_take2_8390ebef8f.mp3
+/music[10]/raw_lufs : -16.3 -> -20.4
+/music[12]/file : M13_payoff_awe_5a07be7028.mp3 -> M13_payoff_awe_take3_tail.wav
+/music[12]/norm_lufs : -16.0 -> -16.646
+/music[12]/offset : 0.0 -> 0.49
+/music[12]/raw_lufs : -17.4 -> -11.9
+/version : v1 -> v2
+changed keys: ['file', 'norm_lufs', 'offset', 'raw_lufs', 'version']

@@ -262,7 +262,9 @@ export class Hub {
     this.perf[key] = (this.perf[key] || 0) + t1 - t0;
   }
   // vex is baked into the mesh: a 2x shot uses its own stage (PLAYBOOK_craft 8: 1.0 for height comparisons, 2x at most elsewhere)
-  // o: {origin: {lon, lat} (keep a framing identical to another stage), midGrid: [nx, ny] (mesh of the middle layer)}
+  // o: {origin: {lon, lat} (keep a framing identical to another stage), midGrid: [nx, ny] (mesh of the middle layer),
+  //     noDetail: true (this stage leaves out the region's close-up detail patch: cheaper wide shots), stack: [layer names] (the
+  //     region's own stack, finest first, overridden)}. o is part of the cache key: a shot with other options gets its own stage.
   terrain(region = 'bigisland', vex = 1, o = {}) {
     if (region === 'hawaii') region = 'bigisland';
     const R = REGIONS[region], idx = this.regionIndex?.[region];
@@ -272,7 +274,7 @@ export class Hub {
       const d = this.draft;
       const S = new HawaiiStage(this.W, this.H, { renderer, samples: d ? 0 : 4, vex, crisp: this._crisp, origin: o.origin ?? R?.origin ?? idx?.origin, heroGrid: d ? [700, 700] : undefined, skirtGrid: d ? [450, 340] : undefined,
         midGrid: d ? undefined : o.midGrid, anchorShift: this.api.Q?.anchorShift,   // anchorShift: test flag (picture must not change)
-        noDetail: !!this.api.Q?.noPatch });   // {"noPatch":1}: test flag, the close-up detail patches left out (before/after stills)
+        stack: o.stack, noDetail: !!this.api.Q?.noPatch || !!o.noDetail });   // {"noPatch":1}: test flag, every detail patch left out
       if (stacked) await S.loadRegion('/ep/ep02/data', region); else await S.load(R.dir);
       S.region = region; return S;
     });
@@ -288,7 +290,8 @@ export class Hub {
 
 // ============================================================================================ regions, places, named cameras
 // A region = one baked data folder (lab/hawaii/tools/fetch_hawaii.sh; bbox via HB/SB env vars, see API.md).
-// 'bigisland' is the legacy lab/hawaii/data bake (hero 4096^2 over the main islands + ETOPO 30" skirt): frame 1 and the thumbnails
+// 'bigisland' is the legacy lab/hawaii/data bake (hero colour 8192^2 over the main islands, HLS 30 m detail on the Big Island's land
+// (lab/hawaii/tools/hero_refine.py, box in data/meta.json colour_refine) + ETOPO 30" skirt): frame 1 and the thumbnails
 // were rendered from it. Other regions (ep/ep02/data/regions.json, baked by lab/hawaii/tools/region_bake.py) load through
 // HawaiiStage.loadRegion when the stage supports it; until then terrainShot falls back to 'bigisland' and logs it.
 export const REGIONS = {
@@ -338,7 +341,10 @@ export const TERRAIN_DEFAULTS = {
     // close-up quality (2026-11-09, owner: close terrain looked blurry and pixelated): crisp = bicubic normals (float32 heights), AO
     // and Catmull-Rom colour where texels are magnified; detAmt = detail texturing (canopy, rock, soil) faded in where the colour map
     // is magnified and the camera is within detFar km; detRel = detail relief; colBias = colour mip bias (0: three's default)
-    crisp: 1, detAmt: 1, detRel: 1, detFar: [6, 16], colBias: 0, colSharp: 0.6 },
+    crisp: 1, detAmt: 1, detRel: 1, detFar: [6, 16], colBias: 0, colSharp: 0.6,
+    // r3 shader (2026-11-16): reset on every shot, so a per-shot switch (foamW 0 = the old shore-foam band, steepAmt 0 = no steep-face
+    // pass) cannot leak into the next shot on the same cached stage; these are the materials' own defaults (no picture change)
+    foamW: 40, steepAmt: 1 },
   post: { exposure: 1.2, sat: 1.2, contrast: 1.1, lift: 0 },
 };
 export const LINE = { cream: [1.15, 1.1, 1.0], cyan: [0.55, 1.6, 1.9], white: [1.3, 1.32, 1.32] };
@@ -1192,13 +1198,14 @@ export function makeUI(api) {
       const inF = Math.min(ax, W - ax, ay, H - ay); const A = (o.alpha ?? 1) * clamp((inF + px(20)) / px(80));
       if (A <= 0.002) return null;
       const an = side.endsWith('left') && side !== 'left' ? 'right' : side === 'left' ? 'right' : side === 'right' || side === 'above-right' ? 'left' : 'center';
-      const box = T.label(ctx, s, an === 'right' ? bx + w : an === 'left' ? bx : bx + w / 2, by + h / 2, { cap, p, accent: o.accent || PAL.hero, anchor: an, leader: o.pin === false ? null : [ax, ay], t: o.t, alpha: A });
+      const box = T.label(ctx, s, an === 'right' ? bx + w : an === 'left' ? bx : bx + w / 2, by + h / 2, { cap, p, accent: o.accent || PAL.hero, anchor: an, leader: o.pin === false ? null : [ax, ay], t: o.t, alpha: A, sync: true });   // sync: plate opens with its text
       if (box) { Q.labels.push(box); Q.words += words(s); zone(box, s, A * p); }
       return box;
     },
     // odometer NUMBER with grouping commas: value (may be fractional while rolling), digits fixed by `to`; prefix word, unit.
     // o.win = {x, y, w, h}: the window digits roll inside (the gauge plate); default a box per digit. o.lead0 = false hides
-    // leading zeros (they fade in as the value reaches them). align 'right' keeps the last digit fixed while the value grows.
+    // leading zeros completely: a hidden digit appears only as its 1 rolls in (its comma and the minus follow at the same moment),
+    // never as a faint 0. align 'right' keeps the last digit fixed while the value grows.
     number(ctx, v, x, y, o = {}) {
       const cap = floor(o.cap || CAP.number, 'must'), capP = px(cap), fam = T.FAM.num, to = o.to ?? v, digits = String(Math.floor(Math.abs(to))).length;
       const size = T.sizeFor(fam, capP); ctx.save(); ctx.font = `400 ${size}px "${fam}"`; const dw = ctx.measureText('0').width * 1.02, comma = ctx.measureText(',').width * 1.1; ctx.restore();
@@ -1209,25 +1216,28 @@ export function makeUI(api) {
       const tot = pw + numW + uw; if (o.measure) return { w: tot, h: capP };
       let cx = o.align === 'right' ? x - tot : o.align === 'center' ? x - tot / 2 : x;
       const win = o.win, lead0 = o.lead0 !== false;
+      // how far a digit slot that may be a leading zero shows (lead0 false): 1 once the value reaches its base, 0 below it except while
+      // the 1 rolls in over the last unit (the same ramp as the incoming digit's own alpha below), so no ghost 0 before the roll
+      const vis = (base) => n >= base ? 1 : clamp((n - (base - 1) - 0.25) * 1.6);
       if (o.prefix) { T.txt(ctx, o.prefix, cx, y, { fam: T.FAM.label, cap: pcap, color: o.prefixColor || PAL.text, stroke: !win, alpha: A }); cx += pw; Q.words += words(o.prefix); }
       if (o.minus) {
         // with hidden leading zeros the minus sits just left of the first visible digit (slides as digits fade in)
-        let hid = 0; if (o.lead0 === false) for (let i = digits - 1; i > 0; i--) { const base = Math.pow(10, i); hid += 1 - clamp((n - base * 0.92) / (base * 0.08)) ; if (n >= base) break; }
+        let hid = 0; if (o.lead0 === false) for (let i = digits - 1; i > 0; i--) { const base = Math.pow(10, i); hid += 1 - vis(base); if (n >= base) break; }
         const mx = cx + hid * dw + (hid >= 3 ? comma : 0);
         const ma = A * clamp(o.minusA ?? 1); ctx.save(); ctx.globalAlpha *= ma; if (!win) { ctx.fillStyle = 'rgba(5,9,18,0.92)'; const mw = dw * 0.5, mh = capP * 0.11 + px(6); ctx.fillRect(mx + dw * 0.04 - px(3), y - capP * 0.5 - mh / 2, mw + px(6), mh); }
         ctx.fillStyle = col; ctx.fillRect(mx + dw * 0.04, y - capP * 0.5 - capP * 0.055, dw * 0.5, capP * 0.11); ctx.restore(); cx += dw * 0.62; }
       for (let i = digits - 1; i >= 0; i--) {
         const base = Math.pow(10, i), d = Math.floor(n / base) % 10, rest = n % base, roll = i === 0 ? n % 1 : Math.max(0, rest - (base - 1));
-        const la = lead0 || i === 0 ? 1 : clamp((n - base * 0.92) / (base * 0.08));
-        if (la > 0.002) {
+        const lz = !lead0 && i > 0 && n < base;           // a hidden leading zero: only its incoming 1 may draw, as it rolls in
+        if (!lz || roll > 0.001) {
           ctx.save(); ctx.beginPath(); if (win) ctx.rect(win.x, win.y, win.w, win.h); else ctx.rect(cx - capP * 0.3, y - capP * 1.1, dw + capP * 0.6, capP * 1.19); ctx.clip();
-          const aOut = clamp(1 - roll * 1.6), aIn = clamp((roll - 0.25) * 1.6), st = !win;
+          const aOut = lz ? 0 : clamp(1 - roll * 1.6), aIn = clamp((roll - 0.25) * 1.6), st = !win, la = 1;
           if (aOut > 0.002) T.txt(ctx, String(d), cx + dw / 2, y - roll * capP * 1.3, { fam, cap, color: col, align: 'center', stroke: st, alpha: A * aOut * la });
           if (roll > 0.001 && aIn > 0.002) T.txt(ctx, String((d + 1) % 10), cx + dw / 2, y + (1 - roll) * capP * 1.3, { fam, cap, color: col, align: 'center', stroke: st, alpha: A * aIn * la });
           ctx.restore();
         }
         cx += dw;
-        if (i > 0 && i % 3 === 0) { const ca = lead0 ? 1 : clamp((n - base * 0.92) / (base * 0.08)); if (ca > 0.002) T.txt(ctx, ',', cx + px(2), y, { fam, cap, color: col, stroke: !win, alpha: A * ca }); cx += comma; }
+        if (i > 0 && i % 3 === 0) { const ca = lead0 ? 1 : vis(base); if (ca > 0.002) T.txt(ctx, ',', cx + px(2), y, { fam, cap, color: col, stroke: !win, alpha: A * ca }); cx += comma; }
       }
       if (o.unit) { T.txt(ctx, o.unit, cx + px(16), y, { fam, cap: ucap, color: col, stroke: !win, alpha: A }); Q.words += words(o.unit); }
       Q.words += 1;

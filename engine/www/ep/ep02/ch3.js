@@ -560,6 +560,9 @@ export async function build(api, kit, scenes) {
     return camOf(Object.assign({}, MKO, { d: MKO.d - 0.45 * k, heading: MKO.heading + 1 * k + wi + wo })); };   // 7 % push, a 1 deg follow
   const mkShot = kit.terrainShot({ id: 'ch3-gag-road', t0: tWo1, t1: tWb1, region: 'maunakea', preset: 'today', sun: [210, 34], state: { post: { sat: 0.8 } },
     cam: (lt) => mkCam(tWo1 + lt),
+    // detail texturing off inside the two whips (first 0.1 s, and from 0.1 s after the whip-out starts), where the blur is 80+ px
+    // wide: it only cost GPU time there (+60 % per blur sample at 7398); the hold keeps it
+    set: (lt) => ({ detAmt: (lt < 0.1 || tWo1 + lt > tWb0 + 0.1) ? 0 : 1 }),
     world(ctx, lt, t, view) {
       // the road ribbon (traced from the USGS transportation layer), draped on the terrain
       const runs = druns(view, ROAD, 2, 1);
